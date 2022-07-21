@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: KNIME Scripting Utilities
+Bundle-SymbolicName: org.knime.scripting.editor;singleton:=true
+Bundle-Version: 4.7.0.qualifier
+Bundle-Vendor: KNIME AG, Zurich, Switzerland
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Eclipse-BundleShape: dir
+Automatic-Module-Name: org.knime.scripting.editor
+Require-Bundle: org.knime.core;bundle-version="[4.7.0, 5.0.0)"
+Bundle-ClassPath: knime-scripting-editor.jar
+Export-Package: org.knime.scripting.editor,
+ org.knime.scripting.editor.lsp
