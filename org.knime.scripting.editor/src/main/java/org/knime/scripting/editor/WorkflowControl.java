@@ -66,10 +66,17 @@ public class WorkflowControl {
     }
 
     /**
-     * @return the node container
+     * @return the number of input port of the node
      */
-    public NodeContainer getNC() {
-        return m_nc;
+    public int getNrInPorts() {
+        return m_nc.getNrInPorts();
+    }
+
+    /**
+     * @return the number of output ports of the node
+     */
+    public int getNrOutPorts() {
+        return m_nc.getNrOutPorts();
     }
 
     /**
