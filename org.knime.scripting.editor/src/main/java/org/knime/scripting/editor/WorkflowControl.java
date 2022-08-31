@@ -50,6 +50,7 @@ package org.knime.scripting.editor;
 
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.workflow.FlowObjectStack;
 import org.knime.core.node.workflow.NodeContainer;
 
 /**
@@ -77,6 +78,13 @@ public class WorkflowControl {
      */
     public int getNrOutPorts() {
         return m_nc.getNrOutPorts();
+    }
+
+    /**
+     * @return the {@link FlowObjectStack} that is available at this node
+     */
+    public FlowObjectStack getFlowObjectStack() {
+        return m_nc.getFlowObjectStack();
     }
 
     /**
