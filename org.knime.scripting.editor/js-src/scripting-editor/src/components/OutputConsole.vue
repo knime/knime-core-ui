@@ -1,6 +1,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { ConsoleText, ScriptingService } from '../utils/scripting-service';
+import { Terminal } from 'xterm';
 
 export default Vue.extend({
     name: 'OutputConsole',
@@ -13,44 +14,32 @@ export default Vue.extend({
     };
     },
     mounted() {
-    // TODO(review) is this the right way to make the scripting service available?
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore type inference does not work!
+        // TODO(review) is this the right way to make the scripting service available?
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore type inference does not work!
         const scriptingService: ScriptingService = this.getScriptingService();
+
+        // Init XTerm js
+        const term = new Terminal({ convertEol: true, disableStdin: true, rows: 10, cols: 80 });
+        term.open(this.$refs.xterm as HTMLElement);
+
+        // TODO(AP-19343) resize the terminal with the window (maybe use xterm-addon-fit)
+
+        // Send text to the terminal
         scriptingService.registerConsoleEventHandler((text: ConsoleText) => {
-            this.lines.push({ ...text, index: this.lines.length });
+            term.write(text.text);
         });
     }
 });
 </script>
 
 <template>
-  <div class="output-console">
-    <ul>
-      <li
-        v-for="l in lines"
-        :key="l.index"
-      >
-        <div
-          v-if="l.stderr"
-          class="console-error"
-        >
-          ERROR: {{ l.text }}
-        </div>
-        <div v-else>
-          {{ l.text }}
-        </div>
-      </li>
-    </ul>
-  </div>
+  <div
+    ref="xterm"
+    class="terminal"
+  />
 </template>
 
-<style scoped lang="postcss">
-.output-console {
-  height: 100px;
-
-  .console-error {
-    color: #ff0000;
-  }
-}
+<style>
+@import 'xterm/css/xterm.css';
 </style>
