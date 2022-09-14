@@ -181,8 +181,11 @@ public class ScriptingService {
         }
     }
 
-    // TODO(AP-19334) javadoc
-    // TODO(AP-19334) re-think what we send to the frontend to update the console
+    /**
+     * A snippet of text that should be logged in the output console. Note that the snippet does not have to be a whole
+     * line. Also the text snippet can be part of the standard output (if {@link ConsoleText#stderr} is false of part of
+     * the standard error (otherwise).
+     */
     @SuppressWarnings("javadoc")
     public static final class ConsoleText {
         public final String text;

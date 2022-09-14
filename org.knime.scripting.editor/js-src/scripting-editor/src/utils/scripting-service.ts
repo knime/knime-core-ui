@@ -19,10 +19,9 @@ export const muteReactivity = (target: object, nonReactiveKeys?: string[], react
     }
 };
 
-// TODO(AP-19334) should we use other objects to provide console update to the frontend?
 export interface ConsoleText {
     text: string;
-    type: 'stdout' | 'stderr';
+    stderr: boolean;
 }
 
 export interface NodeSettings {

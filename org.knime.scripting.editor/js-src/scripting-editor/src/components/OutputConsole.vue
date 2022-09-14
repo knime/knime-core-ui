@@ -6,13 +6,6 @@ import { Terminal } from 'xterm';
 export default Vue.extend({
     name: 'OutputConsole',
     inject: ['getScriptingService'],
-    data() {
-        return {
-            lines: []
-        } as {
-      lines: { text: string; type: 'stdout' | 'stderr'; index: number }[];
-    };
-    },
     mounted() {
         // TODO(review) is this the right way to make the scripting service available?
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
