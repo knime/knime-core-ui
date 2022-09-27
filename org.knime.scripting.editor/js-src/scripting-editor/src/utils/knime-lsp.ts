@@ -4,13 +4,13 @@ import { MonacoLanguageClient,
     MonacoServices,
     MessageReader,
     MessageWriter,
-    DataCallback,
     Disposable,
     Message,
     DocumentSelector } from 'monaco-languageclient';
+import type { DataCallback } from 'monaco-languageclient';
 import { AbstractMessageReader, AbstractMessageWriter } from 'vscode-jsonrpc';
-import { NodeSettings, ScriptingService } from './scripting-service';
-
+import type { ScriptingService } from './scripting-service';
+import type { NodeSettings } from './scripting-service';
 class KnimeMessageReader
     extends AbstractMessageReader
     implements MessageReader {

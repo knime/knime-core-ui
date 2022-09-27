@@ -1,9 +1,10 @@
 <script lang="ts">
-import Vue from 'vue';
-import { ConsoleText, ScriptingService } from '../utils/scripting-service';
+import { defineComponent } from 'vue';
+import type { ScriptingService } from '../utils/scripting-service';
+import type { ConsoleText } from '../utils/scripting-service';
 import { Terminal } from 'xterm';
 
-export default Vue.extend({
+export default defineComponent({
     name: 'OutputConsole',
     inject: ['getScriptingService'],
     mounted() {

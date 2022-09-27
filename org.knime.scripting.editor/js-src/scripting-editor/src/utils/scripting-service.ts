@@ -1,7 +1,7 @@
 import { DialogService, IFrameKnimeService, JsonDataService } from 'knime-ui-extension-service';
-import { FlowVariableSetting } from 'knime-ui-extension-service/src/types/FlowVariableSettings';
-import { MonacoLanguageClient } from 'monaco-languageclient';
-import { DocumentSelector } from 'vscode-languageserver-protocol';
+import type { FlowVariableSetting } from 'knime-ui-extension-service/src/types/FlowVariableSettings';
+import type { MonacoLanguageClient } from 'monaco-languageclient';
+import type { DocumentSelector } from 'vscode-languageserver-protocol';
 import { startKnimeLanguageClient } from './knime-lsp';
 
 export const muteReactivity = (target: object, nonReactiveKeys?: string[], reactiveKeys: string[] = []) => {

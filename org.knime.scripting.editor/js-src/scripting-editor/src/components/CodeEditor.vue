@@ -1,5 +1,5 @@
 <script lang="ts">
-import Vue from 'vue';
+import { defineComponent } from 'vue';
 import * as monaco from 'monaco-editor';
 
 /**
@@ -22,7 +22,7 @@ import * as monaco from 'monaco-editor';
  * ```
  * to react script changes.
  */
-export default Vue.extend({
+export default defineComponent({
     name: 'CodeEditor',
     props: {
         initialScript: {

@@ -1,10 +1,12 @@
 <script lang="ts">
-import Vue, { PropType } from 'vue';
-import TabBar from '~/webapps-common/ui/components/TabBar.vue';
+import type { PropType } from 'vue';
+import { defineComponent } from 'vue';
+
+import TabBar from 'webapps-common/ui/components/TabBar.vue';
 
 export type TabOption = { value: string; label: string; title?: string; icon?: string; disabled?: boolean };
 
-export default Vue.extend({
+export default defineComponent({
     name: 'TabPane',
     components: { TabBar },
     props: {
@@ -34,8 +36,8 @@ export default Vue.extend({
 <template>
   <div class="tab-pane">
     <TabBar
+      v-model:value="activeTab"
       :name="name"
-      :value.sync="activeTab"
       :possible-values="tabs"
     />
     <slot :active-tab="activeTab" />

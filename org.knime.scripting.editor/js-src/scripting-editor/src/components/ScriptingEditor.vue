@@ -1,16 +1,18 @@
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import type { PropType } from 'vue';
+import { defineComponent } from 'vue';
 import * as monaco from 'monaco-editor';
 import { Splitpanes, Pane } from 'splitpanes';
-import Button from '~/webapps-common/ui/components/Button.vue';
+import Button from 'webapps-common/ui/components/Button.vue';
 import CodeEditor from './CodeEditor.vue';
-import TabPane, { TabOption } from './TabPane.vue';
-import { NodeSettings, ScriptingService } from '../utils/scripting-service';
-import { CEFWindow } from '../utils/cef-window';
+import TabPane from './TabPane.vue';
+import type { TabOption } from './TabPane.vue';
+import type { NodeSettings, ScriptingService } from '../utils/scripting-service';
+import type { CEFWindow } from '../utils/cef-window';
 
 declare let window: CEFWindow;
 
-export default Vue.extend({
+export default defineComponent({
     name: 'ScriptingEditor',
     components: {
         CodeEditor,
@@ -136,7 +138,7 @@ export default Vue.extend({
         size="20"
       >
         <TabPane
-          v-slot="{ activeTab }"
+          #default="{ activeTab }"
           name="lefttabpane"
           :initial-tab="initialLeftTab"
           :tabs="leftTabs"
@@ -163,7 +165,7 @@ export default Vue.extend({
               </Pane>
               <Pane size="20">
                 <TabPane
-                  v-slot="{ activeTab }"
+                  #default="{ activeTab }"
                   name="righttabpane"
                   :initial-tab="initialRightTab"
                   :tabs="rightTabs"
@@ -178,7 +180,7 @@ export default Vue.extend({
           </Pane>
           <Pane>
             <TabPane
-              v-slot="{ activeTab }"
+              #default="{ activeTab }"
               name="bottomtabpane"
               :initial-tab="initialBottomTab"
               :tabs="bottomTabs"
