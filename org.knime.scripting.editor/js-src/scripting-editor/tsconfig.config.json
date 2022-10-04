@@ -1,0 +1,42 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.node.json",
+  "include": [
+    "env.d.ts",
+    "src/**/*",
+    "src/**/*.vue",
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+  ],
+  "compilerOptions": {
+    "composite": true,
+    "types": [
+      "node"
+    ],
+    "rootDir": ".",
+    "baseUrl": "./",
+    "allowJs": true,
+    "strict" : false,
+    "noEmit": false,
+    "declaration": true,
+    "noImplicitThis": false,
+    "outDir": "dist",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    // Types should go into this directory.
+    // Removing this would place the .d.ts files
+    // next to the .js files
+    // go to js file when using IDE functions like
+    // "Go to Definition" in VSCode
+    "declarationMap": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "lib": [
+      "es2020"
+    ],
+  }
+}

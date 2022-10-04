@@ -1,7 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import type { ScriptingService } from '../utils/scripting-service';
-import type { ConsoleText } from '../utils/scripting-service';
+import type { ScriptingService, ConsoleText } from '../utils/scripting-service';
 import { Terminal } from 'xterm';
 
 export default defineComponent({
@@ -12,7 +11,7 @@ export default defineComponent({
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore type inference does not work!
         const scriptingService: ScriptingService = this.getScriptingService();
-
+        
         // Init XTerm js
         const term = new Terminal({ convertEol: true, disableStdin: true, rows: 10, cols: 80 });
         term.open(this.$refs.xterm as HTMLElement);

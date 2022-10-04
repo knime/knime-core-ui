@@ -34,6 +34,7 @@ export default defineComponent({
             default: null
         }
     },
+    emits: ['monaco-created'],
     mounted() {
         // TODO(AP-19354) Make the editor configurable
         // TODO(AP-19354) Add VIM keybindings

@@ -1,5 +1,6 @@
-import { DialogService, IFrameKnimeService, JsonDataService } from 'knime-ui-extension-service';
-import type { FlowVariableSetting } from 'knime-ui-extension-service/src/types/FlowVariableSettings';
+import { DialogService, IFrameKnimeService, JsonDataService } from '@knime/ui-extension-service';
+import type { FlowVariableSetting } from '@knime/ui-extension-service/dist/index-92dc325b';
+
 import type { MonacoLanguageClient } from 'monaco-languageclient';
 import type { DocumentSelector } from 'vscode-languageserver-protocol';
 import { startKnimeLanguageClient } from './knime-lsp';

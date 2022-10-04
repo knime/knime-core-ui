@@ -4,6 +4,7 @@ import { defineComponent } from 'vue';
 import * as monaco from 'monaco-editor';
 import { Splitpanes, Pane } from 'splitpanes';
 import Button from 'webapps-common/ui/components/Button.vue';
+
 import CodeEditor from './CodeEditor.vue';
 import TabPane from './TabPane.vue';
 import type { TabOption } from './TabPane.vue';
@@ -58,6 +59,7 @@ export default defineComponent({
             }
         }
     },
+    emits: ['monaco-created'],
     data() {
         return {
             bottomActiveTab: 'console',

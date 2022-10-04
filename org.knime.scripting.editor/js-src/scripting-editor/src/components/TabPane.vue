@@ -1,7 +1,6 @@
 <script lang="ts">
 import type { PropType } from 'vue';
 import { defineComponent } from 'vue';
-
 import TabBar from 'webapps-common/ui/components/TabBar.vue';
 
 export type TabOption = { value: string; label: string; title?: string; icon?: string; disabled?: boolean };

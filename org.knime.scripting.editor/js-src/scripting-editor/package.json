@@ -2,21 +2,35 @@
   "name": "scripting-editor",
   "version": "0.1.0",
   "private": true,
+  "type": "commonjs",
   "dependencies": {
-    "knime-ui-extension-service": "file:knime-ui-extension-service",
-    "monaco-editor": "~0.33.0",
-    "monaco-languageclient": "^2.0.2",
-    "splitpanes": "^2.4.1",
+    "@knime/ui-extension-service": "^0.1.0",
+    "monaco-editor": "^0.34.0",
+    "monaco-languageclient": "^4.0.0",
+    "splitpanes": "^3.1.1",
     "vscode-jsonrpc": "^8.0.2",
     "webapps-common": "file:../../../webapps-common",
     "xterm": "^4.19.0"
-  },
-  "devDependencies": {
   },
   "engines": {
     "node": "18.x"
   },
   "volta": {
     "node": "18.7.0"
+  },
+  "devDependencies": {
+    "@knime/eslint-config": "7.0.4",
+    "@vue/tsconfig": "^0.1.3",
+    "eslint": "^8.25.0",
+    "stylelint": "^14.13.0",
+    "vue-tsc": "^1.0.3"
+  },
+  "scripts": {
+    "build": "run-p type-check build-only",
+    "type-check": "vue-tsc --noEmit",
+    "type-build": "vue-tsc --declaration --emitDeclarationOnly",
+    "lint": "run-p lint:*",
+    "lint:js": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
+    "lint:css": "stylelint '**/*.{css,vue}' --fix"
   }
 }
