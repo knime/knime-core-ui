@@ -1,5 +1,5 @@
 import { JsonDataService } from '@knime/ui-extension-service';
-import type { FlowVariableSetting } from '@knime/ui-extension-service/dist/index-92dc325b';
+import type { FlowVariableSetting } from '@knime/ui-extension-service';
 import type { MonacoLanguageClient } from 'monaco-languageclient';
 import type { DocumentSelector } from 'vscode-languageserver-protocol';
 export declare const muteReactivity: (

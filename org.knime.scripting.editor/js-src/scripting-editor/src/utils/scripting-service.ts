@@ -1,5 +1,5 @@
 import { DialogService, IFrameKnimeService, JsonDataService } from '@knime/ui-extension-service';
-import type { FlowVariableSetting } from '@knime/ui-extension-service/dist/index-92dc325b';
+import type { FlowVariableSetting } from '@knime/ui-extension-service';
 
 import type { MonacoLanguageClient } from 'monaco-languageclient';
 import type { DocumentSelector } from 'vscode-languageserver-protocol';
@@ -119,7 +119,7 @@ export class ScriptingService<T extends NodeSettings> {
         return this.sendToService('execute');
     }
 
-    startLanguageClient(name: string, documentSelector?: DocumentSelector | string[]): MonacoLanguageClient {
+    startLanguageClient(name: string, documentSelector?: DocumentSelector | string[]): Promise<MonacoLanguageClient> {
         return startKnimeLanguageClient(this, name, documentSelector);
     }
 

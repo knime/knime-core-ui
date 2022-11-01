@@ -79,11 +79,11 @@ class KnimeMessageWriter
     }
 }
 
-export const startKnimeLanguageClient = (
+export const startKnimeLanguageClient = async (
     scriptingService: ScriptingService<NodeSettings>,
     name: string,
     documentSelector?: DocumentSelector | string[]
-): MonacoLanguageClient => {
+): Promise<MonacoLanguageClient> => {
     // TODO(AP-19338) Allow configuration of the language server
     // Maybe "initializationOptions" of LanguageClientOptions is the way to go
 
@@ -107,6 +107,6 @@ export const startKnimeLanguageClient = (
             })
         }
     });
-    languageClient.start();
+    await languageClient.start();
     return languageClient;
 };

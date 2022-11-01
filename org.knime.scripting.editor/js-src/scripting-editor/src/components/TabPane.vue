@@ -35,10 +35,11 @@ export default defineComponent({
 <template>
   <div class="tab-pane">
     <TabBar
-      v-model:value="activeTab"
+      v-model:modelValue="activeTab"
       :name="name"
       :possible-values="tabs"
     />
+
     <slot :active-tab="activeTab" />
   </div>
 </template>
