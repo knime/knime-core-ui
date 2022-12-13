@@ -49,6 +49,7 @@
 package org.knime.core.webui.node.dialog.serialization;
 
 import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.impl.DefaultNodeSettingsSerializer;
 import org.knime.core.webui.node.dialog.serialization.field.FieldBasedNodeSettingsSerializer;
 
 /**
@@ -78,10 +79,10 @@ public final class NodeSettingsSerializerFactory {
      */
     public static <S extends DefaultNodeSettings> NodeSettingsSerializer<S>
         createSerializer(final Class<S> settingsClass) {
+        // TODO cache serializer that have been created!
         var serialization = settingsClass.getAnnotation(Serialization.class);
         if (serialization == null) {
-            // no annotation means we use the old serialization
-            return new ReflectionDefaultNodeSettingsSerializer<>(settingsClass);
+            return new DefaultNodeSettingsSerializer<>(settingsClass);
         } else {
             var serializerClass = serialization.serializer();
             if (FieldBasedNodeSettingsSerializer.class.equals(serializerClass)) {

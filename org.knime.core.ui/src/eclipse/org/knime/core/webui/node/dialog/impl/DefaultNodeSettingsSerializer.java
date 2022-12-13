@@ -46,24 +46,33 @@
  * History
  *   Dec 1, 2022 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.serialization;
+package org.knime.core.webui.node.dialog.impl;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.impl.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.serialization.NodeSettingsSerializer;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Serializer that uses the existing reflection-based serialization mechanism for backwards compatibility.
+ * TODO update javadoc - I don't think it's only for backwards compatibility - it's really the fallback/default serializer
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class ReflectionDefaultNodeSettingsSerializer<S extends DefaultNodeSettings>
+// TODO I'm not 100% happy that this needs to be public and does not live in the 'serialization' package - but does it hurt?
+public final class DefaultNodeSettingsSerializer<S extends DefaultNodeSettings>
     implements NodeSettingsSerializer<S> {
 
     private final Class<S> m_settingsClass;
 
-    ReflectionDefaultNodeSettingsSerializer(final Class<S> settingsClass) {
+    /**
+     * TODO
+     *
+     * @param settingsClass
+     */
+    public DefaultNodeSettingsSerializer(final Class<S> settingsClass) {
         m_settingsClass = settingsClass;
     }
 
@@ -74,12 +83,16 @@ final class ReflectionDefaultNodeSettingsSerializer<S extends DefaultNodeSetting
             // by the JSON
             throw new InvalidSettingsException("No settings available. Most likely an implementation error.");
         }
-        return DefaultNodeSettings.loadSettings(nodeSettings, m_settingsClass);
+        final var node = JsonFormsDataUtil.getMapper().createObjectNode();
+        JsonNodeSettingsMapperUtil.nodeSettingsToJsonObject(nodeSettings, node);
+        return JsonFormsDataUtil.toDefaultNodeSettings(node, m_settingsClass);
     }
 
     @Override
-    public void save(final S settings, final NodeSettingsWO nodeSettings) {
-        DefaultNodeSettings.saveSettings(m_settingsClass, settings, nodeSettings);
+    public void save(final S settingsObject, final NodeSettingsWO nodeSettings) {
+        var objectNode = (ObjectNode)JsonFormsDataUtil.toJsonData(settingsObject);
+        var schemaNode = JsonFormsSchemaUtil.buildSchema(m_settingsClass);
+        JsonNodeSettingsMapperUtil.jsonObjectToNodeSettings(objectNode, schemaNode, nodeSettings);
     }
 
 }

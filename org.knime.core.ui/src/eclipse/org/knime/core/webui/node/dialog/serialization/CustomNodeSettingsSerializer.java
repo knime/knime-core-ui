@@ -58,6 +58,7 @@ import java.lang.reflect.InvocationTargetException;
  * @noreference non-public API
  * @noimplement non-public API
  */
+// TODO do we really need that extra interface?
 public interface CustomNodeSettingsSerializer<T> extends NodeSettingsSerializer<T> {
 
     /**

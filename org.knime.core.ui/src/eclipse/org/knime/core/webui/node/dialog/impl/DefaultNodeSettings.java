@@ -55,6 +55,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -63,8 +64,7 @@ import org.knime.core.node.workflow.FlowObjectStack;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.VariableType;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.knime.core.webui.node.dialog.serialization.NodeSettingsSerializerFactory;
 
 /**
  * Marker interface for implementations that define a {@link DefaultNodeDialog}. The implementations allow one to
@@ -178,9 +178,12 @@ public interface DefaultNodeSettings {
      * @return a new {@link DefaultNodeSettings}-instance
      */
     static <S extends DefaultNodeSettings> S loadSettings(final NodeSettingsRO settings, final Class<S> clazz) {
-        final var node = JsonFormsDataUtil.getMapper().createObjectNode();
-        JsonNodeSettingsMapperUtil.nodeSettingsToJsonObject(settings, node);
-        return JsonFormsDataUtil.toDefaultNodeSettings(node, clazz);
+        try {
+            return NodeSettingsSerializerFactory.createSerializer(clazz).load(settings);
+        } catch (InvalidSettingsException ex) {
+            // TODO Auto-generated catch block
+            throw new RuntimeException();
+        }
     }
 
     /**
@@ -210,15 +213,12 @@ public interface DefaultNodeSettings {
     /**
      * Helper to serialize a {@link DefaultNodeSettings}-instance into a {@link NodeSettingsWO}-object.
      *
-     * @param settingsClass the setting object's class
      * @param settingsObject the default node settings object to serialize
      * @param settings the settings to write to
      */
-    static void saveSettings(final Class<? extends DefaultNodeSettings> settingsClass,
-        final DefaultNodeSettings settingsObject, final NodeSettingsWO settings) {
-        var objectNode = (ObjectNode)JsonFormsDataUtil.toJsonData(settingsObject);
-        var schemaNode = JsonFormsSchemaUtil.buildSchema(settingsClass);
-        JsonNodeSettingsMapperUtil.jsonObjectToNodeSettings(objectNode, schemaNode, settings);
+    static <S extends DefaultNodeSettings> void saveSettings(final S settingsObject, final NodeSettingsWO settings) {
+        Class<S> settingsClass = (Class<S>)settingsObject.getClass();
+        NodeSettingsSerializerFactory.createSerializer(settingsClass).save(settingsObject, settings);
     }
 
     /**
