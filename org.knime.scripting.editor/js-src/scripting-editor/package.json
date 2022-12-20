@@ -13,8 +13,8 @@
     "xterm": "^4.19.0"
   },
   "volta": {
-    "node": "16.18.0",
-    "npm": "8.19.2"
+    "node": "16.18.1",
+    "npm": "8.19.3"
   },
   "devDependencies": {
     "@knime/eslint-config": "7.0.4",

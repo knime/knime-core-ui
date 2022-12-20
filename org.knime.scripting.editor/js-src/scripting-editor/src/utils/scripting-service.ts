@@ -1,5 +1,5 @@
-import { DialogService, IFrameKnimeService, JsonDataService } from '@knime/ui-extension-service';
 import type { FlowVariableSetting } from '@knime/ui-extension-service';
+import { DialogService, IFrameKnimeService, JsonDataService } from '@knime/ui-extension-service';
 
 import type { MonacoLanguageClient } from 'monaco-languageclient';
 import type { DocumentSelector } from 'vscode-languageserver-protocol';
@@ -29,7 +29,28 @@ export interface NodeSettings {
     script: string;
 }
 
-export class ScriptingService<T extends NodeSettings> {
+export interface FlowVariableSettings {
+    [key: string]: FlowVariableSetting
+}
+
+export interface ScriptingService<T extends NodeSettings> {
+    
+    applySettings(this: JsonDataService): Promise<any>;
+
+    getInitialScript(this: T): string;
+
+    getScript(this: T): string;
+
+    startLanguageClient(name: string, documentSelector?: DocumentSelector | string[]): Promise<MonacoLanguageClient>;
+
+    sendLanguageServerMessage(message: string) :Promise<any>;
+
+    registerLanguageServerEventHandler(handler: (message: string) => void);
+
+    registerConsoleEventHandler(handler: (text: ConsoleText) => void);
+}
+
+export class ScriptingServiceImpl<T extends NodeSettings> implements ScriptingService<T> {
     private readonly jsonDataService: JsonDataService;
     protected readonly flowVariableSettings: {[key: string]: FlowVariableSetting}; // TODO(UIEXT-479) refactor how flow variable information are provided
     protected readonly initialNodeSettings: T;
@@ -38,20 +59,13 @@ export class ScriptingService<T extends NodeSettings> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private eventHandlers: { [type: string]: (args: any) => void };
 
-    constructor({
-        jsonDataService,
-        flowVariableSettings,
-        initialNodeSettings
-    }: {
-        jsonDataService: JsonDataService;
-        flowVariableSettings: {[key: string]: FlowVariableSetting};
-        initialNodeSettings: T;
-    }) {
+    constructor(jsonDataService, flowVariableSettings, initialNodeSettings) {
         this.jsonDataService = jsonDataService;
         this.flowVariableSettings = flowVariableSettings;
         this.initialNodeSettings = initialNodeSettings;
+        this.currentNodeSettings = initialNodeSettings;
+
         this.eventHandlers = {};
-        this.currentNodeSettings = JSON.parse(JSON.stringify(initialNodeSettings));
 
         this.jsonDataService.registerDataGetter(() => this.currentNodeSettings);
 
@@ -113,12 +127,6 @@ export class ScriptingService<T extends NodeSettings> {
         return this.jsonDataService.applyData();
     }
 
-    // TODO is this implemented in the backend?
-    async applySettingsAndExecute() {
-        await this.applySettings();
-        return this.sendToService('execute');
-    }
-
     startLanguageClient(name: string, documentSelector?: DocumentSelector | string[]): Promise<MonacoLanguageClient> {
         return startKnimeLanguageClient(this, name, documentSelector);
     }
@@ -139,16 +147,24 @@ export class ScriptingService<T extends NodeSettings> {
     }
 }
 
-export const createJsonServiceAndLoadSettings = async () => {
+
+export const createknimeService = async (): Promise<IFrameKnimeService> => {
     const knimeService = new IFrameKnimeService();
     await knimeService.waitForInitialization();
-    const jsonDataService = new JsonDataService(knimeService);
+    return knimeService;
+};
+
+export const getFlowVariableSettings = async (knimeService: IFrameKnimeService): Promise<FlowVariableSettings> => {
     const dialogService = new DialogService(knimeService);
-    return {
-        jsonDataService,
-        flowVariableSettings: await dialogService.getFlowVariableSettings(),
-        initialNodeSettings: await jsonDataService.initialData()
-    };
+    const flowVariableSettings = await dialogService.getFlowVariableSettings();
+    return flowVariableSettings;
+};
+
+export const useKnimeScriptingService = async () => {
+    const knimeService = await createknimeService();
+    const flowVariableSettings = await getFlowVariableSettings(knimeService);
+    const jsonDataService = new JsonDataService(knimeService);
+    return { jsonDataService, flowVariableSettings };
 };
 
 /**
@@ -156,7 +172,11 @@ export const createJsonServiceAndLoadSettings = async () => {
  * @returns {Promise<ScriptingService<NodeSettings>>} a new scripting service that is ready to be used
  */
 export const createScriptingService = async (): Promise<ScriptingService<NodeSettings>> => {
-    const scriptingService = new ScriptingService(await createJsonServiceAndLoadSettings());
+    const { jsonDataService,
+        flowVariableSettings } = await useKnimeScriptingService();
+    const initialNodeSettings = await jsonDataService.initialData();
+    
+    const scriptingService = new ScriptingServiceImpl(jsonDataService, flowVariableSettings, initialNodeSettings);
     muteReactivity(scriptingService);
     return scriptingService;
 };

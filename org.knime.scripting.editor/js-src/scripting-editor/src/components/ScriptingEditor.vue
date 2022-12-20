@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { PropType } from 'vue';
-import { defineComponent } from 'vue';
+import { defineComponent, inject } from 'vue';
 import * as monaco from 'monaco-editor';
 import { Splitpanes, Pane } from 'splitpanes';
 import Button from 'webapps-common/ui/components/Button.vue';
@@ -8,7 +8,7 @@ import Button from 'webapps-common/ui/components/Button.vue';
 import CodeEditor from './CodeEditor.vue';
 import TabPane from './TabPane.vue';
 import type { TabOption } from './TabPane.vue';
-import type { NodeSettings, ScriptingService } from '../utils/scripting-service';
+import type { NodeSettings, ScriptingServiceImpl } from '../utils/scripting-service';
 import type { CEFWindow } from '../utils/cef-window';
 
 declare let window: CEFWindow;
@@ -22,7 +22,6 @@ export default defineComponent({
         Pane,
         TabPane
     },
-    inject: ['getScriptingService'],
     props: {
         language: {
             type: String,
@@ -60,18 +59,17 @@ export default defineComponent({
         }
     },
     emits: ['monaco-created'],
+    setup() {
+        const scriptingService = inject('scriptingService') as ScriptingServiceImpl<NodeSettings>;
+
+        return {
+            scriptingService
+        };
+    },
     data() {
         return {
             bottomActiveTab: 'console',
-            leftActiveTab: 'inputs',
-            // TODO(review) is this the right way to make the scripting service available?
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore type inference does not work!
-            scriptingService: this.getScriptingService()
-        } as {
-            scriptingService: ScriptingService<NodeSettings>;
-            bottomActiveTab: string;
-            leftActiveTab: string;
+            leftActiveTab: 'inputs'
         };
     },
     computed: {

@@ -45,6 +45,7 @@ export default defineComponent({
             this.language,
             monaco.Uri.parse('inmemory://main.py')
         );
+        
 
         const editor = monaco.editor.create(this.$refs.monaco_editor as HTMLElement, {
             model: editorModel,
