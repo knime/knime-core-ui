@@ -98,7 +98,7 @@ export default defineComponent({
 </style>
 
 <style lang="postcss" scoped>
-.code_editor {
-    height: 100%;
+.code_editor{
+    flex: 1 1 300px;
 }
 </style>

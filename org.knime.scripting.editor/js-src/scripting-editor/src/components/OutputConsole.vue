@@ -30,4 +30,8 @@ export default defineComponent({
 
 <style>
 @import 'xterm/css/xterm.css';
+
+.terminal{
+}
 </style>
+

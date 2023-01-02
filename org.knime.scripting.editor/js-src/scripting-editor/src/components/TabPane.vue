@@ -43,3 +43,11 @@ export default defineComponent({
     <slot :active-tab="activeTab" />
   </div>
 </template>
+
+<style lang="postcss" scoped>
+.tab-pane{
+    overflow: hidden;
+    height: 100%;
+    flex: 1 2 200px;
+}
+</style>
