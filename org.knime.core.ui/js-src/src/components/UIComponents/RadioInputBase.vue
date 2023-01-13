@@ -53,6 +53,9 @@ const RadioInputBase = defineComponent({
                 default:
                     return RadioButtons;
             }
+        },
+        teleportDescription() {
+            return this.control.uischema.options?.teleportDescription;
         }
     },
     mounted() {
@@ -78,6 +81,7 @@ export default RadioInputBase;
       :scope="control.uischema.scope"
       :flow-settings="flowSettings"
       :description="control.description"
+      :teleport-description="teleportDescription"
     >
       <component
         :is="uiComponent"

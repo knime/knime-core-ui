@@ -1,0 +1,179 @@
+{
+  "result": {
+    "name": "Array Layout",
+    "data": {
+      "view": {
+        "valueSwitch1": "OPTION1",
+        "valueSwitch2": "OPTION2",
+        "doubleInput": 0,
+        "stringInput": "lorem"
+      }
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "view": {
+          "type": "object",
+          "properties": {
+            "valueSwitch1": {
+              "oneOf": [
+                {
+                  "const": "OPTION1",
+                  "title": "Option 1"
+                },
+                {
+                  "const": "OPTION2",
+                  "title": "Option 2"
+                },
+                {
+                  "const": "OPTION3",
+                  "title": "Option 3"
+                }
+              ],
+              "title": "Radio input",
+              "default": "DASHED",
+              "description": "value switch1 description: Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+            },
+            "valueSwitch2": {
+              "oneOf": [
+                {
+                  "const": "OPTION1",
+                  "title": "Option 1"
+                },
+                {
+                  "const": "OPTION2",
+                  "title": "Option 2"
+                },
+                {
+                  "const": "OPTION3",
+                  "title": "Option 3"
+                }
+              ],
+              "title": "Value input",
+              "default": "DASHED",
+              "description": "value switch2 description: Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+            },
+            "doubleInput": {
+              "type": "number",
+              "title": "Double",
+              "default": 0,
+              "description": "double input description: Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+            },
+            "stringInput": {
+              "type": "string",
+              "title": "String",
+              "default": "",
+              "description": "string input description: Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+            }
+          }
+        }
+      }
+    },
+    "ui_schema": {
+      "elements": [
+        {
+          "type": "Section",
+          "label": "Section headline",
+          "elements": [
+            {
+              "type": "HorizontalLayout",
+              "options": {
+                "ratios": ["initial", "initial"]
+              },
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/view/properties/valueSwitch1",
+                  "options": {
+                    "format": "valueSwitch",
+                    "radioLayout": "horizontal"
+                  }
+                },
+                {
+                    "type": "Control",
+                    "scope": "#/properties/view/properties/valueSwitch2",
+                    "options": {
+                      "format": "valueSwitch",
+                      "radioLayout": "horizontal"
+                    }
+                }
+              ]
+            },
+            {
+              "type": "HorizontalLayout",
+              "options": {
+                "ratios": [1, 2]
+              },
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/view/properties/doubleInput"
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/view/properties/doubleInput"
+                }
+              ]
+            },
+            {
+              "type": "HorizontalLayout",
+              "options": {
+                "ratios": ["1 0 400px", "1 0 200px", "1 0 200px"]
+              },
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/view/properties/doubleInput"
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/view/properties/doubleInput"
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/view/properties/doubleInput"
+                }
+              ]
+            },
+            {
+              "type": "HorizontalLayout",
+              "options": {
+                "ratios": [2, 1]
+              },
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/view/properties/stringInput"
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/view/properties/stringInput"
+                }
+              ]
+            },
+            {
+              "type": "HorizontalLayout",
+              "options": {
+                "ratios": [2, 1, 1]
+              },
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/view/properties/stringInput"
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/view/properties/stringInput"
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/view/properties/stringInput"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -64,6 +64,9 @@ const TwinlistInput = defineComponent({
         showSearch() {
             return !this.control.uischema.options?.hasOwnProperty('showSearch') ||
                 this.control.uischema.options?.showSearch;
+        },
+        teleportDescription() {
+            return this.control.uischema.options?.teleportDescription;
         }
     },
     created() {
@@ -150,6 +153,7 @@ export default TwinlistInput;
       :scope="control.uischema.scope"
       :flow-settings="flowSettings"
       :description="control.description"
+      :teleport-description="teleportDescription"
     >
       <MultiModeTwinlist
         v-if="possibleValues"

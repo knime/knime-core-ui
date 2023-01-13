@@ -39,6 +39,9 @@ const CheckboxInput = defineComponent({
         },
         disabled() {
             return !this.control.enabled || this.flowSettings?.controllingFlowVariableAvailable;
+        },
+        teleportDescription() {
+            return this.control.uischema.options?.teleportDescription;
         }
     },
     methods: {
@@ -81,6 +84,7 @@ export default CheckboxInput;
         :html="control.description"
         :hover="hover"
         class="description-popover"
+        :teleport-description="teleportDescription"
         @close="hover = false"
       />
       <ErrorMessage :error="control.errors" />

@@ -31,6 +31,7 @@
     "@knime/knime-ui-table": "0.2.16",
     "@knime/ui-extension-service": "0.4.0",
     "consola": "2.10.1",
+    "portal-vue": "2.1.7",
     "raf-throttle": "2.0.5",
     "vue": "2.6.14",
     "vue-clickaway2": "2.3.2",

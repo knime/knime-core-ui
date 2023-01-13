@@ -16,7 +16,8 @@ const LabeledInput = {
     },
     data() {
         return {
-            hover: false
+            hoverLabeledInput: false,
+            hoverLabeledInputDescription: false
         };
     },
     props: {
@@ -47,6 +48,15 @@ const LabeledInput = {
         flowSettings: {
             default: null,
             type: Object
+        },
+        teleportDescription: {
+            default: false,
+            type: Boolean
+        }
+    },
+    computed: {
+        hover() {
+            return this.hoverLabeledInput || this.hoverLabeledInputDescription;
         }
     }
 };
@@ -56,8 +66,8 @@ export default LabeledInput;
 <template>
   <div
     class="labeled-input"
-    @mouseover="hover = true"
-    @mouseleave="hover = false"
+    @mouseover="hoverLabeledInput = true"
+    @mouseleave="hoverLabeledInput = false"
   >
     <Label
       :text="text"
@@ -74,7 +84,9 @@ export default LabeledInput;
         v-if="description"
         :html="description"
         :hover="hover"
-        @close="hover = false"
+        :teleport-description="teleportDescription"
+        @close="hoverLabeledInput = false"
+        @mouseHoverDescription="(hoverDescription) => hoverLabeledInputDescription = hoverDescription"
       />
       <slot />
     </Label>

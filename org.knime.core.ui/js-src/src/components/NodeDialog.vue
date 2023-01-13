@@ -7,12 +7,14 @@ import { fallbackRenderers, defaultRenderers } from '@/components/renderers';
 import { hasAdvancedOptions } from '../utils/nodeDialogUtils';
 import Button from '~/webapps-common/ui/components/Button.vue';
 import { createAjv } from '@jsonforms/core';
+import { PortalTarget } from 'portal-vue';
 
 const renderers = [...vanillaRenderers, ...fallbackRenderers, ...defaultRenderers];
 
 export default {
     components: {
         JsonForms,
+        PortalTarget,
         Button
     },
     inject: ['getKnimeService'],
@@ -124,6 +126,10 @@ export default {
         Ok
       </Button>
     </div>
+    <PortalTarget
+      name="inputDescriptionPopover"
+      multiple
+    />
   </div>
 </template>
 

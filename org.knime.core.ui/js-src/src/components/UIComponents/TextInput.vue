@@ -28,6 +28,9 @@ const TextInput = defineComponent({
         },
         disabled() {
             return !this.control.enabled || this.flowSettings?.controllingFlowVariableAvailable;
+        },
+        teleportDescription() {
+            return this.control.uischema.options?.teleportDescription;
         }
     },
 
@@ -53,6 +56,7 @@ export default TextInput;
       :show-reexecution-icon="isModelSettingAndHasNodeView"
       :scope="control.uischema.scope"
       :flow-settings="flowSettings"
+      :teleport-description="teleportDescription"
     >
       <InputField
         :value="control.data"

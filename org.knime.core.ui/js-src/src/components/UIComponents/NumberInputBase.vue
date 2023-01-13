@@ -33,6 +33,9 @@ const NumberInputBase = defineComponent({
         },
         disabled() {
             return !this.control.enabled || this.flowSettings?.controllingFlowVariableAvailable;
+        },
+        teleportDescription() {
+            return this.control.uischema.options?.teleportDescription;
         }
     },
     methods: {
@@ -56,6 +59,7 @@ export default NumberInputBase;
       :show-reexecution-icon="isModelSettingAndHasNodeView"
       :scope="control.uischema.scope"
       :flow-settings="flowSettings"
+      :teleport-description="teleportDescription"
     >
       <NumberInput
         class="number-input"
