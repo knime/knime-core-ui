@@ -1,31 +1,31 @@
 <script>
 //
-
-import CloseIcon from 'webapps-common/ui/assets/img/icons/close.svg';
-import ShieldCloseIcon from 'webapps-common/ui/assets/img/icons/shield-close.svg';
 import Button from 'webapps-common/ui/components/Button.vue';
 
 import { defineComponent } from 'vue';
 
 export default defineComponent({ name: 'FooterBar',
     components: {
-        Button,
-        CloseIcon,
-        ShieldCloseIcon
+        Button
     } });
 </script>
 
 <template>
   <div class="container">
     <Button
-      class="abort"
+      class="button"
+      primary
+      with-border
+      compact
     >
-      <ShieldCloseIcon />
+      Cancel
     </Button>
     <Button
-      class="close"
+      class="button"
+      primary
+      compact
     >
-      <CloseIcon />
+      Ok
     </Button>
   </div>
 </template>
@@ -35,11 +35,19 @@ export default defineComponent({ name: 'FooterBar',
   width: 100%;
   display: flex;
   justify-content: space-between;
+  background-color: var(--knime-black);
+  border-top: 3px solid var(--knime-black);
+  border-bottom: 2px solid var(--knime-black);
+  padding: 2px;
 }
-.abort{
-    flex: 0 1 10px;
-}
-.close{
-    flex: 0 0 10px;
+
+.button{
+  flex: 0 1;
+  width: auto;
+  justify-content: center;
+  display: flex;
+  background-color: var(--knime-black);
+  border-bottom: 1px solid var(--knime-black);
+ 
 }
 </style>

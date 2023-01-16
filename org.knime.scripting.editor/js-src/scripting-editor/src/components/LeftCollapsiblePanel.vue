@@ -73,7 +73,7 @@ export default {
 
 .panel {
   display: flex;
-  height: 100%;
+  flex: 1 0;
 }
 
 .no-transition {
@@ -81,13 +81,9 @@ export default {
 }
 
 .container {
-  background-color: var(--knime-porcelain);
+  background-color: inherit;
   overflow-x: hidden;
   transition: width 0.3s ease;
-}
-
-.hidden-content {
-  height: 100%;
 }
 
 button {

@@ -4,16 +4,17 @@ import { defineComponent } from 'vue';
 // import SideDrawer from 'webapps-common/ui/components/SideDrawer.vue';
 import HeaderBar from './HeaderBar.vue';
 import FooterBar from './FooterBar.vue';
-import LeftCollapsiblePanel from './LeftCollapsiblePanel.vue';
+
 import Splitter from './Splitter.vue';
+import LeftPane from './LeftPane.vue';
 
 export default defineComponent({
     name: 'Layout',
     components: {
+        LeftPane,
         HeaderBar,
         FooterBar,
-        Splitter,
-        LeftCollapsiblePanel
+        Splitter
     },
     data() {
         return {
@@ -30,26 +31,45 @@ export default defineComponent({
       @switch="isExpanded = !isExpanded"
     />
     <div class="center">
-      <LeftCollapsiblePanel
-        class="slide"
+      <LeftPane
         :expanded="isExpanded"
+        class="left-pane"
         @toggle-expand="isExpanded = !isExpanded"
       >
-        <slot name="left-pane" />
-      </LeftCollapsiblePanel>
-      <div class="mid-pane">
-        <Splitter>
-          <template #default>
-            <div class="editor">
-              <slot name="editor" />
-            </div>
-          </template>
-          <template #secondary>
-            <slot name="bottom" />
-          </template>
-        </Splitter>
-      </div>
-      <slot name="right-pane" />
+        <template #conda_env>
+          <slot name="conda_env" />
+        </template>
+        <template #inputs>
+          <slot name="inputs" />
+        </template>
+      </LeftPane>
+      <Splitter
+        id="1"
+        direction="row"
+        secondary-size="10%"
+      >
+        <template #default>
+          <Splitter
+            id="2"
+            direction="column"
+            secondary-size="40%"
+          >
+            <template #default>
+              <div class="editor">
+                <slot name="editor" />
+              </div>
+            </template>
+            <template #secondary>
+              <slot name="bottom" />
+            </template>
+          </Splitter>
+        </template>
+        <template #secondary>
+          <div class="right-pane">
+            <slot name="right-pane" />
+          </div>
+        </template>
+      </Splitter>
     </div>
     <FooterBar class="grid-item" />
   </div>
@@ -66,40 +86,44 @@ export default defineComponent({
   width: 100%;
 }
 
+.left-pane{
+  display: flex;
+  flex: 1 1;
+}
+
 .slide{
-  position: relative;
-  left:0;
   width: auto;
-  margin-bottom: 5px;
-  flex: 0 1 100px;
+  flex: 0 1;
 }
 
 .center{
   display: flex;
   width: 100%;
   flex-wrap: nowrap;
-  justify-content: space-between;
+  justify-content: stretch;
+  flex: 1;
   height: 90%;
 }
-.editor{
+
+.splitter{
   height: 100%;
   width: 100%;
   display: flex;
-}
-.mid-pane{
-  height: 100%;
-  width: 75%;
-  display: flex;
   justify-content: flex-start;
   flex-direction: column;
+  flex: 1;
+
 }
-.slide-leave-to {
-  transition: transform 0.55s ease-in-out;
-  transform: translateX(calc(50% + 10px)); /* extra 10px to hide box shadow when collapsed */
+
+.editor{
+  height: 100%;
+  width: 99%;
+  display: flex;
+  flex: 1;
 }
-.slide-leave-to {
-  transition: transform 0.55s ease-in-out;
-  transform: translateX(calc(-100% + 10px)); /* extra 10px to hide box shadow when collapsed */
+
+.right-pane{
+  min-width: 150px;
 }
 
 </style>

@@ -133,19 +133,13 @@ export default defineComponent({
     <template #header>
       <slot name="buttons" />
     </template>
-    <template #left-pane>
-      <TabPane
-        #default="{ activeTab }"
-        class="tab-pane"
-        name="lefttabpane"
-        :initial-tab="initialLeftTab"
-        :tabs="leftTabs"
-      >
-        <slot
-          name="lefttabs"
-          :active-tab="activeTab"
-        />
-      </TabPane>
+    <template #inputs>
+      <slot
+        name="inputs"
+      />
+    </template>
+    <template #conda_env>
+      <slot name="conda_env" />
     </template>
     <template #right-pane>
       <TabPane
@@ -200,6 +194,7 @@ export default defineComponent({
 </template>
 
 <style lang="postcss" scoped>
+
 .tab-pane{
   flex: 1;
 }

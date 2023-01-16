@@ -1,7 +1,6 @@
 <script>
-//
+// TODO: emit run
 
-import SettingsIcon from 'webapps-common/ui/assets/img/icons/settings.svg';
 import PlayIcon from 'webapps-common/ui/assets/img/icons/play.svg';
 import Button from 'webapps-common/ui/components/Button.vue';
 
@@ -10,26 +9,12 @@ import { defineComponent } from 'vue';
 export default defineComponent({ name: 'HeaderBar',
     components: {
         Button,
-        SettingsIcon,
         PlayIcon
-    },
-    props: {
-        isExpanded: {
-            type: Boolean,
-            default: true
-        }
-    },
-    emits: ['switch'] });
+    } });
 </script>
 
 <template>
   <div class="container">
-    <Button
-      class="settings"
-      @click="$emit('switch')"
-    >
-      <SettingsIcon />
-    </Button>
     <Button>
       <PlayIcon class="play" />
     </Button>
@@ -38,12 +23,14 @@ export default defineComponent({ name: 'HeaderBar',
 
 
 <style lang="postcss" scoped>
+
+
 .container{
+  height: var(--app-toolbar-height);
+  background-color: var(--knime-porcelain);
+  border-bottom: 2px solid var(--knime-silver-sand);
   width: 100%;
   flex-grow: 1;
-}
-.settings{
-  flex-basis: 1;
 }
 .play{
   flex-basis: 1;
