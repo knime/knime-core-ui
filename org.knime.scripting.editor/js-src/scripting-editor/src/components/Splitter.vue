@@ -120,7 +120,7 @@ export default {
     overflow: auto;
     flex: 1 1 auto;
     min-height: 25%;
-    max-height: 85%;
+    max-height: 100%;
   }
 
   & .secondary {
@@ -135,6 +135,10 @@ export default {
     background-color: var(--knime-silver-sand);
     background-clip: content-box;
     z-index: 1;
+    padding: 0 3px;
+    margin: 0 -3px;
+    width: 7px;
+    cursor: ew-resize;
 
     &:hover {
       background-color: var(--knime-dove-gray);
@@ -142,24 +146,28 @@ export default {
 
     &.active {
       background-color: var(--knime-masala);
+      cursor: col-resize;
+
     }
   }
 
   &.column {
     flex-direction: column;
+    height: 100%;
 
     & .primary {
       min-height: 25%;
     }
 
     & .secondary {
-      min-height: 15%;
+      min-height: 35%;
     }
 
     & .handle {
       padding: 3px 0;
       margin: -3px 0;
       height: 7px;
+      width: 100%;
       cursor: ns-resize;
 
       &.active {
@@ -179,16 +187,6 @@ export default {
       min-width: 15%;
     }
 
-    & .handle {
-      padding: 0 3px;
-      margin: 0 -3px;
-      width: 7px;
-      cursor: ew-resize;
-
-      &.active {
-        cursor: col-resize;
-      }
-    }
   }
 }
 </style>
