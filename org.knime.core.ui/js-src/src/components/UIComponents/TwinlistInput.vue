@@ -44,6 +44,11 @@ const TwinlistInput = defineComponent({
     setup(props) {
         return useJsonFormsControl(props);
     },
+    data() {
+        return {
+            possibleValues: null
+        };
+    },
     computed: {
         isModelSettingAndHasNodeView() {
             return isModelSettingAndHasNodeView(this.control);
