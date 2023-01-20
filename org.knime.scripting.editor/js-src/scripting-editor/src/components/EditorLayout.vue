@@ -26,14 +26,14 @@ export default defineComponent({
 
 <template>
   <div class="layout">
-    <HeaderBar
-      :is-expanded="isExpanded"
-      @switch="isExpanded = !isExpanded"
-    />
+    <HeaderBar>
+      <template #buttons>
+        <slot name="buttons" />
+      </template>
+    </HeaderBar>
     <div class="center">
       <LeftPane
         :expanded="isExpanded"
-        class="left-pane"
         @toggle-expand="isExpanded = !isExpanded"
       >
         <template #conda_env>
@@ -55,9 +55,7 @@ export default defineComponent({
             secondary-size="40%"
           >
             <template #default>
-              <div class="editor">
-                <slot name="editor" />
-              </div>
+              <slot name="editor" />
             </template>
             <template #secondary>
               <slot name="bottom" />
@@ -71,59 +69,27 @@ export default defineComponent({
         </template>
       </Splitter>
     </div>
-    <FooterBar class="grid-item" />
+    <FooterBar />
   </div>
 </template>
 
 <style lang="postcss" scoped>
+
 .layout{
+  --controls-height: 49px;
+  --description-button-size: 15px;
+
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
+  flex-direction: column;
   height: 100vh;
   width: 100%;
-}
-
-.left-pane{
-  display: flex;
-  flex: 1 1;
-}
-
-.slide{
-  width: auto;
-  flex: 0 1;
-}
-
-.center{
-  display: flex;
-  width: 100%;
-  flex-wrap: nowrap;
-  justify-content: stretch;
-  flex: 1;
-  height: 90%;
-}
-
-.splitter{
-  height: 100%;
-  width: 100%;
-  display: flex;
-  justify-content: flex-start;
-  flex-direction: column;
-  flex: 1;
-
-}
-
-.editor{
-  height: 100%;
-  width: 99%;
-  display: flex;
-  flex: 1;
-}
-
-.right-pane{
-  min-width: 150px;
+  background-color: var(--knime-gray-ultra-light);
+  border-left: 1px solid var(--knime-silver-sand);
+  & .center{
+    display: flex;
+    height: calc(100vh - 2*var(--controls-height));
+    width: 100%;
+  }
 }
 
 </style>

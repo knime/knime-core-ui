@@ -1,5 +1,5 @@
 <script>
-//
+// https://bitbucket.org/KNIME/knime-core-ui/src/master/org.knime.core.ui/js-src/src/components/NodeDialog.vue
 import Button from 'webapps-common/ui/components/Button.vue';
 
 import { defineComponent } from 'vue';
@@ -14,16 +14,15 @@ export default defineComponent({ name: 'FooterBar',
   <div class="container">
     <Button
       class="button"
-      primary
-      with-border
       compact
+      with-border
     >
       Cancel
     </Button>
     <Button
       class="button"
       primary
-      compact
+      compact      
     >
       Ok
     </Button>
@@ -31,23 +30,12 @@ export default defineComponent({ name: 'FooterBar',
 </template>
 
 <style lang="postcss" scoped>
-.container{
-  width: 100%;
+.container {
   display: flex;
   justify-content: space-between;
-  background-color: var(--knime-black);
-  border-top: 3px solid var(--knime-black);
-  border-bottom: 2px solid var(--knime-black);
-  padding: 2px;
-}
-
-.button{
-  flex: 0 1;
-  width: auto;
-  justify-content: center;
-  display: flex;
-  background-color: var(--knime-black);
-  border-bottom: 1px solid var(--knime-black);
- 
+  height: var(--controls-height);
+  padding: 13px 20px 5px;
+  background-color: var(--knime-gray-light-semi);
+  border-top: 1px solid var(--knime-silver-sand);
 }
 </style>

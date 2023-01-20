@@ -103,14 +103,12 @@ export default defineComponent({
       >
         <Button
           :key="section.title"
-          compact
-          class="button"
           :title="section.title"
           :class="{ active: section.isActive, expanded: section.isExpanded }"
         >
           <Component
             :is="section.icon"
-            class="item"
+            class="icon"
           />
         </Button>
       </li>
@@ -132,6 +130,7 @@ export default defineComponent({
 
 <style lang="postcss" scoped>
 
+
 .slide{
   display: flex;
   flex: 0 0;
@@ -139,9 +138,12 @@ export default defineComponent({
   justify-content: space-evenly;
 }
 
-.button{
-  align-self: flex-start;
-  flex: 0;
+.icon{
+  width: auto;
+  aspect-ratio: 1;
+  left: 0;
+  min-height: 50px;
+  min-width: 100%;
 }
 
 .nav-bar{
@@ -153,7 +155,7 @@ export default defineComponent({
 
     & li {
       height: 50px;
-      width: 40px;
+      width: 50px;
       display: flex;
       flex-direction: column;
       justify-content: center;

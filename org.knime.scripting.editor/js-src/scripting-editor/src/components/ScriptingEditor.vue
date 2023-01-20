@@ -130,7 +130,7 @@ export default defineComponent({
   <!-- TODO(AP-19344) should we use the splitpanes package or something else? -->
   <!-- TODO(AP-19344) should tabs be shown if there is only one option? -->
   <EditorLayout>
-    <template #header>
+    <template #buttons>
       <slot name="buttons" />
     </template>
     <template #inputs>
