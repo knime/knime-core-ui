@@ -1,7 +1,6 @@
 <script>
 import { defineComponent } from 'vue';
 
-// import SideDrawer from 'webapps-common/ui/components/SideDrawer.vue';
 import HeaderBar from './HeaderBar.vue';
 import FooterBar from './FooterBar.vue';
 

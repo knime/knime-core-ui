@@ -126,9 +126,6 @@ export default defineComponent({
 </script>
 
 <template>
-  <!-- TODO(AP-19344) cleanup the layout + make panes and tabs optional -->
-  <!-- TODO(AP-19344) should we use the splitpanes package or something else? -->
-  <!-- TODO(AP-19344) should tabs be shown if there is only one option? -->
   <EditorLayout>
     <template #buttons>
       <slot name="buttons" />

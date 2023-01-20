@@ -5,10 +5,8 @@
   "type": "commonjs",
   "dependencies": {
     "@knime/ui-extension-service": "^0.3.0",
-    "i": "^0.3.7",
     "monaco-editor": "0.34.1",
     "monaco-languageclient": "4.0.1",
-    "npm": "^9.2.0",
     "vscode-jsonrpc": "^8.0.2",
     "webapps-common": "file:../../../webapps-common",
     "xterm": "^4.19.0"

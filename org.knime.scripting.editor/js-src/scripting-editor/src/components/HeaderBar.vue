@@ -1,5 +1,5 @@
 <script>
-// TODO: Push functionanlity into knime-scripting-editor from PythonScriptingEditor
+// TODO(AP-20076): Push functionanlity into knime-scripting-editor from PythonScriptingEditor
 
 import { defineComponent } from 'vue';
 

@@ -72,7 +72,7 @@ export default defineComponent({
   />
 </template>
 
-<style lang="postcss">
+<style lang="postcss" scoped>
 .hover-contents {
     & h1 {
         font-size: 28px;
@@ -97,6 +97,6 @@ export default defineComponent({
 }
 
 .code_editor{
-    height: 90%
+    height: 100%
 }
 </style>
