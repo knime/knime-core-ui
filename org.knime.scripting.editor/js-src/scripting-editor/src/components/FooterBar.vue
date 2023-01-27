@@ -22,7 +22,7 @@ export default defineComponent({ name: 'FooterBar',
     <Button
       class="button"
       primary
-      compact      
+      compact
     >
       Ok
     </Button>

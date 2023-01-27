@@ -41,6 +41,9 @@ export default defineComponent({
         <template #inputs>
           <slot name="inputs" />
         </template>
+        <template #flow_vars>
+          <slot name="flow_vars" />
+        </template>
       </LeftPane>
       <Splitter
         id="1"

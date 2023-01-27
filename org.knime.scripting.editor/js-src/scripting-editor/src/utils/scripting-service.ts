@@ -1,9 +1,12 @@
-import type { FlowVariableSetting } from '@knime/ui-extension-service';
+import type { FlowVariableSettings } from '@knime/ui-extension-service';
 import { DialogService, IFrameKnimeService, JsonDataService } from '@knime/ui-extension-service';
 
 import type { MonacoLanguageClient } from 'monaco-languageclient';
 import type { DocumentSelector } from 'vscode-languageserver-protocol';
 import { startKnimeLanguageClient } from './knime-lsp';
+
+import type { FlowVariable } from '../components/FlowVariables.vue';
+
 
 export const muteReactivity = (target: object, nonReactiveKeys?: string[], reactiveKeys: string[] = []) => {
     try {
@@ -29,9 +32,6 @@ export interface NodeSettings {
     script: string;
 }
 
-export interface FlowVariableSettings {
-    [key: string]: FlowVariableSetting
-}
 
 export interface ScriptingService<T extends NodeSettings> {
     
@@ -40,6 +40,8 @@ export interface ScriptingService<T extends NodeSettings> {
     getInitialScript(this: T): string;
 
     getScript(this: T): string;
+
+    getAllFlowVariables();
 
     startLanguageClient(name: string, documentSelector?: DocumentSelector | string[]): Promise<MonacoLanguageClient>;
 
@@ -52,7 +54,7 @@ export interface ScriptingService<T extends NodeSettings> {
 
 export class ScriptingServiceImpl<T extends NodeSettings> implements ScriptingService<T> {
     private readonly jsonDataService: JsonDataService;
-    protected readonly flowVariableSettings: {[key: string]: FlowVariableSetting}; // TODO(UIEXT-479) refactor how flow variable information are provided
+    protected readonly flowVariableSettings: {[key: string]: FlowVariableSettings}; // TODO(UIEXT-479) refactor how flow variable information are provided
     protected readonly initialNodeSettings: T;
     protected currentNodeSettings: T;
 
@@ -81,7 +83,6 @@ export class ScriptingServiceImpl<T extends NodeSettings> implements ScriptingSe
         while (true) {
             // Get the next event
             const res = await this.sendToService('getEvent');
-
             // Give the event to the handler
             if (res) {
                 if (res.type in this.eventHandlers) {
@@ -110,6 +111,10 @@ export class ScriptingServiceImpl<T extends NodeSettings> implements ScriptingSe
     }
 
     // Settings handling
+
+    getAllFlowVariables(): Promise<FlowVariable[]> {
+        return this.sendToService('getAllFlowVariables');
+    }
 
     getInitialScript() {
         return this.initialNodeSettings.script;
