@@ -135,11 +135,6 @@ export default defineComponent({
         name="inputs"
       />
     </template>
-    <template #flow_vars>
-      <slot
-        name="flow_vars"
-      />
-    </template>
     <template #conda_env>
       <slot name="conda_env" />
     </template>

@@ -13,8 +13,7 @@ import { defineComponent } from 'vue';
 
 const TABS = {
     INPUT: 'inputs',
-    CONDA: 'conda_env',
-    FLOWVARS: 'flow_vars'
+    CONDA: 'conda_env'
 };
 
 /*
@@ -71,13 +70,7 @@ export default defineComponent({
                     icon: PlusIcon,
                     isActive: this.isTabActive(TABS.CONDA),
                     isExpanded: this.isExpanded,
-                    onClick: () => this.clickItem(TABS.CONDA) },
-
-                { title: 'Flow Variables',
-                    icon: PlusIcon,
-                    isActive: this.isTabActive(TABS.FLOWVARS),
-                    isExpanded: this.isExpanded,
-                    onClick: () => this.clickItem(TABS.FLOWVARS) }
+                    onClick: () => this.clickItem(TABS.CONDA) }
             ];
         }
     },
@@ -131,9 +124,6 @@ export default defineComponent({
     </div>
     <div v-show="activeTab === 'inputs'">
       <slot name="inputs" />
-    </div>
-    <div v-show="activeTab === 'flow_vars'">
-      <slot name="flow_vars" />
     </div>
   </LeftCollapsiblePanel>
 </template>
