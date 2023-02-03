@@ -51,20 +51,23 @@ export default {
             this.popperInstance = createPopper(referenceEl, tooltipEl, {
                 placement: 'top-end',
                 modifiers: [
-                    {
-                        name: 'preventOverflow',
-                        options: {
-                            mainAxis: false
-                        }
-                    },
-                    {
-                        name: 'offset',
-                        options: {
-                            offset: [popperSkidding, popperDistance]
-                        }
-                    }
+                    { name: 'preventOverflow', options: { mainAxis: false } },
+                    { name: 'offset', options: { offset: [popperSkidding, popperDistance] } },
+                    { name: 'eventListeners', enabled: this.expanded }
                 ]
             });
+        },
+        setPopperEventListeners() {
+            this.popperInstance.setOptions((options) => ({
+                ...options,
+                modifiers: [
+                    ...options.modifiers,
+                    { name: 'eventListeners', enabled: this.expanded }
+                ]
+            }));
+            if (this.expanded) {
+                this.popperInstance.update();
+            }
         },
         destroyPopper() {
             if (this.popperInstance) {
@@ -73,15 +76,16 @@ export default {
         },
         toggle() {
             this.expanded = !this.expanded;
-            this.$nextTick(() => this.popperInstance.update());
+            this.$nextTick(() => this.setPopperEventListeners());
         },
         close() {
             this.expanded = false;
+            this.$nextTick(() => this.setPopperEventListeners());
             // emit event to notify parent to set the hover prop to false
             this.$emit('close');
         },
         closeUnlessHover() {
-            if (!this.hover) {
+            if (this.expanded && !this.hover) {
                 this.close();
             }
         },

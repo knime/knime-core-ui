@@ -17,7 +17,18 @@ const HorizontalLayout = defineComponent({
     setup(props) {
         return useJsonFormsLayout(props);
     },
+    data() {
+        return {
+            horizontalWidth: null
+        };
+    },
     computed: {
+        minWidths() {
+            const numberOfElements = this.layout.uischema.elements.length;
+            return this.layout.uischema.options?.minWidths?.length === numberOfElements
+                ? this.layout.uischema.options.minWidths
+                : [];
+        },
         flexValues() {
             const numberOfElements = this.layout.uischema.elements.length;
             return this.layout.uischema.options?.ratios?.length === numberOfElements
@@ -40,7 +51,7 @@ export default HorizontalLayout;
         <div
           v-for="(element, index) in elements"
           :key="`${layout.path}-${index}`"
-          :style="{ 'flex': flexValues[index] }"
+          :style="{ flex: flexValues[index], minWidth: `${minWidths[index]}px` }"
         >
           <DispatchRenderer
             :schema="layout.schema"
@@ -87,14 +98,10 @@ export default HorizontalLayout;
 
   & > * {
     margin-left: 10px;
-  }
 
-  & > *:first-child {
-    margin-left: 0;
-  }
-
-  & > *:last-child {
-    /* padding-right: 10px; */
+    &:first-child {
+      margin-left: 0;
+    }
   }
 }
 
