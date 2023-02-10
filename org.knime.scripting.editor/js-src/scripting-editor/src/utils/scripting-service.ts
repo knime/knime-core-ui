@@ -5,8 +5,10 @@ import type { MonacoLanguageClient } from 'monaco-languageclient';
 import type { DocumentSelector } from 'vscode-languageserver-protocol';
 import { startKnimeLanguageClient } from './knime-lsp';
 
-import type { FlowVariable } from '../components/FlowVariables.vue';
-
+export type FlowVariable = {
+    name: string;
+    value: string;
+}
 
 export const muteReactivity = (target: object, nonReactiveKeys?: string[], reactiveKeys: string[] = []) => {
     try {
@@ -41,7 +43,7 @@ export interface ScriptingService<T extends NodeSettings> {
 
     getScript(this: T): string;
 
-    getAllFlowVariables();
+    getFlowVariables();
 
     startLanguageClient(name: string, documentSelector?: DocumentSelector | string[]): Promise<MonacoLanguageClient>;
 
@@ -111,9 +113,8 @@ export class ScriptingServiceImpl<T extends NodeSettings> implements ScriptingSe
     }
 
     // Settings handling
-
-    getAllFlowVariables(): Promise<FlowVariable[]> {
-        return this.sendToService('getAllFlowVariables');
+    getFlowVariables(): Promise<FlowVariable[]> {
+        return this.sendToService('getFlowVariables');
     }
 
     getInitialScript() {

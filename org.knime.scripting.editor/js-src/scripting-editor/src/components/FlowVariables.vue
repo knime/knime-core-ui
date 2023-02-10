@@ -1,10 +1,6 @@
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue';
-
-export type FlowVariable = {
-    name: string;
-    value: string;
-}
+import type { FlowVariable } from '../utils/scripting-service';
 
 export default defineComponent({
     name: 'FlowVariables',

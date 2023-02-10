@@ -48,10 +48,15 @@
  */
 package org.knime.scripting.editor;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
+import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.scripting.editor.lsp.LanguageServerProxy;
 
@@ -73,19 +78,36 @@ public class ScriptingService {
 
     private final Optional<WorkflowControl> m_workflowControl;
 
+    private final Predicate<FlowVariable> m_flowVariableFilter;
+
+    /** Information about a flow variable */
+    public static class FlowVariableInput {
+
+        public final String name;
+
+        public final String value;
+
+        @SuppressWarnings({"hiding", "javadoc"})
+        public FlowVariableInput(final String name, final String value) {
+            this.name = name;
+            this.value = value;
+        }
+    }
+
     /**
      * Create a new {@link ScriptingService} without a language server.
      */
     public ScriptingService() {
-        this(null);
+        this(null, x -> true);
     }
 
     /**
      * Create a new {@link ScriptingService}.
      *
      * @param languageServer the language server that will be made available to the frontend client
+     * @param flowVariableFilter filters flowvariable given a set of allowed types.
      */
-    public ScriptingService(final LanguageServerProxy languageServer) {
+    public ScriptingService(final LanguageServerProxy languageServer, final Predicate<FlowVariable> flowVariableFilter) {
         m_languageServer = Optional.ofNullable(languageServer);
         m_eventQueue = new LinkedBlockingQueue<>();
         m_workflowControl = Optional.ofNullable(NodeContext.getContext()) //
@@ -99,6 +121,14 @@ public class ScriptingService {
                 m -> sendEvent("language-server", m) //
             ) //
         );
+        m_flowVariableFilter = flowVariableFilter;
+    }
+
+    /**
+     * @return Map to all available FlowVariables. Eventually filtered.
+     */
+    public  Map<String, FlowVariable> getFlowVariablesForScript() {
+        return getWorkflowControl().getFlowObjectStack().getAllAvailableFlowVariables();
     }
 
     /**
@@ -109,6 +139,7 @@ public class ScriptingService {
             .orElseThrow(() -> new IllegalStateException("Trying to control the workflow of a scripting service that "
                 + "was not created in the node context is not supported. This is an implementation error."));
     }
+
 
     /**
      * Send a new event to the frontend. The data is serialized to JSON.
@@ -138,6 +169,15 @@ public class ScriptingService {
 
     /** The service that provides its methods via JSON-RPC to the frontend. */
     public class JsonRpcService {
+
+        /**
+         * @return Filtered FlowVariables. Filter provided by subclass.
+         */
+        public List<FlowVariableInput> getFlowVariables() {
+            return getFlowVariablesForScript().values().stream().filter(m_flowVariableFilter)
+                    .map(f -> new FlowVariableInput(f.getName(), f.getValueAsString())).collect(Collectors.toList());
+        }
+
 
         /**
          * Remove the next event for the frontend and return it.
