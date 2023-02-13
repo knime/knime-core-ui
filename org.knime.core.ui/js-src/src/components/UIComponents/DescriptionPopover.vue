@@ -6,8 +6,9 @@ import { mixin as clickaway } from 'vue-clickaway2';
 import { Portal } from 'portal-vue';
 import { createPopper } from '@popperjs/core';
 
-const popperSkidding = 10;
-const popperDistance = 10;
+const popperSkidding = 0;
+const popperDistance = 9;
+const tetherOffset = 10;
 
 export default {
     components: {
@@ -48,13 +49,37 @@ export default {
             const tooltipEl = this.$refs.box;
             const referenceEl = this.$refs['popover-button'].$el;
 
+            // const clippingParent = document.querySelector('.dialog .form');
+
             this.popperInstance = createPopper(referenceEl, tooltipEl, {
-                placement: 'top-end',
+                placement: 'top-start',
                 modifiers: [
-                    { name: 'preventOverflow', options: { mainAxis: false } },
-                    { name: 'offset', options: { offset: [popperSkidding, popperDistance] } },
-                    { name: 'eventListeners', enabled: this.expanded }
+                    // { name: 'preventOverflow', options: { mainAxis: true, padding: 10, boundary: clippingParent } },
+                    { name: 'preventOverflow',
+                        options: { padding: 10,
+                            tetherOffset: ({ popper, reference, placement }) => {
+                                if (placement.includes('start')) {
+                                    return tetherOffset;
+                                } else {
+                                    return tetherOffset;
+                                }
+                            } } },
+                    { name: 'offset',
+                        options: { offset: ({ placement }) => [popperSkidding, popperDistance] } },
+                    // if (placement.includes('start')) {
+                    //     return [-popperSkidding, popperDistance];
+                    // } else {
+                    // }
+                    { name: 'eventListeners', enabled: this.expanded },
+                    {
+                        name: 'arrow',
+                        options: {
+                            padding: 0 // 5px from the edges of the popper
+                        }
+                    }
+                    // { name: 'flip', options: { fallbackPlacements: ['bottom-end'] } }
                 ]
+                // strategy: 'fixed'
             });
         },
         setPopperEventListeners() {
@@ -169,10 +194,12 @@ export default {
   position: absolute;
   background: var(--knime-white);
   box-shadow: 0 2px 10px 0 var(--knime-gray-dark-semi);
+  word-break: break-all;
+  word-wrap: break-word;
 
   &.teleport {
     /* -40px, because .box is teleported to .dialog.form that has 20px padding on both sides */
-    width: calc(100% - 40px);
+    width: calc(100% - 40px + 2 * var(--popover-oversize));
   }
 
   &[data-popper-placement^='top'] .arrow{
@@ -185,8 +212,8 @@ export default {
 
   & .arrow, & .arrow::before {
     position: absolute;
-    width: 15px;
-    height: 15px;
+    width: 11px;
+    height: 11px;
     background: inherit;
   }
 

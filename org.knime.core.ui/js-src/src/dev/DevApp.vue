@@ -147,9 +147,9 @@ body {
 }
 
 .frame {
-  position: relative;
+  /* position: relative; */
   border: 5px solid orange;
-  max-width: 400px;
+  max-width: 340px;
   min-width: 340px;
 }
 </style>

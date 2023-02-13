@@ -127,6 +127,7 @@ export default {
       </Button>
     </div>
     <PortalTarget
+      style="position: relative"
       name="inputDescriptionPopover"
       multiple
     />
@@ -137,6 +138,7 @@ export default {
 .dialog {
   --controls-height: 49px;
   --description-button-size: 15px;
+  overflow: hidden;
 
   display: flex;
   flex-direction: column;
@@ -147,6 +149,7 @@ export default {
   padding: 11px 0; /* Padding set at 11px to align with the commons "Messages" component */
 
   & .form {
+    /* transform: rotate(0deg); */
     display: flex;
     flex-direction: column;
     height: calc(100vh - var(--controls-height));
