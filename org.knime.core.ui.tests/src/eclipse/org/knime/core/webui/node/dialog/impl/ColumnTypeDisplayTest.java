@@ -65,14 +65,32 @@ final class ColumnTypeDisplayTest {
     void testFromPreferredValueClass() {
         String knownPreferredValueClass = StringValue.class.getName();
         var display = ColumnTypeDisplay.fromPreferredValueClass(knownPreferredValueClass)//
-                .orElseThrow();
+            .orElseThrow();
         assertEquals(knownPreferredValueClass, display.m_id, "Wrong id");
         assertEquals("String", display.m_text, "Wrong text");
     }
 
     @Test
-    void testFromUnknownPreferredValueClass() throws Exception {
+    void testFromUnknownPreferredValueClass() {
         var display = ColumnTypeDisplay.fromPreferredValueClass("foobar");
         assertFalse(display.isPresent(), "There is a type called foobar");
     }
+
+    @Test
+    void testFromUnregisteredPreferredValueClass() {
+        var unregisteredValueClass = "org.knime.core.data.date.DateAndTimeValue";
+        var display = ColumnTypeDisplay.fromPreferredValueClass(unregisteredValueClass).orElseThrow();
+        assertEquals(unregisteredValueClass, display.m_id, "Wrong id");
+        assertEquals("Date and Time", display.m_text, "Wrong text");
+    }
+
+    @Test
+    void testFromUnregisteredPreferredValueClassWithoutExtensibleUtilityFactory() {
+        var filestoreType = "org.knime.core.data.filestore.internal.FileStoreKeyDataValue";
+        var display = ColumnTypeDisplay.fromPreferredValueClass(filestoreType);
+        assertFalse(display.isPresent(),
+            "The FileStoreKeyDataValue is now either registered at the extension point or "
+            + "its utility class now extends ExtensibleUtilityFactory.");
+    }
+
 }
