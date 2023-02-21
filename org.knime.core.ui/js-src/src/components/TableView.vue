@@ -80,8 +80,12 @@ export default {
             return this.columnContentTypes?.some(contentType => isImage(contentType));
         },
         dataConfig() {
-            const { showRowKeys, showRowIndices, compactMode } = this.settings;
+            const { showRowKeys, compactMode } = this.settings;
+            // TODO remove once UIEXT-773 is done. Before that ticket row numbers are wrong as soon as one interacts
+            // with the table
+            const showRowIndices = false;
             let columnConfigs = [];
+
             if (showRowIndices) {
                 columnConfigs.push(this.createColumnConfig(
                     { index: 0, columnName: this.indexColumnName, isSortable: false }
@@ -176,21 +180,22 @@ export default {
                 return [];
             }
             const availableWidth = this.getAvailableWidth(nColumns);
-            const initialIndexColumnSize = this.settings.showRowIndices ? MIN_COLUMN_SIZE : 0;
+            // TODO insert once UIEXT-773 is done
+            // const initialIndexColumnSize = this.settings.showRowIndices ? MIN_COLUMN_SIZE : 0;
             const initialRowKeyColumnSize = this.settings.showRowKeys ? MIN_COLUMN_SIZE : 0;
             const initialRemainingSkippedColumnSize = this.indicateRemainingColumnsSkipped
                 ? this.skippedRemainingColumnsColumnMinWidth
                 : 0;
             
-            const initialTableColumnsSizeTotal = availableWidth - initialIndexColumnSize -
+            const initialTableColumnsSizeTotal = availableWidth -
                 initialRowKeyColumnSize - initialRemainingSkippedColumnSize;
                 
-            const indexColumnSize = this.columnSizeOverrides[INDEX_SYMBOL] || initialIndexColumnSize;
+            // const indexColumnSize = this.columnSizeOverrides[INDEX_SYMBOL] || initialIndexColumnSize;
             const rowKeyColumnSize = this.columnSizeOverrides[ROW_KEY_SYMBOL] || initialRowKeyColumnSize;
             const remainingSkippedColumnSize = this.columnSizeOverrides[REMAINING_COLUMNS_SYMBOL] ||
                 initialRemainingSkippedColumnSize;
 
-            const currentColumnSizes = [indexColumnSize, rowKeyColumnSize]
+            const currentColumnSizes = [rowKeyColumnSize]
                 .concat(this.getDataColumnSizes(initialTableColumnsSizeTotal))
                 .concat(this.indicateRemainingColumnsSkipped ? [remainingSkippedColumnSize] : []);
 
@@ -302,6 +307,8 @@ export default {
             this.columnDomainValues = columnDomainValues;
             this.totalRowCount = table.rowCount;
             this.currentRowCount = table.rowCount;
+            // TODO remove once UIEXT-773 is done
+            settings.showRowIndices = false;
             this.settings = settings;
             if (this.useLazyLoading) {
                 await this.initializeLazyLoading();
@@ -667,6 +674,8 @@ export default {
         },
         onViewSettingsChange(event) {
             const newSettings = event.data.data.view;
+            // TODO remove once UIEXT-773 is done
+            newSettings.showRowIndices = false;
             const enablePaginationChanged = newSettings.enablePagination !== this.settings.enablePagination;
             const displayedColumnsChanged =
                 !arrayEquals(newSettings.displayedColumns.selected, this.settings.displayedColumns.selected);
@@ -899,7 +908,9 @@ export default {
         },
         // only call the method when (displayedColumns XOR showRowKeys XOR showRowKeys) changed and a sorting is active
         updateSortingParams(newSettings, displayedColumnsChanged, showRowKeysChanged, showRowIndicesChanged) {
-            const { showRowKeys, showRowIndices, displayedColumns } = newSettings;
+            const { showRowKeys, displayedColumns } = newSettings;
+            // TODO remove once UIEXT-773 is done.
+            const showRowIndices = false;
             if (displayedColumnsChanged) {
                 // sort on column (not rowKey column) and add/remove (different) column (not rowKey/rowIndex column)
                 if (this.columnSortColumnName !== ROW_KEYS_SORT_COL_NAME) {

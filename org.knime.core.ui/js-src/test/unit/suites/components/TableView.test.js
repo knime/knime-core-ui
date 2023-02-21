@@ -1639,7 +1639,8 @@ describe('TableView.vue', () => {
             wrapper.vm.settings.publishSelection = publish;
             wrapper.vm.settings.subscribeToSelection = subscribe;
             wrapper.vm.settings.showRowKeys = true;
-            wrapper.vm.settings.showRowIndices = true;
+            // TODO turn to true after UIEXT-773
+            wrapper.vm.settings.showRowIndices = false;
 
             wrapper.vm.clientWidth = clientWidth;
             
@@ -1649,7 +1650,8 @@ describe('TableView.vue', () => {
             const dataColumnsSizeTotal = clientWidth - specialColumnsSizeTotal - nColumns * DATA_COLUMNS_MARGIN;
             const defaultColumnSize = Math.max(DEFAULT_COLUMN_SIZE, dataColumnsSizeTotal / nColumns);
 
-            const defaultColumnSizes = [MIN_COLUMN_SIZE, MIN_COLUMN_SIZE]
+            // TODO change after UIEXT-773
+            const defaultColumnSizes = [0, MIN_COLUMN_SIZE]
                 .concat(Array(nColumns - 2).fill(defaultColumnSize));
             const lastColumnMinSize = dataColumnsSizeTotal -
                 defaultColumnSizes.slice(0, nColumns - 1).reduce((sum, size) => sum + size, 0);
@@ -1698,6 +1700,7 @@ describe('TableView.vue', () => {
         });
 
         it('correctly overrides column sizes', async () => {
+            // TODO adjust test as soon as UIEXT-773 is solved
             const { wrapper, defaultColumnSizes } = await getWrapperAndDefaultSizes(clientWidth, true);
             wrapper.vm.onColumnResize(0, 1);
             wrapper.vm.onColumnResize(1, 2);
@@ -1705,7 +1708,7 @@ describe('TableView.vue', () => {
             defaultColumnSizes[0] = 1;
             defaultColumnSizes[1] = 2;
             defaultColumnSizes[2] = 1;
-            defaultColumnSizes[defaultColumnSizes.length - 1] = 206;
+            defaultColumnSizes[defaultColumnSizes.length - 1] = 316;
             expect(wrapper.vm.columnSizes).toStrictEqual(defaultColumnSizes);
         });
 
