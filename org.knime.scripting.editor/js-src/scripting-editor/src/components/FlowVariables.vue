@@ -1,13 +1,13 @@
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue';
-import type { FlowVariable } from '../utils/scripting-service';
+import type { FlowVariableInput } from '../utils/scripting-service';
 
 export default defineComponent({
     name: 'FlowVariables',
     components: {},
     props: {
         flowVariables: {
-            type: Array as PropType<FlowVariable[]>,
+            type: Array as PropType<FlowVariableInput[]>,
             default() {
                 return [];
             }

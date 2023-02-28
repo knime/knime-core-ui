@@ -5,11 +5,6 @@ import type { MonacoLanguageClient } from 'monaco-languageclient';
 import type { DocumentSelector } from 'vscode-languageserver-protocol';
 import { startKnimeLanguageClient } from './knime-lsp';
 
-export type FlowVariable = {
-    name: string;
-    value: string;
-}
-
 export const muteReactivity = (target: object, nonReactiveKeys?: string[], reactiveKeys: string[] = []) => {
     try {
         (nonReactiveKeys || Object.keys(target))
@@ -34,6 +29,11 @@ export interface NodeSettings {
     script: string;
 }
 
+export type FlowVariableInput = {
+    name: string;
+    value: string;
+}
+
 
 export interface ScriptingService<T extends NodeSettings> {
     
@@ -43,7 +43,7 @@ export interface ScriptingService<T extends NodeSettings> {
 
     getScript(this: T): string;
 
-    getFlowVariables();
+    getFlowVariableInputs(): Promise<FlowVariableInput[]>;
 
     startLanguageClient(name: string, documentSelector?: DocumentSelector | string[]): Promise<MonacoLanguageClient>;
 
@@ -112,11 +112,11 @@ export class ScriptingServiceImpl<T extends NodeSettings> implements ScriptingSe
         this.eventHandlers[type] = handler;
     }
 
-    // Settings handling
-    getFlowVariables(): Promise<FlowVariable[]> {
-        return this.sendToService('getFlowVariables');
+    getFlowVariableInputs() {
+        return this.sendToService('getFlowVariableInputs');
     }
 
+    // Settings handling
     getInitialScript() {
         return this.initialNodeSettings.script;
     }
