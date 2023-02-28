@@ -10,9 +10,9 @@ export default defineComponent({
             type: Array as PropType<FlowVariableInput[]>,
             default() {
                 return [];
-            }
-        }
-    }
+            },
+        },
+    },
 });
 
 </script>

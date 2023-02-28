@@ -27,12 +27,12 @@ export default defineComponent({
     props: {
         initialScript: {
             type: String,
-            default: ''
+            default: '',
         },
         language: {
             type: String,
-            default: null
-        }
+            default: null,
+        },
     },
     emits: ['monaco-created'],
     mounted() {
@@ -43,7 +43,7 @@ export default defineComponent({
         const editorModel = monaco.editor.createModel(
             this.initialScript,
             this.language,
-            monaco.Uri.parse('inmemory://main.py')
+            monaco.Uri.parse('inmemory://main.py'),
         );
         
 
@@ -51,17 +51,17 @@ export default defineComponent({
             model: editorModel,
             glyphMargin: false,
             lightbulb: {
-                enabled: true
+                enabled: true,
             },
             minimap: { enabled: true },
             automaticLayout: true,
             scrollBeyondLastLine: true,
-            fixedOverflowWidgets: true
+            fixedOverflowWidgets: true,
         });
 
         // Notify the parent that the editor is now available
         this.$emit('monaco-created', { editor, editorModel });
-    }
+    },
 });
 </script>
 

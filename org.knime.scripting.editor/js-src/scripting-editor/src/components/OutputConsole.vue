@@ -17,7 +17,7 @@ export default defineComponent({
             this.term.write(text.text);
         });
         this.term.open(this.$refs.xterm as HTMLElement);
-    }
+    },
 });
 </script>
 

@@ -13,7 +13,7 @@ import { defineComponent } from 'vue';
 
 const TABS = {
     INPUT: 'inputs',
-    CONDA: 'conda_env'
+    CONDA: 'conda_env',
 };
 
 /*
@@ -44,18 +44,18 @@ export default defineComponent({
     name: 'LeftPane',
     components: {
         LeftCollapsiblePanel,
-        Button
+        Button,
     },
     props: {
         initialTab: {
             type: String,
-            default: 'conda_env'
-        }
+            default: 'conda_env',
+        },
     },
     data(props) {
         return {
             isExpanded: false,
-            activeTab: props.initialTab || null
+            activeTab: props.initialTab || null,
         };
     },
     computed: {
@@ -70,9 +70,9 @@ export default defineComponent({
                     icon: PlusIcon,
                     isActive: this.isTabActive(TABS.CONDA),
                     isExpanded: this.isExpanded,
-                    onClick: () => this.clickItem(TABS.CONDA) }
+                    onClick: () => this.clickItem(TABS.CONDA) },
             ];
-        }
+        },
     },
     methods: {
         isTabActive(tabName) {
@@ -88,8 +88,8 @@ export default defineComponent({
                 this.isExpanded = true;
                 this.activeTab = tabName;
             }
-        }
-    }
+        },
+    },
 });
 </script>
 

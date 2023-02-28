@@ -21,62 +21,62 @@ export default defineComponent({
         EditorLayout,
         CodeEditor,
         Button,
-        TabPane
+        TabPane,
     },
     props: {
         language: {
             type: String,
-            default: null
+            default: null,
         },
         initialLeftTab: {
             type: String,
-            default: ''
+            default: '',
         },
         leftTabs: {
             type: Array as PropType<TabOption[]>,
             default() {
                 return [];
-            }
+            },
         },
         initialRightTab: {
             type: String,
-            default: ''
+            default: '',
         },
         rightTabs: {
             type: Array as PropType<TabOption[]>,
             default() {
                 return [];
-            }
+            },
         },
         initialBottomTab: {
             type: String,
-            default: ''
+            default: '',
         },
         bottomTabs: {
             type: Array as PropType<TabOption[]>,
             default() {
                 return [];
-            }
-        }
+            },
+        },
     },
     emits: ['monaco-created'],
     setup() {
         const scriptingService = inject('scriptingService') as ScriptingServiceImpl<NodeSettings>;
 
         return {
-            scriptingService
+            scriptingService,
         };
     },
     data() {
         return {
             bottomActiveTab: 'console',
-            leftActiveTab: 'inputs'
+            leftActiveTab: 'inputs',
         };
     },
     computed: {
         initialScript(): string {
             return this.scriptingService.getInitialScript();
-        }
+        },
     },
     methods: {
         // Called by general control buttons
@@ -97,7 +97,7 @@ export default defineComponent({
 
         onMonacoCreated({
             editor,
-            editorModel
+            editorModel,
         }: {
             editor: monaco.editor.IStandaloneCodeEditor;
             editorModel: monaco.editor.ITextModel;
@@ -120,8 +120,8 @@ export default defineComponent({
             });
 
             this.$emit('monaco-created', { editor, editorModel });
-        }
-    }
+        },
+    },
 });
 </script>
 

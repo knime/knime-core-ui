@@ -12,7 +12,7 @@ export const muteReactivity = (target: object, nonReactiveKeys?: string[], react
             .forEach((key: string) => {
                 Object.defineProperty(target, key, {
                     configurable: false,
-                    writable: true
+                    writable: true,
                 });
             });
     } catch (e) {
@@ -103,7 +103,7 @@ export class ScriptingServiceImpl<T extends NodeSettings> implements ScriptingSe
     protected sendToService(methodName: string, options?: any[]): Promise<any> {
         return this.jsonDataService.data({
             method: `ScriptingService.${methodName}`,
-            options
+            options,
         });
     }
 
@@ -140,7 +140,7 @@ export class ScriptingServiceImpl<T extends NodeSettings> implements ScriptingSe
     sendLanguageServerMessage(message: string) {
         return this.jsonDataService.data({
             method: 'ScriptingService.sendLanguageServerMessage',
-            options: [message]
+            options: [message],
         });
     }
 

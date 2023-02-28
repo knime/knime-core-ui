@@ -40,12 +40,12 @@ class KnimeMessageReader
                     if (this.callback === callback) {
                         this.callback = null;
                     }
-                }
+                },
             };
         } else {
             throw Error(
                 'Tried to register more than one language server callback. ' +
-                'This is an implementation error.'
+                'This is an implementation error.',
             );
         }
     }
@@ -69,7 +69,7 @@ class KnimeMessageWriter
 
     async write(msg: Message): Promise<void> {
         await this.scriptingService.sendLanguageServerMessage(
-            JSON.stringify(msg)
+            JSON.stringify(msg),
         );
     }
 
@@ -82,7 +82,7 @@ class KnimeMessageWriter
 export const startKnimeLanguageClient = async (
     scriptingService: ScriptingService<NodeSettings>,
     name: string,
-    documentSelector?: DocumentSelector | string[]
+    documentSelector?: DocumentSelector | string[],
 ): Promise<MonacoLanguageClient> => {
     // TODO(AP-19338) Allow configuration of the language server
     // Maybe "initializationOptions" of LanguageClientOptions is the way to go
@@ -96,16 +96,16 @@ export const startKnimeLanguageClient = async (
             // disable the default error handler
             errorHandler: {
                 error: () => ({ action: ErrorAction.Continue }),
-                closed: () => ({ action: CloseAction.Restart })
-            }
+                closed: () => ({ action: CloseAction.Restart }),
+            },
         },
         // create a language client connection from the JSON RPC connection on demand
         connectionProvider: {
             get: () => Promise.resolve({
                 reader: new KnimeMessageReader(scriptingService),
-                writer: new KnimeMessageWriter(scriptingService)
-            })
-        }
+                writer: new KnimeMessageWriter(scriptingService),
+            }),
+        },
     });
     await languageClient.start();
     return languageClient;

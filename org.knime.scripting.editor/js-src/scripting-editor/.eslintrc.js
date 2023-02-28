@@ -6,12 +6,15 @@ module.exports = {
     extends: ['@knime/eslint-config/vue3-typescript'],
     env: {
         node: true,
-        browser: true
+        browser: true,
     },
     globals: {
-        consola: true
+        consola: true,
     },
     ignorePatterns: [
-        '**/opensourcecredits/used-packages.json'
-    ]
+        '**/opensourcecredits/used-packages.json',
+    ],
+    rules: {
+        'comma-dangle': ['error', 'always-multiline'],
+    },
 };

@@ -3,16 +3,16 @@ import SwitchIcon from 'webapps-common/ui/assets/img/icons/arrow-prev.svg';
 
 export default {
     components: {
-        SwitchIcon
+        SwitchIcon,
     },
     props: {
         expanded: {
             type: Boolean,
-            default: false
+            default: false,
         },
         disabled: {
             type: Boolean,
-            default: false
+            default: false,
         },
         /**
          *  Expanded width of the panel's content.
@@ -21,19 +21,19 @@ export default {
         width: {
             type: String,
             default: '250px',
-            validator: (str) => /^\d+\w+$/.test(str)
+            validator: (str) => /^\d+\w+$/.test(str),
         },
         /**
          * The hover title to be shown when the panel is collapsed
          */
         title: {
             type: String,
-            default: null
-        }
+            default: null,
+        },
     },
     emits: ['toggle-expand'],
     data: () => ({
-        showContainerTransition: false
+        showContainerTransition: false,
     }),
     mounted() {
         this.showContainerTransition = true;
@@ -41,7 +41,7 @@ export default {
         requestAnimationFrame(() => {
             this.showContainerTransition = false;
         });
-    }
+    },
 };
 </script>
 

@@ -13,13 +13,13 @@ export default defineComponent({
         LeftPane,
         HeaderBar,
         FooterBar,
-        Splitter
+        Splitter,
     },
     data() {
         return {
-            isExpanded: false
+            isExpanded: false,
         };
-    }
+    },
 });
 </script>
 

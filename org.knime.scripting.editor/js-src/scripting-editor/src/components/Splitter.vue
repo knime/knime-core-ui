@@ -14,14 +14,14 @@ export default {
         direction: {
             type: String,
             default: 'column',
-            validator: val => ['column', 'row'].includes(val)
+            validator: val => ['column', 'row'].includes(val),
         },
         /**
          * id is used as html-id and to load and save state
          */
         id: {
             type: String,
-            required: true
+            required: true,
         },
         /**
          * initial size of secondary area
@@ -29,13 +29,13 @@ export default {
         secondarySize: {
             type: String,
             default: '40%',
-            validator: (str) => /^\d+[%\w]+$/.test(str)
-        }
+            validator: (str) => /^\d+[%\w]+$/.test(str),
+        },
     },
     data() {
         return {
             isMove: false,
-            currentSecondarySize: this.secondarySize
+            currentSecondarySize: this.secondarySize,
         };
     },
     computed: {
@@ -44,14 +44,14 @@ export default {
         },
         isRow() {
             return this.direction === 'row';
-        }
+        },
     },
     watch: {
         currentSecondarySize() {
             if (this.supportLocalStorage()) {
                 localStorage.setItem(`ui-splitter-${this.id}`, this.currentSecondarySize);
             }
-        }
+        },
     },
     beforeMount() {
         if (this.supportLocalStorage()) {
@@ -79,8 +79,8 @@ export default {
                     this.currentSecondarySize = `${rect.width + (rect.x - e.clientX)}px`;
                 }
             }
-        }
-    }
+        },
+    },
 };
 </script>
 
