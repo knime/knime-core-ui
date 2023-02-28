@@ -48,8 +48,8 @@
  */
 package org.knime.scripting.editor;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -80,20 +80,6 @@ public class ScriptingService {
 
     private final Predicate<FlowVariable> m_flowVariableFilter;
 
-    /** Information about a flow variable */
-    public static class FlowVariableInput {
-
-        public final String name;
-
-        public final String value;
-
-        @SuppressWarnings({"hiding", "javadoc"})
-        public FlowVariableInput(final String name, final String value) {
-            this.name = name;
-            this.value = value;
-        }
-    }
-
     /**
      * Create a new {@link ScriptingService} without a language server.
      */
@@ -107,7 +93,8 @@ public class ScriptingService {
      * @param languageServer the language server that will be made available to the frontend client
      * @param flowVariableFilter filters flowvariable given a set of allowed types.
      */
-    public ScriptingService(final LanguageServerProxy languageServer, final Predicate<FlowVariable> flowVariableFilter) {
+    public ScriptingService(final LanguageServerProxy languageServer,
+        final Predicate<FlowVariable> flowVariableFilter) {
         m_languageServer = Optional.ofNullable(languageServer);
         m_eventQueue = new LinkedBlockingQueue<>();
         m_workflowControl = Optional.ofNullable(NodeContext.getContext()) //
@@ -125,10 +112,13 @@ public class ScriptingService {
     }
 
     /**
-     * @return Map to all available FlowVariables. Eventually filtered.
+     * @return available flow variables that match the flow variable filter
      */
-    public  Map<String, FlowVariable> getFlowVariablesForScript() {
-        return getWorkflowControl().getFlowObjectStack().getAllAvailableFlowVariables();
+    public Collection<FlowVariable> getFlowVariables() {
+        var flowVars = getWorkflowControl().getFlowObjectStack().getAllAvailableFlowVariables().values();
+        return flowVars.stream() //
+            .filter(m_flowVariableFilter) //
+            .collect(Collectors.toList());
     }
 
     /**
@@ -139,7 +129,6 @@ public class ScriptingService {
             .orElseThrow(() -> new IllegalStateException("Trying to control the workflow of a scripting service that "
                 + "was not created in the node context is not supported. This is an implementation error."));
     }
-
 
     /**
      * Send a new event to the frontend. The data is serialized to JSON.
@@ -171,13 +160,13 @@ public class ScriptingService {
     public class JsonRpcService {
 
         /**
-         * @return Filtered FlowVariables. Filter provided by subclass.
+         * @return a list of flow variable inputs that should be shown in the inputs panel
          */
-        public List<FlowVariableInput> getFlowVariables() {
-            return getFlowVariablesForScript().values().stream().filter(m_flowVariableFilter)
-                    .map(f -> new FlowVariableInput(f.getName(), f.getValueAsString())).collect(Collectors.toList());
+        public List<FlowVariableInput> getFlowVariableInputs() {
+            return getFlowVariables().stream() //
+                .map(f -> new FlowVariableInput(f.getName(), f.getValueAsString())) //
+                .collect(Collectors.toList());
         }
-
 
         /**
          * Remove the next event for the frontend and return it.
@@ -236,6 +225,21 @@ public class ScriptingService {
         public ConsoleText(final String text, final boolean stderr) {
             this.text = text;
             this.stderr = stderr;
+        }
+    }
+
+    /** Information about a flow variable */
+    @SuppressWarnings("javadoc")
+    public static class FlowVariableInput {
+
+        public final String name;
+
+        public final String value;
+
+        @SuppressWarnings({"hiding", "javadoc"})
+        public FlowVariableInput(final String name, final String value) {
+            this.name = name;
+            this.value = value;
         }
     }
 }
