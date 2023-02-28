@@ -16,5 +16,8 @@ module.exports = {
     ],
     rules: {
         'comma-dangle': ['error', 'always-multiline'],
+        'object-curly-newline': ['error', {
+            ImportDeclaration: { multiline: true },
+        }],
     },
 };

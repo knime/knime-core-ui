@@ -1,14 +1,18 @@
-import { MonacoLanguageClient,
+import {
+    MonacoLanguageClient,
     CloseAction,
     ErrorAction,
-    MonacoServices } from 'monaco-languageclient';
+    MonacoServices,
+} from 'monaco-languageclient';
 
-import type { DocumentSelector,
+import type {
+    DocumentSelector,
     Message,
     MessageReader,
     MessageWriter,
     Disposable,
-    DataCallback } from 'monaco-languageclient';
+    DataCallback,
+} from 'monaco-languageclient';
 
 import { AbstractMessageReader, AbstractMessageWriter } from 'vscode-jsonrpc';
 import type { ScriptingService, NodeSettings } from './scripting-service';
