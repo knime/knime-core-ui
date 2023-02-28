@@ -189,15 +189,6 @@ export default defineComponent({
   flex-direction: column;
 }
 
-.slide-leave-to {
-  transition: transform 0.55s ease-in-out;
-  transform: translateX(calc(50% + 10px)); /* extra 10px to hide box shadow when collapsed */
-}
-.slide-leave-to {
-  transition: transform 0.55s ease-in-out;
-  transform: translateX(calc(-100% + 10px)); /* extra 10px to hide box shadow when collapsed */
-}
-
 .list-move, /* apply transition to moving elements */
 .list-enter-active,
 .list-leave-active {

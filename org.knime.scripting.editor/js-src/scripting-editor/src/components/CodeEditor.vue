@@ -68,7 +68,7 @@ export default defineComponent({
 <template>
   <div
     ref="monaco_editor"
-    class="code_editor"
+    class="code-editor"
   />
 </template>
 
@@ -78,25 +78,29 @@ export default defineComponent({
         font-size: 28px;
         line-height: 34px;
     }
+
     & h2 {
         font-size: 22px;
         line-height: 28px;
     }
+
     & h3 {
         font-size: 18px;
         line-height: 21px;
     }
+
     & h4 {
         font-size: 16px;
         line-height: 20px;
     }
+
     & h5 {
         font-size: 13px;
         line-height: 18px;
     }
 }
 
-.code_editor{
+.code-editor{
     height: 100%
 }
 </style>

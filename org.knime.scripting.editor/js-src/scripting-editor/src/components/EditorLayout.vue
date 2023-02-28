@@ -84,6 +84,7 @@ export default defineComponent({
   width: 100%;
   background-color: var(--knime-gray-ultra-light);
   border-left: 1px solid var(--knime-silver-sand);
+
   & .center{
     display: flex;
     height: calc(100vh - 2*var(--controls-height));

@@ -29,7 +29,7 @@ export default defineComponent({
 </template>
 
 <style>
-@import 'xterm/css/xterm.css';
+@import url('xterm/css/xterm.css');
 
 </style>
 
