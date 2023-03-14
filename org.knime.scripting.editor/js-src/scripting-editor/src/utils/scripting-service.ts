@@ -102,7 +102,7 @@ export class ScriptingServiceImpl<T extends NodeSettings> implements ScriptingSe
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     protected sendToService(methodName: string, options?: any[]): Promise<any> {
         return this.jsonDataService.data({
-            method: `ScriptingService.${methodName}`,
+            method: methodName,
             options,
         });
     }
@@ -138,10 +138,7 @@ export class ScriptingServiceImpl<T extends NodeSettings> implements ScriptingSe
     }
 
     sendLanguageServerMessage(message: string) {
-        return this.jsonDataService.data({
-            method: 'ScriptingService.sendLanguageServerMessage',
-            options: [message],
-        });
+        return this.sendToService('sendLanguageServerMessage', [message]);
     }
 
     registerLanguageServerEventHandler(handler: (message: string) => void) {
