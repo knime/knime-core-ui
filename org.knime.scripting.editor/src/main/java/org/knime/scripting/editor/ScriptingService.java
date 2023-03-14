@@ -152,12 +152,12 @@ public class ScriptingService {
     /**
      * @return the service that provides its methods via JSON-RPC to the frontend
      */
-    public JsonRpcService getJsonRpcService() {
-        return new JsonRpcService();
+    public RpcService getJsonRpcService() {
+        return new RpcService();
     }
 
     /** The service that provides its methods via JSON-RPC to the frontend. */
-    public class JsonRpcService {
+    public class RpcService {
 
         /**
          * @return a list of flow variable inputs that should be shown in the inputs panel
