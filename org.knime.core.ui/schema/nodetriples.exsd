@@ -1,10 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.knime.core.ui.workflowcoach" xmlns="http://www.w3.org/2001/XMLSchema">
-<annotation>
-      <appInfo>
+<schema targetNamespace="org.knime.core.ui.workflowcoach" xmlns="http://www.w3.org/2001/XMLSchema"
+      xmlns:workflowcoach="org.knime.core.ui.workflowcoach">
+   <annotation>
+      <appinfo>
          <meta.schema plugin="org.knime.core.ui.workflowcoach" id="nodetriples" name="Node Triples"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          The extension point can be used to plugin new KNIME node triple provider. Node Triples are used to generate node recommendations for the workflow coach.
       </documentation>
@@ -12,13 +13,13 @@
 
    <element name="extension">
       <annotation>
-         <appInfo>
+         <appinfo>
             <meta.element />
-         </appInfo>
+         </appinfo>
       </annotation>
       <complexType>
          <sequence minOccurs="0" maxOccurs="unbounded">
-            <element ref="tripleprovider" minOccurs="1" maxOccurs="unbounded"/>
+            <element ref="workflowcoach:tripleprovider" minOccurs="1" maxOccurs="unbounded"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -37,45 +38,45 @@
                <documentation>
                   
                </documentation>
-               <appInfo>
+               <appinfo>
                   <meta.attribute kind="java" basedOn=":org.knime.core.ui.workflowcoach.data.NodeTripleProviderFactory"/>
-               </appInfo>
+               </appinfo>
             </annotation>
          </attribute>
       </complexType>
    </element>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="since"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          3.2.0
       </documentation>
    </annotation>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="examples"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          [Enter extension point usage example here.]
       </documentation>
    </annotation>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="apiinfo"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          [Enter API information here.]
       </documentation>
    </annotation>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="implementation"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          [Enter information about supplied implementation of this extension point.]
       </documentation>
