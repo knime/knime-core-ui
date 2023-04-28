@@ -52,6 +52,7 @@ export interface ScriptingService<T extends NodeSettings> {
     registerLanguageServerEventHandler(handler: (message: string) => void);
 
     registerConsoleEventHandler(handler: (text: ConsoleText) => void);
+    
 }
 
 export class ScriptingServiceImpl<T extends NodeSettings> implements ScriptingService<T> {
@@ -61,7 +62,7 @@ export class ScriptingServiceImpl<T extends NodeSettings> implements ScriptingSe
     protected currentNodeSettings: T;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private eventHandlers: { [type: string]: (args: any) => void };
+    eventHandlers: { [type: string]: (args: any) => void };
 
     constructor(jsonDataService, flowVariableSettings, initialNodeSettings) {
         this.jsonDataService = jsonDataService;
@@ -105,6 +106,10 @@ export class ScriptingServiceImpl<T extends NodeSettings> implements ScriptingSe
             method: methodName,
             options,
         });
+    }
+
+    protected sendToConsole(text: ConsoleText) {
+        this.eventHandlers.console(text);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
