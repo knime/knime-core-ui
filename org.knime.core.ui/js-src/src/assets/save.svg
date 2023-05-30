@@ -1,0 +1,6 @@
+<svg width="32" height="32" viewBox="0 0 32 32" stroke="#000" fill="none" stroke-linejoin="round" stroke-miterlimit="10">
+    <path d="M10 22V10H22V19.9L19.9005 22H10Z" />
+    <path d="M19 18H12V22H19V18Z" />
+    <path d="M17 21V19" />
+    <path d="M20 10H12V16H20V10Z"/>
+</svg>

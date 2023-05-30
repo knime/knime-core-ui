@@ -1,0 +1,17 @@
+{
+    "elements": [
+        {
+            "type": "Section",
+            "label": "Plot",
+            "elements": [
+                {
+                    "type": "Control",
+                    "scope": "#/properties/view/properties/HTMLContent",
+                    "options": {
+                        "format": "markdown"
+                    }
+                }
+            ]
+        }
+    ]
+}

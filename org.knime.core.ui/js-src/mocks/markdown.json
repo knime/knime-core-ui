@@ -1,0 +1,34 @@
+{
+  "result": {
+    "name": "New Node Dialog",
+    "data": {
+      "model": {},
+      "view": {"htmlContent": "test"}
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "model": {},
+        "view": {
+          "htmlContent": {
+            "type": "string",
+            "title": "HTML Content",
+            "description": "Test HTML Content",
+            "default": "Html Content"
+          }
+        }
+      }
+    },
+    "ui_schema": {
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/view/properties/htmlContent",
+          "options": {
+            "format": "markdown"
+          }
+        }
+      ]
+    }
+  }
+}

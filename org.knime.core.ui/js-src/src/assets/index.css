@@ -1,0 +1,15 @@
+@import "modern-normalize/modern-normalize.css";
+@import "webapps-common/ui/css/basics";
+@import "webapps-common/ui/css/grid";
+@import "./fonts";
+@import "./variables";
+
+/* prevent "bounce" effect when scrolling with touch pad */
+body {
+  overscroll-behavior: none;
+  overflow: hidden;
+}
+
+button {
+  outline: none;
+}

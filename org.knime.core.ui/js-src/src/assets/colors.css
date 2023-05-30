@@ -1,0 +1,13 @@
+/* This is an auto-generated file.
+ * Do not change manually.
+ * Changes should go to style/colors.js.
+*/
+
+:root {
+  --warning-color: hsl(50.8, 100%, 50%);
+  --error-color: hsl(339.1, 88.4%, 43.9%);
+  --darkening-mask-color: hsla(0, 0%, 0%, 33.3%);
+  --notification-background-color: hsla(206, 42%, 86%, 90%);
+  --selection-active-border-color: hsl(206, 69.7%, 38.8%);
+  --selection-active-background-color: rgba(233, 241, 246, 90%);
+}

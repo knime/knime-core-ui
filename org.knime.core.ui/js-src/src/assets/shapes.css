@@ -1,0 +1,16 @@
+/* This is an auto-generated file.
+ * Do not change manually.
+ * Changes should go to style/shapes.js.
+*/
+
+:root {
+  --selected-node-border-radius-shape: 4;
+  --selected-node-stroke-width-shape: 1;
+  --selected-connector-width-shape: 3;
+  --connector-width-shape: 1;
+  --highlighted-connector-width-shape: 2;
+  --node-name-padding-shape: 2;
+  --node-name-font-size-shape: 12;
+  --node-name-line-height-shape: 14;
+  --node-name-max-lines-shape: 2;
+}

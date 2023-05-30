@@ -1,0 +1,20 @@
+@import "@fontsource/roboto/400";
+@import "@fontsource/roboto/400-italic";
+@import "@fontsource/roboto/700";
+@import "@fontsource/roboto/700-italic";
+@import "@fontsource/roboto-condensed/400";
+@import "@fontsource/roboto-condensed/400-italic";
+@import "@fontsource/roboto-condensed/700";
+@import "@fontsource/roboto-condensed/700-italic";
+@import "@fontsource/roboto-mono/400";
+
+html {
+  font-family: "Roboto", sans-serif;
+}
+
+pre,
+code,
+tt,
+samp {
+  font-family: "Roboto Mono", monospace;
+}

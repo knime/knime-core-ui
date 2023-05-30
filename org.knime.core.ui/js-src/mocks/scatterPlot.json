@@ -394,7 +394,10 @@
           "elements": [
             {
               "type": "Control",
-              "scope": "#/properties/view/properties/title"
+              "scope": "#/properties/view/properties/title",
+              "options": {
+                "format": "markdown"
+              }
             },
             {
               "type": "Control",
