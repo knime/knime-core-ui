@@ -7,5 +7,6 @@ export const inputFormats = {
     integer: 'integer',
     number: 'number',
     columnFilter: 'columnFilter',
-    anyOfTwinList: 'twinList'
+    anyOfTwinList: 'twinList',
+    credentials: 'credentials'
 };

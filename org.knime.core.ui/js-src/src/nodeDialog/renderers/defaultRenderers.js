@@ -12,6 +12,7 @@ import { integerRenderer } from './integerRenderer';
 import { arrayLayoutRenderer } from './arrayLayoutRenderer';
 import { horizontalLayoutRenderer } from './horizontalLayoutRenderer';
 import { valueSwitchRenderer } from './valueSwitchRenderer';
+import { credentialsRenderer } from './credentialsRenderer';
 
 export const defaultRenderers = [
     sectionLayoutRenderer,
@@ -27,6 +28,7 @@ export const defaultRenderers = [
     integerRenderer,
     arrayLayoutRenderer,
     horizontalLayoutRenderer,
-    valueSwitchRenderer
+    valueSwitchRenderer,
+    credentialsRenderer
 ];
 
