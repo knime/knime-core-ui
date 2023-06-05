@@ -20,7 +20,8 @@ export const dialogInitialData = {
                     size: 0,
                     value: 0
                 }
-            ]
+            ],
+            credentials: { username: 'knime', password: 'test' }
         }
     },
     schema: {
@@ -50,6 +51,13 @@ export const dialogInitialData = {
                             }
                         ],
                         title: 'Simple Dropdown'
+                    },
+                    credentials: {
+                        type: 'object',
+                        title: 'Credentials input',
+                        description: 'Some description.',
+                        username: { default: 'knime' },
+                        password: { default: 'test' }
                     },
                     simpleColumnSelect: {
                         oneOf: [
@@ -386,6 +394,14 @@ export const dialogInitialData = {
                     },
                     {
                         type: 'Control',
+                        scope: '#/properties/view/properties/credentials',
+                        options: {
+                            format: 'credentials',
+                            handleMagicPassword: false
+                        }
+                    },
+                    {
+                        type: 'Control',
                         scope: '#/properties/view/properties/frequencyColumns',
                         options: {
                             format: 'columnFilter',
@@ -460,5 +476,6 @@ export const expectedRenderers = [
     { scope: '#/properties/view/properties/yAxisLabel', component: 'TextInput' },
     { scope: '#/properties/view/properties/frequencyColumns', component: 'ColumnFilter' },
     { scope: '#/properties/view/properties/simpleTwinlist', component: 'SimpleTwinListInput' },
-    { scope: '#/properties/view/properties/referenceLines', component: 'ArrayLayout' }
+    { scope: '#/properties/view/properties/referenceLines', component: 'ArrayLayout' },
+    { scope: '#/properties/view/properties/credentials', component: 'CredentialsInput' }
 ];

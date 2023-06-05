@@ -46,13 +46,16 @@ const CredentialsInput = defineComponent({
             return getFlowVariablesMap(this.control);
         },
         disabled() {
-            return (
-                !this.control.enabled ||
-        this.flowSettings?.controllingFlowVariableAvailable
-            );
+            return !this.control.enabled || this.flowSettings?.controllingFlowVariableAvailable;
         },
         passwordChanged() {
             return this.credentials.password !== this.defaultPassword;
+        },
+        showPasswordField() {
+            return this.control.uischema.options?.showPasswordField ?? true;
+        },
+        showUsernameField() {
+            return this.control.uischema.options?.showUsernameField ?? true;
         }
     },
     created() {
@@ -68,13 +71,14 @@ const CredentialsInput = defineComponent({
                 if (this.defaultPassword === MAGIC_PASSWORD) {
                     if (
                         key === 'username' &&
-            this.defaultPassword === MAGIC_PASSWORD &&
-            !this.passwordChanged
+                        this.defaultPassword === MAGIC_PASSWORD &&
+                        !this.passwordChanged
                     ) {
                         this.credentials.password = '';
                     }
                 }
             }
+            
             this.credentials[key] = event;
             
             this.handleChange(this.control.path, this.credentials);
@@ -101,6 +105,7 @@ export default CredentialsInput;
       :flow-settings="flowSettings"
     >
       <InputField
+        v-if="showUsernameField"
         placeholder="Username"
         :model-value="credentials.username"
         :disabled="disabled"
@@ -108,7 +113,8 @@ export default CredentialsInput;
         @update:model-value="(event) => onChange(event, 'username')"
       />
       <InputField
-        class="password"
+        v-if="showPasswordField"
+        :class="{password: showUsernameField}"
         placeholder="Password"
         :model-value="credentials.password"
         :disabled="disabled"
