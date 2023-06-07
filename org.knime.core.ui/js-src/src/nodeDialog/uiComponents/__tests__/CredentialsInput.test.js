@@ -24,7 +24,7 @@ describe('CredentialsInput.vue', () => {
                     type: 'object',
                     title: 'Credentials input',
                     description: 'Some description.',
-                    username: { default: 'knime' },
+                    login: { default: 'knime' },
                     password: { default: 'test' }
                 },
                 uischema: {

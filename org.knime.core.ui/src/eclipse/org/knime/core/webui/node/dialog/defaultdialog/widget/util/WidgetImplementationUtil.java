@@ -59,6 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
@@ -116,6 +117,7 @@ public final class WidgetImplementationUtil {
     private static WidgetAnnotation[] widgetAnnotations = new WidgetAnnotation[]{//
         new WidgetAnnotation(Widget.class), //
         new WidgetAnnotation(List.of(Enum.class), RadioButtonsWidget.class), //
+        new WidgetAnnotation(CredentialsWidget.class), //
         new WidgetAnnotation(
             List.of(ColumnFilter.class, ColumnSelection.class, Enum.class, String.class, String[].class),
             ChoicesWidget.class), //

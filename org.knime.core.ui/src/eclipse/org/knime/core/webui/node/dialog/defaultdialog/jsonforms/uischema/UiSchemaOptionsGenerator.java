@@ -67,6 +67,7 @@ import java.util.Optional;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.WidgetAnnotation;
@@ -147,6 +148,10 @@ final class UiSchemaOptionsGenerator {
             if (radioButtons.horizontal()) {
                 options.put("radioLayout", "horizontal");
             }
+        }
+
+        if (annotatedWidgets.contains(CredentialsWidget.class)) {
+            options.put(TAG_FORMAT, Format.CREDENTIALS);
         }
 
         if (annotatedWidgets.contains(ChoicesWidget.class)) {

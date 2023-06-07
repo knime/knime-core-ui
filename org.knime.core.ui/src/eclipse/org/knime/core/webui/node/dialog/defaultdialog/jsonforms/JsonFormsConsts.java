@@ -174,6 +174,8 @@ public final class JsonFormsConsts {
             public static final String COLUMN_FILTER = "columnFilter";
 
             public static final String RADIO = "radio";
+
+            public static final String CREDENTIALS = "credentials";
         }
 
         /**
