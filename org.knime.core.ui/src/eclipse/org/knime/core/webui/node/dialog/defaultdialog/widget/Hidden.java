@@ -42,32 +42,27 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   May 31, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.impl;
+package org.knime.core.webui.node.dialog.defaultdialog.widget;
+
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 
 /**
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * Annotate a setting with this to hide it from the dialog. This can e.g. be used when a setting is only used in a
+ * dialog-less context, e.g. a port view. Refer to {@link Effect} on how to hide a setting depending on other settings.
+ *
+ * @author Paul Bärnreuther
  */
-public final class TestWebUINodeFactory extends WebUINodeFactory<TestWebUINodeModel> {
-
-    private static WebUINodeConfiguration CONFIGURATION = WebUINodeConfiguration.builder()//
-        .name("Template")//
-        .icon("./Template.png")//
-        .shortDescription("Short Description")//
-        .fullDescription("Full Description")//
-        .modelSettingsClass(TestWebUINodeModelSettings.class)//
-        .nodeType(NodeType.Sink)//
-        .addInputTable("Input Table", "Input Port Description")//
-        .addOutputTable("Output Table", "Output Port Description")//
-        .build();
-
-    public TestWebUINodeFactory() {
-        super(CONFIGURATION);
-    }
-
-    @Override
-    public TestWebUINodeModel createNodeModel() {
-        return new TestWebUINodeModel(CONFIGURATION);
-    }
-
+@Retention(RUNTIME)
+@Target(FIELD)
+public @interface Hidden {
 }

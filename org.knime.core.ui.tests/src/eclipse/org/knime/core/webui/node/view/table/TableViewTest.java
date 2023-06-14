@@ -76,6 +76,9 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataValue;
 import org.knime.core.data.MissingCell;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.def.DoubleCell;
@@ -85,7 +88,10 @@ import org.knime.core.data.property.ColorAttr;
 import org.knime.core.data.property.ColorHandler;
 import org.knime.core.data.property.ColorModelNominal;
 import org.knime.core.data.property.ColorModelRange;
+import org.knime.core.data.property.ValueFormatHandler;
+import org.knime.core.data.property.ValueFormatModel;
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.config.ConfigWO;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.NativeNodeContainer;
@@ -110,6 +116,7 @@ import org.knime.testing.node.view.NodeViewNodeFactory;
 import org.knime.testing.node.view.NodeViewNodeModel;
 import org.knime.testing.node.view.TableTestUtil;
 import org.knime.testing.node.view.TableTestUtil.ObjectColumn;
+import org.knime.testing.node.view.TableTestUtil.TableBuilder;
 import org.knime.testing.node.view.WarningMessageAsserterUtil.DataServiceContextWarningMessagesAsserter;
 import org.knime.testing.util.WorkflowManagerUtil;
 
@@ -160,6 +167,52 @@ class TableViewTest {
         var cellImg2 = rendererRegistry.renderImage("tableId/2018748495.png?w=1&h=2");
         assertThat(new String(cellImg2, StandardCharsets.UTF_8)).startsWith("�PNG");
         assertThat(table.getRowCount()).isEqualTo(2);
+    }
+
+    @Test
+    void testDataServiceGetDataWithAttachedFormatter() {
+
+        var tableWithFormatters = createTableWithFormatters();
+        var rendererRegistry = new DataValueImageRendererRegistry(() -> "pageId");
+
+        var rendererIds =
+            new String[]{null, "org.knime.core.data.renderer.DoubleValueRenderer$PercentageRendererFactory", null};
+        final var table = new TableViewDataServiceImpl(tableWithFormatters, "tableId", new SwingBasedRendererFactory(),
+            rendererRegistry).getTable(new String[]{"firstCol", "secondCol", "thirdCol"}, 0, 1, rendererIds, false,
+                true, false);
+        var rows = table.getRows();
+        assertThat(rows[0][2]).isEqualTo("<h1>dummy html</h1>");
+        assertThat(rows[0][3]).isEqualTo("50.0%");
+        assertThat(rows[0][4]).isEqualTo("B");
+
+        assertThat(table.getColumnContentTypes()).isEqualTo(new String[]{"html", "txt", "txt"});
+        assertThat(table.getColumnFormatterDescriptions())
+            .isEqualTo(new String[]{"Attached formatter", "Attached formatter", null});
+
+    }
+
+    private static Supplier<BufferedDataTable> createTableWithFormatters() {
+        final var valueFormatHandler = new ValueFormatHandler(new ValueFormatModel() {
+
+            @Override
+            public void save(final ConfigWO configuration) {
+                // Do nothing
+            }
+
+            @Override
+            public String getHTML(final DataValue dataCell) {
+                return "<h1>dummy html</h1>";
+            }
+        });
+        final var firstColCreator = new DataColumnSpecCreator("firstCol", StringCell.TYPE);
+        firstColCreator.setValueFormatHandler(valueFormatHandler);
+        final var secondColCreator = new DataColumnSpecCreator("secondCol", DoubleCell.TYPE);
+        secondColCreator.setValueFormatHandler(valueFormatHandler);
+        final var spec = new DataTableSpec( //
+            firstColCreator.createSpec(), //
+            secondColCreator.createSpec(), //
+            new DataColumnSpecCreator("thirdCol", StringCell.TYPE).createSpec());
+        return new TableBuilder(spec).addRow(new Object[]{"A", 0.5, "B"}).build();
     }
 
     @Test
@@ -564,10 +617,10 @@ class TableViewTest {
     @Test
     void testDataServiceGetRowsWithColoredCells() {
         final var numericColorModel = new ColorModelRange(0, new Color(0, 0, 0), 1.0, new Color(255, 255, 255));
-        final var nominalColorModel = new ColorModelNominal(
-            Map.of(new StringCell("value1"), ColorAttr.getInstance(new Color(0, 255, 0))), null);
+        final var nominalColorModel =
+            new ColorModelNominal(Map.of(new StringCell("value1"), ColorAttr.getInstance(new Color(0, 255, 0))), null);
 
-        final var nominalColumn = new Object[]{ "value1" , null};
+        final var nominalColumn = new Object[]{"value1", null};
         final var numericColumn = new Object[]{new MissingCell("Row1_Col2"), new MissingCell("Row2_Col2")};
         final var inputTable = TableTestUtil.createTableFromColumns( //
             new ObjectColumn("col1", StringCell.TYPE, new ColorHandler(nominalColorModel), nominalColumn), //
