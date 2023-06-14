@@ -39,6 +39,8 @@
     "@tiptap/pm": "^2.0.2",
     "@tiptap/starter-kit": "^2.0.2",
     "@tiptap/vue-3": "^2.0.2",
+    "@vueuse/components": "^10.1.2",
+    "@vueuse/core": "^10.1.2",
     "dotenv": "^16.0.3",
     "is-deep-strict-equal-x": "1.1.2",
     "raf-throttle": "2.0.6",

@@ -24,7 +24,6 @@ export default {
         
         onViewSettingsChange(event) {
             this.HTMLContent = event.data.data.view.HTMLContent;
-            console.log(this.HTMLContent);
         }
     }
 };

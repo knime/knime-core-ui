@@ -1,9 +1,9 @@
 <script>
-import { defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
 import { rendererProps, useJsonFormsControl } from '@jsonforms/vue';
 import { isModelSettingAndHasNodeView, getFlowVariablesMap } from '../utils';
-import RichtTextEdtior from './RichTextEditor.vue';
-
+import RichtTextEdtior from 'webapps-common/ui/components/RichTextEditor/RichTextEditor.vue';
+import { onClickOutside } from '@vueuse/core';
 
 const MarkdownInput = defineComponent({
     name: 'MarkdownInput',
@@ -15,7 +15,17 @@ const MarkdownInput = defineComponent({
     },
     emits: ['update'],
     setup(props) {
-        return { ...useJsonFormsControl(props) };
+        const target = ref(false);
+        const editable = ref(false);
+        onClickOutside(target, () => {
+            editable.value = false;
+        });
+        return { ...useJsonFormsControl(props), target, editable };
+    },
+    data() {
+        return {
+            initialValue: ''
+        };
     },
     computed: {
         isModelSettingAndHasNodeView() {
@@ -29,10 +39,7 @@ const MarkdownInput = defineComponent({
         }
     },
     mounted() {
-        this.editor.on('update', () => {
-            this.html = this.editor.getHTML();
-            this.onChange(this.html);
-        });
+        this.initialValue = this.control.data;
     },
     methods: {
         onChange(event) {
@@ -40,6 +47,9 @@ const MarkdownInput = defineComponent({
             if (this.isModelSettingAndHasNodeView) {
                 this.$store.dispatch('pagebuilder/dialog/dirtySettings', true);
             }
+        },
+        handleClick() {
+            this.editable = true;
         }
     }
         
@@ -49,9 +59,23 @@ export default MarkdownInput;
 
 <template>
   <RichtTextEdtior
-    :id="test"
-    editable
-    :initial-value="control.data"
+    ref="target"
+
+    v-on-click-outside="closeEditor"
+    class="editor"
+    :min-height="400"
+    compact
+    :editable="editable"
+    :initial-value="initialValue"
+    @click="handleClick"
     @change="onChange"
   />
 </template>
+
+<style scoped>
+.editor {
+    --rich-text-editor-font-size: 16px;
+    background-color: white;
+    border: 1px solid var(--knime-silver-sand);
+}
+</style>
