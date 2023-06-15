@@ -22,11 +22,6 @@ const MarkdownInput = defineComponent({
         });
         return { ...useJsonFormsControl(props), target, editable };
     },
-    data() {
-        return {
-            initialValue: ''
-        };
-    },
     computed: {
         isModelSettingAndHasNodeView() {
             return isModelSettingAndHasNodeView(this.control);
@@ -60,15 +55,14 @@ export default MarkdownInput;
 <template>
   <RichtTextEdtior
     ref="target"
-
     v-on-click-outside="closeEditor"
     class="editor"
     :min-height="400"
     compact
     :editable="editable"
-    :initial-value="initialValue"
+    :model-value="control.data"
     @click="handleClick"
-    @change="onChange"
+    @update:model-value="onChange"
   />
 </template>
 
