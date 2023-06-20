@@ -66,10 +66,49 @@ export default MarkdownInput;
   />
 </template>
 
-<style scoped>
+<style lang="postcss" scoped>
 .editor {
-    --rich-text-editor-font-size: 16px;
+    --rich-text-editor-font-size: 13;
+    font-weight: 300;
     background-color: white;
     border: 1px solid var(--knime-silver-sand);
+
+    &:deep(.rich-text-editor) {
+        & h1 {
+            font-size: 36px;
+            margin: 32px 0 16px;
+            font-weight: bold;
+        }
+
+        & h2 {
+            font-size: 30px;
+            margin: 24px 0 12px;
+            font-weight: bold;
+        }
+
+        & h3 {
+            font-size: 26px;
+            margin: 20px 0 10px;
+            font-weight: bold;
+        }
+
+        & h4 {
+            font-size: 22px;
+            margin: 16px 0 8px;
+            font-weight: bold;
+        }
+
+        & h5 {
+            font-size: 18px;
+            margin: 12px 0 6px;
+            font-weight: bold;
+        }
+
+        & h6 {
+            font-size: 16px;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+    }
 }
 </style>
