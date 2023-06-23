@@ -8,6 +8,7 @@ import { rankWith,
 import { priorityRanks } from '../constants';
 import { numberRenderer } from './numberRenderer';
 import { checkboxRenderer } from './checkboxRenderer';
+import { checkboxesRenderer } from './checkboxesRenderer';
 import { integerRenderer } from './integerRenderer';
 import OneOfDropdown from '../uiComponents/OneOfDropdown.vue';
 import AnyOfTwinlist from '../uiComponents/AnyOfTwinlist.vue';
@@ -19,6 +20,7 @@ export const fallbackRenderers = [
     { renderer: AnyOfTwinlist, tester: rankWith(priorityRanks.fallback, isAnyOfControl) },
     { ...numberRenderer, tester: rankWith(priorityRanks.fallback, isNumberControl) },
     { ...checkboxRenderer, tester: rankWith(priorityRanks.fallback, isBooleanControl) },
+    { ...checkboxesRenderer, tester: rankWith(priorityRanks.fallback, isAnyOfControl) },
     { ...integerRenderer, tester: rankWith(priorityRanks.fallback, isIntegerControl) },
     { ...textRenderer, tester: rankWith(priorityRanks.fallback, isStringControl) }
 ];
