@@ -6,6 +6,7 @@ import { createDefaultFilterConfig, arrayEquals, isImage, isHtml } from '@/table
 import throttle from 'raf-throttle';
 import ImageRenderer from './ImageRenderer.vue';
 import HTMLRenderer from './HtmlRenderer.vue';
+import useBoolean from './utils/useBoolean';
 
 const { MIN_COLUMN_SIZE, SPECIAL_COLUMNS_SIZE } = tableUIConstants;
 
@@ -25,6 +26,9 @@ export default {
         HTMLRenderer
     },
     inject: ['getKnimeService'],
+    setup() {
+        return { columnResizeActive: useBoolean() };
+    },
     data() {
         return {
             dataLoaded: false,
@@ -56,6 +60,7 @@ export default {
             baseUrl: null,
             clientWidth: 0,
             columnSizeOverrides: {},
+            defaultColumnSizeOverride: null,
             scopeSize: MIN_SCOPE_SIZE,
             bufferSize: MIN_BUFFER_SIZE,
             numRowsAbove: 0,
@@ -328,8 +333,10 @@ export default {
         },
         getDataColumnSizes(availableSpace) {
             const defaultColumnSize = Math.max(DEFAULT_COLUMN_SIZE, availableSpace / this.displayedColumns.length);
+            const currentDefaultColumnSize = this.defaultColumnSizeOverride || defaultColumnSize;
+
             return this.displayedColumns.reduce((columnSizes, columnName) => {
-                columnSizes.push(this.columnSizeOverrides[columnName] || defaultColumnSize);
+                columnSizes.push(this.columnSizeOverrides[columnName] || currentDefaultColumnSize);
                 return columnSizes;
             }, []);
         },
@@ -784,6 +791,12 @@ export default {
                 this.columnSizeOverrides[colName] = newColumnSize;
             }
         },
+        onAllColumnsResize(columnSize) {
+            this.defaultColumnSizeOverride = columnSize;
+            this.displayedColumns.forEach(columnName => {
+                delete this.columnSizeOverrides[columnName];
+            });
+        },
         observeTableIntersection() {
             new IntersectionObserver((entries, observer) => {
                 entries.forEach((entry) => {
@@ -808,6 +821,9 @@ export default {
                 Object.getOwnPropertySymbols(this.columnSizeOverrides).forEach(symbol => {
                     this.columnSizeOverrides[symbol] *= ratio;
                 });
+                if (this.defaultColumnSizeOverride) {
+                    this.defaultColumnSizeOverride *= ratio;
+                }
                 this.clientWidth = updatedClientWidth;
             } else {
                 this.observeTableIntersection();
@@ -990,17 +1006,23 @@ export default {
       @column-filter="onColumnFilter"
       @clear-filter="onClearFilter"
       @column-resize="onColumnResize"
+      @column-resize-start="columnResizeActive.setTrue"
+      @column-resize-end="columnResizeActive.setFalse"
+      @all-columns-resize="onAllColumnsResize"
       @header-sub-menu-item-selection="onHeaderSubMenuItemSelection"
       @lazyload="onScroll"
     >
       <template
         v-for="index in numberOfUsedColumns"
         :key="index"
-        #[`cellContent-${index}`]="{data: {cell}}"
+        #[`cellContent-${index}`]="{data: {cell, height, width}}"
       >
         <ImageRenderer
           v-if="isImage(columnContentTypes[index - 2])"
           :url="getImageUrl(cell, index)"
+          :height="height"
+          :width="width"
+          :update-size="!columnResizeActive.state"
         />
         <HTMLRenderer
           v-else

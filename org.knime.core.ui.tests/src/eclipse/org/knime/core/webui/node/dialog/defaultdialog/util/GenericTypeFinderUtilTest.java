@@ -44,20 +44,69 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 2, 2023 (Paul Bärnreuther): created
+ *   Jun 21, 2023 (Paul Bärnreuther): created
  */
+package org.knime.core.webui.node.dialog.defaultdialog.util;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.apache.commons.math3.exception.OutOfRangeException;
+import org.junit.jupiter.api.Test;
+
 /**
- * This package contains the implementation of the generation of an ui schema from
- * {@link org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings DefaultNodeSettings}.
- *
- * @see {@link org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil Implementation
- *      details}
- * @see {@link org.knime.core.webui.node.dialog.defaultdialog.layout How to define the overall layout and its parts.}
- * @see {@link org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil How to adjust the
- *      (default) format of ui elements}
- * @see {@link org.knime.core.webui.node.dialog.defaultdialog.rule How to conditionally show/hide/disable/enable
- *      settings}
  *
  * @author Paul Bärnreuther
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
+class GenericTypeFinderUtilTest {
+    @SuppressWarnings("unused")
+    static interface GenericInterface<A, B, C> {
+    }
+
+    static Class<?> getNthType(final Class<?> clazz, final int n) {
+        return GenericTypeFinderUtil.getNthGenericType(clazz, GenericInterface.class, n);
+    }
+
+    @Test
+    void testFindsGenericTypesOfInterface() {
+
+        class SimpleImplementation implements GenericInterface<String, Integer, Boolean> {
+
+        }
+        final var first = getNthType(SimpleImplementation.class, 0);
+        final var second = getNthType(SimpleImplementation.class, 1);
+        final var third = getNthType(SimpleImplementation.class, 2);
+
+        assertThrows(OutOfRangeException.class, () -> getNthType(SimpleImplementation.class, 3));
+        assertThrows(OutOfRangeException.class, () -> getNthType(SimpleImplementation.class, -1));
+
+        assertThat(first).isEqualTo(String.class);
+        assertThat(second).isEqualTo(Integer.class);
+        assertThat(third).isEqualTo(Boolean.class);
+    }
+
+    @Test
+    void testFindsGenericTypesForDescendants() {
+
+        class Descendant1<A, B> implements GenericInterface<A, B, Boolean> {
+        }
+        class Descendant2<A> extends Descendant1<A, Integer> {
+        }
+        class Descendant3 extends Descendant2<String> {
+        }
+        class Descendant4 extends Descendant3 {
+        }
+
+        final var first = getNthType(Descendant4.class, 0);
+        final var second = getNthType(Descendant4.class, 1);
+        final var third = getNthType(Descendant4.class, 2);
+
+        assertThat(first).isEqualTo(String.class);
+        assertThat(second).isEqualTo(Integer.class);
+        assertThat(third).isEqualTo(Boolean.class);
+
+        assertThat(getNthType(Descendant1.class, 2)).isEqualTo(Boolean.class);
+        assertThrows(ClassCastException.class, () -> getNthType(Descendant1.class, 1));
+    }
+
+}

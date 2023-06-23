@@ -44,20 +44,39 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 2, 2023 (Paul Bärnreuther): created
+ *   Jun 19, 2023 (Paul Bärnreuther): created
  */
+package org.knime.core.webui.node.dialog.defaultdialog.widget.action;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.concurrent.ExecutionException;
+
+import org.junit.jupiter.api.Test;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ActionHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ActionHandlerResult;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SynchronousActionHandler;
+
 /**
- * This package contains the implementation of the generation of an ui schema from
- * {@link org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings DefaultNodeSettings}.
- *
- * @see {@link org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil Implementation
- *      details}
- * @see {@link org.knime.core.webui.node.dialog.defaultdialog.layout How to define the overall layout and its parts.}
- * @see {@link org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil How to adjust the
- *      (default) format of ui elements}
- * @see {@link org.knime.core.webui.node.dialog.defaultdialog.rule How to conditionally show/hide/disable/enable
- *      settings}
  *
  * @author Paul Bärnreuther
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
+@SuppressWarnings("java:S2698") // we accept assertions without messages
+class SynchronousActionHandlerTest {
+
+    @Test
+    void testSynchoronousActionHandler() throws InterruptedException, ExecutionException {
+        final ActionHandler<String> syncActionHandler = new SynchronousActionHandler<String>() {
+
+            @Override
+            public ActionHandlerResult<String> invokeSync(final String buttonState) {
+                return ActionHandlerResult.succeed(buttonState);
+            }
+        };
+        final var payload = "myMode";
+        final var result = syncActionHandler.invoke(payload).get();
+
+        assertThat(result.result()).isEqualTo(payload);
+
+    }
+}

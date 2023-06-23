@@ -44,20 +44,34 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 2, 2023 (Paul Bärnreuther): created
+ *   Jun 16, 2023 (Paul Bärnreuther): created
  */
+package org.knime.core.webui.node.dialog.defaultdialog.widget.button;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+
 /**
- * This package contains the implementation of the generation of an ui schema from
- * {@link org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings DefaultNodeSettings}.
+ * An {@link ActionHandler} whose invocation is synchronous.
  *
- * @see {@link org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil Implementation
- *      details}
- * @see {@link org.knime.core.webui.node.dialog.defaultdialog.layout How to define the overall layout and its parts.}
- * @see {@link org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil How to adjust the
- *      (default) format of ui elements}
- * @see {@link org.knime.core.webui.node.dialog.defaultdialog.rule How to conditionally show/hide/disable/enable
- *      settings}
- *
+ * @param <R> the type of the returned result. For widgets which set this as the value of the field, the type of
+ *            the field has to be assignable from it.
  * @author Paul Bärnreuther
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
+public abstract class SynchronousActionHandler<R> implements ActionHandler<R> {
+
+    /**
+     * @param buttonState of invocation. This can be ignored in simple cases.
+     * @return the result of the invocation.
+     */
+    public abstract ActionHandlerResult<R> invokeSync(String buttonState);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Future<ActionHandlerResult<R>> invoke(final String buttonState) {
+        return CompletableFuture.supplyAsync(() -> invokeSync(buttonState));
+    }
+
+}
