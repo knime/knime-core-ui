@@ -280,24 +280,6 @@
               "title": "Title",
               "description": "The title of the table shown above the generated image. If left blank, no title will be shown.",
               "default": "Table View"
-            },
-
-            "considerFile": {
-              "title": "Action",
-              "anyOf": [
-                {
-                  "const": "ADDED",
-                  "title": "Added"
-                },
-                {
-                  "const": "UPDATED",
-                  "title": "Modified"
-                },
-                {
-                  "const": "REMOVED",
-                  "title": "Deleted"
-                }
-              ]
             }
           }
         }
@@ -431,15 +413,6 @@
               "scope": "#/properties/view/properties/subscribeToSelection",
               "options": {
                 "format": "checkbox"
-              }
-            },
-
-            {
-              "type": "Control",
-              "scope": "#/properties/view/properties/considerFile",
-              "options": {
-                "format": "checkbox",
-                "checkboxLayout": "vertical"
               }
             }
           ]
