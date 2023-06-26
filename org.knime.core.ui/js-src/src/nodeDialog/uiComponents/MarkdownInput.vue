@@ -61,6 +61,9 @@ export default MarkdownInput;
     compact
     :editable="editable"
     :model-value="control.data"
+    :enabled-tools="{
+      all: true
+    }"
     @click="handleClick"
     @update:model-value="onChange"
   />

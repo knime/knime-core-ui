@@ -1,7 +1,7 @@
 /*
  * ------------------------------------------------------------------------
  *
-r *  Copyright by KNIME AG, Zurich, Switzerland
+ *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -44,33 +44,20 @@ r *  Copyright by KNIME AG, Zurich, Switzerland
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 1, 2021 (konrad-amtenbrink): created
+ *   Nov 26, 2021 (hornm): created
  */
 package org.knime.core.webui.node.view.textView.data;
 
-import org.knime.core.node.workflow.NodeContainer;
-import org.knime.core.webui.node.view.textView.TextViewViewSettings;
-
 /**
- *
+ * @author Daniel Bogenrieder, KNIME GmbH, Konstanz, Germany
  */
-public final class TextViewInitialDataImpl implements TextViewInitialData {
+public interface TextViewDataService {
 
-    private final TextViewViewSettings m_settings;
-    private final NodeContainer m_nc;
 
     /**
-     * @param settings
+     * @param content
+     * @return
      */
-    public TextViewInitialDataImpl(final TextViewViewSettings settings, final NodeContainer nc) {
-        m_settings = settings;
-        m_nc = nc;
-    }
+    String getContent(String content);
 
-    @Override
-    public TextViewViewSettings getSettings() {
-        var textViewDataService = new TextViewDataServiceImpl(m_settings, m_nc);
-        m_settings.m_HTMLContent = textViewDataService.getContent(m_settings.m_HTMLContent);
-        return m_settings;
-    }
 }

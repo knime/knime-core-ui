@@ -1,7 +1,7 @@
 /*
  * ------------------------------------------------------------------------
  *
-r *  Copyright by KNIME AG, Zurich, Switzerland
+ *  Copyright by KNIME AG, Zurich, Switzerland
  *  Website: http://www.knime.com; Email: contact@knime.com
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -44,33 +44,67 @@ r *  Copyright by KNIME AG, Zurich, Switzerland
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 1, 2021 (konrad-amtenbrink): created
+ *   Nov 26, 2021 (hornm): created
  */
 package org.knime.core.webui.node.view.textView.data;
 
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.webui.node.view.textView.TextViewViewSettings;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
 
 /**
- *
+ * @author Konrad Amtenbrink, KNIME GmbH, Berlin, Germany
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
-public final class TextViewInitialDataImpl implements TextViewInitialData {
+public class TextViewDataServiceImpl implements TextViewDataService {
 
-    private final TextViewViewSettings m_settings;
     private final NodeContainer m_nc;
+    private final TextViewViewSettings m_settings;
 
     /**
-     * @param settings
+     * @param tableSupplier supplier for the table from which to obtain data
+     * @param tableId a globally unique id; used to uniquely identify images in the renderer-registry which belong to
+     *            the table supplied here
+     * @param rendererFactory required to turn data values into text or images
+     * @param rendererRegistry lazily supplied image content for cells that are rendered into images (cleared and filled
+     *            whenever new rows are being requested, e.g., via
+     *            {@link #getTable(String[], long, int, String[], boolean, boolean)}
      */
-    public TextViewInitialDataImpl(final TextViewViewSettings settings, final NodeContainer nc) {
+    public TextViewDataServiceImpl(final TextViewViewSettings settings, final NodeContainer nc) {
         m_settings = settings;
         m_nc = nc;
     }
 
     @Override
-    public TextViewViewSettings getSettings() {
-        var textViewDataService = new TextViewDataServiceImpl(m_settings, m_nc);
-        m_settings.m_HTMLContent = textViewDataService.getContent(m_settings.m_HTMLContent);
-        return m_settings;
+    public String getContent(final String content) {
+        String result = content;
+        Map<String, FlowVariable> flowVars = m_nc.getFlowObjectStack().getAllAvailableFlowVariables();
+        for (Entry<String, FlowVariable> flowVar : flowVars.entrySet()) {
+            var flowValue = flowVar.getValue().getStringValue();
+            System.out.println(flowValue);
+            if (flowValue == null) {
+                continue;
+            }
+            result = result.replace("$$["+flowVar.getKey()+"]", sanitizeHTML(flowValue));
+        }
+
+        return result;
     }
+
+    private String sanitizeHTML(final String untrustedHTML){
+        PolicyFactory policy = new HtmlPolicyBuilder()
+                .allowCommonInlineFormattingElements()
+                .allowStandardUrlProtocols()
+                .allowCommonBlockElements()
+                .toFactory();
+
+        return policy.sanitize(untrustedHTML);
+    }
+
 }

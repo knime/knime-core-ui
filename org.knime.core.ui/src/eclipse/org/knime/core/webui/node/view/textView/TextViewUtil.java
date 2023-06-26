@@ -48,56 +48,33 @@
  */
 package org.knime.core.webui.node.view.textView;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.webui.data.InitialDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsSerializer;
-import org.knime.core.webui.node.view.table.data.render.DataValueImageRendererRegistry;
 import org.knime.core.webui.node.view.textView.data.TextViewInitialData;
 import org.knime.core.webui.node.view.textView.data.TextViewInitialDataImpl;
 import org.knime.core.webui.page.Page;
 
 /**
- * @author Konrad Amtenbrink, KNIME GmbH, Berlin, Germany
  * @author Christian Albrecht, KNIME GmbH, Konstanz, Germany
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
- * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
 public final class TextViewUtil {
 
-    // Note on the 'static' page id: the entire TableView-page can be considered 'completely static'
+    // Note on the 'static' page id: the entire TextView-page can be considered 'completely static'
     // because the page, represented by a vue component, is just a file (won't change at runtime)
-    // And the image resources associated with a page of an individual table view instance are
-    // served with a globally unique 'table id' in the path.
     private static final String TEXT_VIEW_PAGE_ID = "textview";
 
     /**
      * The page representing the table view.
      */
     public static final Page PAGE = Page.builder(TextViewUtil.class, "js-src/dist", "TextView.umd.js")
-        .markAsReusable(TEXT_VIEW_PAGE_ID).addResources(createTableCellImageResourceSupplier(),
-            DataValueImageRendererRegistry.RENDERED_CELL_IMAGES_PATH_PREFIX, true)
-        .build();
+        .markAsReusable(TEXT_VIEW_PAGE_ID).build();
 
-    // This is workaround/hack for the lack of proper random-access functionality for a (BufferedData)Table.
-    // For more details see the class' javadoc.
-    // It's static because it's registered and kept with the page which in turn is assumed to be static
-    // (i.e. doesn't change between node instances and, hence, won't be re-created for each node instance).
-    static final DataValueImageRendererRegistry RENDERER_REGISTRY =
-        new DataValueImageRendererRegistry(() -> TEXT_VIEW_PAGE_ID);
 
     private TextViewUtil() {
         // utility class
-    }
-
-    private static Function<String, InputStream> createTableCellImageResourceSupplier() {
-        return relativePath -> {
-            var bytes = RENDERER_REGISTRY.renderImage(relativePath);
-            return new ByteArrayInputStream(bytes);
-        };
     }
 
     /**
@@ -106,8 +83,8 @@ public final class TextViewUtil {
      * @param tableId a globally unique id to be able to uniquely identify the images belonging to the table used here
      * @return the table view's initial data object
      */
-    static TextViewInitialData createInitialData(final TextViewViewSettings settings) {
-        return new TextViewInitialDataImpl(settings);
+    static TextViewInitialData createInitialData(final TextViewViewSettings settings, final NodeContainer nc) {
+        return new TextViewInitialDataImpl(settings, nc);
     }
 
     /**
@@ -117,8 +94,8 @@ public final class TextViewUtil {
      * @return the table view initial data service
      */
     public static InitialDataService<TextViewInitialData> createInitialDataService(
-        final Supplier<TextViewViewSettings> settingsSupplier) {
-        return InitialDataService.builder(() -> createInitialData(settingsSupplier.get())) //
+        final Supplier<TextViewViewSettings> settingsSupplier, final NodeContainer nc) {
+        return InitialDataService.builder(() -> createInitialData(settingsSupplier.get(), nc)) //
             .serializer(new DefaultNodeSettingsSerializer<>()) //
             .build();
     }

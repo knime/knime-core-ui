@@ -52,12 +52,15 @@ import java.util.Optional;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.webui.data.ApplyDataService;
 import org.knime.core.webui.data.InitialDataService;
 import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.view.NodeTableView;
 import org.knime.core.webui.node.view.NodeView;
+import org.knime.core.webui.node.view.textView.data.TextViewDataService;
+import org.knime.core.webui.node.view.textView.data.TextViewDataServiceImpl;
 import org.knime.core.webui.node.view.textView.data.TextViewInitialData;
 import org.knime.core.webui.page.Page;
 
@@ -68,8 +71,13 @@ import org.knime.core.webui.page.Page;
  */
 public final class TextViewView implements NodeTableView {
     private TextViewViewSettings m_settings;
+    private NodeContainer m_nc;
 
-    public TextViewView() {
+    /**
+     * @param nc
+     */
+    public TextViewView(final NodeContainer nc) {
+        m_nc = nc;
     }
 
     @Override
@@ -82,12 +90,21 @@ public final class TextViewView implements NodeTableView {
         if (m_settings == null) {
             m_settings = new TextViewViewSettings();
         }
-        return Optional.of(TextViewUtil.createInitialDataService(() -> m_settings));
+        return Optional.of(TextViewUtil.createInitialDataService(() -> m_settings, m_nc));
     }
 
     @Override
-    public Optional<ApplyDataService<?>> createApplyDataService() {
-        return Optional.empty();
+    public Optional<RpcDataService> createRpcDataService() {
+        return Optional.of(createRpcDataService(new TextViewDataServiceImpl(m_settings, m_nc)));
+    }
+
+    /**
+     * @param tableViewDataService
+     * @param tableId
+     * @return a new table view data service instance
+     */
+    public static RpcDataService createRpcDataService(final TextViewDataService textViewDataService) {
+        return RpcDataService.builder(textViewDataService).build();
     }
 
     @Override
@@ -108,7 +125,7 @@ public final class TextViewView implements NodeTableView {
      * {@inheritDoc}
      */
     @Override
-    public Optional<RpcDataService> createRpcDataService() {
+    public <D> Optional<ApplyDataService<D>> createApplyDataService() {
         // TODO Auto-generated method stub
         return Optional.empty();
     }
