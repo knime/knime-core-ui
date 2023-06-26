@@ -5,12 +5,12 @@ import { determineRenderer } from '../rendererTestUtils';
 
 const renderers = [...vanillaRenderers, ...fallbackRenderers, ...defaultRenderers];
 
-describe('ColumnSelect', () => {
+describe('controls with an anyOf schema', () => {
     const schema = {
         type: 'object',
         properties: {
-            columnselect: {
-                oneOf: [
+            anyOfControl: {
+                anyOf: [
                     {
                         const: '1',
                         title: 'One'
@@ -18,25 +18,18 @@ describe('ColumnSelect', () => {
                     {
                         const: '2',
                         title: 'Two'
-                    },
-                    {
-                        const: '3',
-                        title: 'Three'
                     }
                 ]
             }
         }
     };
 
-    it('renders SimpleColumnSelect', () => {
+    it('falls back to twinlist without format', () => {
         const uiSchema = {
             type: 'Control',
-            scope: '#/properties/columnselect',
-            options: {
-                format: 'columnSelection'
-            }
+            scope: '#/properties/anyOfControl'
         };
-        
-        expect(determineRenderer(uiSchema, schema, renderers)).toBe('SimpleColumnSelect');
+
+        expect(determineRenderer(uiSchema, schema, renderers)).toBe('AnyOfTwinlist');
     });
 });

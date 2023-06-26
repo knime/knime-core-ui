@@ -56,11 +56,22 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.SettingsCreationContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.SuperclassAnnotationTestLayout.AfterCenterLayout;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.SuperclassAnnotationTestLayout.BeforeCenterLayout;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.SuperclassAnnotationTestLayout.CenterLayoutExtended;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TestLayout.FirstSection;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TestLayout.SecondSection;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Inside;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.LayoutGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.core.webui.node.dialog.defaultdialog.util.FieldAnnotationsHolder;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Hidden;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -74,11 +85,19 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 class JsonFormsUiSchemaUtilTest {
 
     static ObjectNode buildUiSchema(final Map<String, Class<?>> settings) {
-        return JsonFormsUiSchemaUtil.buildUISchema(settings, JsonFormsDataUtil.getMapper());
+        return buildUiSchema(settings, null);
+    }
+
+    static ObjectNode buildUiSchema(final Map<String, Class<?>> settings, final SettingsCreationContext context) {
+        return JsonFormsUiSchemaUtil.buildUISchema(settings, JsonFormsDataUtil.getMapper(), context);
     }
 
     static ObjectNode buildTestUiSchema(final Class<?> settingsClass) {
         return buildUiSchema(Map.of("test", settingsClass));
+    }
+
+    static ObjectNode buildTestUiSchema(final Class<?> settingsClass, final SettingsCreationContext context) {
+        return buildUiSchema(Map.of("test", settingsClass), context);
     }
 
     interface TestSettingsLayout {
@@ -374,7 +393,7 @@ class JsonFormsUiSchemaUtilTest {
     @Test
     void testThrowsIfThereIsAFieldAndAFieldClassAnnotationForAField() {
         final Map<String, Class<?>> settings = Map.of("test", TestFieldWithTwoLayoutAnnotationsSettings.class);
-        assertThrows(UiSchemaGenerationException.class, () -> buildUiSchema(settings));
+        assertThrows(FieldAnnotationsHolder.FieldAnnotationException.class, () -> buildUiSchema(settings));
     }
 
     @Test
@@ -464,5 +483,64 @@ class JsonFormsUiSchemaUtilTest {
             .isEqualTo("#/properties/test/properties/setting1");
         assertThatJson(response).inPath("$.elements[0].elements[1].scope").isString()
             .isEqualTo("#/properties/test/properties/setting2");
+    }
+
+    @Inside(FirstSection.class)
+    interface SuperclassAnnotationTestLayout {
+
+        abstract class CenterLayout implements PersistableSettings, LayoutGroup {
+            @HorizontalLayout()
+            interface CenterLayoutInnerLayout {}
+        }
+
+        class CenterLayoutExtended extends CenterLayout {
+            @Layout(CenterLayoutInnerLayout.class)
+            String centerLayoutElement1;
+            @Layout(CenterLayoutInnerLayout.class)
+            String centerLayoutElement2;
+        }
+
+        @Before(CenterLayout.class)
+        interface BeforeCenterLayout {}
+
+        @After(CenterLayout.class)
+        interface AfterCenterLayout {}
+    }
+
+    @Test
+    void testLayoutAnnotationsOnSuperclass() {
+
+        class TestSettings {
+
+            @Layout(BeforeCenterLayout.class)
+            int intBeforeCenterLayout;
+
+            CenterLayoutExtended secondSection = new CenterLayoutExtended();
+
+            @Layout(AfterCenterLayout.class)
+            String stringAfterCenterLayout;
+
+            @Layout(SecondSection.class)
+            String stringInSecondSection;
+        }
+
+        final Map<String, Class<?>> settings = Map.of("test", TestSettings.class);
+
+        final var response = buildUiSchema(settings);
+
+        assertThatJson(response).inPath("$.elements[0].label").isString().isEqualTo("First");
+        assertThatJson(response).inPath("$.elements[0].type").isString().isEqualTo("Section");
+        assertThatJson(response).inPath("$.elements[0].elements").isArray().hasSize(3);
+        assertThatJson(response).inPath("$.elements[0].elements[0].scope").isString().contains("intBeforeCenterLayout");
+        assertThatJson(response).inPath("$.elements[0].elements[1].type").isEqualTo("HorizontalLayout");
+        assertThatJson(response).inPath("$.elements[0].elements[1].elements").isArray().hasSize(2);
+        assertThatJson(response).inPath("$.elements[0].elements[1].elements[0].scope").isString().contains("centerLayoutElement1");
+        assertThatJson(response).inPath("$.elements[0].elements[1].elements[1].scope").isString().contains("centerLayoutElement2");
+        assertThatJson(response).inPath("$.elements[0].elements[2].scope").isString().contains("stringAfterCenterLayout");
+
+        assertThatJson(response).inPath("$.elements[1].label").isString().isEqualTo("Second");
+        assertThatJson(response).inPath("$.elements[1].type").isString().isEqualTo("Section");
+        assertThatJson(response).inPath("$.elements[1].elements[0].scope").isString().contains("stringInSecondSection");
+
     }
 }

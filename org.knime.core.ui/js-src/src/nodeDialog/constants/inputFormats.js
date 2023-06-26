@@ -1,12 +1,13 @@
 export const inputFormats = {
     columnSelect: 'columnSelection',
-    oneOfDropdown: 'dropDown',
-    oneOfRadio: 'radio',
-    oneOfValueSwitch: 'valueSwitch',
+    dropDown: 'dropDown',
+    radio: 'radio',
+    valueSwitch: 'valueSwitch',
     checkbox: 'checkbox',
     integer: 'integer',
     number: 'number',
     columnFilter: 'columnFilter',
-    anyOfTwinList: 'twinList',
-    markdown: 'markdown'
+    markdown: 'markdown',
+    twinList: 'twinList',
+    button: 'button'
 };

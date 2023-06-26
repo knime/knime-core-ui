@@ -84,4 +84,10 @@ public @interface Widget {
      */
     boolean advanced() default false;
 
+    /**
+     * @return true if the title should be hidden from the dialog, but should still be available in the node
+     *         description.
+     */
+    boolean hideTitle() default false;
+
 }

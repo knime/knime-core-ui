@@ -1202,9 +1202,11 @@ describe('TableView.vue', () => {
 
             it('resets the sort parameters when the sorted column gets removed', () => {
                 const resetSortingSpy = vi.spyOn(wrapper.vm, 'resetSorting');
+                const updateDataSpy = vi.spyOn(wrapper.vm, 'updateData');
                 wrapper.vm.onColumnSort(2);
                 changeViewSetting(wrapper, 'displayedColumns', { selected: ['col1', 'col2', 'col4'] });
                 expect(resetSortingSpy).toHaveBeenCalled();
+                expect(updateDataSpy).toHaveBeenCalledWith(expect.objectContaining({ updateDisplayedColumns: true }));
             });
 
             it('resets the sort parameters when the sorted row key column gets removed', async () => {
@@ -1716,18 +1718,33 @@ describe('TableView.vue', () => {
     });
 
     describe('slot rendering', () => {
+        const getImageTableUiStubTemplate = ({ path, height, width } = {}) => `<div>
+            <slot 
+                name="cellContent-5" 
+                :data="{ cell: '${path}', height: ${height}, width: ${width} }"
+            />
+        </div>`;
+    
+
         it('creates the correct source urls', async () => {
             const path = 'myPathForTest';
-            const imageIndex = 5;
-            TableUIStub.template = `<div>
-                <slot 
-                    name="cellContent-${imageIndex}" 
-                    :data="{ cell: '${path}' }"
-                />
-            </div>`;
+            const width = 80;
+            const height = 90;
+            TableUIStub.template = getImageTableUiStubTemplate({ path, height, width });
             const wrapper = await shallowMountTableView(context);
             const tableUI = wrapper.getComponent(TableUIStub);
             expect(tableUI.findComponent(ImageRenderer).attributes().url).toBe('http://localhost:8080/base.url/myPathForTest');
+            expect(tableUI.findComponent(ImageRenderer).attributes().width).toBe(`${width}`);
+            expect(tableUI.findComponent(ImageRenderer).attributes().height).toBe(`${height}`);
+            expect(tableUI.findComponent(ImageRenderer).attributes().updatesize).toBeTruthy();
+        });
+
+        it('prevents size update if resizing is active', async () => {
+            TableUIStub.template = getImageTableUiStubTemplate();
+            const wrapper = await shallowMountTableView(context);
+            const tableUI = wrapper.getComponent(TableUIStub);
+            await tableUI.vm.$emit('columnResizeStart');
+            expect(tableUI.findComponent(ImageRenderer).attributes().updatesize).toBe('false');
         });
 
         it('creates the correct content for html', async () => {
@@ -1817,7 +1834,36 @@ describe('TableView.vue', () => {
                 1,
                 expect.anything(),
                 expect.anything(),
-                547
+                547 // The rest of the space
+            ]);
+        });
+
+        it('correctly overrides all column sizes', async () => {
+            await setColumnWidthSettings(wrapper, { clientWidth });
+            wrapper.vm.onColumnResize(0, 1); // not overwritten since this is the index column
+            wrapper.vm.onColumnResize(2, 1); // this will be overwritten
+            const defaultSizeOverride = 30;
+            wrapper.vm.onAllColumnsResize(defaultSizeOverride);
+            wrapper.vm.onColumnResize(3, 1); // this owerwrites the default again
+            expect(wrapper.vm.columnSizes).toStrictEqual([
+                1,
+                MIN_COLUMN_SIZE,
+                defaultSizeOverride,
+                1,
+                defaultSizeOverride,
+                890 // The rest of the space
+            ]);
+
+            const largeDefaultSizeOverride = 1000;
+            wrapper.vm.onAllColumnsResize(largeDefaultSizeOverride);
+
+            expect(wrapper.vm.columnSizes).toStrictEqual([
+                1,
+                50,
+                largeDefaultSizeOverride,
+                largeDefaultSizeOverride,
+                largeDefaultSizeOverride,
+                largeDefaultSizeOverride
             ]);
         });
 
@@ -1860,6 +1906,8 @@ describe('TableView.vue', () => {
             expect(resizeObserverObserve).toHaveBeenCalledTimes(1);
             expect(resizeObserverObserve).toHaveBeenCalledWith(wrapper.vm.$el);
 
+            const defaultColumnSizeOverride = 123;
+            wrapper.vm.onAllColumnsResize(defaultColumnSizeOverride);
             wrapper.vm.$el.getBoundingClientRect = function () {
                 return { width: 0 };
             };
@@ -1874,6 +1922,14 @@ describe('TableView.vue', () => {
             expect(wrapper.vm.clientWidth).toBe(clientWidth);
             expect(intersectionObserverUnobserve).toHaveBeenCalledTimes(2);
             expect(intersectionObserverUnobserve).toHaveBeenLastCalledWith(wrapper.vm.$el);
+            expect(wrapper.vm.columnSizes).toStrictEqual([
+                0,
+                0,
+                defaultColumnSizeOverride,
+                defaultColumnSizeOverride,
+                defaultColumnSizeOverride,
+                defaultColumnSizeOverride
+            ]);
 
             clientWidth = 200;
             wrapper.vm.$el.getBoundingClientRect = function () {
@@ -1882,9 +1938,28 @@ describe('TableView.vue', () => {
             window.dispatchEvent(new Event('resize'));
 
             expect(wrapper.vm.clientWidth).toBe(clientWidth);
+            expect(wrapper.vm.columnSizes).toStrictEqual([
+                0,
+                0,
+                defaultColumnSizeOverride * 2,
+                defaultColumnSizeOverride * 2,
+                defaultColumnSizeOverride * 2,
+                defaultColumnSizeOverride * 2
+            ]);
 
             wrapper.unmount();
             expect(resizeObserverDisconnect).toHaveBeenCalledTimes(1);
+        });
+
+        it('sets columnResizeActive state', () => {
+            const tableUI = wrapper.findComponent(TableUIStub);
+            
+            expect(wrapper.vm.columnResizeActive.state).toBeFalsy();
+            tableUI.vm.$emit('columnResizeStart');
+            expect(wrapper.vm.columnResizeActive.state).toBeTruthy();
+
+            tableUI.vm.$emit('columnResizeEnd');
+            expect(wrapper.vm.columnResizeActive.state).toBeFalsy();
         });
     });
 });

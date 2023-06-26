@@ -55,7 +55,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilterMode;
 
 /**
  * A widget supplied with an array of possible values, which are the choices for a selection.
@@ -74,23 +74,26 @@ public @interface ChoicesWidget {
     Class<? extends ChoicesProvider> choices() default ChoicesProvider.class;
 
     /**
-     * TODO UIEXT-907 remove this.
-     *
-     * @return true if a parent contains the annotation for the choices of this field. This is only used internally for
-     *         the {@link ColumnFilter} and {@link ColumnSelection}.
-     */
-    boolean takeChoicesFromParent() default false;
-
-    /**
-     * @return true for a multiple choice selection/enum, false for a single choice selection/enum.
-     */
-    boolean multiple() default false;
-
-    /**
      * TODO UIEXT-907 Make this only available for column choices.
      *
      * @return whether to show an additional choice "None" representing no selection.
      */
     boolean showNoneColumn() default false;
+
+    /**
+     * @return whether to show an additional choice "RowIDs" representing the row key column.
+     */
+    boolean showRowKeys() default false;
+
+    /**
+     * @return whether a search field should be shown for the {@link ColumnFilter}
+     */
+    boolean showSearch() default true;
+
+    /**
+     * @return whether the column filter mode selection should be displayed for the {@link ColumnFilter}. The possible
+     *         modes are defined by {@link ColumnFilterMode}.
+     */
+    boolean showMode() default true;
 
 }

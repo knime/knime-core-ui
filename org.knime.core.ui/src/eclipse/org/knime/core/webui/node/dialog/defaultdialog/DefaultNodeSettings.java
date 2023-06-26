@@ -77,7 +77,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Marker interface for implementations that define a {@link DefaultNodeDialog}. The implementations allow one to
@@ -105,6 +109,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * All fields with visibility of at least 'package scope' are represented as dialog widgets; they can optionally be
  * annotated with {@link Widget} and {@link org.knime.core.webui.node.dialog.defaultdialog.widget other widget
  * annotations} to supply additional information (e.g. description, domain info, ...).
+ * Note that getters of at least 'package scope' will also be represented as dialog widgets. If this is not intended,
+ * they can be annotated by an {@link JsonIgnore} annotation.
  *
  * The table below lists all the supported type with
  * <ul>
@@ -142,8 +148,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * </tr>
  * <tr>
  * <td>Enums(*)</td>
- * <td>Value Switch</td>
- * <td>{@link RadioButtonsWidget}</td>
+ * <td>Drop Down </td>
+ * <td>{@link ValueSwitchWidget}<br>
+ * {@link RadioButtonsWidget}</td>
  * </tr>
  * <tr>
  * <td>Arrays/Collections of objects(**)</td>
@@ -159,6 +166,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * <td>{@link ColumnFilter}</td>
  * <td></td>
  * <td>{@link ChoicesWidget} (twin-list)</td>
+ * </tr>
+ * <tr>
+ * <td>Any type</td>
+ * <td>-</td>
+ * <td>{@link ButtonWidget} (button with backend-side action handler)</td>
  * </tr>
  * </table>
  *

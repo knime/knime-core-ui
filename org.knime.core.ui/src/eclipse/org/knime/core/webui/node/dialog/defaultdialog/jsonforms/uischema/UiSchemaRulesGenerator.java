@@ -57,7 +57,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Condition;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Expression;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.JsonFormsExpression;
@@ -82,7 +81,7 @@ final class UiSchemaRulesGenerator {
     private JsonFormsExpressionResolver m_visitor;
 
     /**
-     * @param mapper a object mapper used to resolve the schema objects in any used {@link Condition}
+     * @param mapper an object mapper used to resolve given conditions
      * @param field a field for which the effect of a rule is to be determined
      * @param signalsMap the map of all signals in the settings context at hand. It maps the ids of
      *            {@link Signal} annotations to a construct holding the respective condition and the scope of the
@@ -99,7 +98,7 @@ final class UiSchemaRulesGenerator {
     /**
      * Applies a rule to an object node based on the {@link Effect} annotation of a given field. The linked sources are
      * fetched and combined using the provided operator, with nested operations being resolved recursively. For more
-     * information on the resolution of different operations, see {@link JsonFormsUiSchemaGenerator}.
+     * information on the resolution of different operations, see {@link JsonFormsUiSchemaUtil}.
      *
      * @param control the object node to which the rule should be applied
      */
