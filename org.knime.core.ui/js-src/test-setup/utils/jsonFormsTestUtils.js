@@ -2,35 +2,61 @@
  * within a JSONForms context.
  * A component can be mounted using composition API and the correct initialization of JSONForms can be verified on a
  * given vue test utils wrapper. */
-import { expect } from 'vitest';
+import { expect, vi } from 'vitest';
 
 import { mount } from '@vue/test-utils';
 import { createStore } from 'vuex';
 
 import { useJsonFormsControl, useJsonFormsLayout, useJsonFormsArrayControl } from '@jsonforms/vue';
 
-export const mountJsonFormsComponentWithStore = (component, props, modules, showAdvanced = false) => mount(
-    component,
-    {
-        props,
-        global: {
-            stubs: {
-                DispatchRenderer: true
+const mountJsonFormsComponentWithStoreAndCallbacks = (component, props, modules, showAdvanced = false) => {
+    const callbacks = [];
+    const wrapper = mount(
+        component,
+        {
+            props,
+            global: {
+                provide: {
+                    getKnimeService: () => ({
+                        extensionConfig: {},
+                        callService: vi.fn().mockResolvedValue({}),
+                        registerDataGetter: vi.fn(),
+                        addEventCallback: vi.fn()
+                    }),
+                    registerWatcher: (callback) => callbacks.push(callback)
+                },
+                stubs: {
+                    DispatchRenderer: true
+                },
+                mocks: {
+                    $store: createStore({ modules })
+                }
             },
-            mocks: {
-                $store: createStore({ modules })
-            }
-        },
-        provide: {
-            jsonforms: {
-                core: {
-                    schema: {
-                        showAdvancedSettings: showAdvanced
+            provide: {
+                jsonforms: {
+                    core: {
+                        schema: {
+                            showAdvancedSettings: showAdvanced
+                        }
                     }
                 }
             }
         }
-    }
+    );
+    return { wrapper, callbacks };
+};
+
+export const mountJsonFormsComponentWithStore = (
+    component, props, modules, showAdvanced = false
+) => mountJsonFormsComponentWithStoreAndCallbacks(
+    component, props, modules, showAdvanced
+).wrapper;
+
+
+export const mountJsonFormsComponentWithCallbacks = (
+    component, { props }
+) => mountJsonFormsComponentWithStoreAndCallbacks(
+    component, props, null, false
 );
 
 // eslint-disable-next-line arrow-body-style

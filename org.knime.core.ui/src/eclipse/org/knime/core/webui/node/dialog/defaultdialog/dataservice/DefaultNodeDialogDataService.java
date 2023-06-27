@@ -44,39 +44,49 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 19, 2023 (Paul Bärnreuther): created
+ *   Jun 15, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.action;
-
-import static org.assertj.core.api.Assertions.assertThat;
+package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
 
 import java.util.concurrent.ExecutionException;
-
-import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ActionHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ActionHandlerResult;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SynchronousActionHandler;
 
 /**
  *
  * @author Paul Bärnreuther
  */
-@SuppressWarnings("java:S2698") // we accept assertions without messages
-class SynchronousActionHandlerTest {
+@SuppressWarnings("java:S1452") //Allow wildcard return values
+interface DefaultNodeDialogDataService {
 
-    @Test
-    void testSynchoronousActionHandler() throws InterruptedException, ExecutionException {
-        final ActionHandler<String> syncActionHandler = new SynchronousActionHandler<String>() {
+    /**
+     *
+     * @param handlerClass the class name of the {@link DialogDataServiceHandler} that is to be used.
+     * @return a {@link DialogDataServiceHandlerResult}
+     * @throws ExecutionException if an error is thrown during the invocation
+     * @throws InterruptedException if the used thread is interrupted
+     */
+    DialogDataServiceHandlerResult<?> invokeActionHandler(String handlerClass)
+        throws ExecutionException, InterruptedException;
 
-            @Override
-            public ActionHandlerResult<String> invokeSync(final String buttonState) {
-                return ActionHandlerResult.succeed(buttonState);
-            }
-        };
-        final var payload = "myMode";
-        final var result = syncActionHandler.invoke(payload).get();
+    /**
+     * @param handlerClass the class name of the {@link DialogDataServiceHandler} that is to be used.
+     * @param mode a string key that is/can be used inside an {@link DialogDataServiceHandler} to have different
+     *            outcomes.
+     * @return a {@link DialogDataServiceHandlerResult}
+     * @throws ExecutionException if an error is thrown during the invocation
+     * @throws InterruptedException if the used thread is interrupted
+     */
+    DialogDataServiceHandlerResult<?> invokeActionHandler(String handlerClass, String mode)
+        throws ExecutionException, InterruptedException;
 
-        assertThat(result.result()).isEqualTo(payload);
+    /**
+     * @param handlerClass
+     * @param buttonState
+     * @param objectSettings
+     * @return
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
+    DialogDataServiceHandlerResult<?> invokeActionHandler(String handlerClass, String buttonState,
+        Object objectSettings) throws ExecutionException, InterruptedException;
 
-    }
 }

@@ -44,59 +44,41 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 19, 2023 (Paul Bärnreuther): created
+ *   Jun 16, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.action;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-
-import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ActionHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ActionHandlerResult;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.CancelableActionHandler;
+package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
 
 /**
+ * The result of the invocation of an {@link DialogDataServiceHandler}
  *
+ * @param result the result of a succesful response
+ * @param state the state of the result.
+ * @param message the error message in case of a failed response.
+ * @param <R> The type of the result
  * @author Paul Bärnreuther
  */
-@SuppressWarnings("java:S2698") // we accept assertions without messages
-class CancelableActionHandlerTest {
+public record DialogDataServiceHandlerResult<R>(R result, DialogDataServiceHandlerResultState state, String message) {
 
-    @Test
-    void testCancelableActionHandler() {
-        final ActionHandler<String> actionHandler = new CancelableActionHandler<String>() {
-
-            @Override
-            protected Future<ActionHandlerResult<String>> invoke() {
-                return new CompletableFuture<>();
-            }
-        };
-        final var result = actionHandler.invoke(null);
-        actionHandler.invoke(CancelableActionHandler.CANCEL_BUTTON_STATE);
-        assertTrue(result.isCancelled());
+    /**
+     * @param result the value of the successful result
+     * @return an {@link DialogDataServiceHandlerResult} with state {@link DialogDataServiceHandlerResultState#SUCCESS}
+     */
+    public static <R>  DialogDataServiceHandlerResult<R> succeed(final R result) {
+        return new DialogDataServiceHandlerResult<>(result, DialogDataServiceHandlerResultState.SUCCESS, null);
     }
 
-    @Test
-    void testCancelableActionHandlerNotCanceledIfOverwritten() {
-        final ActionHandler<String> actionHandler = new CancelableActionHandler<String>() {
-
-            @Override
-            protected Future<ActionHandlerResult<String>> invoke() {
-                return new CompletableFuture<>();
-            }
-
-            @Override
-            protected void cancel() {
-                return;
-            }
-        };
-        final var result = actionHandler.invoke(null);
-        actionHandler.invoke(CancelableActionHandler.CANCEL_BUTTON_STATE);
-        assertFalse(result.isCancelled());
+    /**
+     * @param message the supplied error message
+     * @return an {@link DialogDataServiceHandlerResult} with state {@link DialogDataServiceHandlerResultState#FAIL}
+     */
+    public static <R> DialogDataServiceHandlerResult<R> fail(final String message) {
+        return new DialogDataServiceHandlerResult<>(null, DialogDataServiceHandlerResultState.FAIL, message);
     }
 
+    /**
+     * @return an {@link DialogDataServiceHandlerResult} with state {@link DialogDataServiceHandlerResultState#CANCELED}
+     */
+    public static <R> DialogDataServiceHandlerResult<R> cancel() {
+        return new DialogDataServiceHandlerResult<>(null, DialogDataServiceHandlerResultState.CANCELED, null);
+    }
 }

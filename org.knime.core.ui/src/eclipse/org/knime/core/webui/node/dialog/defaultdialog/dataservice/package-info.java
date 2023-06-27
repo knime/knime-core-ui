@@ -44,41 +44,19 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 16, 2023 (Paul Bärnreuther): created
+ *   May 2, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.button;
-
 /**
- * The result of the invocation of an {@link ActionHandler}
+ * THis package contains the rpc data service
+ * {@link org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultNodeDialogDataServiceImpl} of a
+ * {@link DefaultNodeDialog}. This data service is currently used to invoke actions from buttons (see
+ * {@link org.knime.core.webui.node.dialog.defaultdialog.widget.button}). Hereby the data service serves as a layer
+ * between the calls from the frontend and classes extending
+ * {@link org.knime.core.webui.node.dialog.defaultdialog.dataservice.DialogDataServiceHandler}. During initialization of
+ * the data service, these handlers are parsed from a collection of supplied {@link DefaultNodeSettings} and it is
+ * checked that the generic type determining the output type matches the type of an associated field in the node
+ * settings.
  *
- * @param result the result of a succesful response
- * @param state the state of the result.
- * @param message the error message in case of a failed response.
- * @param <R> The type of the result
  * @author Paul Bärnreuther
  */
-public record ActionHandlerResult<R>(R result, ActionHandlerState state, String message) {
-
-    /**
-     * @param result the value of the successful result
-     * @return an {@link ActionHandlerResult} with state {@link ActionHandlerState#SUCCESS}
-     */
-    public static <R>  ActionHandlerResult<R> succeed(final R result) {
-        return new ActionHandlerResult<>(result, ActionHandlerState.SUCCESS, null);
-    }
-
-    /**
-     * @param message the supplied error message
-     * @return an {@link ActionHandlerResult} with state {@link ActionHandlerState#FAIL}
-     */
-    public static <R> ActionHandlerResult<R> fail(final String message) {
-        return new ActionHandlerResult<>(null, ActionHandlerState.FAIL, message);
-    }
-
-    /**
-     * @return an {@link ActionHandlerResult} with state {@link ActionHandlerState#CANCELED}
-     */
-    public static <R> ActionHandlerResult<R> cancel() {
-        return new ActionHandlerResult<>(null, ActionHandlerState.CANCELED, null);
-    }
-}
+package org.knime.core.webui.node.dialog.defaultdialog.dataservice;

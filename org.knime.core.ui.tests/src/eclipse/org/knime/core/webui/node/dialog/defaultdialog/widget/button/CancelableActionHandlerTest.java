@@ -44,68 +44,61 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 15, 2023 (Paul Bärnreuther): created
+ *   Jun 19, 2023 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.button;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
+import org.junit.jupiter.api.Test;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.SettingsCreationContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DialogDataServiceHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DialogDataServiceHandlerResult;
 
 /**
  *
- * This annotation can be applied to a field of any serializable type, in order to display a button widget which, on
- * click, invokes an action specified by the given actionHandler. The returned value is set to the setting on a
- * successful response.
- *
- * @see org.knime.core.webui.node.dialog.defaultdialog.dataservice
- *
  * @author Paul Bärnreuther
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface ButtonWidget {
+@SuppressWarnings("java:S2698") // we accept assertions without messages
+class CancelableActionHandlerTest {
 
-    /**
-     * @return the action handler that is to be triggered on click. A successful result should be of the same type as
-     *         the setting that is implemented.
-     */
-    Class<? extends DialogDataServiceHandler<?, ?>> actionHandler(); //NOSONAR
+    @Test
+    void testCancelableActionHandler() {
+        final DialogDataServiceHandler<String, Void> actionHandler =
+            new CancelableActionHandler<String, Void>() {
 
-    /**
-     * @return the initial text shown on the button that should describe the invoked action.
-     */
-    String invokeButtonText() default "";
+                @Override
+                protected Future<DialogDataServiceHandlerResult<String>> invoke(final Void noSettings, final SettingsCreationContext context) {
+                    return new CompletableFuture<>();
+                }
+            };
+        final var result = actionHandler.invoke(null, null, null);
+        actionHandler.invoke(CancelableActionHandler.CANCEL_BUTTON_STATE, null, null);
+        assertTrue(result.isCancelled());
+    }
 
-    /**
-     * @return the text that appears on the button during a request for asynchronous actions. Should indicate that the
-     *         current request will be cancelled if the button is triggered.
-     */
-    String cancelButtonText() default "";
+    @Test
+    void testCancelableActionHandlerNotCanceledIfOverwritten() {
+        final DialogDataServiceHandler<String, Void> actionHandler =
+            new CancelableActionHandler<String, Void>() {
 
-    /**
-     * @return the text that appears on a single-use button after the invoked action has succeeded.
-     */
-    String succeededButtonText() default "";
+                @Override
+                protected Future<DialogDataServiceHandlerResult<String>> invoke(final Void noSettings, final SettingsCreationContext context) {
+                    return new CompletableFuture<>();
+                }
 
-    /**
-     * @return if set to true, error messages are displayed besides the button.
-     */
-    boolean displayErrorMessage() default true;
-
-    /**
-     * @return if set to true, the button can be triggered multiple times. Otherwise it will deactivate after a single
-     *         successful invocation.
-     */
-    boolean isMultipleUse() default false;
-
-    /**
-     * @return if set to true, title and description will be shown above the ButtonWidget
-     */
-    boolean showTitleAndDescription() default true;
+                @Override
+                protected void cancel() {
+                    return;
+                }
+            };
+        final var result = actionHandler.invoke(null, null, null);
+        actionHandler.invoke(CancelableActionHandler.CANCEL_BUTTON_STATE, null, null);
+        assertFalse(result.isCancelled());
+    }
 
 }

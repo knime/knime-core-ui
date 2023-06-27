@@ -4,7 +4,6 @@ import { checkboxesRenderer } from './checkboxesRenderer';
 import { dropdownRenderer } from './dropdownRenderer';
 import { numberRenderer } from './numberRenderer';
 import { radioRenderer } from './radioRenderer';
-import { textRenderer } from './textRenderer';
 import { twinlistRenderer, simpleTwinlistRenderer } from './twinlistRenderer';
 import { columnFilterRenderer } from './columnFilterRenderer';
 import { columnSelectRenderer } from './columnSelectRenderer';
@@ -12,6 +11,8 @@ import { integerRenderer } from './integerRenderer';
 import { arrayLayoutRenderer } from './arrayLayoutRenderer';
 import { horizontalLayoutRenderer } from './horizontalLayoutRenderer';
 import { valueSwitchRenderer } from './valueSwitchRenderer';
+import { buttonRenderer } from './buttonRenderer';
+import { dateTimeRenderer } from './dateTimeRenderer';
 
 export const defaultRenderers = [
     sectionLayoutRenderer,
@@ -21,13 +22,14 @@ export const defaultRenderers = [
     simpleTwinlistRenderer,
     numberRenderer,
     radioRenderer,
-    textRenderer,
     twinlistRenderer,
     columnFilterRenderer,
     columnSelectRenderer,
     integerRenderer,
     arrayLayoutRenderer,
     horizontalLayoutRenderer,
-    valueSwitchRenderer
+    valueSwitchRenderer,
+    buttonRenderer,
+    dateTimeRenderer
 ];
 

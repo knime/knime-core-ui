@@ -62,6 +62,7 @@ export default {
                 nodeId: '0',
                 workflowId: '0',
                 projectId: '7',
+                flowVariableSettings: { viewVariables: this.currentDialog.result.schema.flowVariablesMap },
                 resourceInfo: {
                     type: 'VUE_COMPONENT_LIB',
                     id: 'NodeDialog',
@@ -79,7 +80,8 @@ export default {
         // Mock service calls
         callService(request) {
             console.log('KnimeService called service with request:', request);
-            return Promise.resolve('');
+            const delay = 3000;
+            return new Promise(resolve => setTimeout(resolve, delay));
         },
         pushEvent(event) {
             console.log('Push event was called:', event);
@@ -132,8 +134,8 @@ export default {
 
 body {
   margin: 10px;
-  font-size: 18px;
-  line-height: 26px;
+  font-size: 16px;
+  line-height: 1.15;
 }
 
 .container {

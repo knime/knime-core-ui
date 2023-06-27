@@ -44,27 +44,40 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 21, 2023 (Paul Bärnreuther): created
+ *   Jun 19, 2023 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.button;
 
-import java.util.concurrent.Future;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.concurrent.ExecutionException;
+
+import org.junit.jupiter.api.Test;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.SettingsCreationContext;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DialogDataServiceHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DialogDataServiceHandlerResult;
 /**
- * The interface for the handler of an action invocation specified by a {@link ButtonWidget}.
  *
  * @author Paul Bärnreuther
- * @param <R> the type of the returned result. For widgets which set this as the value of the field, the type of
- *            the field has to be assignable from it.
  */
-public interface ActionHandler<R> {
+@SuppressWarnings("java:S2698") // we accept assertions without messages
+class SynchronousActionHandlerTest {
 
-    /**
-     * @param buttonState a string specified by the frontend in order to reuse the same button for multiple different
-     *            kinds of invocations. E.g. this can be used to cancel an invocation (refer to
-     *            {@link CancelableActionHandler}.
-     * @return an asynchronous result. In case the handler is synchronous, refer to {@link SynchronousActionHandler}.
-     */
-    Future<ActionHandlerResult<R>> invoke(String buttonState);
+    @Test
+    void testSynchoronousActionHandler() throws InterruptedException, ExecutionException {
+        final DialogDataServiceHandler<String, Void> syncActionHandler =
+            new SynchronousActionHandler<String, Void>() {
 
+                @Override
+                public DialogDataServiceHandlerResult<String> invokeSync(final String buttonState,
+                    final Void noSettings, final SettingsCreationContext context) {
+                    return DialogDataServiceHandlerResult.succeed(buttonState);
+                }
+            };
+        final var payload = "myMode";
+        final var result = syncActionHandler.invoke(payload, null, null).get();
+
+        assertThat(result.result()).isEqualTo(payload);
+
+    }
 }

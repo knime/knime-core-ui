@@ -44,38 +44,26 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 15, 2023 (Paul Bärnreuther): created
+ *   Jun 16, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog;
-
-import java.util.concurrent.ExecutionException;
-
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ActionHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ActionHandlerResult;
+package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
 
 /**
+ * The state a {@link DialogDataServiceHandlerResult} can have.
  *
  * @author Paul Bärnreuther
  */
-interface DefaultNodeDialogDataService {
-
-    /**
-     *
-     * @param handlerClass the class name of the {@link ActionHandler} that is to be used.
-     * @return a {@link ActionHandlerResult}
-     * @throws ExecutionException if an error is thrown during the invocation
-     * @throws InterruptedException if the used thread is interrupted
-     */
-    ActionHandlerResult<?> invokeActionHandler(String handlerClass) throws ExecutionException, InterruptedException;
-
-    /**
-     * @param handlerClass the class name of the {@link ActionHandler} that is to be used.
-     * @param mode a string key that is/can be used inside an {@link ActionHandler} to have different outcomes.
-     * @return a {@link ActionHandlerResult}
-     * @throws ExecutionException if an error is thrown during the invocation
-     * @throws InterruptedException if the used thread is interrupted
-     */
-    ActionHandlerResult<?> invokeActionHandler(String handlerClass, String mode)
-        throws ExecutionException, InterruptedException;
-
+public enum DialogDataServiceHandlerResultState {
+        /**
+         * The invocation was succesful.
+         */
+        SUCCESS,
+        /**
+         * The invocation was canceled.
+         */
+        CANCELED,
+        /**
+         * The invocation yielded an expected error, which is explicitly caught.
+         */
+        FAIL
 }

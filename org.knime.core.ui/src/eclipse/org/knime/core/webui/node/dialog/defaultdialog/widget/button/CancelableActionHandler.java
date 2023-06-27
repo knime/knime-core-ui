@@ -51,37 +51,40 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.button;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.SettingsCreationContext;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DialogDataServiceHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DialogDataServiceHandlerResult;
+
 /**
- * An {@link ActionHandler} with an asynchronous invocation whose result can be retrieved and canceled.
+ * An {@link DialogDataServiceHandler} with an asynchronous invocation whose result can be retrieved and canceled.
  *
  * @param <R> the type of the returned result. For widgets which set this as the value of the field, the type of the
  *            field has to be assignable from it.
+ * @param <S> the type of the settings the invocation depends on
  * @author Paul Bärnreuther
  */
-public abstract class CancelableActionHandler<R> implements ActionHandler<R> {
+public abstract class CancelableActionHandler<R, S> implements DialogDataServiceHandler<R, S> {
 
-    /**
-     * State of the cancel button.
-     */
-    public static final String CANCEL_BUTTON_STATE = "cancel";
+    static final String CANCEL_BUTTON_STATE = "cancel";
 
-    private Future<ActionHandlerResult<R>> m_lastInvokationResult;
+    private Future<DialogDataServiceHandlerResult<R>> m_lastInvocationResult;
 
     /**
      * @return the result of the last invocation or null if no invocation has taken place.
      */
-    protected Future<ActionHandlerResult<R>> getLastInvokationResult() {
-        return m_lastInvokationResult;
+    protected Future<DialogDataServiceHandlerResult<R>> getLastInvokationResult() {
+        return m_lastInvocationResult;
     }
 
     @Override
-    public Future<ActionHandlerResult<R>> invoke(final String buttonState) {
+    public Future<DialogDataServiceHandlerResult<R>> invoke(final String buttonState, final S settings,
+        final SettingsCreationContext context) {
         if (CANCEL_BUTTON_STATE.equals(buttonState)) {
             cancel();
             return CompletableFuture.supplyAsync(() -> null);
         } else {
-            m_lastInvokationResult = invoke();
-            return m_lastInvokationResult;
+            m_lastInvocationResult = invoke(settings, context);
+            return m_lastInvocationResult;
         }
     }
 
@@ -89,14 +92,17 @@ public abstract class CancelableActionHandler<R> implements ActionHandler<R> {
      * Overwrite this method to implement more complex cancellations.
      */
     protected void cancel() {
-        m_lastInvokationResult.cancel(true);
+        m_lastInvocationResult.cancel(true);
     }
 
     /**
      * An invocation which is triggered if a request which is not a cancel request is sent.
      *
+     * @param settings the settings the invocation depends on
+     * @param context the current {@link SettingsCreationContext}
+     *
      * @return the future result.
      */
-    protected abstract Future<ActionHandlerResult<R>> invoke();
+    protected abstract Future<DialogDataServiceHandlerResult<R>> invoke(S settings, SettingsCreationContext context);
 
 }
