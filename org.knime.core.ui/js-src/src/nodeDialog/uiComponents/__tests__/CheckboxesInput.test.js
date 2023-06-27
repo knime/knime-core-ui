@@ -134,7 +134,7 @@ describe('CheckboxesInput.vue', () => {
                     ...defaultProps.control,
                     uischema: {
                         ...defaultProps.control.schema,
-                        scope: '#/properties/model/filterMissingValues'
+                        scope: '#/properties/model/considerFile'
                     }
                 }
             }
