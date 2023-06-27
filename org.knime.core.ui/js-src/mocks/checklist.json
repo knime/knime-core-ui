@@ -1,7 +1,11 @@
 {
     "result": {
       "name": "Checklist Dialog",
-
+      "data": {
+        "view": {
+          "considerFile": ["ADDED"]
+        }
+      },
       "schema": {
         "type": "object",
         "properties": {

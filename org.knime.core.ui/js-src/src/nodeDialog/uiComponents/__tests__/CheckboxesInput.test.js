@@ -25,6 +25,7 @@ describe('CheckboxesInput.vue', () => {
                 enabled: true,
                 visible: true,
                 label: 'defaultLabel',
+                data: ['ADDED'],
                 schema: {
         
                     title: 'Action',
@@ -141,9 +142,9 @@ describe('CheckboxesInput.vue', () => {
         expect(localWrapper.findComponent(ReexecutionIcon).exists()).toBe(true);
     });
 
-    // it('sets correct initial value', () => {
-    //     expect(wrapper.findComponent(Checkboxes).vm.modelValue).toBe(defaultProps.control.data);
-    // });
+    it('sets correct initial value', () => {
+        expect(wrapper.findComponent(Checkboxes).vm.modelValue).toStrictEqual(defaultProps.control.data);
+    });
 
     it('sets correct label', () => {
         expect(wrapper.find('label').text()).toBe(defaultProps.control.label);
