@@ -84,46 +84,46 @@ describe('CheckboxesInput.vue', () => {
         initializesJsonFormsControl(wrapper);
     });
 
-    // it('calls onChange when checkbox is changed', async () => {
-    //     const dirtySettingsMock = vi.fn();
-    //     const localWrapper = await mountJsonFormsComponentWithStore(CheckboxesInput, defaultProps, {
-    //         'pagebuilder/dialog': {
-    //             actions: { dirtySettings: dirtySettingsMock },
-    //             namespaced: true
-    //         }
-    //     });
-    //     await localWrapper.findComponent(Checkboxes).vm.$emit('update:modelValue', true);
-    //     expect(onChangeSpy).toHaveBeenCalledWith(true);
-    //     expect(localWrapper.vm.handleChange).toHaveBeenCalledWith(defaultProps.control.path, true);
-    //     expect(dirtySettingsMock).not.toHaveBeenCalled();
-    // });
+    it('calls onChange when checkbox is changed', async () => {
+        const dirtySettingsMock = vi.fn();
+        const localWrapper = await mountJsonFormsComponentWithStore(CheckboxesInput, defaultProps, {
+            'pagebuilder/dialog': {
+                actions: { dirtySettings: dirtySettingsMock },
+                namespaced: true
+            }
+        });
+        await localWrapper.findComponent(Checkboxes).vm.$emit('update:modelValue', ['ADDED', 'MODIFIED']);
+        expect(onChangeSpy).toHaveBeenCalledWith(['ADDED', 'MODIFIED']);
+        expect(localWrapper.vm.handleChange).toHaveBeenCalledWith(defaultProps.control.path, ['ADDED', 'MODIFIED']);
+        expect(dirtySettingsMock).not.toHaveBeenCalled();
+    });
 
-    // it('indicates model settings change when model setting is changed', async () => {
-    //     const dirtySettingsMock = vi.fn();
-    //     const localWrapper = await mountJsonFormsComponentWithStore(
-    //         CheckboxesInput,
-    //         {
-    //             ...defaultProps,
-    //             control: {
-    //                 ...defaultProps.control,
-    //                 uischema: {
-    //                     ...defaultProps.control.schema,
-    //                     scope: '#/properties/model/filterMissingValues'
-    //                 }
-    //             }
-    //         },
-    //         {
-    //             'pagebuilder/dialog': {
-    //                 actions: { dirtySettings: dirtySettingsMock },
-    //                 namespaced: true
-    //             }
-    //         }
-    //     );
-    //     await localWrapper.findComponent(Checkboxes).vm.$emit('update:modelValue', true);
-    //     expect(onChangeSpy).toHaveBeenCalledWith(true);
-    //     expect(localWrapper.vm.handleChange).toHaveBeenCalledWith(defaultProps.control.path, true);
-    //     expect(dirtySettingsMock).toHaveBeenCalledWith(expect.anything(), true);
-    // });
+    it('indicates model settings change when model setting is changed', async () => {
+        const dirtySettingsMock = vi.fn();
+        const localWrapper = await mountJsonFormsComponentWithStore(
+            CheckboxesInput,
+            {
+                ...defaultProps,
+                control: {
+                    ...defaultProps.control,
+                    uischema: {
+                        ...defaultProps.control.schema,
+                        scope: '#/properties/model/considerFile'
+                    }
+                }
+            },
+            {
+                'pagebuilder/dialog': {
+                    actions: { dirtySettings: dirtySettingsMock },
+                    namespaced: true
+                }
+            }
+        );
+        await localWrapper.findComponent(Checkboxes).vm.$emit('update:modelValue', ['ADDED']);
+        expect(onChangeSpy).toHaveBeenCalledWith(['ADDED']);
+        expect(localWrapper.vm.handleChange).toHaveBeenCalledWith(defaultProps.control.path, ['ADDED']);
+        expect(dirtySettingsMock).toHaveBeenCalledWith(expect.anything(), true);
+    });
 
     it('checks that re-execution icon is present if it is a model setting', async () => {
         const localWrapper = await mountJsonFormsComponent(

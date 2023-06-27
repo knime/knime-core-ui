@@ -73,7 +73,7 @@ export default RadioInputBase;
         :alignment="alignment"
         :disabled="disabled"
         :model-value="control.data"
-        @input="onChange"
+        @update:model-value="onChange"
       />
     </LabeledInput>
   </DialogComponentWrapper>
