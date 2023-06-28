@@ -44,59 +44,58 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 21, 2023 (Paul Bärnreuther): created
+ *   26 Jun 2023 (Rupert Ettrich): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
+package org.knime.core.webui.node.dialog.defaultdialog.widget;
 
-import java.util.Map;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.SettingsCreationContext;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.LayoutNodesGenerator.LayoutSkeleton;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 /**
- * Class for creating ui schema content from a settings POJO class.
+ * A widget annotation to display a date string as a date picker with several formatting options. Displays only the date
+ * per default.
  *
- *
- * The UiSchema generation follows these steps:
- * <ol type="1">
- * <li>Collect all {@link Layout} and {@link Signal} annotations and register all controls (see
- * {@link UiSchemaDefaultNodeSettingsTraverser})</li>
- * <li>Use order annotations (see e.g. {@link After}) and class hierarchies to determine a tree structure (see
- * {@link LayoutTree})</li>
- * <li>Generate the layout parts starting from the root and add the mapped controls (see
- * {@link LayoutNodesGenerator})</li>
- * </ol>
- *
- * @author Paul Bärnreuther
+ * @author Rupert Ettrich
  */
-public final class JsonFormsUiSchemaUtil {
-
-    private JsonFormsUiSchemaUtil() {
-        // utility class
-    }
+@Retention(RUNTIME)
+@Target(FIELD)
+public @interface DateTimeWidget {
 
     /**
-     * @param settings
-     * @param mapper
-     * @param context
-     * @return the ui schema resolved by the mapper from the given settings
+     * @return whether to show hours and minutes
      */
-    public static ObjectNode buildUISchema(final Map<String, Class<?>> settings, final ObjectMapper mapper,
-        final SettingsCreationContext context) {
-        final var layoutSkeleton = resolveLayout(settings, mapper);
-        return new LayoutNodesGenerator(layoutSkeleton, mapper, context).build();
-    }
+    boolean showTime() default false;
 
-    private static LayoutSkeleton resolveLayout(final Map<String, Class<?>> settings, final ObjectMapper mapper) {
-        final var traverser = new UiSchemaDefaultNodeSettingsTraverser(mapper);
-        final var traversalResult = traverser.traverse(settings);
-        final var layoutTreeRoot = new LayoutTree(traversalResult.layoutPartToControls()).getRootNode();
-        return new LayoutSkeleton(layoutTreeRoot, traversalResult.signals(), traversalResult.fields());
-    }
+    /**
+     * @return whether to show seconds
+     */
+    boolean showSeconds() default false;
+
+    /**
+     * @return whether to show milliseconds
+     */
+    boolean showMilliseconds() default false;
+
+    /**
+     * @return whether to use a specific timezone, e.g. "America/Dawson_Creek"
+     */
+    String timezone() default "";
+
+    /**
+     * @return whether to use a specific format, e.g. "dd-MM-YYYY"
+     */
+    String dateFormat() default "";
+
+    /**
+     * @return no date before the specified minDate can be chosen
+     */
+    String minDate() default "";
+
+    /**
+     * @return no date after the specified minDate can be chosen
+     */
+    String maxDate() default "";
 }

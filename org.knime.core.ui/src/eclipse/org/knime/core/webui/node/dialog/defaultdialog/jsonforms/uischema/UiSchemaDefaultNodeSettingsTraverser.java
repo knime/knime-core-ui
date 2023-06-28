@@ -49,10 +49,11 @@
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
@@ -79,7 +80,10 @@ public class UiSchemaDefaultNodeSettingsTraverser {
         m_mapper = mapper;
     }
 
-    static record JsonFormsControl(String scope, PropertyWriter field) {
+    static record JsonFormsControl(String scope, PropertyWriter field, Class<?> rootClass) {
+    }
+
+    private static record TraversalConsumerPayload(String scope, Field field, Class<?> rootClass) {
     }
 
     /**
@@ -92,33 +96,36 @@ public class UiSchemaDefaultNodeSettingsTraverser {
      * @author Paul Bärnreuther
      */
     static record TraversalResult(Map<Class<?>, List<JsonFormsControl>> layoutPartToControls,
-        Map<Class<?>, JsonFormsExpression> signals) {
+        Map<Class<?>, JsonFormsExpression> signals, Collection<JsonFormsControl> fields) {
     }
 
     TraversalResult traverse(final Map<String, Class<?>> settings) {
+        final Collection<JsonFormsControl> fields = new HashSet<>();
         final Map<Class<?>, List<JsonFormsControl>> layoutPartToControls = new HashMap<>();
         final Map<Class<?>, JsonFormsExpression> signals = new HashMap<>();
-        final var addLayout = getAddLayoutConsumer(layoutPartToControls);
+        final var addField = getAddFieldConsumer(fields, layoutPartToControls);
         final var addSignal = getAddSignalConsumer(signals);
-        settings.forEach((settingsKey, setting) -> traverseSettingsClass(addLayout, addSignal, settingsKey, setting));
-        return new TraversalResult(layoutPartToControls, signals);
+        settings.forEach((settingsKey, setting) -> traverseSettingsClass(addField, addSignal, settingsKey, setting));
+        return new TraversalResult(layoutPartToControls, signals, fields);
     }
 
-    private void traverseSettingsClass(final BiConsumer<Field, String> addLayout,
-        final BiConsumer<Field, String> addSignal, final String settingsKey, final Class<?> setting) {
+    private void traverseSettingsClass(final Consumer<TraversalConsumerPayload> addLayout,
+        final Consumer<TraversalConsumerPayload> addSignal, final String settingsKey, final Class<?> setting) {
         final var traverser = new DefaultNodeSettingsFieldTraverser(m_mapper, setting);
         traverser.traverse(field -> {
             if (field.trackedAnnotations().getInstance(Hidden.class).isPresent()) {
                 return;
             }
             final var scope = toScope(field.path(), settingsKey);
-            addLayout.accept(field, scope);
-            addSignal.accept(field, scope);
+            final var payload = new TraversalConsumerPayload(scope, field, setting);
+            addLayout.accept(payload);
+            addSignal.accept(payload);
         }, List.of(Layout.class, Hidden.class));
     }
 
-    private static BiConsumer<Field, String> getAddSignalConsumer(final Map<Class<?>, JsonFormsExpression> signals) {
-        return (field, scope) -> getSignalList(field.propertyWriter()).forEach(addSignal(signals, scope));
+    private static Consumer<TraversalConsumerPayload>
+        getAddSignalConsumer(final Map<Class<?>, JsonFormsExpression> signals) {
+        return payload -> getSignalList(payload.field().propertyWriter()).forEach(addSignal(signals, payload.scope()));
     }
 
     private static List<Signal> getSignalList(final PropertyWriter field) {
@@ -153,16 +160,21 @@ public class UiSchemaDefaultNodeSettingsTraverser {
         };
     }
 
-    private static BiConsumer<Field, String>
-        getAddLayoutConsumer(final Map<Class<?>, List<JsonFormsControl>> layoutControls) {
-        return (field, scope) -> {
-            final var layout = field.trackedAnnotations().getInstance(Layout.class).map(Layout::value).orElse(null);
+    private static Consumer<TraversalConsumerPayload> getAddFieldConsumer(final Collection<JsonFormsControl> fields,
+        final Map<Class<?>, List<JsonFormsControl>> layoutControls) {
+        return payload -> {
+            final var layout =
+                payload.field().trackedAnnotations().getInstance(Layout.class).map(Layout::value).orElse(null);
+            final var newJsonFormsControl =
+                new JsonFormsControl(payload.scope(), payload.field().propertyWriter(), payload.rootClass());
+            fields.add(newJsonFormsControl);
             layoutControls.compute(layout, (k, previous) -> {
                 final var newControls = previous == null ? new ArrayList<JsonFormsControl>() : previous;
-                newControls.add(new JsonFormsControl(scope, field.propertyWriter()));
+                newControls.add(newJsonFormsControl);
                 return newControls;
             });
         };
+
     }
 
     private static String toScope(final List<String> path, final String settingsKey) {
@@ -171,6 +183,10 @@ public class UiSchemaDefaultNodeSettingsTraverser {
             pathWithPrefix.add(0, settingsKey);
         }
         pathWithPrefix.add(0, "#");
-        return String.join("/properties/", pathWithPrefix);
+        return toScope(pathWithPrefix);
+    }
+
+    static String toScope(final List<String> path) {
+        return String.join("/properties/", path);
     }
 }

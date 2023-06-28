@@ -26,6 +26,13 @@ export default {
         HTMLRenderer
     },
     inject: ['getKnimeService'],
+    props: {
+        initialData: {
+            type: Object,
+            default: null,
+            required: false
+        }
+    },
     setup() {
         return { columnResizeActive: useBoolean() };
     },
@@ -142,7 +149,7 @@ export default {
         },
         tableConfig() {
             const { enableSortingByHeader, enableGlobalSearch, enableColumnSearch,
-                publishSelection, subscribeToSelection, pageSize, enablePagination } = this.settings;
+                publishSelection, subscribeToSelection, pageSize, enablePagination, showTableSize } = this.settings;
             return {
                 subMenuItems: [],
                 showSelection: publishSelection || subscribeToSelection,
@@ -152,7 +159,8 @@ export default {
                     tableSize: this.totalRowCount,
                     pageSize: enablePagination ? pageSize : this.currentRowCount,
                     currentPage: this.currentPage,
-                    columnCount: this.columnCount
+                    columnCount: this.columnCount,
+                    showTableSize
                 },
                 enableVirtualScrolling: true,
                 fitToContainer: true,
@@ -294,7 +302,7 @@ export default {
 
         this.jsonDataService = new JsonDataService(this.knimeService);
         this.jsonDataService.addOnDataChangeCallback(this.onViewSettingsChange.bind(this));
-        const initialData = await this.jsonDataService.initialData();
+        const initialData = this.initialData === null ? await this.jsonDataService.initialData() : this.initialData;
         this.selectionService = new SelectionService(this.knimeService);
         this.baseUrl = this.knimeService?.extensionConfig?.resourceInfo?.baseUrl;
         if (initialData) {

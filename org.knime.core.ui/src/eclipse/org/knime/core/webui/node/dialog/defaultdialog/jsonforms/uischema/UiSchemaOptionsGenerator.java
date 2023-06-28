@@ -66,22 +66,32 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.SettingsCreationContext;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DialogDataServiceHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaDefaultNodeSettingsTraverser.JsonFormsControl;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.util.DefaultNodeSettingsFieldTraverser;
+import org.knime.core.webui.node.dialog.defaultdialog.util.DefaultNodeSettingsFieldTraverser.Field;
+import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.CancelableActionHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.button.DeclaringDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.WidgetAnnotation;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 
@@ -103,19 +113,25 @@ final class UiSchemaOptionsGenerator {
 
     private final SettingsCreationContext m_settingsCreationContext;
 
+    private final Collection<JsonFormsControl> m_fields;
+
+    private final String m_scope;
+
     /**
      *
      * @param mapper the object mapper used for the ui schema generation
      * @param field the field for which options are to be added from {@link Style} annotations
      */
     UiSchemaOptionsGenerator(final ObjectMapper mapper, final PropertyWriter field,
-        final SettingsCreationContext context) {
+        final SettingsCreationContext context, final Collection<JsonFormsControl> fields, final String scope) {
         m_mapper = mapper;
         m_field = field;
         m_fieldType = field.getType();
         m_fieldClass = field.getType().getRawClass();
         m_fieldName = field.getName();
         m_settingsCreationContext = context;
+        m_fields = fields;
+        m_scope = scope;
     }
 
     /**
@@ -157,18 +173,39 @@ final class UiSchemaOptionsGenerator {
             }
         }
 
+        if(annotatedWidgets.contains(DateTimeWidget.class)) {
+            final var dateTimeWidget = m_field.getAnnotation(DateTimeWidget.class);
+            options.put(TAG_FORMAT, Format.DATE_TIME);
+            options.put("showTime", dateTimeWidget.showTime());
+            options.put("showSeconds", dateTimeWidget.showSeconds());
+            options.put("showMilliseconds", dateTimeWidget.showMilliseconds());
+            if (!dateTimeWidget.timezone().isEmpty()) {
+                options.put("timezone", dateTimeWidget.timezone());
+            }
+            if (!dateTimeWidget.minDate().isEmpty()) {
+                options.put("minimum", dateTimeWidget.minDate());
+            }
+            if (!dateTimeWidget.timezone().isEmpty()) {
+                options.put("maximum", dateTimeWidget.maxDate());
+            }
+            if (!dateTimeWidget.dateFormat().isEmpty()) {
+                options.put("dateFormat", dateTimeWidget.dateFormat());
+            }
+        }
+
         if (annotatedWidgets.contains(ButtonWidget.class)) {
             final var buttonWidget = m_field.getAnnotation(ButtonWidget.class);
             options.put(TAG_ACTION_HANDLER, buttonWidget.actionHandler().getName());
             options.put(TAG_FORMAT, Format.BUTTON);
             options.putObject("buttonTexts").put("invoke", buttonWidget.invokeButtonText())
-                .put("cancel", buttonWidget.cancelButtonText())
-                .put("succeeded", buttonWidget.succeededButtonText());
+                .put("cancel", buttonWidget.cancelButtonText()).put("succeeded", buttonWidget.succeededButtonText());
             options.put("displayErrorMessage", buttonWidget.displayErrorMessage());
             options.put("isMultipleUse", buttonWidget.isMultipleUse());
             options.put("showTitleAndDescription", buttonWidget.showTitleAndDescription());
             var cancelable = CancelableActionHandler.class.isAssignableFrom(buttonWidget.actionHandler());
             options.put("isCancelable", cancelable);
+            final var dependencies = options.putArray("dependencies");
+            addDependencies(dependencies, buttonWidget.actionHandler());
         }
 
         if (annotatedWidgets.contains(ValueSwitchWidget.class)) {
@@ -202,6 +239,51 @@ final class UiSchemaOptionsGenerator {
         if (isArrayOfObjects) {
             applyArrayLayoutOptions(options, m_fieldType.getContentType().getRawClass());
         }
+    }
+
+    private void addDependencies(final ArrayNode dependencies,
+        final Class<? extends DialogDataServiceHandler<?, ?>> actionHandler) {
+        final var dependencyClass =
+            GenericTypeFinderUtil.getNthGenericType(actionHandler, DialogDataServiceHandler.class, 1);
+        final var traverser = new DefaultNodeSettingsFieldTraverser(m_mapper, dependencyClass);
+        final Consumer<Field> addNewDependency = getAddNewDependencyCallback(dependencies);
+        traverser.traverse(addNewDependency, List.of(DeclaringDefaultNodeSettings.class));
+    }
+
+    private Consumer<Field> getAddNewDependencyCallback(final ArrayNode dependencies) {
+        return field -> {
+            final var searchScope = UiSchemaDefaultNodeSettingsTraverser.toScope(field.path());
+            final var declaringDefaultNodeSettings = field.trackedAnnotations()
+                .getInstance(DeclaringDefaultNodeSettings.class).map(DeclaringDefaultNodeSettings::value).orElse(null);
+            final var clazz = field.propertyWriter().getType().getRawClass();
+            final var targetScope = findTargetScope(searchScope, declaringDefaultNodeSettings, clazz);
+            /**
+             * exclude the field itself to enable using the current DefaultNodeSettings as the dependencies class to get
+             * a dependency from every other setting.
+             */
+            if (!targetScope.equals(m_scope)) {
+                dependencies.add(targetScope);
+            }
+        };
+    }
+
+    private String findTargetScope(final String searchScope,
+        final Class<? extends DefaultNodeSettings> declaringDefaultNodeSettings, final Class<?> clazz) {
+        final var candidates = m_fields.stream().filter(control -> {
+            if (declaringDefaultNodeSettings != null && !control.rootClass().equals(declaringDefaultNodeSettings)) {
+                return false;
+            }
+            boolean classEquals = control.field().getType().getRawClass().equals(clazz);
+            boolean matchesSearchPath = control.scope().endsWith(searchScope);
+            return classEquals && matchesSearchPath;
+        }).map(JsonFormsControl::scope).toList();
+        if (candidates.size() > 1) {
+            throw new UiSchemaGenerationException(
+                String.format("Multiple settings found for path %s. Consider using @DeclaringClass to "
+                    + "disambiguate the reference.", searchScope));
+        }
+        return candidates.stream().findFirst().orElseThrow(
+            () -> new UiSchemaGenerationException(String.format("No setting found for path %s.", searchScope)));
     }
 
     /**

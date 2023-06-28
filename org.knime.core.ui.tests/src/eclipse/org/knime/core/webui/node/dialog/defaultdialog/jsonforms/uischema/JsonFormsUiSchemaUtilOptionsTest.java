@@ -51,7 +51,10 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.buildTestUiSchema;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.buildUiSchema;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
@@ -68,17 +71,20 @@ import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DialogDataServ
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DialogDataServiceHandlerResultState;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.LayoutGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.CancelableActionHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.button.DeclaringDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SynchronousActionHandler;
 
 /**
@@ -534,6 +540,235 @@ class JsonFormsUiSchemaUtilOptionsTest {
         assertThatJson(response).inPath("$.elements[0].options.isMultipleUse").isBoolean().isTrue();
         assertThatJson(response).inPath("$.elements[0].options.showTitleAndDescription").isBoolean().isFalse();
 
+    }
+
+    static class GroupOfSettings implements LayoutGroup {
+        String m_sub1;
+
+        String m_sub2;
+    }
+
+    class ButtonWidgetWithDependenciesTestSettings {
+        @ButtonWidget(actionHandler = TestActionHandlerWithDependencies.class)
+        String m_foo;
+
+        Boolean m_otherSetting1;
+
+        ColumnFilter m_otherSetting2;
+
+        GroupOfSettings m_otherSetting3;
+
+        String m_otherSetting4;
+    }
+
+    static class OtherGroupOfSettings implements LayoutGroup {
+        String m_sub2;
+    }
+
+    static class OtherSettings {
+        String m_foo;
+
+        Boolean m_otherSetting1;
+
+        ColumnFilter m_otherSetting2;
+
+        OtherGroupOfSettings m_otherSetting3;
+
+    }
+
+    static class TestActionHandlerWithDependencies extends SynchronousActionHandler<String, OtherSettings> {
+
+        @Override
+        public DialogDataServiceHandlerResult<String> invokeSync(final String buttonState, final OtherSettings settings,
+            final SettingsCreationContext context) {
+            return null;
+        }
+
+    }
+
+    @Test
+    void testButtonWidgetDependencies() {
+        var response = buildTestUiSchema(ButtonWidgetWithDependenciesTestSettings.class);
+        assertThatJson(response).inPath("$.elements[0]").isObject().containsKey("options");
+        assertThatJson(response).inPath("$.elements[0].options.dependencies").isArray().hasSize(3);
+        assertThatJson(response).inPath("$.elements[0].options.dependencies[0]").isString()
+            .isEqualTo("#/properties/test/properties/otherSetting1");
+        assertThatJson(response).inPath("$.elements[0].options.dependencies[1]").isString()
+            .isEqualTo("#/properties/test/properties/otherSetting2");
+        assertThatJson(response).inPath("$.elements[0].options.dependencies[2]").isString()
+            .isEqualTo("#/properties/test/properties/otherSetting3/properties/sub2");
+    }
+
+    class ButtonWidgetWithMissingDependenciesTestSettings {
+        @ButtonWidget(actionHandler = TestActionHandlerWithMissingDependencies.class)
+        String m_foo;
+
+        Boolean m_otherSetting1;
+    }
+
+    static class OtherSettingsWithMissing {
+        Boolean m_otherSetting1;
+
+        ColumnFilter m_missingSetting;
+
+    }
+
+    static class TestActionHandlerWithMissingDependencies
+        extends SynchronousActionHandler<String, OtherSettingsWithMissing> {
+
+        @Override
+        public DialogDataServiceHandlerResult<String> invokeSync(final String buttonState,
+            final OtherSettingsWithMissing settings, final SettingsCreationContext context) {
+            return null;
+        }
+
+    }
+
+    @Test
+    void testThrowsForButtonWidgetWithMissingDependencies() {
+        assertThrows(UiSchemaGenerationException.class,
+            () -> buildTestUiSchema(ButtonWidgetWithMissingDependenciesTestSettings.class));
+    }
+
+    class ButtonWidgetWithAmbigousDependenciesTestSettings implements DefaultNodeSettings {
+        @ButtonWidget(actionHandler = TestActionHandlerWithAmbigousDependencies.class)
+        String m_foo;
+
+        Boolean m_otherSetting1;
+    }
+
+    class SecondSettings implements DefaultNodeSettings {
+
+        Boolean m_otherSetting1;
+    }
+
+    static class OtherSettingsWithAmbigous {
+        Boolean m_otherSetting1;
+
+    }
+
+    static class TestActionHandlerWithAmbigousDependencies
+        extends SynchronousActionHandler<String, OtherSettingsWithAmbigous> {
+
+        @Override
+        public DialogDataServiceHandlerResult<String> invokeSync(final String buttonState,
+            final OtherSettingsWithAmbigous settings, final SettingsCreationContext context) {
+            return null;
+        }
+
+    }
+
+    @Test
+    void testThrowsForButtonWidgetWithAmbigousDependencies() {
+        final Map<String, Class<?>> settingsClasses =
+            Map.of("foo", ButtonWidgetWithAmbigousDependenciesTestSettings.class, "bar", SecondSettings.class);
+        assertThrows(UiSchemaGenerationException.class, () -> buildUiSchema(settingsClasses));
+    }
+
+    class ButtonWidgetWithDisAmbigousDependenciesTestSettings {
+        @ButtonWidget(actionHandler = TestActionHandlerWithDisAmbigousDependencies.class)
+        String m_foo;
+
+        Boolean m_otherSetting1;
+    }
+
+    static class OtherSettingsWithSpecification {
+
+        @DeclaringDefaultNodeSettings(SecondSettings.class)
+        Boolean m_otherSetting1;
+
+    }
+
+    static class TestActionHandlerWithDisAmbigousDependencies
+        extends SynchronousActionHandler<String, OtherSettingsWithSpecification> {
+
+        @Override
+        public DialogDataServiceHandlerResult<String> invokeSync(final String buttonState,
+            final OtherSettingsWithSpecification settings, final SettingsCreationContext context) {
+            return null;
+        }
+
+    }
+
+    @Test
+    void testButtonWidgetWithAmbigousDependenciesUsingSpecifyingContainingClass() {
+        final var settingsClasses = new LinkedHashMap<String, Class<?>>();
+        settingsClasses.put("foo", ButtonWidgetWithDisAmbigousDependenciesTestSettings.class);
+        settingsClasses.put("bar", SecondSettings.class);
+        var response = buildUiSchema(settingsClasses);
+        assertThatJson(response).inPath("$.elements[0]").isObject().containsKey("options");
+        assertThatJson(response).inPath("$.elements[0].options.dependencies").isArray().hasSize(1);
+        assertThatJson(response).inPath("$.elements[0].options.dependencies[0]").isString()
+            .isEqualTo("#/properties/bar/properties/otherSetting1");
+    }
+
+    class ButtonWidgetWithWrongTypeDependenciesTestSettings {
+        @ButtonWidget(actionHandler = TestActionHandlerWithWrongTypeDependencies.class)
+        String m_foo;
+
+        Boolean m_otherSetting1;
+    }
+
+    static class OtherSettingsWithWrongType {
+        String m_otherSetting1;
+    }
+
+    static class TestActionHandlerWithWrongTypeDependencies
+        extends SynchronousActionHandler<String, OtherSettingsWithWrongType> {
+
+        @Override
+        public DialogDataServiceHandlerResult<String> invokeSync(final String buttonState,
+            final OtherSettingsWithWrongType settings, final SettingsCreationContext context) {
+            return null;
+        }
+
+    }
+
+    @Test
+    void testThrowForButtonWidgetWithDependenciesWithConflictingTypes() {
+        assertThrows(UiSchemaGenerationException.class,
+            () -> buildTestUiSchema(ButtonWidgetWithWrongTypeDependenciesTestSettings.class));
+    }
+
+    @Test
+    void testDateTimeWidgetDefaultOptions() {
+        class DateTimeDefaultTestSettings {
+
+            @DateTimeWidget
+            String m_dateTime;
+        }
+
+        var response = buildTestUiSchema(DateTimeDefaultTestSettings.class);
+        assertThatJson(response).inPath("$.elements[0]").isObject().containsKey("options");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("date-time");
+        assertThatJson(response).inPath("$.elements[0].options.showTime").isBoolean().isFalse();
+        assertThatJson(response).inPath("$.elements[0].options.showSeconds").isBoolean().isFalse();
+        assertThatJson(response).inPath("$.elements[0].options.showMilliseconds").isBoolean().isFalse();
+        assertThatJson(response).inPath("$.elements[0].options").isObject().doesNotContainKey("dateFormat");
+        assertThatJson(response).inPath("$.elements[0].options").isObject().doesNotContainKey("timezone");
+        assertThatJson(response).inPath("$.elements[0].options").isObject().doesNotContainKey("minimum");
+        assertThatJson(response).inPath("$.elements[0].options").isObject().doesNotContainKey("maximum");
+    }
+
+    @Test
+    void testDateTimeWidgetCustomOptions() {
+        class DateTimeDefaultTestSettings {
+
+            @DateTimeWidget(showTime = true, showSeconds = true, showMilliseconds = true, dateFormat = "dd-MM-YYYY",
+                    minDate = "2023-06-12", maxDate = "2023-06-14", timezone = "America/Dawson_Creek")
+            String m_dateTime;
+        }
+
+        var response = buildTestUiSchema(DateTimeDefaultTestSettings.class);
+        assertThatJson(response).inPath("$.elements[0]").isObject().containsKey("options");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("date-time");
+        assertThatJson(response).inPath("$.elements[0].options.showTime").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[0].options.showSeconds").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[0].options.showMilliseconds").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[0].options.dateFormat").isString().isEqualTo("dd-MM-YYYY");
+        assertThatJson(response).inPath("$.elements[0].options.timezone").isString().isEqualTo("America/Dawson_Creek");
+        assertThatJson(response).inPath("$.elements[0].options.minimum").isString().isEqualTo("2023-06-12");
+        assertThatJson(response).inPath("$.elements[0].options.maximum").isString().isEqualTo("2023-06-14");
     }
 
 }
