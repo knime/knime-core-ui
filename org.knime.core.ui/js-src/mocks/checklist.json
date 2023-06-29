@@ -47,7 +47,7 @@
               "type": "Control",
               "scope": "#/properties/view/properties/considerFile",
               "options": {
-                "format": "checkbox",
+                "format": "checkboxes",
                 "checkboxLayout": "vertical"
               }
             }

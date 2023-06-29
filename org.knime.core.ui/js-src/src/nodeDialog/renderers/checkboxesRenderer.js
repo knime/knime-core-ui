@@ -4,7 +4,7 @@ import { priorityRanks, inputFormats } from '../constants';
 
 export const checkboxesTester = (uischema, schema) => {
     const isAnyOf = isAnyOfControl(uischema, schema);
-    return isAnyOf && uischema.options?.format === inputFormats.anyOfCheckbox;
+    return isAnyOf && uischema.options?.format === inputFormats.checkboxes;
 };
 
 export const checkboxesRenderer = {

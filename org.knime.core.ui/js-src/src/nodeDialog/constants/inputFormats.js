@@ -4,7 +4,7 @@ export const inputFormats = {
     radio: 'radio',
     valueSwitch: 'valueSwitch',
     checkbox: 'checkbox',
-    anyOfCheckbox: 'checkbox',
+    checkboxes: 'checkboxes',
     integer: 'integer',
     number: 'number',
     columnFilter: 'columnFilter',
