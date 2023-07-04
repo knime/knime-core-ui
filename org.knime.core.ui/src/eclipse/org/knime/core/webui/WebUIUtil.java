@@ -48,6 +48,9 @@
  */
 package org.knime.core.webui;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import org.eclipse.swt.program.Program;
 import org.knime.core.node.NodeLogger;
 
@@ -80,26 +83,36 @@ public final class WebUIUtil {
     }
 
     /**
-     * Tries to open the given url in an external browser. But only if it's a http(s) url. Will also output respective
-     * debug log messages.
-     *
+     * Tries to open the given URL in the default application. This is most likely a web browser if a HTTP(S) URL is
+     * given. If a file:// URL is given, this is the systems default application associated with the file.
+     * 
      * @param url
      * @param classForLogging
      *
      */
-    public static void openURLInExternalBrowserAndAddToDebugLog(final String url, final Class<?> classForLogging) {
+    public static void openURLWithDefaultApplicationAndLogDebug(final String url, final Class<?> classForLogging) {
         if (url.startsWith("http")) {
-            // open http-urls in the system browser
-            if (Program.launch(url)) {
-                NodeLogger.getLogger(classForLogging).debugWithFormat("Opening URL '%s' with external browser ...",
-                    url);
+            launch(url, classForLogging);
+        } else if (url.startsWith("file")) {
+            var path = Paths.get(url.substring("file://".length()));
+            if (Files.exists(path)) { // may open file explorer at root or create new file otherwise
+                launch(path.toString(), classForLogging);
             } else {
-                NodeLogger.getLogger(classForLogging)
-                    .error("Failed to open URL in external browser. The URL is: " + url);
+                NodeLogger.getLogger(classForLogging).debugWithFormat("File at '%s' does not exist.", url);
             }
         } else {
-            // don't do anything with other url-types (e.g. file-urls)
+            // don't do anything with other url-types
             NodeLogger.getLogger(classForLogging).debugWithFormat("URL '%s' can't be opened (not allowed).", url);
+        }
+    }
+
+    private static void launch(final String url, final Class<?> classForLogging) {
+        if (Program.launch(url)) {
+            NodeLogger.getLogger(classForLogging)
+                .debugWithFormat("Opening URL '%s' externally in default application ...", url);
+        } else {
+            NodeLogger.getLogger(classForLogging)
+                .error("Failed to open URL in default application. The URL is: " + url);
         }
     }
 
