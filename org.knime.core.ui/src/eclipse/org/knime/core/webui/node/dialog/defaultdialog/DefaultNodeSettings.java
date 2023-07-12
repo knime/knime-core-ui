@@ -61,8 +61,10 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.FlowObjectStack;
 import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.VariableType;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.LayoutGroup;
@@ -74,9 +76,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -109,9 +113,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * <p>
  * All fields with visibility of at least 'package scope' are represented as dialog widgets; they can optionally be
  * annotated with {@link Widget} and {@link org.knime.core.webui.node.dialog.defaultdialog.widget other widget
- * annotations} to supply additional information (e.g. description, domain info, ...).
- * Note that getters of at least 'package scope' will also be represented as dialog widgets. If this is not intended,
- * they can be annotated by an {@link JsonIgnore} annotation.
+ * annotations} to supply additional information (e.g. description, domain info, ...). Note that getters of at least
+ * 'package scope' will also be represented as dialog widgets. If this is not intended, they can be annotated by an
+ * {@link JsonIgnore} annotation.
  *
  * The table below lists all the supported type with
  * <ul>
@@ -141,8 +145,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * <td>Text Input</td>
  * <td>{@link ChoicesWidget} (twin-list)<br>
  * {@link TextInputWidget}<br>
- * {@link DateTimeWidget}</td>
+ * {@link DateTimeWidget}<br>
+ * {@link RichTextInputWidget}</td>
  * </tr>
+ * <tr>
+ * <td>LocalDate</td>
+ * <td>Date Picker</td>
+ * <td>{@link DateWidget}</td>
  * <tr>
  * <td>String[]</td>
  * <td></td>
@@ -150,7 +159,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * </tr>
  * <tr>
  * <td>Enums(*)</td>
- * <td>Drop Down </td>
+ * <td>Drop Down</td>
  * <td>{@link ValueSwitchWidget}<br>
  * {@link RadioButtonsWidget}</td>
  * </tr>
@@ -207,9 +216,13 @@ public interface DefaultNodeSettings extends PersistableSettings {
 
         private final FlowObjectStack m_stack;
 
-        public SettingsCreationContext(final PortObjectSpec[] specs, final FlowObjectStack stack) {
+        private final CredentialsProvider m_credentialsProvider;
+
+        public SettingsCreationContext(final PortObjectSpec[] specs, final FlowObjectStack stack,
+            final CredentialsProvider credentialsProvider) {
             m_specs = specs;
             m_stack = stack;
+            m_credentialsProvider = credentialsProvider;
         }
 
         /**
@@ -279,6 +292,14 @@ public interface DefaultNodeSettings extends PersistableSettings {
         public String[] getAvailableFlowVariableNames() {
             return m_stack != null ? m_stack.getAllAvailableFlowVariables().keySet().toArray(String[]::new)
                 : new String[0];
+        }
+
+        /**
+         * @return the {@link CredentialsProvider} associated with the node. Can be empty, e.g., if the node is a
+         *         component
+         */
+        public Optional<CredentialsProvider> getCredentialsProvider() {
+            return Optional.ofNullable(m_credentialsProvider);
         }
 
     }
@@ -360,7 +381,6 @@ public interface DefaultNodeSettings extends PersistableSettings {
         CheckUtils.checkArgument(settingsClass.isInstance(settingsObject),
             "The provided settingsObject is not an instance of the provided settingsClass.");
         NodeSettingsPersistorFactory.getPersistor(settingsClass).save((S)settingsObject, settings);
-
     }
 
     /**
@@ -373,8 +393,15 @@ public interface DefaultNodeSettings extends PersistableSettings {
     static SettingsCreationContext createSettingsCreationContext(final PortObjectSpec[] specs) {
         Objects.requireNonNull(specs, () -> "Port object specs must not be null.");
         final var nodeContext = NodeContext.getContext();
-        return new SettingsCreationContext(specs,
-            nodeContext == null ? null : nodeContext.getNodeContainer().getFlowObjectStack());
+        if (nodeContext == null) {
+            return new SettingsCreationContext(specs, null, null);
+        }
+        var nc = nodeContext.getNodeContainer();
+        CredentialsProvider credentialsProvider = null;
+        if (nc instanceof NativeNodeContainer nnc) {
+            credentialsProvider = nnc.getNode().getCredentialsProvider();
+        }
+        return new SettingsCreationContext(specs, nc.getFlowObjectStack(), credentialsProvider);
     }
 
 }

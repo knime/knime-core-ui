@@ -1,10 +1,11 @@
 <script>
 import { defineComponent } from 'vue';
-import { rendererProps, useJsonFormsControl } from '@jsonforms/vue';
+import { rendererProps } from '@jsonforms/vue';
 import { mergeDeep, getFlowVariablesMap, isModelSettingAndHasNodeView, getPossibleValuesFromUiSchema } from '../utils';
 import LabeledInput from './LabeledInput.vue';
 import DialogComponentWrapper from './DialogComponentWrapper.vue';
 import MultiModeTwinlist from 'webapps-common/ui/components/forms/MultiModeTwinlist.vue';
+import { useJsonFormsControlWithUpdate } from './composables/jsonFormsControlWithUpdate';
 
 const defaultTwinlistSize = 7;
 const defaultTwinlistLeftLabel = 'Excludes';
@@ -36,7 +37,7 @@ const TwinlistInput = defineComponent({
         }
     },
     setup(props) {
-        return useJsonFormsControl(props);
+        return useJsonFormsControlWithUpdate(props);
     },
     data() {
         return {
@@ -77,14 +78,18 @@ const TwinlistInput = defineComponent({
             let newData = mergeDeep(this.control.data, obj);
             this.handleChange(this.control.path, newData);
         },
-        onSelectedChange({ selected, isManual, deselected }) {
+        onSelectedChange({ selected, isManual, isFirstInput, deselected }) {
             this.onChange({
                 selected,
                 ...isManual
                     ? { manualFilter: { manuallySelected: selected, manuallyDeselected: deselected } }
                     : {}
             });
-            if (this.isModelSettingAndHasNodeView) {
+            /**
+             * TODO: UIEXT-1122 do not use isFirstInput anymore but instead compare the value with the initial one,
+             * once the initial value is set correctly in the backend.
+             * */
+            if (this.isModelSettingAndHasNodeView && !isFirstInput) {
                 this.$store.dispatch('pagebuilder/dialog/dirtySettings', true);
             }
         },

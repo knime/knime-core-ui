@@ -49,6 +49,7 @@
 package org.knime.core.webui.node.dialog.defaultdialog.widget.util;
 
 import java.lang.annotation.Annotation;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +61,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.Colum
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
@@ -101,7 +104,7 @@ public final class WidgetImplementationUtil {
      */
     @SuppressWarnings("javadoc")
     public enum DefaultWidgetType {
-            CHECKBOX, COLUMN_FILTER, COLUMN_SELECTION
+            CHECKBOX, COLUMN_FILTER, COLUMN_SELECTION, LOCAL_DATE
     }
 
     /**
@@ -122,7 +125,9 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(Enum.class), ValueSwitchWidget.class), //
         new WidgetAnnotation(ChoicesWidget.class), //
         new WidgetAnnotation(ButtonWidget.class), //
-        new WidgetAnnotation(List.of(String.class), DateTimeWidget.class)
+        new WidgetAnnotation(List.of(String.class), DateTimeWidget.class), //
+        new WidgetAnnotation(List.of(LocalDate.class), DateWidget.class), //
+        new WidgetAnnotation(List.of(String.class), RichTextInputWidget.class) //
     };
 
     /**
@@ -134,6 +139,7 @@ public final class WidgetImplementationUtil {
         new DefaultWidget(List.of(boolean.class, Boolean.class), DefaultWidgetType.CHECKBOX), //
         new DefaultWidget(List.of(ColumnFilter.class), DefaultWidgetType.COLUMN_FILTER), //
         new DefaultWidget(List.of(ColumnSelection.class), DefaultWidgetType.COLUMN_SELECTION), //
+        new DefaultWidget(List.of(LocalDate.class), DefaultWidgetType.LOCAL_DATE), //
     };
 
     /**

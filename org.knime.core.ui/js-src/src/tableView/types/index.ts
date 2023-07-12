@@ -1,5 +1,10 @@
 import type { KnimeService } from '@knime/ui-extension-service';
 
+export interface DataType {
+    name: string,
+    renderers: { name: string, id: string }[]
+}
+
 export interface TableViewDisplayProps {
     settings: any,
     rows: {
@@ -15,11 +20,8 @@ export interface TableViewDisplayProps {
         columnContentTypes: ('txt' | 'img_path' | 'html')[],
         columnSizeOverrides?: Record<string | symbol, number>,
         defaultColumnSizeOverride?: number
-        totalWidth?: number,
-        dataTypes: Record<string, {
-            name: string,
-            renderers: { name: string, id: string }[]
-        }>,
+        availableWidth?: number,
+        dataTypes: Record<string, DataType>,
         columnDataTypeIds: string[],
         colNameSelectedRendererId?: Record<string, string>,
         columnFormatterDescriptions?: (string| null)[],

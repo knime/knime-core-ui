@@ -1,21 +1,24 @@
 import { afterEach, beforeEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { mountJsonFormsComponent, initializesJsonFormsControl, mountJsonFormsComponentWithStore }
-    from '@@/test-setup/utils/jsonFormsTestUtils';
+import { mountJsonFormsComponent, initializesJsonFormsControl, mountJsonFormsComponentWithStore,
+    mountJsonFormsComponentWithCallbacks } from '@@/test-setup/utils/jsonFormsTestUtils';
 import DropdownInput from '../DropdownInput.vue';
 import LabeledInput from '../LabeledInput.vue';
 import Dropdown from 'webapps-common/ui/components/forms/Dropdown.vue';
+import flushPromises from 'flush-promises';
 
 describe('DropdownInput.vue', () => {
-    let wrapper, onChangeSpy, defaultProps;
+    let wrapper, onChangeSpy, defaultProps, component;
 
     beforeAll(() => {
         onChangeSpy = vi.spyOn(DropdownInput.methods, 'onChange');
     });
-    
+
+    const path = 'test';
+
     beforeEach(async () => {
         defaultProps = {
             control: {
-                path: 'test',
+                path,
                 enabled: true,
                 visible: true,
                 data: 'Universe_0_0',
@@ -63,7 +66,8 @@ describe('DropdownInput.vue', () => {
                 }
             }
         };
-        wrapper = await mountJsonFormsComponent(DropdownInput, defaultProps);
+        component = await mountJsonFormsComponent(DropdownInput, defaultProps);
+        wrapper = component.wrapper;
     });
 
     afterEach(() => {
@@ -77,50 +81,69 @@ describe('DropdownInput.vue', () => {
     });
     
     it('initializes jsonforms', () => {
-        initializesJsonFormsControl(wrapper);
+        initializesJsonFormsControl(component);
     });
 
-    it('calls onChange when input is changed', async () => {
-        const dirtySettingsMock = vi.fn();
-        const localWrapper = await mountJsonFormsComponentWithStore(DropdownInput, defaultProps, {
-            'pagebuilder/dialog': {
-                actions: { dirtySettings: dirtySettingsMock },
-                namespaced: true
-            }
+    describe('reacts to dropdown input change', () => {
+        let dirtySettingsMock;
+
+        beforeEach(() => {
+            dirtySettingsMock = vi.fn();
         });
-        const changedDropdownInput = 'Shaken not stirred';
-        localWrapper.findComponent(Dropdown).vm.$emit('update:modelValue', changedDropdownInput);
-        expect(onChangeSpy).toHaveBeenCalledWith(changedDropdownInput);
-        expect(localWrapper.vm.handleChange).toHaveBeenCalledWith(defaultProps.control.path, changedDropdownInput);
-        expect(dirtySettingsMock).not.toHaveBeenCalled();
-    });
 
-    it('indicates model settings change when model setting is changed', async () => {
-        const dirtySettingsMock = vi.fn();
-        const localWrapper = await mountJsonFormsComponentWithStore(
-            DropdownInput,
-            {
-                ...defaultProps,
-                control: {
-                    ...defaultProps.control,
-                    uischema: {
-                        ...defaultProps.control.schema,
-                        scope: '#/properties/model/properties/yAxisColumn'
+        afterEach(() => {
+            vi.clearAllMocks();
+        });
+
+        it('calls onChange when input is changed', async () => {
+            const { wrapper, updateData } = await mountJsonFormsComponentWithCallbacks(
+                DropdownInput,
+                { props: defaultProps },
+                {
+                    'pagebuilder/dialog': {
+                        actions: { dirtySettings: dirtySettingsMock },
+                        namespaced: true
                     }
                 }
-            },
-            {
-                'pagebuilder/dialog': {
-                    actions: { dirtySettings: dirtySettingsMock },
-                    namespaced: true
+            );
+            const changedDropdownInput = 'Shaken not stirred';
+            wrapper.findComponent(Dropdown).vm.$emit('update:modelValue', changedDropdownInput);
+            expect(onChangeSpy).toHaveBeenCalledWith(changedDropdownInput);
+            expect(updateData).toHaveBeenCalledWith(
+                expect.anything(), defaultProps.control.path, changedDropdownInput
+            );
+            expect(dirtySettingsMock).not.toHaveBeenCalled();
+        });
+    
+        it('indicates model settings change when model setting is changed', async () => {
+            const { wrapper, updateData } = await mountJsonFormsComponentWithCallbacks(
+                DropdownInput,
+                { props: {
+                    ...defaultProps,
+                    control: {
+                        ...defaultProps.control,
+                        uischema: {
+                            ...defaultProps.control.schema,
+                            scope: '#/properties/model/properties/yAxisColumn'
+                        }
+                    }
+                } },
+                {
+                    'pagebuilder/dialog': {
+                        actions: { dirtySettings: dirtySettingsMock },
+                        namespaced: true
+                    }
                 }
-            }
-        );
-        const changedDropdownInput = 'Shaken not stirred';
-        localWrapper.findComponent(Dropdown).vm.$emit('update:modelValue', changedDropdownInput);
-        expect(dirtySettingsMock).toHaveBeenCalledWith(expect.anything(), true);
-        expect(localWrapper.vm.handleChange).toHaveBeenCalledWith(defaultProps.control.path, changedDropdownInput);
+            );
+            const changedDropdownInput = 'Shaken not stirred';
+            wrapper.findComponent(Dropdown).vm.$emit('update:modelValue', changedDropdownInput);
+            expect(dirtySettingsMock).toHaveBeenCalledWith(expect.anything(), true);
+            expect(updateData).toHaveBeenCalledWith(
+                expect.anything(), defaultProps.control.path, changedDropdownInput
+            );
+        });
     });
+    
 
     it('sets correct initial value', () => {
         expect(wrapper.findComponent(Dropdown).vm.modelValue).toBe(defaultProps.control.data);
@@ -130,22 +153,22 @@ describe('DropdownInput.vue', () => {
         expect(wrapper.find('label').text()).toBe(defaultProps.control.label);
     });
 
-    it('checks that placeholder text is correctly set if no possible values are present', async () => {
+    it('checks that placeholder text is correctly set if no possible values are present', () => {
         defaultProps.control.uischema.options.possibleValues = [];
-        const localWrapper = await mountJsonFormsComponentWithStore(
+        const { wrapper } = mountJsonFormsComponentWithStore(
             DropdownInput,
             defaultProps
         );
-        expect(localWrapper.vm.placeholderText).toBe('No values present');
+        expect(wrapper.vm.placeholderText).toBe('No values present');
     });
 
-    it('checks that placeholder text is correctly set if there are possible values present', async () => {
+    it('checks that placeholder text is correctly set if there are possible values present', () => {
         defaultProps.control.data = '';
-        const localWrapper = await mountJsonFormsComponentWithStore(
+        const { wrapper } = mountJsonFormsComponentWithStore(
             DropdownInput,
             defaultProps
         );
-        expect(localWrapper.vm.placeholderText).toBe('No value selected');
+        expect(wrapper.vm.placeholderText).toBe('No value selected');
     });
 
     it('disables dropdown when controlled by a flow variable', () => {
@@ -155,34 +178,34 @@ describe('DropdownInput.vue', () => {
 
     it('does not disable dropdown when not controlled by a flow variable', async () => {
         delete defaultProps.control.rootSchema.flowVariablesMap;
-        wrapper = await mountJsonFormsComponent(DropdownInput, defaultProps);
+        const { wrapper } = await mountJsonFormsComponent(DropdownInput, defaultProps);
         expect(wrapper.vm.disabled).toBeFalsy();
         expect(wrapper.findComponent(Dropdown).vm.disabled).toBeFalsy();
     });
 
     it('disables dropdown when there are no possible values', async () => {
         defaultProps.control.uischema.options.possibleValues = [];
-        wrapper = await mountJsonFormsComponent(DropdownInput, defaultProps);
+        const { wrapper } = await mountJsonFormsComponent(DropdownInput, defaultProps);
         expect(wrapper.vm.disabled).toBeTruthy();
         expect(wrapper.findComponent(Dropdown).vm.disabled).toBeTruthy();
     });
 
-    it('does not render content of DropdownInput when visible is false', async () => {
+    it('does not render content of DropdownInput when visible is false', () => {
         defaultProps.control.visible = false;
-        wrapper = await mountJsonFormsComponent(DropdownInput, defaultProps);
+        const { wrapper } = mountJsonFormsComponent(DropdownInput, defaultProps);
         expect(wrapper.findComponent(LabeledInput).exists()).toBe(false);
     });
 
-    it('checks that it is not rendered if it is an advanced setting', async () => {
+    it('checks that it is not rendered if it is an advanced setting', () => {
         defaultProps.control.uischema.options.isAdvanced = true;
-        wrapper = await mountJsonFormsComponent(DropdownInput, defaultProps);
+        const { wrapper } = mountJsonFormsComponent(DropdownInput, defaultProps);
         expect(wrapper.getComponent(DropdownInput).isVisible()).toBe(false);
     });
 
-    it('checks that it is rendered if it is an advanced setting and advanced settings are shown', async () => {
+    it('checks that it is rendered if it is an advanced setting and advanced settings are shown', () => {
         defaultProps.control.rootSchema = { showAdvancedSettings: true };
         defaultProps.control.uischema.options.isAdvanced = true;
-        wrapper = await mountJsonFormsComponent(DropdownInput, defaultProps);
+        const { wrapper } = mountJsonFormsComponent(DropdownInput, defaultProps);
         expect(wrapper.getComponent(DropdownInput).isVisible()).toBe(true);
     });
     
@@ -193,13 +216,126 @@ describe('DropdownInput.vue', () => {
                 ...defaultProps,
                 dropdownValueToControlData: () => updatedValue
             };
-            wrapper = await mountJsonFormsComponent(DropdownInput, props);
-            expect(wrapper.vm.handleChange).toHaveBeenCalledWith(defaultProps.control.path, updatedValue);
+            const { updateData } = await mountJsonFormsComponentWithCallbacks(DropdownInput, { props }, null, false);
+            expect(updateData).toHaveBeenCalledWith(
+                expect.anything(), defaultProps.control.path, updatedValue
+            );
         });
 
         it('does not update initial data if they are current', async () => {
-            wrapper = await mountJsonFormsComponent(DropdownInput, defaultProps);
-            expect(wrapper.vm.handleChange).not.toHaveBeenCalled();
+            const { updateData } = await mountJsonFormsComponentWithCallbacks(DropdownInput, { props: defaultProps });
+            expect(updateData).not.toHaveBeenCalled();
+        });
+    });
+
+
+    describe('dependencies to other settings', () => {
+        let settingsChangeCallback, initialSettingsChangeCallback, wrapper, dependencies, handleResultSpy;
+
+        const dependenciesUischema = ['foo', 'bar'];
+        const result = [{ id: 'first', text: 'First' }, { id: 'second', text: 'Second' }];
+        const newSettings = { view: { foo: 'foo', bar: 'bar' }, model: { baz: 'baz' } };
+
+        beforeAll(() => {
+            handleResultSpy = vi.spyOn(DropdownInput.methods, 'handleResult');
+        });
+
+        beforeEach(() => {
+            defaultProps.control.uischema.options.dependencies = dependenciesUischema;
+            defaultProps.control.uischema.options.choicesUpdateHandler = 'UpdateHandler';
+            const comp = mountJsonFormsComponentWithCallbacks(DropdownInput, { props: defaultProps });
+            wrapper = comp.wrapper;
+            wrapper.vm.jsonDataService = {
+                data: vi.fn(() => ({
+                    result,
+                    state: 'SUCCESS',
+                    message: null
+                }))
+            };
+            
+            const callbacks = comp.callbacks;
+            const firstWatcherCall = callbacks[0];
+            settingsChangeCallback = firstWatcherCall.transformSettings;
+            initialSettingsChangeCallback = firstWatcherCall.init;
+            dependencies = firstWatcherCall.dependencies;
+            wrapper.vm.cancel = vi.fn();
+        });
+
+        it('registers watcher', () => {
+            expect(settingsChangeCallback).toBeDefined();
+            expect(dependencies).toStrictEqual(dependenciesUischema);
+        });
+
+        it('requests new data if dependencies change', () => {
+            settingsChangeCallback({ view: { foo: 'foo', bar: 'bar' }, model: { baz: 'baz' } });
+            expect(wrapper.vm.jsonDataService.data).toHaveBeenCalledWith({
+                method: 'invokeActionHandler',
+                options: [
+                    'UpdateHandler',
+                    null,
+                    {
+                        foo: 'foo',
+                        bar: 'bar',
+                        baz: 'baz'
+                    }
+                ]
+            });
+        });
+
+
+        it('sets new options and selected the first option', async () => {
+            await settingsChangeCallback(newSettings);
+            await flushPromises();
+            expect(wrapper.vm.options).toStrictEqual(
+                result
+            );
+            expect(handleResultSpy).toHaveBeenCalledWith(result, newSettings, true);
+        });
+
+        it('sets new options without changing the data on the initial update', async () => {
+            initialSettingsChangeCallback(newSettings);
+            await flushPromises();
+            expect(wrapper.vm.options).toStrictEqual(
+                result
+            );
+            expect(handleResultSpy).toHaveBeenCalledWith(result, newSettings, false);
+        });
+
+        it('selects null if the fetched options are empty', async () => {
+            wrapper.vm.jsonDataService.data = vi.fn(() => ({
+                result: [],
+                state: 'SUCCESS',
+                message: null
+            }));
+            settingsChangeCallback(newSettings);
+            await flushPromises();
+            expect(wrapper.vm.options).toStrictEqual([]);
+            expect(handleResultSpy).toHaveBeenCalledWith([], newSettings, true);
+            expect(wrapper.vm.getFirstValueFromDropdownOrNull([])).toBeNull();
+        });
+
+
+        it('sets empty options and warns about error on state FAIL', async () => {
+            const message = 'Error message';
+            wrapper.vm.jsonDataService.data = vi.fn(() => ({
+                result: null,
+                state: 'FAIL',
+                message
+            }));
+            const knimeService = {
+                createAlert: vi.fn(() => 'Alert'),
+                sendWarning: vi.fn()
+            };
+            wrapper.vm.getKnimeService = () => knimeService;
+            settingsChangeCallback(newSettings);
+            await flushPromises();
+            expect(wrapper.vm.options).toStrictEqual([]);
+            expect(handleResultSpy).toHaveBeenCalledWith([], newSettings, true);
+            expect(knimeService.createAlert).toHaveBeenCalledWith({
+                type: 'error',
+                message
+            });
+            expect(knimeService.sendWarning).toHaveBeenCalledWith('Alert');
         });
     });
 });

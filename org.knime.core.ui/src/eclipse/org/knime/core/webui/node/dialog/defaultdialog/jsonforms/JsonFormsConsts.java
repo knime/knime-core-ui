@@ -48,7 +48,10 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
+import org.eclipse.ui.commands.ActionHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesUpdateHandler;
 
 import com.github.victools.jsonschema.generator.SchemaKeyword;
 import com.github.victools.jsonschema.generator.SchemaVersion;
@@ -166,6 +169,16 @@ public final class JsonFormsConsts {
         public static final String TAG_ACTION_HANDLER = "actionHandler";
 
         /**
+         * The {@link ChoicesUpdateHandler} of a {@link ChoicesWidget}
+         */
+        public static final String TAG_CHOICES_UPDATE_HANDLER = "choicesUpdateHandler";
+
+        /**
+         * The dependencies of a {@link ButtonWidget} or the possible values of a {@link ChoicesWidget}
+         */
+        public static final String TAG_DEPENDENCIES = "dependencies";
+
+        /**
          * Several formats which are written to the options of the ui-schema of an ui element
          *
          * @author Paul Bärnreuther
@@ -193,6 +206,8 @@ public final class JsonFormsConsts {
             public static final String BUTTON = "button";
 
             public static final String DATE_TIME = "date-time";
+
+            public static final String RICH_TEXT_INPUT = "richTextInput";
         }
 
         /**

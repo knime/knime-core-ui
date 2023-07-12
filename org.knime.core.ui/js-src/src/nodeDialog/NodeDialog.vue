@@ -6,7 +6,7 @@ import { toDataPath } from '@jsonforms/core';
 import { fallbackRenderers, defaultRenderers } from './renderers';
 import { hasAdvancedOptions } from '../nodeDialog/utils';
 import Button from 'webapps-common/ui/components/Button.vue';
-import { cloneDeep, set, get } from 'lodash';
+import { cloneDeep, set } from 'lodash';
 
 const renderers = [...vanillaRenderers, ...fallbackRenderers, ...defaultRenderers];
 
@@ -18,7 +18,8 @@ export default {
     inject: ['getKnimeService'],
     provide() {
         return {
-            registerWatcher: this.registerWatcher
+            registerWatcher: this.registerWatcher,
+            updateData: this.updateData
         };
     },
     data() {
@@ -26,7 +27,8 @@ export default {
             jsonDataService: null,
             settings: null,
             originalSettingsData: null,
-            renderers: Object.freeze(renderers)
+            renderers: Object.freeze(renderers),
+            registeredWatchers: []
         };
     },
     // TODO: UIEXT-236 Move to dialog service
@@ -43,8 +45,6 @@ export default {
         settings.schema.hasNodeView = this.dialogService.hasNodeView();
         settings.schema.showAdvancedSettings = false;
         this.settings = settings;
-
-        this.originalSettingsData = JSON.stringify(this.settings?.data || {});
         this.jsonDataService.registerDataGetter(this.getData);
         this.$store.dispatch('pagebuilder/dialog/setApplySettings', { applySettings: this.applySettings });
     },
@@ -52,35 +52,38 @@ export default {
         getData() {
             return this.settings.data;
         },
-        registerWatcher(callback, dependencies) {
-            const dataPaths = dependencies.map(toDataPath);
-            this.$watch(
-                () => {
-                    const data = {};
-                    dataPaths.forEach(path => {
-                        // path can be a string with points, e.g. "foo.bar.baz"
-                        set(data, path, get(this.settings.data, path));
-                    });
-                    return JSON.stringify(data);
-                },
-                (newData, oldData) => {
-                    if (oldData === newData) {
-                        return;
-                    }
-                    callback(JSON.parse(newData));
-                },
-                { immediate: true }
-            );
+        /**
+         * @param {Function} handleChange The handler function that is used to handle the change of a dialog setting
+         * @param {string} path The path of the setting that is changed
+         * @param {any} data The new data that should be stored at the path
+         * @returns {void}
+         */
+        async updateData(handleChange, path, data) {
+            const triggeredWatchers = this.registeredWatchers.filter(({ dataPaths }) => dataPaths.includes(path));
+            if (triggeredWatchers.length === 0) {
+                handleChange(path, data);
+                return;
+            }
+            const newData = cloneDeep(this.settings.data);
+            set(newData, path, data);
+            for (const watcher of triggeredWatchers) {
+                await watcher.transformSettings(newData);
+            }
+            handleChange('', newData);
+        },
+        async registerWatcher({ transformSettings, init, dependencies }) {
+            this.registeredWatchers.push({
+                transformSettings,
+                dataPaths: dependencies.map(toDataPath)
+            });
+            if (typeof init === 'function') {
+                await init(this.settings.data);
+                this.onSettingsChanged(this.settings.data);
+            }
         },
         onSettingsChanged(data) {
             if (data.data) {
                 this.settings.data = data.data;
-                // TODO: UIEXT-236 Move to dialog service
-                if (this.originalSettingsData === JSON.stringify(this.settings.data)) {
-                    this.$store.dispatch('pagebuilder/dialog/cleanSettings');
-                } else {
-                    this.$store.dispatch('pagebuilder/dialog/dirtySettings');
-                }
                 // TODO: UIEXT-236 Move to dialog service
                 if (!this.dirtyModelSettings) {
                     const rawSettings = cloneDeep(this.settings);
@@ -89,7 +92,6 @@ export default {
             }
         },
         applySettings() {
-            this.originalSettingsData = JSON.stringify(this.settings.data);
             return this.jsonDataService.applyData();
         },
         async applySettingsCloseDialog() {
@@ -174,6 +176,19 @@ export default {
     padding: 0 20px;
     overflow: hidden;
     overflow-y: auto;
+
+    /* TODO: UIEXT-1061 workaround to make the last dialog element fill the remaining height, used in RichTextInput */
+    & .vertical-layout:last-child {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+
+      & :deep(.vertical-layout-item:last-child) {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+      }
+    }
   }
 
   & .controls {
@@ -190,7 +205,7 @@ export default {
     justify-content: space-between;
     text-decoration: underline;
     margin-bottom: 20px;
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
     color: var(--knime-dove-gray);
 

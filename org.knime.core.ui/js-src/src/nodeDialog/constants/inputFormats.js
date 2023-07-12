@@ -8,6 +8,7 @@ export const inputFormats = {
     integer: 'integer',
     number: 'number',
     columnFilter: 'columnFilter',
+    richTextInput: 'richTextInput',
     twinList: 'twinList',
     button: 'button'
 };

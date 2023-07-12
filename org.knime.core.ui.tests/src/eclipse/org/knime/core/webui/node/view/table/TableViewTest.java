@@ -102,7 +102,7 @@ import org.knime.core.node.workflow.virtual.VirtualNodeInput;
 import org.knime.core.webui.data.DataServiceContextTest;
 import org.knime.core.webui.node.NodeWrapper;
 import org.knime.core.webui.node.view.NodeViewManager;
-import org.knime.core.webui.node.view.PageFormat.AspectRatio;
+import org.knime.core.webui.node.view.PageFormat;
 import org.knime.core.webui.node.view.table.data.Cell;
 import org.knime.core.webui.node.view.table.data.MissingCellWithMessage;
 import org.knime.core.webui.node.view.table.data.Renderer;
@@ -513,12 +513,12 @@ class TableViewTest {
         var doubleType = dataTypes.get(table.getColumnDataTypeIds()[3]);
         assertThat(doubleType.getName()).isEqualTo("Number (double)");
         assertRendererNames(doubleType.getRenderers(), "Standard Double", "Percentage", "Full Precision", "Gray Scale",
-            "Bars", "Standard Complex Number", "Default");
+            "Bars", "Default");
 
         var booleanType = dataTypes.get(table.getColumnDataTypeIds()[5]);
         assertThat(booleanType.getName()).isEqualTo("Boolean value");
         assertRendererNames(booleanType.getRenderers(), "Default", "Default", "Standard Double", "Percentage",
-            "Full Precision", "Gray Scale", "Bars", "Standard Complex Number", "Default");
+            "Full Precision", "Gray Scale", "Bars", "Default");
 
         var imageType = dataTypes.get(table.getColumnDataTypeIds()[6]);
         assertThat(imageType.getName()).isEqualTo("PNG Image");
@@ -572,7 +572,7 @@ class TableViewTest {
 
         var nodeView = NodeViewManager.getInstance().getNodeView(nnc);
         var pageFormat = nodeView.getDefaultPageFormat();
-        assertThat(pageFormat.getAspectRatio().get()).isEqualTo(AspectRatio.RATIO_4BY3);
+        assertThat(pageFormat).isEqualTo(PageFormat.ASPECT_RATIO_4BY3);
 
         WorkflowManagerUtil.disposeWorkflow(wfm);
     }
