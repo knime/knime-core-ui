@@ -28,6 +28,7 @@ export default {
         this.richTextContent = this.replaceFlowVariablesInContent(content);
         // TODO needs to be removed as soon as we have a reporting service
         const isReporting = this.knimeService.extensionConfig?.generatedImageActionId === 'generatingReportContent';
+        await this.$nextTick();
         if (isReporting) {
             await this.$store.dispatch('pagebuilder/setReportingContent', {
                 nodeId: this.knimeService.extensionConfig.nodeId,
@@ -65,10 +66,6 @@ export default {
 
 <style lang="postcss" scoped>
 @import url("webapps-common/ui/components/forms/RichTextEditor/styles.css");
-
-.text-view-container {
-    padding: 12px;
-}
 
 .text-view-container:deep() {
     @mixin rich-text-editor-styles;
