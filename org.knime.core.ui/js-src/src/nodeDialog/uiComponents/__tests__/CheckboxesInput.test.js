@@ -12,7 +12,7 @@ import OnlyFlowVariable from 'webapps-common/ui/assets/img/icons/only-flow-varia
 import ExposeFlowVariable from 'webapps-common/ui/assets/img/icons/expose-flow-variables.svg';
 
 describe('CheckboxesInput.vue', () => {
-    let wrapper, onChangeSpy, defaultProps;
+    let wrapper, onChangeSpy, defaultProps, component;
 
     beforeAll(() => {
         onChangeSpy = vi.spyOn(CheckboxesInput.methods, 'onChange');
@@ -49,7 +49,7 @@ describe('CheckboxesInput.vue', () => {
                     type: 'Control',
                     scope: '#/properties/considerFile',
                     options: {
-                        format: 'checkbox',
+                        format: 'checkboxes',
                         checkboxLayout: 'vertical'
                     }
                 },
@@ -59,7 +59,8 @@ describe('CheckboxesInput.vue', () => {
                 }
             }
         };
-        wrapper = await mountJsonFormsComponent(CheckboxesInput, defaultProps);
+        component = await mountJsonFormsComponent(CheckboxesInput, defaultProps);
+        wrapper = component.wrapper;
     });
 
     afterEach(() => {
@@ -81,26 +82,27 @@ describe('CheckboxesInput.vue', () => {
     });
     
     it('initializes jsonforms', () => {
-        initializesJsonFormsControl(wrapper);
+        initializesJsonFormsControl(component);
     });
+    
 
     it('calls onChange when checkbox is changed', async () => {
         const dirtySettingsMock = vi.fn();
-        const localWrapper = await mountJsonFormsComponentWithStore(CheckboxesInput, defaultProps, {
+        const { wrapper, updateData } = await mountJsonFormsComponentWithStore(CheckboxesInput, defaultProps, {
             'pagebuilder/dialog': {
                 actions: { dirtySettings: dirtySettingsMock },
                 namespaced: true
             }
         });
-        await localWrapper.findComponent(Checkboxes).vm.$emit('update:modelValue', ['ADDED', 'MODIFIED']);
+        await wrapper.findComponent(Checkboxes).vm.$emit('update:modelValue', ['ADDED', 'MODIFIED']);
         expect(onChangeSpy).toHaveBeenCalledWith(['ADDED', 'MODIFIED']);
-        expect(localWrapper.vm.handleChange).toHaveBeenCalledWith(defaultProps.control.path, ['ADDED', 'MODIFIED']);
+        expect(updateData).toHaveBeenCalledWith(expect.anything(), defaultProps.control.path, ['ADDED', 'MODIFIED']);
         expect(dirtySettingsMock).not.toHaveBeenCalled();
     });
 
     it('indicates model settings change when model setting is changed', async () => {
         const dirtySettingsMock = vi.fn();
-        const localWrapper = await mountJsonFormsComponentWithStore(
+        const { wrapper, updateData } = await mountJsonFormsComponentWithStore(
             CheckboxesInput,
             {
                 ...defaultProps,
@@ -119,14 +121,15 @@ describe('CheckboxesInput.vue', () => {
                 }
             }
         );
-        await localWrapper.findComponent(Checkboxes).vm.$emit('update:modelValue', ['ADDED']);
+        await wrapper.findComponent(Checkboxes).vm.$emit('update:modelValue', ['ADDED']);
         expect(onChangeSpy).toHaveBeenCalledWith(['ADDED']);
-        expect(localWrapper.vm.handleChange).toHaveBeenCalledWith(defaultProps.control.path, ['ADDED']);
+        expect(updateData).toHaveBeenCalledWith(expect.anything(), defaultProps.control.path, ['ADDED']);
+
         expect(dirtySettingsMock).toHaveBeenCalledWith(expect.anything(), true);
     });
 
     it('checks that re-execution icon is present if it is a model setting', async () => {
-        const localWrapper = await mountJsonFormsComponent(
+        const { wrapper } = await mountJsonFormsComponent(
             CheckboxesInput,
             {
                 ...defaultProps,
@@ -139,7 +142,7 @@ describe('CheckboxesInput.vue', () => {
                 }
             }
         );
-        expect(localWrapper.findComponent(ReexecutionIcon).exists()).toBe(true);
+        expect(wrapper.findComponent(ReexecutionIcon).exists()).toBe(true);
     });
 
     it('sets correct initial value', () => {
@@ -158,8 +161,8 @@ describe('CheckboxesInput.vue', () => {
                 exposedFlowVariableName: 'test',
                 leaf: true
             };
-        const localWrapper = mountJsonFormsComponent(CheckboxesInput, defaultProps);
-        expect(localWrapper.vm.disabled).toBeTruthy();
+        const { wrapper } = mountJsonFormsComponent(CheckboxesInput, defaultProps);
+        expect(wrapper.vm.disabled).toBeTruthy();
     });
 
     it('renders both icons when controlled and exposed by a flow variable', () => {
@@ -171,11 +174,11 @@ describe('CheckboxesInput.vue', () => {
                 leaf: true
             };
         
-        const localWrapper = mountJsonFormsComponent(CheckboxesInput, defaultProps);
-        expect(Boolean(localWrapper.findComponent(FlowVariableIcon).vm.isControlledByFlowVariable)).toBe(true);
-        expect(Boolean(localWrapper.findComponent(FlowVariableIcon).vm.isExposedFlowVariable)).toBe(true);
+        const { wrapper } = mountJsonFormsComponent(CheckboxesInput, defaultProps);
+        expect(Boolean(wrapper.findComponent(FlowVariableIcon).vm.isControlledByFlowVariable)).toBe(true);
+        expect(Boolean(wrapper.findComponent(FlowVariableIcon).vm.isExposedFlowVariable)).toBe(true);
         
-        const icon = localWrapper.findComponent(BothFlowVariables);
+        const icon = wrapper.findComponent(BothFlowVariables);
         expect(icon.exists()).toBe(true);
     });
 
@@ -188,11 +191,11 @@ describe('CheckboxesInput.vue', () => {
                 leaf: true
             };
 
-        const localWrapper = mountJsonFormsComponent(CheckboxesInput, defaultProps);
-        expect(Boolean(localWrapper.findComponent(FlowVariableIcon).vm.isControlledByFlowVariable)).toBe(false);
-        expect(Boolean(localWrapper.findComponent(FlowVariableIcon).vm.isExposedFlowVariable)).toBe(true);
+        const { wrapper } = mountJsonFormsComponent(CheckboxesInput, defaultProps);
+        expect(Boolean(wrapper.findComponent(FlowVariableIcon).vm.isControlledByFlowVariable)).toBe(false);
+        expect(Boolean(wrapper.findComponent(FlowVariableIcon).vm.isExposedFlowVariable)).toBe(true);
         
-        const icon = localWrapper.findComponent(ExposeFlowVariable);
+        const icon = wrapper.findComponent(ExposeFlowVariable);
         expect(icon.exists()).toBe(true);
     });
 
@@ -205,11 +208,11 @@ describe('CheckboxesInput.vue', () => {
                 leaf: true
             };
 
-        const localWrapper = mountJsonFormsComponent(CheckboxesInput, defaultProps);
-        expect(Boolean(localWrapper.findComponent(FlowVariableIcon).vm.isControlledByFlowVariable)).toBe(true);
-        expect(Boolean(localWrapper.findComponent(FlowVariableIcon).vm.isExposedFlowVariable)).toBe(false);
+        const { wrapper } = mountJsonFormsComponent(CheckboxesInput, defaultProps);
+        expect(Boolean(wrapper.findComponent(FlowVariableIcon).vm.isControlledByFlowVariable)).toBe(true);
+        expect(Boolean(wrapper.findComponent(FlowVariableIcon).vm.isExposedFlowVariable)).toBe(false);
 
-        const icon = localWrapper.findComponent(OnlyFlowVariable);
+        const icon = wrapper.findComponent(OnlyFlowVariable);
         expect(icon.exists()).toBe(true);
     });
 
@@ -224,16 +227,16 @@ describe('CheckboxesInput.vue', () => {
         expect(wrapper.findComponent(ReexecutionIcon).exists()).toBe(false);
     });
 
-    it('checks that it is not rendered if it is an advanced setting', async () => {
+    it('checks that it is not rendered if it is an advanced setting', () => {
         defaultProps.control.uischema.options.isAdvanced = true;
-        wrapper = await mountJsonFormsComponent(CheckboxesInput, defaultProps);
+        const { wrapper } = mountJsonFormsComponent(CheckboxesInput, defaultProps);
         expect(wrapper.getComponent(CheckboxesInput).isVisible()).toBe(false);
     });
 
-    it('checks that it is rendered if it is an advanced setting and advanced settings are shown', async () => {
+    it('checks that it is rendered if it is an advanced setting and advanced settings are shown', () => {
         defaultProps.control.rootSchema = { showAdvancedSettings: true };
         defaultProps.control.uischema.options.isAdvanced = true;
-        wrapper = await mountJsonFormsComponent(CheckboxesInput, defaultProps);
+        const { wrapper } = mountJsonFormsComponent(CheckboxesInput, defaultProps);
         expect(wrapper.getComponent(CheckboxesInput).isVisible()).toBe(true);
     });
 });

@@ -1,12 +1,13 @@
 <script>
 import { defineComponent } from 'vue';
-import { rendererProps, useJsonFormsControl } from '@jsonforms/vue';
+import { rendererProps } from '@jsonforms/vue';
 import { optionsMapper,
     getFlowVariablesMap,
     isModelSettingAndHasNodeView } from '../utils';
 import Checkboxes from 'webapps-common/ui/components/forms/Checkboxes.vue';
 import LabeledInput from './LabeledInput.vue';
 import DialogComponentWrapper from './DialogComponentWrapper.vue';
+import { useJsonFormsControlWithUpdate } from './composables/jsonFormsControlWithUpdate';
 
 const RadioInputBase = defineComponent({
     name: 'RadioInputBase',
@@ -19,7 +20,7 @@ const RadioInputBase = defineComponent({
         ...rendererProps()
     },
     setup(props) {
-        return useJsonFormsControl(props);
+        return useJsonFormsControlWithUpdate(props);
     },
     data() {
         return {
