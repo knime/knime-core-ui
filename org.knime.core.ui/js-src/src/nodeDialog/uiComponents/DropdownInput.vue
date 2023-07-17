@@ -60,8 +60,18 @@ const DropdownInput = defineComponent({
         placeholderText() {
             return this.options.length > 0 ? 'No value selected' : 'No values present';
         },
+
+        hasOptions() {
+            return Boolean(this.options?.length > 1);
+        },
+        readOnly() {
+            return this.control.uischema.options?.readOnly;
+        },
         dropdownValue() {
             return this.controlDataToDropdownValue(this.control.data);
+        },
+        selectedOptionText() {
+            return this.options?.find((o) => o.id === this.dropdownValue)?.text ?? '';
         },
         choicesUpdateHandler() {
             return this.control.uischema.options?.choicesUpdateHandler;
@@ -160,6 +170,7 @@ export default DropdownInput;
       :description="control.description"
     >
       <Dropdown
+        v-if="hasOptions && !readOnly"
         :aria-label="control.label"
         :disabled="disabled"
         :model-value="dropdownValue"
@@ -167,6 +178,18 @@ export default DropdownInput;
         :placeholder="placeholderText"
         @update:model-value="onChange"
       />
+      <div
+        v-else-if="readOnly"
+        class="default"
+      >
+        {{ selectedOptionText }}
+      </div>
+      <div
+        v-else-if="options"
+        class="default"
+      >
+        {{ options[0]?.text }}
+      </div>
     </LabeledInput>
   </DialogComponentWrapper>
 </template>

@@ -33,6 +33,7 @@ describe('DropdownInput.vue', () => {
                         format: 'columnSelection',
                         showRowKeys: false,
                         showNoneColumn: false,
+                        readOnly: false,
                         possibleValues: [
                             {
                                 id: 'Universe_0_0',
@@ -123,7 +124,7 @@ describe('DropdownInput.vue', () => {
                     control: {
                         ...defaultProps.control,
                         uischema: {
-                            ...defaultProps.control.schema,
+                            ...defaultProps.control.uischema,
                             scope: '#/properties/model/properties/yAxisColumn'
                         }
                     }
@@ -187,7 +188,7 @@ describe('DropdownInput.vue', () => {
         defaultProps.control.uischema.options.possibleValues = [];
         const { wrapper } = await mountJsonFormsComponent(DropdownInput, defaultProps);
         expect(wrapper.vm.disabled).toBeTruthy();
-        expect(wrapper.findComponent(Dropdown).vm.disabled).toBeTruthy();
+        expect(wrapper.findComponent(Dropdown).exists()).toBeFalsy();
     });
 
     it('does not render content of DropdownInput when visible is false', () => {
@@ -208,6 +209,31 @@ describe('DropdownInput.vue', () => {
         const { wrapper } = mountJsonFormsComponent(DropdownInput, defaultProps);
         expect(wrapper.getComponent(DropdownInput).isVisible()).toBe(true);
     });
+
+        
+    it('checks that it does not rendered a dropdown if it is readOnly', async () => {
+        defaultProps.control.uischema.options.readOnly = true;
+        defaultProps.control.uischema.options.possibleValues = [
+            {
+                id: 'Universe_0_0',
+                text: 'Universe_0_0'
+            }
+        ];
+        const { wrapper } = mountJsonFormsComponent(DropdownInput, defaultProps);
+        expect(wrapper.findComponent(Dropdown).exists()).toBe(false);
+    });
+    
+    it('checks that it does not rendered a dropdown if it there is only one option', async () => {
+        defaultProps.control.uischema.options.possibleValues = [
+            {
+                id: 'Universe_0_0',
+                text: 'Universe_0_0'
+            }
+        ];
+        const { wrapper } = mountJsonFormsComponent(DropdownInput, defaultProps);
+        expect(wrapper.findComponent(Dropdown).exists()).toBe(false);
+    });
+    
     
     describe('update initial data', () => {
         it('updates initial data on change', async () => {

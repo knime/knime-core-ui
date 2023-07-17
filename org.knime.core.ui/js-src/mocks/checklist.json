@@ -5,7 +5,9 @@
       "view": {
         "considerFile": [
           "ADDED"
-        ]
+        ],
+        "readOnlyDropdown": "SUM",
+        "oneOptionDropdown": "NONE"
       }
     },
     "schema": {
@@ -31,6 +33,38 @@
                   "title": "Deleted"
                 }
               ]
+            },
+            "readOnlyDropdown": {
+              "oneOf": [
+                {
+                  "const": "NONE",
+                  "title": "None"
+                },
+                {
+                  "const": "COUNT",
+                  "title": "Occurrence count"
+                },
+                {
+                  "const": "SUM",
+                  "title": "Sum"
+                },
+                {
+                  "const": "AVG",
+                  "title": "Average"
+                }
+              ],
+              "description": "Tests a read-only dropdown",
+              "default": ""
+            },
+            "oneOptionDropdown": {
+              "oneOf": [
+                {
+                  "const": "NONE",
+                  "title": "None"
+                }
+              ],
+              "description": "Tests a dropdown with no one option",
+              "default": ""
             }
           }
         }
@@ -49,6 +83,25 @@
               "options": {
                 "format": "checkboxes",
                 "checkboxLayout": "vertical"
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/view/properties/readOnlyDropdown",
+              "options": {
+                "readOnly": true
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/view/properties/oneOptionDropdown",
+              "options": {
+                "possibleValues": [
+                  {
+                    "id": "NONE",
+                    "text": "None"
+                  }
+                ]
               }
             }
           ]
