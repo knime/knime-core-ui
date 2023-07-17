@@ -211,7 +211,7 @@ describe('DropdownInput.vue', () => {
     });
 
         
-    it('checks that it does not rendered a dropdown if it is readOnly', async () => {
+    it('checks that it does not rendered a dropdown if it is readOnly', () => {
         defaultProps.control.uischema.options.readOnly = true;
         defaultProps.control.uischema.options.possibleValues = [
             {
@@ -223,7 +223,7 @@ describe('DropdownInput.vue', () => {
         expect(wrapper.findComponent(Dropdown).exists()).toBe(false);
     });
     
-    it('checks that it does not rendered a dropdown if it there is only one option', async () => {
+    it('checks that it does not rendered a dropdown if it there is only one option', () => {
         defaultProps.control.uischema.options.possibleValues = [
             {
                 id: 'Universe_0_0',
