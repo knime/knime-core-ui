@@ -1,6 +1,7 @@
 <script>
 import { defineComponent } from 'vue';
-import { rendererProps, useJsonFormsControl } from '@jsonforms/vue';
+import { rendererProps } from '@jsonforms/vue';
+import { useJsonFormsControlWithUpdate } from './composables/jsonFormsControlWithUpdate';
 import { isModelSettingAndHasNodeView,
     getFlowVariablesMap } from '../utils';
 import InputField from 'webapps-common/ui/components/forms/InputField.vue';
@@ -20,7 +21,7 @@ const CredentialsInput = defineComponent({
         ...rendererProps()
     },
     setup(props) {
-        return useJsonFormsControl(props);
+        return useJsonFormsControlWithUpdate(props);
     },
     data() {
         return {
@@ -102,6 +103,7 @@ export default CredentialsInput;
       :flow-settings="flowSettings"
     >
       <InputField
+        class="username"
         placeholder="Username"
         :model-value="credentials.username"
         :disabled="disabled"
