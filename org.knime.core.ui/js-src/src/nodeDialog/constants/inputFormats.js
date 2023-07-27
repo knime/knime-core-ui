@@ -5,6 +5,7 @@ export const inputFormats = {
     valueSwitch: 'valueSwitch',
     checkbox: 'checkbox',
     checkboxes: 'checkboxes',
+    credentials: 'credentials',
     integer: 'integer',
     number: 'number',
     columnFilter: 'columnFilter',

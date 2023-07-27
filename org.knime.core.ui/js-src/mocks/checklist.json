@@ -65,6 +65,20 @@
               ],
               "description": "Tests a dropdown with no one option",
               "default": ""
+            },
+
+            "enterCredentials":{
+              "type": "object",
+              "label": "username",
+              "password": {
+                "type":"string"
+              },
+              "username":{
+                "type":"string",
+                "default":""
+              },
+              "description": "Test credentials field"
+              
             }
           }
         }
@@ -102,6 +116,21 @@
                     "text": "None"
                   }
                 ]
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/view/properties/enterCredentials",
+              "label":"Enter credentials",
+              "options": {
+                "format": "credentials",
+                "handleMagicPassword":true
+              },
+              "password":{
+                "type":"string"
+              },
+              "username":{
+                "type":"string"
               }
             }
           ]
