@@ -3,7 +3,7 @@ import { defineComponent } from "vue";
 import { rendererProps } from "@jsonforms/vue";
 import {
   getFlowVariablesMap,
-  getPossibleValuesFromUiSchema,
+  getAndDeletePossibleValuesFromUiSchema,
   isModelSettingAndHasNodeView,
 } from "../utils";
 import Dropdown from "webapps-common/ui/components/forms/Dropdown.vue";
@@ -29,7 +29,7 @@ const DropdownInput = defineComponent({
     optionsGenerator: {
       type: Function,
       required: false,
-      default: getPossibleValuesFromUiSchema,
+      default: getAndDeletePossibleValuesFromUiSchema,
     },
     controlDataToDropdownValue: {
       type: Function,
@@ -39,7 +39,7 @@ const DropdownInput = defineComponent({
     dropdownValueToControlData: {
       type: Function,
       required: false,
-      default: (control, value) => value,
+      default: (_options, value) => value,
     },
   },
   setup(props) {
@@ -87,8 +87,8 @@ const DropdownInput = defineComponent({
       });
     } else {
       this.setInitialOption();
+      this.updateInitialData();
     }
-    this.updateInitialData();
   },
   methods: {
     setInitialOption() {
@@ -99,11 +99,12 @@ const DropdownInput = defineComponent({
       // initially only fetch possible values, but do not set a value
       // instead, use value from initial data
       await this.updateOptions(newSettings, false);
+      this.updateInitialData();
     },
     updateInitialData() {
       const initialData = this.control.data;
       const updatedInitialData = this.dropdownValueToControlData(
-        this.control,
+        this.options,
         this.controlDataToDropdownValue(initialData),
       );
       if (!isDeepStrictEqual(initialData, updatedInitialData)) {
@@ -142,14 +143,14 @@ const DropdownInput = defineComponent({
     },
     getFirstValueFromDropdownOrNull(result) {
       return this.dropdownValueToControlData(
-        this.control,
+        this.options,
         result.length > 0 ? result[0].id : null,
       );
     },
     onChange(value) {
       this.handleChange(
         this.control.path,
-        this.dropdownValueToControlData(this.control, value),
+        this.dropdownValueToControlData(this.options, value),
       );
       if (this.isModelSettingAndHasNodeView) {
         this.$store.dispatch("pagebuilder/dialog/dirtySettings", true);

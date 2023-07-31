@@ -25,57 +25,59 @@ describe("DropdownInput.vue", () => {
 
   const path = "test";
 
-  beforeEach(async () => {
-    props = {
-      control: {
-        path,
-        enabled: true,
-        visible: true,
-        data: "Universe_0_0",
-        label: "defaultLabel",
-        schema: {
-          title: "Y Axis Column",
-        },
-        uischema: {
-          type: "Control",
-          scope: "#/properties/view/properties/yAxisColumn",
-          options: {
-            format: "columnSelection",
-            showRowKeys: false,
-            showNoneColumn: false,
-            possibleValues: [
-              {
-                id: "Universe_0_0",
-                text: "Universe_0_0",
-              },
-              {
-                id: "Universe_0_1",
-                text: "Universe_0_1",
-              },
-              {
-                id: "Universe_1_0",
-                text: "Universe_1_0",
-              },
-              {
-                id: "Universe_1_1",
-                text: "Universe_1_1",
-              },
-            ],
-          },
-        },
-        rootSchema: {
-          hasNodeView: true,
-          flowVariablesMap: {
-            test: {
-              controllingFlowVariableAvailable: true,
-              controllingFlowVariableName: "knime.test",
-              exposedFlowVariableName: "test",
-              leaf: true,
+  const getDefaultProps = () => ({
+    control: {
+      path,
+      enabled: true,
+      visible: true,
+      data: "Universe_0_0",
+      label: "defaultLabel",
+      schema: {
+        title: "Y Axis Column",
+      },
+      uischema: {
+        type: "Control",
+        scope: "#/properties/view/properties/yAxisColumn",
+        options: {
+          format: "columnSelection",
+          showRowKeys: false,
+          showNoneColumn: false,
+          possibleValues: [
+            {
+              id: "Universe_0_0",
+              text: "Universe_0_0",
             },
+            {
+              id: "Universe_0_1",
+              text: "Universe_0_1",
+            },
+            {
+              id: "Universe_1_0",
+              text: "Universe_1_0",
+            },
+            {
+              id: "Universe_1_1",
+              text: "Universe_1_1",
+            },
+          ],
+        },
+      },
+      rootSchema: {
+        hasNodeView: true,
+        flowVariablesMap: {
+          test: {
+            controllingFlowVariableAvailable: true,
+            controllingFlowVariableName: "knime.test",
+            exposedFlowVariableName: "test",
+            leaf: true,
           },
         },
       },
-    };
+    },
+  });
+
+  beforeEach(async () => {
+    props = getDefaultProps();
     component = await mountJsonFormsComponent(DropdownInput, { props });
     wrapper = component.wrapper;
   });
@@ -106,6 +108,7 @@ describe("DropdownInput.vue", () => {
     });
 
     it("calls onChange when input is changed", async () => {
+      props = getDefaultProps();
       const { wrapper, updateData } = await mountJsonFormsComponent(
         DropdownInput,
         { props },
@@ -130,6 +133,7 @@ describe("DropdownInput.vue", () => {
     });
 
     it("indicates model settings change when model setting is changed", async () => {
+      props = getDefaultProps();
       const { wrapper, updateData } = await mountJsonFormsComponent(
         DropdownInput,
         {
@@ -175,12 +179,14 @@ describe("DropdownInput.vue", () => {
   });
 
   it("checks that placeholder text is correctly set if no possible values are present", () => {
+    props = getDefaultProps();
     props.control.uischema.options.possibleValues = [];
     const { wrapper } = mountJsonFormsComponent(DropdownInput, { props });
     expect(wrapper.vm.placeholderText).toBe("No values present");
   });
 
   it("checks that placeholder text is correctly set if there are possible values present", () => {
+    props = getDefaultProps();
     props.control.data = "";
     const { wrapper } = mountJsonFormsComponent(DropdownInput, { props });
     expect(wrapper.vm.placeholderText).toBe("No value selected");
@@ -192,6 +198,7 @@ describe("DropdownInput.vue", () => {
   });
 
   it("does not disable dropdown when not controlled by a flow variable", async () => {
+    props = getDefaultProps();
     delete props.control.rootSchema.flowVariablesMap;
     const { wrapper } = await mountJsonFormsComponent(DropdownInput, { props });
     expect(wrapper.vm.disabled).toBeFalsy();
@@ -199,6 +206,7 @@ describe("DropdownInput.vue", () => {
   });
 
   it("disables dropdown when there are no possible values", async () => {
+    props = getDefaultProps();
     props.control.uischema.options.possibleValues = [];
     const { wrapper } = await mountJsonFormsComponent(DropdownInput, { props });
     expect(wrapper.vm.disabled).toBeTruthy();
@@ -227,6 +235,7 @@ describe("DropdownInput.vue", () => {
   describe("update initial data", () => {
     it("updates initial data on change", async () => {
       const updatedValue = "Universe_0_1 (updated value)";
+      props = getDefaultProps();
       props.dropdownValueToControlData = () => updatedValue;
       const { updateData } = await mountJsonFormsComponent(
         DropdownInput,
@@ -242,6 +251,7 @@ describe("DropdownInput.vue", () => {
     });
 
     it("does not update initial data if they are current", async () => {
+      props = getDefaultProps();
       const { updateData } = await mountJsonFormsComponent(DropdownInput, {
         props,
       });
@@ -275,6 +285,7 @@ describe("DropdownInput.vue", () => {
     const updateHandler = "UpdateHandler";
 
     beforeEach(() => {
+      props = getDefaultProps();
       props.control.uischema.options.dependencies = dependenciesUischema;
       props.control.uischema.options.choicesUpdateHandler = updateHandler;
       getDataMock = vi.fn(() => ({

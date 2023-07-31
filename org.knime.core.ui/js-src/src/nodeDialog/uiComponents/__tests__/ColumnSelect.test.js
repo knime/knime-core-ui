@@ -76,11 +76,6 @@ describe("ColumnSelect.vue", () => {
     expect(wrapper.getComponent(DropdownInput).exists()).toBe(true);
   });
 
-  it("passes default props", () => {
-    const dropdownProps = wrapper.getComponent(DropdownInput).props();
-    expect(dropdownProps.optionsGenerator).toBe(wrapper.vm.optionsGenerator);
-  });
-
   it("initializes jsonforms on pass-through component", () => {
     initializesJsonFormsControl({
       wrapper: wrapper.getComponent(DropdownInput),
@@ -104,69 +99,6 @@ describe("ColumnSelect.vue", () => {
         selected: "Universe_1_1",
         compatibleTypes: ["Type_1_1", "OtherType_1_1"],
       });
-    });
-  });
-
-  describe("optionsGenerator", () => {
-    it("optionsGenerator correctly transforms the data", async () => {
-      await wrapper.vm.$nextTick();
-
-      expect(
-        wrapper.getComponent(ColumnSelect).vm.optionsGenerator(props.control),
-      ).toEqual([
-        expect.objectContaining({
-          id: "Universe_0_0",
-          text: "Universe_0_0",
-        }),
-        expect.objectContaining({
-          id: "Universe_0_1",
-          text: "Universe_0_1",
-        }),
-        expect.objectContaining({
-          id: "Universe_1_0",
-          text: "Universe_1_0",
-        }),
-        expect.objectContaining({
-          id: "Universe_1_1",
-          text: "Universe_1_1",
-        }),
-      ]);
-    });
-
-    it("optionsGenerator correctly transforms the data with none column and row keys", async () => {
-      await wrapper.vm.$nextTick();
-      props.control.uischema.options.showNoneColumn = true;
-      props.control.uischema.options.showRowKeys = true;
-
-      const tmp = wrapper
-        .getComponent(ColumnSelect)
-        .vm.optionsGenerator(props.control);
-      expect(tmp).toEqual([
-        expect.objectContaining({
-          id: "<none>",
-          text: "None",
-        }),
-        expect.objectContaining({
-          id: "<row-keys>",
-          text: "RowIDs",
-        }),
-        expect.objectContaining({
-          id: "Universe_0_0",
-          text: "Universe_0_0",
-        }),
-        expect.objectContaining({
-          id: "Universe_0_1",
-          text: "Universe_0_1",
-        }),
-        expect.objectContaining({
-          id: "Universe_1_0",
-          text: "Universe_1_0",
-        }),
-        expect.objectContaining({
-          id: "Universe_1_1",
-          text: "Universe_1_1",
-        }),
-      ]);
     });
   });
 });

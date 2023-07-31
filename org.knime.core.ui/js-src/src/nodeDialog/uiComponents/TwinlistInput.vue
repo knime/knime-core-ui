@@ -5,7 +5,7 @@ import {
   mergeDeep,
   getFlowVariablesMap,
   isModelSettingAndHasNodeView,
-  getPossibleValuesFromUiSchema,
+  getAndDeletePossibleValuesFromUiSchema,
 } from "../utils";
 import LabeledInput from "./LabeledInput.vue";
 import DialogComponentWrapper from "./DialogComponentWrapper.vue";
@@ -84,9 +84,8 @@ const TwinlistInput = defineComponent({
     },
   },
   created() {
-    this.possibleValues = getPossibleValuesFromUiSchema(this.control);
+    this.possibleValues = getAndDeletePossibleValuesFromUiSchema(this.control);
     this.updateManualFilter(this.possibleValues.map((col) => col.id));
-
     this.previouslySelectedTypes = this.getPreviouslySelectedTypes();
   },
   methods: {

@@ -5,7 +5,7 @@ import {
   hasAdvancedOptions,
   getFlowVariablesMap,
   mergeDeep,
-  getPossibleValuesFromUiSchema,
+  getAndDeletePossibleValuesFromUiSchema,
 } from "..";
 
 describe("Utils", () => {
@@ -28,15 +28,20 @@ describe("Utils", () => {
     ];
     const control = { uischema: { options: { possibleValues } } };
 
-    it("uses optionsMapper per default", () => {
-      expect(getPossibleValuesFromUiSchema(control)).toStrictEqual(
+    it("gets possible values", () => {
+      expect(getAndDeletePossibleValuesFromUiSchema(control)).toStrictEqual(
         possibleValues,
       );
     });
 
+    it("deletes possible values", () => {
+      getAndDeletePossibleValuesFromUiSchema(control);
+      expect(control.uischema.options.possibleValues).toBeUndefined();
+    });
+
     it("adds additional options", () => {
       expect(
-        getPossibleValuesFromUiSchema({
+        getAndDeletePossibleValuesFromUiSchema({
           uischema: {
             options: {
               possibleValues,
@@ -53,7 +58,7 @@ describe("Utils", () => {
         ]),
       );
       expect(
-        getPossibleValuesFromUiSchema({
+        getAndDeletePossibleValuesFromUiSchema({
           uischema: {
             options: {
               possibleValues,

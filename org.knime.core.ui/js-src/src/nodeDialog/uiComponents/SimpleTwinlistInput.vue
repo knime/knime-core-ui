@@ -4,7 +4,7 @@ import { rendererProps } from "@jsonforms/vue";
 import {
   getFlowVariablesMap,
   isModelSettingAndHasNodeView,
-  getPossibleValuesFromUiSchema,
+  getAndDeletePossibleValuesFromUiSchema,
 } from "../utils";
 import Twinlist from "webapps-common/ui/components/forms/Twinlist.vue";
 import LabeledInput from "./LabeledInput.vue";
@@ -42,7 +42,7 @@ const SimpleTwinlistInput = defineComponent({
     optionsGenerator: {
       type: Function,
       required: false,
-      default: getPossibleValuesFromUiSchema,
+      default: getAndDeletePossibleValuesFromUiSchema,
     },
   },
   setup(props) {

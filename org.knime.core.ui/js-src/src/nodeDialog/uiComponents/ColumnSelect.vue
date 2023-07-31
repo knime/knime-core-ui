@@ -1,5 +1,4 @@
 <script>
-import { getPossibleValuesFromUiSchema } from "../utils";
 import DropdownInput from "./DropdownInput.vue";
 
 export default {
@@ -9,21 +8,14 @@ export default {
   },
   inheritAttrs: false,
   methods: {
-    optionsGenerator(control) {
-      return getPossibleValuesFromUiSchema(control);
-    },
     toValue(data) {
       return data.selected;
     },
-    toData(control, value) {
-      const allColumns = this.getAllColumns(control);
-      const compatibleTypes = allColumns.find(
+    toData(options, value) {
+      const compatibleTypes = options.find(
         (item) => item.id === value,
       )?.compatibleTypes;
       return { selected: value, compatibleTypes };
-    },
-    getAllColumns(control) {
-      return getPossibleValuesFromUiSchema(control);
     },
   },
 };

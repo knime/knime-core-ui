@@ -3,14 +3,25 @@ export const optionsMapper = ({ const: id, title: text }) => ({ id, text });
 const isObject = (item) =>
   item && typeof item === "object" && !Array.isArray(item);
 
-const extractFromUiSchemaOptions = (control, key) => {
-  const options = control.uischema.options;
-  return options ? options[key] : false;
+const extractFromUiSchemaOptions = (
+  control,
+  key,
+  deleteAfterExtraction = false,
+) => {
+  const options = control.uischema?.options;
+  if (options?.hasOwnProperty(key)) {
+    const value = options[key];
+    if (deleteAfterExtraction) {
+      delete options[key];
+    }
+    return value;
+  }
+  return false;
 };
 
-export const getPossibleValuesFromUiSchema = (control) => {
+export const getAndDeletePossibleValuesFromUiSchema = (control) => {
   const normalPossibleValues =
-    extractFromUiSchemaOptions(control, "possibleValues") || [];
+    extractFromUiSchemaOptions(control, "possibleValues", true) || [];
   const showNoneColumn = Boolean(
     extractFromUiSchemaOptions(control, "showNoneColumn"),
   );

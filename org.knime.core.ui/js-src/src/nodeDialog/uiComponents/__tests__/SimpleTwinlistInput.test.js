@@ -16,13 +16,24 @@ import LabeledInput from "../LabeledInput.vue";
 import Twinlist from "webapps-common/ui/components/forms/Twinlist.vue";
 
 describe("SimpleTwinlistInput.vue", () => {
-  const defaultProps = {
+  let wrapper, onChangeSpy, component;
+
+  beforeAll(() => {
+    onChangeSpy = vi.spyOn(SimpleTwinlistInput.methods, "onChange");
+    SimpleTwinlistInput.methods.handleChange = vi.fn();
+  });
+
+  const path = "test";
+  const data = ["test_1"];
+  const label = "defaultLabel";
+
+  const getDefaultProps = () => ({
     control: {
-      path: "test",
+      path,
       enabled: true,
       visible: true,
-      label: "defaultLabel",
-      data: ["test_1"],
+      label,
+      data,
       schema: {
         type: "array",
       },
@@ -49,18 +60,11 @@ describe("SimpleTwinlistInput.vue", () => {
         flowVariablesMap: {},
       },
     },
-  };
-
-  let wrapper, onChangeSpy, component;
-
-  beforeAll(() => {
-    onChangeSpy = vi.spyOn(SimpleTwinlistInput.methods, "onChange");
-    SimpleTwinlistInput.methods.handleChange = vi.fn();
   });
 
   beforeEach(() => {
     component = mountJsonFormsComponent(SimpleTwinlistInput, {
-      props: defaultProps,
+      props: getDefaultProps(),
     });
     wrapper = component.wrapper;
   });
@@ -82,7 +86,7 @@ describe("SimpleTwinlistInput.vue", () => {
   it("calls onChange when twinlist input is changed", async () => {
     const dirtySettingsMock = vi.fn();
     const { wrapper } = await mountJsonFormsComponent(SimpleTwinlistInput, {
-      props: defaultProps,
+      props: getDefaultProps(),
       modules: {
         "pagebuilder/dialog": {
           actions: { dirtySettings: dirtySettingsMock },
@@ -100,17 +104,10 @@ describe("SimpleTwinlistInput.vue", () => {
 
   it("indicates model settings change when model setting is changed", async () => {
     const dirtySettingsMock = vi.fn();
+    const props = getDefaultProps();
+    props.control.uischema.scope = "#/properties/model/properties/yAxisColumn";
     const { wrapper } = await mountJsonFormsComponent(SimpleTwinlistInput, {
-      props: {
-        ...defaultProps,
-        control: {
-          ...defaultProps.control,
-          uischema: {
-            ...defaultProps.control.uischema,
-            scope: "#/properties/model/properties/yAxisColumn",
-          },
-        },
-      },
+      props,
       modules: {
         "pagebuilder/dialog": {
           actions: { dirtySettings: dirtySettingsMock },
@@ -144,39 +141,33 @@ describe("SimpleTwinlistInput.vue", () => {
   });
 
   it("sets correct initial value", () => {
-    expect(wrapper.findComponent(Twinlist).vm.chosenValues).toStrictEqual(
-      defaultProps.control.data,
-    );
+    expect(wrapper.findComponent(Twinlist).vm.chosenValues).toStrictEqual(data);
   });
 
   it("sets correct label", () => {
-    expect(wrapper.find("label").text()).toBe(defaultProps.control.label);
+    expect(wrapper.find("label").text()).toBe(label);
   });
 
   it("disables twinlist when controlled by a flow variable", () => {
-    const localDefaultProps = JSON.parse(JSON.stringify(defaultProps));
-    localDefaultProps.control.rootSchema.flowVariablesMap[
-      defaultProps.control.path
-    ] = {
+    const props = getDefaultProps();
+    props.control.rootSchema.flowVariablesMap[path] = {
       controllingFlowVariableAvailable: true,
       controllingFlowVariableName: "knime.test",
       exposedFlowVariableName: "test",
       leaf: true,
     };
     const { wrapper } = mountJsonFormsComponent(SimpleTwinlistInput, {
-      props: localDefaultProps,
+      props,
     });
     expect(wrapper.vm.disabled).toBeTruthy();
   });
 
   it("moves missing values correctly", async () => {
     const dirtySettingsMock = vi.fn();
-    const localProps = {
-      ...defaultProps,
-      control: { ...defaultProps.control, data: ["missing"] },
-    };
+    const props = getDefaultProps();
+    props.control.data = ["missing"];
     const { wrapper } = await mountJsonFormsComponent(SimpleTwinlistInput, {
-      props: localProps,
+      props,
       modules: {
         "pagebuilder/dialog": {
           actions: { dirtySettings: dirtySettingsMock },
@@ -199,7 +190,9 @@ describe("SimpleTwinlistInput.vue", () => {
   });
 
   it("does not render content of SimpleTwinlistInput when visible is false", async () => {
-    wrapper.setProps({ control: { ...defaultProps.control, visible: false } });
+    wrapper.setProps({
+      control: { ...getDefaultProps().control, visible: false },
+    });
     await wrapper.vm.$nextTick(); // wait until pending promises are resolved
     expect(wrapper.findComponent(LabeledInput).exists()).toBe(false);
   });

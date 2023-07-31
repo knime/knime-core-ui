@@ -20,154 +20,156 @@ import { mergeDeep } from "@/nodeDialog/utils";
 describe("TwinlistInput.vue", () => {
   let props;
 
-  beforeEach(() => {
-    props = {
-      control: {
-        path: "test",
-        enabled: true,
-        visible: true,
-        label: "defaultLabel",
-        data: {
-          selected: ["test_1"],
-          manualFilter: {
-            manuallySelected: ["test_1"],
-            manuallyDeselected: ["test_2", "test_3"],
-            includeUnknownColumns: true,
-          },
-          patternFilter: {
-            isCaseSensitive: false,
-            isInverted: false,
-            pattern: "",
-          },
-          typeFilter: {
-            selectedTypes: ["StringValue", "IntValue"],
-            typeDisplays: [{ id: "StringValue", text: "String" }],
-          },
-          mode: "MANUAL",
+  const getDefaultProps = () => ({
+    control: {
+      path: "test",
+      enabled: true,
+      visible: true,
+      label: "defaultLabel",
+      data: {
+        selected: ["test_1"],
+        manualFilter: {
+          manuallySelected: ["test_1"],
+          manuallyDeselected: ["test_2", "test_3"],
+          includeUnknownColumns: true,
         },
-        schema: {
-          type: "object",
-          properties: {
-            patternFilter: {
-              type: "object",
-              properties: {
-                isCaseSensitive: {
-                  type: "boolean",
-                },
-                isInverted: {
-                  type: "boolean",
-                },
-                pattern: {
+        patternFilter: {
+          isCaseSensitive: false,
+          isInverted: false,
+          pattern: "",
+        },
+        typeFilter: {
+          selectedTypes: ["StringValue", "IntValue"],
+          typeDisplays: [{ id: "StringValue", text: "String" }],
+        },
+        mode: "MANUAL",
+      },
+      schema: {
+        type: "object",
+        properties: {
+          patternFilter: {
+            type: "object",
+            properties: {
+              isCaseSensitive: {
+                type: "boolean",
+              },
+              isInverted: {
+                type: "boolean",
+              },
+              pattern: {
+                type: "string",
+              },
+            },
+          },
+          manualFilter: {
+            type: "object",
+            properties: {
+              manuallySelected: {
+                items: {
                   type: "string",
                 },
+                type: "array",
               },
-            },
-            manualFilter: {
-              type: "object",
-              properties: {
-                manuallySelected: {
-                  items: {
-                    type: "string",
-                  },
-                  type: "array",
+              manuallyDeselected: {
+                item: {
+                  type: "string",
                 },
-                manuallyDeselected: {
-                  item: {
-                    type: "string",
-                  },
-                  type: "array",
-                },
-                includeUnknownColumns: {
-                  type: "boolean",
-                },
+                type: "array",
               },
-            },
-            typeFilter: {
-              type: "object",
-              properties: {
-                selectedTypes: {
-                  items: {
-                    type: "string",
-                  },
-                  type: "array",
-                },
-                typeDisplays: {
-                  items: {
-                    type: "object",
-                    properties: {
-                      id: {
-                        type: "string",
-                      },
-                      text: {
-                        type: "string",
-                      },
-                    },
-                  },
-                  type: "array",
-                },
+              includeUnknownColumns: {
+                type: "boolean",
               },
-            },
-            mode: {
-              oneOf: [
-                {
-                  const: "MANUAL",
-                  title: "Manual",
-                },
-                {
-                  const: "REGEX",
-                  title: "Regex",
-                },
-                {
-                  const: "WILDCARD",
-                  title: "Wildcard",
-                },
-                {
-                  const: "TYPE",
-                  title: "Type",
-                },
-              ],
-            },
-            selected: {
-              type: "array",
             },
           },
-        },
-        uischema: {
-          options: {
-            possibleValues: [
-              {
-                id: "test_1",
-                text: "test_1",
-                type: {
-                  id: "StringValue",
-                  text: "String",
+          typeFilter: {
+            type: "object",
+            properties: {
+              selectedTypes: {
+                items: {
+                  type: "string",
                 },
+                type: "array",
+              },
+              typeDisplays: {
+                items: {
+                  type: "object",
+                  properties: {
+                    id: {
+                      type: "string",
+                    },
+                    text: {
+                      type: "string",
+                    },
+                  },
+                },
+                type: "array",
+              },
+            },
+          },
+          mode: {
+            oneOf: [
+              {
+                const: "MANUAL",
+                title: "Manual",
               },
               {
-                id: "test_2",
-                text: "test_2",
-                type: {
-                  id: "DoubleValue",
-                  text: "Double",
-                },
+                const: "REGEX",
+                title: "Regex",
               },
               {
-                id: "test_3",
-                text: "test_3",
-                type: {
-                  id: "StringValue",
-                  text: "String",
-                },
+                const: "WILDCARD",
+                title: "Wildcard",
+              },
+              {
+                const: "TYPE",
+                title: "Type",
               },
             ],
           },
-        },
-        rootSchema: {
-          hasNodeView: true,
-          flowVariablesMap: {},
+          selected: {
+            type: "array",
+          },
         },
       },
-    };
+      uischema: {
+        options: {
+          possibleValues: [
+            {
+              id: "test_1",
+              text: "test_1",
+              type: {
+                id: "StringValue",
+                text: "String",
+              },
+            },
+            {
+              id: "test_2",
+              text: "test_2",
+              type: {
+                id: "DoubleValue",
+                text: "Double",
+              },
+            },
+            {
+              id: "test_3",
+              text: "test_3",
+              type: {
+                id: "StringValue",
+                text: "String",
+              },
+            },
+          ],
+        },
+      },
+      rootSchema: {
+        hasNodeView: true,
+        flowVariablesMap: {},
+      },
+    },
+  });
+
+  beforeEach(() => {
+    props = getDefaultProps();
   });
 
   let wrapper, onChangeSpy, component, updateData;
@@ -217,6 +219,7 @@ describe("TwinlistInput.vue", () => {
 
   it("indicates model settings change when model setting is changed", async () => {
     const dirtySettingsMock = vi.fn();
+    const props = getDefaultProps();
     props.control.uischema.scope = "#/properties/model/properties/yAxisColumn";
     const { wrapper } = await mountJsonFormsComponent(TwinlistInput, {
       props,
@@ -507,22 +510,14 @@ describe("TwinlistInput.vue", () => {
 
   it("moves missing values correctly", async () => {
     const dirtySettingsMock = vi.fn();
-    const localProps = {
-      ...props,
-      control: {
-        ...props.control,
-        data: {
-          ...props.control.data,
-          manualFilter: {
-            manuallySelected: ["missing"],
-            manuallyDeselected: ["test_1", "test_2", "test_3"],
-            includeUnknownColumns: false,
-          },
-        },
-      },
+    const props = getDefaultProps();
+    props.control.data.manualFilter = {
+      manuallySelected: ["missing"],
+      manuallyDeselected: ["test_1", "test_2", "test_3"],
+      includeUnknownColumns: false,
     };
     const { wrapper } = mountJsonFormsComponent(TwinlistInput, {
-      props: localProps,
+      props,
       modules: {
         "pagebuilder/dialog": {
           actions: { dirtySettings: dirtySettingsMock },
