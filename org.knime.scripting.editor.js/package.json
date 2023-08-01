@@ -1,0 +1,63 @@
+{
+  "name": "@knime/scripting-editor",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Shared Scripting Editor components for KNIME",
+  "author": "KNIME AG, Zurich, Switzerland",
+  "license": "See the file license.txt",
+  "scripts": {
+    "test:unit": "vitest",
+    "type-check": "vue-tsc --noEmit -p tsconfig.vitest.json --composite false",
+    "format": "prettier --cache --write .",
+    "format:check": "prettier --cache --check .",
+    "lint": "run-p 'lint:* -- --fix'",
+    "lint:js": "eslint . --cache --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts",
+    "lint:css": "stylelint --cache '**/*.{css,vue}'",
+    "ci:lint-format": "run-p ci:lint:* format:check -c",
+    "ci:lint:js": "npm run lint:js && npm run lint:js -- -f json -o test-results/eslint.json",
+    "ci:lint:css": "npm run lint:css -- -f json -o test-results/stylelint.json"
+  },
+  "dependencies": {
+    "consola": "^3.2.3",
+    "pinia": "2.1.4",
+    "vue": "3.x"
+  },
+  "devDependencies": {
+    "@knime/eslint-config": "8.0.7",
+    "@rushstack/eslint-patch": "1.3.2",
+    "@tsconfig/node18": "18.2.0",
+    "@types/jsdom": "21.1.1",
+    "@types/node": "18.17.0",
+    "@vitejs/plugin-vue": "4.2.3",
+    "@vitejs/plugin-vue-jsx": "3.0.1",
+    "@vue/eslint-config-prettier": "8.0.0",
+    "@vue/eslint-config-typescript": "11.0.3",
+    "@vue/test-utils": "2.4.1",
+    "@vue/tsconfig": "0.4.0",
+    "eslint": "8.45.0",
+    "eslint-plugin-vue": "9.15.1",
+    "jsdom": "22.1.0",
+    "npm-run-all": "4.1.5",
+    "prettier": "3.0.0",
+    "stylelint": "^15.10.2",
+    "typescript": "~5.1.6",
+    "vite": "4.4.6",
+    "vitest": "0.33.0",
+    "vue-tsc": "1.8.6"
+  },
+  "peerDependencies": {
+    "vue": "3.x"
+  },
+  "files": [
+    "lib",
+    "src"
+  ],
+  "module": "./lib/knime-scripting-editor.js",
+  "exports": "./lib/knime-scripting-editor.js",
+  "engines": {
+    "node": "18.x"
+  },
+  "volta": {
+    "node": "18.17.0"
+  }
+}
