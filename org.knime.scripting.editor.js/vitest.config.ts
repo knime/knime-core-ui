@@ -9,6 +9,7 @@ export default mergeConfig(
       include: ["src/**/__tests__/**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
       exclude: ["**/node_modules/**", "**/dist/**", "webapps-common/**"],
       environment: "jsdom",
+      reporters: ["default", "junit"],
       root: fileURLToPath(new URL("./", import.meta.url)),
       transformMode: {
         web: [/\.[jt]sx$/],
