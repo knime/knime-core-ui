@@ -15,10 +15,12 @@
     "lint:css": "stylelint --cache '**/*.{css,vue}'",
     "ci:lint-format": "run-p ci:lint:* format:check -c",
     "ci:lint:js": "npm run lint:js && npm run lint:js -- -f json -o test-results/eslint.json",
-    "ci:lint:css": "npm run lint:css -- -f json -o test-results/stylelint.json"
+    "ci:lint:css": "npm run lint:css -- -f json -o test-results/stylelint.json",
+    "audit": "npm audit --omit dev",
+    "coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "consola": "^3.2.3",
+    "consola": "3.2.3",
     "pinia": "2.1.4",
     "vue": "3.x",
     "webapps-common": "file:webapps-common"
@@ -40,8 +42,8 @@
     "jsdom": "22.1.0",
     "npm-run-all": "4.1.5",
     "prettier": "3.0.0",
-    "stylelint": "^15.10.2",
-    "typescript": "~5.1.6",
+    "stylelint": "15.10.2",
+    "typescript": "5.1.6",
     "vite": "4.4.6",
     "vitest": "0.33.0",
     "vue-tsc": "1.8.6"
