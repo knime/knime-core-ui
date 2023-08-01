@@ -20,7 +20,8 @@
   "dependencies": {
     "consola": "^3.2.3",
     "pinia": "2.1.4",
-    "vue": "3.x"
+    "vue": "3.x",
+    "webapps-common": "file:webapps-common"
   },
   "devDependencies": {
     "@knime/eslint-config": "8.0.7",
