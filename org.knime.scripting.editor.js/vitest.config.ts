@@ -27,7 +27,7 @@ export default mergeConfig(
           "**/*.d.ts",
           "**/__tests__/**",
           "test-setup/**",
-          "**/{vite,vitest,postcss}.config.{js,cjs,mjs,ts}",
+          "**/{vite,vitest,postcss,lint-staged}.config.{js,cjs,mjs,ts}",
           "**/.{eslint,prettier,stylelint}rc.{js,cjs,yml}",
         ],
         reporter: ["html", "text", "lcov"],
