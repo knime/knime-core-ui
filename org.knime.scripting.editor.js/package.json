@@ -58,8 +58,7 @@
     "lib",
     "src"
   ],
-  "module": "./lib/knime-scripting-editor.js",
-  "exports": "./lib/knime-scripting-editor.js",
+  "main": "./lib/knime-scripting-editor.ts",
   "engines": {
     "node": "18.x"
   },
