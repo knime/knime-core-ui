@@ -1,3 +1,3 @@
-import HelloWorld from "../src/components/HelloWorld.vue";
+import CodeEditor from "../src/components/CodeEditor.vue";
 
-export { HelloWorld };
+export { CodeEditor };
