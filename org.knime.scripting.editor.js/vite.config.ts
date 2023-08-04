@@ -21,6 +21,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "monaco-editor": process.env.NODE_ENV === "test" ? "_" : "monaco-editor", // We mock monaco in the test environment
     },
   },
   build: {
@@ -30,7 +31,7 @@ export default defineConfig({
       formats: ["es"],
     },
     rollupOptions: {
-      external: ["vue"],
+      external: ["vue", "monaco-editor"],
     },
   },
   test: {
