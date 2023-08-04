@@ -198,10 +198,10 @@ public class ScriptingService {
     public static final class Event {
 
         /** A unique type identifier that tells the frontend how to handle the event */
-        public final String type;
+        public final String type; // NOSONAR
 
         /** Additional data that will be available to the handler in the frontend */
-        public final Object data;
+        public final Object data; // NOSONAR
 
         @SuppressWarnings("hiding")
         private Event(final String type, final Object data) {
@@ -217,9 +217,9 @@ public class ScriptingService {
      */
     @SuppressWarnings("javadoc")
     public static final class ConsoleText {
-        public final String text;
+        public final String text; // NOSONAR
 
-        public final boolean stderr;
+        public final boolean stderr; // NOSONAR
 
         @SuppressWarnings("hiding")
         public ConsoleText(final String text, final boolean stderr) {
@@ -232,11 +232,11 @@ public class ScriptingService {
     @SuppressWarnings("javadoc")
     public static class FlowVariableInput {
 
-        public final String name;
+        public final String name; // NOSONAR
 
-        public final String value;
+        public final String value; // NOSONAR
 
-        @SuppressWarnings({"hiding", "javadoc"})
+        @SuppressWarnings({"hiding"})
         public FlowVariableInput(final String name, final String value) {
             this.name = name;
             this.value = value;
