@@ -43,9 +43,6 @@ export default defineConfig({
     transformMode: {
       web: [/\.[jt]sx$/],
     },
-    setupFiles: [
-      fileURLToPath(new URL("test-setup/vitest.setup.js", import.meta.url)),
-    ],
     coverage: {
       all: true,
       exclude: [
