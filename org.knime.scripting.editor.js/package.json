@@ -24,7 +24,6 @@
     "prepare": "cd .. && husky install ./org.knime.scripting.editor.js/.husky"
   },
   "dependencies": {
-    "consola": "3.2.3",
     "monaco-editor": "0.40.0",
     "pinia": "2.1.4",
     "vue": "3.x",
