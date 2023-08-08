@@ -20,7 +20,7 @@
  * to react script changes.
  */
 
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import * as monaco from "monaco-editor";
 
 const emit = defineEmits(["monaco-created"]);
@@ -40,6 +40,10 @@ const props = defineProps({
   },
 });
 
+// Remember the model and editor so that we can dispose them when the component is unmounted
+let editorModel: monaco.editor.ITextModel,
+  editor: monaco.editor.IStandaloneCodeEditor;
+
 const editorRef = ref(null);
 
 onMounted(() => {
@@ -49,13 +53,13 @@ onMounted(() => {
     );
   }
 
-  const editorModel = monaco.editor.createModel(
+  editorModel = monaco.editor.createModel(
     props.initialScript,
     props.language,
     monaco.Uri.parse(`inmemory://${props.fileName}`),
   );
 
-  const editor = monaco.editor.create(editorRef.value as HTMLElement, {
+  editor = monaco.editor.create(editorRef.value as HTMLElement, {
     model: editorModel,
     glyphMargin: false,
     lightbulb: {
@@ -69,6 +73,15 @@ onMounted(() => {
 
   // Notify the parent that the editor is now available
   emit("monaco-created", { editor, editorModel });
+});
+
+onUnmounted(() => {
+  if (typeof editorModel !== "undefined") {
+    editorModel.dispose();
+  }
+  if (typeof editor !== "undefined") {
+    editor.dispose();
+  }
 });
 </script>
 

@@ -50,4 +50,23 @@ describe("CodeEditor", () => {
       [{ editor: "myEditor", editorModel: "myModel" }],
     ]);
   });
+
+  it("disposes the editor and model on unmount", async () => {
+    const editorModelInstance = { dispose: vi.fn() };
+    // @ts-ignore createModel is a mock
+    monaco.editor.createModel.mockReturnValue(editorModelInstance);
+
+    const editorInstance = { dispose: vi.fn() };
+    // @ts-ignore create is a mock
+    monaco.editor.create.mockReturnValue(editorInstance);
+
+    // Mount the editor
+    const wrapper = mount(CodeEditor);
+    await flushPromises();
+
+    // Unmount and expect the dispose methods to have been called
+    wrapper.unmount();
+    expect(editorInstance.dispose).toHaveBeenCalledOnce();
+    expect(editorModelInstance.dispose).toHaveBeenCalledOnce();
+  });
 });
