@@ -22,14 +22,11 @@
 
 import { onMounted, onUnmounted, ref } from "vue";
 import * as monaco from "monaco-editor";
+import { getScriptingService } from "@/scripting-service";
 
 const emit = defineEmits(["monaco-created"]);
 
 const props = defineProps({
-  initialScript: {
-    type: String,
-    default: "",
-  },
   language: {
     type: String,
     default: null,
@@ -46,15 +43,18 @@ let editorModel: monaco.editor.ITextModel,
 
 const editorRef = ref(null);
 
-onMounted(() => {
+onMounted(async () => {
   if (editorRef.value === null) {
     throw new Error(
       "Editor reference is null. This is an implementation error",
     );
   }
 
+  const initialScript = (await getScriptingService().getInitialSettings())
+    .script;
+
   editorModel = monaco.editor.createModel(
-    props.initialScript,
+    initialScript,
     props.language,
     monaco.Uri.parse(`inmemory://${props.fileName}`),
   );

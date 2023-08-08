@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-import { mount } from "@vue/test-utils";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { flushPromises, mount } from "@vue/test-utils";
 import CodeEditor from "../CodeEditor.vue";
 import * as monaco from "monaco-editor";
 
@@ -18,23 +18,38 @@ vi.mock("monaco-editor", () => {
   };
 });
 
+vi.mock("@/scripting-service", () => {
+  return {
+    getScriptingService: vi.fn(() => ({
+      getInitialSettings: vi.fn(() =>
+        Promise.resolve({ script: "myInitialScript" }),
+      ),
+    })),
+  };
+});
+
 describe("CodeEditor", () => {
-  it("creates the editor model with the props", () => {
-    const initialScript = "myInitialScript";
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("creates the editor model with the props", async () => {
     const language = "javascript";
     const fileName = "myFileName.ext";
     mount(CodeEditor, {
-      props: { initialScript, language, fileName },
+      props: { language, fileName },
     });
+    await flushPromises();
     expect(monaco.editor.createModel).toHaveBeenCalledWith(
-      initialScript,
+      "myInitialScript",
       language,
       `inmemory://${fileName}`,
     );
   });
 
-  it("calls editor create with the ref", () => {
+  it("calls editor create with the ref", async () => {
     const wrapper = mount(CodeEditor);
+    await flushPromises();
     expect(monaco.editor.create).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
@@ -44,8 +59,9 @@ describe("CodeEditor", () => {
     expect(wrapper.text()).toContain("SCRIPTING EDITOR MOCK");
   });
 
-  it("emits an event when the editor is created", () => {
+  it("emits an event when the editor is created", async () => {
     const wrapper = mount(CodeEditor);
+    await flushPromises();
     expect(wrapper.emitted()).toHaveProperty("monaco-created", [
       [{ editor: "myEditor", editorModel: "myModel" }],
     ]);
