@@ -11,9 +11,16 @@ module.exports = {
   },
   settings: {
     "import/resolver": {
+      node: {
+        extensions: [".js", ".jsx", ".ts", ".tsx", ".vue"],
+      },
       alias: {
         map: [["@", "src/."]],
       },
     },
+  },
+  rules: {
+    // TODO: turn this on again after fixing splitpanes import problems
+    "import/extensions": "off",
   },
 };
