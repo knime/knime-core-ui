@@ -132,7 +132,9 @@ export default defineComponent({
         updatePreviousPaneSize('right');
       "
     >
-      <pane ref="leftPane" :size="currentPaneSizes.left" />
+      <pane ref="leftPane" :size="currentPaneSizes.left">
+        <slot name="leftPane" />
+      </pane>
       <pane ref="mainPane" :size="usedMainPaneSize" min-size="40">
         <splitpanes
           ref="horizontalSplitpane"
@@ -168,10 +170,14 @@ export default defineComponent({
                   :language="language"
                 />
               </pane>
-              <pane ref="rightPane" :size="currentPaneSizes.right" />
+              <pane ref="rightPane" :size="currentPaneSizes.right">
+                <slot name="rightPane" />
+              </pane>
             </splitpanes>
           </pane>
-          <pane ref="bottomPane" :size="currentPaneSizes.bottom" />
+          <pane ref="bottomPane" :size="currentPaneSizes.bottom">
+            <slot name="bottomPane" />
+          </pane>
         </splitpanes>
       </pane>
     </splitpanes>
