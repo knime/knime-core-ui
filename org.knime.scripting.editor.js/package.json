@@ -31,8 +31,7 @@
     "pinia": "2.1.4",
     "splitpanes": "3.1.5",
     "vue": "3.x",
-    "webapps-common": "file:webapps-common",
-    "xterm": "5.2.1"
+    "webapps-common": "file:webapps-common"
   },
   "devDependencies": {
     "@knime/eslint-config": "8.0.7",

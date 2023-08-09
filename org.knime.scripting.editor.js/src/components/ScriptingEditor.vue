@@ -17,6 +17,10 @@ export default defineComponent({
       type: String,
       default: null,
     },
+    initialScript: {
+      type: String,
+      default: null,
+    },
     rightPaneLayout: {
       type: String as PropType<RightPaneLayout>,
       default: RightPaneLayout.FIXED,
@@ -66,32 +70,43 @@ export default defineComponent({
     collapsePane(pane: keyof PaneSizes) {
       let newSize =
         this.currentPaneSizes[pane] === 0 ? this.previousPaneSizes[pane] : 0;
+      if (pane === "left") {
+        this.updateRightPane(newSize);
+      }
       this.resizePane(newSize, pane);
     },
-    resizePane(size: number, pane: keyof PaneSizes) {
-      if (
-        pane === "left" &&
-        this.currentPaneSizes.right > 0 &&
-        this.rightPaneLayout === RightPaneLayout.FIXED
-      ) {
-        this.updateRightPane(size);
-      }
-
+    resizePane(
+      size: number,
+      pane: keyof PaneSizes,
+      updatePreviousPaneSize: boolean = true,
+    ) {
       this.currentPaneSizes[pane] = size;
 
-      if (this.currentPaneSizes[pane] > 0) {
-        this.previousPaneSizes[pane] = this.currentPaneSizes[pane];
+      if (updatePreviousPaneSize) {
+        this.updatePreviousPaneSize(pane);
       }
     },
+    updatePreviousPaneSize(pane: keyof PaneSizes) {
+      if (this.currentPaneSizes[pane] <= 0) {
+        return;
+      }
+      this.previousPaneSizes[pane] = this.currentPaneSizes[pane];
+    },
     updateRightPane(size: number) {
+      if (
+        this.rightPaneLayout !== RightPaneLayout.FIXED ||
+        this.currentPaneSizes.right <= 0
+      ) {
+        return;
+      }
       // keep right pane at same size when left pane is resized
-      const currentMainPane = 100 - this.currentPaneSizes.left;
-      const newMainPane = 100 - size;
-      const currentAbsoluteRightPaneSize =
-        (this.currentPaneSizes.right / 100) * currentMainPane;
-      const newRightPaneSize =
-        (currentAbsoluteRightPaneSize / newMainPane) * 100;
-      this.resizePane(newRightPaneSize, "right");
+      const newMainPaneSize = 100 - size;
+      const absoluteRightPaneSize =
+        (100 - this.currentPaneSizes.left) *
+        (this.previousPaneSizes.right / 100);
+      const newRightPaneSize = (absoluteRightPaneSize / newMainPaneSize) * 100;
+
+      this.resizePane(newRightPaneSize, "right", false);
     },
   },
 });
@@ -100,26 +115,40 @@ export default defineComponent({
 <template>
   <div class="layout">
     <splitpanes
+      ref="mainSplitpane"
       class="common-splitter unset-transition"
       :dbl-click-splitter="false"
       :class="{
         'left-facing-splitter': !isLeftPaneCollapsed,
         'right-facing-splitter': isLeftPaneCollapsed,
       }"
-      @splitter-click="collapsePane('left')"
-      @resize="resizePane($event[0].size, 'left')"
+      @splitter-click="
+        collapsePane('left');
+        updatePreviousPaneSize('right');
+      "
+      @resize="updateRightPane($event[0].size)"
+      @resized="
+        resizePane($event[0].size, 'left');
+        updatePreviousPaneSize('right');
+      "
     >
-      <pane :size="currentPaneSizes.left" />
-      <pane :size="usedMainPaneSize" min-size="40">
+      <pane ref="leftPane" :size="currentPaneSizes.left" />
+      <pane ref="mainPane" :size="usedMainPaneSize" min-size="40">
         <splitpanes
+          ref="horizontalSplitpane"
           horizontal
           class="common-splitter down-facing-splitter"
           :dbl-click-splitter="false"
           @splitter-click="collapsePane('bottom')"
-          @resize="resizePane($event[1].size, 'bottom')"
+          @resized="resizePane($event[1].size, 'bottom')"
         >
-          <pane :size="usedVerticalCodeEditorPaneSize" min-size="20">
+          <pane
+            ref="topPane"
+            :size="usedVerticalCodeEditorPaneSize"
+            min-size="20"
+          >
             <splitpanes
+              ref="verticalSplitpane"
               class="common-splitter unset-transition"
               :class="{
                 'left-facing-splitter': isRightPaneCollapsed,
@@ -127,15 +156,22 @@ export default defineComponent({
               }"
               :dbl-click-splitter="false"
               @splitter-click="collapsePane('right')"
-              @resize="resizePane($event[1].size, 'right')"
+              @resized="resizePane($event[1].size, 'right')"
             >
-              <pane :size="usedHorizontalCodeEditorPaneSize" min-size="25">
-                <CodeEditor initial-script="foo" language="python" />
+              <pane
+                ref="editorPane"
+                :size="usedHorizontalCodeEditorPaneSize"
+                min-size="25"
+              >
+                <CodeEditor
+                  :initial-script="initialScript"
+                  :language="language"
+                />
               </pane>
-              <pane :size="currentPaneSizes.right" />
+              <pane ref="rightPane" :size="currentPaneSizes.right" />
             </splitpanes>
           </pane>
-          <pane :size="currentPaneSizes.bottom" />
+          <pane ref="bottomPane" :size="currentPaneSizes.bottom" />
         </splitpanes>
       </pane>
     </splitpanes>
