@@ -91,6 +91,6 @@ onUnmounted(() => {
 
 <style lang="postcss" scoped>
 .code-editor {
-  height: 100%;
+  height: calc(100% - var(--controls-height));
 }
 </style>

@@ -1,7 +1,9 @@
 import { vi } from "vitest";
 
 export const editor = {
-  createModel: vi.fn(() => "myModel"),
+  createModel: vi.fn(() => ({
+    getValue: vi.fn(() => "myInitialScript"),
+  })),
   create: vi.fn((element: HTMLElement) => {
     element.innerHTML = "SCRIPTING EDITOR MOCK";
     return "myEditor";

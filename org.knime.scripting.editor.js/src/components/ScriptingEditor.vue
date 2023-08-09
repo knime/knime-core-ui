@@ -1,13 +1,22 @@
 <script lang="ts">
-import { defineComponent, type PropType } from "vue";
+import { defineComponent, toRaw, type PropType } from "vue";
 import { Splitpanes, Pane } from "splitpanes";
 import "splitpanes/dist/splitpanes.css";
 import CodeEditor from "./CodeEditor.vue";
-import type { editor } from "monaco-editor";
+import FooterBar from "./FooterBar.vue";
+import HeaderBar from "./HeaderBar.vue";
+import CodeEditorControlBar from "./CodeEditorControlBar.vue";
+import { editor } from "monaco-editor";
+import type { MenuItem } from "webapps-common/ui/components/MenuItems.vue";
+import { getScriptingService } from "@/scripting-service";
 
 type PaneSizes = {
   [key in "left" | "right" | "bottom"]: number;
 };
+
+const commonMenuItems: MenuItem[] = [
+  // TODO: add actual common menu items
+];
 
 export default defineComponent({
   name: "ScriptingEditor",
@@ -15,8 +24,15 @@ export default defineComponent({
     Splitpanes,
     Pane,
     CodeEditor,
+    FooterBar,
+    HeaderBar,
+    CodeEditorControlBar,
   },
   props: {
+    title: {
+      type: String,
+      default: null,
+    },
     language: {
       type: String,
       default: null,
@@ -29,8 +45,16 @@ export default defineComponent({
       type: String as PropType<"fixed" | "relative">,
       default: "fixed",
     },
+    menuItems: {
+      type: Array<MenuItem>,
+      default: [],
+    },
+    showControlBar: {
+      type: Boolean,
+      default: true,
+    },
   },
-  emits: ["monaco-created"],
+  emits: ["monaco-created", "menu-item-clicked"],
   data() {
     return {
       currentPaneSizes: {
@@ -48,6 +72,8 @@ export default defineComponent({
         right: 25,
         bottom: 30,
       } as PaneSizes,
+      commonMenuItems,
+      editorModel: null as editor.ITextModel | null,
     };
   },
   computed: {
@@ -119,7 +145,22 @@ export default defineComponent({
       editor: editor.IStandaloneCodeEditor;
       editorModel: editor.ITextModel;
     }) {
+      this.editorModel = editorModel;
       this.$emit("monaco-created", { editor, editorModel });
+    },
+    saveSettings() {
+      const editorModel = toRaw(this.editorModel);
+      if (editorModel) {
+        getScriptingService().saveSettings({ script: editorModel?.getValue() });
+      }
+      // TODO: close window
+    },
+    onMenuItemClicked(args: { event: Event; item: any }) {
+      if (commonMenuItems.includes(toRaw(args.item))) {
+        // TODO: handle click actions for common items here
+      } else {
+        this.$emit("menu-item-clicked", args);
+      }
     },
   },
 });
@@ -127,6 +168,11 @@ export default defineComponent({
 
 <template>
   <div class="layout">
+    <HeaderBar
+      :title="title"
+      :menu-items="[...commonMenuItems, ...menuItems]"
+      @menu-item-click="onMenuItemClicked"
+    />
     <splitpanes
       ref="mainSplitpane"
       class="common-splitter unset-transition"
@@ -187,6 +233,11 @@ export default defineComponent({
                   :file-name="fileName"
                   @monaco-created="onMonacoCreated"
                 />
+                <CodeEditorControlBar v-if="showControlBar">
+                  <template #controls>
+                    <slot name="code-editor-controls" />
+                  </template>
+                </CodeEditorControlBar>
               </pane>
               <pane ref="rightPane" :size="currentPaneSizes.right">
                 <slot name="rightPane" />
@@ -199,6 +250,7 @@ export default defineComponent({
         </splitpanes>
       </pane>
     </splitpanes>
+    <FooterBar @scripting-editor-okayed="saveSettings" />
   </div>
 </template>
 

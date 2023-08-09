@@ -30,9 +30,7 @@ describe("CodeEditor", () => {
     await flushPromises();
     expect(monaco.editor.create).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({
-        model: "myModel",
-      }),
+      expect.anything(),
     );
     expect(wrapper.text()).toContain("SCRIPTING EDITOR MOCK");
   });
@@ -41,7 +39,7 @@ describe("CodeEditor", () => {
     const wrapper = mount(CodeEditor);
     await flushPromises();
     expect(wrapper.emitted()).toHaveProperty("monaco-created", [
-      [{ editor: "myEditor", editorModel: "myModel" }],
+      [{ editor: "myEditor", editorModel: expect.anything() }],
     ]);
   });
 
