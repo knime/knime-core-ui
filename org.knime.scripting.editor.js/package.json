@@ -26,7 +26,6 @@
   "dependencies": {
     "@knime/ui-extension-service": "0.15.0",
     "monaco-editor": "0.40.0",
-    "pinia": "2.1.4",
     "vue": "3.x",
     "webapps-common": "file:webapps-common"
   },
