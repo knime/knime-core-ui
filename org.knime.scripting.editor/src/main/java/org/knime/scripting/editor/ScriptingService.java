@@ -53,9 +53,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.scripting.editor.lsp.LanguageServerProxy;
@@ -159,6 +161,9 @@ public class ScriptingService {
     /** The service that provides its methods via JSON-RPC to the frontend. */
     public class RpcService {
 
+        // NB: The UI Extension service throws an timeout after 10000ms
+        private static final int GET_EVENT_TIMEOUT_MS = 2000;
+
         /**
          * @return a list of flow variable inputs that should be shown in the inputs panel
          */
@@ -174,10 +179,12 @@ public class ScriptingService {
          * @return the next event for the frontend
          */
         public Optional<Event> getEvent() {
-            if (m_eventQueue.isEmpty()) {
+            try {
+                return Optional.ofNullable(m_eventQueue.poll(GET_EVENT_TIMEOUT_MS, TimeUnit.MILLISECONDS));
+            } catch (final InterruptedException e) {
+                NodeLogger.getLogger(ScriptingService.class).warn("Interrupted while waiting for the next event", e);
+                Thread.currentThread().interrupt();
                 return Optional.empty();
-            } else {
-                return Optional.ofNullable(m_eventQueue.poll());
             }
         }
 

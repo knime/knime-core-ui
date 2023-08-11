@@ -14,6 +14,7 @@ class ScriptingService {
   private _dialogService: Promise<DialogService>;
   private _settings: NodeSettings | null = null;
   private _eventHandlers: { [type: string]: (args: any) => void } = {};
+  private _runEventPoller: boolean = true;
 
   constructor() {
     const _createKnimeService = async () => {
@@ -42,11 +43,10 @@ class ScriptingService {
   }
 
   private async eventPoller() {
-    // TODO(AP-19340) use long-polling
     // TODO(AP-19341) use Java-to-JS events
 
     // eslint-disable-next-line no-constant-condition
-    while (true) {
+    while (this._runEventPoller) {
       // Get the next event
       const res = await this.sendToService("getEvent");
       // Give the event to the handler
@@ -61,6 +61,10 @@ class ScriptingService {
       }
       /* else: no event wait for the next one */
     }
+  }
+
+  public stopEventPoller() {
+    this._runEventPoller = false;
   }
 
   public async sendToService(
