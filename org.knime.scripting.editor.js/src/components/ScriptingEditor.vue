@@ -141,6 +141,10 @@ export default defineComponent({
           horizontal
           class="common-splitter down-facing-splitter"
           :dbl-click-splitter="false"
+          :class="{
+            'down-facing-splitter': !isBottomPaneCollapsed,
+            'up-facing-splitter': isBottomPaneCollapsed,
+          }"
           @splitter-click="collapsePane('bottom')"
           @resized="resizePane($event[1].size, 'bottom')"
         >
@@ -237,6 +241,13 @@ export default defineComponent({
 .down-facing-splitter {
   & :deep(> .splitpanes__splitter) {
     background-image: url("../../webapps-common/ui/assets/img/icons/arrow-dropdown.svg");
+  }
+}
+
+.up-facing-splitter {
+  & :deep(> .splitpanes__splitter) {
+    background-image: url("../../webapps-common/ui/assets/img/icons/arrow-dropdown.svg");
+    transform: scaleY(-1);
   }
 }
 
