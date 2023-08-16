@@ -6,8 +6,11 @@ import CodeEditor from "./CodeEditor.vue";
 import FooterBar from "./FooterBar.vue";
 import HeaderBar from "./HeaderBar.vue";
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
-import { editor } from "monaco-editor";
 import type { MenuItem } from "webapps-common/ui/components/MenuItems.vue";
+import type { editor } from "monaco-editor";
+import OutputConsole from "./OutputConsole.vue";
+import type { ConsoleHandler } from "./OutputConsole.vue";
+
 import { getScriptingService } from "@/scripting-service";
 
 type PaneSizes = {
@@ -27,6 +30,7 @@ export default defineComponent({
     FooterBar,
     HeaderBar,
     CodeEditorControlBar,
+    OutputConsole,
   },
   props: {
     title: {
@@ -162,6 +166,9 @@ export default defineComponent({
         this.$emit("menu-item-clicked", args);
       }
     },
+    onConsoleCreated(handler: ConsoleHandler) {
+      getScriptingService().registerConsoleEventHandler(handler);
+    },
   },
 });
 </script>
@@ -246,6 +253,7 @@ export default defineComponent({
           </pane>
           <pane ref="bottomPane" :size="currentPaneSizes.bottom">
             <slot name="bottomPane" />
+            <OutputConsole @console-created="onConsoleCreated" />
           </pane>
         </splitpanes>
       </pane>
@@ -255,6 +263,8 @@ export default defineComponent({
 </template>
 
 <style lang="postcss" scoped>
+@import url("webapps-common/ui/css");
+
 .layout {
   --controls-height: 49px;
   --description-button-size: 15px;
