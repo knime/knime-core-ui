@@ -51,6 +51,7 @@ package org.knime.scripting.editor;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowObjectStack;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContainer;
@@ -133,5 +134,18 @@ public class WorkflowControl {
                 wfm.getNodeContainer(cc.getSource()).getOutPort(cc.getSourcePort()).getPortObjectSpec();
         }
         return inSpecs;
+    }
+
+    /**
+     * @return the output port types for the node
+     */
+    public PortType[] getOutputPortTypes() {
+        final int numOutputPorts = m_nc.getNrOutPorts();
+        final PortType[] outputPortTypes = new PortType[numOutputPorts];
+        for (int i = 0; i < numOutputPorts; i++) {
+            outputPortTypes[i] = m_nc.getOutPort(i).getPortType();
+        }
+
+        return outputPortTypes;
     }
 }
