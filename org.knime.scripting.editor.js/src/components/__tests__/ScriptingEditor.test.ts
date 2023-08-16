@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import ScriptingEditor from "../ScriptingEditor.vue";
-import { Pane, Splitpanes, type PaneProps } from "splitpanes";
 import CodeEditor from "../CodeEditor.vue";
+import { Pane, Splitpanes, type PaneProps } from "splitpanes";
 
 vi.mock("monaco-editor", () => {
   return {
@@ -26,8 +26,8 @@ describe("ScriptingEditor", () => {
     } = {
       props: {
         language: "someLanguage",
-        initialScript: "someInitialScript",
         rightPaneLayout: "fixed",
+        fileName: "myFile.ts",
       },
     },
   ) => {
@@ -67,10 +67,11 @@ describe("ScriptingEditor", () => {
     });
 
     it("displays code editor and passes props", () => {
+      const { wrapper } = doMount();
       expect(wrapper.findComponent(CodeEditor).exists()).toBeTruthy();
       const comp = wrapper.findComponent(CodeEditor);
-      expect(comp.vm.initialScript).toBe("someInitialScript");
       expect(comp.vm.language).toBe("someLanguage");
+      expect(comp.vm.fileName).toBe("myFile.ts");
     });
   });
 
