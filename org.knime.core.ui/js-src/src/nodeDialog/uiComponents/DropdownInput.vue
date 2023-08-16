@@ -69,6 +69,13 @@ const DropdownInput = defineComponent({
         ? "No value selected"
         : "No values present";
     },
+
+    hasMultipleOptions() {
+      return Boolean(this.options?.length > 1);
+    },
+    hasOneOption() {
+      return Boolean(this.options?.length === 1);
+    },
     dropdownValue() {
       return this.controlDataToDropdownValue(this.control.data);
     },
@@ -169,6 +176,7 @@ export default DropdownInput;
       :description="control.description"
     >
       <Dropdown
+        v-if="hasMultipleOptions"
         :aria-label="control.label"
         :disabled="disabled"
         :model-value="dropdownValue"
@@ -176,6 +184,24 @@ export default DropdownInput;
         :placeholder="placeholderText"
         @update:model-value="onChange"
       />
+      <div v-else-if="hasOneOption" class="default">
+        {{ options[0].text }}
+      </div>
+      <div v-else class="default no-value">No possible values</div>
     </LabeledInput>
   </DialogComponentWrapper>
 </template>
+
+<style lang="postcss" scoped>
+.default {
+  height: 40px;
+  line-height: 40px; /* to center text vertically */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.no-value {
+  font-style: italic;
+}
+</style>

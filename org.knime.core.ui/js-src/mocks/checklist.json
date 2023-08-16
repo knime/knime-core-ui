@@ -3,7 +3,8 @@
     "name": "Checklist Dialog",
     "data": {
       "view": {
-        "considerFile": ["ADDED"]
+        "considerFile": ["ADDED"],
+        "oneOptionDropdown": "NONE"
       }
     },
     "schema": {
@@ -28,6 +29,12 @@
                   "title": "Deleted"
                 }
               ]
+            },
+            "oneOptionDropdown": {
+              "description": "Tests a dropdown with one option"
+            },
+            "noOptionDropdown": {
+              "description": "Tests a dropdown with no option"
             }
           }
         }
@@ -46,6 +53,27 @@
               "options": {
                 "format": "checkboxes",
                 "checkboxLayout": "vertical"
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/view/properties/oneOptionDropdown",
+              "options": {
+                "format": "dropDown",
+                "possibleValues": [
+                  {
+                    "id": "NONE",
+                    "text": "None"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/view/properties/noOptionDropdown",
+              "options": {
+                "format": "dropDown",
+                "possibleValues": []
               }
             }
           ]

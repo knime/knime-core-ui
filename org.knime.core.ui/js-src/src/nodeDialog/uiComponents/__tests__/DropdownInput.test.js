@@ -40,7 +40,7 @@ describe("DropdownInput.vue", () => {
           type: "Control",
           scope: "#/properties/view/properties/yAxisColumn",
           options: {
-            format: "columnSelection",
+            format: "dropDown",
             showRowKeys: false,
             showNoneColumn: false,
             possibleValues: [
@@ -138,7 +138,7 @@ describe("DropdownInput.vue", () => {
             control: {
               ...props.control,
               uischema: {
-                ...props.control.schema,
+                ...props.control.uischema,
                 scope: "#/properties/model/properties/yAxisColumn",
               },
             },
@@ -202,7 +202,7 @@ describe("DropdownInput.vue", () => {
     props.control.uischema.options.possibleValues = [];
     const { wrapper } = await mountJsonFormsComponent(DropdownInput, { props });
     expect(wrapper.vm.disabled).toBeTruthy();
-    expect(wrapper.findComponent(Dropdown).vm.disabled).toBeTruthy();
+    expect(wrapper.findComponent(Dropdown).exists()).toBeFalsy();
   });
 
   it("does not render content of DropdownInput when visible is false", () => {
@@ -222,6 +222,24 @@ describe("DropdownInput.vue", () => {
     props.control.uischema.options.isAdvanced = true;
     const { wrapper } = mountJsonFormsComponent(DropdownInput, { props });
     expect(wrapper.getComponent(DropdownInput).isVisible()).toBe(true);
+  });
+
+  it("checks that it does not render a dropdown if there is only one option", () => {
+    props.control.uischema.options.possibleValues = [
+      {
+        id: "Universe_0_0",
+        text: "Universe_0_0",
+      },
+    ];
+    const { wrapper } = mountJsonFormsComponent(DropdownInput, { props });
+    expect(wrapper.findComponent(Dropdown).exists()).toBe(false);
+  });
+
+  it("checks that it does not render a dropdown if there is no option", () => {
+    props.control.uischema.options.possibleValues = [];
+    const { wrapper } = mountJsonFormsComponent(DropdownInput, { props });
+    expect(wrapper.findComponent(Dropdown).exists()).toBe(false);
+    expect(wrapper.find(".no-value").text()).toBe("No possible values");
   });
 
   describe("update initial data", () => {
