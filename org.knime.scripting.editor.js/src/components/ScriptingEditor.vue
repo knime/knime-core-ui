@@ -20,7 +20,7 @@ export default defineComponent({
       type: String,
       default: null,
     },
-    initialScript: {
+    fileName: {
       type: String,
       default: null,
     },
@@ -172,10 +172,7 @@ export default defineComponent({
                 :size="usedHorizontalCodeEditorPaneSize"
                 min-size="25"
               >
-                <CodeEditor
-                  :initial-script="initialScript"
-                  :language="language"
-                />
+                <CodeEditor :language="language" :file-name="fileName" />
               </pane>
               <pane ref="rightPane" :size="currentPaneSizes.right">
                 <slot name="rightPane" />
