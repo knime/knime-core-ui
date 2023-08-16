@@ -1,14 +1,19 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
-import ScriptingEditor from "../ScriptingEditor.vue";
-import CodeEditor from "../CodeEditor.vue";
+import ScriptingEditor from "@/components/ScriptingEditor.vue";
+import CodeEditor from "@/components/CodeEditor.vue";
+import OutputConsole from "@/components/OutputConsole.vue";
 import { Pane, Splitpanes, type PaneProps } from "splitpanes";
-import { scriptingServiceMock } from "../../__mocks__/scripting-service";
+import {
+  scriptingServiceMock,
+  getScriptingService,
+} from "../../__mocks__/scripting-service";
 import FooterBar from "../FooterBar.vue";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
 
 vi.mock("monaco-editor");
 vi.mock("@/scripting-service");
+vi.mock("xterm");
 
 describe("ScriptingEditor", () => {
   afterEach(() => {
@@ -78,6 +83,12 @@ describe("ScriptingEditor", () => {
       const { wrapper } = doMount();
       const heading = wrapper.find("div.title");
       expect(heading.element.textContent).toBe("myTitle");
+    });
+
+    it("display output console", () => {
+      const { wrapper } = doMount();
+      const outputConsole = wrapper.findComponent(OutputConsole);
+      expect(outputConsole.exists()).toBeTruthy();
     });
   });
 
@@ -297,5 +308,19 @@ describe("ScriptingEditor", () => {
     expect(scriptingServiceMock.saveSettings).toHaveBeenCalledWith({
       script: "myInitialScript",
     });
+  });
+
+  it("register eventhandler on console-created", async () => {
+    // setup
+    const spy = vi.spyOn(getScriptingService(), "registerConsoleEventHandler");
+    const { wrapper } = doMount();
+    const outputConsole = wrapper.findComponent(OutputConsole);
+
+    await flushPromises();
+    expect(outputConsole.emitted()).toHaveProperty("console-created");
+
+    // @ts-ignore
+    const handler = outputConsole.emitted()["console-created"][0][0];
+    expect(spy).toHaveBeenCalledWith(handler);
   });
 });

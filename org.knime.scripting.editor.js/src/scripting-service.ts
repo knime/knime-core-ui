@@ -3,8 +3,7 @@ import {
   IFrameKnimeService,
   JsonDataService,
 } from "@knime/ui-extension-service";
-
-export type ConsoleText = { text: string; stderr: boolean };
+import type { ConsoleText } from "./components/OutputConsole.vue";
 
 export type NodeSettings = { script: string };
 
