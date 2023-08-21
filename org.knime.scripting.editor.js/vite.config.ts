@@ -15,6 +15,9 @@ export default defineConfig({
     vueJsx(),
     dts({
       insertTypesEntry: true,
+      tsconfigPath: fileURLToPath(
+        new URL("tsconfig.app.json", import.meta.url),
+      ),
     }),
     cssInjectedByJsPlugin(), // not supported natively in Vite yet, see https://github.com/vitejs/vite/issues/1579]
   ],
