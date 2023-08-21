@@ -3,7 +3,10 @@ import { defineComponent, type PropType } from "vue";
 import { Splitpanes, Pane } from "splitpanes";
 import "splitpanes/dist/splitpanes.css";
 import CodeEditor from "./CodeEditor.vue";
-import { type PaneSizes, RightPaneLayout } from "../types/scriptingEditor";
+
+type PaneSizes = {
+  [key in "left" | "right" | "bottom"]: number;
+};
 
 export default defineComponent({
   name: "ScriptingEditor",
@@ -22,8 +25,8 @@ export default defineComponent({
       default: null,
     },
     rightPaneLayout: {
-      type: String as PropType<RightPaneLayout>,
-      default: RightPaneLayout.FIXED,
+      type: String as PropType<"fixed" | "relative">,
+      default: "fixed",
     },
   },
   emits: ["monaco-created"],
@@ -94,7 +97,7 @@ export default defineComponent({
     },
     updateRightPane(size: number) {
       if (
-        this.rightPaneLayout !== RightPaneLayout.FIXED ||
+        this.rightPaneLayout !== "fixed" ||
         this.currentPaneSizes.right <= 0
       ) {
         return;

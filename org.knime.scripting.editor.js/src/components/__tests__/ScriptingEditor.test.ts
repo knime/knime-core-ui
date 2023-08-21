@@ -3,7 +3,6 @@ import { mount } from "@vue/test-utils";
 import ScriptingEditor from "../ScriptingEditor.vue";
 import { Pane, Splitpanes, type PaneProps } from "splitpanes";
 import CodeEditor from "../CodeEditor.vue";
-import { RightPaneLayout } from "../../types/scriptingEditor";
 
 vi.mock("monaco-editor", () => {
   return {
@@ -28,7 +27,7 @@ describe("ScriptingEditor", () => {
       props: {
         language: "someLanguage",
         initialScript: "someInitialScript",
-        rightPaneLayout: RightPaneLayout.FIXED,
+        rightPaneLayout: "fixed",
       },
     },
   ) => {
@@ -187,7 +186,7 @@ describe("ScriptingEditor", () => {
 
       it("does not change right pane size if left pane is resized and right pane uses relative layout", async () => {
         const { mainSplitpane, rightPane } = doMount({
-          props: { rightPaneLayout: RightPaneLayout.RELATIVE },
+          props: { rightPaneLayout: "relative" },
         });
         await mainSplitpane.vm.$emit("resize", resizeEvent);
         expect(rightPane.size).toBe(25);
@@ -195,7 +194,7 @@ describe("ScriptingEditor", () => {
 
       it("does not change right pane size if left pane is collapsed and right pane uses relative layout", async () => {
         const { mainSplitpane, rightPane } = doMount({
-          props: { rightPaneLayout: RightPaneLayout.RELATIVE },
+          props: { rightPaneLayout: "relative" },
         });
         await mainSplitpane.vm.$emit("splitter-click");
         expect(rightPane.size).toBe(25);
