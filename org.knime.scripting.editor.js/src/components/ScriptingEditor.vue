@@ -214,6 +214,7 @@ export default defineComponent({
   border-left: 1px solid var(--knime-silver-sand);
 }
 
+/* NB: we disable the rule because of classes defined by the splitpanes package */
 /* stylelint-disable selector-class-pattern */
 
 .common-splitter {
