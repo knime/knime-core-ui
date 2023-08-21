@@ -142,7 +142,7 @@ export default defineComponent({
         <splitpanes
           ref="horizontalSplitpane"
           horizontal
-          class="common-splitter down-facing-splitter"
+          class="common-splitter"
           :dbl-click-splitter="false"
           :class="{
             'down-facing-splitter': !isBottomPaneCollapsed,
