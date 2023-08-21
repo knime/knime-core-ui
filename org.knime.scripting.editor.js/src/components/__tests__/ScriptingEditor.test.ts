@@ -122,7 +122,7 @@ describe("ScriptingEditor", () => {
         expect(mainPane.size).toBe(80);
       });
 
-      it("collapses right pane", async () => {
+      it("collapses bottom pane", async () => {
         const { horizontalSplitpane, bottomPane, topPane } = doMount();
         await horizontalSplitpane.vm.$emit("splitter-click");
         expect(bottomPane.size).toBe(0);
@@ -132,7 +132,7 @@ describe("ScriptingEditor", () => {
         expect(topPane.size).toBe(70);
       });
 
-      it("collapses bottom pane", async () => {
+      it("collapses right pane", async () => {
         const { verticalSplitpane, rightPane, editorPane } = doMount();
         await verticalSplitpane.vm.$emit("splitter-click", resizeEvent);
         expect(rightPane.size).toBe(0);
@@ -140,6 +140,41 @@ describe("ScriptingEditor", () => {
         await verticalSplitpane.vm.$emit("splitter-click", resizeEvent);
         expect(rightPane.size).toBe(25);
         expect(editorPane.size).toBe(75);
+      });
+
+      it("rotates splitter icon for left pane", async () => {
+        const { mainSplitpane } = doMount();
+        expect(mainSplitpane.classes()).toContain("left-facing-splitter");
+        expect(mainSplitpane.classes()).not.toContain("right-facing-splitter");
+        await mainSplitpane.vm.$emit("splitter-click");
+        expect(mainSplitpane.classes()).not.toContain("left-facing-splitter");
+        expect(mainSplitpane.classes()).toContain("right-facing-splitter");
+      });
+
+      it("rotates splitter icon for bottom pane", async () => {
+        const { horizontalSplitpane } = doMount();
+        expect(horizontalSplitpane.classes()).not.toContain(
+          "up-facing-splitter",
+        );
+        expect(horizontalSplitpane.classes()).toContain("down-facing-splitter");
+        await horizontalSplitpane.vm.$emit("splitter-click");
+        expect(horizontalSplitpane.classes()).toContain("up-facing-splitter");
+        expect(horizontalSplitpane.classes()).not.toContain(
+          "down-facing-splitter",
+        );
+      });
+
+      it("rotates splitter icon for right pane", async () => {
+        const { verticalSplitpane } = doMount();
+        expect(verticalSplitpane.classes()).not.toContain(
+          "left-facing-splitter",
+        );
+        expect(verticalSplitpane.classes()).toContain("right-facing-splitter");
+        await verticalSplitpane.vm.$emit("splitter-click");
+        expect(verticalSplitpane.classes()).toContain("left-facing-splitter");
+        expect(verticalSplitpane.classes()).not.toContain(
+          "right-facing-splitter",
+        );
       });
 
       it("uncollapses pane to correct position when collapsing after resize", async () => {
