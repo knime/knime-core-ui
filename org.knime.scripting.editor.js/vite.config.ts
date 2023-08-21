@@ -52,6 +52,7 @@ export default defineConfig({
         "lib/**",
         "**/*.d.ts",
         "**/__tests__/**",
+        "**/__mocks__/**",
         "test-setup/**",
         "**/{vite,vitest,postcss,lint-staged}.config.{js,cjs,mjs,ts}",
         "**/.{eslint,prettier,stylelint}rc.{js,cjs,yml}",

@@ -1,25 +1,17 @@
-import { describe, expect, it, vi } from "vitest";
-import { mount } from "@vue/test-utils";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { flushPromises, mount } from "@vue/test-utils";
 import ScriptingEditor from "../ScriptingEditor.vue";
 import CodeEditor from "../CodeEditor.vue";
 import { Pane, Splitpanes, type PaneProps } from "splitpanes";
 
-vi.mock("monaco-editor", () => {
-  return {
-    editor: {
-      createModel: vi.fn(() => "myModel"),
-      create: vi.fn((element: HTMLElement) => {
-        element.innerHTML = "SCRIPTING EDITOR MOCK";
-        return "myEditor";
-      }),
-    },
-    Uri: {
-      parse: vi.fn((path: string) => path),
-    },
-  };
-});
+vi.mock("monaco-editor");
+vi.mock("@/scripting-service");
 
 describe("ScriptingEditor", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
   const doMount = (
     args: {
       props: InstanceType<typeof ScriptingEditor>["$props"];
@@ -236,5 +228,13 @@ describe("ScriptingEditor", () => {
         expect(rightPane.size).toBe(25);
       });
     });
+  });
+
+  it("emits monaco-created event", async () => {
+    const { wrapper } = doMount();
+    await flushPromises();
+    expect(wrapper.emitted()).toHaveProperty("monaco-created", [
+      [{ editor: "myEditor", editorModel: "myModel" }],
+    ]);
   });
 });

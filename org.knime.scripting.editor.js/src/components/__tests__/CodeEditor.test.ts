@@ -3,30 +3,8 @@ import { flushPromises, mount } from "@vue/test-utils";
 import CodeEditor from "../CodeEditor.vue";
 import * as monaco from "monaco-editor";
 
-vi.mock("monaco-editor", () => {
-  return {
-    editor: {
-      createModel: vi.fn(() => "myModel"),
-      create: vi.fn((element: HTMLElement) => {
-        element.innerHTML = "SCRIPTING EDITOR MOCK";
-        return "myEditor";
-      }),
-    },
-    Uri: {
-      parse: vi.fn((path: string) => path),
-    },
-  };
-});
-
-vi.mock("@/scripting-service", () => {
-  return {
-    getScriptingService: vi.fn(() => ({
-      getInitialSettings: vi.fn(() =>
-        Promise.resolve({ script: "myInitialScript" }),
-      ),
-    })),
-  };
-});
+vi.mock("monaco-editor");
+vi.mock("@/scripting-service");
 
 describe("CodeEditor", () => {
   afterEach(() => {

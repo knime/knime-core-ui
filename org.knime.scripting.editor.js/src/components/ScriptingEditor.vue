@@ -3,6 +3,7 @@ import { defineComponent, type PropType } from "vue";
 import { Splitpanes, Pane } from "splitpanes";
 import "splitpanes/dist/splitpanes.css";
 import CodeEditor from "./CodeEditor.vue";
+import type { editor } from "monaco-editor";
 
 type PaneSizes = {
   [key in "left" | "right" | "bottom"]: number;
@@ -111,6 +112,15 @@ export default defineComponent({
 
       this.resizePane(newRightPaneSize, "right", false);
     },
+    onMonacoCreated({
+      editor,
+      editorModel,
+    }: {
+      editor: editor.IStandaloneCodeEditor;
+      editorModel: editor.ITextModel;
+    }) {
+      this.$emit("monaco-created", { editor, editorModel });
+    },
   },
 });
 </script>
@@ -172,7 +182,11 @@ export default defineComponent({
                 :size="usedHorizontalCodeEditorPaneSize"
                 min-size="25"
               >
-                <CodeEditor :language="language" :file-name="fileName" />
+                <CodeEditor
+                  :language="language"
+                  :file-name="fileName"
+                  @monaco-created="onMonacoCreated"
+                />
               </pane>
               <pane ref="rightPane" :size="currentPaneSizes.right">
                 <slot name="rightPane" />
