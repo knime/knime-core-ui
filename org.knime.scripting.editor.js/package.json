@@ -29,6 +29,7 @@
     "monaco-editor": "0.41.0",
     "pinia": "2.1.4",
     "splitpanes": "3.1.5",
+    "vscode-languageserver-protocol": "3.17.3",
     "vue": "3.x",
     "webapps-common": "file:webapps-common",
     "xterm": "5.2.1",

@@ -3,6 +3,9 @@ import {
   JsonDataService,
 } from "@knime/ui-extension-service";
 import type { ConsoleText } from "./components/OutputConsole.vue";
+import type { editor } from "monaco-editor";
+import { MonacoLSPConnection } from "./lsp/connection";
+import { KnimeMessageReader, KnimeMessageWriter } from "./lsp/knime-io";
 
 export type NodeSettings = { script: string };
 
@@ -17,6 +20,7 @@ class ScriptingService {
   private _eventHandlers: { [type: string]: (args: any) => void } = {};
   private _runEventPoller: boolean = true;
   private _editorService: EditorService = new EditorService();
+  private _monacoLSPConnection: MonacoLSPConnection | null = null;
 
   constructor() {
     const _createKnimeService = async () => {
@@ -73,10 +77,6 @@ class ScriptingService {
     });
   }
 
-  public async startLanguageServer(): Promise<void> {
-    await this.sendToService("startLanguageServer");
-  }
-
   public async getInitialSettings(): Promise<NodeSettings> {
     return (await this._jsonDataService).initialData();
   }
@@ -121,6 +121,23 @@ class ScriptingService {
 
   public getSelectedLines(): string | null {
     return this._editorService.getSelectedLines();
+  }
+
+  public async startLSPConnection(
+    editorModel: editor.ITextModel,
+  ): Promise<void> {
+    await this.sendToService("startLanguageServer");
+    this._monacoLSPConnection = await MonacoLSPConnection.create(
+      editorModel,
+      new KnimeMessageReader(),
+      new KnimeMessageWriter(),
+    );
+  }
+
+  public async configureLSPServer(settings: any): Promise<void> {
+    if (this._monacoLSPConnection) {
+      await this._monacoLSPConnection.changeConfiguration(settings);
+    }
   }
 }
 
