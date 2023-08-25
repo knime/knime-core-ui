@@ -26,7 +26,6 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
-      "monaco-editor": process.env.NODE_ENV === "test" ? "_" : "monaco-editor", // We mock monaco in the test environment
     },
   },
   build: {
@@ -48,6 +47,12 @@ export default defineConfig({
     transformMode: {
       web: [/\.[jt]sx$/],
     },
+    alias: [
+      {
+        find: /^monaco-editor$/,
+        replacement: `${__dirname}/node_modules/monaco-editor/esm/vs/editor/editor.api.js`,
+      },
+    ],
     coverage: {
       all: true,
       exclude: [

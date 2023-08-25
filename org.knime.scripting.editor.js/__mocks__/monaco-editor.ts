@@ -18,3 +18,8 @@ export const editor = {
 export const Uri = {
   parse: vi.fn((path: string) => path),
 };
+
+export const languages = {
+  registerHoverProvider: vi.fn(),
+  registerCompletionItemProvider: vi.fn(),
+};
