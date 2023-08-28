@@ -54,6 +54,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 
 import org.knime.core.node.NodeLogger;
@@ -97,8 +98,8 @@ public final class LanguageServerProxy implements AutoCloseable {
         }
 
         m_stdoutStream = m_process.getInputStream();
-        m_stdoutReader = new BufferedReader(new InputStreamReader(m_stdoutStream));
-        m_stdinWriter = new BufferedWriter(new OutputStreamWriter(m_process.getOutputStream()));
+        m_stdoutReader = new BufferedReader(new InputStreamReader(m_stdoutStream, StandardCharsets.UTF_8));
+        m_stdinWriter = new BufferedWriter(new OutputStreamWriter(m_process.getOutputStream(), StandardCharsets.UTF_8));
 
         m_messageReaderThread = new Thread(this::parseMessages);
         m_messageReaderThread.start();
@@ -141,7 +142,11 @@ public final class LanguageServerProxy implements AutoCloseable {
             try {
                 line = m_stdoutReader.readLine();
                 LOGGER.debug("Line from LS: '" + line + "'");
-                if (line.isBlank()) {
+                if (line == null) {
+                    // TODO handle if the process should not have died
+                    // End of stream
+                    break;
+                } else if (line.isBlank()) {
                     // Blank line before the content: Read the content
                     final char[] buffer = new char[nextContentLength];
                     // TODO(AP-19338) nextContentLength is bytes but here we use it as chars
@@ -196,7 +201,7 @@ public final class LanguageServerProxy implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         m_messageReaderThread.interrupt();
         m_process.destroy();
     }

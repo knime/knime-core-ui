@@ -73,6 +73,10 @@ class ScriptingService {
     });
   }
 
+  public async startLanguageServer(): Promise<void> {
+    await this.sendToService("startLanguageServer");
+  }
+
   public async getInitialSettings(): Promise<NodeSettings> {
     return (await this._jsonDataService).initialData();
   }
