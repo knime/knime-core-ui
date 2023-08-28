@@ -55,6 +55,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.knime.core.node.NodeLogger;
@@ -73,7 +74,7 @@ import org.knime.scripting.editor.lsp.LanguageServerProxy;
  */
 public class ScriptingService {
 
-    private final Optional<LanguageServerProxy> m_languageServer;
+    private final Supplier<LanguageServerProxy> m_languageServerCreator;
 
     // TODO(AP-19341) Replace the event queue with Java->JS events
     private final BlockingQueue<Event> m_eventQueue;
@@ -81,6 +82,8 @@ public class ScriptingService {
     private final Optional<WorkflowControl> m_workflowControl;
 
     private final Predicate<FlowVariable> m_flowVariableFilter;
+
+    private Optional<LanguageServerProxy> m_languageServer;
 
     /**
      * Create a new {@link ScriptingService} without a language server.
@@ -92,24 +95,18 @@ public class ScriptingService {
     /**
      * Create a new {@link ScriptingService}.
      *
-     * @param languageServer the language server that will be made available to the frontend client
+     * @param languageServerCreator create a language server that will be available to the frontend. Can be
+     *            <code>null</code>.
      * @param flowVariableFilter filters flowvariable given a set of allowed types.
      */
-    public ScriptingService(final LanguageServerProxy languageServer,
+    public ScriptingService(final Supplier<LanguageServerProxy> languageServerCreator,
         final Predicate<FlowVariable> flowVariableFilter) {
-        m_languageServer = Optional.ofNullable(languageServer);
+        m_languageServerCreator = Optional.ofNullable(languageServerCreator).orElse(() -> null);
+        m_languageServer = Optional.empty();
         m_eventQueue = new LinkedBlockingQueue<>();
         m_workflowControl = Optional.ofNullable(NodeContext.getContext()) //
             .map(NodeContext::getNodeContainer) //
             .map(WorkflowControl::new);
-
-        // TODO(AP-19338) LSP lifetime
-        // React to language server messages
-        m_languageServer.ifPresent( //
-            ls -> ls.setMessageListener( //
-                m -> sendEvent("language-server", m) //
-            ) //
-        );
         m_flowVariableFilter = flowVariableFilter;
     }
 
@@ -158,6 +155,15 @@ public class ScriptingService {
         return new RpcService();
     }
 
+    /**
+     * Deactivate the service. This stops the language server and clears the event queue.
+     */
+    public void onDeactivate() {
+        m_languageServer.ifPresent(LanguageServerProxy::close);
+        m_languageServer = Optional.empty();
+        m_eventQueue.clear();
+    }
+
     /** The service that provides its methods via JSON-RPC to the frontend. */
     public class RpcService {
 
@@ -186,6 +192,16 @@ public class ScriptingService {
                 Thread.currentThread().interrupt();
                 return Optional.empty();
             }
+        }
+
+        public void startLanguageServer() {
+            m_languageServer = Optional.ofNullable(m_languageServerCreator.get());
+            m_languageServer.ifPresent( //
+                // React to language server messages
+                ls -> ls.setMessageListener( //
+                    m -> sendEvent("language-server", m) //
+                ) //
+            );
         }
 
         /**
