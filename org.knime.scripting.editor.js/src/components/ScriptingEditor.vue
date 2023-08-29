@@ -183,7 +183,7 @@ export default defineComponent({
     />
     <splitpanes
       ref="mainSplitpane"
-      class="common-splitter unset-transition"
+      class="common-splitter unset-transition main-splitpane"
       :dbl-click-splitter="false"
       :class="{
         'left-facing-splitter': !isLeftPaneCollapsed,
@@ -248,7 +248,7 @@ export default defineComponent({
                 </CodeEditorControlBar>
               </pane>
               <pane ref="rightPane" :size="currentPaneSizes.right">
-                <slot name="rightPane" />
+                <slot name="right-pane" />
               </pane>
             </splitpanes>
           </pane>
@@ -271,9 +271,11 @@ export default defineComponent({
 
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 15px);
+  height: calc(100vh);
   width: 100%;
   border-left: 1px solid var(--knime-silver-sand);
+  border-right: 1px solid var(--knime-silver-sand);
+  flex-grow: 0;
 }
 
 /* NB: we disable the rule because of classes defined by the splitpanes package */
@@ -330,6 +332,10 @@ export default defineComponent({
 
 .splitpanes__pane {
   transition: unset;
+}
+
+.main-splitpane {
+  height: calc(100vh - (2 * var(--controls-height)));
 }
 
 /* stylelint-enable selector-class-pattern */

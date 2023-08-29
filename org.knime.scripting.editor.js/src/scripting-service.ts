@@ -109,6 +109,14 @@ class ScriptingService {
     this.registerEventHandler("console", handler);
   }
 
+  public sendToConsole(text: ConsoleText) {
+    const consoleEventHandler = this._eventHandlers?.console;
+    if (typeof consoleEventHandler === "undefined") {
+      throw Error("Console handler has not yet been registered");
+    }
+    consoleEventHandler(text);
+  }
+
   public initEditorService(
     editor: monaco.IStandaloneCodeEditor,
     editorModel: monaco.ITextModel,
