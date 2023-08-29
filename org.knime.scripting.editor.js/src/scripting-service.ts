@@ -1,5 +1,4 @@
 import {
-  DialogService,
   IFrameKnimeService,
   JsonDataService,
 } from "@knime/ui-extension-service";
@@ -14,7 +13,6 @@ import { editor as monaco } from "monaco-editor";
 class ScriptingService {
   private _knimeService: Promise<IFrameKnimeService>;
   private _jsonDataService: Promise<JsonDataService>;
-  private _dialogService: Promise<DialogService>;
   private _settings: NodeSettings | null = null;
   private _eventHandlers: { [type: string]: (args: any) => void } = {};
   private _runEventPoller: boolean = true;
@@ -35,12 +33,6 @@ class ScriptingService {
       return jsonDataService;
     };
     this._jsonDataService = _createJsonDataService();
-
-    const _createDialogService = async () => {
-      const resolvedKnimeService = await this._knimeService;
-      return new DialogService(resolvedKnimeService);
-    };
-    this._dialogService = _createDialogService();
 
     // Start the event poller
     this.eventPoller();
@@ -83,11 +75,6 @@ class ScriptingService {
 
   public async getInitialSettings(): Promise<NodeSettings> {
     return (await this._jsonDataService).initialData();
-  }
-
-  public async getFlowVariableSettings(): Promise<any> {
-    // TODO: the ui-extension-service typings are "any" here but we do know something of the type
-    return (await this._dialogService).getFlowVariableSettings();
   }
 
   public async saveSettings(settings: NodeSettings): Promise<void> {

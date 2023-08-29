@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import sleep from "webapps-common/util/sleep";
 
 import {
-  DialogService,
   IFrameKnimeService,
   JsonDataService,
 } from "@knime/ui-extension-service";
@@ -19,7 +18,6 @@ vi.mock("../editor-service", () => ({
 vi.mock("@knime/ui-extension-service", () => ({
   IFrameKnimeService: vi.fn(),
   JsonDataService: vi.fn(),
-  DialogService: vi.fn(),
 }));
 
 const lock = () => {
@@ -33,7 +31,6 @@ const lock = () => {
 describe("scripting-service", () => {
   let _knimeService: any,
     _jsonDataService: any,
-    _dialogService: any,
     getScriptingService: (mock?: ScriptingServiceType) => ScriptingServiceType,
     getScriptingServiceWithoutEventPoller: () => ScriptingServiceType;
 
@@ -62,11 +59,6 @@ describe("scripting-service", () => {
       applyData: vi.fn(() => {}),
     };
     vi.mocked(JsonDataService).mockReturnValue(_jsonDataService);
-
-    _dialogService = {
-      getFlowVariableSettings: vi.fn(() => Promise.resolve({})),
-    };
-    vi.mocked(DialogService).mockReturnValue(_dialogService);
 
     vi.mocked(EditorService).mockReturnValue(editorServiceMock);
   });
@@ -106,12 +98,6 @@ describe("scripting-service", () => {
     await getScriptingServiceWithoutEventPoller().sendToService("dummy");
     expect(JsonDataService).toHaveBeenCalled();
     expect(JsonDataService).toHaveBeenCalledWith(_knimeService);
-  });
-
-  it("initializes the DialogService with the KnimeService", async () => {
-    await getScriptingServiceWithoutEventPoller().getFlowVariableSettings();
-    expect(DialogService).toHaveBeenCalled();
-    expect(DialogService).toHaveBeenCalledWith(_knimeService);
   });
 
   it("sends requests to the JsonDataService", async () => {
