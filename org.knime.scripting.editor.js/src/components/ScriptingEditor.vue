@@ -150,6 +150,7 @@ export default defineComponent({
       editorModel: editor.ITextModel;
     }) {
       this.editorModel = editorModel;
+      getScriptingService().initEditorService(editor, editorModel);
       this.$emit("monaco-created", { editor, editorModel });
     },
     saveSettings() {
@@ -252,7 +253,6 @@ export default defineComponent({
             </splitpanes>
           </pane>
           <pane ref="bottomPane" :size="currentPaneSizes.bottom">
-            <slot name="bottomPane" />
             <OutputConsole @console-created="onConsoleCreated" />
           </pane>
         </splitpanes>
