@@ -8,6 +8,8 @@ import {
 } from "@knime/ui-extension-service";
 import type { ScriptingServiceType } from "../scripting-service";
 
+vi.mock("monaco-editor");
+
 vi.mock("@knime/ui-extension-service", () => ({
   IFrameKnimeService: vi.fn(),
   JsonDataService: vi.fn(),

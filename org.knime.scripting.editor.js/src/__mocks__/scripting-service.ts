@@ -6,6 +6,7 @@ export const scriptingServiceMock = {
   ),
   registerConsoleEventHandler: vi.fn(),
   saveSettings: vi.fn(() => {}),
+  initEditorService: vi.fn(() => {}),
 };
 
 export const getScriptingService = vi.fn(() => scriptingServiceMock);
