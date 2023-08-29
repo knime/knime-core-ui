@@ -94,3 +94,31 @@ onUnmounted(() => {
   height: calc(100% - var(--controls-height));
 }
 </style>
+
+<style lang="postcss">
+.monaco-hover {
+  & h1 {
+    font-size: 1.5em;
+  }
+
+  & h2 {
+    font-size: 1.3em;
+  }
+
+  & h3 {
+    font-size: 1.1em;
+  }
+
+  & h4 {
+    font-size: 1em;
+  }
+
+  & h5 {
+    font-size: 0.9em;
+  }
+
+  & h6 {
+    font-size: 0.8em;
+  }
+}
+</style>
