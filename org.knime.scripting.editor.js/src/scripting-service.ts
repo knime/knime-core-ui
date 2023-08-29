@@ -7,6 +7,10 @@ import type { ConsoleText } from "./components/OutputConsole.vue";
 
 export type NodeSettings = { script: string };
 
+import { EditorService } from "./editor-service";
+
+import { editor as monaco } from "monaco-editor";
+
 class ScriptingService {
   private _knimeService: Promise<IFrameKnimeService>;
   private _jsonDataService: Promise<JsonDataService>;
@@ -14,6 +18,7 @@ class ScriptingService {
   private _settings: NodeSettings | null = null;
   private _eventHandlers: { [type: string]: (args: any) => void } = {};
   private _runEventPoller: boolean = true;
+  private _editorService: EditorService = new EditorService();
 
   constructor() {
     const _createKnimeService = async () => {
@@ -102,6 +107,21 @@ class ScriptingService {
 
   public registerConsoleEventHandler(handler: (text: ConsoleText) => void) {
     this.registerEventHandler("console", handler);
+  }
+
+  public initEditorService(
+    editor: monaco.IStandaloneCodeEditor,
+    editorModel: monaco.ITextModel,
+  ) {
+    this._editorService.initEditorService({ editor, editorModel });
+  }
+
+  public getScript(): string | null {
+    return this._editorService.getScript();
+  }
+
+  public getSelectedLines(): string | null {
+    return this._editorService.getSelectedLines();
   }
 }
 
