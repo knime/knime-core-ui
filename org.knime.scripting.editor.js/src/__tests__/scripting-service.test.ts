@@ -7,8 +7,14 @@ import {
   JsonDataService,
 } from "@knime/ui-extension-service";
 import type { ScriptingServiceType } from "../scripting-service";
+import { EditorService } from "../editor-service";
+import { editorServiceMock } from "@/__mocks__/editor-service";
 
 vi.mock("monaco-editor");
+
+vi.mock("../editor-service", () => ({
+  EditorService: vi.fn(),
+}));
 
 vi.mock("@knime/ui-extension-service", () => ({
   IFrameKnimeService: vi.fn(),
@@ -61,6 +67,8 @@ describe("scripting-service", () => {
       getFlowVariableSettings: vi.fn(() => Promise.resolve({})),
     };
     vi.mocked(DialogService).mockReturnValue(_dialogService);
+
+    vi.mocked(EditorService).mockReturnValue(editorServiceMock);
   });
 
   afterEach(() => {
@@ -263,6 +271,35 @@ describe("scripting-service", () => {
         text: "my console text",
         stderr: false,
       });
+    });
+  });
+
+  describe("editor service", () => {
+    it("initializes editor service", () => {
+      const scriptingService = getScriptingServiceWithoutEventPoller();
+      const editorMock = "editorMock";
+      const editorModelMock = "editorModelMock";
+
+      scriptingService.initEditorService(
+        editorMock as any,
+        editorModelMock as any,
+      );
+      expect(editorServiceMock.initEditorService).toHaveBeenCalledWith({
+        editor: editorMock,
+        editorModel: editorModelMock,
+      });
+    });
+
+    it("calls getScript of editorService", () => {
+      const scriptingService = getScriptingServiceWithoutEventPoller();
+      scriptingService.getScript();
+      expect(editorServiceMock.getScript).toHaveBeenCalled();
+    });
+
+    it("calls getSelectedLines of editorService", () => {
+      const scriptingService = getScriptingServiceWithoutEventPoller();
+      scriptingService.getSelectedLines();
+      expect(editorServiceMock.getSelectedLines).toHaveBeenCalled();
     });
   });
 });
