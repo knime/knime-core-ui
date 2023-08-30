@@ -296,7 +296,12 @@ describe("ScriptingEditor", () => {
     const { wrapper } = doMount();
     await flushPromises();
     expect(wrapper.emitted()).toHaveProperty("monaco-created", [
-      [{ editor: "myEditor", editorModel: expect.anything() }],
+      [
+        {
+          editor: expect.objectContaining({ name: "myEditor" }),
+          editorModel: expect.anything(),
+        },
+      ],
     ]);
   });
 

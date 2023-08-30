@@ -39,7 +39,12 @@ describe("CodeEditor", () => {
     const wrapper = mount(CodeEditor);
     await flushPromises();
     expect(wrapper.emitted()).toHaveProperty("monaco-created", [
-      [{ editor: "myEditor", editorModel: expect.anything() }],
+      [
+        {
+          editor: expect.objectContaining({ name: "myEditor" }),
+          editorModel: expect.anything(),
+        },
+      ],
     ]);
   });
 
