@@ -101,6 +101,7 @@ public abstract class AbstractCodeAssistant {
 
         http.setFixedLengthStreamingMode(length);
         http.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+        http.setRequestProperty ("Authorization", m_authenticationToken);
         http.connect();
 
         try (OutputStream os = http.getOutputStream()) {
@@ -134,12 +135,5 @@ public abstract class AbstractCodeAssistant {
             throw new IOException("Could not connect to AI service due to an authentication error."
                 + " Please make sure you are logged in");
         }
-    }
-
-    /**
-     * @return the authentication token for the currently selected KNIME Hub
-     */
-    protected String getAuthenticationToken() {
-        return m_authenticationToken;
     }
 }

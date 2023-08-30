@@ -1,33 +1,25 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import Button from "webapps-common/ui/components/Button.vue";
 import AiButton from "webapps-common/ui/assets/img/icons/ai-brain.svg";
-import { getScriptingService } from "@/scripting-service";
 
-type CodeSuggestion = {
-  code: string;
-  status: "SUCCESS" | "ERROR";
-  error: string | undefined;
-};
+import AiBar from "./AiBar.vue";
 
-const queryCodeSuggestion = async () => {
-  let scriptingService = getScriptingService();
-  let suggestion = (await scriptingService.sendToService("suggestCode", [
-    "Print a sequence of 10 random numbers",
-    scriptingService.getScript(),
-  ])) as CodeSuggestion;
-  if (suggestion.status === "ERROR") {
-    scriptingService.sendToConsole({
-      text: `ERROR: ${suggestion.error}`,
-    });
-  } else {
-    scriptingService.setScript(JSON.parse(suggestion.code).code);
-  }
-};
+const showBar = ref<boolean>(false);
 </script>
 
 <template>
-  <div class="container">
-    <Button compact on-dark class="ai-button" @click="queryCodeSuggestion()">
+  <div v-show="showBar" class="ai-bar">
+    <AiBar />
+  </div>
+  <div class="controls">
+    <Button
+      ref="aiButton"
+      compact
+      on-dark
+      class="ai-button"
+      @click="showBar = !showBar"
+    >
       <AiButton />
     </Button>
     <slot name="controls" class="button-controls" />
@@ -35,7 +27,13 @@ const queryCodeSuggestion = async () => {
 </template>
 
 <style lang="postcss" scoped>
-.container {
+.ai-bar {
+  position: relative;
+  flex: 0 0 auto; /* Let the element ignore its size and not grow or shrink */
+  overflow: visible; /* Allow the element to overflow */
+}
+
+.controls {
   display: flex;
   justify-content: space-between;
   align-content: center;
