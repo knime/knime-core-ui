@@ -74,7 +74,7 @@ onUnmounted(() => {
 
 <template>
   <div ref="termRef" class="terminal" />
-  <Button class="write-button" compact @click="term.clear()">clear </Button>
+  <Button class="clear-button" compact @click="term.clear()">clear </Button>
 </template>
 
 <style lang="postcss">
