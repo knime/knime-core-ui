@@ -263,8 +263,6 @@ export default defineComponent({
 </template>
 
 <style lang="postcss" scoped>
-@import url("webapps-common/ui/css");
-
 .layout {
   --controls-height: 49px;
   --description-button-size: 15px;

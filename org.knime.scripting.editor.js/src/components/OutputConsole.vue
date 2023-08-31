@@ -78,7 +78,6 @@ onUnmounted(() => {
 </template>
 
 <style lang="postcss">
-@import url("webapps-common/ui/css");
 @import url("xterm/css/xterm.css");
 
 .terminal {
