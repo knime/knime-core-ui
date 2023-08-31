@@ -61,4 +61,27 @@ export class EditorService {
 
     return this.editorModel.getValueInRange(selectionLineRange);
   }
+
+  /**
+   * Set a new script which will replace the full editor content.
+   * Can be undone via Ctrl+Z.
+   *
+   * @param newScript the new script
+   */
+  public setScript(newScript: string) {
+    if (typeof this.editorModel === "undefined") {
+      return;
+    }
+
+    this.editorModel.pushEditOperations(
+      [],
+      [
+        {
+          range: this.editorModel.getFullModelRange(),
+          text: newScript,
+        },
+      ],
+      () => null,
+    );
+  }
 }

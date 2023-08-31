@@ -146,6 +146,10 @@ class ScriptingService {
       await this._monacoLSPConnection.changeConfiguration(settings);
     }
   }
+
+  public setScript(newScript: string) {
+    this._editorService.setScript(newScript);
+  }
 }
 
 export type ScriptingServiceType = Pick<
