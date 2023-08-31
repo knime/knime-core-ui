@@ -24,7 +24,7 @@
     "prepare": "cd .. && husky install ./org.knime.scripting.editor.js/.husky"
   },
   "dependencies": {
-    "@knime/ui-extension-service": "0.15.0",
+    "@knime/ui-extension-service": "0.16.0",
     "eslint-import-resolver-typescript": "3.5.5",
     "monaco-editor": "0.40.0",
     "monaco-languageclient": "4.0.3",
