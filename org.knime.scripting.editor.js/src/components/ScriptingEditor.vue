@@ -156,7 +156,7 @@ export default defineComponent({
     saveSettings() {
       const editorModel = toRaw(this.editorModel);
       if (editorModel) {
-        getScriptingService().saveSettings({ script: editorModel?.getValue() });
+        getScriptingService().saveSettings({ script: editorModel.getValue() });
       }
       // TODO: close window
     },
