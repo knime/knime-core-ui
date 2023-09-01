@@ -1,11 +1,33 @@
 <script setup lang="ts">
 import Button from "webapps-common/ui/components/Button.vue";
 import AiButton from "webapps-common/ui/assets/img/icons/ai-brain.svg";
+import { getScriptingService } from "@/scripting-service";
+
+type CodeSuggestion = {
+  code: string;
+  status: "SUCCESS" | "ERROR";
+  error: string | undefined;
+};
+
+const queryCodeSuggestion = async () => {
+  let scriptingService = getScriptingService();
+  let suggestion = (await scriptingService.sendToService("suggestCode", [
+    "Print a sequence of 10 random numbers",
+    scriptingService.getScript(),
+  ])) as CodeSuggestion;
+  if (suggestion.status === "ERROR") {
+    scriptingService.sendToConsole({
+      text: `ERROR: ${suggestion.error}`,
+    });
+  } else {
+    scriptingService.setScript(JSON.parse(suggestion.code).code);
+  }
+};
 </script>
 
 <template>
   <div class="container">
-    <Button compact on-dark class="ai-button">
+    <Button compact on-dark class="ai-button" @click="queryCodeSuggestion()">
       <AiButton />
     </Button>
     <slot name="controls" class="button-controls" />
