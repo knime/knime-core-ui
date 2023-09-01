@@ -48,13 +48,17 @@
  */
 package org.knime.scripting.editor.lsp;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import org.knime.core.node.NodeLogger;
@@ -72,37 +76,41 @@ public final class LanguageServerProxy implements AutoCloseable {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(LanguageServerProxy.class);
 
+    private static final AtomicInteger STDOUT_THREAD_ID = new AtomicInteger(0);
+
+    private static final AtomicInteger STDERR_THREAD_ID = new AtomicInteger(0);
+
     private final Process m_process;
 
-    private final Thread m_messageReaderThread;
+    private final Thread m_stdoutReaderThread;
 
-    private final InputStream m_stdoutStream;
+    private final Thread m_stderrReaderThread;
 
-    private final BufferedReader m_stdoutReader;
-
-    private final BufferedWriter m_stdinWriter;
+    private final OutputStream m_stdinStream;
 
     private Consumer<String> m_messageListener;
+
+    private AtomicBoolean m_closed = new AtomicBoolean(false);
 
     /**
      * Create a new {@link LanguageServerProxy} that uses the given {@link ProcessBuilder} to start the language server.
      *
      * @param pb a process builder which can start the language server process
+     * @throws IOException if an I/O error occurs starting the process
      */
-    public LanguageServerProxy(final ProcessBuilder pb) {
-        try {
-            m_process = pb.start();
-        } catch (IOException e) {
-            // TODO(AP-19338) Handle or throw the IOException directly
-            throw new IllegalStateException(e);
-        }
+    public LanguageServerProxy(final ProcessBuilder pb) throws IOException {
+        m_process = pb.start();
+        m_stdinStream = new BufferedOutputStream(m_process.getOutputStream());
 
-        m_stdoutStream = m_process.getInputStream();
-        m_stdoutReader = new BufferedReader(new InputStreamReader(m_stdoutStream, StandardCharsets.UTF_8));
-        m_stdinWriter = new BufferedWriter(new OutputStreamWriter(m_process.getOutputStream(), StandardCharsets.UTF_8));
+        // Start reading the messages from the server
+        m_stdoutReaderThread = new Thread(this::readServerMessages);
+        m_stdoutReaderThread.setName("lsp-proxy-stdout-" + STDOUT_THREAD_ID.getAndIncrement());
+        m_stdoutReaderThread.start();
 
-        m_messageReaderThread = new Thread(this::parseMessages);
-        m_messageReaderThread.start();
+        // Consume the stderr stream
+        m_stderrReaderThread = new Thread(this::readServerStderr);
+        m_stderrReaderThread.setName("lsp-proxy-stderr-" + STDERR_THREAD_ID.getAndIncrement());
+        m_stderrReaderThread.start();
     }
 
     /**
@@ -112,14 +120,15 @@ public final class LanguageServerProxy implements AutoCloseable {
      */
     public synchronized void sendMessage(final String message) {
         // Send the message
-        LOGGER.debug("Sending to LS server: '" + message + "'");
+        LOGGER.debug("LSP message - client: '" + message + "'");
 
         try {
-            // TODO(AP-19338) Content-Length should be num bytes but we set it to num chars
-            m_stdinWriter.write("Content-Length: " + message.length() + "\r\n");
-            m_stdinWriter.write("\r\n");
-            m_stdinWriter.write(message);
-            m_stdinWriter.flush();
+            var messageBytes = message.getBytes(StandardCharsets.UTF_8);
+            // NB: The default Content-Type of "application/vscode-jsonrpc; charset=utf-8" is fine
+            var header = "Content-Length: " + messageBytes.length + "\r\n\r\n";
+            m_stdinStream.write(header.getBytes(StandardCharsets.UTF_8));
+            m_stdinStream.write(messageBytes);
+            m_stdinStream.flush();
         } catch (final IOException e) {
             throw new IllegalStateException(e);
         }
@@ -134,75 +143,121 @@ public final class LanguageServerProxy implements AutoCloseable {
         m_messageListener = messageListener;
     }
 
-    private void parseMessages() {
-        String line = "";
-        int nextContentLength = 0;
+    @Override
+    public void close() {
+        if (!m_closed.getAndSet(true)) {
+            m_stdoutReaderThread.interrupt();
+            m_stderrReaderThread.interrupt();
+            m_process.destroy();
+        }
+    }
 
-        while (true) { // NOSONAR: Never end  TODO
-            try {
-                line = m_stdoutReader.readLine();
-                LOGGER.debug("Line from LS: '" + line + "'");
-                if (line == null) {
-                    // TODO handle if the process should not have died
-                    // End of stream
-                    break;
-                } else if (line.isBlank()) {
-                    // Blank line before the content: Read the content
-                    final char[] buffer = new char[nextContentLength];
-                    // TODO(AP-19338) nextContentLength is bytes but here we use it as chars
-                    int read = 0;
-                    while (read < nextContentLength) {
-                        read += m_stdoutReader.read(buffer, read, nextContentLength - read);
-                    }
-                    final String message = new String(buffer);
-                    LOGGER.debug("Sending to LS client: " + message);
-                    notifyMessageListener(message);
-                } else {
-                    if (!line.startsWith("Content")) {
-                        LOGGER.warn("LS line not header: '" + line + "'");
-                    }
-                    // Read the header line
-                    final String[] lineKeyVal = line.split(":");
-                    final String headerKey = lineKeyVal[0];
-                    final String headerVal = lineKeyVal[1];
-                    switch (headerKey.strip()) {
-                        case "Content-Length":
-                            nextContentLength = Integer.parseInt(headerVal.strip());
-                            break;
-
-                        case "Content-Type":
-                            if (!("application/vscode-jsonrpc; charset=utf-8".equals(headerVal.strip())
-                                // NB: "utf8" instead of "utf-8" for backwards compatibility
-                                || "application/vscode-jsonrpc; charset=utf8".equals(headerVal.strip()))) {
-                                // TODO(AP-19338) how should we handle errors?
-                                LOGGER.error("Invalid content type");
-                                throw new IllegalStateException("Invalid content type");
-                            }
-                            break;
-
-                        default:
-                            // TODO(AP-19338) how should we handle errors?
-                            LOGGER.error("Invalid header field: " + headerKey);
-                            throw new IllegalStateException("Invalid header field: " + headerKey);
-                    }
+    /** Reads messages from the server stdout and calls the listener until the proxy is closed */
+    private void readServerMessages() {
+        try (var stdout = new BufferedInputStream(m_process.getInputStream())) {
+            while (!m_closed.get()) {
+                var contentLength = readServerMessageHeader(stdout);
+                var content = readServerMessageContent(stdout, contentLength);
+                LOGGER.debug("LSP message - server: " + content);
+                if (m_messageListener != null) {
+                    m_messageListener.accept(content);
                 }
-            } catch (IOException e) {
-                // TODO(AP-19338) how should we handle errors?
-                LOGGER.error(e);
+            }
+        } catch (IOException e) {
+            if (!m_closed.get()) {
+                LOGGER.error(e.getMessage(), e);
                 throw new IllegalStateException(e);
             }
         }
     }
 
-    private void notifyMessageListener(final String message) {
-        if (m_messageListener != null) {
-            m_messageListener.accept(message);
+    /** Read the header from the server stdout and return the content length */
+    private static int readServerMessageHeader(final InputStream stdout) throws IOException {
+        int contentLength = -1;
+        while (true) {
+            var header = readServerMessageHeaderLine(stdout);
+            if (header.isBlank()) {
+                if (contentLength == -1) {
+                    // We did not read the content length yet
+                    LOGGER.warn("LSP server printed empty line but header is missing");
+                } else {
+                    // End of header lines
+                    return contentLength;
+                }
+            } else if (!header.startsWith("Content")) {
+                LOGGER.warn("LSP server printed unexpected line instead of header: " + header);
+            } else {
+                // Read the header line
+                final String[] lineKeyVal = header.split(":");
+                final String headerKey = lineKeyVal[0];
+                final String headerVal = lineKeyVal[1];
+                switch (headerKey.strip()) {
+                    case "Content-Length":
+                        contentLength = Integer.parseInt(headerVal.strip());
+                        break;
+
+                    case "Content-Type":
+                        handleServerMessageContentType(headerVal);
+                        break;
+
+                    default:
+                        LOGGER.error("LSP server printed invalid header field: " + headerKey);
+                }
+            }
         }
     }
 
-    @Override
-    public void close() {
-        m_messageReaderThread.interrupt();
-        m_process.destroy();
+    /** Read a Header line from the stdout stream which is terminated by '\r\n' */
+    private static String readServerMessageHeaderLine(final InputStream stdout) throws IOException {
+        var bos = new ByteArrayOutputStream();
+        var lastByte = 0;
+        int byteRead;
+        while ((byteRead = stdout.read()) != -1) {
+            bos.write(byteRead);
+
+            // NB: The LSP defines that a Header line terminates with \r\n
+            if (lastByte == '\r' && byteRead == '\n') {
+                break;
+            }
+            lastByte = byteRead;
+        }
+        if (bos.size() >= 2) {
+            var bytes = bos.toByteArray();
+            return new String(bytes, 0, bytes.length - 2, StandardCharsets.UTF_8);
+        } else {
+            throw new IOException("Unexpected end of stream while reading a header line");
+        }
+    }
+
+    /** Read the content with the specified amount of bytes from the server stdout */
+    private static String readServerMessageContent(final InputStream stdout, final int contentLength)
+        throws IOException {
+        var content = stdout.readNBytes(contentLength);
+        return new String(content, StandardCharsets.UTF_8);
+    }
+
+    private void readServerStderr() {
+        try (var stderr = m_process.getErrorStream()) {
+            var stderrReader = new BufferedReader(new InputStreamReader(stderr, StandardCharsets.UTF_8));
+
+            while (!m_closed.get()) {
+                var line = stderrReader.readLine();
+                LOGGER.debug("LSP stderr line: '" + line + "'");
+            }
+        } catch (IOException e) {
+            if (!m_closed.get()) {
+                LOGGER.error(e.getMessage(), e);
+            }
+        }
+    }
+
+    /** Logs an error if the content type is unexpected */
+    private static void handleServerMessageContentType(final String contentType) {
+        // NB: We do not fail but just try to read the content as UTF-8
+        if (!("application/vscode-jsonrpc; charset=utf-8".equals(contentType.strip())
+            // NB: "utf8" instead of "utf-8" for backwards compatibility
+            || "application/vscode-jsonrpc; charset=utf8".equals(contentType.strip()))) {
+            LOGGER.error("Language server used invalid content type: " + contentType);
+        }
     }
 }

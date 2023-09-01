@@ -48,6 +48,7 @@
  */
 package org.knime.scripting.editor;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -55,7 +56,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.knime.core.node.NodeLogger;
@@ -74,7 +74,9 @@ import org.knime.scripting.editor.lsp.LanguageServerProxy;
  */
 public class ScriptingService {
 
-    private final Supplier<LanguageServerProxy> m_languageServerCreator;
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(ScriptingService.class);
+
+    private final LanguageServerStarter m_languageServerCreator;
 
     // TODO(AP-19341) Replace the event queue with Java->JS events
     private final BlockingQueue<Event> m_eventQueue;
@@ -99,7 +101,7 @@ public class ScriptingService {
      *            <code>null</code>.
      * @param flowVariableFilter filters flowvariable given a set of allowed types.
      */
-    public ScriptingService(final Supplier<LanguageServerProxy> languageServerCreator,
+    public ScriptingService(final LanguageServerStarter languageServerCreator,
         final Predicate<FlowVariable> flowVariableFilter) {
         m_languageServerCreator = Optional.ofNullable(languageServerCreator).orElse(() -> null);
         m_languageServer = Optional.empty();
@@ -188,20 +190,29 @@ public class ScriptingService {
             try {
                 return Optional.ofNullable(m_eventQueue.poll(GET_EVENT_TIMEOUT_MS, TimeUnit.MILLISECONDS));
             } catch (final InterruptedException e) {
-                NodeLogger.getLogger(ScriptingService.class).warn("Interrupted while waiting for the next event", e);
+                LOGGER.warn("Interrupted while waiting for the next event", e);
                 Thread.currentThread().interrupt();
                 return Optional.empty();
             }
         }
 
+        /**
+         * Start the LPS server which will receive messages via {@link #sendLanguageServerMessage(String)} and send
+         * events of the "language-server" type.
+         */
+        @SuppressWarnings("resource") // language server proxy closed by #onDeactivate
         public void startLanguageServer() {
-            m_languageServer = Optional.ofNullable(m_languageServerCreator.get());
-            m_languageServer.ifPresent( //
-                // React to language server messages
-                ls -> ls.setMessageListener( //
-                    m -> sendEvent("language-server", m) //
-                ) //
-            );
+            try {
+                m_languageServer = Optional.ofNullable(m_languageServerCreator.start());
+                m_languageServer.ifPresent( //
+                    // React to language server messages
+                    ls -> ls.setMessageListener( //
+                        m -> sendEvent("language-server", m) //
+                    ) //
+                );
+            } catch (IOException e) {
+                LOGGER.error("Starting the LSP server failed: " + e.getMessage(), e);
+            }
         }
 
         /**
@@ -264,5 +275,19 @@ public class ScriptingService {
             this.name = name;
             this.value = value;
         }
+    }
+
+    /**
+     * A supplier that starts an LSP server.
+     */
+    @FunctionalInterface
+    public interface LanguageServerStarter {
+        /**
+         * Start the LSP server.
+         *
+         * @return a proxy object which can communicate with the server
+         * @throws IOException if an I/O error occurs starting the process
+         */
+        LanguageServerProxy start() throws IOException;
     }
 }
