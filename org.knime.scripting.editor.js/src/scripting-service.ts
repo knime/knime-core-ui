@@ -2,15 +2,14 @@ import {
   IFrameKnimeService,
   JsonDataService,
 } from "@knime/ui-extension-service";
+import { editor as monaco } from "monaco-editor";
 import type { ConsoleText } from "./components/OutputConsole.vue";
+import { EditorService } from "./editor-service";
 import { MonacoLSPConnection } from "./lsp/connection";
 import { KnimeMessageReader, KnimeMessageWriter } from "./lsp/knime-io";
 
 export type NodeSettings = { script: string };
-
-import { EditorService } from "./editor-service";
-
-import { editor as monaco } from "monaco-editor";
+type LanugageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
 
 class ScriptingService {
   private _knimeService: Promise<IFrameKnimeService>;
@@ -126,12 +125,20 @@ class ScriptingService {
     if (typeof this._editorService.editorModel === "undefined") {
       throw Error("Editor model has not yet been initialized");
     }
-    await this.sendToService("connectToLanguageServer");
-    this._monacoLSPConnection = await MonacoLSPConnection.create(
-      this._editorService.editorModel,
-      new KnimeMessageReader(),
-      new KnimeMessageWriter(),
-    );
+    const status = (await this.sendToService(
+      "connectToLanguageServer",
+    )) as LanugageServerStatus;
+    if (status.status === "RUNNING") {
+      this._monacoLSPConnection = await MonacoLSPConnection.create(
+        this._editorService.editorModel,
+        new KnimeMessageReader(),
+        new KnimeMessageWriter(),
+      );
+    } else {
+      this.sendToConsole({
+        text: status.message ?? "Starting the language server failed",
+      });
+    }
   }
 
   public async configureLanguageServer(settings: any): Promise<void> {
