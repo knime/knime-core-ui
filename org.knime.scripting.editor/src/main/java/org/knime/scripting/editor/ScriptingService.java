@@ -201,7 +201,7 @@ public class ScriptingService {
          * events of the "language-server" type.
          */
         @SuppressWarnings("resource") // language server proxy closed by #onDeactivate
-        public void startLanguageServer() {
+        public void connectToLanguageServer() {
             try {
                 m_languageServer = Optional.ofNullable(m_languageServerCreator.start());
                 m_languageServer.ifPresent( //
