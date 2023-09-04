@@ -3,7 +3,6 @@ import {
   JsonDataService,
 } from "@knime/ui-extension-service";
 import type { ConsoleText } from "./components/OutputConsole.vue";
-import type { editor } from "monaco-editor";
 import { MonacoLSPConnection } from "./lsp/connection";
 import { KnimeMessageReader, KnimeMessageWriter } from "./lsp/knime-io";
 
@@ -123,12 +122,13 @@ class ScriptingService {
     return this._editorService.getSelectedLines();
   }
 
-  public async connectToLanguageServer(
-    editorModel: editor.ITextModel,
-  ): Promise<void> {
+  public async connectToLanguageServer(): Promise<void> {
+    if (typeof this._editorService.editorModel === "undefined") {
+      throw Error("Editor model has not yet been initialized");
+    }
     await this.sendToService("connectToLanguageServer");
     this._monacoLSPConnection = await MonacoLSPConnection.create(
-      editorModel,
+      this._editorService.editorModel,
       new KnimeMessageReader(),
       new KnimeMessageWriter(),
     );
