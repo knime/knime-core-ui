@@ -5,12 +5,19 @@ export const editor = {
     getValue: vi.fn(() => "myInitialScript"),
     getLineLastNonWhitespaceColumn: vi.fn(() => 100),
     getValueInRange: vi.fn(() => "mySelectedRange"),
+    getPosition: vi.fn(() => "myPosition"),
   })),
   create: vi.fn((element: HTMLElement) => {
     element.innerHTML = "SCRIPTING EDITOR MOCK";
     return {
       name: "myEditor",
       getSelection: vi.fn(() => ({})),
+      executeEdits: vi.fn(() => {}),
+      pushUndoStop: vi.fn(() => {}),
+      getPosition: vi.fn(() => ({
+        lineNumber: 123,
+        column: 456,
+      })),
     };
   }),
 };

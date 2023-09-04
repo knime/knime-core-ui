@@ -12,6 +12,7 @@ import OutputConsole from "./OutputConsole.vue";
 import type { ConsoleHandler } from "./OutputConsole.vue";
 
 import { getScriptingService } from "@/scripting-service";
+import InputOutputPane from "./InputOutputPane.vue";
 
 type PaneSizes = {
   [key in "left" | "right" | "bottom"]: number;
@@ -31,6 +32,7 @@ export default defineComponent({
     HeaderBar,
     CodeEditorControlBar,
     OutputConsole,
+    InputOutputPane,
   },
   props: {
     title: {
@@ -200,7 +202,7 @@ export default defineComponent({
       "
     >
       <pane ref="leftPane" :size="currentPaneSizes.left">
-        <slot name="leftPane" />
+        <InputOutputPane />
       </pane>
       <pane ref="mainPane" :size="usedMainPaneSize" min-size="40">
         <splitpanes
