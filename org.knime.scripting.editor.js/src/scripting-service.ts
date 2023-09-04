@@ -123,10 +123,10 @@ class ScriptingService {
     return this._editorService.getSelectedLines();
   }
 
-  public async startLSPConnection(
+  public async connectToLanguageServer(
     editorModel: editor.ITextModel,
   ): Promise<void> {
-    await this.sendToService("startLanguageServer");
+    await this.sendToService("connectToLanguageServer");
     this._monacoLSPConnection = await MonacoLSPConnection.create(
       editorModel,
       new KnimeMessageReader(),
@@ -134,7 +134,7 @@ class ScriptingService {
     );
   }
 
-  public async configureLSPServer(settings: any): Promise<void> {
+  public async configureLanguageServer(settings: any): Promise<void> {
     if (this._monacoLSPConnection) {
       await this._monacoLSPConnection.changeConfiguration(settings);
     }
