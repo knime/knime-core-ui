@@ -10,6 +10,7 @@ import {
 } from "../../__mocks__/scripting-service";
 import FooterBar from "../FooterBar.vue";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
+import InputOutputPane from "../InputOutputPane.vue";
 
 vi.mock("monaco-editor");
 vi.mock("@/scripting-service");
@@ -89,6 +90,11 @@ describe("ScriptingEditor", () => {
       const { wrapper } = doMount();
       const outputConsole = wrapper.findComponent(OutputConsole);
       expect(outputConsole.exists()).toBeTruthy();
+    });
+
+    it("display input/output pane", () => {
+      const { wrapper } = doMount();
+      expect(wrapper.findComponent(InputOutputPane).exists()).toBeTruthy();
     });
   });
 

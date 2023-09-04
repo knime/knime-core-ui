@@ -84,4 +84,29 @@ export class EditorService {
       () => null,
     );
   }
+
+  public pasteToEditor(textToPaste: string): void {
+    if (typeof this.editor === "undefined") {
+      return;
+    }
+    const selection = this.editor.getSelection();
+    let range: IRange;
+    if (selection === null) {
+      const position = this.editor.getPosition();
+      if (position === null) {
+        return;
+      }
+      range = {
+        startLineNumber: position.lineNumber,
+        startColumn: position.column,
+        endLineNumber: position.lineNumber,
+        endColumn: position.column,
+      };
+    } else {
+      range = selection;
+    }
+
+    this.editor.pushUndoStop();
+    this.editor.executeEdits("", [{ range, text: textToPaste }]);
+  }
 }

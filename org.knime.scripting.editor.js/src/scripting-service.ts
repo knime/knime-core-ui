@@ -150,6 +150,10 @@ class ScriptingService {
   public setScript(newScript: string) {
     this._editorService.setScript(newScript);
   }
+
+  public pasteToEditor(textToPaste: string): void {
+    this._editorService.pasteToEditor(textToPaste);
+  }
 }
 
 export type ScriptingServiceType = Pick<

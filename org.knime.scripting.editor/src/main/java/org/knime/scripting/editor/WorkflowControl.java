@@ -145,7 +145,19 @@ public class WorkflowControl {
         for (int i = 0; i < numOutputPorts; i++) {
             outputPortTypes[i] = m_nc.getOutPort(i).getPortType();
         }
-
         return outputPortTypes;
     }
+
+    /**
+     * @return the input port types for the node
+     */
+    public PortType[] getInputPortTypes() {
+        final int numInputPorts = m_nc.getNrInPorts();
+        final PortType[] inputPortTypes = new PortType[numInputPorts];
+        for (int i = 0; i < numInputPorts; i++) {
+            inputPortTypes[i] = m_nc.getInPort(i).getPortType();
+        }
+        return inputPortTypes;
+    }
+
 }

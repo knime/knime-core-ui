@@ -72,7 +72,7 @@ import org.knime.scripting.editor.lsp.LanguageServerProxy;
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
-public class ScriptingService {
+public abstract class ScriptingService {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(ScriptingService.class);
 
@@ -153,9 +153,7 @@ public class ScriptingService {
     /**
      * @return the service that provides its methods via JSON-RPC to the frontend
      */
-    public RpcService getJsonRpcService() {
-        return new RpcService();
-    }
+    abstract public RpcService getJsonRpcService();
 
     /**
      * Deactivate the service. This stops the language server and clears the event queue.
@@ -167,19 +165,68 @@ public class ScriptingService {
     }
 
     /** The service that provides its methods via JSON-RPC to the frontend. */
-    public class RpcService {
+    public abstract class RpcService {
+
+        /**
+         * Provides code aliases for flow variables, input objects and output objects
+         *
+         * @author Rupert Ettrich
+         */
+        public interface CodeAliasProvider {
+            /**
+             *
+             * @param flowVariableName The name of the flow variable for which the code alias should be retrieved
+             * @return code alias for a specific flow variable if {@code flowVariableName} is provided, or code alias
+             *         for the flow variable object if {@code flowVariableName} is null
+             */
+            default String getFlowVariableCodeAlias(final String flowVariableName) {
+                return null;
+            }
+
+            /**
+             *
+             * @param index The index of the input object
+             * @param type The type of input object, e.g. Table
+             * @param subItemName The name of the sub item, e.g. a column in a table
+             * @return code alias for an input object of a specific type. If {@code subItemName} is not null, then the
+             *         code alias for the sub item will be returned
+             */
+            default String getInputObjectCodeAlias(final int index, final String type, final String subItemName) {
+                return null;
+            }
+
+            /**
+             * @param index the index of the output object
+             * @param type The type of output object, e.g. Table
+             * @param subItemName The name of the sub item, e.g. a column in a table
+             * @return code alias for an input object of a specific type. If {@code subItemName} is not null, then the
+             *         code alias for the sub item will be returned
+             */
+            default String getOutputObjectCodeAlias(final int index, final String type, final String subItemName) {
+                return null;
+            }
+        }
+
+        public abstract CodeAliasProvider getCodeAliasProvider();
 
         // NB: The UI Extension service throws an timeout after 10000ms
         private static final int GET_EVENT_TIMEOUT_MS = 2000;
 
         /**
-         * @return a list of flow variable inputs that should be shown in the inputs panel
+         * @return information about the flow variables, all available flow variables are listed as subitems in the
+         *         {@link InputOutputModel }
          */
-        public List<FlowVariableInput> getFlowVariableInputs() {
-            return getFlowVariables().stream() //
-                .map(f -> new FlowVariableInput(f.getName(), f.getValueAsString())) //
-                .collect(Collectors.toList());
-        }
+        public abstract InputOutputModel getFlowVariableInputs();
+
+        /**
+         * @return Information about all input ports. Each port is returned as an {@link InputOutputModel }.
+         */
+        public abstract List<InputOutputModel> getInputObjects();
+
+        /**
+         * @return Information about all output ports. Each port is returned as an {@link InputOutputModel }.
+         */
+        public abstract List<InputOutputModel> getOutputObjects();
 
         /**
          * Remove the next event for the frontend and return it.
@@ -275,10 +322,13 @@ public class ScriptingService {
 
         public final String value; // NOSONAR
 
+        public final String type; // NOSONAR
+
         @SuppressWarnings({"hiding"})
-        public FlowVariableInput(final String name, final String value) {
+        public FlowVariableInput(final String name, final String value, final String type) {
             this.name = name;
             this.value = value;
+            this.type = type;
         }
     }
 
@@ -311,5 +361,47 @@ public class ScriptingService {
          * @throws IOException if an I/O error occurs starting the process
          */
         LanguageServerProxy start() throws IOException;
+    }
+
+    /**
+     * An item in an InputOutputModel, e.g. for table columns
+     *
+     * @param name The name of the sub item
+     * @param type The display name of the type of the sub item
+     * @param codeAlias The code alias needed to access this item in the code
+     */
+    public static record InputOutputModelSubItem(String name, String type, String codeAlias) {
+
+    }
+
+    /**
+     * An item that will be displayed in the input/output panel of the script editor
+     *
+     * @param name The name of the item
+     * @param codeAlias The code alias needed to access this item in the code
+     * @param subItems A (possibly empty) list of sub items
+     */
+    public static record InputOutputModel( // NOSONAR: we don't need hash and equals
+        String name, //
+        String codeAlias, //
+        InputOutputModelSubItem[] subItems) {
+    }
+
+    @SuppressWarnings("javadoc")
+    public static class FlowVariableInputWithCodeAlias extends FlowVariableInput {
+        public final String codeAlias;
+
+        @SuppressWarnings({"hiding"})
+        public FlowVariableInputWithCodeAlias(final String name, final String value, final String type,
+            final String codeAlias) {
+            super(name, value, type);
+            this.codeAlias = codeAlias;
+        }
+
+        @SuppressWarnings({"hiding"})
+        public FlowVariableInputWithCodeAlias(final FlowVariableInput flowVar, final String codeAlias) {
+            super(flowVar.name, flowVar.value, flowVar.type);
+            this.codeAlias = codeAlias;
+        }
     }
 }
