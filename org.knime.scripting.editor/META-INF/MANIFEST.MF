@@ -4,7 +4,7 @@ Bundle-Name: KNIME Scripting Utilities
 Bundle-SymbolicName: org.knime.scripting.editor;singleton:=true
 Bundle-Version: 5.2.0.qualifier
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Eclipse-BundleShape: dir
 Automatic-Module-Name: org.knime.scripting.editor
 Require-Bundle: org.knime.core;bundle-version="[5.0.0, 6.0.0)"
