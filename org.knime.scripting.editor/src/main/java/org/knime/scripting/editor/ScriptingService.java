@@ -199,9 +199,11 @@ public class ScriptingService {
         /**
          * Start the LPS server which will receive messages via {@link #sendLanguageServerMessage(String)} and send
          * events of the "language-server" type.
+         *
+         * @return the status of the language server connection
          */
         @SuppressWarnings("resource") // language server proxy closed by #onDeactivate
-        public void connectToLanguageServer() {
+        public LanguageServerStatus connectToLanguageServer() {
             try {
                 m_languageServer = Optional.ofNullable(m_languageServerCreator.start());
                 m_languageServer.ifPresent( //
@@ -210,8 +212,11 @@ public class ScriptingService {
                         m -> sendEvent("language-server", m) //
                     ) //
                 );
+                return new LanguageServerStatus(LanguageServerStatusKind.RUNNING);
             } catch (IOException e) {
-                LOGGER.error("Starting the LSP server failed: " + e.getMessage(), e);
+                LOGGER.warn("Starting the language server failed: " + e.getMessage(), e);
+                return new LanguageServerStatus(LanguageServerStatusKind.ERROR,
+                    "Starting the language server failed: " + e.getMessage());
             }
         }
 
@@ -274,6 +279,23 @@ public class ScriptingService {
         public FlowVariableInput(final String name, final String value) {
             this.name = name;
             this.value = value;
+        }
+    }
+
+    @SuppressWarnings("javadoc")
+    public enum LanguageServerStatusKind {
+            RUNNING, ERROR;
+    }
+
+    /**
+     * Status result when connecting to a language server
+     *
+     * @param status the status kind
+     * @param message an optional error message
+     */
+    public record LanguageServerStatus(LanguageServerStatusKind status, String message) {
+        LanguageServerStatus(final LanguageServerStatusKind status) {
+            this(status, null);
         }
     }
 
