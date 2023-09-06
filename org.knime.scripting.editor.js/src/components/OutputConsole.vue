@@ -5,14 +5,7 @@ import { useResizeObserver, useDebounceFn } from "@vueuse/core";
 import type { ITerminalOptions, ITheme, ITerminalInitOnlyOptions } from "xterm";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
-
-// FolowUp Ticket UIEXT-1278
-const Masala = "#3E3A39";
-const StoneGray = "#888888";
-const Porcelain = "#EFF1F2";
-const White = "#FFFFFF";
-const Black = "#201E1E";
-const HibiscusDark = "#dc2d87";
+import * as knimeColors from "webapps-common/ui/colors/knimeColors.mjs";
 
 import Button from "webapps-common/ui/components/Button.vue";
 
@@ -25,12 +18,12 @@ export type ConsoleHandler = (text: ConsoleText) => void;
 const DEBOUNCE_TIME = 300;
 
 const theme: ITheme = {
-  background: White,
-  foreground: Masala,
-  selectionBackground: Porcelain,
-  cursor: StoneGray,
-  black: Black,
-  red: HibiscusDark,
+  background: knimeColors.White,
+  foreground: knimeColors.Masala,
+  selectionBackground: knimeColors.Porcelain,
+  cursor: knimeColors.StoneGray,
+  black: knimeColors.Black,
+  red: knimeColors.HibiscusDark,
 };
 
 const options: ITerminalOptions & ITerminalInitOnlyOptions = {
