@@ -6,7 +6,7 @@ import AbortIcon from "webapps-common/ui/assets/img/icons/circle-close.svg";
 import Button from "webapps-common/ui/components/Button.vue";
 import { getScriptingService } from "@/scripting-service";
 
-export type KAIStatus = "idle" | "error" | "waiting";
+type Status = "idle" | "error" | "waiting";
 
 interface Message {
   role: "reply" | "request";
@@ -19,12 +19,11 @@ const emit = defineEmits<{
   (e: "accept-suggestion", value: boolean): void;
 }>();
 
-const status = ref<KAIStatus>("idle" as KAIStatus);
+const status = ref<Status>("idle" as Status);
 let message: Message | null = null;
-let history: Array<Message | null> = []; // maybe define as props
+let history: Array<Message | null> = [];
 let showButtons = false;
 const scriptingService = getScriptingService();
-let responseHandlerRegistered = false;
 
 const abortRequest = () => {
   scriptingService?.sendToService("abortRequest");
@@ -43,7 +42,7 @@ const discardSuggestion = () => {
   emit("accept-suggestion", false);
 };
 
-export type CodeSuggestion = {
+type CodeSuggestion = {
   code: string;
   status: "SUCCESS" | "ERROR";
   error: string | undefined;
@@ -65,22 +64,10 @@ const handleCodeSuggestion = (codeSuggestion: CodeSuggestion) => {
   }
 };
 
-const registerResponseHandler = () => {
-  if (responseHandlerRegistered) {
-    return;
-  }
-
-  getScriptingService().registerEventHandler(
-    "codeSuggestion",
-    handleCodeSuggestion,
-  );
-  responseHandlerRegistered = true;
-};
+scriptingService.registerEventHandler("codeSuggestion", handleCodeSuggestion);
 
 const request = async () => {
   status.value = "waiting";
-
-  registerResponseHandler();
 
   // code suggestions will be returned via events, see the response handler above
   await scriptingService.sendToService("suggestCode", [
@@ -238,7 +225,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
   position: absolute;
   left: 0;
   bottom: 0;
-  background-color: var(--knime-gray-light-semi);
+  background-color: var(--knime-stone-light);
   border: 1px solid var(--knime-gray-dark);
   font-weight: 299;
   line-height: 17px;

@@ -12,7 +12,7 @@ describe("CodeEditorContorlBar test", () => {
     vi.clearAllMocks();
   });
 
-  it("test existence", async () => {
+  it("test aiButton triggers isVisible", async () => {
     // mount to dom to support isVisible
     const wrapper = mount(CodeEditorControlBar, { attachTo: document.body });
     await flushPromises();
