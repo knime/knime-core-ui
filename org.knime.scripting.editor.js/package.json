@@ -1,7 +1,7 @@
 {
   "name": "@knime/scripting-editor",
   "type": "module",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "Shared Scripting Editor components for KNIME",
   "author": "KNIME AG, Zurich, Switzerland",
   "license": "See the file license.txt",
@@ -21,7 +21,7 @@
     "ci:lint:css": "npm run lint:css -- -f json -o test-results/stylelint.json",
     "audit": "npm audit --omit dev",
     "coverage": "vitest run --coverage",
-    "prepare": "cd .. && husky install ./org.knime.scripting.editor.js/.husky"
+    "install-husky": "cd .. && husky install ./org.knime.scripting.editor.js/.husky"
   },
   "dependencies": {
     "@knime/ui-extension-service": "0.16.0",
