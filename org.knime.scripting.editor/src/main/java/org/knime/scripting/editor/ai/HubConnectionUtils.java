@@ -48,11 +48,20 @@
  */
 package org.knime.scripting.editor.ai;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ConnectException;
+import java.net.HttpRetryException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 
 import org.knime.core.util.auth.CouldNotAuthorizeException;
 import org.knime.workbench.explorer.ExplorerMountTable;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.knime.enterprise.client.rest.HubContent;
 import com.knime.explorer.server.internal.WorkflowHubContentProvider;
 
@@ -64,6 +73,8 @@ import com.knime.explorer.server.internal.WorkflowHubContentProvider;
 public final class HubConnectionUtils {
     private static final String HUB_MOUNT_ID = System.getProperty("knime.ai.assistant.hub", "My-KNIME-Hub");
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     private HubConnectionUtils() {
 
     }
@@ -72,7 +83,7 @@ public final class HubConnectionUtils {
      * @return get the base URL of the currently selected KNIME Hub
      */
     public static String getHubBaseUrl() {
-        // TODO: how to do this?
+        // TODO: use URL as selected in https://knime-com.atlassian.net/browse/AP-20763
         return "http://localhost:9000";
     }
 
@@ -80,7 +91,7 @@ public final class HubConnectionUtils {
      * @return the authentication token of the currently selected KNIME Hub
      * @throws ConnectException if the user is not logged in or the Hub cannot be reached
      */
-    public static String getAuthenticationToken() throws ConnectException {
+    private static String getAuthenticationToken() throws ConnectException {
         var contentProvider = ExplorerMountTable.getMountedContent().get(HUB_MOUNT_ID);
         if (contentProvider == null) {
             throw new ConnectException(
@@ -98,5 +109,63 @@ public final class HubConnectionUtils {
             throw new ConnectException("Could not access HubContent.");
         }
         throw new ConnectException("Unexpected content provider for mount ID '%s'.".formatted(HUB_MOUNT_ID));
+    }
+
+    /**
+     * Send a POST request to the provided end point path at the selected KNIME Hub
+     *
+     * @param endpointPath The end point at the selected KNIME Hub to call
+     * @param request An object that will be turned into JSON using Jackson and sent as data to the endpoint
+     * @return The response of the request as String (probably contains JSON content)
+     * @throws IOException In case of connection errors or malformed request data.
+     */
+    public static String sendRequest(final String endpointPath, final Object request) throws IOException {
+        URL url = new URL(getHubBaseUrl() + endpointPath);
+        URLConnection con = url.openConnection();
+        HttpURLConnection http = (HttpURLConnection)con;
+        http.setRequestMethod("POST");
+        http.setDoOutput(true);
+
+        String requestJson = MAPPER.writeValueAsString(request);
+
+        byte[] out = requestJson.getBytes(StandardCharsets.UTF_8);
+        int length = out.length;
+
+        http.setFixedLengthStreamingMode(length);
+        http.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+        http.setRequestProperty ("Authorization", getAuthenticationToken());
+        http.connect();
+
+        try (OutputStream os = http.getOutputStream()) {
+            os.write(out);
+        }
+
+        try {
+            int responseCode = http.getResponseCode();
+
+            try (InputStream errorStream = http.getErrorStream()) {
+                if (errorStream != null) {
+                    String msg = new String(errorStream.readAllBytes(), StandardCharsets.UTF_8);
+                    throw new IOException(
+                        "Could not connect to AI service, received response: (" + responseCode + ") " + msg);
+                }
+            }
+
+            String response;
+            try (InputStream is = http.getInputStream()) {
+                response = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            }
+
+            if (responseCode != 200) {
+                throw new IOException("Error %d occurred: %s".formatted(responseCode, response));
+            }
+
+            return response;
+        } catch (HttpRetryException retryException) {
+            // Somehow a 401 unauthorized error prevents getResponseCode from working but throws this error,
+            // so we bail out with an informative IOException here
+            throw new IOException("Could not connect to AI service due to an authentication error."
+                + " Please make sure you are logged in");
+        }
     }
 }
