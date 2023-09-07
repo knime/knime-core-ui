@@ -49,6 +49,7 @@
 package org.knime.scripting.editor;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -56,8 +57,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
@@ -90,7 +92,7 @@ public abstract class ScriptingService {
     /**
      * Create a new {@link ScriptingService} without a language server.
      */
-    public ScriptingService() {
+    protected ScriptingService() {
         this(null, x -> true);
     }
 
@@ -101,7 +103,7 @@ public abstract class ScriptingService {
      *            <code>null</code>.
      * @param flowVariableFilter filters flowvariable given a set of allowed types.
      */
-    public ScriptingService(final LanguageServerStarter languageServerCreator,
+    protected ScriptingService(final LanguageServerStarter languageServerCreator,
         final Predicate<FlowVariable> flowVariableFilter) {
         m_languageServerCreator = Optional.ofNullable(languageServerCreator).orElse(() -> null);
         m_languageServer = Optional.empty();
@@ -116,10 +118,16 @@ public abstract class ScriptingService {
      * @return available flow variables that match the flow variable filter
      */
     public Collection<FlowVariable> getFlowVariables() {
-        var flowVars = getWorkflowControl().getFlowObjectStack().getAllAvailableFlowVariables().values();
+        var flowObjectStack = getWorkflowControl().getFlowObjectStack();
+
+        if (flowObjectStack == null) {
+            return new ArrayList<>();
+        }
+
+        var flowVars = flowObjectStack.getAllAvailableFlowVariables().values();
         return flowVars.stream() //
             .filter(m_flowVariableFilter) //
-            .collect(Collectors.toList());
+            .toList();
     }
 
     /**
@@ -153,7 +161,7 @@ public abstract class ScriptingService {
     /**
      * @return the service that provides its methods via JSON-RPC to the frontend
      */
-    abstract public RpcService getJsonRpcService();
+    public abstract RpcService getJsonRpcService();
 
     /**
      * Deactivate the service. This stops the language server and clears the event queue.
@@ -166,49 +174,6 @@ public abstract class ScriptingService {
 
     /** The service that provides its methods via JSON-RPC to the frontend. */
     public abstract class RpcService {
-
-        /**
-         * Provides code aliases for flow variables, input objects and output objects
-         *
-         * @author Rupert Ettrich
-         */
-        public interface CodeAliasProvider {
-            /**
-             *
-             * @param flowVariableName The name of the flow variable for which the code alias should be retrieved
-             * @return code alias for a specific flow variable if {@code flowVariableName} is provided, or code alias
-             *         for the flow variable object if {@code flowVariableName} is null
-             */
-            default String getFlowVariableCodeAlias(final String flowVariableName) {
-                return null;
-            }
-
-            /**
-             *
-             * @param index The index of the input object
-             * @param type The type of input object, e.g. Table
-             * @param subItemName The name of the sub item, e.g. a column in a table
-             * @return code alias for an input object of a specific type. If {@code subItemName} is not null, then the
-             *         code alias for the sub item will be returned
-             */
-            default String getInputObjectCodeAlias(final int index, final String type, final String subItemName) {
-                return null;
-            }
-
-            /**
-             * @param index the index of the output object
-             * @param type The type of output object, e.g. Table
-             * @param subItemName The name of the sub item, e.g. a column in a table
-             * @return code alias for an input object of a specific type. If {@code subItemName} is not null, then the
-             *         code alias for the sub item will be returned
-             */
-            default String getOutputObjectCodeAlias(final int index, final String type, final String subItemName) {
-                return null;
-            }
-        }
-
-        public abstract CodeAliasProvider getCodeAliasProvider();
-
         // NB: The UI Extension service throws an timeout after 10000ms
         private static final int GET_EVENT_TIMEOUT_MS = 2000;
 
@@ -274,6 +239,40 @@ public abstract class ScriptingService {
          */
         public void sendLanguageServerMessage(final String message) {
             m_languageServer.ifPresent(ls -> ls.sendMessage(message));
+        }
+
+        @FunctionalInterface
+        protected interface CodeAliasProvider {
+            String getInputObjectCodeAlias(int index, String name, String subItemName);
+        }
+
+        /**
+         * Helper method to convert a table spec into a {@link InputOutputModel}
+         *
+         * @param tableIdx
+         * @param spec
+         * @param codeAliasProvider
+         * @param name
+         * @return
+         */
+        protected static InputOutputModel createFromTableSpec( //
+            final int tableIdx, //
+            final DataTableSpec spec, //
+            final CodeAliasProvider codeAliasProvider, //
+            final String name //
+        ) {
+            final var columnNames = spec.getColumnNames();
+            final var columnTypes = IntStream.range(0, spec.getNumColumns())
+                .mapToObj(i -> spec.getColumnSpec(i).getType().getName()).toArray(String[]::new);
+            final var codeAliases = IntStream.range(0, spec.getNumColumns())
+                .mapToObj(i -> codeAliasProvider.getInputObjectCodeAlias(tableIdx, name, columnNames[i]))
+                .toArray(String[]::new);
+            final var subItems = IntStream.range(0, spec.getNumColumns())
+                .mapToObj(i -> new InputOutputModelSubItem(columnNames[i], columnTypes[i], codeAliases[i]))
+                .toArray(InputOutputModelSubItem[]::new);
+
+            return new InputOutputModel("Input Table " + (tableIdx + 1),
+                codeAliasProvider.getInputObjectCodeAlias(tableIdx, name, null), subItems);
         }
     }
 
@@ -385,23 +384,5 @@ public abstract class ScriptingService {
         String name, //
         String codeAlias, //
         InputOutputModelSubItem[] subItems) {
-    }
-
-    @SuppressWarnings("javadoc")
-    public static class FlowVariableInputWithCodeAlias extends FlowVariableInput {
-        public final String codeAlias;
-
-        @SuppressWarnings({"hiding"})
-        public FlowVariableInputWithCodeAlias(final String name, final String value, final String type,
-            final String codeAlias) {
-            super(name, value, type);
-            this.codeAlias = codeAlias;
-        }
-
-        @SuppressWarnings({"hiding"})
-        public FlowVariableInputWithCodeAlias(final FlowVariableInput flowVar, final String codeAlias) {
-            super(flowVar.name, flowVar.value, flowVar.type);
-            this.codeAlias = codeAlias;
-        }
     }
 }
