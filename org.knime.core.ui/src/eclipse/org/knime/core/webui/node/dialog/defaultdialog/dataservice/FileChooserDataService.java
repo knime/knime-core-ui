@@ -51,7 +51,10 @@ package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSFileSystem;
@@ -70,23 +73,41 @@ public class FileChooserDataService {
      * "fileChooser".
      * @throws IOException
      */
-    public FileChooserDataService() throws IOException {
-        try (var fsConnection = DefaultFSConnectionFactory.createLocalFSConnection()) {
-            m_fileSystem = fsConnection.getFileSystem();
-        }
-        m_roots = m_fileSystem.getRootDirectories();
-        m_roots.forEach(p -> Files.isDirectory(p));
+    public FileChooserDataService(){
         //TODO: Workflow-aware final var workflowAware = m_fileSystem.getWorkflowAware().get();
     }
 
-    record Item(boolean isDirecory, String name) {
+    <S> S withFileSystem(final Function<FSFileSystem, S> callback) throws IOException {
+        S result;
+        try (var fsConnection = DefaultFSConnectionFactory.createLocalFSConnection();
+                var fileSystem = fsConnection.getFileSystem()) {
+            result = callback.apply(fileSystem);
+        }
+        return result;
     }
 
-    List<Item> listItems(final String path) throws IOException {
-        return Files.list(m_fileSystem.getPath(path)).map(this::toItem).toList();
+    record Item(boolean isDirectory, String path) {
+    }
+
+    public List<Item> getRootItems() throws IOException {
+        return withFileSystem(fs -> {
+            final List<Item> out = new ArrayList<>();
+            fs.getRootDirectories().forEach(p -> out.add(toItem(p)));
+            return out;
+        });
+    }
+
+    public List<Item> listItems(final String path) throws IOException {
+        return withFileSystem(fs -> {
+            try {
+                return Files.list(fs.getPath(path)).map(this::toItem).toList();
+            } catch (IOException ex) {
+                return Collections.emptyList();
+            }
+        });
     }
 
     Item toItem(final Path path) {
-        return new Item(Files.isDirectory(path), path.getFileName().toString());
+        return new Item(Files.isDirectory(path), path.toString());
     }
 }

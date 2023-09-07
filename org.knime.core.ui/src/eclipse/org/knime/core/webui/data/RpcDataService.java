@@ -49,6 +49,7 @@
 package org.knime.core.webui.data;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.knime.core.node.workflow.NodeContainer;
@@ -85,7 +86,7 @@ public final class RpcDataService implements DataService {
         } else if (!builder.m_namedHandlers.isEmpty()) {
             final var jsonRpcServer = new JsonRpcServer();
             builder.m_namedHandlers
-                .forEach((key, value) -> jsonRpcServer.addService(key.getClass().getSimpleName(), value));
+                .forEach((key, value) -> jsonRpcServer.addService(key, value));
             m_rpcServer = jsonRpcServer;
         } else {
             throw new IllegalStateException("TODO not supported atm");
@@ -187,7 +188,7 @@ public final class RpcDataService implements DataService {
 
         private final Object m_unnamedHandler;
 
-        private Map<String, Object> m_namedHandlers;
+        private Map<String, Object> m_namedHandlers = new HashMap<>();
 
         private Runnable m_dispose;
 
