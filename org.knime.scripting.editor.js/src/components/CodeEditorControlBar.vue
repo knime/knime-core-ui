@@ -1,22 +1,61 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { nextTick, onMounted, ref, type PropType } from "vue";
 import Button from "webapps-common/ui/components/Button.vue";
 import AiButton from "webapps-common/ui/assets/img/icons/ai-brain.svg";
 
 import AiBar from "./AiBar.vue";
 import { getScriptingService } from "@/scripting-service";
+import { onClickOutside } from "@vueuse/core";
+import type { PaneSizes } from "./ScriptingEditor.vue";
 
-const showBar = ref<boolean>(false);
 const showAiButton = ref<boolean>(false);
+const showBar = ref<boolean>(false);
+const aiBar = ref(null);
+const aiButton = ref(null);
+
+const props = defineProps({
+  currentPaneSizes: {
+    type: Object as PropType<PaneSizes>,
+    default: () => ({ left: 20, right: 25, bottom: 30 }),
+  },
+  language: {
+    type: String,
+    default: null,
+  },
+});
+
+const setupOnClickOutside = () => {
+  const splitters = [...document.querySelectorAll(".splitpanes__splitter")].map(
+    (splitter) => splitter as HTMLElement,
+  );
+  onClickOutside(
+    aiBar,
+    () => {
+      if (showBar.value) {
+        showBar.value = !showBar.value;
+      }
+    },
+    { ignore: [aiButton, ...splitters] },
+  );
+};
 
 onMounted(async () => {
   showAiButton.value = await getScriptingService().supportsCodeAssistant();
+  nextTick(() => {
+    setupOnClickOutside();
+  });
 });
 </script>
 
 <template>
-  <div v-show="showBar" class="ai-bar">
-    <AiBar />
+  <div v-if="showBar" class="ai-bar">
+    <AiBar
+      ref="aiBar"
+      :current-pane-sizes="props.currentPaneSizes"
+      :language="language"
+      @accept-suggestion="showBar = false"
+      @close-ai-bar="showBar = false"
+    />
   </div>
   <div class="controls">
     <Button
@@ -38,9 +77,7 @@ onMounted(async () => {
 
 <style lang="postcss" scoped>
 .ai-bar {
-  position: relative;
   flex: 0 0 auto; /* Let the element ignore its size and not grow or shrink */
-  overflow: visible; /* Allow the element to overflow */
 }
 
 .controls {

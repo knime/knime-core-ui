@@ -115,14 +115,14 @@ describe("ScriptingEditor", () => {
     describe("resizing", () => {
       it("resizes left pane", async () => {
         const { mainSplitpane, leftPane, mainPane } = doMount();
-        await mainSplitpane.vm.$emit("resized", resizeEvent);
+        await mainSplitpane.vm.$emit("resize", resizeEvent);
         expect(leftPane.size).toBe(45);
         expect(mainPane.size).toBe(55);
       });
 
       it("resizes right pane", async () => {
         const { horizontalSplitpane, bottomPane, topPane } = doMount();
-        await horizontalSplitpane.vm.$emit("resized", resizeEvent);
+        await horizontalSplitpane.vm.$emit("resize", resizeEvent);
         expect(bottomPane.size).toBe(45);
         expect(topPane.size).toBe(55);
       });
@@ -203,6 +203,9 @@ describe("ScriptingEditor", () => {
 
       it("uncollapses pane to correct position when collapsing after resize", async () => {
         const { mainSplitpane, leftPane, mainPane } = doMount();
+        await mainSplitpane.vm.$emit("resize", resizeEvent);
+        expect(leftPane.size).toBe(45);
+        expect(mainPane.size).toBe(55);
         await mainSplitpane.vm.$emit("resized", resizeEvent);
         expect(leftPane.size).toBe(45);
         expect(mainPane.size).toBe(55);
@@ -216,9 +219,15 @@ describe("ScriptingEditor", () => {
 
       it("uncollapses to drag-start position when pane was resized to 0 size", async () => {
         const { mainSplitpane, leftPane, mainPane } = doMount();
+        await mainSplitpane.vm.$emit("resize", resizeEvent);
+        expect(leftPane.size).toBe(45);
+        expect(mainPane.size).toBe(55);
         await mainSplitpane.vm.$emit("resized", resizeEvent);
         expect(leftPane.size).toBe(45);
         expect(mainPane.size).toBe(55);
+        await mainSplitpane.vm.$emit("resize", [{ size: 0 }]);
+        expect(leftPane.size).toBe(0);
+        expect(mainPane.size).toBe(100);
         await mainSplitpane.vm.$emit("resized", [{ size: 0 }]);
         expect(leftPane.size).toBe(0);
         expect(mainPane.size).toBe(100);

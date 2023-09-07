@@ -35,11 +35,26 @@ const props = defineProps({
     type: String,
     default: "main.txt",
   },
+  initialScript: {
+    type: String,
+    default: null,
+  },
+  diffScript: {
+    type: String,
+    default: null,
+  },
+  loadScriptFromService: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 // Remember the model and editor so that we can dispose them when the component is unmounted
 let editorModel: monaco.editor.ITextModel,
-  editor: monaco.editor.IStandaloneCodeEditor;
+  diffEditorModel: monaco.editor.ITextModel,
+  editor:
+    | monaco.editor.IStandaloneCodeEditor
+    | monaco.editor.IStandaloneDiffEditor;
 
 const editorRef = ref(null);
 
@@ -50,8 +65,10 @@ onMounted(async () => {
     );
   }
 
-  const initialScript = (await getScriptingService().getInitialSettings())
-    .script;
+  const initialScript =
+    props.initialScript ??
+    getScriptingService().getScript() ??
+    (await getScriptingService().getInitialSettings()).script;
 
   editorModel = monaco.editor.createModel(
     initialScript,
@@ -59,18 +76,36 @@ onMounted(async () => {
     monaco.Uri.parse(`inmemory://model/${props.fileName}`),
   );
 
-  editor = monaco.editor.create(editorRef.value as HTMLElement, {
-    model: editorModel,
+  const editorSettings = {
+    minimap: { enabled: false },
+    automaticLayout: true,
     glyphMargin: false,
     lightbulb: {
       enabled: true,
     },
-    minimap: { enabled: true },
-    automaticLayout: true,
     scrollBeyondLastLine: true,
     fixedOverflowWidgets: true,
-  });
+  };
 
+  if (props.diffScript === null) {
+    editor = monaco.editor.create(editorRef.value as HTMLElement, {
+      model: editorModel,
+      ...editorSettings,
+    });
+  } else {
+    diffEditorModel = monaco.editor.createModel(
+      props.diffScript,
+      props.language,
+    );
+    editor = monaco.editor.createDiffEditor(editorRef.value as HTMLElement, {
+      originalEditable: false,
+      ...editorSettings,
+    });
+    editor.setModel({
+      original: editorModel,
+      modified: diffEditorModel,
+    });
+  }
   // Notify the parent that the editor is now available
   emit("monaco-created", { editor, editorModel });
 });
@@ -82,6 +117,9 @@ onUnmounted(() => {
   if (typeof editor !== "undefined") {
     editor.dispose();
   }
+  if (typeof diffEditorModel !== "undefined") {
+    diffEditorModel.dispose();
+  }
 });
 </script>
 
@@ -89,11 +127,7 @@ onUnmounted(() => {
   <div ref="editorRef" class="code-editor" />
 </template>
 
-<style lang="postcss" scoped>
-.code-editor {
-  height: calc(100% - var(--controls-height));
-}
-</style>
+<style lang="postcss" scoped></style>
 
 <style lang="postcss">
 .monaco-hover {

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 import CodeEditor from "../CodeEditor.vue";
 import * as monaco from "monaco-editor";
+import { getScriptingService } from "@/scripting-service";
 
 vi.mock("monaco-editor");
 vi.mock("@/scripting-service");
@@ -14,6 +15,23 @@ describe("CodeEditor", () => {
   it("creates the editor model with the props", async () => {
     const language = "javascript";
     const fileName = "myFileName.ext";
+    const initialScript = "myInitialScript";
+
+    mount(CodeEditor, {
+      props: { language, fileName, initialScript },
+    });
+    await flushPromises();
+    expect(monaco.editor.createModel).toHaveBeenCalledWith(
+      "myInitialScript",
+      language,
+      `inmemory://model/${fileName}`,
+    );
+  });
+
+  it("loads script from service if no initial script is provided", async () => {
+    const language = "javascript";
+    const fileName = "myFileName.ext";
+
     mount(CodeEditor, {
       props: { language, fileName },
     });
@@ -65,5 +83,31 @@ describe("CodeEditor", () => {
     wrapper.unmount();
     expect(editorInstance.dispose).toHaveBeenCalledOnce();
     expect(editorModelInstance.dispose).toHaveBeenCalledOnce();
+  });
+
+  it("creates diff editor if diff script is set", async () => {
+    mount(CodeEditor, {
+      props: {
+        initialScript: "my initial script",
+        diffScript: "my diff script",
+      },
+    });
+    await flushPromises();
+    expect(monaco.editor.createDiffEditor).toHaveBeenCalledOnce();
+    expect(monaco.editor.createModel).toHaveBeenCalledTimes(2);
+  });
+
+  it("loads initial script from service if it is not set", async () => {
+    mount(CodeEditor);
+    await flushPromises();
+    expect(getScriptingService().getInitialSettings).toHaveBeenCalled();
+  });
+
+  it("does not load initial script from service if it is passed as a prop", async () => {
+    mount(CodeEditor, {
+      props: { initialScript: "my initial script" },
+    });
+    await flushPromises();
+    expect(getScriptingService().getInitialSettings).not.toHaveBeenCalled();
   });
 });

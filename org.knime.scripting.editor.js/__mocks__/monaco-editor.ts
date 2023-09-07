@@ -20,6 +20,17 @@ export const editor = {
       })),
     };
   }),
+  createDiffEditor: vi.fn((element: HTMLElement) => {
+    element.innerHTML = "DIFF EDITOR MOCK";
+    return {
+      getModifiedEditor: vi.fn(() => ({
+        getValue: vi.fn(() => {
+          "myDiffScript";
+        }),
+      })),
+      setModel: vi.fn(() => {}),
+    };
+  }),
 };
 
 export const Uri = {
