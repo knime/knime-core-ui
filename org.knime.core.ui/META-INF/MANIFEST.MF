@@ -72,3 +72,4 @@ Require-Bundle: org.knime.shared.workflow.def;bundle-version="[4.6.0,6.0.0)",
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Automatic-Module-Name: org.knime.core.ui
+Import-Package: org.knime.filehandling.core.connections
