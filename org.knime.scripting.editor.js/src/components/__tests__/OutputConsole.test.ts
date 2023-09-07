@@ -46,6 +46,6 @@ describe("OutputConsole", () => {
     button.vm.$emit("click");
     await flushPromises();
 
-    expect(term.clear).toHaveBeenCalledOnce();
+    expect(term.reset).toHaveBeenCalledOnce();
   });
 });
