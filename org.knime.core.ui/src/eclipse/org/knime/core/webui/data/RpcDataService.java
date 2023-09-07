@@ -49,13 +49,13 @@
 package org.knime.core.webui.data;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
+import java.util.Map;
 
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.webui.data.rpc.RpcServer;
 import org.knime.core.webui.data.rpc.RpcServerManager;
+import org.knime.core.webui.data.rpc.json.impl.JsonRpcServer;
 import org.knime.core.webui.data.rpc.json.impl.JsonRpcSingleServer;
 import org.knime.core.webui.data.rpc.json.impl.ObjectMapperUtil;
 
@@ -80,10 +80,15 @@ public final class RpcDataService implements DataService {
     private final NodeContainer m_nc;
 
     private RpcDataService(final RpcDataServiceBuilder builder) {
-        if (builder.m_handlers.size() == 1) {
-            m_rpcServer = new JsonRpcSingleServer<>(builder.m_handlers.get(0));
+        if (builder.m_unnamedHandler != null) {
+            m_rpcServer = new JsonRpcSingleServer<>(builder.m_unnamedHandler);
+        } else if (!builder.m_namedHandlers.isEmpty()) {
+            final var jsonRpcServer = new JsonRpcServer();
+            builder.m_namedHandlers
+                .forEach((key, value) -> jsonRpcServer.addService(key.getClass().getSimpleName(), value));
+            m_rpcServer = jsonRpcServer;
         } else {
-            throw new IllegalStateException("Unexpected amount of rpc service handlers: " + builder.m_handlers.size());
+            throw new IllegalStateException("TODO not supported atm");
         }
         m_deactivate = builder.m_deactivate;
         m_dispose = builder.m_dispose;
@@ -167,18 +172,38 @@ public final class RpcDataService implements DataService {
     }
 
     /**
+     *
+     * @param <S>
+     * @return
+     */
+    public static <S> RpcDataServiceBuilder builder() {
+        return new RpcDataServiceBuilder();
+    }
+
+    /**
      * The builder.
      */
     public static final class RpcDataServiceBuilder implements DataServiceBuilder {
 
-        private final List<Object> m_handlers;
+        private final Object m_unnamedHandler;
+
+        private Map<String, Object> m_namedHandlers;
 
         private Runnable m_dispose;
 
         private Runnable m_deactivate;
 
         private RpcDataServiceBuilder(final Object handler) {
-            m_handlers = Collections.singletonList(handler);
+            m_unnamedHandler = handler;
+        }
+
+        private RpcDataServiceBuilder() {
+            m_unnamedHandler = null;
+        }
+
+        public RpcDataServiceBuilder addService(final String name, final Object handler) {
+            m_namedHandlers.put(name, handler);
+            return this;
         }
 
         @Override
@@ -199,8 +224,6 @@ public final class RpcDataService implements DataService {
         public RpcDataService build() {
             return new RpcDataService(this);
         }
-
-
 
     }
 
