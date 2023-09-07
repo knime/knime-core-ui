@@ -1,29 +1,53 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref, type PropType } from "vue";
 import { useTextareaAutosize } from "@vueuse/core";
 import SendIcon from "webapps-common/ui/assets/img/icons/paper-flier.svg";
 import AbortIcon from "webapps-common/ui/assets/img/icons/circle-close.svg";
+import ExportIcon from "webapps-common/ui/assets/img/icons/export.svg";
 import Button from "webapps-common/ui/components/Button.vue";
 import { getScriptingService } from "@/scripting-service";
+import CodeEditor from "./CodeEditor.vue";
+import { editor } from "monaco-editor";
+import {
+  usePromptResponseStore,
+  clearPromptResponseStore,
+  type PromptResponseStore,
+  type Message,
+} from "@/store";
+import type { PaneSizes } from "./ScriptingEditor.vue";
 
 type Status = "idle" | "error" | "waiting";
 
-interface Message {
-  role: "reply" | "request";
-  content: string;
-}
+// sizes in viewport width/height
+const DEFAULT_AI_BAR_WIDTH = 65;
+const DEFAULT_AI_BAR_HEIGHT = 40;
+const DEFAULT_LEFT_OVERFLOW = 10;
 
 const { textarea, input } = useTextareaAutosize();
 
+const props = defineProps({
+  currentPaneSizes: {
+    type: Object as PropType<PaneSizes>,
+    default: () => ({ left: 20, right: 25, bottom: 30 }),
+  },
+  language: {
+    type: String,
+    default: null,
+  },
+});
+
 const emit = defineEmits<{
   (e: "accept-suggestion", value: boolean): void;
+  (e: "close-ai-bar"): void;
 }>();
 
+const promptResponseStore: PromptResponseStore = usePromptResponseStore();
 const status = ref<Status>("idle" as Status);
-let message: Message | null = null;
+let message: Message | null =
+  promptResponseStore.promptResponse?.message ?? null;
 let history: Array<Message | null> = [];
-let showButtons = false;
 const scriptingService = getScriptingService();
+let diffEditor: editor.IStandaloneDiffEditor;
 
 const abortRequest = () => {
   scriptingService?.sendToService("abortRequest");
@@ -34,12 +58,10 @@ const abortRequest = () => {
 const acceptSuggestion = () => {
   history.push(message);
   status.value = "idle";
+  const acceptedCode = diffEditor.getModifiedEditor().getValue();
+  scriptingService.setScript(acceptedCode);
+  clearPromptResponseStore();
   emit("accept-suggestion", true);
-};
-const discardSuggestion = () => {
-  // don't push to history
-  status.value = "idle";
-  emit("accept-suggestion", false);
 };
 
 type CodeSuggestion = {
@@ -55,11 +77,13 @@ const handleCodeSuggestion = (codeSuggestion: CodeSuggestion) => {
     });
     status.value = "error";
   } else {
-    let newCode = JSON.parse(codeSuggestion.code).code;
-    scriptingService.setScript(newCode);
-    // here pend for discard/accept
+    const suggestedCode = JSON.parse(codeSuggestion.code).code;
+    message = { role: "request", content: input.value };
+    promptResponseStore.promptResponse = {
+      suggestedCode,
+      message,
+    };
     status.value = "idle";
-    history.push({ role: "request", content: input.value });
     input.value = "";
   }
 };
@@ -88,66 +112,118 @@ const handleKeyDown = (e: KeyboardEvent) => {
     input.value = history.length ? history[history.length - 1]!.content : "";
   }
 };
+
+const onDiffEditorCreated = ({
+  editor,
+}: {
+  editor: editor.IStandaloneDiffEditor;
+}) => {
+  diffEditor = editor;
+};
+const leftPosition = computed(() =>
+  Math.max(props.currentPaneSizes.left - DEFAULT_LEFT_OVERFLOW, 0),
+);
+const leftOverflow = computed(
+  () => props.currentPaneSizes.left - leftPosition.value,
+);
+const bottomPosition = computed(
+  () =>
+    // (100vh - 98px) * bottomPaneSize = actual size of bottom pane (49 px is size of controls)
+    // + 2*49px offset (footer and control bar)
+    `calc( ((100vh - 98px) * ${props.currentPaneSizes.bottom / 100}) + 98px )`,
+);
+const aiBarWidth = computed(() => {
+  return Math.min(DEFAULT_AI_BAR_WIDTH, 100 - leftPosition.value);
+});
 </script>
 
 <template>
-  <div class="chat-controls">
-    <textarea
-      ref="textarea"
-      v-model="input"
-      :readonly="status === 'waiting'"
-      class="textarea"
-      placeholder="Ask KAi here."
-      @keydown="handleKeyDown"
-    />
-    <Button
-      v-show="status === 'error' || status === 'idle'"
-      ref="sendButton"
-      title="Send"
-      :disabled="!input"
-      @click="request"
-    >
-      <SendIcon class="icon" />
-    </Button>
-    <Button
-      v-show="status === 'waiting'"
-      ref="abortButton"
-      title="Cancel"
-      @click="abortRequest"
-    >
-      <AbortIcon class="icon" />
-    </Button>
-
-    <div class="subtitle">
-      <div class="text">{{ status }}</div>
-      <div v-if="status === 'waiting'" class="dot" />
-      <div v-if="status === 'waiting'" class="dot" />
-      <div v-if="status === 'waiting'" class="dot" />
-      <Button
-        v-show="showButtons"
-        with-border
-        compact
-        :disabled="status === 'error' || status === 'waiting'"
-        @click="discardSuggestion"
+  <div
+    class="ai-bar-container"
+    :style="{
+      bottom: `${bottomPosition}`,
+      left: `${leftPosition}vw`,
+      width: `${aiBarWidth}vw`,
+      height: `${DEFAULT_AI_BAR_HEIGHT}`,
+    }"
+  >
+    <Transition name="slide-fade">
+      <div
+        v-if="promptResponseStore.promptResponse"
+        class="diff-editor-container"
       >
-        Discard
-      </Button>
-      <Button
-        v-show="showButtons"
-        primary
-        with-border
-        compact
-        :disabled="status === 'error' || status === 'waiting'"
-        @click="acceptSuggestion"
-      >
-        Accept
-      </Button>
+        <CodeEditor
+          :language="language"
+          class="diff-editor"
+          :diff-script="promptResponseStore.promptResponse.suggestedCode"
+          @monaco-created="onDiffEditorCreated"
+        />
+        <div class="accept-decline-buttons">
+          <Button with-border compact @click="acceptSuggestion">
+            <ExportIcon /> Insert in editor
+          </Button>
+        </div>
+      </div>
+    </Transition>
+    <div
+      class="chat-controls"
+      :style="{ '--left-distance': `calc(${leftOverflow}vw + 30px)` }"
+    >
+      <Transition name="slide-fade">
+        <div v-if="promptResponseStore.promptResponse" class="prompt-bar">
+          {{ promptResponseStore.promptResponse.message.content }}
+        </div>
+      </Transition>
+      <div class="chat-controls-text-input">
+        <textarea
+          ref="textarea"
+          v-model="input"
+          :readonly="status === 'waiting'"
+          class="textarea"
+          placeholder="Type your prompt"
+          @keydown="handleKeyDown"
+        />
+        <div class="chat-controls-buttons">
+          <Button
+            v-show="status === 'error' || status === 'idle'"
+            ref="sendButton"
+            title="Send"
+            :disabled="!input"
+            class="textarea-button"
+            @click="request"
+          >
+            <SendIcon class="icon" />
+          </Button>
+          <Button
+            v-show="status === 'waiting'"
+            ref="abortButton"
+            title="Cancel"
+            class="textarea-button"
+            @click="abortRequest"
+          >
+            <AbortIcon class="icon" />
+          </Button>
+        </div>
+      </div>
     </div>
-    <div class="triangle" />
   </div>
 </template>
 
 <style lang="postcss" scoped>
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.8s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateY(30px);
+  opacity: 0;
+}
+
 .dot {
   width: 4px;
   height: 4px;
@@ -193,62 +269,21 @@ const handleKeyDown = (e: KeyboardEvent) => {
   }
 }
 
-.button {
-  height: auto;
-  width: auto;
-  position: absolute;
-  right: 10px;
-  bottom: 44px;
-  padding: 0;
-  stroke-width: 5px;
-  color: var(--knime-yellow);
-  background-color: transparent;
+.ai-bar-container {
+  --ai-bar-margin: 13px;
 
-  /* best way to ensure pill shaped buttons with flexible 1/4 corners */
-  border-radius: var(--theme-button-border-radius, 9999px);
-
-  & :slotted(svg) {
-    align-content: center;
-    width: 22px;
-    height: 22px;
-    stroke: var(--knime-yellow);
-    stroke-width: 2px;
-    position: relative;
-    top: 0;
-    vertical-align: middle;
-  }
-}
-
-.chat-controls {
   display: flex;
   flex-direction: column;
   position: absolute;
-  left: 0;
-  bottom: 0;
-  background-color: var(--knime-stone-light);
-  border: 1px solid var(--knime-gray-dark);
-  font-weight: 299;
+  bottom: 20px;
+  background-color: var(--knime-porcelain);
+  border: 1px solid var(--knime-silver-sand);
+  font-size: 13px;
   line-height: 17px;
-  padding: 9px;
-  width: calc(100% - 38px);
-  box-shadow: var(--shadow-elevation-3);
-  margin-left: 19px;
-  margin-right: 19px;
-  margin-bottom: 35px;
-
-  & .textarea {
-    position: relative;
-    overflow: hidden;
-    border: 0 solid var(--knime-gray-dark);
-    resize: none;
-    border-radius: 0;
-    bottom: -1;
-    padding: 9px;
-
-    &:focus {
-      outline: none;
-    }
-  }
+  z-index: 11; /* to display ai bar above the main code editor's scroll bar */
+  overflow: visible;
+  box-shadow: 0 -2px 8px 0 var(--knime-gray-dark);
+  margin-bottom: 30px; /* to hover above ai icon */
 
   & .subtitle {
     color: var(--knime-black);
@@ -273,18 +308,89 @@ const handleKeyDown = (e: KeyboardEvent) => {
       }
     }
   }
-}
 
-.triangle {
-  position: absolute;
-  width: 0;
-  height: 0;
-  left: 10px;
-  bottom: -35px;
-  border-left: 35px solid transparent; /* Half the width of the base */
-  border-right: 0 solid transparent; /* Half the width of the base */
-  border-bottom: 35px solid var(--knime-gray-light-semi);
-  transform: rotate(180deg);
-  box-shadow: var(--shadow-elevation-3);
+  & .diff-editor-container {
+    margin: var(--ai-bar-margin);
+    min-height: 200px;
+    height: 40vh;
+    border-bottom: 1px solid var(--knime-porcelain);
+    display: flex;
+    flex-direction: column;
+
+    & .diff-editor {
+      flex-grow: 1;
+    }
+
+    & .accept-decline-buttons {
+      & .button {
+        float: right;
+        margin-top: var(--ai-bar-margin);
+      }
+    }
+  }
+
+  & .chat-controls {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--knime-silver-sand);
+    position: relative;
+
+    & .prompt-bar {
+      margin-top: var(--ai-bar-margin);
+      margin-right: var(--ai-bar-margin);
+      margin-left: var(--ai-bar-margin);
+      line-height: 15.23px;
+    }
+
+    & .chat-controls-text-input {
+      display: flex;
+      flex-direction: row;
+
+      & .textarea {
+        flex-grow: 1;
+        border: 1px solid var(--knime-silver-sand);
+        overflow: hidden;
+        resize: none;
+        border-radius: 0;
+        bottom: -1;
+        padding: 9px;
+        padding-right: 30px;
+        margin: var(--ai-bar-margin);
+        color: var(--knime-masala);
+
+        &::placeholder {
+          color: var(--knime-stone);
+        }
+
+        &:focus {
+          outline: none;
+        }
+      }
+
+      & .chat-controls-buttons {
+        & .textarea-button {
+          position: absolute;
+          right: -14px;
+          bottom: 8px;
+        }
+      }
+    }
+  }
+
+  & :deep(.chat-controls::after) {
+    --arrow-size: 18px;
+
+    width: var(--arrow-size);
+    height: var(--arrow-size);
+    left: var(--left-distance);
+    content: "";
+    position: absolute;
+    background-color: var(--knime-porcelain);
+    bottom: 0;
+    z-index: 1;
+    border-right: 1px solid var(--knime-silver-sand);
+    border-top: 1px solid var(--knime-silver-sand);
+    transform: translate(-50%, 50%) rotate(135deg);
+  }
 }
 </style>

@@ -14,7 +14,7 @@ import type { ConsoleHandler } from "./OutputConsole.vue";
 import { getScriptingService } from "@/scripting-service";
 import InputOutputPane from "./InputOutputPane.vue";
 
-type PaneSizes = {
+export type PaneSizes = {
   [key in "left" | "right" | "bottom"]: number;
 };
 
@@ -198,11 +198,12 @@ export default defineComponent({
         collapsePane('left');
         updatePreviousPaneSize('right');
       "
-      @resize="updateRightPane($event[0].size)"
-      @resized="
-        resizePane($event[0].size, 'left');
+      @resize="
+        updateRightPane($event[0].size);
+        resizePane($event[0].size, 'left', false);
         updatePreviousPaneSize('right');
       "
+      @resized="updatePreviousPaneSize('left')"
     >
       <pane ref="leftPane" :size="currentPaneSizes.left">
         <InputOutputPane />
@@ -218,12 +219,12 @@ export default defineComponent({
             'up-facing-splitter': isBottomPaneCollapsed,
           }"
           @splitter-click="collapsePane('bottom')"
-          @resized="resizePane($event[1].size, 'bottom')"
+          @resize="resizePane($event[1].size, 'bottom')"
         >
           <pane
             ref="topPane"
             :size="usedVerticalCodeEditorPaneSize"
-            min-size="20"
+            min-size="40"
           >
             <splitpanes
               ref="verticalSplitpane"
@@ -244,9 +245,14 @@ export default defineComponent({
                 <CodeEditor
                   :language="language"
                   :file-name="fileName"
+                  class="code-editor"
                   @monaco-created="onMonacoCreated"
                 />
-                <CodeEditorControlBar v-if="showControlBar">
+                <CodeEditorControlBar
+                  v-if="showControlBar"
+                  :language="language"
+                  :current-pane-sizes="currentPaneSizes"
+                >
                   <template #controls>
                     <slot name="code-editor-controls" />
                   </template>
@@ -282,11 +288,16 @@ export default defineComponent({
   border-left: 1px solid var(--knime-silver-sand);
   border-right: 1px solid var(--knime-silver-sand);
   flex-grow: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.code-editor {
+  height: calc(100% - var(--controls-height));
 }
 
 /* NB: we disable the rule because of classes defined by the splitpanes package */
 /* stylelint-disable selector-class-pattern */
-
 .common-splitter {
   & :deep(.splitpanes__splitter) {
     min-width: 11px;
@@ -342,6 +353,7 @@ export default defineComponent({
 
 .main-splitpane {
   height: calc(100vh - (2 * var(--controls-height)));
+  overflow: hidden;
 }
 
 /* stylelint-enable selector-class-pattern */
