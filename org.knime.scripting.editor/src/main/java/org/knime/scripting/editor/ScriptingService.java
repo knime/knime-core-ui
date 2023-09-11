@@ -59,6 +59,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
+import org.eclipse.core.runtime.Platform;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.workflow.FlowVariable;
@@ -273,6 +274,14 @@ public abstract class ScriptingService {
 
             return new InputOutputModel("Input Table " + (tableIdx + 1),
                 codeAliasProvider.getInputObjectCodeAlias(tableIdx, name, null), subItems);
+        }
+
+        /**
+         * @return True if AI supported code generation is supported
+         */
+        public boolean supportsCodeAssistant() {
+            var aiBundle = Platform.getBundle("org.knime.ai.assistant.java");
+            return aiBundle != null;
         }
     }
 

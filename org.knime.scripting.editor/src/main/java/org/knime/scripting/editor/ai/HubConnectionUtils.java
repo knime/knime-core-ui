@@ -54,10 +54,15 @@ import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.HttpRetryException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 
+import org.knime.ai.assistant.java.prefs.KaiPreferences;
+import org.knime.ai.assistant.java.prefs.KaiPreferences.NoServerException;
+import org.knime.ai.assistant.java.prefs.KaiPreferences.Protocol;
 import org.knime.core.util.auth.CouldNotAuthorizeException;
 import org.knime.workbench.explorer.ExplorerMountTable;
 
@@ -71,8 +76,6 @@ import com.knime.explorer.server.internal.WorkflowHubContentProvider;
  * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
  */
 public final class HubConnectionUtils {
-    private static final String HUB_MOUNT_ID = System.getProperty("knime.ai.assistant.hub", "My-KNIME-Hub");
-
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private HubConnectionUtils() {
@@ -81,10 +84,19 @@ public final class HubConnectionUtils {
 
     /**
      * @return get the base URL of the currently selected KNIME Hub
+     * @throws NoServerException
      */
-    public static String getHubBaseUrl() {
-        // TODO: use URL as selected in https://knime-com.atlassian.net/browse/AP-20763
-        return "http://localhost:9000";
+    public static URI getHubBaseUrl() throws NoServerException {
+        return KaiPreferences.getServerAddress(Protocol.HTTP);
+    }
+
+    private static String getHubBaseUrlString() throws IOException {
+        try {
+            return getHubBaseUrl().toString();
+        } catch (NoServerException e) {
+            throw new IOException(
+                "Could not connect to AI service, no valid Hub selected that provides the AI code generation");
+        }
     }
 
     /**
@@ -92,10 +104,11 @@ public final class HubConnectionUtils {
      * @throws ConnectException if the user is not logged in or the Hub cannot be reached
      */
     private static String getAuthenticationToken() throws ConnectException {
-        var contentProvider = ExplorerMountTable.getMountedContent().get(HUB_MOUNT_ID);
+        var hubMountID = KaiPreferences.getHubId();
+        var contentProvider = ExplorerMountTable.getMountedContent().get(hubMountID);
         if (contentProvider == null) {
             throw new ConnectException(
-                "Please add the %s to your hosted mountpoints and login to use K-AI.".formatted(HUB_MOUNT_ID));
+                "Please add the %s to your hosted mountpoints and login to use K-AI.".formatted(hubMountID));
         } else if (contentProvider instanceof WorkflowHubContentProvider hubContentProvider) {
             var remoteFileSystem = hubContentProvider.getRemoteFileSystem();
             if (remoteFileSystem instanceof HubContent hubContent) {
@@ -103,12 +116,12 @@ public final class HubConnectionUtils {
                     return hubContent.getAuthenticator().getAuthorization();
                 } catch (CouldNotAuthorizeException ex) {
                     throw new ConnectException(
-                        "Could not authorize. Please log into %s. Caused by %s".formatted(HUB_MOUNT_ID, ex));
+                        "Could not authorize. Please log into %s. Caused by %s".formatted(hubMountID, ex));
                 }
             }
             throw new ConnectException("Could not access HubContent.");
         }
-        throw new ConnectException("Unexpected content provider for mount ID '%s'.".formatted(HUB_MOUNT_ID));
+        throw new ConnectException("Unexpected content provider for mount ID '%s'.".formatted(hubMountID));
     }
 
     /**
@@ -120,7 +133,14 @@ public final class HubConnectionUtils {
      * @throws IOException In case of connection errors or malformed request data.
      */
     public static String sendRequest(final String endpointPath, final Object request) throws IOException {
-        URL url = new URL(getHubBaseUrl() + endpointPath);
+        URL url;
+        String baseUrl = getHubBaseUrlString();
+        try {
+            url = new URL(baseUrl + endpointPath);
+        } catch (MalformedURLException e) {
+            throw new IOException("Could not connect to the AI service, invalid URL: " + baseUrl + endpointPath);
+        }
+
         URLConnection con = url.openConnection();
         HttpURLConnection http = (HttpURLConnection)con;
         http.setRequestMethod("POST");
@@ -133,7 +153,7 @@ public final class HubConnectionUtils {
 
         http.setFixedLengthStreamingMode(length);
         http.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-        http.setRequestProperty ("Authorization", getAuthenticationToken());
+        http.setRequestProperty("Authorization", getAuthenticationToken());
         http.connect();
 
         try (OutputStream os = http.getOutputStream()) {
@@ -142,7 +162,6 @@ public final class HubConnectionUtils {
 
         try {
             int responseCode = http.getResponseCode();
-
             try (InputStream errorStream = http.getErrorStream()) {
                 if (errorStream != null) {
                     String msg = new String(errorStream.readAllBytes(), StandardCharsets.UTF_8);

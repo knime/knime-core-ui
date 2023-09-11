@@ -1,11 +1,17 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import Button from "webapps-common/ui/components/Button.vue";
 import AiButton from "webapps-common/ui/assets/img/icons/ai-brain.svg";
 
 import AiBar from "./AiBar.vue";
+import { getScriptingService } from "@/scripting-service";
 
 const showBar = ref<boolean>(false);
+const showAiButton = ref<boolean>(false);
+
+onMounted(async () => {
+  showAiButton.value = await getScriptingService().supportsCodeAssistant();
+});
 </script>
 
 <template>
@@ -14,6 +20,7 @@ const showBar = ref<boolean>(false);
   </div>
   <div class="controls">
     <Button
+      v-show="showAiButton"
       ref="aiButton"
       compact
       on-dark
@@ -22,6 +29,9 @@ const showBar = ref<boolean>(false);
     >
       <AiButton />
     </Button>
+    <div v-show="!showAiButton" id="placeholder">
+      <!-- flexbox alignment needs at least some element here -->
+    </div>
     <slot name="controls" class="button-controls" />
   </div>
 </template>
