@@ -58,6 +58,10 @@ import java.util.function.Function;
 
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.filehandling.core.connections.FSFileSystem;
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.RelativeTo;
+import org.knime.filehandling.core.connections.workflowaware.Entity;
+import org.knime.filehandling.core.connections.workflowaware.WorkflowAware;
 
 /**
  *
@@ -71,10 +75,10 @@ public class FileChooserDataService {
     /**
      * This data service is used in the DefaultNodeDialog and can be accessed by the frontend using the name
      * "fileChooser".
+     *
      * @throws IOException
      */
-    public FileChooserDataService(){
-        //TODO: Workflow-aware final var workflowAware = m_fileSystem.getWorkflowAware().get();
+    public FileChooserDataService() {
     }
 
     <S> S withFileSystem(final Function<FSFileSystem, S> callback) throws IOException {
@@ -110,4 +114,55 @@ public class FileChooserDataService {
     Item toItem(final Path path) {
         return new Item(Files.isDirectory(path), path.toString());
     }
+
+    <S> S withRelativeToWorkflow(final Function<FSFileSystem, S> callback) throws IOException {
+        S result;
+        try (var fsConnection = DefaultFSConnectionFactory.createRelativeToConnection(RelativeTo.WORKFLOW);
+                var fileSystem = fsConnection.getFileSystem()) {
+            result = callback.apply(fileSystem);
+        }
+        return result;
+    }
+
+    record WorkflowAwareItem(Entity entity, String path) {
+    }
+
+    public List<WorkflowAwareItem> getRootWorkflowAwareItems() throws IOException {
+        return withRelativeToWorkflow(fs -> {
+            return getRootWorkflowAwareItems(fs);
+        });
+    }
+
+    private List<WorkflowAwareItem> getRootWorkflowAwareItems(final FSFileSystem<?> fs) {
+        final List<WorkflowAwareItem> out = new ArrayList<>();
+        final var workflowAware = fs.getWorkflowAware().get();
+        fs.getRootDirectories().forEach(p -> out.add(toWorkflowAwareItem(p, workflowAware)));
+        return out;
+    }
+
+    public List<WorkflowAwareItem> listItemsWorkflowAware(final String path) throws IOException {
+        return withRelativeToWorkflow(fs -> {
+            try {
+                return getWorkflowAwareItems(path, fs);
+            } catch (IOException ex) {
+                return Collections.emptyList();
+            }
+        });
+    }
+
+    private List<WorkflowAwareItem> getWorkflowAwareItems(final String path, final FSFileSystem<?> fs)
+        throws IOException {
+        final var workflowAware = fs.getWorkflowAware().get();
+        final var files = Files.list(fs.getPath(path));
+        return files.map(p -> toWorkflowAwareItem(p, workflowAware)).toList();
+    }
+
+    WorkflowAwareItem toWorkflowAwareItem(final Path path, final WorkflowAware workflowAware) {
+        try {
+            return new WorkflowAwareItem(workflowAware.getEntityOf((FSPath)path), path.toString());
+        } catch (IOException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
 }
