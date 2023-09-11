@@ -84,6 +84,10 @@ class ScriptingService {
     (await this._jsonDataService).applyData();
   }
 
+  public async closeDialog() {
+    (await this._knimeService).closeWindow();
+  }
+
   public registerEventHandler(type: string, handler: (args: any) => void) {
     this._eventHandlers[type] = handler;
   }

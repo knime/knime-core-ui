@@ -159,8 +159,11 @@ export default defineComponent({
       const editorModel = toRaw(this.editorModel);
       if (editorModel) {
         getScriptingService().saveSettings({ script: editorModel.getValue() });
+        this.closeDialog();
       }
-      // TODO: close window
+    },
+    closeDialog() {
+      getScriptingService().closeDialog();
     },
     onMenuItemClicked(args: { event: Event; item: any }) {
       if (commonMenuItems.includes(toRaw(args.item))) {
@@ -260,7 +263,10 @@ export default defineComponent({
         </splitpanes>
       </pane>
     </splitpanes>
-    <FooterBar @scripting-editor-okayed="saveSettings" />
+    <FooterBar
+      @scripting-editor-okayed="saveSettings"
+      @scripting-editor-cancelled="closeDialog"
+    />
   </div>
 </template>
 
