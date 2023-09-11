@@ -154,6 +154,12 @@ class ScriptingService {
   public pasteToEditor(textToPaste: string): void {
     this._editorService.pasteToEditor(textToPaste);
   }
+
+  public async supportsCodeAssistant(): Promise<boolean> {
+    const result = await this.sendToService("supportsCodeAssistant");
+    const value = result as unknown as boolean;
+    return value;
+  }
 }
 
 export type ScriptingServiceType = Pick<
