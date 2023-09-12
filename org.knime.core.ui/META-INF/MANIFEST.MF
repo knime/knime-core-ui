@@ -69,8 +69,7 @@ Require-Bundle: org.knime.shared.workflow.def;bundle-version="[4.6.0,6.0.0)",
  org.apache.commons.commons-text;bundle-version="[1.10.0,2.0.0)",
  com.googlecode.owasp-java-html-sanitizer;bundle-version="20200713.1.0",
  org.apache.commons.csv;bundle-version="[1.4.0,2.0.0)",
- org.knime.filehandling.core
+ org.knime.filehandling.core;bundle-version="[5.2.0,6.0.0)"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Automatic-Module-Name: org.knime.core.ui
-Import-Package: org.knime.filehandling.core.connections
