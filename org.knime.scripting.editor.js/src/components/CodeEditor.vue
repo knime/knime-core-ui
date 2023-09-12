@@ -56,7 +56,7 @@ onMounted(async () => {
   editorModel = monaco.editor.createModel(
     initialScript,
     props.language,
-    monaco.Uri.parse(`inmemory://${props.fileName}`),
+    monaco.Uri.parse(`inmemory://model/${props.fileName}`),
   );
 
   editor = monaco.editor.create(editorRef.value as HTMLElement, {
