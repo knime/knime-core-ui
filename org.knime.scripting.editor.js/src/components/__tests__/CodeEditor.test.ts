@@ -21,7 +21,7 @@ describe("CodeEditor", () => {
     expect(monaco.editor.createModel).toHaveBeenCalledWith(
       "myInitialScript",
       language,
-      `inmemory://${fileName}`,
+      `inmemory://model/${fileName}`,
     );
   });
 
