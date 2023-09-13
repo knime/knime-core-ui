@@ -159,10 +159,12 @@ class ScriptingService {
     this._editorService.pasteToEditor(textToPaste);
   }
 
-  public async supportsCodeAssistant(): Promise<boolean> {
-    const result = await this.sendToService("supportsCodeAssistant");
-    const value = result as unknown as boolean;
-    return value;
+  public supportsCodeAssistant(): Promise<boolean> {
+    return this.sendToService("supportsCodeAssistant");
+  }
+
+  public inputsAvailable(): Promise<boolean> {
+    return this.sendToService("inputsAvailable");
   }
 }
 

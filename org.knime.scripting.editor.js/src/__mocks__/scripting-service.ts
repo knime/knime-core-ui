@@ -14,6 +14,7 @@ export const scriptingServiceMock = {
   sendToService: vi.fn(() => {}),
   pasteToEditor: vi.fn(() => {}),
   supportsCodeAssistant: vi.fn(),
+  inputsAvailable: vi.fn(),
   closeDialog: vi.fn(),
 };
 
