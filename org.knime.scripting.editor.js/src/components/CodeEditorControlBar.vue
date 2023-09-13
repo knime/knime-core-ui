@@ -8,10 +8,12 @@ import { getScriptingService } from "@/scripting-service";
 import { onClickOutside } from "@vueuse/core";
 import type { PaneSizes } from "./ScriptingEditor.vue";
 
-const showAiButton = ref<boolean>(false);
 const showBar = ref<boolean>(false);
 const aiBar = ref(null);
 const aiButton = ref(null);
+
+const codeAssistantSupported = ref<boolean>(false);
+const inputsAvailable = ref<boolean>(false);
 
 const props = defineProps({
   currentPaneSizes: {
@@ -40,7 +42,9 @@ const setupOnClickOutside = () => {
 };
 
 onMounted(async () => {
-  showAiButton.value = await getScriptingService().supportsCodeAssistant();
+  codeAssistantSupported.value =
+    await getScriptingService().supportsCodeAssistant();
+  inputsAvailable.value = await getScriptingService().inputsAvailable();
   nextTick(() => {
     setupOnClickOutside();
   });
@@ -59,8 +63,8 @@ onMounted(async () => {
   </div>
   <div class="controls">
     <Button
-      v-show="showAiButton"
-      ref="aiButton"
+      ref="ai-button"
+      :disabled="!codeAssistantSupported || !inputsAvailable"
       compact
       on-dark
       class="ai-button"
@@ -68,9 +72,6 @@ onMounted(async () => {
     >
       <AiButton />
     </Button>
-    <div v-show="!showAiButton" id="placeholder">
-      <!-- flexbox alignment needs at least some element here -->
-    </div>
     <slot name="controls" class="button-controls" />
   </div>
 </template>

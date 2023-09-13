@@ -195,6 +195,21 @@ public abstract class ScriptingService {
         public abstract List<InputOutputModel> getOutputObjects();
 
         /**
+         * @return True if all inputs are connected and the upstream nodes are executed.
+         */
+        public boolean inputsAvailable() {
+            var inputPortObjects = getWorkflowControl().getInputData();
+
+            for (var po : inputPortObjects) {
+                if (po == null) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /**
          * Remove the next event for the frontend and return it.
          *
          * @return the next event for the frontend
