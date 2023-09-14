@@ -74,7 +74,7 @@ describe("CodeEditorControlBar", () => {
   it("test aiButton is available if inputs and code assistance are available", async () => {
     const wrapper = mount(CodeEditorControlBar);
     await flushPromises();
-    const button = wrapper.findComponent({ ref: "ai-button" });
+    const button = wrapper.findComponent({ ref: "aiButton" });
 
     expect(button.props().disabled).toBeFalsy();
   });
@@ -86,7 +86,7 @@ describe("CodeEditorControlBar", () => {
 
     const wrapper = mount(CodeEditorControlBar);
     await flushPromises();
-    const button = wrapper.findComponent({ ref: "ai-button" });
+    const button = wrapper.findComponent({ ref: "aiButton" });
 
     expect(button.props().disabled).toBeTruthy();
   });
@@ -100,7 +100,7 @@ describe("CodeEditorControlBar", () => {
 
     const wrapper = mount(CodeEditorControlBar);
     await flushPromises();
-    const button = wrapper.findComponent({ ref: "ai-button" });
+    const button = wrapper.findComponent({ ref: "aiButton" });
 
     expect(button.props().disabled).toBeTruthy();
   });
