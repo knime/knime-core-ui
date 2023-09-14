@@ -12,7 +12,6 @@ const showBar = ref<boolean>(false);
 const aiBar = ref(null);
 const aiButton = ref(null);
 
-const codeAssistantSupported = ref<boolean>(false);
 const inputsAvailable = ref<boolean>(false);
 
 const props = defineProps({
@@ -42,8 +41,6 @@ const setupOnClickOutside = () => {
 };
 
 onMounted(async () => {
-  codeAssistantSupported.value =
-    await getScriptingService().supportsCodeAssistant();
   inputsAvailable.value = await getScriptingService().inputsAvailable();
   nextTick(() => {
     setupOnClickOutside();
@@ -64,7 +61,7 @@ onMounted(async () => {
   <div class="controls">
     <Button
       ref="aiButton"
-      :disabled="!codeAssistantSupported || !inputsAvailable"
+      :disabled="!inputsAvailable"
       compact
       on-dark
       class="ai-button"
