@@ -63,7 +63,7 @@ onMounted(async () => {
   </div>
   <div class="controls">
     <Button
-      ref="ai-button"
+      ref="aiButton"
       :disabled="!codeAssistantSupported || !inputsAvailable"
       compact
       on-dark
