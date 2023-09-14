@@ -155,10 +155,12 @@ export default defineComponent({
       getScriptingService().initEditorService(editor, editorModel);
       this.$emit("monaco-created", { editor, editorModel });
     },
-    saveSettings() {
+    async saveSettings() {
       const editorModel = toRaw(this.editorModel);
       if (editorModel) {
-        getScriptingService().saveSettings({ script: editorModel.getValue() });
+        await getScriptingService().saveSettings({
+          script: editorModel.getValue(),
+        });
         this.closeDialog();
       }
     },
