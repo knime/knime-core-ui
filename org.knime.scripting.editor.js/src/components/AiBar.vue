@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, type PropType } from "vue";
+import { computed, ref, type PropType, onMounted } from "vue";
 import { useTextareaAutosize } from "@vueuse/core";
 import SendIcon from "webapps-common/ui/assets/img/icons/paper-flier.svg";
 import AbortIcon from "webapps-common/ui/assets/img/icons/circle-close.svg";
 import ExportIcon from "webapps-common/ui/assets/img/icons/export.svg";
+import LinkIcon from "webapps-common/ui/assets/img/icons/link.svg";
 import Button from "webapps-common/ui/components/Button.vue";
 import { getScriptingService } from "@/scripting-service";
 import CodeEditor from "./CodeEditor.vue";
@@ -11,12 +12,13 @@ import { editor } from "monaco-editor";
 import {
   usePromptResponseStore,
   clearPromptResponseStore,
+  showDisclaimer,
   type PromptResponseStore,
   type Message,
 } from "@/store";
 import type { PaneSizes } from "./ScriptingEditor.vue";
 
-type Status = "idle" | "error" | "waiting";
+type Status = "idle" | "error" | "waiting" | "uninstalled" | "unauthorized";
 
 // sizes in viewport width/height
 const DEFAULT_AI_BAR_WIDTH = 65;
@@ -135,6 +137,12 @@ const bottomPosition = computed(
 const aiBarWidth = computed(() => {
   return Math.min(DEFAULT_AI_BAR_WIDTH, 100 - leftPosition.value);
 });
+
+onMounted(async () => {
+  if (!(await getScriptingService().supportsCodeAssistant())) {
+    status.value = "uninstalled";
+  }
+});
 </script>
 
 <template>
@@ -147,62 +155,132 @@ const aiBarWidth = computed(() => {
       height: `${DEFAULT_AI_BAR_HEIGHT}`,
     }"
   >
-    <Transition name="slide-fade">
-      <div
-        v-if="promptResponseStore.promptResponse"
-        class="diff-editor-container"
-      >
-        <CodeEditor
-          :language="language"
-          class="diff-editor"
-          :diff-script="promptResponseStore.promptResponse.suggestedCode"
-          @monaco-created="onDiffEditorCreated"
-        />
-        <div class="accept-decline-buttons">
-          <Button with-border compact @click="acceptSuggestion">
-            <ExportIcon /> Insert in editor
-          </Button>
-        </div>
-      </div>
-    </Transition>
     <div
-      class="chat-controls"
+      v-show="status === 'uninstalled'"
+      class="notification-bar"
       :style="{ '--left-distance': `calc(${leftOverflow}vw + 30px)` }"
     >
-      <Transition name="slide-fade">
-        <div v-if="promptResponseStore.promptResponse" class="prompt-bar">
-          {{ promptResponseStore.promptResponse.message.content }}
+      <span class="notification">
+        To start generating code with our AI assistant, install the
+        <i>KNIME AI Assistant</i> extension
+      </span>
+      <Button
+        compact
+        primary
+        :to="'https://hub.knime.com/knime/extensions/org.knime.features.ai.assistant/latest'"
+        class="notification-button"
+      >
+        <LinkIcon />Download from KNIME Hub
+      </Button>
+    </div>
+    <div
+      v-show="status === 'unauthorized'"
+      class="notification-bar"
+      :style="{ '--left-distance': `calc(${leftOverflow}vw + 30px)` }"
+    >
+      <span class="notification">
+        To start generating code with our AI assistant, please log into your
+        <i>KNIME Hub</i> account
+      </span>
+      <Button
+        compact
+        primary
+        :to="'https://hub.knime.com/knime/extensions/org.knime.features.ai.assistant/latest'"
+        class="notification-button"
+      >
+        <LinkIcon />Login to KNIME Hub
+      </Button>
+    </div>
+    <div v-show="status !== 'uninstalled' && status !== 'unauthorized'">
+      <Transition name="disclaimer-slide-fade">
+        <div v-if="showDisclaimer" class="disclaimer-container">
+          <div class="disclaimer-text">
+            <h5 style="margin: 10px 0">Disclaimer</h5>
+            <p>
+              By using this coding assistant, you acknowledge and agree the
+              following: Any information you enter into the prompt, as well as
+              the current code (being edited) and table headers, may be shared
+              with OpenAI and KNIME in order to provide and improve this
+              service.
+            </p>
+
+            <p>
+              KNIME is not responsible for any content, input or output, or
+              actions triggered by the generated code, and is not liable for any
+              damages arising from or related to your use of the coding
+              assistant.
+            </p>
+
+            <p>This is an experimental service, USE AT YOUR OWN RISK.</p>
+          </div>
+          <div class="disclaimer-button-container">
+            <Button
+              compact
+              primary
+              class="notification-button"
+              @click="showDisclaimer = false"
+              >Accept and close</Button
+            >
+          </div>
         </div>
       </Transition>
-      <div class="chat-controls-text-input">
-        <textarea
-          ref="textarea"
-          v-model="input"
-          :readonly="status === 'waiting'"
-          class="textarea"
-          placeholder="Type your prompt"
-          @keydown="handleKeyDown"
-        />
-        <div class="chat-controls-buttons">
-          <Button
-            v-show="status === 'error' || status === 'idle'"
-            ref="sendButton"
-            title="Send"
-            :disabled="!input"
-            class="textarea-button"
-            @click="request"
-          >
-            <SendIcon class="icon" />
-          </Button>
-          <Button
-            v-show="status === 'waiting'"
-            ref="abortButton"
-            title="Cancel"
-            class="textarea-button"
-            @click="abortRequest"
-          >
-            <AbortIcon class="icon" />
-          </Button>
+      <Transition name="slide-fade">
+        <div
+          v-if="promptResponseStore.promptResponse"
+          class="diff-editor-container"
+        >
+          <CodeEditor
+            :language="language"
+            class="diff-editor"
+            :diff-script="promptResponseStore.promptResponse.suggestedCode"
+            @monaco-created="onDiffEditorCreated"
+          />
+          <div class="accept-decline-buttons">
+            <Button with-border compact @click="acceptSuggestion">
+              <ExportIcon /> Insert in editor
+            </Button>
+          </div>
+        </div>
+      </Transition>
+      <div
+        class="chat-controls"
+        :style="{ '--left-distance': `calc(${leftOverflow}vw + 30px)` }"
+      >
+        <Transition name="slide-fade">
+          <div v-if="promptResponseStore.promptResponse" class="prompt-bar">
+            {{ promptResponseStore.promptResponse.message.content }}
+          </div>
+        </Transition>
+        <div class="chat-controls-text-input">
+          <textarea
+            ref="textarea"
+            v-model="input"
+            :readonly="status === 'waiting' || showDisclaimer"
+            class="textarea"
+            placeholder="Type your prompt"
+            @keydown="handleKeyDown"
+          />
+          <div class="chat-controls-buttons">
+            <Button
+              v-show="status === 'error' || status === 'idle'"
+              ref="sendButton"
+              title="Send"
+              :disabled="!input || showDisclaimer"
+              class="textarea-button"
+              @click="request"
+            >
+              <SendIcon class="icon" />
+            </Button>
+            <Button
+              v-show="status === 'waiting'"
+              ref="abortButton"
+              title="Cancel"
+              class="textarea-button"
+              @click="abortRequest"
+            >
+              <AbortIcon class="icon" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -392,5 +470,65 @@ const aiBarWidth = computed(() => {
     border-top: 1px solid var(--knime-silver-sand);
     transform: translate(-50%, 50%) rotate(135deg);
   }
+}
+
+.notification {
+  line-height: 15.23px;
+  margin: var(--ai-bar-margin);
+}
+
+& .notification-bar {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid var(--knime-silver-sand);
+  position: relative;
+
+  & :deep(.notification-bar::after) {
+    --arrow-size: 18px;
+
+    width: var(--arrow-size);
+    height: var(--arrow-size);
+    left: var(--left-distance);
+    content: "";
+    position: absolute;
+    background-color: var(--knime-porcelain);
+    bottom: 0;
+    z-index: 1;
+    border-right: 1px solid var(--knime-silver-sand);
+    border-top: 1px solid var(--knime-silver-sand);
+    transform: translate(-50%, 50%) rotate(135deg);
+  }
+}
+
+.notification-button {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-right: 5px;
+}
+
+.disclaimer-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.disclaimer-text {
+  margin: 5px;
+  background-color: white;
+  line-height: 20px;
+}
+
+.disclaimer-button-container {
+  display: flex;
+  justify-content: right;
+}
+
+.disclaimer-slide-fade-leave-active {
+  transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.disclaimer-slide-fade-enter-from,
+.disclaimer-slide-fade-leave-to {
+  transform: translateY(30px);
+  opacity: 0;
 }
 </style>

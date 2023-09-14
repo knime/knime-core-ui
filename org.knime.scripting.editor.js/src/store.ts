@@ -1,4 +1,4 @@
-import { reactive } from "vue";
+import { reactive, ref } from "vue";
 
 export interface Message {
   role: "reply" | "request";
@@ -27,3 +27,8 @@ export const clearPromptResponseStore = (): void => {
     delete promptResponseStore.promptResponse;
   }
 };
+
+// Whether the disclaimer needs to be shown to the user.
+// This is part of the store so it is only shown the first time the user
+// opens the AI bar while the script editor is open.
+export const showDisclaimer = ref<boolean>(true);
