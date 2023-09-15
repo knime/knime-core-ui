@@ -64,6 +64,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.scripting.editor.ai.HubConnectionUtils;
 import org.knime.scripting.editor.lsp.LanguageServerProxy;
 
 /**
@@ -298,6 +299,15 @@ public abstract class ScriptingService {
             var aiBundle = Platform.getBundle("org.knime.ai.assistant.java");
             return aiBundle != null;
         }
+
+        /**
+         * Log in to the currently selected Hub end point
+         *
+         * @return true if already logged in or the login was successful
+         */
+        public boolean loginToHub() {
+            return HubConnectionUtils.loginToHub();
+        }
     }
 
     /**
@@ -409,4 +419,5 @@ public abstract class ScriptingService {
         String codeAlias, //
         InputOutputModelSubItem[] subItems) {
     }
+
 }
