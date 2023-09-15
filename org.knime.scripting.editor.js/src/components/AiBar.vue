@@ -142,7 +142,19 @@ onMounted(async () => {
   if (!(await getScriptingService().supportsCodeAssistant())) {
     status.value = "uninstalled";
   }
+  status.value = "unauthorized";
 });
+
+const tryLogin = async () => {
+  const loginSuccessful = await getScriptingService().sendToService(
+    "loginToHub",
+  );
+  if (loginSuccessful) {
+    status.value = "idle";
+    return true;
+  }
+  return false;
+};
 </script>
 
 <template>
@@ -182,12 +194,7 @@ onMounted(async () => {
         To start generating code with our AI assistant, please log into your
         <i>KNIME Hub</i> account
       </span>
-      <Button
-        compact
-        primary
-        :to="'https://hub.knime.com/knime/extensions/org.knime.features.ai.assistant/latest'"
-        class="notification-button"
-      >
+      <Button compact primary class="notification-button" @click="tryLogin()">
         <LinkIcon />Login to KNIME Hub
       </Button>
     </div>

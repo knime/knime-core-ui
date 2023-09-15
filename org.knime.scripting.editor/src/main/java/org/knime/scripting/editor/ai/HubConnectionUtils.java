@@ -60,6 +60,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 
+import org.eclipse.swt.widgets.Display;
 import org.knime.ai.assistant.java.prefs.KaiPreferences;
 import org.knime.ai.assistant.java.prefs.KaiPreferences.NoServerException;
 import org.knime.ai.assistant.java.prefs.KaiPreferences.Protocol;
@@ -122,6 +123,34 @@ public final class HubConnectionUtils {
             throw new ConnectException("Could not access HubContent.");
         }
         throw new ConnectException("Unexpected content provider for mount ID '%s'.".formatted(hubMountID));
+    }
+
+    /**
+     * Log in to the currently selected Hub end point
+     *
+     * @return true if already logged in or the login was successful
+     */
+    public static boolean loginToHub() {
+        var hubMountID = KaiPreferences.getHubId();
+        var contentProvider = ExplorerMountTable.getMountedContent().get(hubMountID);
+        if (contentProvider == null) {
+            return false;
+        } else if (contentProvider instanceof WorkflowHubContentProvider hubContentProvider) {
+            var remoteFileSystem = hubContentProvider.getRemoteFileSystem();
+            if (remoteFileSystem instanceof HubContent hubContent) {
+                if (hubContent.isAuthenticated()) {
+                    return true;
+                }
+
+                // This needs to be called on the display thread -- at least on Mac
+                Display.getDefault().syncExec(contentProvider::connect);
+
+                return hubContent.isAuthenticated();
+            }
+            return false;
+        }
+
+        return false;
     }
 
     /**
