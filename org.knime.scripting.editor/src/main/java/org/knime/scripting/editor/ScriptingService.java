@@ -303,10 +303,12 @@ public abstract class ScriptingService {
         /**
          * Log in to the currently selected Hub end point
          *
-         * @return true if already logged in or the login was successful
+         * The login status will be sent to JS as event with identifier "hubLogin".
          */
-        public boolean loginToHub() {
-            return HubConnectionUtils.loginToHub();
+        public void loginToHub() {
+            boolean status = HubConnectionUtils.loginToHub();
+            sendEvent("hubLogin", status);
+        }
 
         /**
          * @return true if the user is logged in to the currently selected Hub end point
