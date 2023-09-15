@@ -91,7 +91,7 @@ describe("CodeEditorControlBar", () => {
     expect(button.props().disabled).toBeTruthy();
   });
 
-  it("test aiButton is disabled if code assistance is not available", async () => {
+  it("test aiButton is enabled even if code assistance is not available", async () => {
     vi.mocked(getScriptingService().supportsCodeAssistant).mockImplementation(
       () => {
         return Promise.resolve(false);
@@ -102,6 +102,6 @@ describe("CodeEditorControlBar", () => {
     await flushPromises();
     const button = wrapper.findComponent({ ref: "aiButton" });
 
-    expect(button.props().disabled).toBeTruthy();
+    expect(button.props().disabled).toBeFalsy();
   });
 });
