@@ -191,6 +191,12 @@ public final class HubConnectionUtils {
 
         try {
             int responseCode = http.getResponseCode();
+
+            if (responseCode == 404) {
+                throw new IOException("The currently selected Hub does not provide the end point '" + endpointPath
+                    + "'. Select a different Hub in the AI Assistant preference page");
+            }
+
             try (InputStream errorStream = http.getErrorStream()) {
                 if (errorStream != null) {
                     String msg = new String(errorStream.readAllBytes(), StandardCharsets.UTF_8);
