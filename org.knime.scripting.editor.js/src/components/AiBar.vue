@@ -141,8 +141,7 @@ const aiBarWidth = computed(() => {
 onMounted(async () => {
   if (!(await getScriptingService().supportsCodeAssistant())) {
     status.value = "uninstalled";
-  }
-  if (!(await getScriptingService().sendToService("isLoggedIn"))) {
+  } else if (!(await getScriptingService().sendToService("isLoggedIn"))) {
     status.value = "unauthorized";
   }
 });
