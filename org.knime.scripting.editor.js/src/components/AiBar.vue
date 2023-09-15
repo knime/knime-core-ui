@@ -142,7 +142,9 @@ onMounted(async () => {
   if (!(await getScriptingService().supportsCodeAssistant())) {
     status.value = "uninstalled";
   }
-  status.value = "unauthorized";
+  if (!(await getScriptingService().sendToService("isLoggedIn"))) {
+    status.value = "unauthorized";
+  }
 });
 
 const tryLogin = async () => {
