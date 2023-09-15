@@ -59,12 +59,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
-import org.eclipse.core.runtime.Platform;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.scripting.editor.ai.HubConnectionUtils;
+import org.knime.scripting.editor.ai.HubConnection;
 import org.knime.scripting.editor.lsp.LanguageServerProxy;
 
 /**
@@ -296,8 +295,7 @@ public abstract class ScriptingService {
          * @return True if AI supported code generation is supported
          */
         public boolean supportsCodeAssistant() {
-            var aiBundle = Platform.getBundle("org.knime.ai.assistant.java");
-            return aiBundle != null;
+            return HubConnection.INSTANCE.isAvailable();
         }
 
         /**
@@ -306,7 +304,7 @@ public abstract class ScriptingService {
          * The login status will be sent to JS as event with identifier "hubLogin".
          */
         public void loginToHub() {
-            boolean status = HubConnectionUtils.loginToHub();
+            boolean status = HubConnection.INSTANCE.loginToHub();
             sendEvent("hubLogin", status);
         }
 
@@ -314,7 +312,7 @@ public abstract class ScriptingService {
          * @return true if the user is logged in to the currently selected Hub end point
          */
         public boolean isLoggedIn() {
-            return HubConnectionUtils.isLoggedIn();
+            return HubConnection.INSTANCE.isLoggedIn();
         }
     }
 
