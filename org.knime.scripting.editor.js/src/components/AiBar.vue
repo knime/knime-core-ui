@@ -479,18 +479,15 @@ const tryLogin = () => {
     border-top: 1px solid var(--knime-silver-sand);
     transform: translate(-50%, 50%) rotate(135deg);
   }
-}
 
-.notification {
-  line-height: 15.23px;
-  margin: var(--ai-bar-margin);
-}
-
-& .notification-bar {
-  display: flex;
-  justify-content: space-between;
-  border-top: 1px solid var(--knime-silver-sand);
-  position: relative;
+  & .notification-bar {
+    display: flex;
+    justify-content: space-between;
+    vertical-align: middle;
+    border-top: 1px solid var(--knime-silver-sand);
+    position: relative;
+    height: 49px;
+  }
 
   & :deep(.notification-bar::after) {
     --arrow-size: 18px;
@@ -509,10 +506,15 @@ const tryLogin = () => {
   }
 }
 
+.notification {
+  line-height: 15.23px;
+  margin: 15px;
+}
+
 .notification-button {
-  margin-top: 5px;
-  margin-bottom: 5px;
-  margin-right: 5px;
+  height: 30px;
+  margin: 9px;
+  margin-right: 15px;
 }
 
 .disclaimer-container {
@@ -521,9 +523,11 @@ const tryLogin = () => {
 }
 
 .disclaimer-text {
-  margin: 5px;
-  background-color: white;
+  border: 1px solid var(--knime-silver-sand);
+  margin: 10px;
   line-height: 20px;
+  padding: 5px;
+  background-color: white;
 }
 
 .disclaimer-button-container {
