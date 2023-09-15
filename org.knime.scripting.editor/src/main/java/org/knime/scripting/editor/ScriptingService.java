@@ -307,6 +307,12 @@ public abstract class ScriptingService {
          */
         public boolean loginToHub() {
             return HubConnectionUtils.loginToHub();
+
+        /**
+         * @return true if the user is logged in to the currently selected Hub end point
+         */
+        public boolean isLoggedIn() {
+            return HubConnectionUtils.isLoggedIn();
         }
     }
 

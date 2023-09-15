@@ -154,6 +154,25 @@ public final class HubConnectionUtils {
     }
 
     /**
+     * @return true if the user is logged in to the currently selected Hub end point
+     */
+    public static boolean isLoggedIn() {
+        var hubMountID = KaiPreferences.getHubId();
+        var contentProvider = ExplorerMountTable.getMountedContent().get(hubMountID);
+        if (contentProvider == null) {
+            return false;
+        } else if (contentProvider instanceof WorkflowHubContentProvider hubContentProvider) {
+            var remoteFileSystem = hubContentProvider.getRemoteFileSystem();
+            if (remoteFileSystem instanceof HubContent hubContent) {
+                return hubContent.isAuthenticated();
+            }
+            return false;
+        }
+
+        return false;
+    }
+
+    /**
      * Send a POST request to the provided end point path at the selected KNIME Hub
      *
      * @param endpointPath The end point at the selected KNIME Hub to call
