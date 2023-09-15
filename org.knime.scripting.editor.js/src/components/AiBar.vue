@@ -147,15 +147,16 @@ onMounted(async () => {
   }
 });
 
-const tryLogin = async () => {
-  const loginSuccessful = await getScriptingService().sendToService(
-    "loginToHub",
-  );
-  if (loginSuccessful) {
+const handleLoginStatus = (loginStatus: boolean) => {
+  if (loginStatus) {
     status.value = "idle";
-    return true;
   }
-  return false;
+};
+
+scriptingService.registerEventHandler("hubLogin", handleLoginStatus);
+
+const tryLogin = () => {
+  getScriptingService().sendToService("loginToHub");
 };
 </script>
 
