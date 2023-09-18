@@ -4,13 +4,11 @@ import ScriptingEditor from "@/components/ScriptingEditor.vue";
 import CodeEditor from "@/components/CodeEditor.vue";
 import OutputConsole from "@/components/OutputConsole.vue";
 import { Pane, Splitpanes, type PaneProps } from "splitpanes";
-import {
-  scriptingServiceMock,
-  getScriptingService,
-} from "../../__mocks__/scripting-service";
+import { getScriptingService } from "../../__mocks__/scripting-service";
 import FooterBar from "../FooterBar.vue";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
 import InputOutputPane from "../InputOutputPane.vue";
+import SettingsPage from "../SettingsPage.vue";
 
 vi.mock("monaco-editor");
 vi.mock("@/scripting-service");
@@ -325,7 +323,10 @@ describe("ScriptingEditor", () => {
     await flushPromises();
     const comp = wrapper.findComponent(FooterBar);
     comp.vm.$emit("scriptingEditorOkayed");
-    expect(scriptingServiceMock.saveSettings).toHaveBeenCalledWith({
+    expect(wrapper.emitted("save-settings")).toBeDefined();
+    expect(wrapper.emitted("save-settings")?.length).toBe(1);
+    // @ts-ignore
+    expect(wrapper.emitted("save-settings")[0][0]).toStrictEqual({
       script: "myInitialScript",
     });
   });
@@ -342,5 +343,23 @@ describe("ScriptingEditor", () => {
     // @ts-ignore
     const handler = outputConsole.emitted()["console-created"][0][0];
     expect(spy).toHaveBeenCalledWith(handler);
+  });
+
+  it("shows settings page", async () => {
+    const { wrapper } = doMount();
+    wrapper.vm.showSettingsPage = true;
+    await wrapper.vm.$nextTick();
+    expect(wrapper.findComponent(SettingsPage).exists()).toBeTruthy();
+  });
+
+  it("closes settings page", async () => {
+    const { wrapper } = doMount();
+    wrapper.vm.showSettingsPage = true;
+    await wrapper.vm.$nextTick();
+    const settingsPage = wrapper.findComponent(SettingsPage);
+    expect(settingsPage.exists()).toBeTruthy();
+    settingsPage.vm.$emit("close-settings-page");
+    await wrapper.vm.$nextTick();
+    expect(settingsPage.exists()).toBeFalsy();
   });
 });

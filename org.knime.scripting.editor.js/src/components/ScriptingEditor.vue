@@ -5,12 +5,12 @@ import "splitpanes/dist/splitpanes.css";
 import CodeEditor from "./CodeEditor.vue";
 import FooterBar from "./FooterBar.vue";
 import HeaderBar from "./HeaderBar.vue";
+import SettingsPage, { type SettingsMenuItem } from "./SettingsPage.vue";
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 import type { MenuItem } from "webapps-common/ui/components/MenuItems.vue";
 import type { editor } from "monaco-editor";
 import OutputConsole from "./OutputConsole.vue";
 import type { ConsoleHandler } from "./OutputConsole.vue";
-
 import { getScriptingService } from "@/scripting-service";
 import InputOutputPane from "./InputOutputPane.vue";
 
@@ -33,6 +33,7 @@ export default defineComponent({
     CodeEditorControlBar,
     OutputConsole,
     InputOutputPane,
+    SettingsPage,
   },
   props: {
     title: {
@@ -60,7 +61,7 @@ export default defineComponent({
       default: true,
     },
   },
-  emits: ["monaco-created", "menu-item-clicked"],
+  emits: ["monaco-created", "menu-item-clicked", "save-settings"],
   data() {
     return {
       currentPaneSizes: {
@@ -80,6 +81,7 @@ export default defineComponent({
       } as PaneSizes,
       commonMenuItems,
       editorModel: null as editor.ITextModel | null,
+      showSettingsPage: false,
     };
   },
   computed: {
@@ -155,19 +157,17 @@ export default defineComponent({
       getScriptingService().initEditorService(editor, editorModel);
       this.$emit("monaco-created", { editor, editorModel });
     },
-    async saveSettings() {
+    saveSettings() {
       const editorModel = toRaw(this.editorModel);
-      if (editorModel) {
-        await getScriptingService().saveSettings({
-          script: editorModel.getValue(),
-        });
-        this.closeDialog();
-      }
+      const settings = { script: editorModel?.getValue() ?? "" };
+      this.$emit("save-settings", settings);
     },
     closeDialog() {
       getScriptingService().closeDialog();
     },
-    onMenuItemClicked(args: { event: Event; item: any }) {
+    onMenuItemClicked(args: { event: Event; item: SettingsMenuItem }) {
+      this.showSettingsPage = Boolean(args.item.showSettingsPage);
+
       if (commonMenuItems.includes(toRaw(args.item))) {
         // TODO: handle click actions for common items here
       } else {
@@ -188,7 +188,19 @@ export default defineComponent({
       :menu-items="[...commonMenuItems, ...menuItems]"
       @menu-item-click="onMenuItemClicked"
     />
+    <SettingsPage
+      v-if="showSettingsPage"
+      @close-settings-page="showSettingsPage = false"
+    >
+      <template #settings-title>
+        <slot name="settings-title" />
+      </template>
+      <template #settings-content>
+        <slot name="settings-content" />
+      </template>
+    </SettingsPage>
     <splitpanes
+      v-show="!showSettingsPage"
       ref="mainSplitpane"
       class="common-splitter unset-transition main-splitpane"
       :dbl-click-splitter="false"
@@ -272,6 +284,7 @@ export default defineComponent({
       </pane>
     </splitpanes>
     <FooterBar
+      v-show="!showSettingsPage"
       @scripting-editor-okayed="saveSettings"
       @scripting-editor-cancelled="closeDialog"
     />
@@ -356,6 +369,10 @@ export default defineComponent({
 .main-splitpane {
   height: calc(100vh - (2 * var(--controls-height)));
   overflow: hidden;
+}
+
+.settings-page {
+  height: calc(100vh - var(--controls-height));
 }
 
 /* stylelint-enable selector-class-pattern */
