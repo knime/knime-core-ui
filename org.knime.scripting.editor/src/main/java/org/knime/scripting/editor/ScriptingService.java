@@ -304,8 +304,10 @@ public abstract class ScriptingService {
          * The login status will be sent to JS as event with identifier "hubLogin".
          */
         public void loginToHub() {
-            boolean status = HubConnection.INSTANCE.loginToHub();
-            sendEvent("hubLogin", status);
+            new Thread(() -> {
+                boolean status = HubConnection.INSTANCE.loginToHub();
+                sendEvent("hubLogin", status);
+            }).start();
         }
 
         /**
