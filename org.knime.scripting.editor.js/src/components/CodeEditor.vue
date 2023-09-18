@@ -85,6 +85,7 @@ onMounted(async () => {
     },
     scrollBeyondLastLine: true,
     fixedOverflowWidgets: true,
+    suggest: { showWords: false }, // Disable word suggestions - better suggestions are provided by the language server
   };
 
   if (props.diffScript === null) {
