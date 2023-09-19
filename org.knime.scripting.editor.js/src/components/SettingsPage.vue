@@ -11,7 +11,7 @@ import Button from "webapps-common/ui/components/Button.vue";
 import ArrowLeft from "webapps-common/ui/assets/img/icons/arrow-left.svg";
 
 const emit = defineEmits<{
-  (e: "close-settings-page"): void;
+  (e: "close-settings-page"): void; // NOSONAR
 }>();
 </script>
 

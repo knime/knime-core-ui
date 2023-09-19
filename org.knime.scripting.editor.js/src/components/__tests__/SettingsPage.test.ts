@@ -13,4 +13,18 @@ describe("SettingsPage", () => {
     await wrapper.find(".back-button").trigger("click");
     expect(wrapper.emitted("close-settings-page")).toBeTruthy();
   });
+
+  it("displays slotted content", () => {
+    const wrapper = mount(SettingsPage, {
+      slots: {
+        "settings-title": "<div class='title'>Settings title</div>",
+        "settings-content": "<div class='content'>Settings content</div>",
+      },
+    });
+    const titleSlot = wrapper.find(".title");
+    expect(titleSlot.exists()).toBeTruthy();
+    expect(titleSlot.text()).toContain("Settings title");
+    const contentSlot = wrapper.find(".content");
+    expect(contentSlot.exists()).toBeTruthy();
+  });
 });
