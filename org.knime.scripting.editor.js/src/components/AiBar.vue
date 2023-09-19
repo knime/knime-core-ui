@@ -5,6 +5,7 @@ import SendIcon from "webapps-common/ui/assets/img/icons/paper-flier.svg";
 import AbortIcon from "webapps-common/ui/assets/img/icons/circle-close.svg";
 import ExportIcon from "webapps-common/ui/assets/img/icons/export.svg";
 import LinkIcon from "webapps-common/ui/assets/img/icons/link.svg";
+import LoadingIcon from "webapps-common/ui/components/LoadingIcon.vue";
 import Button from "webapps-common/ui/components/Button.vue";
 import { getScriptingService } from "@/scripting-service";
 import CodeEditor from "./CodeEditor.vue";
@@ -50,6 +51,7 @@ let message: Message | null =
 let history: Array<Message | null> = [];
 const scriptingService = getScriptingService();
 let diffEditor: editor.IStandaloneDiffEditor;
+const mouseOverLoadingSpinner = ref(false);
 
 const abortRequest = () => {
   scriptingService?.sendToService("abortRequest");
@@ -271,7 +273,7 @@ const tryLogin = () => {
           />
           <div class="chat-controls-buttons">
             <Button
-              v-show="status === 'error' || status === 'idle'"
+              v-if="status === 'error' || status === 'idle'"
               ref="sendButton"
               title="Send"
               :disabled="!input || showDisclaimer"
@@ -281,13 +283,16 @@ const tryLogin = () => {
               <SendIcon class="icon" />
             </Button>
             <Button
-              v-show="status === 'waiting'"
+              v-if="status === 'waiting'"
               ref="abortButton"
               title="Cancel"
               class="textarea-button"
               @click="abortRequest"
+              @mouseover="mouseOverLoadingSpinner = true"
+              @mouseleave="mouseOverLoadingSpinner = false"
             >
-              <AbortIcon class="icon" />
+              <AbortIcon v-if="mouseOverLoadingSpinner" class="icon" />
+              <LoadingIcon v-else class="icon" />
             </Button>
           </div>
         </div>
