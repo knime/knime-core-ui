@@ -362,4 +362,25 @@ describe("ScriptingEditor", () => {
     await wrapper.vm.$nextTick();
     expect(settingsPage.exists()).toBeFalsy();
   });
+
+  it("passes slotted content through to settings page", async () => {
+    const { wrapper } = doMount({
+      props: {
+        title: "myTitle",
+        language: "someLanguage",
+        rightPaneLayout: "fixed",
+        fileName: "myFile.ts",
+      },
+      slots: {
+        "settings-title": "<div class='settings-title'>Settings title</div>",
+        "settings-content":
+          "<div class='settings-content'>Settings content</div>",
+      },
+    });
+    wrapper.vm.showSettingsPage = true;
+    await wrapper.vm.$nextTick();
+    const settingsPage = wrapper.findComponent(SettingsPage);
+    expect(settingsPage.find(".settings-title").exists()).toBeTruthy();
+    expect(settingsPage.find(".settings-content").exists()).toBeTruthy();
+  });
 });
