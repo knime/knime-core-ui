@@ -97,6 +97,14 @@ export class MonacoLSPConnection {
 
   private _connection: MessageConnection;
 
+  /**
+   * Used to wait for the last change to be sent to the server. Monaco will
+   * always call onDidChangeContent first. While we send this change to the
+   * language server this promise is pending. Other requests that depend on
+   * the latest content must wait for this promise to resolve.
+   */
+  private _onChangeLock: Promise<void>;
+
   private constructor(
     private _editorModel: editor.ITextModel,
     reader: MessageReader,
@@ -104,6 +112,7 @@ export class MonacoLSPConnection {
   ) {
     this._connection = createMessageConnection(reader, writer);
     this._connection.listen();
+    this._onChangeLock = Promise.resolve();
   }
 
   /**
@@ -166,7 +175,7 @@ export class MonacoLSPConnection {
 
     // Listen on document changes and send them to the server
     this._editorModel.onDidChangeContent((event) => {
-      this._connection.sendNotification(
+      this._onChangeLock = this._connection.sendNotification(
         DidChangeTextDocumentNotification.type,
         getDidChangeParams(this._editorModel, event),
       );
@@ -179,6 +188,7 @@ export class MonacoLSPConnection {
   private registerHoverProvider() {
     languages.registerHoverProvider(this.getLanguageId(), {
       provideHover: async (model, position) => {
+        await this._onChangeLock;
         const result = await this._connection.sendRequest(
           HoverRequest.type,
           getHoverParams(model, position),
@@ -198,6 +208,7 @@ export class MonacoLSPConnection {
     languages.registerCompletionItemProvider(this.getLanguageId(), {
       triggerCharacters: options.triggerCharacters,
       provideCompletionItems: async (model, position, context) => {
+        await this._onChangeLock;
         const result = await this._connection.sendRequest(
           CompletionRequest.type,
           getCompletionParams(model, position, context),
@@ -225,6 +236,7 @@ export class MonacoLSPConnection {
       signatureHelpTriggerCharacters: options.triggerCharacters,
       signatureHelpRetriggerCharacters: options.retriggerCharacters,
       provideSignatureHelp: async (model, position, _token, context) => {
+        await this._onChangeLock;
         const result = await this._connection.sendRequest(
           SignatureHelpRequest.type,
           getSignatureHelpParams(model, position, context),
