@@ -5,6 +5,7 @@ import { getScriptingService } from "@/scripting-service";
 import CodeEditor from "../CodeEditor.vue";
 import * as monaco from "monaco-editor";
 import { clearPromptResponseStore, usePromptResponseStore } from "@/store";
+import LoadingIcon from "webapps-common/ui/components/LoadingIcon.vue";
 
 vi.mock("@/scripting-service");
 vi.mock("monaco-editor");
@@ -93,12 +94,15 @@ describe("AiBar", () => {
         error: "oh shit",
       }),
     );
-    // click Send Button
+    const message = "Do something!";
+    const textarea = bar.find("textarea");
+    textarea.setValue(message);
+    const sendButton = bar.findComponent({ ref: "sendButton" });
+    await sendButton.vm.$emit("click");
     const abortButton = bar.findComponent({ ref: "abortButton" });
-    abortButton.vm.$emit("click");
-    await flushPromises();
+    await abortButton.vm.$emit("click");
 
-    expect(scriptingService.sendToService).toHaveBeenCalledOnce();
+    expect(scriptingService.sendToService).toHaveBeenCalledTimes(2);
     expect(scriptingService.sendToService).toBeCalledWith("abortRequest");
   });
 
@@ -196,5 +200,31 @@ describe("AiBar", () => {
     expect(loginNotification?.exists()).toBeTruthy();
     expect(downloadNotification?.isVisible()).toBeFalsy();
     expect(loginNotification?.isVisible()).toBeFalsy();
+  });
+
+  it("shows loading spinner in waiting state", async () => {
+    const bar = mount(AiBar);
+    await flushPromises();
+    const message = "Do something!";
+    // write to textarea
+    const textarea = bar.find("textarea");
+    textarea.setValue(message);
+
+    const scriptingService = getScriptingService();
+    // vi mocked gives type support for mocked vi.fn()
+    vi.mocked(scriptingService.sendToService).mockClear();
+    vi.mocked(scriptingService.sendToService).mockReturnValueOnce(
+      Promise.resolve({
+        code: JSON.stringify({ code: "import happy.hacking" }),
+        status: "SUCCESS",
+      }),
+    );
+
+    expect(bar.findComponent(LoadingIcon).exists()).toBeFalsy();
+
+    const sendButton = bar.findComponent({ ref: "sendButton" });
+    await sendButton.vm.$emit("click");
+
+    expect(bar.findComponent(LoadingIcon).exists()).toBeTruthy();
   });
 });
