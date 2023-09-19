@@ -21,6 +21,7 @@ import * as diagnostics from "../diagnostics";
 import * as docSync from "../doc-sync";
 import * as hover from "../hover";
 import * as signatureHelp from "../signature-help";
+import { nextTick } from "vue";
 
 // Install spies on monaco APIs
 vi.spyOn(languages, "registerHoverProvider");
@@ -217,6 +218,7 @@ describe("monaco-lsp", () => {
       );
 
       getHoverProvider()(editorModel, position, cancelToken);
+      await nextTick();
       expect(writer.write).toHaveBeenCalledWith(
         expect.objectContaining({
           method: "textDocument/hover",
@@ -231,6 +233,7 @@ describe("monaco-lsp", () => {
       );
 
       const promise = getHoverProvider()(editorModel, position, cancelToken);
+      await nextTick();
       resolveLastServerRequest(null);
       expect(await promise).toBeNull();
     });
@@ -241,6 +244,7 @@ describe("monaco-lsp", () => {
       );
 
       const promise = getHoverProvider()(editorModel, position, cancelToken);
+      await nextTick();
       resolveLastServerRequest({ contents: "foo" });
       const result = await promise;
       expect(hover.mapHoverResult).toHaveBeenCalledWith({ contents: "foo" });
@@ -304,6 +308,7 @@ describe("monaco-lsp", () => {
         context,
         cancelToken,
       );
+      await nextTick();
       expect(writer.write).toHaveBeenCalledWith(
         expect.objectContaining({
           method: "textDocument/completion",
@@ -344,6 +349,7 @@ describe("monaco-lsp", () => {
         context,
         cancelToken,
       );
+      await nextTick();
       resolveLastServerRequest(null);
       expect(await promise).toBeNull();
     });
@@ -359,6 +365,7 @@ describe("monaco-lsp", () => {
         context,
         cancelToken,
       );
+      await nextTick();
       resolveLastServerRequest([{ label: "foo" }]);
       const result = await promise;
       expect(completion.mapCompletionResult).toHaveBeenCalledWith(
@@ -391,6 +398,7 @@ describe("monaco-lsp", () => {
         item,
         cancelToken,
       );
+      await nextTick();
       resolveLastServerRequest({ label: "foo" });
       const result = await promise;
       expect(completion.mapCompletionResolveResult).toHaveBeenCalledWith(
@@ -450,6 +458,7 @@ describe("monaco-lsp", () => {
         cancelToken,
         context,
       );
+      await nextTick();
       expect(writer.write).toHaveBeenCalledWith(
         expect.objectContaining({
           method: "textDocument/signatureHelp",
@@ -473,6 +482,7 @@ describe("monaco-lsp", () => {
         cancelToken,
         context,
       );
+      await nextTick();
       resolveLastServerRequest(null);
       expect(await promise).toBeNull();
     });
@@ -489,6 +499,7 @@ describe("monaco-lsp", () => {
         context,
       );
       const signatureHelpResult = { signatures: [{ label: "a" }] };
+      await nextTick();
       resolveLastServerRequest(signatureHelpResult);
       const result = await promise;
       expect(signatureHelp.mapSignatureHelpResult).toHaveBeenCalledWith(
