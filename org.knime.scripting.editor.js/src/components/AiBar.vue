@@ -266,7 +266,7 @@ const tryLogin = () => {
           <textarea
             ref="textarea"
             v-model="input"
-            :readonly="status === 'waiting' || showDisclaimer"
+            :disabled="status === 'waiting' || showDisclaimer"
             class="textarea"
             placeholder="Type your prompt"
             @keydown="handleKeyDown"
