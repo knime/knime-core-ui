@@ -44,6 +44,8 @@ describe("AiBar", () => {
   it("test aiBar success", async () => {
     const bar = mount(AiBar);
     await flushPromises();
+    (bar.vm as any).showDisclaimer = false;
+    await bar.vm.$nextTick();
     const message = "Do something!";
     // write to textarea
     const textarea = bar.find("textarea");
@@ -149,6 +151,8 @@ describe("AiBar", () => {
     );
     const bar = mount(AiBar);
     await flushPromises();
+    (bar.vm as any).showDisclaimer = true;
+    await bar.vm.$nextTick();
     const disclaimer = bar.find(".disclaimer-container");
     expect(disclaimer.exists()).toBeTruthy();
   });
