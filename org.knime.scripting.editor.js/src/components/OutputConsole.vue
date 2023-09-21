@@ -11,19 +11,23 @@ import Button from "webapps-common/ui/components/Button.vue";
 
 export interface ConsoleText {
   text: string;
+  highlightMode?: "TEXT" | "WARNING" | "ERROR";
 }
 
 export type ConsoleHandler = (text: ConsoleText) => void;
 
+const RED = "\x1b[31m";
+const YELLOW = "\x1b[33m";
+const BOLD = "\x1b[1m";
+const RESET = "\x1b[0m";
 const DEBOUNCE_TIME = 300;
 
 const theme: ITheme = {
   background: knimeColors.White,
-  foreground: knimeColors.Masala,
-  selectionBackground: knimeColors.Porcelain,
+  foreground: knimeColors.Black,
+  selectionBackground: knimeColors.CornflowerSemi,
   cursor: knimeColors.StoneGray,
   black: knimeColors.Black,
-  red: knimeColors.HibiscusDark,
 };
 
 const options: ITerminalOptions & ITerminalInitOnlyOptions = {
@@ -55,9 +59,20 @@ type ConsoleHandlerEmit = (
 
 const emit = defineEmits<ConsoleHandlerEmit>();
 
+const write = (text: ConsoleText) => {
+  if (text.highlightMode === "ERROR") {
+    term.write(`${RED}${BOLD}${text.text}${RESET}`);
+  } else if (text.highlightMode === "WARNING") {
+    term.write(`${YELLOW}${text.text}${RESET}`);
+  } else {
+    // NB: "TEXT" is the default
+    term.write(text.text);
+  }
+};
+
 onMounted(() => {
   term.open(termRef.value as HTMLElement);
-  emit("console-created", (text: ConsoleText) => term.write(text.text));
+  emit("console-created", write);
   const listener = term.onLineFeed(() => {
     fitAddon.fit();
     listener.dispose();
