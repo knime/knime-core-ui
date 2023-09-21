@@ -67,7 +67,8 @@ export default defineComponent({
 }
 
 .menu {
-  margin: 10px;
+  margin: 5px;
+  margin-right: 10px;
   flex: 0 1 1px;
   justify-content: center;
 }

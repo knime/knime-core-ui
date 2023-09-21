@@ -293,7 +293,7 @@ export default defineComponent({
 
 <style lang="postcss" scoped>
 .layout {
-  --controls-height: 49px;
+  --controls-height: 40px;
   --description-button-size: 15px;
 
   display: flex;
