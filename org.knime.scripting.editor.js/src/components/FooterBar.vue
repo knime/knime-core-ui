@@ -37,6 +37,8 @@ export default defineComponent({
 
 <style lang="postcss" scoped>
 .container {
+  --controls-height: 49px;
+
   display: flex;
   justify-content: space-between;
   height: var(--controls-height);

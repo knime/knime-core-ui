@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, type PropType } from "vue";
 import Button from "webapps-common/ui/components/Button.vue";
-import AiButton from "webapps-common/ui/assets/img/icons/ai-brain.svg";
-
+import AiCode from "webapps-common/ui/assets/img/icons/ai-code.svg";
 import AiBar from "./AiBar.vue";
 import { getScriptingService } from "@/scripting-service";
 import { onClickOutside } from "@vueuse/core";
@@ -61,15 +60,17 @@ onMounted(async () => {
   <div class="controls">
     <Button
       ref="aiButton"
+      class="ai-button"
       :disabled="!inputsAvailable"
       compact
       on-dark
-      class="ai-button"
       @click="showBar = !showBar"
     >
-      <AiButton />
+      <AiCode viewBox="0 0 32 32" /> Ask AI
     </Button>
-    <slot name="controls" class="button-controls" />
+    <div class="button-controls">
+      <slot name="controls" />
+    </div>
   </div>
 </template>
 
@@ -82,11 +83,11 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-content: center;
-  min-height: var(--controls-height);
-  max-height: var(--controls-height);
-  padding: 9px 20px;
+  align-items: center;
+  padding: 0 10px;
   background-color: var(--knime-gray-light-semi);
   border-top: 1px solid var(--knime-silver-sand);
+  height: var(--controls-height);
 }
 
 .button-controls {
@@ -95,38 +96,25 @@ onMounted(async () => {
 }
 
 .button {
-  & :slotted(svg) {
-    stroke: var(--knime-porcelain);
-  }
-}
-
-.ai-button {
-  border: none;
-  border-radius: 0;
-  margin: -9px -20px;
-  height: 49px;
-  width: 49px;
+  font-weight: 500;
 
   &.compact {
     background-color: var(--knime-masala);
-  }
+    color: var(--knime-white);
 
-  & svg {
-    stroke: var(--knime-porcelain);
-    transform: scale(1.3);
-    margin: 0;
-  }
-
-  &.on-dark {
-    &:active,
     &:hover,
-    &:focus {
+    &:visited,
+    &:focus,
+    &:active {
       background-color: var(--knime-masala);
+      color: var(--knime-white);
+    }
 
-      & svg {
-        stroke: var(--knime-porcelain);
-        transform: scale(1.5);
-      }
+    & svg {
+      stroke: var(--knime-white);
+      stroke-width: 1.5px;
+      width: 18px;
+      height: 18px;
     }
   }
 }

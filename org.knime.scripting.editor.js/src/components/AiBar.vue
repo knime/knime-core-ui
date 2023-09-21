@@ -368,14 +368,14 @@ const tryLogin = () => {
   flex-direction: column;
   position: absolute;
   bottom: 20px;
-  background-color: var(--knime-porcelain);
+  background-color: var(--knime-gray-ultra-light);
   border: 1px solid var(--knime-silver-sand);
   font-size: 13px;
   line-height: 17px;
   z-index: 11; /* to display ai bar above the main code editor's scroll bar */
   overflow: visible;
-  box-shadow: 0 -2px 8px 0 var(--knime-gray-dark);
-  margin-bottom: 30px; /* to hover above ai icon */
+  box-shadow: 0 -2px 8px 0 var(--knime-silver-sand-semi);
+  margin-bottom: 12px; /* to hover above ai icon */
 
   & .subtitle {
     color: var(--knime-black);
@@ -474,10 +474,10 @@ const tryLogin = () => {
 
     width: var(--arrow-size);
     height: var(--arrow-size);
-    left: var(--left-distance);
+    left: calc(var(--left-distance) + 40px);
     content: "";
     position: absolute;
-    background-color: var(--knime-porcelain);
+    background-color: var(--knime-gray-ultra-light);
     bottom: 0;
     z-index: 1;
     border-right: 1px solid var(--knime-silver-sand);
@@ -499,10 +499,10 @@ const tryLogin = () => {
 
     width: var(--arrow-size);
     height: var(--arrow-size);
-    left: var(--left-distance);
+    left: calc(var(--left-distance) + 40px);
     content: "";
     position: absolute;
-    background-color: var(--knime-porcelain);
+    background-color: var(--knime-gray-ultra-light);
     bottom: 0;
     z-index: 1;
     border-right: 1px solid var(--knime-silver-sand);
