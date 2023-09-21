@@ -60,24 +60,27 @@ export default defineComponent({
       type: Boolean,
       default: true,
     },
+    initialPaneSizes: {
+      type: Object as PropType<PaneSizes>,
+      default: {
+        left: 20,
+        right: 25,
+        bottom: 30,
+      } as PaneSizes,
+    },
   },
   emits: ["monaco-created", "menu-item-clicked", "save-settings"],
   data() {
     return {
       currentPaneSizes: {
-        left: 20,
-        right: 25,
-        bottom: 30,
-      } as PaneSizes,
-      initialPaneSizes: {
-        left: 20,
-        right: 25,
-        bottom: 30,
+        left: this.initialPaneSizes.left,
+        right: this.initialPaneSizes.right,
+        bottom: this.initialPaneSizes.bottom,
       } as PaneSizes,
       previousPaneSizes: {
-        left: 20,
-        right: 25,
-        bottom: 30,
+        left: this.initialPaneSizes.left,
+        right: this.initialPaneSizes.right,
+        bottom: this.initialPaneSizes.bottom,
       } as PaneSizes,
       commonMenuItems,
       editorModel: null as editor.ITextModel | null,

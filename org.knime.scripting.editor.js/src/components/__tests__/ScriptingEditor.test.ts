@@ -99,7 +99,7 @@ describe("ScriptingEditor", () => {
   describe("resizing and collapsing", () => {
     const resizeEvent = [{ size: 45 }, { size: 45 }];
 
-    it("sets initial sizes", () => {
+    it("sets default initial sizes", () => {
       const { leftPane, mainPane, rightPane, bottomPane, editorPane, topPane } =
         doMount();
       expect(leftPane.size).toBe(20);
@@ -108,6 +108,25 @@ describe("ScriptingEditor", () => {
       expect(bottomPane.size).toBe(30);
       expect(editorPane.size).toBe(75);
       expect(topPane.size).toBe(70);
+    });
+
+    it("uses initial pane sizes when passed as props", () => {
+      const { leftPane, mainPane, rightPane, bottomPane, editorPane, topPane } =
+        doMount({
+          props: {
+            initialPaneSizes: {
+              left: 10,
+              right: 50,
+              bottom: 40,
+            },
+          },
+        });
+      expect(leftPane.size).toBe(10);
+      expect(mainPane.size).toBe(90);
+      expect(rightPane.size).toBe(50);
+      expect(editorPane.size).toBe(50);
+      expect(bottomPane.size).toBe(40);
+      expect(topPane.size).toBe(60);
     });
 
     describe("resizing", () => {
