@@ -1,48 +1,71 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { mount, flushPromises } from "@vue/test-utils";
-import OutputConsole from "@/components/OutputConsole.vue";
+import OutputConsole, {
+  type ConsoleText,
+} from "@/components/OutputConsole.vue";
+import { flushPromises, mount } from "@vue/test-utils";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import Button from "webapps-common/ui/components/Button.vue";
 import { Terminal } from "xterm";
 
 vi.mock("xterm");
 
 describe("OutputConsole", () => {
-  let term;
+  const doMount = async () => {
+    const wrapper = mount(OutputConsole);
+    await flushPromises();
+
+    // Get the terminal instance
+    const term = vi.mocked(Terminal).mock.instances[0];
+
+    // Get the handler to write to the console
+    expect(wrapper.emitted()).toHaveProperty("console-created");
+    // @ts-ignore
+    const handler = wrapper.emitted()["console-created"][0][0];
+
+    return { wrapper, term, handler: handler as (text: ConsoleText) => void };
+  };
 
   afterEach(() => {
     vi.clearAllMocks();
   });
 
   it("create console", async () => {
-    mount(OutputConsole);
-    await flushPromises();
-    term = vi.mocked(Terminal).mock.instances[0];
+    const { term } = await doMount();
     expect(term.open).toHaveBeenCalledOnce();
   });
 
   it("write to console", async () => {
-    const outputConsole = mount(OutputConsole);
-    await flushPromises();
-    term = vi.mocked(Terminal).mock.instances[0];
-    expect(term.open).toHaveBeenCalledOnce();
-    expect(outputConsole.emitted()).toHaveProperty("console-created");
+    const { term, handler } = await doMount();
 
-    // @ts-ignore
-    const handler = outputConsole.emitted()["console-created"][0][0];
-
-    // @ts-ignore
-    handler({ text: "hallo", stderr: false });
+    handler({ text: "hallo" });
     expect(term.write).toBeCalledWith("hallo");
   });
 
+  it("does not highlight text", async () => {
+    const { term, handler } = await doMount();
+
+    handler({ text: "hallo", highlightMode: "TEXT" });
+    expect(term.write).toBeCalledWith("hallo");
+  });
+
+  it("highlights error red and bold", async () => {
+    const { term, handler } = await doMount();
+
+    handler({ text: "my error", highlightMode: "ERROR" });
+    expect(term.write).toBeCalledWith("\x1b[31m\x1b[1mmy error\x1b[0m");
+  });
+
+  it("highlights warning yellow", async () => {
+    const { term, handler } = await doMount();
+
+    handler({ text: "my warning", highlightMode: "WARNING" });
+    expect(term.write).toBeCalledWith("\x1b[33mmy warning\x1b[0m");
+  });
+
   it("clear via click button", async () => {
-    const outputConsole = mount(OutputConsole);
-    await flushPromises();
-    term = vi.mocked(Terminal).mock.instances[0];
-    expect(term.open).toHaveBeenCalledOnce();
+    const { wrapper, term } = await doMount();
 
     // get Clear Button and Click it
-    const button = outputConsole.findComponent(Button);
+    const button = wrapper.findComponent(Button);
     button.vm.$emit("click");
     await flushPromises();
 
