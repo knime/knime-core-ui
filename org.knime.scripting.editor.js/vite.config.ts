@@ -43,6 +43,9 @@ export default defineConfig({
     exclude: ["**/node_modules/**", "**/dist/**", "webapps-common/**"],
     environment: "jsdom",
     reporters: ["default"],
+    setupFiles: [
+      fileURLToPath(new URL("./src/test-setup/setup.ts", import.meta.url)),
+    ],
     root: fileURLToPath(new URL("./", import.meta.url)),
     transformMode: {
       web: [/\.[jt]sx$/],

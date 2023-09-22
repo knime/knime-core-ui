@@ -9,10 +9,12 @@ import FooterBar from "../FooterBar.vue";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
 import InputOutputPane from "../InputOutputPane.vue";
 import SettingsPage from "../SettingsPage.vue";
+import { onKeyStroke } from "@vueuse/core";
 
 vi.mock("monaco-editor");
 vi.mock("@/scripting-service");
 vi.mock("xterm");
+vi.mock("@vueuse/core");
 
 describe("ScriptingEditor", () => {
   afterEach(() => {
@@ -93,6 +95,21 @@ describe("ScriptingEditor", () => {
     it("display input/output pane", () => {
       const { wrapper } = doMount();
       expect(wrapper.findComponent(InputOutputPane).exists()).toBeTruthy();
+    });
+  });
+
+  describe("test", () => {
+    it("test onKeyStroke", async () => {
+      const { wrapper } = await doMount();
+      const editor = {
+        onDidPaste: vi.fn(),
+      };
+      const editorModel = {
+        updateOptions: vi.fn(),
+      };
+      const editorComponent = wrapper.findComponent(CodeEditor);
+      editorComponent.vm.$emit("monaco-created", { editor, editorModel });
+      expect(onKeyStroke).toHaveBeenCalledOnce();
     });
   });
 
