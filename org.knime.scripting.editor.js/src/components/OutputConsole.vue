@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import { useResizeObserver, useDebounceFn } from "@vueuse/core";
 
+import type { XOR } from "ts-xor";
 import type { ITerminalOptions, ITheme, ITerminalInitOnlyOptions } from "xterm";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
@@ -9,10 +10,11 @@ import * as knimeColors from "webapps-common/ui/colors/knimeColors.mjs";
 
 import Button from "webapps-common/ui/components/Button.vue";
 
-export interface ConsoleText {
-  text: string;
-  highlightMode?: "TEXT" | "WARNING" | "ERROR";
-}
+export type ConsoleText = XOR<
+  { text: string },
+  { warning: string },
+  { error: string }
+>;
 
 export type ConsoleHandler = (text: ConsoleText) => void;
 
@@ -60,12 +62,11 @@ type ConsoleHandlerEmit = (
 const emit = defineEmits<ConsoleHandlerEmit>();
 
 const write = (text: ConsoleText) => {
-  if (text.highlightMode === "ERROR") {
-    term.write(`${RED}${BOLD}${text.text}${RESET}`);
-  } else if (text.highlightMode === "WARNING") {
-    term.write(`${YELLOW}${text.text}${RESET}`);
+  if ("error" in text) {
+    term.write(`${RED}${BOLD}${text.error}${RESET}`);
+  } else if ("warning" in text) {
+    term.write(`${YELLOW}${text.warning}${RESET}`);
   } else {
-    // NB: "TEXT" is the default
     term.write(text.text);
   }
 };

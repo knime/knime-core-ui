@@ -43,21 +43,21 @@ describe("OutputConsole", () => {
   it("does not highlight text", async () => {
     const { term, handler } = await doMount();
 
-    handler({ text: "hallo", highlightMode: "TEXT" });
+    handler({ text: "hallo" });
     expect(term.write).toBeCalledWith("hallo");
   });
 
   it("highlights error red and bold", async () => {
     const { term, handler } = await doMount();
 
-    handler({ text: "my error", highlightMode: "ERROR" });
+    handler({ error: "my error" });
     expect(term.write).toBeCalledWith("\x1b[31m\x1b[1mmy error\x1b[0m");
   });
 
   it("highlights warning yellow", async () => {
     const { term, handler } = await doMount();
 
-    handler({ text: "my warning", highlightMode: "WARNING" });
+    handler({ warning: "my warning" });
     expect(term.write).toBeCalledWith("\x1b[33mmy warning\x1b[0m");
   });
 
