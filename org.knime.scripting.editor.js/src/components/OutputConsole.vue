@@ -8,7 +8,7 @@ import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import { Unicode11Addon } from "xterm-addon-unicode11";
 import * as knimeColors from "webapps-common/ui/colors/knimeColors.mjs";
-
+import TrashIcon from "webapps-common/ui/assets/img/icons/trash.svg";
 import Button from "webapps-common/ui/components/Button.vue";
 
 export type ConsoleText = XOR<
@@ -91,35 +91,25 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <Button class="clear-button" @click="term.reset()">
+    <TrashIcon />
+  </Button>
   <div ref="termRef" class="terminal" />
-  <Button class="clear-button" compact @click="term.reset()">clear </Button>
 </template>
 
 <style lang="postcss">
 @import url("xterm/css/xterm.css");
+</style>
 
-.terminal {
-  position: relative;
-  width: 100%;
-  height: calc(100% - 20px);
-  padding-top: 5px;
-  padding-left: 5px;
-
-  & .xterm {
-    height: 100%;
-  }
+<style lang="postcss" scoped>
+.clear-button {
+  position: absolute;
+  z-index: 1;
+  top: -50px;
+  right: 0;
 }
 
-.clear-button {
-  stroke-width: 5px;
-  background-color: transparent;
-  margin-top: 0;
-  margin-bottom: 5px;
-  position: relative;
-  bottom: 5px;
-  float: right;
-
-  /* best way to ensure pill shaped buttons with flexible 1/4 corners */
-  border-radius: var(--theme-button-border-radius, 9999px);
+.terminal {
+  height: 100%;
 }
 </style>

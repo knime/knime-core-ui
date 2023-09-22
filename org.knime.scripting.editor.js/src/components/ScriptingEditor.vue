@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, toRaw, type PropType } from "vue";
+import { defineComponent, toRaw, type PropType, ref } from "vue";
 import { Splitpanes, Pane } from "splitpanes";
 import "splitpanes/dist/splitpanes.css";
 import CodeEditor from "./CodeEditor.vue";
@@ -13,6 +13,8 @@ import OutputConsole from "./OutputConsole.vue";
 import type { ConsoleHandler } from "./OutputConsole.vue";
 import { getScriptingService } from "@/scripting-service";
 import InputOutputPane from "./InputOutputPane.vue";
+import TabBar from "webapps-common/ui/components/TabBar.vue";
+import { onKeyStroke } from "@vueuse/core";
 
 export type PaneSizes = {
   [key in "left" | "right" | "bottom"]: number;
@@ -34,6 +36,7 @@ export default defineComponent({
     OutputConsole,
     InputOutputPane,
     SettingsPage,
+    TabBar,
   },
   props: {
     title: {
@@ -85,6 +88,8 @@ export default defineComponent({
       commonMenuItems,
       editorModel: null as editor.ITextModel | null,
       showSettingsPage: false,
+      bottomPaneOptions: [{ value: "console", label: "Console" }],
+      bottomPaneActiveTab: ref("console"),
     };
   },
   computed: {
@@ -159,6 +164,17 @@ export default defineComponent({
       this.editorModel = editorModel;
       getScriptingService().initEditorService(editor, editorModel);
       this.$emit("monaco-created", { editor, editorModel });
+
+      // register Key
+      // undo changes from outside the editor
+      onKeyStroke("z", (e) => {
+        const key = navigator.userAgent.toLowerCase().includes("mac")
+          ? e.metaKey
+          : e.ctrlKey;
+        if (key) {
+          editor.trigger("window", "undo", {});
+        }
+      });
     },
     saveSettings() {
       const editorModel = toRaw(this.editorModel);
@@ -281,7 +297,21 @@ export default defineComponent({
             </splitpanes>
           </pane>
           <pane ref="bottomPane" :size="currentPaneSizes.bottom">
-            <OutputConsole @console-created="onConsoleCreated" />
+            <div class="tab-bar-container">
+              <div class="tab-bar-wrapper">
+                <TabBar
+                  v-model="bottomPaneActiveTab"
+                  class="bottom-tab-bar"
+                  :possible-values="bottomPaneOptions"
+                />
+              </div>
+              <div class="console-container">
+                <OutputConsole
+                  v-show="bottomPaneActiveTab === 'console'"
+                  @console-created="onConsoleCreated"
+                />
+              </div>
+            </div>
           </pane>
         </splitpanes>
       </pane>
@@ -310,6 +340,35 @@ export default defineComponent({
 
 .code-editor {
   height: calc(100% - var(--controls-height));
+}
+
+.tab-bar-container {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  padding-left: 10px;
+  padding-right: 10px;
+
+  & .tab-bar-wrapper {
+    margin-right: 10px;
+
+    & .bottom-tab-bar {
+      & :deep(.tab-bar) {
+        padding-bottom: 0;
+        margin-bottom: 0;
+      }
+
+      & :deep(.carousel::after) {
+        bottom: 5px;
+      }
+    }
+  }
+
+  & .console-container {
+    flex: 1;
+    position: relative;
+    min-height: 0;
+  }
 }
 
 /* NB: we disable the rule because of classes defined by the splitpanes package */

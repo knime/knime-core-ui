@@ -50,6 +50,7 @@
     "@vue/test-utils": "2.4.1",
     "@vue/tsconfig": "0.4.0",
     "eslint": "8.45.0",
+    "consola": "2.15.3",
     "eslint-import-resolver-typescript": "3.5.5",
     "eslint-plugin-vue": "9.15.1",
     "husky": "8.0.3",
