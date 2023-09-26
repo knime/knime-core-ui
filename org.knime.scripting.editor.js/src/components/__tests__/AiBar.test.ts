@@ -105,7 +105,9 @@ describe("AiBar", () => {
     await abortButton.vm.$emit("click");
 
     expect(scriptingService.sendToService).toHaveBeenCalledTimes(2);
-    expect(scriptingService.sendToService).toBeCalledWith("abortRequest");
+    expect(scriptingService.sendToService).toBeCalledWith(
+      "abortSuggestCodeRequest",
+    );
   });
 
   it("show diff editor when code suggestion is available", async () => {
@@ -230,5 +232,24 @@ describe("AiBar", () => {
     await sendButton.vm.$emit("click");
 
     expect(bar.findComponent(LoadingIcon).exists()).toBeTruthy();
+  });
+
+  it("aborts active request if ai bar is dismissed", async () => {
+    const bar = mount(AiBar);
+    await flushPromises();
+    (bar.vm as any).status = "waiting";
+    bar.unmount();
+    expect(getScriptingService().sendToService).toHaveBeenCalledWith(
+      "abortSuggestCodeRequest",
+    );
+  });
+
+  it("does not abort request if ai bar is dismissed and there is no active request", async () => {
+    const bar = mount(AiBar);
+    await flushPromises();
+    bar.unmount();
+    expect(getScriptingService().sendToService).not.toHaveBeenCalledWith(
+      "abortSuggestCodeRequest",
+    );
   });
 });
