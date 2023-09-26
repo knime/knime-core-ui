@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, type PropType, onMounted } from "vue";
+import { computed, ref, type PropType, onMounted, onUnmounted } from "vue";
 import { useTextareaAutosize } from "@vueuse/core";
 import SendIcon from "webapps-common/ui/assets/img/icons/paper-flier.svg";
 import AbortIcon from "webapps-common/ui/assets/img/icons/circle-close.svg";
@@ -54,9 +54,9 @@ let diffEditor: editor.IStandaloneDiffEditor;
 const mouseOverLoadingSpinner = ref(false);
 
 const abortRequest = () => {
-  scriptingService?.sendToService("abortRequest");
+  scriptingService?.sendToService("abortSuggestCodeRequest");
   // this should be handled in the response of the eventhandler
-  status.value = "error";
+  status.value = "waiting";
 };
 
 const acceptSuggestion = () => {
@@ -70,7 +70,7 @@ const acceptSuggestion = () => {
 
 type CodeSuggestion = {
   code: string;
-  status: "SUCCESS" | "ERROR";
+  status: "SUCCESS" | "ERROR" | "CANCELLED";
   error: string | undefined;
 };
 
@@ -80,6 +80,8 @@ const handleCodeSuggestion = (codeSuggestion: CodeSuggestion) => {
       text: `ERROR: ${codeSuggestion.error}`,
     });
     status.value = "error";
+  } else if (codeSuggestion.status === "CANCELLED") {
+    status.value = "idle";
   } else {
     const suggestedCode = JSON.parse(codeSuggestion.code).code;
     message = { role: "request", content: input.value };
@@ -145,6 +147,12 @@ onMounted(async () => {
     status.value = "uninstalled";
   } else if (!(await getScriptingService().sendToService("isLoggedIn"))) {
     status.value = "unauthorized";
+  }
+});
+
+onUnmounted(() => {
+  if (status.value === "waiting") {
+    abortRequest();
   }
 });
 

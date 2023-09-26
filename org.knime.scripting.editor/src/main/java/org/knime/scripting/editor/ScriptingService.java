@@ -54,6 +54,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -89,6 +95,10 @@ public abstract class ScriptingService {
     private final Predicate<FlowVariable> m_flowVariableFilter;
 
     private Optional<LanguageServerProxy> m_languageServer;
+
+    private ExecutorService m_executorService = Executors.newSingleThreadExecutor();
+
+    private Future<String> m_lastCodeSuggestion;
 
     /**
      * Create a new {@link ScriptingService} without a language server.
@@ -171,6 +181,7 @@ public abstract class ScriptingService {
         m_languageServer.ifPresent(LanguageServerProxy::close);
         m_languageServer = Optional.empty();
         m_eventQueue.clear();
+        m_executorService.shutdown();
     }
 
     /** The service that provides its methods via JSON-RPC to the frontend. */
@@ -316,6 +327,55 @@ public abstract class ScriptingService {
         public boolean isLoggedIn() {
             return HubConnection.INSTANCE.isLoggedIn();
         }
+
+        /**
+         * Ask the AI assistant to generate new code based on the user prompt and the current code.
+         *
+         * The result will be sent to JS as event with identifier "codeSuggestion".
+         *
+         * @param userPrompt Description of what the user wants the code to do
+         * @param currentCode The current code
+         */
+        public void suggestCode(final String userPrompt, final String currentCode) {
+            var callable = new Callable<String>() {
+
+                @Override
+                public String call() throws Exception {
+                    return getCodeSuggestion(userPrompt, currentCode);
+                }
+            };
+            m_lastCodeSuggestion = m_executorService.submit(callable);
+            final var codeSuggestionEvent = "codeSuggestion";
+            try {
+                String response = m_lastCodeSuggestion.get();
+                sendEvent(codeSuggestionEvent, new CodeSuggestion(CodeSuggestionStatus.SUCCESS, response, null));
+            } catch (CancellationException ex) {
+                sendEvent(codeSuggestionEvent, new CodeSuggestion(CodeSuggestionStatus.CANCELLED, null,
+                    "Code suggestion request was cancelled by user."));
+            } catch (ExecutionException | InterruptedException ex) { // NOSONAR
+                sendEvent(codeSuggestionEvent, new CodeSuggestion(CodeSuggestionStatus.ERROR, null, ex.getMessage()));
+            }
+        }
+
+        /**
+         * The actual editor-specific implementation for code generation
+         *
+         * @param userPrompt Description of what the user wants the code to do
+         * @param currentCode The current code
+         * @return suggested code
+         * @throws IOException
+         */
+        protected abstract String getCodeSuggestion(final String userPrompt, final String currentCode)
+            throws IOException;
+
+        /**
+         * Interrupt currently running suggest code thread and ignore request response
+         */
+        public void abortSuggestCodeRequest() {
+            if (m_lastCodeSuggestion != null) {
+                m_lastCodeSuggestion.cancel(true);
+            }
+        }
     }
 
     /**
@@ -371,6 +431,16 @@ public abstract class ScriptingService {
             this.value = value;
             this.type = type;
         }
+    }
+
+    @SuppressWarnings("javadoc")
+    public enum CodeSuggestionStatus {
+            SUCCESS, ERROR, CANCELLED,
+    }
+
+    /** Information about a code suggestion */
+    @SuppressWarnings("javadoc")
+    public static record CodeSuggestion(CodeSuggestionStatus status, String code, String error) {
     }
 
     @SuppressWarnings("javadoc")
