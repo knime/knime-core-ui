@@ -58,6 +58,10 @@ const emit = defineEmits<ConsoleHandlerEmit>();
 onMounted(() => {
   term.open(termRef.value as HTMLElement);
   emit("console-created", (text: ConsoleText) => term.write(text.text));
+  const listener = term.onLineFeed(() => {
+    fitAddon.fit();
+    listener.dispose();
+  });
 });
 
 onUnmounted(() => {

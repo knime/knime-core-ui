@@ -244,7 +244,7 @@ public abstract class ScriptingService {
             } catch (IOException e) {
                 LOGGER.warn("Starting the language server failed: " + e.getMessage(), e);
                 return new LanguageServerStatus(LanguageServerStatusKind.ERROR,
-                    "Starting the language server failed: " + e.getMessage());
+                    "Starting the language server failed: " + e.getMessage() + "\n");
             }
         }
 
