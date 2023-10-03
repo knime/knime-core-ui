@@ -54,7 +54,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -96,7 +95,8 @@ public abstract class ScriptingService {
 
     private Optional<LanguageServerProxy> m_languageServer;
 
-    private ExecutorService m_executorService = Executors.newSingleThreadExecutor();
+    // is shutdown onDeactivate
+    private ExecutorService m_executorService;
 
     private Future<String> m_lastCodeSuggestion;
 
@@ -181,7 +181,17 @@ public abstract class ScriptingService {
         m_languageServer.ifPresent(LanguageServerProxy::close);
         m_languageServer = Optional.empty();
         m_eventQueue.clear();
-        m_executorService.shutdown();
+        if (m_executorService != null) {
+            m_executorService.shutdown();
+        }
+    }
+
+    private ExecutorService getExecutorService() {
+        // lazily initialize executor service for this session
+        if (m_executorService == null || m_executorService.isShutdown()) {
+            m_executorService = Executors.newSingleThreadExecutor();
+        }
+        return m_executorService;
     }
 
     /** The service that provides its methods via JSON-RPC to the frontend. */
@@ -337,14 +347,8 @@ public abstract class ScriptingService {
          * @param currentCode The current code
          */
         public void suggestCode(final String userPrompt, final String currentCode) {
-            var callable = new Callable<String>() {
-
-                @Override
-                public String call() throws Exception {
-                    return getCodeSuggestion(userPrompt, currentCode);
-                }
-            };
-            m_lastCodeSuggestion = m_executorService.submit(callable);
+            var executorService = getExecutorService();
+            m_lastCodeSuggestion = executorService.submit(() -> getCodeSuggestion(userPrompt, currentCode));
             final var codeSuggestionEvent = "codeSuggestion";
             try {
                 String response = m_lastCodeSuggestion.get();
