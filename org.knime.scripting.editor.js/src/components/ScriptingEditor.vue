@@ -303,8 +303,6 @@ export default defineComponent({
   flex-direction: column;
   height: calc(100vh);
   width: 100%;
-  border-left: 1px solid var(--knime-silver-sand);
-  border-right: 1px solid var(--knime-silver-sand);
   flex-grow: 0;
   overflow: hidden;
   position: relative;
