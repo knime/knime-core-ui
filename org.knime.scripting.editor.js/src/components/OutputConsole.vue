@@ -6,6 +6,7 @@ import type { XOR } from "ts-xor";
 import type { ITerminalOptions, ITheme, ITerminalInitOnlyOptions } from "xterm";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
+import { Unicode11Addon } from "xterm-addon-unicode11";
 import * as knimeColors from "webapps-common/ui/colors/knimeColors.mjs";
 
 import Button from "webapps-common/ui/components/Button.vue";
@@ -33,7 +34,8 @@ const theme: ITheme = {
 
 const options: ITerminalOptions & ITerminalInitOnlyOptions = {
   letterSpacing: 0, // in pixel, needs to be defined otherwise it's dynamic
-  fontSize: 10,
+  allowProposedApi: true,
+  fontSize: 12,
   convertEol: true, // otherwise \n doesn't start at beginning of new line
   fontFamily: '"Roboto Mono", sans-serif',
   disableStdin: true,
@@ -43,8 +45,12 @@ const options: ITerminalOptions & ITerminalInitOnlyOptions = {
 
 const term = new Terminal(options);
 const termRef = ref<HTMLInputElement | null>(null);
-const fitAddon = new FitAddon();
 
+const unicode11Addon = new Unicode11Addon();
+term.loadAddon(unicode11Addon);
+term.unicode.activeVersion = "11";
+
+const fitAddon = new FitAddon();
 term.loadAddon(fitAddon);
 const updateConsole = useDebounceFn(() => {
   fitAddon.fit();
