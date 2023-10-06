@@ -107,6 +107,17 @@ class ScriptingService {
     if (typeof consoleEventHandler === "undefined") {
       throw Error("Console handler has not yet been registered");
     }
+    // Get the key-value pairs of the ConsoleText object
+    const entries = Object.entries(text);
+
+    // Get the first entry (since ConsoleText is a XOR type)
+    const key = entries[0][0] as "warning" | "error" | "text";
+    const value = entries[0][1];
+
+    // Check if the value doesn't end with '\n' and append it if it doesn't
+    if (!value.endsWith("\n")) {
+      text[key] += "\n";
+    }
     consoleEventHandler(text);
   }
 
