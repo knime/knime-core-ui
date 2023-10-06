@@ -18,10 +18,9 @@ export type ConsoleText = XOR<
 
 export type ConsoleHandler = (text: ConsoleText) => void;
 
-const RED = "\x1b[31m";
-const YELLOW = "\x1b[33m";
-const BOLD = "\x1b[1m";
-const RESET = "\x1b[0m";
+const ANSI_ERROR_START = "\u001b[48;5;224m\u001b[30m";
+const ANSI_WARNING_START = "\u001b[47m\u001b[30m";
+const ANSI_RESET = "\u001b[0m";
 const DEBOUNCE_TIME = 300;
 
 const theme: ITheme = {
@@ -63,9 +62,9 @@ const emit = defineEmits<ConsoleHandlerEmit>();
 
 const write = (text: ConsoleText) => {
   if ("error" in text) {
-    term.write(`${RED}${BOLD}${text.error}${RESET}`);
+    term.write(`❌ ${ANSI_ERROR_START}${text.error}${ANSI_RESET}`);
   } else if ("warning" in text) {
-    term.write(`${YELLOW}${text.warning}${RESET}`);
+    term.write(`⚠️  ${ANSI_WARNING_START}${text.warning}${ANSI_RESET}`);
   } else {
     term.write(text.text);
   }

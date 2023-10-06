@@ -51,14 +51,18 @@ describe("OutputConsole", () => {
     const { term, handler } = await doMount();
 
     handler({ error: "my error" });
-    expect(term.write).toBeCalledWith("\x1b[31m\x1b[1mmy error\x1b[0m");
+    expect(term.write).toBeCalledWith(
+      "❌ \u001b[48;5;224m\u001b[30mmy error\u001b[0m",
+    );
   });
 
   it("highlights warning yellow", async () => {
     const { term, handler } = await doMount();
 
     handler({ warning: "my warning" });
-    expect(term.write).toBeCalledWith("\x1b[33mmy warning\x1b[0m");
+    expect(term.write).toBeCalledWith(
+      "⚠️  \u001b[47m\u001b[30mmy warning\u001b[0m",
+    );
   });
 
   it("clear via click button", async () => {
