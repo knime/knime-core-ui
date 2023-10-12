@@ -90,7 +90,8 @@ public final class DataServiceContext {
         if (nc instanceof SingleNodeContainer snc) {
             final var inputSpecsSupplier =
                 new CachingSupplier<>(() -> InputSpecUtil.getInputSpecsExcludingVariablePort(nc));
-            init(new CachingSupplier<>(snc::createExecutionContext), inputSpecsSupplier);
+            init(new CachingSupplier<>(() -> snc.createExecutionContext().createSilentSubExecutionContext(0)),
+                inputSpecsSupplier);
         } else {
             init(null, null);
         }
