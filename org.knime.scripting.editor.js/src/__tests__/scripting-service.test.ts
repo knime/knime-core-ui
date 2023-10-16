@@ -345,6 +345,15 @@ describe("scripting-service", () => {
       scriptingService.getSelectedLines();
       expect(editorServiceMock.getSelectedLines).toHaveBeenCalled();
     });
+
+    it("calls setOnDidChangeContentListener of editorService", () => {
+      const scriptingService = getScriptingServiceWithoutEventPoller();
+      const mockFn = vi.fn();
+      scriptingService.setOnDidChangeContentListener(mockFn);
+      expect(
+        editorServiceMock.setOnDidChangeContentListener,
+      ).toHaveBeenCalled();
+    });
   });
 
   describe("input / output objects", () => {

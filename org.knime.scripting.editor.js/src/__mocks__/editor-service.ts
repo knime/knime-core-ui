@@ -6,4 +6,5 @@ export const editorServiceMock = {
   getSelectedLines: vi.fn(() => "mySelectedLines"),
   setScript: vi.fn(() => {}),
   pasteToEditor: vi.fn(() => {}),
+  setOnDidChangeContentListener: vi.fn(),
 };

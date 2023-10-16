@@ -2,7 +2,7 @@ import {
   IFrameKnimeService,
   JsonDataService,
 } from "@knime/ui-extension-service";
-import { editor as monaco } from "monaco-editor";
+import { editor as monaco, type IDisposable } from "monaco-editor";
 import type { ConsoleText } from "./components/OutputConsole.vue";
 import { EditorService } from "./editor-service";
 import { MonacoLSPConnection } from "./lsp/connection";
@@ -169,6 +169,10 @@ class ScriptingService {
 
   public pasteToEditor(textToPaste: string): void {
     this._editorService.pasteToEditor(textToPaste);
+  }
+
+  public setOnDidChangeContentListener(callback: Function): IDisposable | null {
+    return this._editorService.setOnDidChangeContentListener(callback);
   }
 
   public supportsCodeAssistant(): Promise<boolean> {

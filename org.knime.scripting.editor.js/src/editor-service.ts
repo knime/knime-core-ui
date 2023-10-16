@@ -1,4 +1,4 @@
-import { editor as monaco, type IRange } from "monaco-editor";
+import { editor as monaco, type IRange, type IDisposable } from "monaco-editor";
 
 export class EditorService {
   editor?: monaco.IStandaloneCodeEditor;
@@ -108,5 +108,15 @@ export class EditorService {
 
     this.editor.pushUndoStop();
     this.editor.executeEdits("", [{ range, text: textToPaste }]);
+  }
+
+  public setOnDidChangeContentListener(callback: Function): IDisposable | null {
+    if (
+      typeof this.editor === "undefined" ||
+      typeof this.editorModel === "undefined"
+    ) {
+      return null;
+    }
+    return this.editorModel.onDidChangeContent((event) => callback(event));
   }
 }

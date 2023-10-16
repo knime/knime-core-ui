@@ -90,6 +90,7 @@ export default defineComponent({
       showSettingsPage: false,
       bottomPaneOptions: [{ value: "console", label: "Console" }],
       bottomPaneActiveTab: ref("console"),
+      dropEventHandler: null as Function | null,
     };
   },
   computed: {
@@ -176,6 +177,7 @@ export default defineComponent({
         }
       });
     },
+
     saveSettings() {
       const editorModel = toRaw(this.editorModel);
       const settings = { script: editorModel?.getValue() ?? "" };
@@ -192,6 +194,9 @@ export default defineComponent({
       } else {
         this.$emit("menu-item-clicked", args);
       }
+    },
+    onDropEventHandlerCreated(dropEventHandler: Function) {
+      this.dropEventHandler = dropEventHandler;
     },
     onConsoleCreated(handler: ConsoleHandler) {
       getScriptingService().registerConsoleEventHandler(handler);
@@ -239,7 +244,9 @@ export default defineComponent({
       @resized="updatePreviousPaneSize('left')"
     >
       <pane ref="leftPane" :size="currentPaneSizes.left">
-        <InputOutputPane />
+        <InputOutputPane
+          @drop-event-handler-created="onDropEventHandlerCreated"
+        />
       </pane>
       <pane ref="mainPane" :size="usedMainPaneSize" min-size="40">
         <splitpanes
@@ -279,6 +286,13 @@ export default defineComponent({
                   :language="language"
                   :file-name="fileName"
                   class="code-editor"
+                  @drop="
+                    (event: DragEvent) => {
+                      dropEventHandler !== null
+                        ? dropEventHandler(event)
+                        : null;
+                    }
+                  "
                   @monaco-created="onMonacoCreated"
                 />
                 <CodeEditorControlBar
