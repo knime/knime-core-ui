@@ -6,6 +6,7 @@ export const editor = {
     getLineLastNonWhitespaceColumn: vi.fn(() => 100),
     getValueInRange: vi.fn(() => "mySelectedRange"),
     getPosition: vi.fn(() => "myPosition"),
+    onDidChangeContent: vi.fn(),
   })),
   create: vi.fn((element: HTMLElement) => {
     element.innerHTML = "SCRIPTING EDITOR MOCK";

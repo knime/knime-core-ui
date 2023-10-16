@@ -60,6 +60,15 @@ describe("editor-service", () => {
     expect(editorService.getSelectedLines()).toBeNull();
   });
 
+  it("setOnDidChangeContentListener", () => {
+    const editorService = new EditorService();
+    editorService.editor = editorMock as any;
+    editorService.editorModel = editorModelMock as any;
+    const mockFn = vi.fn();
+    editorService.setOnDidChangeContentListener(mockFn);
+    expect(editorModelMock.onDidChangeContent).toHaveBeenCalled();
+  });
+
   describe("pasteToEditor", () => {
     it("pasteToEditor calls executeEdits", () => {
       const editorService = new EditorService();

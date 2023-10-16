@@ -8,7 +8,7 @@ export const scriptingServiceMock = {
   saveSettings: vi.fn(() => {}),
   initEditorService: vi.fn(() => {}),
   registerLanguageServerEventHandler: vi.fn(),
-  getScript: vi.fn(() => {}),
+  getScript: vi.fn(),
   setScript: vi.fn(),
   registerEventHandler: vi.fn(),
   sendToService: vi.fn(() => {}),
@@ -19,6 +19,7 @@ export const scriptingServiceMock = {
   getFlowVariableInputs: vi.fn(),
   getInputObjects: vi.fn(),
   getOutputObjects: vi.fn(),
+  setOnDidChangeContentListener: vi.fn(),
 };
 
 export const getScriptingService = vi.fn(() => scriptingServiceMock);

@@ -419,4 +419,19 @@ describe("ScriptingEditor", () => {
     expect(settingsPage.find(".settings-title").exists()).toBeTruthy();
     expect(settingsPage.find(".settings-content").exists()).toBeTruthy();
   });
+
+  it("sets drop event on code editor", () => {
+    const { wrapper } = doMount();
+    const inOutPane = wrapper.findComponent(InputOutputPane);
+    expect(inOutPane.exists()).toBeTruthy();
+    const dropEventHandlerMock = vi.fn();
+    const dropEventMock = { drop: "event" };
+    inOutPane.vm.$emit("drop-event-handler-created", dropEventHandlerMock);
+    expect(wrapper.vm.dropEventHandler).toStrictEqual(dropEventHandlerMock);
+    const codeEditor = wrapper.findComponent(CodeEditor);
+    codeEditor.trigger("drop", dropEventMock);
+    expect(dropEventHandlerMock).toHaveBeenCalledWith(
+      expect.objectContaining(dropEventMock),
+    );
+  });
 });

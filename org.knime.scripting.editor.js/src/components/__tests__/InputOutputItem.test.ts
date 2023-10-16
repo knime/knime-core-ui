@@ -1,11 +1,20 @@
 import { mount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
-import InputOutputItem, { type InputOutputModel } from "../InputOutputItem.vue";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import InputOutputItem, {
+  INPUT_OUTPUT_DRAG_EVENT_ID,
+  type InputOutputModel,
+} from "../InputOutputItem.vue";
 import Collapser from "webapps-common/ui/components/Collapser.vue";
-import { scriptingServiceMock } from "@/__mocks__/scripting-service";
+import { createDragGhost, removeDragGhost } from "../utils/dragGhost";
+import Handlebars from "handlebars";
+import { useInputOutputSelectionStore } from "@/store";
 
 vi.mock("monaco-editor");
 vi.mock("@/scripting-service");
+vi.mock("../utils/dragGhost", () => ({
+  createDragGhost: vi.fn(),
+  removeDragGhost: vi.fn(),
+}));
 
 describe("InputOutputItem", () => {
   const inputOutputItemMinimal: InputOutputModel = {
@@ -15,11 +24,23 @@ describe("InputOutputItem", () => {
   const inputOutputItemWithRowsAndAlias: InputOutputModel = {
     name: "supermock",
     codeAlias: "super.mock",
+    subItemCodeAliasTemplate: "my template {{ subItems }}",
     subItems: [
       { name: "row 1", type: "String", codeAlias: "alias 1" },
       { name: "row 2", type: "Double", codeAlias: "alias 2" },
     ],
   };
+
+  const dragEventMock = {
+    dataTransfer: {
+      setDragImage: vi.fn(),
+      setData: vi.fn(),
+    },
+  };
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
   describe("with collapser", () => {
     it("renders collapser if item contains rows / columnInfo", () => {
@@ -40,29 +61,110 @@ describe("InputOutputItem", () => {
       ).toBeTruthy();
     });
 
-    it("pastes codeAlias to editor when clicking on title", () => {
+    it("collapser title creates drag ghost on drag start", () => {
       const wrapper = mount(InputOutputItem, {
         props: {
           inputOutputItem: inputOutputItemWithRowsAndAlias,
         },
       });
       const codeAliasInTitle = wrapper.find(".top-card").find(".code-alias");
-      codeAliasInTitle.trigger("click");
-      expect(scriptingServiceMock.pasteToEditor).toHaveBeenCalledWith(
-        inputOutputItemWithRowsAndAlias.codeAlias,
-      );
+      codeAliasInTitle.trigger("dragstart");
+      expect(createDragGhost).toHaveBeenCalledWith({
+        elements: [{ text: "super.mock" }],
+        width: "auto",
+        font: "monospace",
+        numSelectedItems: 0,
+      });
     });
 
-    it("pastes codeAlias to editor when clicking on subItem", () => {
+    it("collapser title removes drag ghost on drag end", () => {
       const wrapper = mount(InputOutputItem, {
         props: {
           inputOutputItem: inputOutputItemWithRowsAndAlias,
         },
       });
-      const codeAliasInSubItem = wrapper.findAll(".sub-item")[0];
-      codeAliasInSubItem.trigger("click");
-      expect(scriptingServiceMock.pasteToEditor).toHaveBeenCalledWith(
-        (inputOutputItemWithRowsAndAlias.subItems as any)[0].codeAlias,
+      const codeAliasInTitle = wrapper.find(".top-card").find(".code-alias");
+      codeAliasInTitle.trigger("dragend");
+      expect(removeDragGhost).toHaveBeenCalled();
+    });
+
+    it("dragging collapser title adds code alias to drag event", () => {
+      const wrapper = mount(InputOutputItem, {
+        props: {
+          inputOutputItem: inputOutputItemWithRowsAndAlias,
+        },
+      });
+      const codeAliasInTitle = wrapper.find(".top-card").find(".code-alias");
+      codeAliasInTitle.trigger("dragstart", dragEventMock);
+      expect(dragEventMock.dataTransfer.setData).toHaveBeenNthCalledWith(
+        1,
+        "text",
+        "super.mock",
+      );
+      expect(dragEventMock.dataTransfer.setData).toHaveBeenNthCalledWith(
+        2,
+        "eventId",
+        INPUT_OUTPUT_DRAG_EVENT_ID,
+      );
+    });
+
+    it("subitem creates drag ghost on drag start", () => {
+      const wrapper = mount(InputOutputItem, {
+        props: {
+          inputOutputItem: inputOutputItemWithRowsAndAlias,
+        },
+      });
+      const subItem = wrapper.findAll(".sub-item")[0];
+      const dragGhostMock = { drag: "my drag ghost" };
+      (createDragGhost as any).mockReturnValueOnce(dragGhostMock);
+      subItem.trigger("dragstart", dragEventMock);
+      expect(createDragGhost).toHaveBeenCalledWith({
+        elements: [
+          {
+            text: "row 1",
+          },
+          {
+            text: "String",
+          },
+        ],
+        numSelectedItems: 1,
+        width: expect.anything(),
+      });
+      expect(dragEventMock.dataTransfer.setDragImage).toHaveBeenCalledWith(
+        dragGhostMock,
+        0,
+        0,
+      );
+    });
+
+    it("subitem removes drag ghost on drag end", () => {
+      const wrapper = mount(InputOutputItem, {
+        props: {
+          inputOutputItem: inputOutputItemWithRowsAndAlias,
+        },
+      });
+      const subItem = wrapper.findAll(".sub-item")[0];
+      subItem.trigger("dragend");
+      expect(removeDragGhost).toHaveBeenCalledWith();
+    });
+
+    it("dragging subitem uses code alias template", () => {
+      const handleBarsSpy = vi.spyOn(Handlebars, "compile");
+      const wrapper = mount(InputOutputItem, {
+        props: {
+          inputOutputItem: inputOutputItemWithRowsAndAlias,
+        },
+      });
+      expect(handleBarsSpy).toHaveBeenCalledWith(
+        inputOutputItemWithRowsAndAlias.subItemCodeAliasTemplate,
+      );
+      const template = (wrapper.vm as any).subItemCodeAliasTemplate;
+      const subItem = wrapper.findAll(".sub-item")[0];
+      subItem.trigger("dragstart", dragEventMock);
+      expect(dragEventMock.dataTransfer.setData).toHaveBeenNthCalledWith(
+        1,
+        "text",
+        template({ subItems: "row 1" }),
       );
     });
   });
@@ -87,19 +189,94 @@ describe("InputOutputItem", () => {
       expect(wrapper.find(".code-alias").exists()).toBeTruthy();
     });
 
-    it("pastes codeAlias to editor on click", () => {
+    it("title creates drag ghost on drag start", () => {
       const wrapper = mount(InputOutputItem, {
         props: {
-          inputOutputItem: {
-            ...inputOutputItemMinimal,
-            codeAlias: "myAlias",
-          },
+          inputOutputItem: inputOutputItemWithRowsAndAlias,
         },
       });
-      const codeAlias = wrapper.find(".code-alias");
-      codeAlias.trigger("click");
-      expect(scriptingServiceMock.pasteToEditor).toHaveBeenCalledWith(
-        "myAlias",
+      const codeAliasInTitle = wrapper.find(".top-card").find(".code-alias");
+      codeAliasInTitle.trigger("dragstart");
+      expect(createDragGhost).toHaveBeenCalledWith({
+        elements: [{ text: "super.mock" }],
+        width: "auto",
+        font: "monospace",
+        numSelectedItems: 1,
+      });
+    });
+
+    it("title removes drag ghost on drag end", () => {
+      const wrapper = mount(InputOutputItem, {
+        props: {
+          inputOutputItem: inputOutputItemWithRowsAndAlias,
+        },
+      });
+      const codeAliasInTitle = wrapper.find(".top-card").find(".code-alias");
+      codeAliasInTitle.trigger("dragend");
+      expect(removeDragGhost).toHaveBeenCalled();
+    });
+
+    it("dragging title adds code alias to drag event", () => {
+      const wrapper = mount(InputOutputItem, {
+        props: {
+          inputOutputItem: inputOutputItemWithRowsAndAlias,
+        },
+      });
+      const codeAliasInTitle = wrapper.find(".top-card").find(".code-alias");
+      codeAliasInTitle.trigger("dragstart", dragEventMock);
+      expect(dragEventMock.dataTransfer.setData).toHaveBeenNthCalledWith(
+        1,
+        "text",
+        "super.mock",
+      );
+      expect(dragEventMock.dataTransfer.setData).toHaveBeenNthCalledWith(
+        2,
+        "eventId",
+        INPUT_OUTPUT_DRAG_EVENT_ID,
+      );
+    });
+  });
+
+  describe("uses selection store", () => {
+    beforeEach(() => {
+      useInputOutputSelectionStore().clearSelection();
+    });
+
+    it("click on subitem calls handleSelection store method", () => {
+      const handleSelectionSpy = vi.spyOn(
+        useInputOutputSelectionStore(),
+        "handleSelection",
+      );
+      const wrapper = mount(InputOutputItem, {
+        props: {
+          inputOutputItem: inputOutputItemWithRowsAndAlias,
+        },
+      });
+      const subItem = wrapper.findAll(".sub-item")[0];
+      subItem.trigger("click");
+      expect(handleSelectionSpy).toHaveBeenCalledWith(
+        inputOutputItemWithRowsAndAlias,
+        false,
+        0,
+      );
+    });
+
+    it("drag start calls handleSelection store method", () => {
+      const handleSelectionSpy = vi.spyOn(
+        useInputOutputSelectionStore(),
+        "handleSelection",
+      );
+      const wrapper = mount(InputOutputItem, {
+        props: {
+          inputOutputItem: inputOutputItemWithRowsAndAlias,
+        },
+      });
+      const subItem = wrapper.findAll(".sub-item")[0];
+      subItem.trigger("dragstart");
+      expect(handleSelectionSpy).toHaveBeenCalledWith(
+        inputOutputItemWithRowsAndAlias,
+        true,
+        0,
       );
     });
   });
