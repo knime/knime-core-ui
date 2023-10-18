@@ -278,8 +278,18 @@ public abstract class ScriptingService {
             m_languageServer.ifPresent(ls -> ls.sendMessage(message));
         }
 
+        /**
+         * Interface that needs to be implemented by subclasses in order to enable usage of code aliases for
+         * {@link InputOutputModel} instances
+         */
         @FunctionalInterface
         protected interface CodeAliasProvider {
+            /**
+             * @param index
+             * @param name
+             * @param subItemName
+             * @return
+             */
             String getInputObjectCodeAlias(int index, String name, String subItemName);
         }
 
@@ -289,6 +299,8 @@ public abstract class ScriptingService {
          * @param tableIdx
          * @param spec
          * @param codeAliasProvider
+         * @param subItemCodeAliasTemplate
+         * @param requiredImport
          * @param name
          * @return
          */
@@ -296,6 +308,8 @@ public abstract class ScriptingService {
             final int tableIdx, //
             final DataTableSpec spec, //
             final CodeAliasProvider codeAliasProvider, //
+            final String subItemCodeAliasTemplate, //
+            final String requiredImport, //
             final String name //
         ) {
             final var columnNames = spec.getColumnNames();
@@ -308,8 +322,14 @@ public abstract class ScriptingService {
                 .mapToObj(i -> new InputOutputModelSubItem(columnNames[i], columnTypes[i], codeAliases[i]))
                 .toArray(InputOutputModelSubItem[]::new);
 
-            return new InputOutputModel("Input Table " + (tableIdx + 1),
-                codeAliasProvider.getInputObjectCodeAlias(tableIdx, name, null), subItems);
+            return new InputOutputModel( //
+                "Input Table " + (tableIdx + 1), //
+                codeAliasProvider.getInputObjectCodeAlias(tableIdx, name, null), //
+                subItemCodeAliasTemplate, //
+                requiredImport, //
+                true, //
+                subItems //
+            );
         }
 
         /**
@@ -494,11 +514,18 @@ public abstract class ScriptingService {
      *
      * @param name The name of the item
      * @param codeAlias The code alias needed to access this item in the code
-     * @param subItems A (possibly empty) list of sub items
+     * @param subItemCodeAliasTemplate A Handlebars.js template that is used for code alias insertion. It should have a
+     *            single input parameter { subItems: string[] } that can be used to fill in the subItems.
+     * @param requiredImport The import statement that is needed to use this object or null if there is none.
+     * @param multiSelection whether to enable multi selection in the frontend.
+     * @param subItems A (possibly empty) list of sub items.
      */
     public static record InputOutputModel( // NOSONAR: we don't need hash and equals
         String name, //
         String codeAlias, //
+        String subItemCodeAliasTemplate, //
+        String requiredImport, //
+        boolean multiSelection, //
         InputOutputModelSubItem[] subItems) {
     }
 
