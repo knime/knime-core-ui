@@ -4,18 +4,16 @@ import InputOutputItem, { type InputOutputModel } from "./InputOutputItem.vue";
 import { getScriptingService } from "@/scripting-service";
 
 const inputOutputItems: Ref<InputOutputModel[]> = ref([]);
-const fetchInputOutputObjects = async (method: string) => {
-  const items: InputOutputModel[] = await getScriptingService().sendToService(
-    method,
-  );
+const fetchInputOutputObjects = async (
+  method: "getInputObjects" | "getOutputObjects",
+) => {
+  const items = await getScriptingService()[method]();
   if (items) {
     inputOutputItems.value.push(...items);
   }
 };
 const fetchFlowVariables = async () => {
-  const item: InputOutputModel = await getScriptingService().sendToService(
-    "getFlowVariableInputs",
-  );
+  const item = await getScriptingService().getFlowVariableInputs();
   if (item) {
     inputOutputItems.value.push(item);
   }

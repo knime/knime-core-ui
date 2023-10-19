@@ -346,4 +346,27 @@ describe("scripting-service", () => {
       expect(editorServiceMock.getSelectedLines).toHaveBeenCalled();
     });
   });
+
+  describe("input / output objects", () => {
+    it("requests getFlowVariableInputs", async () => {
+      await getScriptingServiceWithoutEventPoller().getFlowVariableInputs();
+      expect(_jsonDataService.data).toHaveBeenCalledWith({
+        method: "getFlowVariableInputs",
+      });
+    });
+
+    it("requests getInputObjects", async () => {
+      await getScriptingServiceWithoutEventPoller().getInputObjects();
+      expect(_jsonDataService.data).toHaveBeenCalledWith({
+        method: "getInputObjects",
+      });
+    });
+
+    it("requests getOutputObjects", async () => {
+      await getScriptingServiceWithoutEventPoller().getOutputObjects();
+      expect(_jsonDataService.data).toHaveBeenCalledWith({
+        method: "getOutputObjects",
+      });
+    });
+  });
 });
