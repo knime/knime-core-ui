@@ -16,27 +16,51 @@ describe("InputOutputPane", () => {
   it("fetches input/output objects", async () => {
     mount(InputOutputPane);
     await flushPromises();
-    expect(scriptingServiceMock.sendToService).toHaveBeenNthCalledWith(
-      1,
-      "getInputObjects",
-    );
-    expect(scriptingServiceMock.sendToService).toHaveBeenNthCalledWith(
-      2,
-      "getOutputObjects",
-    );
-    expect(scriptingServiceMock.sendToService).toHaveBeenNthCalledWith(
-      3,
-      "getFlowVariableInputs",
-    );
+    expect(scriptingServiceMock.getInputObjects).toHaveBeenCalledOnce();
+    expect(scriptingServiceMock.getOutputObjects).toHaveBeenCalledOnce();
+    expect(scriptingServiceMock.getFlowVariableInputs).toHaveBeenCalledOnce();
   });
 
   it("renders input / output items", async () => {
-    scriptingServiceMock.sendToService = vi.fn(() => [
-      { name: "myObject", type: "myType" },
-    ]) as any;
+    scriptingServiceMock.getInputObjects = vi.fn(() => [
+      { name: "myInputObject1", type: "myType" },
+      { name: "myInputObject2", type: "myType" },
+    ]);
+    scriptingServiceMock.getOutputObjects = vi.fn(() => [
+      { name: "myOutputObject", type: "myType" },
+    ]);
+    scriptingServiceMock.getFlowVariableInputs = vi.fn(() => ({
+      name: "myFlowVarInp",
+      type: "myType",
+    }));
     const wrapper = mount(InputOutputPane);
     await flushPromises();
-    expect(wrapper.findAllComponents(InputOutputItem).length).toBe(3);
+    const inpOupPanes = wrapper.findAllComponents(InputOutputItem);
+    expect(inpOupPanes.length).toBe(4);
+    expect(inpOupPanes.at(0)!.props()).toEqual({
+      inputOutputItem: {
+        name: "myInputObject1",
+        type: "myType",
+      },
+    });
+    expect(inpOupPanes.at(1)!.props()).toEqual({
+      inputOutputItem: {
+        name: "myInputObject2",
+        type: "myType",
+      },
+    });
+    expect(inpOupPanes.at(2)!.props()).toEqual({
+      inputOutputItem: {
+        name: "myOutputObject",
+        type: "myType",
+      },
+    });
+    expect(inpOupPanes.at(3)!.props()).toEqual({
+      inputOutputItem: {
+        name: "myFlowVarInp",
+        type: "myType",
+      },
+    });
   });
 
   it("does not render input / output items if no data is fetched", async () => {

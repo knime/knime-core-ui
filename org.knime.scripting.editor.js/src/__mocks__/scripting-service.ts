@@ -16,6 +16,9 @@ export const scriptingServiceMock = {
   supportsCodeAssistant: vi.fn(),
   inputsAvailable: vi.fn(),
   closeDialog: vi.fn(),
+  getFlowVariableInputs: vi.fn(),
+  getInputObjects: vi.fn(),
+  getOutputObjects: vi.fn(),
 };
 
 export const getScriptingService = vi.fn(() => scriptingServiceMock);

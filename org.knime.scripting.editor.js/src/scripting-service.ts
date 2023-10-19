@@ -7,6 +7,7 @@ import type { ConsoleText } from "./components/OutputConsole.vue";
 import { EditorService } from "./editor-service";
 import { MonacoLSPConnection } from "./lsp/connection";
 import { KnimeMessageReader, KnimeMessageWriter } from "./lsp/knime-io";
+import type { InputOutputModel } from "./components/InputOutputItem.vue";
 
 export type NodeSettings = { script: string };
 type LanugageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
@@ -176,6 +177,18 @@ class ScriptingService {
 
   public inputsAvailable(): Promise<boolean> {
     return this.sendToService("inputsAvailable");
+  }
+
+  public getFlowVariableInputs(): Promise<InputOutputModel> {
+    return this.sendToService("getFlowVariableInputs");
+  }
+
+  public getInputObjects(): Promise<InputOutputModel[]> {
+    return this.sendToService("getInputObjects");
+  }
+
+  public getOutputObjects(): Promise<InputOutputModel[]> {
+    return this.sendToService("getOutputObjects");
   }
 }
 
