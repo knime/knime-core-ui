@@ -44,12 +44,14 @@ export interface InputOutputSelectionStore {
    *
    * @param item The InputOutputModel that was clicked on
    * @param shiftKeyPressed Whether shift key was pressed while clicking
+   * @param ctrlKeyPressed Whether ctrl key was pressed while clicking
    * @param index The index of the subitem that was clicked on, undefined if collapser header is clicked
    * @returns
    */
   handleSelection: (
     item: InputOutputModel,
     shiftKeyPressed: boolean,
+    ctrlKeyPressed: boolean,
     index?: number,
   ) => void;
   clearSelection: () => void;
@@ -73,6 +75,7 @@ const inputOutputSelectionStore: InputOutputSelectionStore =
     handleSelection(
       item: InputOutputModel,
       shiftKeyPressed: boolean,
+      ctrlKeyPressed: boolean,
       index?: number,
     ) {
       if (typeof index === "undefined") {
@@ -102,7 +105,7 @@ const inputOutputSelectionStore: InputOutputSelectionStore =
         return;
       }
 
-      if (shiftKeyPressed) {
+      if (shiftKeyPressed || ctrlKeyPressed) {
         // Shift key pressed - toggle selection
         toggleSelection(this.selectedIndices, index);
       } else if (

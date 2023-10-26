@@ -38,35 +38,33 @@ describe("InputOutputItem", () => {
     },
   };
 
+  const doMount = (
+    inputOutputItem: InputOutputModel = inputOutputItemWithRowsAndAlias,
+  ) => {
+    return mount(InputOutputItem, {
+      props: { inputOutputItem },
+    });
+  };
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
   describe("with collapser", () => {
     it("renders collapser if item contains rows / columnInfo", () => {
-      const wrapper = mount(InputOutputItem, {
-        props: { inputOutputItem: inputOutputItemWithRowsAndAlias },
-      });
+      const wrapper = doMount();
       expect(wrapper.findComponent(Collapser).exists()).toBeTruthy();
     });
 
     it("renders codeAlias in title if it exists", () => {
-      const wrapper = mount(InputOutputItem, {
-        props: {
-          inputOutputItem: inputOutputItemWithRowsAndAlias,
-        },
-      });
+      const wrapper = doMount();
       expect(
         wrapper.find(".top-card").find(".code-alias").exists(),
       ).toBeTruthy();
     });
 
     it("collapser title creates drag ghost on drag start", () => {
-      const wrapper = mount(InputOutputItem, {
-        props: {
-          inputOutputItem: inputOutputItemWithRowsAndAlias,
-        },
-      });
+      const wrapper = doMount();
       const codeAliasInTitle = wrapper.find(".top-card").find(".code-alias");
       codeAliasInTitle.trigger("dragstart");
       expect(createDragGhost).toHaveBeenCalledWith({
@@ -78,22 +76,14 @@ describe("InputOutputItem", () => {
     });
 
     it("collapser title removes drag ghost on drag end", () => {
-      const wrapper = mount(InputOutputItem, {
-        props: {
-          inputOutputItem: inputOutputItemWithRowsAndAlias,
-        },
-      });
+      const wrapper = doMount();
       const codeAliasInTitle = wrapper.find(".top-card").find(".code-alias");
       codeAliasInTitle.trigger("dragend");
       expect(removeDragGhost).toHaveBeenCalled();
     });
 
     it("dragging collapser title adds code alias to drag event", () => {
-      const wrapper = mount(InputOutputItem, {
-        props: {
-          inputOutputItem: inputOutputItemWithRowsAndAlias,
-        },
-      });
+      const wrapper = doMount();
       const codeAliasInTitle = wrapper.find(".top-card").find(".code-alias");
       codeAliasInTitle.trigger("dragstart", dragEventMock);
       expect(dragEventMock.dataTransfer.setData).toHaveBeenNthCalledWith(
@@ -109,11 +99,7 @@ describe("InputOutputItem", () => {
     });
 
     it("subitem creates drag ghost on drag start", () => {
-      const wrapper = mount(InputOutputItem, {
-        props: {
-          inputOutputItem: inputOutputItemWithRowsAndAlias,
-        },
-      });
+      const wrapper = doMount();
       const subItem = wrapper.findAll(".sub-item")[0];
       const dragGhostMock = { drag: "my drag ghost" };
       (createDragGhost as any).mockReturnValueOnce(dragGhostMock);
@@ -138,11 +124,7 @@ describe("InputOutputItem", () => {
     });
 
     it("subitem removes drag ghost on drag end", () => {
-      const wrapper = mount(InputOutputItem, {
-        props: {
-          inputOutputItem: inputOutputItemWithRowsAndAlias,
-        },
-      });
+      const wrapper = doMount();
       const subItem = wrapper.findAll(".sub-item")[0];
       subItem.trigger("dragend");
       expect(removeDragGhost).toHaveBeenCalledWith();
@@ -150,11 +132,7 @@ describe("InputOutputItem", () => {
 
     it("dragging subitem uses code alias template", () => {
       const handleBarsSpy = vi.spyOn(Handlebars, "compile");
-      const wrapper = mount(InputOutputItem, {
-        props: {
-          inputOutputItem: inputOutputItemWithRowsAndAlias,
-        },
-      });
+      const wrapper = doMount();
       expect(handleBarsSpy).toHaveBeenCalledWith(
         inputOutputItemWithRowsAndAlias.subItemCodeAliasTemplate,
       );
@@ -171,30 +149,20 @@ describe("InputOutputItem", () => {
 
   describe("no collapser", () => {
     it("does not render collapser if item contains no subitems", () => {
-      const wrapper = mount(InputOutputItem, {
-        props: { inputOutputItem: inputOutputItemMinimal },
-      });
+      const wrapper = doMount(inputOutputItemMinimal);
       expect(wrapper.findComponent(Collapser).exists()).toBeFalsy();
     });
 
     it("renders codeAlias in title if it exists", () => {
-      const wrapper = mount(InputOutputItem, {
-        props: {
-          inputOutputItem: {
-            ...inputOutputItemMinimal,
-            codeAlias: "myAlias",
-          },
-        },
+      const wrapper = doMount({
+        ...inputOutputItemMinimal,
+        codeAlias: "myAlias",
       });
       expect(wrapper.find(".code-alias").exists()).toBeTruthy();
     });
 
     it("title creates drag ghost on drag start", () => {
-      const wrapper = mount(InputOutputItem, {
-        props: {
-          inputOutputItem: inputOutputItemWithRowsAndAlias,
-        },
-      });
+      const wrapper = doMount();
       const codeAliasInTitle = wrapper.find(".top-card").find(".code-alias");
       codeAliasInTitle.trigger("dragstart");
       expect(createDragGhost).toHaveBeenCalledWith({
@@ -206,22 +174,14 @@ describe("InputOutputItem", () => {
     });
 
     it("title removes drag ghost on drag end", () => {
-      const wrapper = mount(InputOutputItem, {
-        props: {
-          inputOutputItem: inputOutputItemWithRowsAndAlias,
-        },
-      });
+      const wrapper = doMount();
       const codeAliasInTitle = wrapper.find(".top-card").find(".code-alias");
       codeAliasInTitle.trigger("dragend");
       expect(removeDragGhost).toHaveBeenCalled();
     });
 
     it("dragging title adds code alias to drag event", () => {
-      const wrapper = mount(InputOutputItem, {
-        props: {
-          inputOutputItem: inputOutputItemWithRowsAndAlias,
-        },
-      });
+      const wrapper = doMount();
       const codeAliasInTitle = wrapper.find(".top-card").find(".code-alias");
       codeAliasInTitle.trigger("dragstart", dragEventMock);
       expect(dragEventMock.dataTransfer.setData).toHaveBeenNthCalledWith(
@@ -242,40 +202,62 @@ describe("InputOutputItem", () => {
       useInputOutputSelectionStore().clearSelection();
     });
 
+    const spyOnStore = () => {
+      const store = useInputOutputSelectionStore();
+      const handleSelectionSpy = vi.spyOn(store, "handleSelection");
+      const clearSelectionSpy = vi.spyOn(store, "clearSelection");
+      return { handleSelectionSpy, clearSelectionSpy };
+    };
+
     it("click on subitem calls handleSelection store method", () => {
-      const handleSelectionSpy = vi.spyOn(
-        useInputOutputSelectionStore(),
-        "handleSelection",
-      );
-      const wrapper = mount(InputOutputItem, {
-        props: {
-          inputOutputItem: inputOutputItemWithRowsAndAlias,
-        },
-      });
+      const { handleSelectionSpy } = spyOnStore();
+      const wrapper = doMount();
       const subItem = wrapper.findAll(".sub-item")[0];
       subItem.trigger("click");
       expect(handleSelectionSpy).toHaveBeenCalledWith(
         inputOutputItemWithRowsAndAlias,
         false,
+        false,
+        0,
+      );
+    });
+
+    it("shift-click on subitem calls handleSelection store method", () => {
+      const { handleSelectionSpy } = spyOnStore();
+      const wrapper = doMount();
+      const subItem = wrapper.findAll(".sub-item")[0];
+      subItem.trigger("click", { shiftKey: true });
+      expect(handleSelectionSpy).toHaveBeenCalledWith(
+        inputOutputItemWithRowsAndAlias,
+        true,
+        false,
+        0,
+      );
+    });
+
+    it("ctrl-click on subitem calls handleSelection store method", () => {
+      const { handleSelectionSpy } = spyOnStore();
+      const wrapper = doMount();
+      const subItem = wrapper.findAll(".sub-item")[0];
+      subItem.trigger("click", { ctrlKey: true });
+      expect(handleSelectionSpy).toHaveBeenCalledWith(
+        inputOutputItemWithRowsAndAlias,
+        false,
+        true,
         0,
       );
     });
 
     it("drag start calls handleSelection store method", () => {
-      const handleSelectionSpy = vi.spyOn(
-        useInputOutputSelectionStore(),
-        "handleSelection",
-      );
-      const wrapper = mount(InputOutputItem, {
-        props: {
-          inputOutputItem: inputOutputItemWithRowsAndAlias,
-        },
-      });
+      const { handleSelectionSpy, clearSelectionSpy } = spyOnStore();
+      const wrapper = doMount();
       const subItem = wrapper.findAll(".sub-item")[0];
       subItem.trigger("dragstart");
+      expect(clearSelectionSpy).toHaveBeenCalledWith();
       expect(handleSelectionSpy).toHaveBeenCalledWith(
         inputOutputItemWithRowsAndAlias,
-        true,
+        false,
+        false,
         0,
       );
     });
