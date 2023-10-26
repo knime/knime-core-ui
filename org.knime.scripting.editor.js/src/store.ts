@@ -39,7 +39,7 @@ export const showDisclaimer = ref<boolean>(true);
  */
 export interface InputOutputSelectionStore {
   selectedItem?: InputOutputModel;
-  selectedIndices?: number[];
+  selectedIndices?: Set<number>;
   /**
    *
    * @param item The InputOutputModel that was clicked on
@@ -60,12 +60,11 @@ export interface InputOutputSelectionStore {
  * @param selection
  * @param element
  */
-const toggleSelection = (selection: number[], element: number) => {
-  const index = selection.indexOf(element);
-  if (index === -1) {
-    selection.push(element);
+const toggleSelection = (selection: Set<number>, element: number) => {
+  if (selection.has(element)) {
+    selection.delete(element);
   } else {
-    selection.splice(index, 1);
+    selection.add(element);
   }
 };
 
@@ -79,7 +78,7 @@ const inputOutputSelectionStore: InputOutputSelectionStore =
       if (typeof index === "undefined") {
         // handle click on header
         this.selectedItem = item;
-        this.selectedIndices = [];
+        this.selectedIndices = new Set();
         return;
       }
 
@@ -89,31 +88,32 @@ const inputOutputSelectionStore: InputOutputSelectionStore =
       ) {
         // handle click on item that was not selected yet
         this.selectedItem = item;
-        this.selectedIndices = [index];
+        this.selectedIndices = new Set([index]);
         return;
       }
 
       if (typeof this.selectedIndices === "undefined") {
-        this.selectedIndices = [];
+        this.selectedIndices = new Set();
       }
 
       // update selection (no multiselection)
       if (!this.selectedItem.multiSelection) {
-        this.selectedIndices = [index];
+        this.selectedIndices = new Set([index]);
         return;
       }
 
-      // multiselection
       if (shiftKeyPressed) {
+        // Shift key pressed - toggle selection
         toggleSelection(this.selectedIndices, index);
-      } else if (this.selectedIndices.includes(index)) {
-        if (this.selectedIndices.length === 1) {
-          this.selectedIndices = [];
-        } else {
-          this.selectedIndices = [index];
-        }
+      } else if (
+        this.selectedIndices.has(index) &&
+        this.selectedIndices.size === 1
+      ) {
+        // No no shift key pressed and clicked on the only selected item - deselect
+        this.selectedIndices = new Set();
       } else {
-        this.selectedIndices = [index];
+        // No shift key pressed - select only the clicked item
+        this.selectedIndices = new Set([index]);
       }
     },
     clearSelection() {
