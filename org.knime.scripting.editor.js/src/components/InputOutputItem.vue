@@ -58,6 +58,7 @@ const handleClick = (event: MouseEvent, index?: number) => {
   inputOutputSelectionStore.handleSelection(
     props.inputOutputItem,
     event.shiftKey,
+    event.ctrlKey,
     index,
   );
 };
@@ -75,7 +76,8 @@ const onSubItemDragStart = (event: DragEvent, index: number) => {
     inputOutputSelectionStore.clearSelection();
     inputOutputSelectionStore.handleSelection(
       props.inputOutputItem,
-      true,
+      false,
+      false,
       index,
     );
   }
