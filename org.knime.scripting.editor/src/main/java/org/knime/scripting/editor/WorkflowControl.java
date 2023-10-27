@@ -48,7 +48,6 @@
  */
 package org.knime.scripting.editor;
 
-import java.util.Optional;
 import java.util.stream.IntStream;
 
 import org.knime.core.node.NodeModel;
@@ -87,6 +86,9 @@ public class WorkflowControl {
         return m_nc.getNrOutPorts();
     }
 
+    /**
+     * @return the {@link NodeModel} of the node
+     */
     public NodeModel getNodeModel() {
         return ((NativeNodeContainer)m_nc).getNodeModel();
     }
@@ -98,23 +100,12 @@ public class WorkflowControl {
         return m_nc.getFlowObjectStack();
     }
 
-    private static interface ConnectedPortConsumer {
-        void accept(int destPortIdx, NodeOutPort outPort);
-    }
-
-    private void runForEachIncomingConnection(final ConnectedPortConsumer fn) {
-        final var wfm = m_nc.getParent();
-        for (var cc : wfm.getIncomingConnectionsFor(m_nc.getID())) {
-            fn.accept(cc.getDestPort(), wfm.getNodeContainer(cc.getSource()).getOutPort(cc.getSourcePort()));
-        }
-    }
-
     /**
      * @return The inputs for the node (excluding the flow variable port). For ports with no port objects available the
      *         value will be <code>null</code>.
      */
     public PortObject[] getInputData() {
-        final var inData = new PortObject[m_nc.getNrInPorts() - 1];
+        final var inData = new PortObject[getNrInPorts() - 1];
         runForEachIncomingConnection((destPortIdx, outPort) -> {
             if (destPortIdx == 0) {
                 // Flow variable port
@@ -130,7 +121,7 @@ public class WorkflowControl {
      *         value will be <code>null</code>.
      */
     public PortObjectSpec[] getInputSpec() {
-        final var inSpecs = new PortObjectSpec[m_nc.getNrInPorts() - 1];
+        final var inSpecs = new PortObjectSpec[getNrInPorts() - 1];
         runForEachIncomingConnection((destPortIdx, outPort) -> {
             if (destPortIdx == 0) {
                 // Flow variable port
@@ -141,17 +132,22 @@ public class WorkflowControl {
         return inSpecs;
     }
 
+    /**
+     * @return the {@link InputPortInfo} for each input port of the node (excluding the flow variable port)
+     */
     public InputPortInfo[] getInputInfo() {
-    }
-
-    public record InputPortInfo(PortType type, Optional<PortObjectSpec> spec) {
+        var inputTypes = getInputPortTypes();
+        var inputSpec = getInputSpec();
+        return IntStream.range(0, getNrInPorts() - 1) //
+            .mapToObj(i -> new InputPortInfo(inputTypes[i + 1], inputSpec[i])) //
+            .toArray(InputPortInfo[]::new);
     }
 
     /**
      * @return the output port types for the node
      */
     public PortType[] getOutputPortTypes() {
-        return IntStream.range(0, m_nc.getNrOutPorts()) //
+        return IntStream.range(0, getNrOutPorts()) //
             .mapToObj(i -> m_nc.getOutPort(i).getPortType()) //
             .toArray(PortType[]::new);
     }
@@ -160,13 +156,26 @@ public class WorkflowControl {
      * @return the input port types for the node
      */
     public PortType[] getInputPortTypes() {
-        // TODO still needed? Rewrite to one-liner
-        final int numInputPorts = m_nc.getNrInPorts();
-        final PortType[] inputPortTypes = new PortType[numInputPorts];
-        for (int i = 0; i < numInputPorts; i++) {
-            inputPortTypes[i] = m_nc.getInPort(i).getPortType();
-        }
-        return inputPortTypes;
+        return IntStream.range(0, getNrInPorts()) //
+            .mapToObj(i -> m_nc.getInPort(i).getPortType()) //
+            .toArray(PortType[]::new);
     }
 
+    /**
+     * @param portType the port type
+     * @param portSpec the spec which might be <code>null</code> if the spec are not known
+     */
+    public static record InputPortInfo(PortType portType, PortObjectSpec portSpec) {
+    }
+
+    private static interface ConnectedPortConsumer {
+        void accept(int destPortIdx, NodeOutPort outPort);
+    }
+
+    private void runForEachIncomingConnection(final ConnectedPortConsumer fn) {
+        final var wfm = m_nc.getParent();
+        for (var cc : wfm.getIncomingConnectionsFor(m_nc.getID())) {
+            fn.accept(cc.getDestPort(), wfm.getNodeContainer(cc.getSource()).getOutPort(cc.getSourcePort()));
+        }
+    }
 }
