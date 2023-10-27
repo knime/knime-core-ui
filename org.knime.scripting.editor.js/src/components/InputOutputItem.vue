@@ -21,7 +21,6 @@ export type InputOutputModel = {
   subItems?: {
     name: string;
     type: string;
-    codeAlias?: string;
   }[];
 };
 export const INPUT_OUTPUT_DRAG_EVENT_ID = "input_output_drag_event";

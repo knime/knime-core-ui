@@ -48,6 +48,9 @@
  */
 package org.knime.scripting.editor;
 
+import java.util.Optional;
+import java.util.stream.IntStream;
+
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
@@ -55,6 +58,7 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowObjectStack;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContainer;
+import org.knime.core.node.workflow.NodeOutPort;
 
 /**
  * A utility to control the workflow of a scripting node.
@@ -94,64 +98,69 @@ public class WorkflowControl {
         return m_nc.getFlowObjectStack();
     }
 
+    private static interface ConnectedPortConsumer {
+        void accept(int destPortIdx, NodeOutPort outPort);
+    }
+
+    private void runForEachIncomingConnection(final ConnectedPortConsumer fn) {
+        final var wfm = m_nc.getParent();
+        for (var cc : wfm.getIncomingConnectionsFor(m_nc.getID())) {
+            fn.accept(cc.getDestPort(), wfm.getNodeContainer(cc.getSource()).getOutPort(cc.getSourcePort()));
+        }
+    }
+
     /**
-     * @return the inputs for the node
+     * @return The inputs for the node (excluding the flow variable port). For ports with no port objects available the
+     *         value will be <code>null</code>.
      */
     public PortObject[] getInputData() {
-        // TODO(AP-19333) handle if source nodes are not executed
-        // TODO(AP-19333) handle ports that are not yet loaded
-        // TODO(AP-19333) handle flow variables
-        final var wfm = m_nc.getParent();
-
-        final PortObject[] inData = new PortObject[m_nc.getNrInPorts() - 1];
-        for (var cc : wfm.getIncomingConnectionsFor(m_nc.getID())) {
-            if (cc.getDestPort() == 0) {
+        final var inData = new PortObject[m_nc.getNrInPorts() - 1];
+        runForEachIncomingConnection((destPortIdx, outPort) -> {
+            if (destPortIdx == 0) {
                 // Flow variable port
-                continue;
+                return;
             }
-            inData[cc.getDestPort() - 1] =
-                wfm.getNodeContainer(cc.getSource()).getOutPort(cc.getSourcePort()).getPortObject();
-        }
+            inData[destPortIdx - 1] = outPort.getPortObject();
+        });
         return inData;
     }
 
     /**
-     * @return the input specs for the node
+     * @return The input specs for the node (excluding the flow variable port). For ports with no specs available the
+     *         value will be <code>null</code>.
      */
     public PortObjectSpec[] getInputSpec() {
-        // TODO(AP-19333) combine with getInputData?
-        // TODO(AP-19333) handle ports that are not loaded yet
-        // TODO(AP-19333) handle inputs without specs
-        final var wfm = m_nc.getParent();
-
-        final PortObjectSpec[] inSpecs = new PortObjectSpec[m_nc.getNrInPorts() - 1];
-        for (var cc : wfm.getIncomingConnectionsFor(m_nc.getID())) {
-            if (cc.getDestPort() == 0) {
+        final var inSpecs = new PortObjectSpec[m_nc.getNrInPorts() - 1];
+        runForEachIncomingConnection((destPortIdx, outPort) -> {
+            if (destPortIdx == 0) {
                 // Flow variable port
-                continue;
+                return;
             }
-            inSpecs[cc.getDestPort() - 1] =
-                wfm.getNodeContainer(cc.getSource()).getOutPort(cc.getSourcePort()).getPortObjectSpec();
-        }
+            inSpecs[destPortIdx - 1] = outPort.getPortObjectSpec();
+        });
         return inSpecs;
+    }
+
+    public InputPortInfo[] getInputInfo() {
+    }
+
+    public record InputPortInfo(PortType type, Optional<PortObjectSpec> spec) {
     }
 
     /**
      * @return the output port types for the node
      */
     public PortType[] getOutputPortTypes() {
-        final int numOutputPorts = m_nc.getNrOutPorts();
-        final PortType[] outputPortTypes = new PortType[numOutputPorts];
-        for (int i = 0; i < numOutputPorts; i++) {
-            outputPortTypes[i] = m_nc.getOutPort(i).getPortType();
-        }
-        return outputPortTypes;
+        return IntStream.range(0, m_nc.getNrOutPorts()) //
+            .mapToObj(i -> m_nc.getOutPort(i).getPortType()) //
+            .toArray(PortType[]::new);
     }
 
     /**
      * @return the input port types for the node
      */
     public PortType[] getInputPortTypes() {
+        // TODO still needed? Rewrite to one-liner
         final int numInputPorts = m_nc.getNrInPorts();
         final PortType[] inputPortTypes = new PortType[numInputPorts];
         for (int i = 0; i < numInputPorts; i++) {

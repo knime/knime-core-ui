@@ -26,8 +26,8 @@ describe("InputOutputItem", () => {
     codeAlias: "super.mock",
     subItemCodeAliasTemplate: "my template {{ subItems }}",
     subItems: [
-      { name: "row 1", type: "String", codeAlias: "alias 1" },
-      { name: "row 2", type: "Double", codeAlias: "alias 2" },
+      { name: "row 1", type: "String" },
+      { name: "row 2", type: "Double" },
     ],
   };
 
