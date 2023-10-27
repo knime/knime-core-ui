@@ -62,9 +62,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
-import java.util.stream.IntStream;
 
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
@@ -279,60 +277,6 @@ public abstract class ScriptingService {
         }
 
         /**
-         * Interface that needs to be implemented by subclasses in order to enable usage of code aliases for
-         * {@link InputOutputModel} instances
-         */
-        @FunctionalInterface
-        protected interface CodeAliasProvider {
-            /**
-             * @param index
-             * @param name
-             * @param subItemName
-             * @return
-             */
-            String getInputObjectCodeAlias(int index, String name, String subItemName);
-        }
-
-        /**
-         * Helper method to convert a table spec into a {@link InputOutputModel}
-         *
-         * @param tableIdx
-         * @param spec
-         * @param codeAliasProvider
-         * @param subItemCodeAliasTemplate
-         * @param requiredImport
-         * @param name
-         * @return
-         */
-        protected static InputOutputModel createFromTableSpec( //
-            final int tableIdx, //
-            final DataTableSpec spec, //
-            final CodeAliasProvider codeAliasProvider, //
-            final String subItemCodeAliasTemplate, //
-            final String requiredImport, //
-            final String name //
-        ) {
-            final var columnNames = spec.getColumnNames();
-            final var columnTypes = IntStream.range(0, spec.getNumColumns())
-                .mapToObj(i -> spec.getColumnSpec(i).getType().getName()).toArray(String[]::new);
-            final var codeAliases = IntStream.range(0, spec.getNumColumns())
-                .mapToObj(i -> codeAliasProvider.getInputObjectCodeAlias(tableIdx, name, columnNames[i]))
-                .toArray(String[]::new);
-            final var subItems = IntStream.range(0, spec.getNumColumns())
-                .mapToObj(i -> new InputOutputModelSubItem(columnNames[i], columnTypes[i], codeAliases[i]))
-                .toArray(InputOutputModelSubItem[]::new);
-
-            return new InputOutputModel( //
-                "Input Table " + (tableIdx + 1), //
-                codeAliasProvider.getInputObjectCodeAlias(tableIdx, name, null), //
-                subItemCodeAliasTemplate, //
-                requiredImport, //
-                true, //
-                subItems //
-            );
-        }
-
-        /**
          * @return True if AI supported code generation is supported
          */
         public boolean supportsCodeAssistant() {
@@ -497,36 +441,4 @@ public abstract class ScriptingService {
          */
         LanguageServerProxy start() throws IOException;
     }
-
-    /**
-     * An item in an InputOutputModel, e.g. for table columns
-     *
-     * @param name The name of the sub item
-     * @param type The display name of the type of the sub item
-     * @param codeAlias The code alias needed to access this item in the code
-     */
-    public static record InputOutputModelSubItem(String name, String type, String codeAlias) {
-
-    }
-
-    /**
-     * An item that will be displayed in the input/output panel of the script editor
-     *
-     * @param name The name of the item
-     * @param codeAlias The code alias needed to access this item in the code
-     * @param subItemCodeAliasTemplate A Handlebars.js template that is used for code alias insertion. It should have a
-     *            single input parameter { subItems: string[] } that can be used to fill in the subItems.
-     * @param requiredImport The import statement that is needed to use this object or null if there is none.
-     * @param multiSelection whether to enable multi selection in the frontend.
-     * @param subItems A (possibly empty) list of sub items.
-     */
-    public static record InputOutputModel( // NOSONAR: we don't need hash and equals
-        String name, //
-        String codeAlias, //
-        String subItemCodeAliasTemplate, //
-        String requiredImport, //
-        boolean multiSelection, //
-        InputOutputModelSubItem[] subItems) {
-    }
-
 }
