@@ -86,6 +86,9 @@ onMounted(async () => {
     scrollBeyondLastLine: true,
     fixedOverflowWidgets: true,
     suggest: { showWords: false }, // Disable word suggestions - better suggestions are provided by the language server
+    fontFamily: '"Roboto Mono", serif',
+    lineNumbersMinChars: 3,
+    lineDecorationsWidth: "0.0ch",
   };
 
   if (props.diffScript === null) {
