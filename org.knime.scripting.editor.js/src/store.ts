@@ -43,15 +43,15 @@ export interface InputOutputSelectionStore {
   /**
    *
    * @param item The InputOutputModel that was clicked on
-   * @param shiftKeyPressed Whether shift key was pressed while clicking
-   * @param ctrlKeyPressed Whether ctrl key was pressed while clicking
+   * @param rangeSelectKeyPressed Whether to do a range selection
+   * @param multiSelectKeyPressed Whether to do a multi selection
    * @param index The index of the subitem that was clicked on, undefined if collapser header is clicked
    * @returns
    */
   handleSelection: (
     item: InputOutputModel,
-    shiftKeyPressed: boolean,
-    ctrlKeyPressed: boolean,
+    rangeSelectKeyPressed: boolean,
+    multiSelectKeyPressed: boolean,
     index?: number,
   ) => void;
   clearSelection: () => void;

@@ -54,10 +54,14 @@ const subItemSelection = computed(() =>
 
 const handleClick = (event: MouseEvent, index?: number) => {
   event.stopPropagation();
+  const rangeSelect = event.shiftKey;
+  const multiSelect = navigator.userAgent.toLowerCase().includes("mac")
+    ? event.metaKey
+    : event.ctrlKey;
   inputOutputSelectionStore.handleSelection(
     props.inputOutputItem,
-    event.shiftKey,
-    event.ctrlKey,
+    rangeSelect,
+    multiSelect,
     index,
   );
 };
