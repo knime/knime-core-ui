@@ -27,15 +27,20 @@ export const INPUT_OUTPUT_DRAG_EVENT_ID = "input_output_drag_event";
 </script>
 
 <script setup lang="ts">
-import Collapser from "webapps-common/ui/components/Collapser.vue";
-import { computed, ref } from "vue";
-import { createDragGhost, removeDragGhost } from "./utils/dragGhost";
 import { useInputOutputSelectionStore } from "@/store/io-selection";
 import Handlebars from "handlebars";
+import { ref, watch } from "vue";
+import Collapser from "webapps-common/ui/components/Collapser.vue";
+import { useMultiSelection } from "webapps-common/ui/components/FileExplorer/useMultiSelection";
+import { createDragGhost, removeDragGhost } from "./utils/dragGhost";
 
 const props = defineProps<{
   inputOutputItem: InputOutputModel;
 }>();
+
+const multiSelection = useMultiSelection({
+  singleSelectionOnly: ref(!props.inputOutputItem.multiSelection),
+});
 
 const draggedItem = ref<{ name: string; type: string }>({
   name: "",
@@ -46,28 +51,35 @@ const subItemCodeAliasTemplate = Handlebars.compile(
 );
 
 const inputOutputSelectionStore = useInputOutputSelectionStore();
-const subItemSelection = computed(() =>
-  inputOutputSelectionStore.selectedItem?.name === props.inputOutputItem.name
-    ? inputOutputSelectionStore.selectedIndices ?? new Set<number>()
-    : new Set<number>(),
+
+// Reset selection if another item is selected
+watch(
+  () => inputOutputSelectionStore.selectedItem,
+  (newItem, oldItem) => {
+    if (newItem !== props.inputOutputItem) {
+      multiSelection.resetSelection();
+    }
+  },
 );
 
 const handleClick = (event: MouseEvent, index?: number) => {
   event.stopPropagation();
-  const rangeSelect = event.shiftKey;
-  const multiSelect = navigator.userAgent.toLowerCase().includes("mac")
-    ? event.metaKey
-    : event.ctrlKey;
-  inputOutputSelectionStore.handleSelection(
-    props.inputOutputItem,
-    rangeSelect,
-    multiSelect,
-    index,
-  );
+
+  // This is the selected item now - resets the selection on all other items
+  inputOutputSelectionStore.selectedItem = props.inputOutputItem;
+
+  // Handle multi selection state
+  if (typeof index === "undefined") {
+    // Click on the header
+    multiSelection.resetSelection();
+  } else {
+    // Click on a subItem
+    multiSelection.handleSelectionClick(index, event);
+  }
 };
 
 const getSubItemCodeToInsert = () => {
-  const subItems = [...subItemSelection.value].map(
+  const subItems = [...multiSelection.selectedIndexes.value].map(
     (item) => props.inputOutputItem.subItems?.[item].name,
   );
   const codeToInsert = subItemCodeAliasTemplate({ subItems });
@@ -75,14 +87,9 @@ const getSubItemCodeToInsert = () => {
 };
 
 const onSubItemDragStart = (event: DragEvent, index: number) => {
-  if (!subItemSelection.value.has(index)) {
-    inputOutputSelectionStore.clearSelection();
-    inputOutputSelectionStore.handleSelection(
-      props.inputOutputItem,
-      false,
-      false,
-      index,
-    );
+  if (!multiSelection.isSelected(index)) {
+    multiSelection.resetSelection();
+    multiSelection.handleSelectionClick(index);
   }
   draggedItem.value = props.inputOutputItem.subItems?.[index]!;
   const width = (event.target as any).offsetWidth;
@@ -92,7 +99,7 @@ const onSubItemDragStart = (event: DragEvent, index: number) => {
       { text: draggedItem.value.name },
       { text: draggedItem.value.type },
     ],
-    numSelectedItems: subItemSelection.value.size,
+    numSelectedItems: multiSelection.selectedIndexes.value.length,
   });
   event.dataTransfer?.setDragImage(dragGhost, 0, 0);
   const codeToInsert = getSubItemCodeToInsert();
@@ -110,7 +117,7 @@ const onHeaderDragStart = (event: DragEvent, codeAlias: string) => {
   const dragGhost = createDragGhost({
     width: "auto",
     elements: [{ text: props.inputOutputItem.codeAlias! }],
-    numSelectedItems: subItemSelection.value.size,
+    numSelectedItems: 1,
     font: "monospace",
   });
   event.dataTransfer?.setDragImage(dragGhost, 0, 0);
@@ -158,7 +165,7 @@ const onHeaderDragEnd = () => {
           'clickable-sub-item': props.inputOutputItem.subItemCodeAliasTemplate,
           selected:
             props.inputOutputItem.subItemCodeAliasTemplate &&
-            subItemSelection.has(index),
+            multiSelection.isSelected(index),
         }"
         :draggable="Boolean(props.inputOutputItem.subItemCodeAliasTemplate)"
         @dragstart="(event) => onSubItemDragStart(event, index)"

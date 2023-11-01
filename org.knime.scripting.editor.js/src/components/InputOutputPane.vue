@@ -55,7 +55,7 @@ const dropEventHandler = (event: DragEvent) => {
   }
 
   // clear selection
-  inputOutputSelectionStore.clearSelection();
+  delete inputOutputSelectionStore.selectedItem;
 };
 
 onMounted(async () => {

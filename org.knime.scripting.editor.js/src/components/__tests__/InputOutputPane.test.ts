@@ -120,7 +120,7 @@ describe("InputOutputPane", () => {
     });
 
     afterEach(() => {
-      inputOutputSelectionStore.clearSelection();
+      delete inputOutputSelectionStore.selectedItem;
       vi.clearAllMocks();
     });
 
