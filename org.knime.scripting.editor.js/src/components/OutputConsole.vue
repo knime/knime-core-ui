@@ -91,10 +91,12 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <Button class="clear-button" @click="term.reset()">
-    <TrashIcon />
-  </Button>
-  <div ref="termRef" class="terminal" />
+  <div class="console">
+    <Button class="clear-button" @click="term.reset()">
+      <TrashIcon />
+    </Button>
+    <div ref="termRef" class="terminal" />
+  </div>
 </template>
 
 <style lang="postcss">
@@ -107,6 +109,10 @@ onUnmounted(() => {
   z-index: 1;
   top: -50px;
   right: 0;
+}
+
+.console {
+  height: 100%;
 }
 
 .terminal {
