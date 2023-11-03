@@ -7,7 +7,7 @@ import InputOutputItem, {
 import Collapser from "webapps-common/ui/components/Collapser.vue";
 import { createDragGhost, removeDragGhost } from "../utils/dragGhost";
 import Handlebars from "handlebars";
-import { useInputOutputSelectionStore } from "@/store";
+import { useInputOutputSelectionStore } from "@/store/io-selection";
 
 vi.mock("monaco-editor");
 vi.mock("@/scripting-service");

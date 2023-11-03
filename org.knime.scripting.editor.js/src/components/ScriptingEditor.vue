@@ -15,6 +15,7 @@ import InputOutputPane from "./InputOutputPane.vue";
 import TabBar from "webapps-common/ui/components/TabBar.vue";
 import { onKeyStroke } from "@vueuse/core";
 import { getScriptingService } from "@/scripting-service";
+import { initEditorStore } from "@/store/editor";
 
 export type PaneSizes = {
   [key in "left" | "right" | "bottom"]: number;
@@ -164,6 +165,7 @@ export default defineComponent({
     }) {
       this.editorModel = editorModel;
       getScriptingService().initEditorService(editor, editorModel);
+      initEditorStore({ editor, editorModel });
       this.$emit("monaco-created", { editor, editorModel });
 
       // register Key

@@ -13,7 +13,7 @@ import InputOutputItem, {
 import {
   useInputOutputSelectionStore,
   type InputOutputSelectionStore,
-} from "@/store";
+} from "../../store/io-selection";
 
 vi.mock("monaco-editor");
 vi.mock("@/scripting-service");

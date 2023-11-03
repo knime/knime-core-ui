@@ -2,7 +2,7 @@ import type { InputOutputModel } from "@/components/InputOutputItem.vue";
 import {
   useInputOutputSelectionStore,
   type InputOutputSelectionStore,
-} from "@/store";
+} from "@/store/io-selection";
 import { beforeEach, describe, expect, it } from "vitest";
 
 const itShiftCtrl = it.each([

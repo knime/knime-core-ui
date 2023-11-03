@@ -30,7 +30,7 @@ export const INPUT_OUTPUT_DRAG_EVENT_ID = "input_output_drag_event";
 import Collapser from "webapps-common/ui/components/Collapser.vue";
 import { computed, ref } from "vue";
 import { createDragGhost, removeDragGhost } from "./utils/dragGhost";
-import { useInputOutputSelectionStore } from "@/store";
+import { useInputOutputSelectionStore } from "@/store/io-selection";
 import Handlebars from "handlebars";
 
 const props = defineProps<{
