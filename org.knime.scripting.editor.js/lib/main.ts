@@ -8,6 +8,7 @@ import type {
   NodeSettings,
   ScriptingServiceType,
 } from "../src/scripting-service";
+import { useEditorStore } from "../src/store/editor";
 
 const getScriptingService = (mock?: Partial<ScriptingServiceType>) =>
   getScriptingServiceInternal(mock) as ScriptingServiceType;
@@ -17,6 +18,7 @@ export {
   CodeEditor,
   OutputConsole,
   getScriptingService,
+  useEditorStore,
   EditorService,
 };
 export type { NodeSettings, ScriptingServiceType, SettingsMenuItem };

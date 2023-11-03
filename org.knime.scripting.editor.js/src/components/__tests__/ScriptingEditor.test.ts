@@ -103,6 +103,7 @@ describe("ScriptingEditor", () => {
       const { wrapper } = await doMount();
       const editor = {
         onDidPaste: vi.fn(),
+        onDidChangeCursorSelection: vi.fn(),
       };
       const editorModel = {
         updateOptions: vi.fn(),

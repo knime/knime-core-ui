@@ -16,7 +16,7 @@ import {
   showDisclaimer,
   type PromptResponseStore,
   type Message,
-} from "@/store";
+} from "@/store/ai-bar";
 import type { PaneSizes } from "./ScriptingEditor.vue";
 
 type Status = "idle" | "error" | "waiting" | "uninstalled" | "unauthorized";

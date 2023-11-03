@@ -4,7 +4,10 @@ import AiBar from "@/components/AiBar.vue";
 import { getScriptingService } from "@/scripting-service";
 import CodeEditor from "../CodeEditor.vue";
 import * as monaco from "monaco-editor";
-import { clearPromptResponseStore, usePromptResponseStore } from "@/store";
+import {
+  clearPromptResponseStore,
+  usePromptResponseStore,
+} from "../../store/ai-bar";
 import LoadingIcon from "webapps-common/ui/components/LoadingIcon.vue";
 
 vi.mock("@/scripting-service");

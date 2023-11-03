@@ -5,7 +5,7 @@ import InputOutputItem, {
   type InputOutputModel,
 } from "./InputOutputItem.vue";
 import { getScriptingService } from "@/scripting-service";
-import { useInputOutputSelectionStore } from "@/store";
+import { useInputOutputSelectionStore } from "@/store/io-selection";
 
 const emit = defineEmits<{
   (e: "drop-event-handler-created", dropEventHandler: Function): void;
