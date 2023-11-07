@@ -378,4 +378,13 @@ describe("scripting-service", () => {
       });
     });
   });
+
+  it("initializes clear console callback", () => {
+    const callback = vi.fn();
+    const scriptingService = getScriptingServiceWithoutEventPoller();
+    scriptingService.initClearConsoleCallback(callback);
+    scriptingService.clearConsole();
+    expect(callback).toHaveBeenCalled();
+    delete (getScriptingService() as any)._clearConsoleCallback;
+  });
 });

@@ -62,6 +62,7 @@ useResizeObserver(termRef, () => {
 type ConsoleHandlerEmit = (
   e: "console-created",
   handler: ConsoleHandler,
+  clearConsoleCallback: () => void,
 ) => void;
 
 const emit = defineEmits<ConsoleHandlerEmit>();
@@ -78,7 +79,10 @@ const write = (text: ConsoleText) => {
 
 onMounted(() => {
   term.open(termRef.value as HTMLElement);
-  emit("console-created", write);
+  const clearConsoleCallback = () => {
+    term?.reset();
+  };
+  emit("console-created", write, clearConsoleCallback);
   const listener = term.onLineFeed(() => {
     fitAddon.fit();
     listener.dispose();

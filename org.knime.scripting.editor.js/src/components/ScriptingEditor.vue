@@ -198,8 +198,12 @@ export default defineComponent({
     onDropEventHandlerCreated(dropEventHandler: Function) {
       this.dropEventHandler = dropEventHandler;
     },
-    onConsoleCreated(handler: ConsoleHandler) {
+    onConsoleCreated(
+      handler: ConsoleHandler,
+      clearConsoleCallback: () => void,
+    ) {
       getScriptingService().registerConsoleEventHandler(handler);
+      getScriptingService().initClearConsoleCallback(clearConsoleCallback);
     },
   },
 });
