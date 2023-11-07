@@ -243,7 +243,7 @@ export default defineComponent({
       "
       @resized="updatePreviousPaneSize('left')"
     >
-      <pane ref="leftPane" :size="currentPaneSizes.left">
+      <pane ref="leftPane" :size="currentPaneSizes.left" class="scrollable-y">
         <InputOutputPane
           @drop-event-handler-created="onDropEventHandlerCreated"
         />
@@ -447,6 +447,10 @@ export default defineComponent({
 
 .settings-page {
   height: calc(100vh - var(--controls-height));
+}
+
+.scrollable-y {
+  overflow-y: auto;
 }
 
 /* stylelint-enable selector-class-pattern */
