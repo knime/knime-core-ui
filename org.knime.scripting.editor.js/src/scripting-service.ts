@@ -20,6 +20,7 @@ class ScriptingService {
   private _runEventPoller: boolean = true;
   private _editorService: EditorService = new EditorService();
   private _monacoLSPConnection: MonacoLSPConnection | null = null;
+  private _clearConsoleCallback?: Function;
 
   constructor() {
     const _createKnimeService = async () => {
@@ -193,6 +194,14 @@ class ScriptingService {
 
   public getOutputObjects(): Promise<InputOutputModel[]> {
     return this.sendToService("getOutputObjects");
+  }
+
+  public initClearConsoleCallback(clearConsoleCallback: () => void) {
+    this._clearConsoleCallback = clearConsoleCallback;
+  }
+
+  public clearConsole() {
+    this._clearConsoleCallback?.();
   }
 }
 

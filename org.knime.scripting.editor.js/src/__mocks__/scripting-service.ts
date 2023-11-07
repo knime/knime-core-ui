@@ -20,6 +20,8 @@ export const scriptingServiceMock = {
   getInputObjects: vi.fn(),
   getOutputObjects: vi.fn(),
   setOnDidChangeContentListener: vi.fn(),
+  initClearConsoleCallback: vi.fn(),
+  clearConsole: vi.fn(),
 };
 
 export const getScriptingService = vi.fn(() => scriptingServiceMock);

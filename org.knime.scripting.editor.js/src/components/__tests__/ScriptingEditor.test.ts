@@ -381,6 +381,20 @@ describe("ScriptingEditor", () => {
     expect(spy).toHaveBeenCalledWith(handler);
   });
 
+  it("register clear console callback on console-created", async () => {
+    const { wrapper } = doMount();
+    const outputConsole = wrapper.findComponent(OutputConsole);
+
+    await flushPromises();
+    expect(outputConsole.emitted()).toHaveProperty("console-created");
+
+    // @ts-ignore
+    const clearConsole = outputConsole.emitted()["console-created"][0][1];
+    expect(getScriptingService().initClearConsoleCallback).toHaveBeenCalledWith(
+      clearConsole,
+    );
+  });
+
   it("shows settings page", async () => {
     const { wrapper } = doMount();
     wrapper.vm.showSettingsPage = true;
