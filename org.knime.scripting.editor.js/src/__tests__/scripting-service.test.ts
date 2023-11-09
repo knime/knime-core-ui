@@ -5,7 +5,10 @@ import {
   IFrameKnimeService,
   JsonDataService,
 } from "@knime/ui-extension-service";
-import type { ScriptingServiceType } from "../scripting-service";
+import type {
+  ScriptingServiceInternal,
+  ScriptingServiceType,
+} from "../scripting-service";
 import { EditorService } from "../editor-service";
 import { editorServiceMock } from "@/__mocks__/editor-service";
 
@@ -31,8 +34,10 @@ const lock = () => {
 describe("scripting-service", () => {
   let _knimeService: any,
     _jsonDataService: any,
-    getScriptingService: (mock?: ScriptingServiceType) => ScriptingServiceType,
-    getScriptingServiceWithoutEventPoller: () => ScriptingServiceType;
+    getScriptingService: (
+      mock?: ScriptingServiceType,
+    ) => ScriptingServiceInternal,
+    getScriptingServiceWithoutEventPoller: () => ScriptingServiceInternal;
 
   beforeEach(async () => {
     // Make sure the module is reloaded to reset the singleton instance
@@ -112,14 +117,16 @@ describe("scripting-service", () => {
   });
 
   it("uses the mock if provided", () => {
-    const mockScriptingService = vi.fn();
+    const mockScriptingService: Partial<ScriptingServiceType> = {
+      sendToService: vi.fn(),
+    };
 
     // @ts-ignore
     const scriptingService = getScriptingService(mockScriptingService);
-    expect(scriptingService).toBe(mockScriptingService);
+    expect(scriptingService).toContain(mockScriptingService);
 
     // All future calls should return the mock
-    expect(getScriptingService()).toBe(mockScriptingService);
+    expect(getScriptingService()).toContain(mockScriptingService);
   });
 
   describe("settings", () => {

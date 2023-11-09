@@ -11,10 +11,10 @@ import type { MenuItem } from "webapps-common/ui/components/MenuItems.vue";
 import type { editor } from "monaco-editor";
 import OutputConsole from "./OutputConsole.vue";
 import type { ConsoleHandler } from "./OutputConsole.vue";
-import { getScriptingService } from "@/scripting-service";
 import InputOutputPane from "./InputOutputPane.vue";
 import TabBar from "webapps-common/ui/components/TabBar.vue";
 import { onKeyStroke } from "@vueuse/core";
+import { getScriptingService } from "@/scripting-service";
 
 export type PaneSizes = {
   [key in "left" | "right" | "bottom"]: number;

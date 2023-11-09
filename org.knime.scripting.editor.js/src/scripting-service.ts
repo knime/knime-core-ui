@@ -20,7 +20,7 @@ class ScriptingService {
   private _runEventPoller: boolean = true;
   private _editorService: EditorService = new EditorService();
   private _monacoLSPConnection: MonacoLSPConnection | null = null;
-  private _clearConsoleCallback?: Function;
+  protected _clearConsoleCallback?: Function;
 
   constructor() {
     const _createKnimeService = async () => {
@@ -196,12 +196,16 @@ class ScriptingService {
     return this.sendToService("getOutputObjects");
   }
 
-  public initClearConsoleCallback(clearConsoleCallback: () => void) {
-    this._clearConsoleCallback = clearConsoleCallback;
-  }
-
+  // eslint-disable-next-line class-methods-use-this
   public clearConsole() {
     this._clearConsoleCallback?.();
+  }
+}
+
+// only for internal use inside knime-scripting-editor
+export class ScriptingServiceInternal extends ScriptingService {
+  public initClearConsoleCallback(clearConsoleCallback: () => void) {
+    this._clearConsoleCallback = clearConsoleCallback;
   }
 }
 
@@ -210,14 +214,18 @@ export type ScriptingServiceType = Pick<
   keyof ScriptingService
 >;
 
-let activeScriptingAPI: ScriptingServiceType;
+let activeScriptingAPI: ScriptingServiceInternal;
 
-const getScriptingService = (mock?: ScriptingServiceType) => {
+const getScriptingService = (
+  mock?: Partial<ScriptingServiceType>,
+): ScriptingServiceInternal => {
   if (typeof activeScriptingAPI === "undefined") {
+    const scriptingService = new ScriptingServiceInternal();
     if (typeof mock === "undefined") {
-      activeScriptingAPI = new ScriptingService();
+      activeScriptingAPI = scriptingService;
     } else {
-      activeScriptingAPI = mock;
+      scriptingService.stopEventPoller();
+      activeScriptingAPI = Object.assign(scriptingService, mock);
     }
   }
   return activeScriptingAPI;
