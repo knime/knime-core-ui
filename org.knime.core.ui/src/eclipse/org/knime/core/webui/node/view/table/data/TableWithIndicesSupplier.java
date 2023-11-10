@@ -50,15 +50,8 @@ package org.knime.core.webui.node.view.table.data;
 
 import java.util.function.Supplier;
 
-import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.RowKey;
-import org.knime.core.data.TableBackend.AppendConfig;
-import org.knime.core.data.def.DefaultRow;
-import org.knime.core.data.def.LongCell;
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InternalTableAPI;
 import org.knime.core.webui.data.DataServiceContext;
 
@@ -85,16 +78,9 @@ class TableWithIndicesSupplier implements Supplier<BufferedDataTable> {
     public BufferedDataTable get() {
         final var originalTable = m_originalSupplier.get();
         if (m_originalTable != originalTable) {
-            final var appendConfig = AppendConfig.rowIDsFromTable(1);
             final var indexColumnName = determineIndexColumnName(originalTable.getSpec());
             var exec = DataServiceContext.get().getExecutionContext();
-            try {
-                final var indices = createIndexColumn(originalTable.size(), indexColumnName, exec);
-                m_tableWithIndices = InternalTableAPI.append(exec, appendConfig, indices, originalTable);
-            } catch (CanceledExecutionException ex) { // NOSONAR
-                // can never happen
-                return null;
-            }
+            m_tableWithIndices = InternalTableAPI.prependIndexColumn(exec, originalTable, indexColumnName);
             m_originalTable = originalTable;
         }
         return m_tableWithIndices;
@@ -102,18 +88,6 @@ class TableWithIndicesSupplier implements Supplier<BufferedDataTable> {
 
     private static String determineIndexColumnName(final DataTableSpec spec) {
         return DataTableSpec.getUniqueColumnName(spec, "<index>");
-    }
-
-    private static BufferedDataTable createIndexColumn(final long size, final String name,
-        final ExecutionContext exec) {
-        final var indicesColumnSpec = new DataColumnSpecCreator(name, LongCell.TYPE).createSpec();
-        final var indicesSpec = new DataTableSpec(indicesColumnSpec);
-        final var container = exec.createDataContainer(indicesSpec, false);
-        for (var i = 1l; i <= size; i++) {
-            container.addRowToTable(new DefaultRow(new RowKey(Long.toString(i)), new LongCell(i)));
-        }
-        container.close();
-        return container.getTable();
     }
 
     void clear() {
