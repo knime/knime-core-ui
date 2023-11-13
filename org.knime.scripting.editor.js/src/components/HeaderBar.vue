@@ -49,7 +49,7 @@ export default defineComponent({
   justify-content: space-between;
   height: var(--controls-height);
   background-color: var(--knime-porcelain);
-  border-bottom: 2px solid var(--knime-silver-sand);
+  border-bottom: 1px solid var(--knime-silver-sand);
   display: flex;
   flex-wrap: nowrap;
 }
