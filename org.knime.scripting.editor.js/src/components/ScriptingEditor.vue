@@ -311,7 +311,11 @@ export default defineComponent({
                   </template>
                 </CodeEditorControlBar>
               </pane>
-              <pane ref="rightPane" :size="currentPaneSizes.right">
+              <pane
+                ref="rightPane"
+                :size="currentPaneSizes.right"
+                class="right-pane"
+              >
                 <slot name="right-pane" />
               </pane>
             </splitpanes>
@@ -475,6 +479,10 @@ export default defineComponent({
 /* stylelint-enable selector-class-pattern */
 .settings-page {
   height: calc(100vh - var(--controls-height));
+}
+
+.right-pane {
+  background-color: var(--knime-gray-ultra-light);
 }
 
 .scrollable-y {
