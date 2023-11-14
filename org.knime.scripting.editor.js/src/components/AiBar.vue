@@ -1,12 +1,20 @@
 <script setup lang="ts">
-import { computed, ref, type PropType, onMounted, onUnmounted } from "vue";
+import {
+  computed,
+  ref,
+  type PropType,
+  onMounted,
+  onUnmounted,
+  nextTick,
+} from "vue";
 import { useTextareaAutosize } from "@vueuse/core";
 import SendIcon from "webapps-common/ui/assets/img/icons/paper-flier.svg";
-import AbortIcon from "webapps-common/ui/assets/img/icons/circle-close.svg";
+import AbortIcon from "webapps-common/ui/assets/img/icons/cancel-execution.svg";
 import ExportIcon from "webapps-common/ui/assets/img/icons/export.svg";
 import LinkIcon from "webapps-common/ui/assets/img/icons/link.svg";
 import LoadingIcon from "webapps-common/ui/components/LoadingIcon.vue";
 import Button from "webapps-common/ui/components/Button.vue";
+import FunctionButton from "webapps-common/ui/components/FunctionButton.vue";
 import { getScriptingService } from "@/scripting-service";
 import CodeEditor from "./CodeEditor.vue";
 import { editor } from "monaco-editor";
@@ -92,6 +100,9 @@ const handleCodeSuggestion = (codeSuggestion: CodeSuggestion) => {
     status.value = "idle";
     input.value = "";
   }
+  nextTick(() => {
+    textarea.value.focus();
+  });
 };
 
 scriptingService.registerEventHandler("codeSuggestion", handleCodeSuggestion);
@@ -292,7 +303,7 @@ const hasTopContent = computed(() => {
             @keydown="handleKeyDown"
           />
           <div class="chat-controls-buttons">
-            <Button
+            <FunctionButton
               v-if="status === 'error' || status === 'idle'"
               ref="sendButton"
               title="Send"
@@ -301,8 +312,8 @@ const hasTopContent = computed(() => {
               @click="request"
             >
               <SendIcon class="icon" />
-            </Button>
-            <Button
+            </FunctionButton>
+            <FunctionButton
               v-if="status === 'waiting'"
               ref="abortButton"
               title="Cancel"
@@ -313,7 +324,7 @@ const hasTopContent = computed(() => {
             >
               <AbortIcon v-if="mouseOverLoadingSpinner" class="icon" />
               <LoadingIcon v-else class="icon" />
-            </Button>
+            </FunctionButton>
           </div>
         </div>
       </div>
@@ -334,51 +345,6 @@ const hasTopContent = computed(() => {
 .slide-fade-leave-to {
   transform: translateY(30px);
   opacity: 0;
-}
-
-.dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background-color: var(--knime-silver-sand);
-  animation-name: loading;
-  animation-duration: 4s;
-  animation-iteration-count: infinite;
-  margin-left: 2px;
-
-  &:nth-child(1) {
-    animation-delay: 1s;
-  }
-
-  &:nth-child(2) {
-    animation-delay: 0.5s;
-  }
-
-  &:nth-child(3) {
-    animation-delay: 1.5s;
-  }
-}
-
-@keyframes loading {
-  0% {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-
-  50% {
-    opacity: 0.5;
-    transform: translate3d(0, 0, 0);
-  }
-
-  75% {
-    opacity: 0;
-    transform: translate3d(0, 0, 0);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
 }
 
 .ai-bar-container {
@@ -467,10 +433,13 @@ const hasTopContent = computed(() => {
         resize: none;
         border-radius: 0;
         bottom: -1;
-        padding: 9px;
+        padding: 15px;
         padding-right: 30px;
         margin: var(--ai-bar-margin);
         color: var(--knime-masala);
+        font-size: 13px;
+        font-weight: lighter;
+        font-family: Roboto, sans-serif;
 
         &::placeholder {
           color: var(--knime-stone);
@@ -484,8 +453,8 @@ const hasTopContent = computed(() => {
       & .chat-controls-buttons {
         & .textarea-button {
           position: absolute;
-          right: -14px;
-          bottom: 8px;
+          right: 20px;
+          bottom: 20px;
         }
       }
     }
