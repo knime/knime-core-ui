@@ -214,7 +214,7 @@ const tryLogin = () => {
       <Transition name="disclaimer-slide-fade">
         <div v-if="showDisclaimer" class="disclaimer-container">
           <div class="disclaimer-text">
-            <h5 style="margin: 10px 0">Disclaimer</h5>
+            <p style="font-weight: bold">Disclaimer</p>
             <p>
               By using this coding assistant, you acknowledge and agree the
               following: Any information you enter into the prompt, as well as
@@ -536,11 +536,10 @@ const tryLogin = () => {
 }
 
 .disclaimer-text {
-  border: 1px solid var(--knime-silver-sand);
   margin: 10px;
   line-height: 20px;
   padding: 5px;
-  background-color: white;
+  background-color: var(--knime-white);
 }
 
 .disclaimer-button-container {
