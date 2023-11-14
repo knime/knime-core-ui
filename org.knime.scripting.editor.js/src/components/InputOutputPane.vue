@@ -60,8 +60,8 @@ const dropEventHandler = (event: DragEvent) => {
 
 onMounted(async () => {
   await fetchInputOutputObjects("getInputObjects");
-  await fetchInputOutputObjects("getOutputObjects");
   await fetchFlowVariables();
+  await fetchInputOutputObjects("getOutputObjects");
   emit("drop-event-handler-created", dropEventHandler);
 });
 </script>
@@ -80,5 +80,6 @@ onMounted(async () => {
 .in-out-container {
   display: flex;
   flex-direction: column;
+  min-width: 150px;
 }
 </style>
