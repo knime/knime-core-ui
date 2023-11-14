@@ -167,6 +167,16 @@ scriptingService.registerEventHandler("hubLogin", handleLoginStatus);
 const tryLogin = () => {
   getScriptingService().sendToService("loginToHub");
 };
+
+// used to add a divider between notification bar / chat controls and above
+const hasTopContent = computed(() => {
+  return (
+    status.value === "uninstalled" ||
+    status.value === "unauthorized" ||
+    showDisclaimer.value ||
+    promptResponseStore.promptResponse
+  );
+});
 </script>
 
 <template>
@@ -176,6 +186,7 @@ const tryLogin = () => {
       bottom: `${bottomPosition}`,
       left: `${leftPosition}vw`,
       width: `${aiBarWidth}vw`,
+      'max-width': '800px',
       height: `${DEFAULT_AI_BAR_HEIGHT}`,
     }"
   >
@@ -263,6 +274,7 @@ const tryLogin = () => {
       </Transition>
       <div
         class="chat-controls"
+        :class="{ 'chat-controls-border-top': hasTopContent }"
         :style="{ '--left-distance': `calc(${leftOverflow}vw + 30px)` }"
       >
         <Transition name="slide-fade">
@@ -413,7 +425,6 @@ const tryLogin = () => {
     margin: var(--ai-bar-margin);
     min-height: 200px;
     height: 40vh;
-    border-bottom: 1px solid var(--knime-porcelain);
     display: flex;
     flex-direction: column;
 
@@ -429,10 +440,13 @@ const tryLogin = () => {
     }
   }
 
+  & .chat-controls-border-top {
+    border-top: 1px solid var(--knime-silver-sand);
+  }
+
   & .chat-controls {
     display: flex;
     flex-direction: column;
-    border-top: 1px solid var(--knime-silver-sand);
     position: relative;
 
     & .prompt-bar {
