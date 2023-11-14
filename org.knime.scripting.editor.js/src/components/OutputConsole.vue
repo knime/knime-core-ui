@@ -9,7 +9,7 @@ import { FitAddon } from "xterm-addon-fit";
 import { Unicode11Addon } from "xterm-addon-unicode11";
 import * as knimeColors from "webapps-common/ui/colors/knimeColors.mjs";
 import TrashIcon from "webapps-common/ui/assets/img/icons/trash.svg";
-import Button from "webapps-common/ui/components/Button.vue";
+import FunctionButton from "webapps-common/ui/components/FunctionButton.vue";
 
 export type ConsoleText = XOR<
   { text: string },
@@ -96,9 +96,9 @@ onUnmounted(() => {
 
 <template>
   <div class="console">
-    <Button class="clear-button" @click="term.reset()">
+    <FunctionButton class="clear-button" @click="term.reset()">
       <TrashIcon />
-    </Button>
+    </FunctionButton>
     <div ref="termRef" class="terminal" />
   </div>
 </template>
@@ -111,8 +111,8 @@ onUnmounted(() => {
 .clear-button {
   position: absolute;
   z-index: 1;
-  top: -50px;
-  right: 0;
+  top: -45px;
+  right: 20px;
 }
 
 .console {
