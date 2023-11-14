@@ -258,7 +258,7 @@ export default defineComponent({
         <splitpanes
           ref="horizontalSplitpane"
           horizontal
-          class="common-splitter"
+          class="common-splitter horizontal-splitpane"
           :dbl-click-splitter="false"
           :class="{
             'down-facing-splitter': !isBottomPaneCollapsed,
@@ -274,7 +274,7 @@ export default defineComponent({
           >
             <splitpanes
               ref="verticalSplitpane"
-              class="common-splitter unset-transition"
+              class="common-splitter unset-transition vertical-splitpane"
               :class="{
                 'left-facing-splitter': isRightPaneCollapsed,
                 'right-facing-splitter': !isRightPaneCollapsed,
@@ -449,8 +449,30 @@ export default defineComponent({
 .main-splitpane {
   height: calc(100vh - (2 * var(--controls-height)));
   overflow: hidden;
+
+  &:deep(> .splitpanes__splitter) {
+    &:hover {
+      border-right: 1px solid var(--knime-masala);
+    }
+  }
 }
 
+.horizontal-splitpane {
+  &:deep(> .splitpanes__splitter) {
+    &:hover {
+      border-top: 1px solid var(--knime-masala);
+    }
+  }
+}
+
+.vertical-splitpane {
+  &:deep(> .splitpanes__splitter) {
+    &:hover {
+      border-left: 1px solid var(--knime-masala);
+    }
+  }
+}
+/* stylelint-enable selector-class-pattern */
 .settings-page {
   height: calc(100vh - var(--controls-height));
 }
@@ -458,6 +480,4 @@ export default defineComponent({
 .scrollable-y {
   overflow-y: auto;
 }
-
-/* stylelint-enable selector-class-pattern */
 </style>
