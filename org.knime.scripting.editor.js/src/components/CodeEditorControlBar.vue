@@ -63,7 +63,8 @@ onMounted(async () => {
       class="ai-button"
       :disabled="!inputsAvailable"
       compact
-      on-dark
+      :with-border="true"
+      :class="{ 'button-active': showBar }"
       @click="showBar = !showBar"
     >
       <AiCode viewBox="0 0 32 32" /> Ask AI
@@ -95,26 +96,13 @@ onMounted(async () => {
   justify-content: right;
 }
 
-.button {
-  font-weight: 500;
-
+.button-active {
   &.compact {
-    background-color: var(--knime-masala);
     color: var(--knime-white);
-
-    &:hover,
-    &:visited,
-    &:focus,
-    &:active {
-      background-color: var(--knime-masala);
-      color: var(--knime-white);
-    }
+    background-color: var(--knime-masala);
 
     & svg {
       stroke: var(--knime-white);
-      stroke-width: 1.5px;
-      width: 18px;
-      height: 18px;
     }
   }
 }
