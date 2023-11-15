@@ -3,7 +3,7 @@ import OutputConsole, {
 } from "@/components/OutputConsole.vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import Button from "webapps-common/ui/components/Button.vue";
+import FunctionButton from "webapps-common/ui/components/FunctionButton.vue";
 import { Terminal } from "xterm";
 
 vi.mock("xterm");
@@ -69,7 +69,7 @@ describe("OutputConsole", () => {
     const { wrapper, term } = await doMount();
 
     // get Clear Button and Click it
-    const button = wrapper.findComponent(Button);
+    const button = wrapper.findComponent(FunctionButton);
     button.vm.$emit("click");
     await flushPromises();
 

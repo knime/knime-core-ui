@@ -61,13 +61,13 @@ describe("InputOutputPane", () => {
     });
     expect(inpOupPanes.at(2)!.props()).toEqual({
       inputOutputItem: {
-        name: "myOutputObject",
+        name: "myFlowVarInp",
         type: "myType",
       },
     });
     expect(inpOupPanes.at(3)!.props()).toEqual({
       inputOutputItem: {
-        name: "myFlowVarInp",
+        name: "myOutputObject",
         type: "myType",
       },
     });
