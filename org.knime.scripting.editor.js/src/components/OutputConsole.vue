@@ -111,7 +111,7 @@ onUnmounted(() => {
 .clear-button {
   position: absolute;
   z-index: 1;
-  top: -45px;
+  top: 2px;
   right: 20px;
 }
 
