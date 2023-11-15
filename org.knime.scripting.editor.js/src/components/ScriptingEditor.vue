@@ -12,10 +12,10 @@ import type { editor } from "monaco-editor";
 import OutputConsole from "./OutputConsole.vue";
 import type { ConsoleHandler } from "./OutputConsole.vue";
 import InputOutputPane from "./InputOutputPane.vue";
-import TabBar from "webapps-common/ui/components/TabBar.vue";
 import { onKeyStroke } from "@vueuse/core";
 import { getScriptingService } from "@/scripting-service";
 import { initEditorStore } from "@/store/editor";
+import CompactTabBar from "./CompactTabBar.vue";
 
 export type PaneSizes = {
   [key in "left" | "right" | "bottom"]: number;
@@ -37,7 +37,7 @@ export default defineComponent({
     OutputConsole,
     InputOutputPane,
     SettingsPage,
-    TabBar,
+    CompactTabBar,
   },
   props: {
     title: {
@@ -322,13 +322,11 @@ export default defineComponent({
           </pane>
           <pane ref="bottomPane" :size="currentPaneSizes.bottom">
             <div class="tab-bar-container">
-              <div class="tab-bar-wrapper">
-                <TabBar
-                  v-model="bottomPaneActiveTab"
-                  class="bottom-tab-bar"
-                  :possible-values="bottomPaneOptions"
-                />
-              </div>
+              <CompactTabBar
+                v-model="bottomPaneActiveTab"
+                class="scripting-editor-tab-bar"
+                :possible-values="bottomPaneOptions"
+              />
               <div class="console-container">
                 <OutputConsole
                   v-show="bottomPaneActiveTab === 'console'"
@@ -372,25 +370,10 @@ export default defineComponent({
   flex-direction: column;
   padding-left: 10px;
   padding-right: 10px;
-
-  & .tab-bar-wrapper {
-    margin-right: 10px;
-
-    & .bottom-tab-bar {
-      & :deep(.tab-bar) {
-        padding-bottom: 0;
-        margin-bottom: 0;
-      }
-
-      & :deep(.carousel::after) {
-        bottom: 5px;
-      }
-    }
-  }
+  position: relative;
 
   & .console-container {
     flex: 1;
-    position: relative;
     min-height: 0;
   }
 }
