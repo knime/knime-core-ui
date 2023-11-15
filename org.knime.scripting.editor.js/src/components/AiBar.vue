@@ -197,8 +197,8 @@ const hasTopContent = computed(() => {
       bottom: `${bottomPosition}`,
       left: `${leftPosition}vw`,
       width: `${aiBarWidth}vw`,
-      'max-width': '800px',
       height: `${DEFAULT_AI_BAR_HEIGHT}`,
+      ...(promptResponseStore.promptResponse ? {} : { 'max-width': '800px' }),
     }"
   >
     <div
@@ -362,6 +362,7 @@ const hasTopContent = computed(() => {
   overflow: visible;
   box-shadow: 0 -2px 8px 0 var(--knime-silver-sand-semi);
   margin-bottom: 12px; /* to hover above ai icon */
+  transition: width 0.2s ease-in-out;
 
   & .subtitle {
     color: var(--knime-black);
