@@ -87,6 +87,8 @@ const getSubItemCodeToInsert = () => {
 };
 
 const onSubItemDragStart = (event: DragEvent, index: number) => {
+  inputOutputSelectionStore.selectedItem = props.inputOutputItem;
+
   if (!multiSelection.isSelected(index)) {
     multiSelection.resetSelection();
     multiSelection.handleSelectionClick(index);
