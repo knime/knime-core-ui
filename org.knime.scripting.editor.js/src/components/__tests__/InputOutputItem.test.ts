@@ -281,11 +281,18 @@ describe("InputOutputItem", () => {
       expect(multiSelection.resetSelection).toHaveBeenCalledOnce();
       wrapper.unmount();
     });
+
+    it("sets selected item on sub-item dragstart", () => {
+      const wrapper = doMount();
+      const subItem = wrapper.findAll(".sub-item")[1];
+      subItem.trigger("dragstart");
+      expect(useInputOutputSelectionStore().selectedItem).toStrictEqual(
+        inputOutputItemWithRowsAndAlias,
+      );
+    });
   });
 
   describe("multi-selection", () => {
-    // Drag start resets multi-selection
-
     it("should reset multi-selection on header mousedown", () => {
       const wrapper = doMount();
       const codeAliasInTitle = wrapper.find(".code-alias");
