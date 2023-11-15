@@ -1,6 +1,6 @@
-# KNIME Scripting Editor Components
+# KNIME Scripting Editor Framework
 
-This package contains shared components that are used in scripting editor dialogs in KNIME Analytics Platform.
+This package contains the Scripting Editor framework for KNIME Analytics Platform. Use this framework to build dialogs for KNIME nodes that allow the user to write scripts.
 
 ## Recommended IDE Setup
 
