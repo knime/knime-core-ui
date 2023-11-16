@@ -54,8 +54,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -96,7 +94,7 @@ public abstract class ScriptingService {
     // is shutdown onDeactivate
     private ExecutorService m_executorService;
 
-    private Future<String> m_lastCodeSuggestion;
+    private Future<?> m_lastCodeSuggestion;
 
     /**
      * Create a new {@link ScriptingService} without a language server.
@@ -196,6 +194,8 @@ public abstract class ScriptingService {
     public abstract class RpcService {
         // NB: The UI Extension service throws an timeout after 10000ms
         private static final int GET_EVENT_TIMEOUT_MS = 2000;
+
+        private static final String CODE_SUGGESTION_EVENT = "codeSuggestion";
 
         /**
          * @return information about the flow variables, all available flow variables are listed as subitems in the
@@ -312,17 +312,21 @@ public abstract class ScriptingService {
          */
         public void suggestCode(final String userPrompt, final String currentCode) {
             var executorService = getExecutorService();
-            m_lastCodeSuggestion = executorService.submit(() -> getCodeSuggestion(userPrompt, currentCode));
-            final var codeSuggestionEvent = "codeSuggestion";
-            try {
-                String response = m_lastCodeSuggestion.get();
-                sendEvent(codeSuggestionEvent, new CodeSuggestion(CodeSuggestionStatus.SUCCESS, response, null));
-            } catch (CancellationException ex) {
-                sendEvent(codeSuggestionEvent, new CodeSuggestion(CodeSuggestionStatus.CANCELLED, null,
-                    "Code suggestion request was cancelled by user."));
-            } catch (ExecutionException | InterruptedException ex) { // NOSONAR
-                sendEvent(codeSuggestionEvent, new CodeSuggestion(CodeSuggestionStatus.ERROR, null, ex.getMessage()));
-            }
+            m_lastCodeSuggestion = executorService.submit(() -> {
+                try {
+                    var response = getCodeSuggestion(userPrompt, currentCode);
+                    if (Thread.interrupted()) {
+                        // Code suggestion cancelled - the event was already sent by the abortSuggestCodeRequest function
+                        return;
+                    } else {
+                        sendEvent(CODE_SUGGESTION_EVENT,
+                            new CodeSuggestion(CodeSuggestionStatus.SUCCESS, response, null));
+                    }
+                } catch (IOException ex) { // NOSONAR
+                    sendEvent(CODE_SUGGESTION_EVENT,
+                        new CodeSuggestion(CodeSuggestionStatus.ERROR, null, ex.getMessage()));
+                }
+            });
         }
 
         /**
@@ -342,6 +346,9 @@ public abstract class ScriptingService {
         public void abortSuggestCodeRequest() {
             if (m_lastCodeSuggestion != null) {
                 m_lastCodeSuggestion.cancel(true);
+                sendEvent(CODE_SUGGESTION_EVENT, new CodeSuggestion(CodeSuggestionStatus.ERROR, null,
+                    "Code suggestion request was cancelled by user."));
+                m_lastCodeSuggestion = null;
             }
         }
     }
