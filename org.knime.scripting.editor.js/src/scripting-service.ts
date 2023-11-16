@@ -9,7 +9,7 @@ import { MonacoLSPConnection } from "./lsp/connection";
 import { KnimeMessageReader, KnimeMessageWriter } from "./lsp/knime-io";
 import type { InputOutputModel } from "./components/InputOutputItem.vue";
 
-export type NodeSettings = { script: string };
+export type NodeSettings = { script: string; scriptUsedFlowVariable?: string };
 type LanugageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
 
 class ScriptingService {
