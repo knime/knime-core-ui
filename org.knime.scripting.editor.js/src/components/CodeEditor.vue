@@ -24,6 +24,11 @@ import { onMounted, onUnmounted, ref } from "vue";
 import * as monaco from "monaco-editor";
 import { getScriptingService } from "@/scripting-service";
 
+type ReadOnlyOptions = Pick<
+  monaco.editor.IEditorOptions,
+  "readOnly" | "readOnlyMessage"
+>;
+
 const emit = defineEmits(["monaco-created"]);
 
 const props = defineProps({
@@ -43,10 +48,6 @@ const props = defineProps({
     type: String,
     default: null,
   },
-  loadScriptFromService: {
-    type: Boolean,
-    default: true,
-  },
 });
 
 // Remember the model and editor so that we can dispose them when the component is unmounted
@@ -65,10 +66,23 @@ onMounted(async () => {
     );
   }
 
-  const initialScript =
-    props.initialScript ??
-    getScriptingService().getScript() ??
-    (await getScriptingService().getInitialSettings()).script;
+  let initialScript = props.initialScript ?? getScriptingService().getScript();
+  let readOnlyOptions: ReadOnlyOptions = {};
+
+  if (!initialScript) {
+    // Load the initial script from the settings - this is the only case where it can be read-only
+    const initialSettings = await getScriptingService().getInitialSettings();
+    initialScript = initialSettings.script;
+    const usedFlowVariable = initialSettings.scriptUsedFlowVariable;
+    if (usedFlowVariable) {
+      readOnlyOptions = {
+        readOnly: true,
+        readOnlyMessage: {
+          value: `Script is overwritten by the flow variable "${usedFlowVariable}"`,
+        },
+      };
+    }
+  }
 
   editorModel = monaco.editor.createModel(
     initialScript,
@@ -89,6 +103,7 @@ onMounted(async () => {
     fontFamily: '"Roboto Mono", serif',
     lineNumbersMinChars: 3,
     lineDecorationsWidth: "0.0ch",
+    ...readOnlyOptions,
   };
 
   if (props.diffScript === null) {
