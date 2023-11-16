@@ -99,6 +99,10 @@ const handleCodeSuggestion = (codeSuggestion: CodeSuggestion) => {
     };
     status.value = "idle";
     input.value = "";
+
+    // NB: the initialScript in the CodeEditor is not reactive,
+    // so we need to update the diff editor if it is already created
+    diffEditor?.getModel()?.modified.setValue(suggestedCode);
   }
   nextTick(() => {
     textarea.value.focus();
