@@ -48,8 +48,10 @@
  */
 package org.knime.scripting.editor;
 
+import java.util.Objects;
 import java.util.stream.IntStream;
 
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
@@ -65,6 +67,8 @@ import org.knime.core.node.workflow.NodeOutPort;
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  */
 public class WorkflowControl {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(WorkflowControl.class);
 
     private final NodeContainer m_nc;
 
@@ -175,7 +179,39 @@ public class WorkflowControl {
     private void runForEachIncomingConnection(final ConnectedPortConsumer fn) {
         final var wfm = m_nc.getParent();
         for (var cc : wfm.getIncomingConnectionsFor(m_nc.getID())) {
-            fn.accept(cc.getDestPort(), wfm.getNodeContainer(cc.getSource()).getOutPort(cc.getSourcePort()));
+            var sourceNode = cc.getSource();
+            var sourceIdx = cc.getSourcePort();
+            var destIdx = cc.getDestPort();
+
+            switch (cc.getType()) {
+
+                case STD:
+                    fn.accept(destIdx, wfm.getNodeContainer(sourceNode).getOutPort(sourceIdx));
+                    break;
+
+                case WFMIN: // NOSONAR: Moving the code somewhere else would make it more complicated
+                    if (!Objects.equals(wfm.getID(), sourceNode)) {
+                        LOGGER.errorWithFormat(
+                            "Incoming connection %d from workflow input %s not matching the current workflow %s. "
+                                + "Ignoring connection.",
+                            destIdx, sourceNode, wfm.getID());
+                    }
+                    fn.accept(destIdx, wfm.getInPort(sourceIdx).getUnderlyingPort());
+                    break;
+
+                case WFMOUT:
+                    // This cannot happen because it is an incoming connection of the current node
+                    // Therefore it cannot be incoming to the workflow output
+                    LOGGER.errorWithFormat("Incoming connection %d from workflow output %s. "
+                        + "This is an illegal state. Ignoring connection.", destIdx, sourceNode, wfm.getID());
+                    break;
+
+                case WFMTHROUGH:
+                    // This cannot happen because it is an incoming connection of the current node
+                    LOGGER.errorWithFormat("Incoming connection %d is a connection through a workflow. "
+                        + "This is an illegal state. Ignoring connection.", destIdx, sourceNode, wfm.getID());
+                    break;
+            }
         }
     }
 }
