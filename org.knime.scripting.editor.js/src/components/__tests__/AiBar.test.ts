@@ -181,10 +181,8 @@ describe("AiBar", () => {
   });
 
   it("show install button if not available", async () => {
-    vi.mocked(getScriptingService().supportsCodeAssistant).mockImplementation(
-      () => {
-        return Promise.resolve(false);
-      },
+    vi.mocked(getScriptingService().supportsCodeAssistant).mockReturnValueOnce(
+      Promise.resolve(false),
     );
     const bar = mount(AiBar);
     await flushPromises();
@@ -198,6 +196,31 @@ describe("AiBar", () => {
     const downloadButton = downloadNotification?.find(".notification-button");
     expect(downloadButton?.exists()).toBeTruthy();
     expect(downloadButton?.text()).toBe("Download from KNIME Hub");
+  });
+
+  it("show flow variable message if readonly", async () => {
+    vi.mocked(getScriptingService().supportsCodeAssistant).mockReturnValueOnce(
+      Promise.resolve(true),
+    );
+    vi.mocked(getScriptingService().getInitialSettings).mockReturnValueOnce(
+      Promise.resolve({
+        script: "my script",
+        scriptUsedFlowVariable: "myVar",
+      }),
+    );
+    const bar = mount(AiBar);
+    await flushPromises();
+    const downloadNotification = bar.findAll(".notification-bar").at(0);
+    const loginNotification = bar.findAll(".notification-bar").at(1);
+    expect(downloadNotification?.isVisible()).toBeFalsy();
+    expect(loginNotification?.isVisible()).toBeFalsy();
+
+    const readonlyNotification = bar.findAll(".notification-bar").at(2);
+    expect(readonlyNotification?.exists()).toBeTruthy();
+    expect(readonlyNotification?.isVisible()).toBeTruthy();
+    expect(readonlyNotification?.text()).toBe(
+      "Script is overwritten by a flow variable.",
+    );
   });
 
   it("neither install nor login buttons are visible if ai assistant is ready to be used", async () => {
