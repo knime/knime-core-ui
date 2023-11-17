@@ -27,7 +27,13 @@ import {
 } from "@/store/ai-bar";
 import type { PaneSizes } from "./ScriptingEditor.vue";
 
-type Status = "idle" | "error" | "waiting" | "uninstalled" | "unauthorized";
+type Status =
+  | "idle"
+  | "error"
+  | "waiting"
+  | "uninstalled"
+  | "unauthorized"
+  | "readonly";
 
 // sizes in viewport width/height
 const DEFAULT_AI_BAR_WIDTH = 65;
@@ -160,6 +166,10 @@ const aiBarWidth = computed(() => {
 onMounted(async () => {
   if (!(await getScriptingService().supportsCodeAssistant())) {
     status.value = "uninstalled";
+  } else if (
+    (await getScriptingService().getInitialSettings()).scriptUsedFlowVariable
+  ) {
+    status.value = "readonly";
   } else if (!(await getScriptingService().sendToService("isLoggedIn"))) {
     status.value = "unauthorized";
   }
@@ -236,7 +246,22 @@ const hasTopContent = computed(() => {
         <LinkIcon />Login to KNIME Hub
       </Button>
     </div>
-    <div v-show="status !== 'uninstalled' && status !== 'unauthorized'">
+    <div
+      v-show="status === 'readonly'"
+      class="notification-bar"
+      :style="{ '--left-distance': `calc(${leftOverflow}vw + 30px)` }"
+    >
+      <span class="notification">
+        Script is overwritten by a flow variable.
+      </span>
+    </div>
+    <div
+      v-show="
+        status !== 'uninstalled' &&
+        status !== 'unauthorized' &&
+        status !== 'readonly'
+      "
+    >
       <Transition name="disclaimer-slide-fade">
         <div v-if="showDisclaimer" class="disclaimer-container">
           <div class="disclaimer-text">
