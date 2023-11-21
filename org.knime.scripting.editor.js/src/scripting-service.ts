@@ -176,8 +176,8 @@ class ScriptingService {
     return this._editorService.setOnDidChangeContentListener(callback);
   }
 
-  public supportsCodeAssistant(): Promise<boolean> {
-    return this.sendToService("supportsCodeAssistant");
+  public isCodeAssistantInstalled(): Promise<boolean> {
+    return this.sendToService("isCodeAssistantInstalled");
   }
 
   public inputsAvailable(): Promise<boolean> {

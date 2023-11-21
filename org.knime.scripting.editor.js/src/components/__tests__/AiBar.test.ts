@@ -16,11 +16,11 @@ vi.mock("monaco-editor");
 describe("AiBar", () => {
   beforeEach(() => {
     clearPromptResponseStore();
-    vi.mocked(getScriptingService().supportsCodeAssistant).mockImplementation(
-      () => {
-        return Promise.resolve(true);
-      },
-    );
+    vi.mocked(
+      getScriptingService().isCodeAssistantInstalled,
+    ).mockImplementation(() => {
+      return Promise.resolve(true);
+    });
     vi.mocked(getScriptingService().sendToService).mockReturnValue(
       Promise.resolve(true), // logged in = true
     );
@@ -146,11 +146,11 @@ describe("AiBar", () => {
   });
 
   it("show disclaimer on first startup", async () => {
-    vi.mocked(getScriptingService().supportsCodeAssistant).mockImplementation(
-      () => {
-        return Promise.resolve(true);
-      },
-    );
+    vi.mocked(
+      getScriptingService().isCodeAssistantInstalled,
+    ).mockImplementation(() => {
+      return Promise.resolve(true);
+    });
     vi.mocked(getScriptingService().sendToService).mockReturnValue(
       Promise.resolve(true), // logged in = true
     );
@@ -181,9 +181,9 @@ describe("AiBar", () => {
   });
 
   it("show install button if not available", async () => {
-    vi.mocked(getScriptingService().supportsCodeAssistant).mockReturnValueOnce(
-      Promise.resolve(false),
-    );
+    vi.mocked(
+      getScriptingService().isCodeAssistantInstalled,
+    ).mockReturnValueOnce(Promise.resolve(false));
     const bar = mount(AiBar);
     await flushPromises();
     const downloadNotification = bar.findAll(".notification-bar").at(0);
@@ -199,9 +199,9 @@ describe("AiBar", () => {
   });
 
   it("show flow variable message if readonly", async () => {
-    vi.mocked(getScriptingService().supportsCodeAssistant).mockReturnValueOnce(
-      Promise.resolve(true),
-    );
+    vi.mocked(
+      getScriptingService().isCodeAssistantInstalled,
+    ).mockReturnValueOnce(Promise.resolve(true));
     vi.mocked(getScriptingService().getInitialSettings).mockReturnValueOnce(
       Promise.resolve({
         script: "my script",

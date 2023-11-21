@@ -13,11 +13,11 @@ describe("CodeEditorControlBar", () => {
     vi.mocked(getScriptingService().inputsAvailable).mockImplementation(() => {
       return Promise.resolve(true);
     });
-    vi.mocked(getScriptingService().supportsCodeAssistant).mockImplementation(
-      () => {
-        return Promise.resolve(true);
-      },
-    );
+    vi.mocked(
+      getScriptingService().isCodeAssistantInstalled,
+    ).mockImplementation(() => {
+      return Promise.resolve(true);
+    });
   });
 
   afterEach(() => {
@@ -91,12 +91,10 @@ describe("CodeEditorControlBar", () => {
     expect(button.props().disabled).toBeTruthy();
   });
 
-  it("test aiButton is enabled even if code assistance is not available", async () => {
-    vi.mocked(getScriptingService().supportsCodeAssistant).mockImplementation(
-      () => {
-        return Promise.resolve(false);
-      },
-    );
+  it("test aiButton is enabled even if code assistance is not installed", async () => {
+    vi.mocked(
+      getScriptingService().isCodeAssistantInstalled,
+    ).mockReturnValueOnce(Promise.resolve(false));
 
     const wrapper = mount(CodeEditorControlBar);
     await flushPromises();
