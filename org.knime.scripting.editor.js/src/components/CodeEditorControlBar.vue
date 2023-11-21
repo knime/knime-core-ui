@@ -11,7 +11,8 @@ const showBar = ref<boolean>(false);
 const aiBar = ref(null);
 const aiButton = ref(null);
 
-const inputsAvailable = ref<boolean>(false);
+const showAiButton = ref<boolean>(false);
+const enableAiButton = ref<boolean>(false);
 
 const props = defineProps({
   currentPaneSizes: {
@@ -40,7 +41,8 @@ const setupOnClickOutside = () => {
 };
 
 onMounted(async () => {
-  inputsAvailable.value = await getScriptingService().inputsAvailable();
+  showAiButton.value = await getScriptingService().isCodeAssistantEnabled();
+  enableAiButton.value = await getScriptingService().inputsAvailable();
   nextTick(() => {
     setupOnClickOutside();
   });
@@ -58,17 +60,20 @@ onMounted(async () => {
     />
   </div>
   <div class="controls">
-    <Button
-      ref="aiButton"
-      class="ai-button"
-      :disabled="!inputsAvailable"
-      compact
-      :with-border="true"
-      :class="{ 'button-active': showBar }"
-      @click="showBar = !showBar"
-    >
-      <AiCode viewBox="0 0 32 32" /> Ask K-AI
-    </Button>
+    <div>
+      <Button
+        v-if="showAiButton"
+        ref="aiButton"
+        class="ai-button"
+        :disabled="!enableAiButton"
+        compact
+        :with-border="true"
+        :class="{ 'button-active': showBar }"
+        @click="showBar = !showBar"
+      >
+        <AiCode viewBox="0 0 32 32" /> Ask K-AI
+      </Button>
+    </div>
     <div class="button-controls">
       <slot name="controls" />
     </div>
