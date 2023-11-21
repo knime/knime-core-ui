@@ -34,6 +34,8 @@ import Collapser from "webapps-common/ui/components/Collapser.vue";
 import { useMultiSelection } from "webapps-common/ui/components/FileExplorer/useMultiSelection";
 import { createDragGhost, removeDragGhost } from "./utils/dragGhost";
 
+const INITIALLY_EXPANDED_MAX_SUBITEMS = 15;
+
 const props = defineProps<{
   inputOutputItem: InputOutputModel;
 }>();
@@ -134,7 +136,13 @@ const onHeaderDragEnd = () => {
 </script>
 
 <template>
-  <Collapser v-if="inputOutputItem.subItems" class="collapser bottom-border">
+  <Collapser
+    v-if="inputOutputItem.subItems"
+    :initially-expanded="
+      inputOutputItem.subItems?.length <= INITIALLY_EXPANDED_MAX_SUBITEMS
+    "
+    class="collapser bottom-border"
+  >
     <template #title>
       <div class="top-card has-collapser">
         <div class="title">

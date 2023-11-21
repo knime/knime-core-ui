@@ -174,6 +174,32 @@ describe("InputOutputItem", () => {
       );
       wrapper.unmount();
     });
+
+    it("collapser initially expanded if 15 subitems", () => {
+      const wrapper = doMount({
+        ...inputOutputItemWithRowsAndAlias,
+        subItems: Array(15).fill({ name: "row 1", type: "String" }),
+      });
+      const subItems = wrapper.findAll(".sub-item");
+      expect(subItems.length).toBe(15);
+      subItems.forEach((subItem) => {
+        expect(subItem.isVisible()).toBeTruthy();
+      });
+      wrapper.unmount();
+    });
+
+    it("collapser initially not expanded if 16 subitems", () => {
+      const wrapper = doMount({
+        ...inputOutputItemWithRowsAndAlias,
+        subItems: Array(16).fill({ name: "row 1", type: "String" }),
+      });
+      const subItems = wrapper.findAll(".sub-item");
+      expect(subItems.length).toBe(16);
+      subItems.forEach((subItem) => {
+        expect(subItem.isVisible()).toBeFalsy();
+      });
+      wrapper.unmount();
+    });
   });
 
   describe("no collapser", () => {
