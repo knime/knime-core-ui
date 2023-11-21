@@ -277,9 +277,9 @@ public abstract class ScriptingService {
         }
 
         /**
-         * @return True if AI supported code generation is supported
+         * @return True if AI supported code generation is installed
          */
-        public boolean supportsCodeAssistant() {
+        public final boolean isCodeAssistantInstalled() {
             return HubConnection.INSTANCE.isAvailable();
         }
 

@@ -164,7 +164,7 @@ const aiBarWidth = computed(() => {
 });
 
 onMounted(async () => {
-  if (!(await getScriptingService().supportsCodeAssistant())) {
+  if (!(await getScriptingService().isCodeAssistantInstalled())) {
     status.value = "uninstalled";
   } else if (
     (await getScriptingService().getInitialSettings()).scriptUsedFlowVariable

@@ -13,7 +13,7 @@ export const scriptingServiceMock = {
   registerEventHandler: vi.fn(),
   sendToService: vi.fn(() => {}),
   pasteToEditor: vi.fn(() => {}),
-  supportsCodeAssistant: vi.fn(),
+  isCodeAssistantInstalled: vi.fn(),
   inputsAvailable: vi.fn(),
   closeDialog: vi.fn(),
   getFlowVariableInputs: vi.fn(),
