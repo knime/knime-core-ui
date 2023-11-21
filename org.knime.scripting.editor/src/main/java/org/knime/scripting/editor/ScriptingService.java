@@ -80,6 +80,11 @@ public abstract class ScriptingService {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(ScriptingService.class);
 
+    private static final String AI_ASSISTANT_FEATURE_FLAG = "org.knime.ui.feature.ai_assistant";
+
+    private static final boolean AI_ASSISTANT_FEATURE_ENABLED =
+        System.getProperty(AI_ASSISTANT_FEATURE_FLAG) == null || Boolean.getBoolean(AI_ASSISTANT_FEATURE_FLAG);
+
     private final LanguageServerStarter m_languageServerCreator;
 
     // TODO(AP-19341) Replace the event queue with Java->JS events
@@ -277,10 +282,17 @@ public abstract class ScriptingService {
         }
 
         /**
+         * @return True if AI supported code generation is not disabled via the feature flag
+         */
+        public final boolean isCodeAssistantEnabled() {
+            return AI_ASSISTANT_FEATURE_ENABLED;
+        }
+
+        /**
          * @return True if AI supported code generation is installed
          */
         public final boolean isCodeAssistantInstalled() {
-            return HubConnection.INSTANCE.isAvailable();
+            return AI_ASSISTANT_FEATURE_ENABLED && HubConnection.INSTANCE.isAvailable();
         }
 
         /**

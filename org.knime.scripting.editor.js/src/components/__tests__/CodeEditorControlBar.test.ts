@@ -10,18 +10,27 @@ vi.mock("@/scripting-service");
 
 describe("CodeEditorControlBar", () => {
   beforeEach(() => {
-    vi.mocked(getScriptingService().inputsAvailable).mockImplementation(() => {
-      return Promise.resolve(true);
-    });
-    vi.mocked(
-      getScriptingService().isCodeAssistantInstalled,
-    ).mockImplementation(() => {
-      return Promise.resolve(true);
-    });
+    vi.mocked(getScriptingService().inputsAvailable).mockReturnValue(
+      Promise.resolve(true),
+    );
+    vi.mocked(getScriptingService().isCodeAssistantEnabled).mockReturnValue(
+      Promise.resolve(true),
+    );
+    vi.mocked(getScriptingService().isCodeAssistantInstalled).mockReturnValue(
+      Promise.resolve(true),
+    );
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("hides ai button if ai assistant disabled", () => {
+    vi.mocked(getScriptingService().isCodeAssistantEnabled).mockReturnValueOnce(
+      Promise.resolve(false),
+    );
+    const wrapper = mount(CodeEditorControlBar);
+    expect(wrapper.findComponent({ ref: "aiButton" }).exists()).toBeFalsy();
   });
 
   it("ai button opens ai bar", async () => {
