@@ -342,6 +342,18 @@ describe("ScriptingEditor", () => {
     });
   });
 
+  it("passes slotted content to output console", () => {
+    const { wrapper } = doMount({
+      props: {},
+      slots: {
+        "console-status": "<div class='test-class'>Test</div>",
+      },
+    });
+    expect(
+      wrapper.findComponent(OutputConsole).find(".test-class").exists(),
+    ).toBeTruthy();
+  });
+
   it("emits monaco-created event", async () => {
     const { wrapper } = doMount();
     await flushPromises();
