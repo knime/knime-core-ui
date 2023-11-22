@@ -75,4 +75,14 @@ describe("OutputConsole", () => {
 
     expect(term.reset).toHaveBeenCalledOnce();
   });
+
+  it("displays slotted content", () => {
+    const wrapper = mount(OutputConsole, {
+      slots: {
+        "console-status": "<div class='test-class'>Test</div>",
+      },
+    });
+    const slotContent = wrapper.find(".test-class");
+    expect(slotContent.exists()).toBeTruthy();
+  });
 });
