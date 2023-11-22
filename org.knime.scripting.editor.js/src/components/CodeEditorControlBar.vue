@@ -67,7 +67,7 @@ onMounted(async () => {
       :class="{ 'button-active': showBar }"
       @click="showBar = !showBar"
     >
-      <AiCode viewBox="0 0 32 32" /> Ask AI
+      <AiCode viewBox="0 0 32 32" /> Ask K-AI
     </Button>
     <div class="button-controls">
       <slot name="controls" />
