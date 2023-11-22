@@ -96,9 +96,12 @@ onUnmounted(() => {
 
 <template>
   <div class="console">
-    <FunctionButton class="clear-button" @click="term.reset()">
-      <TrashIcon />
-    </FunctionButton>
+    <div class="console-overlay">
+      <slot name="console-status" />
+      <FunctionButton class="clear-button" @click="term.reset()">
+        <TrashIcon />
+      </FunctionButton>
+    </div>
     <div ref="termRef" class="terminal" />
   </div>
 </template>
@@ -108,11 +111,16 @@ onUnmounted(() => {
 </style>
 
 <style lang="postcss" scoped>
-.clear-button {
+.console-overlay {
   position: absolute;
+  display: flex;
+  flex-direction: row;
   z-index: 1;
   top: 2px;
   right: 20px;
+  align-items: center;
+  font-size: 13px;
+  gap: 10px;
 }
 
 .console {

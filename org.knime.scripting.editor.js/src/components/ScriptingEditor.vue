@@ -331,7 +331,11 @@ export default defineComponent({
                 <OutputConsole
                   v-show="bottomPaneActiveTab === 'console'"
                   @console-created="onConsoleCreated"
-                />
+                >
+                  <template #console-status>
+                    <slot name="console-status" />
+                  </template>
+                </OutputConsole>
               </div>
             </div>
           </pane>
