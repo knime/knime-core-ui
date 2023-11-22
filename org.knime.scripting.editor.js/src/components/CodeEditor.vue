@@ -90,7 +90,7 @@ onMounted(async () => {
     monaco.Uri.parse(`inmemory://model/${props.fileName}`),
   );
 
-  const editorSettings = {
+  const editorSettings: monaco.editor.IStandaloneEditorConstructionOptions = {
     minimap: { enabled: false },
     automaticLayout: true,
     glyphMargin: false,
@@ -101,6 +101,7 @@ onMounted(async () => {
     fixedOverflowWidgets: true,
     suggest: { showWords: false }, // Disable word suggestions - better suggestions are provided by the language server
     fontFamily: '"Roboto Mono", serif',
+    fontWeight: "400",
     lineNumbersMinChars: 3,
     lineDecorationsWidth: "0.0ch",
     ...readOnlyOptions,
