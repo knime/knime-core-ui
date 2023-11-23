@@ -296,6 +296,13 @@ public abstract class ScriptingService {
         }
 
         /**
+         * @return the ID of the connected Hub
+         */
+        public final String getHubId() {
+            return HubConnection.INSTANCE.isAvailable() ? HubConnection.INSTANCE.getHubId() : null;
+        }
+
+        /**
          * Log in to the currently selected Hub end point
          *
          * The login status will be sent to JS as event with identifier "hubLogin".

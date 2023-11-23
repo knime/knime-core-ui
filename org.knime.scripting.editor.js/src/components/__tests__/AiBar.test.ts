@@ -14,6 +14,22 @@ vi.mock("@/scripting-service");
 vi.mock("monaco-editor");
 
 describe("AiBar", () => {
+  const mockSendToService = (
+    isLoggedIn = true,
+    hubId = "My special KNIME Hub",
+  ) => {
+    return (method: string) => {
+      if (method === "isLoggedIn") {
+        return Promise.resolve(isLoggedIn);
+      } else if (method === "getHubId") {
+        return Promise.resolve(hubId);
+      } else if (method === "abortSuggestCodeRequest") {
+        return Promise.resolve();
+      }
+      throw new Error(`Unknown scripting service method '${method}' called`);
+    };
+  };
+
   beforeEach(() => {
     clearPromptResponseStore();
     vi.mocked(
@@ -21,8 +37,8 @@ describe("AiBar", () => {
     ).mockImplementation(() => {
       return Promise.resolve(true);
     });
-    vi.mocked(getScriptingService().sendToService).mockReturnValue(
-      Promise.resolve(true), // logged in = true
+    vi.mocked(getScriptingService().sendToService).mockImplementation(
+      mockSendToService(),
     );
     const mockInstance = { dispose: vi.fn(), setModel: vi.fn() };
     // @ts-ignore createModel is a mock
@@ -163,8 +179,8 @@ describe("AiBar", () => {
   });
 
   it("show login button if not logged in yet", async () => {
-    vi.mocked(getScriptingService().sendToService).mockReturnValueOnce(
-      Promise.resolve(false),
+    vi.mocked(getScriptingService().sendToService).mockImplementation(
+      mockSendToService(false),
     );
     const bar = mount(AiBar);
     await flushPromises();
@@ -177,7 +193,7 @@ describe("AiBar", () => {
 
     const loginButton = loginNotification?.find(".notification-button");
     expect(loginButton?.exists()).toBeTruthy();
-    expect(loginButton?.text()).toBe("Login to KNIME Hub");
+    expect(loginButton?.text()).toBe("Login to My special KNIME Hub");
   });
 
   it("show install button if not available", async () => {
