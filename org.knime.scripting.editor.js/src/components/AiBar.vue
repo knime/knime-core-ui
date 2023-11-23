@@ -252,7 +252,7 @@ scriptingService.sendToService("getHubId").then((id) => {
         <i>KNIME Hub</i> account
       </span>
       <Button compact primary class="notification-button" @click="tryLogin()">
-        <LinkIcon />Login to {{ hubId }}
+        Login to {{ hubId }}
       </Button>
     </div>
     <div
