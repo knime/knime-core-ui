@@ -7,5 +7,6 @@ Terminal.prototype.loadAddon = vi.fn();
 Terminal.prototype.reset = vi.fn();
 Terminal.prototype.onLineFeed = vi.fn();
 Terminal.prototype.unicode = vi.fn();
+Terminal.prototype.attachCustomKeyEventHandler = vi.fn();
 
 export { Terminal };
