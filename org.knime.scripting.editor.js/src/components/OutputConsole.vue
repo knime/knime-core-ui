@@ -59,6 +59,24 @@ useResizeObserver(termRef, () => {
   updateConsole();
 });
 
+const copyToClipboard = (text: string) => {
+  navigator.clipboard.writeText(text);
+};
+
+// Attach CTRL+C for COPY on windows and linux
+// On mac the default (CMD+C) is already fine
+term.attachCustomKeyEventHandler((e) => {
+  // NB: We also support uppercase C for CTRL+SHIFT+C
+  if ((e.key === "c" || e.key === "C") && e.ctrlKey) {
+    const selection = term.getSelection();
+    if (selection) {
+      copyToClipboard(selection);
+    }
+    return false;
+  }
+  return true;
+});
+
 type ConsoleHandlerEmit = (
   e: "console-created",
   handler: ConsoleHandler,
