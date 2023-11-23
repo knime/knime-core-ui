@@ -19,6 +19,9 @@ describe("CodeEditorControlBar", () => {
     vi.mocked(getScriptingService().isCodeAssistantInstalled).mockReturnValue(
       Promise.resolve(true),
     );
+    vi.mocked(getScriptingService().sendToService).mockReturnValue(
+      Promise.resolve(null), // Hub Id (not relevant for these tests)
+    );
   });
 
   afterEach(() => {

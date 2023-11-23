@@ -202,6 +202,15 @@ const hasTopContent = computed(() => {
     promptResponseStore.promptResponse
   );
 });
+
+// The id of the hub is used to display the name of the hub in the login button
+// Updated with the actual hub id once the scripting service is ready
+const hubId = ref<string>("KNIME Hub");
+scriptingService.sendToService("getHubId").then((id) => {
+  if (id !== null) {
+    hubId.value = id;
+  }
+});
 </script>
 
 <template>
@@ -243,7 +252,7 @@ const hasTopContent = computed(() => {
         <i>KNIME Hub</i> account
       </span>
       <Button compact primary class="notification-button" @click="tryLogin()">
-        <LinkIcon />Login to KNIME Hub
+        <LinkIcon />Login to {{ hubId }}
       </Button>
     </div>
     <div
