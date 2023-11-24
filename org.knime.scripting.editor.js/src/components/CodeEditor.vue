@@ -69,7 +69,8 @@ onMounted(async () => {
   let initialScript = props.initialScript ?? getScriptingService().getScript();
   let readOnlyOptions: ReadOnlyOptions = {};
 
-  if (!initialScript) {
+  // NB: An empty initialScript should be used
+  if (initialScript === null) {
     // Load the initial script from the settings - this is the only case where it can be read-only
     const initialSettings = await getScriptingService().getInitialSettings();
     initialScript = initialSettings.script;
