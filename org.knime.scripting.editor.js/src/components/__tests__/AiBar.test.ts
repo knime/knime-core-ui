@@ -87,7 +87,7 @@ describe("AiBar", () => {
     expect(scriptingService.sendToService).toHaveBeenCalledOnce();
     expect(scriptingService.sendToService).toBeCalledWith("suggestCode", [
       message,
-      undefined,
+      null,
     ]);
   });
 

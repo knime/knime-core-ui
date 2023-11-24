@@ -28,6 +28,22 @@ describe("CodeEditor", () => {
     );
   });
 
+  it("creates the editor model with an empty script", async () => {
+    const language = "javascript";
+    const fileName = "myFileName.ext";
+    const initialScript = "";
+
+    mount(CodeEditor, {
+      props: { language, fileName, initialScript },
+    });
+    await flushPromises();
+    expect(monaco.editor.createModel).toHaveBeenCalledWith(
+      "",
+      language,
+      `inmemory://model/${fileName}`,
+    );
+  });
+
   it("loads script from service if no initial script is provided", async () => {
     const language = "javascript";
     const fileName = "myFileName.ext";
