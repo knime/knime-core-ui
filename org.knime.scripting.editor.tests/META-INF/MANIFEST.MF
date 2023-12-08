@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Unit Tests for org.knime.scripting.editor
 Bundle-SymbolicName: org.knime.scripting.editor.tests;singleton:=true
-Bundle-Version: 5.2.0.qualifier
+Bundle-Version: 5.3.0.qualifier
 Bundle-ClassPath: .,
  byte-buddy-1.11.12.jar,
  byte-buddy-agent-1.11.12.jar,
@@ -11,6 +11,6 @@ Bundle-ClassPath: .,
  objenesis-3.2.jar
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Bundle-RequiredExecutionEnvironment: JavaSE-17
-Fragment-Host: org.knime.scripting.editor;bundle-version="[5.2.0,6.0.0)"
+Fragment-Host: org.knime.scripting.editor;bundle-version="[5.3.0,6.0.0)"
 Require-Bundle: junit-jupiter-api;bundle-version="[5.9.2,6.0.0)"
 Automatic-Module-Name: org.knime.scripting.editor.tests
