@@ -45,9 +45,7 @@
  */
 package org.knime.core.ui.component;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -58,13 +56,12 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.workflow.MetaNodeTemplateInformation;
 import org.knime.core.node.workflow.MetaNodeTemplateInformation.UpdateStatus;
 import org.knime.core.node.workflow.NodeContainerTemplate;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.NodeID;
-import org.knime.core.node.workflow.TemplateUpdateUtil;
+import org.knime.core.node.workflow.TemplateUpdater;
 import org.knime.core.node.workflow.WorkflowLoadHelper;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.node.workflow.WorkflowPersistor.LoadResult;
@@ -78,8 +75,6 @@ import org.knime.core.util.pathresolve.URIToFileResolve.KNIMEURIDescription;
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
 public final class CheckForComponentUpdatesUtil {
-
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(CheckForComponentUpdatesUtil.class);
 
     private CheckForComponentUpdatesUtil() {
         // utility
@@ -112,63 +107,45 @@ public final class CheckForComponentUpdatesUtil {
     private static ComponentUpdatesResult checkForComponentUpdatesAndSetUpdateStatusWithContext(
         final WorkflowManager hostWFM, final String pluginId, final List<NodeID> candidateList,
         final IProgressMonitor monitor) throws IllegalStateException, InterruptedException {
+
+        // TODO: Include IProgressMonitor in TemplateOperationContext.
         monitor.beginTask("Checking Link Updates", candidateList.size());
-        var lH = new WorkflowLoadHelper(true, hostWFM.getContextV2());
 
-        var stats = new Status[candidateList.size()];
-        int overallStatus = IStatus.OK;
+        final var nodeIds = candidateList.toArray(NodeID[]::new);
+        // TODO: Think about error notification. Before, this was done via exception messages.
+        final var updateStates = TemplateUpdater.forWorkflowManager(hostWFM).withContext()//
+            .loadHelper(new WorkflowLoadHelper(true, hostWFM.getContextV2()))//
+            .loadResult(new LoadResult("ignored"))//
+            .perform(t -> t.checkUpdateForTemplates(nodeIds, false));
+        final List<NodeID> updateList = new LinkedList<>();
 
-        // retrieving the node templates per node id
-        Map<NodeID, NodeContainerTemplate> nodeIdToTemplate = new LinkedHashMap<>();
-        for (NodeID id : candidateList) {
-            nodeIdToTemplate.put(id, (NodeContainerTemplate)hostWFM.findNodeContainer(id));
-        }
-
-        // retrieving the update status per node template
-        final var loadResult = new LoadResult("ignored");
-        Map<NodeID, UpdateStatus> nodeIdToUpdateStatus;
-        Status resStatus;
-        var updateList = new ArrayList<NodeID>();
-        var errorList = new ArrayList<NodeID>(); // necessary for tracking update errors
-        try {
-            nodeIdToUpdateStatus = TemplateUpdateUtil.fillNodeUpdateStates(nodeIdToTemplate.values(), lH, loadResult,
-                new LinkedHashMap<>());
-        } catch (IOException e) {
-            final var ex = e.getCause() != null ? e.getCause() : e;
-            LOGGER.warn(ex);
-            resStatus = new MultiStatus(pluginId, IStatus.ERROR, new IStatus[]{Status.error("")},
-                "Some Node Link Updates failed", ex);
-            verifyMultiStatus(resStatus, hostWFM, candidateList, updateList, errorList);
-            monitor.done();
-            return new ComponentUpdatesResult(resStatus, updateList);
-        }
-
+        // reduce multiple statuses into one MultiStatus
+        final var allStatuses = new Status[candidateList.size()];
         var i = 0;
-        for (Map.Entry<NodeID, UpdateStatus> entry : nodeIdToUpdateStatus.entrySet()) {
-            var id = entry.getKey();
-            var updateStatus = entry.getValue();
-            var tnc = nodeIdToTemplate.get(id);
-
+        var overallStatusLevel = IStatus.OK;
+        for (Map.Entry<NodeID, UpdateStatus> entry : updateStates.entrySet()) {
+            final var nodeId = entry.getKey();
+            final var updateStatus = entry.getValue();
+            final var tnc = hostWFM.findNodeContainer(nodeId);
             monitor.subTask(tnc.getNameWithID());
-            var stat = createTemplateStatus(updateStatus, tnc, updateList, errorList, pluginId);
+
+            final var status = createTemplateStatus(updateStatus, (NodeContainerTemplate)tnc, updateList, pluginId);
             // if at least one WARNING level status was detected, entire status will be on WARNING level
-            if (stat.getSeverity() == IStatus.WARNING) {
-                overallStatus = IStatus.WARNING;
+            if (status.getSeverity() == IStatus.WARNING) {
+                overallStatusLevel = IStatus.WARNING;
             }
 
             if (monitor.isCanceled()) {
                 throw new InterruptedException("Update check canceled");
             }
-            stats[i] = stat;
+            allStatuses[i] = status;
             i++;
             monitor.worked(1);
 
         }
-        resStatus =
-            new MultiStatus(pluginId, overallStatus, stats, "Some Node Link Updates failed", null);
-        verifyMultiStatus(resStatus, hostWFM, candidateList, updateList, errorList);
+        final var overallStatus = new MultiStatus(pluginId, overallStatusLevel, allStatuses, null, null);
         monitor.done();
-        return new ComponentUpdatesResult(resStatus, updateList);
+        return new ComponentUpdatesResult(overallStatus, updateList);
     }
 
     /**
@@ -182,20 +159,19 @@ public final class CheckForComponentUpdatesUtil {
      * @return status object
      */
     private static Status createTemplateStatus(final UpdateStatus updateStatus, final NodeContainerTemplate tnc,
-        final List<NodeID> updateList, final List<NodeID> errorList, final String pluginId) {
-        var id = tnc.getID();
-        final String tncName = tnc.getNameWithID();
+        final List<NodeID> updateList, final String pluginId) {
+        final var nodeId = tnc.getID();
+        final var tncName = tnc.getNameWithID();
 
         switch (updateStatus) {
             case HasUpdate:
-                updateList.add(id);
+                updateList.add(nodeId);
                 return new Status(IStatus.OK, pluginId, "Update available for " + tncName);
             case UpToDate:
                 return new Status(IStatus.OK, pluginId, "No update available for " + tncName);
-            case Error:
+            case Error: // NOSONAR
                 // if an update for a parent was found, ignore the child's error
-                if (!updateableParentExists(id, updateList)) {
-                    errorList.add(id);
+                if (!updateableParentExists(nodeId, updateList)) {
                     final var sourceURI = tnc.getTemplateInformation().getSourceURI();
                     Optional<KNIMEURIDescription> d = ResolverUtil.toDescription(sourceURI, new NullProgressMonitor());
                     var s = d.map(KNIMEURIDescription::toDisplayString).orElse(Objects.toString(sourceURI));
@@ -222,61 +198,10 @@ public final class CheckForComponentUpdatesUtil {
         return updateList.stream().anyMatch(id::hasPrefix);
     }
 
-
-    /**
-     * Verifies the multi status that was constructed in the run method. As a side effect, correctly sets the internal
-     * update state per NodeTemplate iff all went well.
-     *
-     * @throws InterruptedException
-     */
-    private static void verifyMultiStatus(final Status resStatus, final WorkflowManager hostWFM,
-        final List<NodeID> candidateList, final List<NodeID> updateList, final List<NodeID> errorList)
-        throws IllegalStateException {
-        // (1) Why do we need this method? Are inner updates not affected by an outer update?
-        //   Yes, this is not what a software developer would do, but:
-        //   this is how KNIME works - in this core-workbench update logic entanglement, it considered useful.
-
-        // (2) Why can't we re-check all top-level candidates for verification (first approach)?
-        //   Filtering for top-level nodes that have updates filters out shared templates in shared templates -
-        //   because we don't recurse into them to look for updates and thus they are not in the list.
-        //   However, when actually updating a shared template that should contain an outdated shared template,
-        //   we update the inner shared template, too (workflow manager updateMetaNodeLinkInternalRecursively).
-        //   This is how the update process currently works.
-
-        // (3) Why can't we re-check all nodes in the `updateList` for verification (second approach)?
-        //   Only nodes where a) the update-check was successful and b) an update is available are placed in
-        //   the `updateList`. However, if an update error occurs, the error is not propagated to the WFM,
-        //   which notifies the user with cause and the little indicator icon (red arrow).
-        var templates = candidateList.stream()//
-            .filter(x -> updateList.contains(x) || errorList.contains(x))//
-            .toList();
-
-        var updateError = resStatus.getSeverity() >= IStatus.WARNING;
-        // for each of the shared metanode templates with: entry point > !shared metanode template > T
-        // Where entry points are the nodes selected for update by the user.
-        // Each template T
-        // - is an ancestor of an entry point
-        // - has no shared metanode template as ancestor
-        for (NodeID template : templates) {
-            try {
-                var parentWfm = hostWFM.findNodeContainer(template).getParent();
-                parentWfm.checkUpdateMetaNodeLink(template, new WorkflowLoadHelper(true, parentWfm.getContextV2()));
-            } catch (IOException e) {
-                updateError = true;
-            }
-        }
-
-        if ((resStatus.getSeverity() == IStatus.WARNING || resStatus.getSeverity() == IStatus.ERROR) != updateError) {
-            throw new IllegalStateException("Inconsistent update states, something went wrong");
-        }
-    }
-
     /**
      * @param status update status
      * @param updateList ids of components that require an update
      */
     public static record ComponentUpdatesResult(Status status, List<NodeID> updateList) {
-        //
     }
-
 }
