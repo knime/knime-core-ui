@@ -9,14 +9,8 @@ import type {
   ScriptingServiceInternal,
   ScriptingServiceType,
 } from "../scripting-service";
-import { EditorService } from "../editor-service";
-import { editorServiceMock } from "@/__mocks__/editor-service";
 
 vi.mock("monaco-editor");
-
-vi.mock("../editor-service", () => ({
-  EditorService: vi.fn(),
-}));
 
 vi.mock("@knime/ui-extension-service", () => ({
   IFrameKnimeService: vi.fn(),
@@ -64,8 +58,6 @@ describe("scripting-service", () => {
       applyData: vi.fn(() => {}),
     };
     vi.mocked(JsonDataService).mockReturnValue(_jsonDataService);
-
-    vi.mocked(EditorService).mockReturnValue(editorServiceMock);
   });
 
   afterEach(() => {
@@ -322,44 +314,6 @@ describe("scripting-service", () => {
       expect(eventHandler).toHaveBeenNthCalledWith(3, {
         error: "my console error\n",
       });
-    });
-  });
-
-  describe("editor service", () => {
-    it("initializes editor service", () => {
-      const scriptingService = getScriptingServiceWithoutEventPoller();
-      const editorMock = "editorMock";
-      const editorModelMock = "editorModelMock";
-
-      scriptingService.initEditorService(
-        editorMock as any,
-        editorModelMock as any,
-      );
-      expect(editorServiceMock.initEditorService).toHaveBeenCalledWith({
-        editor: editorMock,
-        editorModel: editorModelMock,
-      });
-    });
-
-    it("calls getScript of editorService", () => {
-      const scriptingService = getScriptingServiceWithoutEventPoller();
-      scriptingService.getScript();
-      expect(editorServiceMock.getScript).toHaveBeenCalled();
-    });
-
-    it("calls getSelectedLines of editorService", () => {
-      const scriptingService = getScriptingServiceWithoutEventPoller();
-      scriptingService.getSelectedLines();
-      expect(editorServiceMock.getSelectedLines).toHaveBeenCalled();
-    });
-
-    it("calls setOnDidChangeContentListener of editorService", () => {
-      const scriptingService = getScriptingServiceWithoutEventPoller();
-      const mockFn = vi.fn();
-      scriptingService.setOnDidChangeContentListener(mockFn);
-      expect(
-        editorServiceMock.setOnDidChangeContentListener,
-      ).toHaveBeenCalled();
     });
   });
 

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref, type Ref } from "vue";
+import { onMounted, ref, watch, type Ref } from "vue";
 import InputOutputItem, {
   INPUT_OUTPUT_DRAG_EVENT_ID,
   type InputOutputModel,
 } from "./InputOutputItem.vue";
 import { getScriptingService } from "@/scripting-service";
 import { useInputOutputSelectionStore } from "@/store/io-selection";
+import { useMainCodeEditorStore } from "@/editor";
 
 const emit = defineEmits<{
   (e: "drop-event-handler-created", dropEventHandler: Function): void;
@@ -30,6 +31,8 @@ const fetchFlowVariables = async () => {
   }
 };
 
+const mainEditorState = useMainCodeEditorStore();
+
 const dropEventHandler = (event: DragEvent) => {
   // If source is not input/output element, do nothing
   if (event.dataTransfer?.getData("eventId") !== INPUT_OUTPUT_DRAG_EVENT_ID) {
@@ -42,14 +45,14 @@ const dropEventHandler = (event: DragEvent) => {
 
   if (
     requiredImport &&
-    !getScriptingService().getScript()?.includes(requiredImport)
+    !mainEditorState.value?.text.value.includes(requiredImport)
   ) {
     // wait until monaco has processed drop event
-    const disposable = getScriptingService().setOnDidChangeContentListener(
-      () => {
-        disposable?.dispose();
-        const script = getScriptingService().getScript();
-        getScriptingService().setScript(`${requiredImport}\n${script}`);
+    const unwatch = watch(
+      () => mainEditorState.value?.text.value,
+      (newScript) => {
+        unwatch();
+        mainEditorState.value!.text.value = `${requiredImport}\n${newScript}`;
       },
     );
   }
