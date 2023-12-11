@@ -7,6 +7,13 @@ export const editor = {
     getValueInRange: vi.fn(() => "mySelectedRange"),
     getPosition: vi.fn(() => "myPosition"),
     onDidChangeContent: vi.fn(),
+    pushStackElement: vi.fn(),
+    pushEditOperations: vi.fn(),
+    getFullModelRange: vi.fn(() => "myRange"),
+    setValue: vi.fn(),
+    getLanguageId: vi.fn(() => "myLanguageId"),
+    isAttachedToEditor: vi.fn(() => true),
+    dispose: vi.fn(),
   })),
   create: vi.fn((element: HTMLElement) => {
     element.innerHTML = "SCRIPTING EDITOR MOCK";
@@ -20,6 +27,7 @@ export const editor = {
         column: 456,
       })),
       onDidChangeCursorSelection: vi.fn(),
+      dispose: vi.fn(),
     };
   }),
   createDiffEditor: vi.fn((element: HTMLElement) => {
@@ -31,8 +39,10 @@ export const editor = {
         }),
       })),
       setModel: vi.fn(() => {}),
+      dispose: vi.fn(),
     };
   }),
+  getModel: vi.fn(() => null),
 };
 
 export const Uri = {

@@ -14,9 +14,12 @@ import {
   useInputOutputSelectionStore,
   type InputOutputSelectionStore,
 } from "../../store/io-selection";
+import { useMainCodeEditorStore } from "@/editor";
+import { nextTick } from "vue";
 
 vi.mock("monaco-editor");
 vi.mock("@/scripting-service");
+vi.mock("@/editor");
 
 describe("InputOutputPane", () => {
   afterEach(() => {
@@ -116,7 +119,7 @@ describe("InputOutputPane", () => {
     beforeEach(() => {
       inputOutputSelectionStore = useInputOutputSelectionStore();
       inputOutputSelectionStore.selectedItem = item1;
-      getScriptingService().getScript.mockReturnValue("this is my script");
+      useMainCodeEditorStore().value!.text.value = "this is my script";
     });
 
     afterEach(() => {
@@ -150,38 +153,31 @@ describe("InputOutputPane", () => {
       const dropEventHandler = wrapper.emitted(
         "drop-event-handler-created",
       )![0][0] as Function;
-      const mockEventListener = { dispose: vi.fn() };
-      getScriptingService().setOnDidChangeContentListener.mockReturnValue(
-        mockEventListener,
-      );
 
       // run drop event handler
       dropEventHandler(correctSourceDropEventMock);
       expect(
         correctSourceDropEventMock.dataTransfer.getData,
       ).toHaveBeenCalledWith("eventId");
+
+      const script = useMainCodeEditorStore().value!.text;
+
+      // fake the monaco drop event
+      script.value = "this is my script\nand a dropped line";
+      await nextTick();
+
       // check whether script contains import
-      expect(getScriptingService().getScript).toHaveBeenCalled();
-      // if it doesn't, check that a content change listener was registered
-      expect(
-        getScriptingService().setOnDidChangeContentListener,
-      ).toHaveBeenCalled();
-      const listener =
-        getScriptingService().setOnDidChangeContentListener.mock.calls[0][0];
-      // trigger the listener manually and check whether the import was prepended
-      // and the content listener disposed
-      listener();
-      expect(mockEventListener.dispose).toHaveBeenCalled();
-      expect(getScriptingService().setScript).toHaveBeenCalledWith(
-        "import me\nthis is my script",
+      expect(script.value).toBe(
+        "import me\nthis is my script\nand a dropped line",
       );
+
+      // check that following changes do not add import again
+      script.value = "my replaced script";
+      await nextTick();
+      expect(script.value).toBe("my replaced script");
     });
 
     it("drop event handler does not add required import if it is already in script", async () => {
-      getScriptingService().getScript.mockReturnValue(
-        "import me\nthis is my script",
-      );
-      // getScriptingService().getScript = vi.fn(() => "this is my script") as any;
       const wrapper = mount(InputOutputPane);
       await flushPromises();
       const dropEventHandler = wrapper.emitted(

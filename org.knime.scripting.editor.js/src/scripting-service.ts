@@ -2,12 +2,11 @@ import {
   IFrameKnimeService,
   JsonDataService,
 } from "@knime/ui-extension-service";
-import { editor as monaco, type IDisposable } from "monaco-editor";
 import type { ConsoleText } from "./components/OutputConsole.vue";
-import { EditorService } from "./editor-service";
 import { MonacoLSPConnection } from "./lsp/connection";
 import { KnimeMessageReader, KnimeMessageWriter } from "./lsp/knime-io";
 import type { InputOutputModel } from "./components/InputOutputItem.vue";
+import { useMainCodeEditorStore } from "./editor";
 
 export type NodeSettings = { script: string; scriptUsedFlowVariable?: string };
 type LanugageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
@@ -18,7 +17,6 @@ class ScriptingService {
   private _settings: NodeSettings | null = null;
   private _eventHandlers: { [type: string]: (args: any) => void } = {};
   private _runEventPoller: boolean = true;
-  private _editorService: EditorService = new EditorService();
   private _monacoLSPConnection: MonacoLSPConnection | null = null;
   protected _clearConsoleCallback?: Function;
 
@@ -123,23 +121,10 @@ class ScriptingService {
     consoleEventHandler(text);
   }
 
-  public initEditorService(
-    editor: monaco.IStandaloneCodeEditor,
-    editorModel: monaco.ITextModel,
-  ) {
-    this._editorService.initEditorService({ editor, editorModel });
-  }
-
-  public getScript(): string | null {
-    return this._editorService.getScript();
-  }
-
-  public getSelectedLines(): string | null {
-    return this._editorService.getSelectedLines();
-  }
-
   public async connectToLanguageServer(): Promise<void> {
-    if (typeof this._editorService.editorModel === "undefined") {
+    // TODO move the complete logic somewhere else?
+    const editorModel = useMainCodeEditorStore().value?.editorModel;
+    if (typeof editorModel === "undefined") {
       throw Error("Editor model has not yet been initialized");
     }
     const status = (await this.sendToService(
@@ -147,7 +132,7 @@ class ScriptingService {
     )) as LanugageServerStatus;
     if (status.status === "RUNNING") {
       this._monacoLSPConnection = await MonacoLSPConnection.create(
-        this._editorService.editorModel,
+        editorModel,
         new KnimeMessageReader(),
         new KnimeMessageWriter(),
       );
@@ -162,18 +147,6 @@ class ScriptingService {
     if (this._monacoLSPConnection) {
       await this._monacoLSPConnection.changeConfiguration(settings);
     }
-  }
-
-  public setScript(newScript: string) {
-    this._editorService.setScript(newScript);
-  }
-
-  public pasteToEditor(textToPaste: string): void {
-    this._editorService.pasteToEditor(textToPaste);
-  }
-
-  public setOnDidChangeContentListener(callback: Function): IDisposable | null {
-    return this._editorService.setOnDidChangeContentListener(callback);
   }
 
   public isCodeAssistantEnabled(): Promise<boolean> {

@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { onKeyStroke } from "@vueuse/core";
-import type { editor } from "monaco-editor";
 import { Pane, Splitpanes } from "splitpanes";
 import "splitpanes/dist/splitpanes.css";
-import { computed, reactive, ref, shallowRef } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import type { MenuItem } from "webapps-common/ui/components/MenuItems.vue";
 
+import { useMainCodeEditor } from "@/editor";
 import { getScriptingService } from "@/scripting-service";
-import { initEditorStore } from "@/store/editor";
-import CodeEditor from "./CodeEditor.vue";
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 import CompactTabBar from "./CompactTabBar.vue";
 import FooterBar from "./FooterBar.vue";
@@ -49,11 +47,7 @@ const props = withDefaults(defineProps<Props>(), {
   }),
 });
 
-const emit = defineEmits([
-  "monaco-created",
-  "menu-item-clicked",
-  "save-settings",
-]);
+const emit = defineEmits(["menu-item-clicked", "save-settings"]);
 
 // Splitpane sizes
 const currentPaneSizes = reactive<PaneSizes>({
@@ -114,27 +108,28 @@ const collapsePane = (pane: keyof PaneSizes) => {
 };
 
 // Main editor
-const editorModel = shallowRef<editor.ITextModel>();
-const onMonacoCreated = (args: {
-  editor: editor.IStandaloneCodeEditor;
-  editorModel: editor.ITextModel;
-}) => {
-  editorModel.value = args.editorModel;
-  getScriptingService().initEditorService(args.editor, args.editorModel);
-  initEditorStore(args);
-  emit("monaco-created", args);
-
-  // register Key
-  // undo changes from outside the editor
-  onKeyStroke("z", (e) => {
-    const key = navigator.userAgent.toLowerCase().includes("mac")
-      ? e.metaKey
-      : e.ctrlKey;
-    if (key) {
-      args.editor.trigger("window", "undo", {});
-    }
-  });
-};
+const editorContainer = ref<HTMLDivElement>();
+const codeEditorState = useMainCodeEditor({
+  container: editorContainer,
+  language: props.language,
+  fileName: props.fileName,
+});
+onMounted(() => {
+  getScriptingService()
+    .getInitialSettings()
+    .then((settings) => {
+      codeEditorState.setInitialText(settings.script);
+    });
+});
+// register undo changes from outside the editor
+onKeyStroke("z", (e) => {
+  const key = navigator.userAgent.toLowerCase().includes("mac")
+    ? e.metaKey
+    : e.ctrlKey;
+  if (key) {
+    codeEditorState.editor.value?.trigger("window", "undo", {});
+  }
+});
 // Dropping input/output items
 const dropEventHandler = ref<Function>();
 const onDropEventHandlerCreated = (handler: Function) => {
@@ -143,7 +138,7 @@ const onDropEventHandlerCreated = (handler: Function) => {
 
 // Saving and closing
 const saveSettings = () => {
-  const settings = { script: editorModel.value?.getValue() ?? "" };
+  const settings = { script: codeEditorState.text.value };
   emit("save-settings", settings);
 };
 const closeDialog = () => getScriptingService().closeDialog();
@@ -246,9 +241,8 @@ const onConsoleCreated = (
                 :size="usedHorizontalCodeEditorPaneSize"
                 min-size="25"
               >
-                <CodeEditor
-                  :language="language"
-                  :file-name="fileName"
+                <div
+                  ref="editorContainer"
                   class="code-editor"
                   @drop="
                     (event: DragEvent) => {
@@ -257,7 +251,6 @@ const onConsoleCreated = (
                         : null;
                     }
                   "
-                  @monaco-created="onMonacoCreated"
                 />
                 <CodeEditorControlBar
                   v-if="showControlBar"

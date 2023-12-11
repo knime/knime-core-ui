@@ -4,18 +4,19 @@ import { Pane, Splitpanes, type PaneProps } from "splitpanes";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getScriptingService } from "@/__mocks__/scripting-service";
-import CodeEditor from "../CodeEditor.vue";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
 import FooterBar from "../FooterBar.vue";
 import InputOutputPane from "../InputOutputPane.vue";
 import OutputConsole from "../OutputConsole.vue";
 import ScriptingEditor from "../ScriptingEditor.vue";
 import SettingsPage from "../SettingsPage.vue";
+import { useMainCodeEditor } from "@/editor";
 
-vi.mock("monaco-editor");
-vi.mock("@/scripting-service");
 vi.mock("xterm");
 vi.mock("@vueuse/core");
+
+vi.mock("@/scripting-service");
+vi.mock("@/editor");
 
 describe("ScriptingEditor", () => {
   afterEach(() => {
@@ -74,11 +75,15 @@ describe("ScriptingEditor", () => {
     });
 
     it("displays code editor and passes props", () => {
-      const { wrapper } = doMount();
-      expect(wrapper.findComponent(CodeEditor).exists()).toBeTruthy();
-      const comp = wrapper.findComponent(CodeEditor);
-      expect(comp.vm.language).toBe("someLanguage");
-      expect(comp.vm.fileName).toBe("myFile.ts");
+      doMount();
+      expect(useMainCodeEditor).toHaveBeenCalledWith({
+        container: expect.anything(),
+        language: "someLanguage",
+        fileName: "myFile.ts",
+      });
+      expect(
+        vi.mocked(useMainCodeEditor).mock.calls[0][0].container.value,
+      ).toBeDefined();
     });
 
     it("uses the provided title", () => {
@@ -99,20 +104,9 @@ describe("ScriptingEditor", () => {
     });
   });
 
-  describe("test", () => {
-    it("test onKeyStroke", async () => {
-      const { wrapper } = await doMount();
-      const editor = {
-        onDidPaste: vi.fn(),
-        onDidChangeCursorSelection: vi.fn(),
-      };
-      const editorModel = {
-        updateOptions: vi.fn(),
-      };
-      const editorComponent = wrapper.findComponent(CodeEditor);
-      editorComponent.vm.$emit("monaco-created", { editor, editorModel });
-      expect(onKeyStroke).toHaveBeenCalledOnce();
-    });
+  it("should register onKeyStroke handler", () => {
+    doMount();
+    expect(onKeyStroke).toHaveBeenCalledWith("z", expect.anything());
   });
 
   describe("resizing and collapsing", () => {
@@ -355,19 +349,6 @@ describe("ScriptingEditor", () => {
     ).toBeTruthy();
   });
 
-  it("emits monaco-created event", async () => {
-    const { wrapper } = doMount();
-    await flushPromises();
-    expect(wrapper.emitted()).toHaveProperty("monaco-created", [
-      [
-        {
-          editor: expect.objectContaining({ name: "myEditor" }),
-          editorModel: expect.anything(),
-        },
-      ],
-    ]);
-  });
-
   it("saves settings", async () => {
     const { wrapper } = doMount();
     await flushPromises();
@@ -458,8 +439,7 @@ describe("ScriptingEditor", () => {
     expect((wrapper.vm as any).dropEventHandler).toStrictEqual(
       dropEventHandlerMock,
     );
-    const codeEditor = wrapper.findComponent(CodeEditor);
-    codeEditor.trigger("drop", dropEventMock);
+    wrapper.find(".code-editor").trigger("drop", dropEventMock);
     expect(dropEventHandlerMock).toHaveBeenCalledWith(
       expect.objectContaining(dropEventMock),
     );
