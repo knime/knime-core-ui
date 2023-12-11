@@ -1,21 +1,23 @@
-<script lang="ts">
-import { defineComponent, toRaw, type PropType, ref } from "vue";
-import { Splitpanes, Pane } from "splitpanes";
-import "splitpanes/dist/splitpanes.css";
-import CodeEditor from "./CodeEditor.vue";
-import FooterBar from "./FooterBar.vue";
-import HeaderBar from "./HeaderBar.vue";
-import SettingsPage, { type SettingsMenuItem } from "./SettingsPage.vue";
-import CodeEditorControlBar from "./CodeEditorControlBar.vue";
-import type { MenuItem } from "webapps-common/ui/components/MenuItems.vue";
-import type { editor } from "monaco-editor";
-import OutputConsole from "./OutputConsole.vue";
-import type { ConsoleHandler } from "./OutputConsole.vue";
-import InputOutputPane from "./InputOutputPane.vue";
+<script setup lang="ts">
 import { onKeyStroke } from "@vueuse/core";
+import type { editor } from "monaco-editor";
+import { Pane, Splitpanes } from "splitpanes";
+import "splitpanes/dist/splitpanes.css";
+import { computed, reactive, ref, shallowRef } from "vue";
+import type { MenuItem } from "webapps-common/ui/components/MenuItems.vue";
+
 import { getScriptingService } from "@/scripting-service";
 import { initEditorStore } from "@/store/editor";
+import CodeEditor from "./CodeEditor.vue";
+import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 import CompactTabBar from "./CompactTabBar.vue";
+import FooterBar from "./FooterBar.vue";
+import HeaderBar from "./HeaderBar.vue";
+import InputOutputPane from "./InputOutputPane.vue";
+import type { ConsoleHandler } from "./OutputConsole.vue";
+import OutputConsole from "./OutputConsole.vue";
+import type { SettingsMenuItem } from "./SettingsPage.vue";
+import SettingsPage from "./SettingsPage.vue";
 
 export type PaneSizes = {
   [key in "left" | "right" | "bottom"]: number;
@@ -25,190 +27,146 @@ const commonMenuItems: MenuItem[] = [
   // TODO: add actual common menu items
 ];
 
-export default defineComponent({
-  name: "ScriptingEditor",
-  components: {
-    Splitpanes,
-    Pane,
-    CodeEditor,
-    FooterBar,
-    HeaderBar,
-    CodeEditorControlBar,
-    OutputConsole,
-    InputOutputPane,
-    SettingsPage,
-    CompactTabBar,
-  },
-  props: {
-    title: {
-      type: String,
-      default: null,
-    },
-    language: {
-      type: String,
-      default: null,
-    },
-    fileName: {
-      type: String,
-      default: null,
-    },
-    rightPaneLayout: {
-      type: String as PropType<"fixed" | "relative">,
-      default: "fixed",
-    },
-    menuItems: {
-      type: Array<MenuItem>,
-      default: [],
-    },
-    showControlBar: {
-      type: Boolean,
-      default: true,
-    },
-    initialPaneSizes: {
-      type: Object as PropType<PaneSizes>,
-      default: {
-        left: 20,
-        right: 25,
-        bottom: 30,
-      } as PaneSizes,
-    },
-  },
-  emits: ["monaco-created", "menu-item-clicked", "save-settings"],
-  data() {
-    return {
-      currentPaneSizes: {
-        left: this.initialPaneSizes.left,
-        right: this.initialPaneSizes.right,
-        bottom: this.initialPaneSizes.bottom,
-      } as PaneSizes,
-      previousPaneSizes: {
-        left: this.initialPaneSizes.left,
-        right: this.initialPaneSizes.right,
-        bottom: this.initialPaneSizes.bottom,
-      } as PaneSizes,
-      commonMenuItems,
-      editorModel: null as editor.ITextModel | null,
-      showSettingsPage: false,
-      bottomPaneOptions: [{ value: "console", label: "Console" }],
-      bottomPaneActiveTab: ref("console"),
-      dropEventHandler: null as Function | null,
-    };
-  },
-  computed: {
-    usedMainPaneSize() {
-      return 100 - this.currentPaneSizes.left;
-    },
-    usedHorizontalCodeEditorPaneSize() {
-      return 100 - this.currentPaneSizes.right;
-    },
-    usedVerticalCodeEditorPaneSize() {
-      return 100 - this.currentPaneSizes.bottom;
-    },
-    isLeftPaneCollapsed() {
-      return this.currentPaneSizes.left === 0;
-    },
-    isRightPaneCollapsed() {
-      return this.currentPaneSizes.right === 0;
-    },
-    isBottomPaneCollapsed() {
-      return this.currentPaneSizes.bottom === 0;
-    },
-  },
-  methods: {
-    collapsePane(pane: keyof PaneSizes) {
-      let newSize =
-        this.currentPaneSizes[pane] === 0 ? this.previousPaneSizes[pane] : 0;
-      if (pane === "left") {
-        this.updateRightPane(newSize);
-      }
-      this.resizePane(newSize, pane);
-    },
-    resizePane(
-      size: number,
-      pane: keyof PaneSizes,
-      updatePreviousPaneSize: boolean = true,
-    ) {
-      this.currentPaneSizes[pane] = size;
+// Props
+interface Props {
+  title: string;
+  language: string;
+  fileName: string;
+  rightPaneLayout?: "fixed" | "relative";
+  menuItems?: MenuItem[];
+  showControlBar?: boolean;
+  initialPaneSizes?: PaneSizes;
+}
 
-      if (updatePreviousPaneSize) {
-        this.updatePreviousPaneSize(pane);
-      }
-    },
-    updatePreviousPaneSize(pane: keyof PaneSizes) {
-      if (this.currentPaneSizes[pane] <= 0) {
-        return;
-      }
-      this.previousPaneSizes[pane] = this.currentPaneSizes[pane];
-    },
-    updateRightPane(size: number) {
-      if (
-        this.rightPaneLayout !== "fixed" ||
-        this.currentPaneSizes.right <= 0
-      ) {
-        return;
-      }
-      // keep right pane at same size when left pane is resized
-      const newMainPaneSize = 100 - size;
-      const absoluteRightPaneSize =
-        (100 - this.currentPaneSizes.left) *
-        (this.previousPaneSizes.right / 100);
-      const newRightPaneSize = (absoluteRightPaneSize / newMainPaneSize) * 100;
-
-      this.resizePane(newRightPaneSize, "right", false);
-    },
-    onMonacoCreated({
-      editor,
-      editorModel,
-    }: {
-      editor: editor.IStandaloneCodeEditor;
-      editorModel: editor.ITextModel;
-    }) {
-      this.editorModel = editorModel;
-      getScriptingService().initEditorService(editor, editorModel);
-      initEditorStore({ editor, editorModel });
-      this.$emit("monaco-created", { editor, editorModel });
-
-      // register Key
-      // undo changes from outside the editor
-      onKeyStroke("z", (e) => {
-        const key = navigator.userAgent.toLowerCase().includes("mac")
-          ? e.metaKey
-          : e.ctrlKey;
-        if (key) {
-          editor.trigger("window", "undo", {});
-        }
-      });
-    },
-
-    saveSettings() {
-      const editorModel = toRaw(this.editorModel);
-      const settings = { script: editorModel?.getValue() ?? "" };
-      this.$emit("save-settings", settings);
-    },
-    closeDialog() {
-      getScriptingService().closeDialog();
-    },
-    onMenuItemClicked(args: { event: Event; item: SettingsMenuItem }) {
-      this.showSettingsPage = Boolean(args.item.showSettingsPage);
-
-      if (commonMenuItems.includes(toRaw(args.item))) {
-        // TODO: handle click actions for common items here
-      } else {
-        this.$emit("menu-item-clicked", args);
-      }
-    },
-    onDropEventHandlerCreated(dropEventHandler: Function) {
-      this.dropEventHandler = dropEventHandler;
-    },
-    onConsoleCreated(
-      handler: ConsoleHandler,
-      clearConsoleCallback: () => void,
-    ) {
-      getScriptingService().registerConsoleEventHandler(handler);
-      getScriptingService().initClearConsoleCallback(clearConsoleCallback);
-    },
-  },
+const props = withDefaults(defineProps<Props>(), {
+  rightPaneLayout: "fixed",
+  menuItems: () => [],
+  showControlBar: true,
+  initialPaneSizes: () => ({
+    left: 20,
+    right: 25,
+    bottom: 30,
+  }),
 });
+
+const emit = defineEmits([
+  "monaco-created",
+  "menu-item-clicked",
+  "save-settings",
+]);
+
+// Splitpane sizes
+const currentPaneSizes = reactive<PaneSizes>({
+  left: props.initialPaneSizes.left,
+  right: props.initialPaneSizes.right,
+  bottom: props.initialPaneSizes.bottom,
+});
+const previousPaneSizes = reactive<PaneSizes>({
+  left: props.initialPaneSizes.left,
+  right: props.initialPaneSizes.right,
+  bottom: props.initialPaneSizes.bottom,
+});
+const usedMainPaneSize = computed(() => 100 - currentPaneSizes.left);
+const usedHorizontalCodeEditorPaneSize = computed(
+  () => 100 - currentPaneSizes.right,
+);
+const usedVerticalCodeEditorPaneSize = computed(
+  () => 100 - currentPaneSizes.bottom,
+);
+const isLeftPaneCollapsed = computed(() => currentPaneSizes.left === 0);
+const isRightPaneCollapsed = computed(() => currentPaneSizes.right === 0);
+const isBottomPaneCollapsed = computed(() => currentPaneSizes.bottom === 0);
+const updatePreviousPaneSize = (pane: keyof PaneSizes) => {
+  if (currentPaneSizes[pane] <= 0) {
+    return;
+  }
+  previousPaneSizes[pane] = currentPaneSizes[pane];
+};
+const resizePane = (
+  size: number,
+  pane: keyof PaneSizes,
+  shouldUpdatePreviousPaneSize: boolean = true,
+) => {
+  currentPaneSizes[pane] = size;
+
+  if (shouldUpdatePreviousPaneSize) {
+    updatePreviousPaneSize(pane);
+  }
+};
+const updateRightPane = (size: number) => {
+  if (props.rightPaneLayout !== "fixed" || currentPaneSizes.right <= 0) {
+    return;
+  }
+  // keep right pane at same size when left pane is resized
+  const newMainPaneSize = 100 - size;
+  const absoluteRightPaneSize =
+    (100 - currentPaneSizes.left) * (previousPaneSizes.right / 100);
+  const newRightPaneSize = (absoluteRightPaneSize / newMainPaneSize) * 100;
+
+  resizePane(newRightPaneSize, "right", false);
+};
+const collapsePane = (pane: keyof PaneSizes) => {
+  let newSize = currentPaneSizes[pane] === 0 ? previousPaneSizes[pane] : 0;
+  if (pane === "left") {
+    updateRightPane(newSize);
+  }
+  resizePane(newSize, pane);
+};
+
+// Main editor
+const editorModel = shallowRef<editor.ITextModel>();
+const onMonacoCreated = (args: {
+  editor: editor.IStandaloneCodeEditor;
+  editorModel: editor.ITextModel;
+}) => {
+  editorModel.value = args.editorModel;
+  getScriptingService().initEditorService(args.editor, args.editorModel);
+  initEditorStore(args);
+  emit("monaco-created", args);
+
+  // register Key
+  // undo changes from outside the editor
+  onKeyStroke("z", (e) => {
+    const key = navigator.userAgent.toLowerCase().includes("mac")
+      ? e.metaKey
+      : e.ctrlKey;
+    if (key) {
+      args.editor.trigger("window", "undo", {});
+    }
+  });
+};
+// Dropping input/output items
+const dropEventHandler = ref<Function>();
+const onDropEventHandlerCreated = (handler: Function) => {
+  dropEventHandler.value = handler;
+};
+
+// Saving and closing
+const saveSettings = () => {
+  const settings = { script: editorModel.value?.getValue() ?? "" };
+  emit("save-settings", settings);
+};
+const closeDialog = () => getScriptingService().closeDialog();
+
+// Menu items and settings pane
+const showSettingsPage = ref(false);
+const onMenuItemClicked = (args: { event: Event; item: SettingsMenuItem }) => {
+  showSettingsPage.value = Boolean(args.item.showSettingsPage);
+
+  // TODO: handle click actions for common items here instead of calling the emit
+  emit("menu-item-clicked", args);
+};
+
+// Bottom pane tabs
+const bottomPaneOptions = [{ value: "console", label: "Console" }];
+const bottomPaneActiveTab = ref<"console">("console");
+const onConsoleCreated = (
+  handler: ConsoleHandler,
+  clearConsoleCallback: () => void,
+) => {
+  getScriptingService().registerConsoleEventHandler(handler);
+  getScriptingService().initClearConsoleCallback(clearConsoleCallback);
+};
 </script>
 
 <template>
@@ -294,7 +252,7 @@ export default defineComponent({
                   class="code-editor"
                   @drop="
                     (event: DragEvent) => {
-                      dropEventHandler !== null
+                      typeof dropEventHandler !== 'undefined'
                         ? dropEventHandler(event)
                         : null;
                     }

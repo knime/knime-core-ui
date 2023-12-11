@@ -1,15 +1,16 @@
-import { describe, expect, it, vi, afterEach } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
-import ScriptingEditor from "@/components/ScriptingEditor.vue";
-import CodeEditor from "@/components/CodeEditor.vue";
-import OutputConsole from "@/components/OutputConsole.vue";
-import { Pane, Splitpanes, type PaneProps } from "splitpanes";
-import { getScriptingService } from "../../__mocks__/scripting-service";
-import FooterBar from "../FooterBar.vue";
-import CodeEditorControlBar from "../CodeEditorControlBar.vue";
-import InputOutputPane from "../InputOutputPane.vue";
-import SettingsPage from "../SettingsPage.vue";
 import { onKeyStroke } from "@vueuse/core";
+import { Pane, Splitpanes, type PaneProps } from "splitpanes";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { getScriptingService } from "@/__mocks__/scripting-service";
+import CodeEditor from "../CodeEditor.vue";
+import CodeEditorControlBar from "../CodeEditorControlBar.vue";
+import FooterBar from "../FooterBar.vue";
+import InputOutputPane from "../InputOutputPane.vue";
+import OutputConsole from "../OutputConsole.vue";
+import ScriptingEditor from "../ScriptingEditor.vue";
+import SettingsPage from "../SettingsPage.vue";
 
 vi.mock("monaco-editor");
 vi.mock("@/scripting-service");
@@ -23,7 +24,7 @@ describe("ScriptingEditor", () => {
 
   const doMount = (
     args: {
-      props: InstanceType<typeof ScriptingEditor>["$props"];
+      props: Partial<InstanceType<typeof ScriptingEditor>["$props"]>;
       slots?: any;
     } = {
       props: {
@@ -35,7 +36,7 @@ describe("ScriptingEditor", () => {
     },
   ) => {
     const wrapper = mount(ScriptingEditor, {
-      props: args.props,
+      props: { title: "", language: "", fileName: "", ...args.props },
       slots: args.slots,
     });
     const { leftPane, mainPane, topPane, bottomPane, editorPane, rightPane } =
@@ -410,14 +411,14 @@ describe("ScriptingEditor", () => {
 
   it("shows settings page", async () => {
     const { wrapper } = doMount();
-    wrapper.vm.showSettingsPage = true;
+    (wrapper.vm as any).showSettingsPage = true;
     await wrapper.vm.$nextTick();
     expect(wrapper.findComponent(SettingsPage).exists()).toBeTruthy();
   });
 
   it("closes settings page", async () => {
     const { wrapper } = doMount();
-    wrapper.vm.showSettingsPage = true;
+    (wrapper.vm as any).showSettingsPage = true;
     await wrapper.vm.$nextTick();
     const settingsPage = wrapper.findComponent(SettingsPage);
     expect(settingsPage.exists()).toBeTruthy();
@@ -440,7 +441,7 @@ describe("ScriptingEditor", () => {
           "<div class='settings-content'>Settings content</div>",
       },
     });
-    wrapper.vm.showSettingsPage = true;
+    (wrapper.vm as any).showSettingsPage = true;
     await wrapper.vm.$nextTick();
     const settingsPage = wrapper.findComponent(SettingsPage);
     expect(settingsPage.find(".settings-title").exists()).toBeTruthy();
@@ -454,7 +455,9 @@ describe("ScriptingEditor", () => {
     const dropEventHandlerMock = vi.fn();
     const dropEventMock = { drop: "event" };
     inOutPane.vm.$emit("drop-event-handler-created", dropEventHandlerMock);
-    expect(wrapper.vm.dropEventHandler).toStrictEqual(dropEventHandlerMock);
+    expect((wrapper.vm as any).dropEventHandler).toStrictEqual(
+      dropEventHandlerMock,
+    );
     const codeEditor = wrapper.findComponent(CodeEditor);
     codeEditor.trigger("drop", dropEventMock);
     expect(dropEventHandlerMock).toHaveBeenCalledWith(
