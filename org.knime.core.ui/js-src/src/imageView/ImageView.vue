@@ -1,24 +1,32 @@
 <script setup lang="ts">
-import { JsonDataService, ReportingService } from "@knime/ui-extension-service";
+// import { JsonDataService, ReportingService } from "@knime/ui-extension-service";
 import {
   fetchImage,
   getImageUrl as getImageUrlFromStore,
 } from "@/utils/images";
+import {
+  createJSONDataService,
+  createReportingService,
+  createResourceService,
+} from "@/knime-svc/public";
+
 import OptionalLabel from "./OptionalLabel.vue";
 import OptionalFigure from "./OptionalFigure.vue";
 import type Settings from "./types/ImageViewSettings";
+
 import {
   inject,
-  nextTick,
   onMounted,
   reactive,
   ref,
   toRef,
   type Ref,
+  nextTick,
 } from "vue";
-import type { Event, KnimeService } from "@knime/ui-extension-service";
+import type { Event } from "@knime/ui-extension-service";
 // @ts-ignore
 import { useStore } from "vuex";
+import { UIExtensionService } from "@/knime-svc";
 
 const viewSettings: Settings = reactive({
   title: "",
@@ -50,29 +58,39 @@ const naturalHeight = ref(0);
 const loaded = ref(false);
 
 onMounted(async () => {
-  const knimeService = inject<() => KnimeService>("getKnimeService")!();
-  const jsonDataService = new JsonDataService(knimeService);
-  jsonDataService.addOnDataChangeCallback(onViewSettingsChange);
-  const initialData = await jsonDataService.initialData();
-  setData(initialData.settings);
-  const reportingService = new ReportingService(knimeService);
+  const knimeService = inject<() => UIExtensionService>("getKnimeService")!();
 
-  // @ts-ignore
-  const baseUrl = knimeService.extensionConfig?.resourceInfo?.baseUrl;
-  const imageUrl = getImageUrl(initialData.imagePath, baseUrl);
+  const jsonDataService = createJSONDataService(knimeService);
+  const reportingService = createReportingService(knimeService);
+
+  const resourceService = createResourceService(knimeService);
+
+  // CAN BE REPLACED WITH A PUSH EVENT CALLBACK
+  // jsonDataService.addOnDataChangeCallback(onViewSettingsChange);
+
+  const initialData = await jsonDataService.getInitialData();
+  setData(initialData.settings);
+
+  // // @ts-ignore
+  const imageUrl = resourceService.getResourceUrl(initialData.imagePath);
+  console.log("initialData :>> ", knimeService.getConfig());
+  // console.log("baseUrl :>> ", baseUrl);
+  // const imageUrl = getImageUrl(initialData.imagePath, baseUrl);
   imgSrc.value = reportingService.isReportingActive()
     ? await fetchImage(imageUrl)
     : imageUrl;
+  // imgSrc.value = baseUrl;
+
   nextTick(() => {
     image.value.onload = () => {
       naturalHeight.value = image.value.naturalHeight;
       loaded.value = true;
-      if (reportingService.isReportingActive()) {
-        // wait for the render to be updated accordingly
-        nextTick(() => {
-          reportingService.setRenderCompleted();
-        });
-      }
+      // if (reportingService.isReportingActive()) {
+      //   // wait for the render to be updated accordingly
+      //   nextTick(() => {
+      //     reportingService.setRenderCompleted();
+      //   });
+      // }
     };
   });
 });
@@ -122,7 +140,7 @@ div.scroll-container {
 }
 
 /**
- * There is a gap of 4px to the figcaption because img is an inline element. 
+ * There is a gap of 4px to the figcaption because img is an inline element.
  * But since we also want this gap when using the image inside a flexbox, we style this gap ourselves.
  */
 img {

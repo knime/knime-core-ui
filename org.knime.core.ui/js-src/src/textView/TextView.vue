@@ -1,5 +1,5 @@
 <script>
-import { JsonDataService, ReportingService } from "@knime/ui-extension-service";
+import { createJSONDataService } from "@/knime-svc/public";
 
 export default {
   inject: ["getKnimeService"],
@@ -21,20 +21,20 @@ export default {
     },
   },
   async mounted() {
-    this.jsonDataService = new JsonDataService(this.knimeService);
-    this.jsonDataService.addOnDataChangeCallback(
-      this.onViewSettingsChange.bind(this),
-    );
-    const { content, flowVariablesMap } =
-      await this.jsonDataService.initialData();
+    this.jsonDataService = createJSONDataService(this.knimeService);
+    // this.jsonDataService.addOnDataChangeCallback(
+    //   this.onViewSettingsChange.bind(this),
+    // );
+    const data = await this.jsonDataService.getInitialData();
+    const { content, flowVariablesMap } = data;
     this.flowVariablesMap = flowVariablesMap;
     this.richTextContent = this.replaceFlowVariablesInContent(content);
-    const reportingService = new ReportingService(this.knimeService);
-    const isReport = reportingService.isReportingActive();
-    await this.$nextTick();
-    if (isReport) {
-      await reportingService.setRenderCompleted();
-    }
+    // const reportingService = new ReportingService(this.knimeService);
+    // const isReport = reportingService.isReportingActive();
+    // await this.$nextTick();
+    // if (isReport) {
+    //   await reportingService.setRenderCompleted();
+    // }
   },
   methods: {
     onViewSettingsChange(event) {
