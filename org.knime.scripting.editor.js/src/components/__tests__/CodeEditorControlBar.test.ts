@@ -3,7 +3,7 @@ import { describe, afterEach, beforeEach, it, vi, expect } from "vitest";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
 import { flushPromises, mount } from "@vue/test-utils";
 
-import AiBar from "../AiBar.vue";
+import AiBar from "../ai-assistant/AiBar.vue";
 import { getScriptingService } from "@/scripting-service";
 
 vi.mock("@/scripting-service");

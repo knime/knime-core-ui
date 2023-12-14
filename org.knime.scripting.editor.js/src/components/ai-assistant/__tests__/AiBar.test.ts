@@ -1,17 +1,17 @@
-import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
-import { mount, flushPromises } from "@vue/test-utils";
-import AiBar from "@/components/AiBar.vue";
+import { flushPromises, mount } from "@vue/test-utils";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import LoadingIcon from "webapps-common/ui/components/LoadingIcon.vue";
+
 import { getScriptingService } from "@/scripting-service";
-import CodeEditor from "../CodeEditor.vue";
-import * as monaco from "monaco-editor";
 import {
   clearPromptResponseStore,
   usePromptResponseStore,
-} from "../../store/ai-bar";
-import LoadingIcon from "webapps-common/ui/components/LoadingIcon.vue";
+} from "@/store/ai-bar";
+import AiBar from "../AiBar.vue";
+import AiSuggestion from "../AiSuggestion.vue";
 
 vi.mock("@/scripting-service");
-vi.mock("monaco-editor");
+vi.mock("@/editor");
 
 describe("AiBar", () => {
   const mockSendToService = (
@@ -40,13 +40,6 @@ describe("AiBar", () => {
     vi.mocked(getScriptingService().sendToService).mockImplementation(
       mockSendToService(),
     );
-    const mockInstance = { dispose: vi.fn(), setModel: vi.fn() };
-    // @ts-ignore createModel is a mock
-    monaco.editor.createModel.mockReturnValue(mockInstance);
-    // @ts-ignore create is also a mock
-    monaco.editor.create.mockReturnValue(mockInstance);
-    // @ts-ignore createDiffEditor is also a mock
-    monaco.editor.createDiffEditor.mockReturnValue(mockInstance);
   });
 
   afterEach(() => {
@@ -87,7 +80,7 @@ describe("AiBar", () => {
     expect(scriptingService.sendToService).toHaveBeenCalledOnce();
     expect(scriptingService.sendToService).toBeCalledWith("suggestCode", [
       message,
-      null,
+      "",
     ]);
   });
 
@@ -131,34 +124,22 @@ describe("AiBar", () => {
 
   it("show diff editor when code suggestion is available", async () => {
     const bar = mount(AiBar);
-    const editorModelInstance = { dispose: vi.fn() };
-    // @ts-ignore createModel is a mock
-    monaco.editor.createModel.mockReturnValue(editorModelInstance);
-
-    const diffEditor = bar.find(".diff-editor-container");
-    expect(diffEditor.exists()).toBeFalsy();
+    expect(bar.findComponent(AiSuggestion).exists()).toBeFalsy();
     await (bar.vm as any).handleCodeSuggestion({
       code: JSON.stringify({ code: "some code" }),
       status: "SUCCESS",
     });
-    await flushPromises();
-    expect(monaco.editor.createDiffEditor).toHaveBeenCalled();
-    expect(bar.findComponent(CodeEditor).exists()).toBeTruthy();
+    expect(bar.findComponent(AiSuggestion).exists()).toBeTruthy();
   });
 
-  it("show diff editor when previous prompt is available", async () => {
+  it("show diff editor when previous prompt is available", () => {
     usePromptResponseStore().promptResponse = {
       message: { role: "reply", content: "blah" },
       suggestedCode: "code",
     };
 
     const bar = mount(AiBar);
-    await flushPromises();
-
-    const diffEditor = bar.find(".diff-editor-container");
-    expect(diffEditor.exists()).toBeTruthy();
-    expect(monaco.editor.createDiffEditor).toHaveBeenCalled();
-    expect(bar.findComponent(CodeEditor).exists()).toBeTruthy();
+    expect(bar.findComponent(AiSuggestion).exists()).toBeTruthy();
   });
 
   it("show disclaimer on first startup", async () => {
