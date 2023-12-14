@@ -1,31 +1,31 @@
 <script setup lang="ts">
+import { useTextareaAutosize } from "@vueuse/core";
 import {
   computed,
-  ref,
-  type PropType,
+  nextTick,
   onMounted,
   onUnmounted,
-  nextTick,
+  ref,
+  type PropType,
 } from "vue";
-import { useTextareaAutosize } from "@vueuse/core";
-import SendIcon from "webapps-common/ui/assets/img/icons/paper-flier.svg";
 import AbortIcon from "webapps-common/ui/assets/img/icons/cancel-execution.svg";
-import ExportIcon from "webapps-common/ui/assets/img/icons/export.svg";
 import LinkIcon from "webapps-common/ui/assets/img/icons/link.svg";
-import LoadingIcon from "webapps-common/ui/components/LoadingIcon.vue";
+import SendIcon from "webapps-common/ui/assets/img/icons/paper-flier.svg";
 import Button from "webapps-common/ui/components/Button.vue";
 import FunctionButton from "webapps-common/ui/components/FunctionButton.vue";
+import LoadingIcon from "webapps-common/ui/components/LoadingIcon.vue";
+
+import editor from "@/editor";
 import { getScriptingService } from "@/scripting-service";
-import CodeEditor from "./CodeEditor.vue";
-import { editor } from "monaco-editor";
 import {
-  usePromptResponseStore,
   clearPromptResponseStore,
   showDisclaimer,
-  type PromptResponseStore,
+  usePromptResponseStore,
   type Message,
+  type PromptResponseStore,
 } from "@/store/ai-bar";
-import type { PaneSizes } from "./ScriptingEditor.vue";
+import type { PaneSizes } from "../ScriptingEditor.vue";
+import AiSuggestion from "./AiSuggestion.vue";
 
 type Status =
   | "idle"
@@ -54,7 +54,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits<{
-  (e: "accept-suggestion", value: boolean): void;
+  (e: "accept-suggestion"): void;
   (e: "close-ai-bar"): void;
 }>();
 
@@ -64,22 +64,13 @@ let message: Message | null =
   promptResponseStore.promptResponse?.message ?? null;
 let history: Array<Message | null> = [];
 const scriptingService = getScriptingService();
-let diffEditor: editor.IStandaloneDiffEditor;
 const mouseOverLoadingSpinner = ref(false);
+const mainEditorState = editor.useMainCodeEditorStore();
 
 const abortRequest = () => {
   scriptingService?.sendToService("abortSuggestCodeRequest");
   // this should be handled in the response of the eventhandler
   status.value = "waiting";
-};
-
-const acceptSuggestion = () => {
-  history.push(message);
-  status.value = "idle";
-  const acceptedCode = diffEditor.getModifiedEditor().getValue();
-  scriptingService.setScript(acceptedCode);
-  clearPromptResponseStore();
-  emit("accept-suggestion", true);
 };
 
 type CodeSuggestion = {
@@ -105,14 +96,17 @@ const handleCodeSuggestion = (codeSuggestion: CodeSuggestion) => {
     };
     status.value = "idle";
     input.value = "";
-
-    // NB: the initialScript in the CodeEditor is not reactive,
-    // so we need to update the diff editor if it is already created
-    diffEditor?.getModel()?.modified.setValue(suggestedCode);
   }
   nextTick(() => {
     textarea.value.focus();
   });
+};
+const acceptSuggestion = (acceptedCode: string) => {
+  history.push(message);
+  status.value = "idle";
+  mainEditorState.value!.text.value = acceptedCode;
+  clearPromptResponseStore();
+  emit("accept-suggestion");
 };
 
 scriptingService.registerEventHandler("codeSuggestion", handleCodeSuggestion);
@@ -123,7 +117,7 @@ const request = async () => {
   // code suggestions will be returned via events, see the response handler above
   await scriptingService.sendToService("suggestCode", [
     input.value,
-    scriptingService.getScript(),
+    mainEditorState.value?.text.value,
   ]);
 };
 
@@ -138,14 +132,6 @@ const handleKeyDown = (e: KeyboardEvent) => {
     // show last history message if available
     input.value = history.length ? history[history.length - 1]!.content : "";
   }
-};
-
-const onDiffEditorCreated = ({
-  editor,
-}: {
-  editor: editor.IStandaloneDiffEditor;
-}) => {
-  diffEditor = editor;
 };
 const leftPosition = computed(() =>
   Math.max(props.currentPaneSizes.left - DEFAULT_LEFT_OVERFLOW, 0),
@@ -304,22 +290,11 @@ scriptingService.sendToService("getHubId").then((id) => {
         </div>
       </Transition>
       <Transition name="slide-fade">
-        <div
+        <AiSuggestion
           v-if="promptResponseStore.promptResponse"
-          class="diff-editor-container"
-        >
-          <CodeEditor
-            :language="language"
-            class="diff-editor"
-            :diff-script="promptResponseStore.promptResponse.suggestedCode"
-            @monaco-created="onDiffEditorCreated"
-          />
-          <div class="accept-decline-buttons">
-            <Button with-border compact @click="acceptSuggestion">
-              <ExportIcon /> Insert in editor
-            </Button>
-          </div>
-        </div>
+          class="ai-suggestion"
+          @accept-suggestion="acceptSuggestion"
+        />
       </Transition>
       <div
         class="chat-controls"
@@ -426,23 +401,10 @@ scriptingService.sendToService("getHubId").then((id) => {
     }
   }
 
-  & .diff-editor-container {
+  & .ai-suggestion {
     margin: var(--ai-bar-margin);
     min-height: 200px;
     height: 40vh;
-    display: flex;
-    flex-direction: column;
-
-    & .diff-editor {
-      flex-grow: 1;
-    }
-
-    & .accept-decline-buttons {
-      & .button {
-        float: right;
-        margin-top: var(--ai-bar-margin);
-      }
-    }
   }
 
   & .chat-controls-border-top {
