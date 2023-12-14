@@ -1,3 +1,4 @@
+import "./editor.css";
 import * as monaco from "monaco-editor";
 import {
   computed,
