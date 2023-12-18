@@ -1,43 +1,44 @@
-<script>
-import { createJSONDataService } from "@/knime-svc/public";
+<script lang="ts">
+import { FlowSettings } from "@/nodeDialog/api/types";
+import {
+  JsonDataService,
+  type UIExtensionService,
+  type UIExtensionEvents,
+  ReportingService,
+} from "@knime/ui-extension-service";
 
 export default {
   inject: ["getKnimeService"],
   data() {
     return {
       richTextContent: "",
-      flowVariablesMap: null,
+      flowVariablesMap: null as null | Record<string, FlowSettings>,
+      jsonDataService: null as null | JsonDataService,
     };
   },
   computed: {
     knimeService() {
-      return this.getKnimeService();
-    },
-    disabled() {
-      return Boolean(this.flowSettings?.controllingFlowVariableName);
-    },
-    flowSettings() {
-      return getFlowVariablesMap(this.control);
+      return (this.getKnimeService as () => UIExtensionService)();
     },
   },
   async mounted() {
-    this.jsonDataService = createJSONDataService(this.knimeService);
-    // this.jsonDataService.addOnDataChangeCallback(
-    //   this.onViewSettingsChange.bind(this),
-    // );
-    const data = await this.jsonDataService.getInitialData();
+    this.jsonDataService = new JsonDataService(this.knimeService);
+    this.jsonDataService!.addOnDataChangeCallback(
+      this.onViewSettingsChange.bind(this),
+    );
+    const data = await this.jsonDataService.initialData();
     const { content, flowVariablesMap } = data;
     this.flowVariablesMap = flowVariablesMap;
     this.richTextContent = this.replaceFlowVariablesInContent(content);
-    // const reportingService = new ReportingService(this.knimeService);
-    // const isReport = reportingService.isReportingActive();
-    // await this.$nextTick();
-    // if (isReport) {
-    //   await reportingService.setRenderCompleted();
-    // }
+    const reportingService = new ReportingService(this.knimeService);
+    const isReport = reportingService.isReportingActive();
+    await this.$nextTick();
+    if (isReport) {
+      reportingService.setRenderCompleted();
+    }
   },
   methods: {
-    onViewSettingsChange(event) {
+    onViewSettingsChange(event: UIExtensionEvents.Event<any>) {
       // TODO: Can be removed once we have frontend sanitization
       if (
         event.data.flowVariableSettings["view.richTextContent"]
@@ -49,7 +50,7 @@ export default {
         event.data.data.view.richTextContent,
       );
     },
-    replaceFlowVariablesInContent(newRichTextContent) {
+    replaceFlowVariablesInContent(newRichTextContent: string) {
       if (this.flowVariablesMap === null) {
         return newRichTextContent;
       }

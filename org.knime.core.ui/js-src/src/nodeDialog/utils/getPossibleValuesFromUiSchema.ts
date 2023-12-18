@@ -1,4 +1,7 @@
-import { AlertTypes, type KnimeService } from "@knime/ui-extension-service";
+import {
+  AlertTypes,
+  type CreateAlertParams,
+} from "@knime/ui-extension-service";
 import type Result from "../api/types/Result";
 import type {
   ChoicesUiSchemaOptions,
@@ -16,7 +19,7 @@ const extractFromUiSchemaOptions = <Key extends keyof ChoicesUiSchemaOptions>(
 
 const extractPossibleValues = (
   asyncResult: Result<PossibleValue[]>,
-  sendAlert: (params: Parameters<KnimeService["createAlert"]>[0]) => void,
+  sendAlert: (params: CreateAlertParams) => void,
   choicesProviderClass: string,
 ) => {
   const { state } = asyncResult;
@@ -45,7 +48,7 @@ export default async (
   getAsyncPossibleValues: (
     choicesProviderClass: string,
   ) => Promise<Result<PossibleValue[]> | undefined>,
-  sendAlert: (params: Parameters<KnimeService["createAlert"]>[0]) => void,
+  sendAlert: (params: CreateAlertParams) => void,
 ) => {
   let normalPossibleValues = extractFromUiSchemaOptions(
     control,

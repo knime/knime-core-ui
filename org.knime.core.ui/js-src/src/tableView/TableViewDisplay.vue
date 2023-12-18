@@ -18,6 +18,7 @@ import { separateSpecialColumns } from "./utils/specialColumns";
 import { BORDER_BOTTOM_WIDTH } from "./constants";
 import { RowHeightMode } from "./types/ViewSettings";
 import LoadingIcon from "webapps-common/ui/components/LoadingIcon.vue";
+import { ResourceService } from "@knime/ui-extension-service";
 
 const emit = defineEmits<{
   pageChange: [pageNumberDiff: -1 | 1];
@@ -66,14 +67,13 @@ const props = defineProps<TableViewDisplayProps>();
 
 const root: Ref<null | HTMLElement> = ref(null);
 
-const baseUrl = ref("");
+const resourceService: Ref<null | ResourceService> = ref(null);
 
 const loadingAnimationEnabled = ref(false);
 const TIMEOUT_HIDE_LOADING_ANIMATION = 300;
 
 onMounted(() => {
-  // @ts-ignore
-  baseUrl.value = props.knimeService?.extensionConfig?.resourceInfo?.baseUrl;
+  resourceService.value = new ResourceService(props.knimeService);
   setTimeout(() => {
     loadingAnimationEnabled.value = true;
   }, TIMEOUT_HIDE_LOADING_ANIMATION);
@@ -319,7 +319,7 @@ const onCopySelection = ({
           :height="
             typeof height === 'number' ? height - BORDER_BOTTOM_WIDTH : height
           "
-          :base-url="baseUrl"
+          :resource-service="resourceService!"
           :update="!columnResizeActive.state"
           :table-is-ready="tableIsReady"
           @pending="(id: string) => $emit('pendingImage', id)"

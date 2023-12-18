@@ -1,14 +1,13 @@
 <script setup lang="ts">
 // import { JsonDataService, ReportingService } from "@knime/ui-extension-service";
+import { fetchImage } from "@/utils/images";
 import {
-  fetchImage,
-  getImageUrl as getImageUrlFromStore,
-} from "@/utils/images";
-import {
-  createJSONDataService,
-  createReportingService,
-  createResourceService,
-} from "@/knime-svc/public";
+  ReportingService,
+  JsonDataService,
+  ResourceService,
+  type Event,
+  type UIExtensionService,
+} from "@knime/ui-extension-service";
 
 import OptionalLabel from "./OptionalLabel.vue";
 import OptionalFigure from "./OptionalFigure.vue";
@@ -23,10 +22,6 @@ import {
   type Ref,
   nextTick,
 } from "vue";
-import type { Event } from "@knime/ui-extension-service";
-// @ts-ignore
-import { useStore } from "vuex";
-import { UIExtensionService } from "@/knime-svc";
 
 const viewSettings: Settings = reactive({
   title: "",
@@ -43,15 +38,6 @@ const onViewSettingsChange = (event: Event) => {
   setData(event.data.data.view);
 };
 
-const store = useStore();
-
-const getImageUrl = (path: string, baseUrl: string) => {
-  return getImageUrlFromStore(store, {
-    baseUrl,
-    path,
-  });
-};
-
 const imgSrc = ref("");
 const image: Ref<HTMLImageElement> = ref(null as any);
 const naturalHeight = ref(0);
@@ -60,37 +46,30 @@ const loaded = ref(false);
 onMounted(async () => {
   const knimeService = inject<() => UIExtensionService>("getKnimeService")!();
 
-  const jsonDataService = createJSONDataService(knimeService);
-  const reportingService = createReportingService(knimeService);
+  const jsonDataService = new JsonDataService(knimeService);
+  const reportingService = new ReportingService(knimeService);
+  const resourceService = new ResourceService(knimeService);
 
-  const resourceService = createResourceService(knimeService);
+  jsonDataService.addOnDataChangeCallback(onViewSettingsChange);
 
-  // CAN BE REPLACED WITH A PUSH EVENT CALLBACK
-  // jsonDataService.addOnDataChangeCallback(onViewSettingsChange);
-
-  const initialData = await jsonDataService.getInitialData();
+  const initialData = await jsonDataService.initialData();
   setData(initialData.settings);
 
-  // // @ts-ignore
   const imageUrl = resourceService.getResourceUrl(initialData.imagePath);
-  console.log("initialData :>> ", knimeService.getConfig());
-  // console.log("baseUrl :>> ", baseUrl);
-  // const imageUrl = getImageUrl(initialData.imagePath, baseUrl);
   imgSrc.value = reportingService.isReportingActive()
     ? await fetchImage(imageUrl)
     : imageUrl;
-  // imgSrc.value = baseUrl;
 
   nextTick(() => {
     image.value.onload = () => {
       naturalHeight.value = image.value.naturalHeight;
       loaded.value = true;
-      // if (reportingService.isReportingActive()) {
-      //   // wait for the render to be updated accordingly
-      //   nextTick(() => {
-      //     reportingService.setRenderCompleted();
-      //   });
-      // }
+      if (reportingService.isReportingActive()) {
+        // wait for the render to be updated accordingly
+        nextTick(() => {
+          reportingService.setRenderCompleted();
+        });
+      }
     };
   });
 });

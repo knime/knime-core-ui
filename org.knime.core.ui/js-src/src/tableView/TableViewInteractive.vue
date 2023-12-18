@@ -3,7 +3,7 @@
 import {
   Event,
   JsonDataService,
-  KnimeService,
+  UIExtensionService,
   SelectionModes,
   SelectionService,
 } from "@knime/ui-extension-service";
@@ -73,7 +73,7 @@ export default {
     },
   },
   setup() {
-    const knimeService = inject<() => KnimeService>("getKnimeService")!();
+    const knimeService = inject<() => UIExtensionService>("getKnimeService")!();
     const selectionCache = useSelectionCache(knimeService);
     const rowHeight = useRowHeight();
     return { ...selectionCache, ...rowHeight, knimeService };
@@ -103,7 +103,6 @@ export default {
       selectionService: null as null | SelectionService,
       searchTerm: "",
       columnFiltersMap: new Map() as Map<string | symbol, FilterConfig>,
-      baseUrl: null,
       scopeSize: 0,
       numRowsAbove: 0,
       numRowsBelow: 0,
@@ -237,8 +236,6 @@ export default {
       this.initialData === null
         ? ((await this.jsonDataService.initialData()) as InitialData)
         : this.initialData;
-    // @ts-expect-error
-    this.baseUrl = this.knimeService?.extensionConfig?.resourceInfo?.baseUrl;
     if (initialData) {
       const { table, dataTypes, columnDomainValues, settings } = initialData;
       this.displayedColumns = table.displayedColumns;

@@ -10,14 +10,12 @@ import {
   watchEffect,
   nextTick,
 } from "vue";
-import { fetchImage, getImageUrl } from "@/utils/images";
-
-// @ts-ignore
-import { useStore } from "vuex";
+import { fetchImage } from "@/utils/images";
+import { ResourceService } from "@knime/ui-extension-service";
 
 const props = defineProps<{
   path: string;
-  baseUrl: string;
+  resourceService: ResourceService;
   height?: number;
   width?: number;
   update?: boolean;
@@ -37,12 +35,8 @@ const waitForTableToBeReady = () =>
 const emit = defineEmits(["pending", "rendered"]);
 const inlinedSrc: Ref<false | string> = ref(false);
 
-const store = useStore();
 const imageUrl = computed(() =>
-  getImageUrl(store, {
-    baseUrl: props.baseUrl,
-    path: props.path,
-  }),
+  props.resourceService.getResourceUrl(props.path),
 );
 
 const urlWithDimensions = computed(() => {
