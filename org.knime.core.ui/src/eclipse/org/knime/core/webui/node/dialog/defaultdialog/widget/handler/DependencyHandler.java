@@ -66,7 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
  *                  String m_bar;
  *            }
  *
- *            class MyActionHandler implements DialogDataServiceHandler<String, OtherSettings>
+ *            class MyActionHandler implements DialogDataServiceHandler&lt;String, OtherSettings&gt;{}
  *
  *            class MyNodeViewSettings extends DefaultNodeSettings {
  *

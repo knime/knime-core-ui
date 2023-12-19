@@ -92,8 +92,8 @@ abstract class WidgetHandlerHolder<H> {
         return field -> {
             addHandlersForNestedFields(mapper, field);
             final var optionalHandlerClass = getHandlerClass(field);
-            optionalHandlerClass
-                .ifPresent(handlerClass -> m_handlers.put(handlerClass.getName(), createInstance(handlerClass)));
+            optionalHandlerClass.ifPresent(
+                handlerClass -> m_handlers.computeIfAbsent(handlerClass.getName(), k -> createInstance(handlerClass)));
         };
 
     }
