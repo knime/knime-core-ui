@@ -87,8 +87,7 @@ onMounted(async () => {
 
 .controls {
   display: flex;
-  justify-content: space-between;
-  align-content: center;
+  place-content: center space-between;
   align-items: center;
   padding: 0 10px;
   background-color: var(--knime-gray-light-semi);
