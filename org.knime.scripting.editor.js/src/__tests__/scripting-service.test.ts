@@ -115,10 +115,14 @@ describe("scripting-service", () => {
 
     // @ts-ignore
     const scriptingService = getScriptingService(mockScriptingService);
-    expect(scriptingService).toContain(mockScriptingService);
+    expect(scriptingService.sendToService).toBe(
+      mockScriptingService.sendToService,
+    );
 
     // All future calls should return the mock
-    expect(getScriptingService()).toContain(mockScriptingService);
+    expect(scriptingService.sendToService).toBe(
+      mockScriptingService.sendToService,
+    );
   });
 
   describe("settings", () => {

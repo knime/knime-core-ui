@@ -41,7 +41,7 @@ describe("HeaderBar", () => {
       wrapper.vm.menuItemClicked(event as any, item);
       await wrapper.vm.$nextTick();
       expect(wrapper.emitted("menu-item-click")).toBeTruthy();
-      expect(wrapper.emitted("menu-item-click")![0][0]).toContain({
+      expect(wrapper.emitted("menu-item-click")![0][0]).toEqual({
         event,
         item,
       });
