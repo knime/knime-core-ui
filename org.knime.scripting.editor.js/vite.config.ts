@@ -45,9 +45,6 @@ export default defineConfig({
       fileURLToPath(new URL("./src/test-setup/setup.ts", import.meta.url)),
     ],
     root: fileURLToPath(new URL("./", import.meta.url)),
-    transformMode: {
-      web: [/\.[jt]sx$/],
-    },
     alias: [
       {
         find: /^monaco-editor$/,
