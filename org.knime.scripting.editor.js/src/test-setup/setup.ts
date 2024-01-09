@@ -1,2 +1,2 @@
-import { Consola, LogLevel } from "consola";
-window.consola = new Consola({ level: LogLevel.Error });
+import { LogLevel } from "consola";
+consola.level = LogLevel.Debug;
