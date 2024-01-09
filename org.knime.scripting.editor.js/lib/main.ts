@@ -14,6 +14,7 @@ import type {
   ScriptingServiceType,
 } from "../src/scripting-service";
 import { getScriptingService as getScriptingServiceInternal } from "../src/scripting-service";
+import * as scriptingServiceBrowserMock from "../src/scripting-service-browser-mock";
 
 const getScriptingService = (mock?: Partial<ScriptingServiceType>) =>
   getScriptingServiceInternal(mock) as ScriptingServiceType;
@@ -24,6 +25,7 @@ export {
   ScriptingEditor,
   editor,
   getScriptingService,
+  scriptingServiceBrowserMock,
 };
 export type {
   NodeSettings,

@@ -173,7 +173,6 @@ class ScriptingService {
     return this.sendToService("getOutputObjects");
   }
 
-  // eslint-disable-next-line class-methods-use-this
   public clearConsole() {
     this._clearConsoleCallback?.();
   }
