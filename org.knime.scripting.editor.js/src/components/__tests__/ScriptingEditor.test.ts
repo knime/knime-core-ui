@@ -11,6 +11,7 @@ import OutputConsole from "../OutputConsole.vue";
 import ScriptingEditor from "../ScriptingEditor.vue";
 import SettingsPage from "../SettingsPage.vue";
 import { useMainCodeEditor } from "@/editor";
+import { consoleHandlerStore } from "@/consoleHandler";
 
 vi.mock("xterm");
 vi.mock("@vueuse/core");
@@ -362,7 +363,20 @@ describe("ScriptingEditor", () => {
     });
   });
 
-  it("register eventhandler on console-created", async () => {
+  it("sets console handler store on console-created", async () => {
+    // setup
+    const { wrapper } = doMount();
+    const outputConsole = wrapper.findComponent(OutputConsole);
+
+    await flushPromises();
+    expect(outputConsole.emitted()).toHaveProperty("console-created");
+
+    // @ts-ignore
+    const handler = outputConsole.emitted()["console-created"][0][0];
+    expect(consoleHandlerStore.value).toBe(handler);
+  });
+
+  it("registers console event handler on console-created", async () => {
     // setup
     const spy = vi.spyOn(getScriptingService(), "registerConsoleEventHandler");
     const { wrapper } = doMount();
@@ -373,21 +387,7 @@ describe("ScriptingEditor", () => {
 
     // @ts-ignore
     const handler = outputConsole.emitted()["console-created"][0][0];
-    expect(spy).toHaveBeenCalledWith(handler);
-  });
-
-  it("register clear console callback on console-created", async () => {
-    const { wrapper } = doMount();
-    const outputConsole = wrapper.findComponent(OutputConsole);
-
-    await flushPromises();
-    expect(outputConsole.emitted()).toHaveProperty("console-created");
-
-    // @ts-ignore
-    const clearConsole = outputConsole.emitted()["console-created"][0][1];
-    expect(getScriptingService().initClearConsoleCallback).toHaveBeenCalledWith(
-      clearConsole,
-    );
+    expect(spy).toHaveBeenCalledWith(handler.write);
   });
 
   it("shows settings page", async () => {

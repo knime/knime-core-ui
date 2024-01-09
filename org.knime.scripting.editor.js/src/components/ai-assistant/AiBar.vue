@@ -26,6 +26,7 @@ import {
 } from "@/store/ai-bar";
 import type { PaneSizes } from "../ScriptingEditor.vue";
 import AiSuggestion from "./AiSuggestion.vue";
+import { consoleHandler } from "@/consoleHandler";
 
 type Status =
   | "idle"
@@ -81,7 +82,7 @@ type CodeSuggestion = {
 
 const handleCodeSuggestion = (codeSuggestion: CodeSuggestion) => {
   if (codeSuggestion.status === "ERROR") {
-    scriptingService.sendToConsole({
+    consoleHandler.writeln({
       text: `ERROR: ${codeSuggestion.error}`,
     });
     status.value = "error";
@@ -541,3 +542,4 @@ scriptingService.sendToService("getHubId").then((id) => {
   opacity: 0;
 }
 </style>
+@/consoleHandler

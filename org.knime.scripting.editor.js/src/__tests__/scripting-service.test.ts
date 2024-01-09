@@ -5,10 +5,7 @@ import {
   IFrameKnimeService,
   JsonDataService,
 } from "@knime/ui-extension-service";
-import type {
-  ScriptingServiceInternal,
-  ScriptingServiceType,
-} from "../scripting-service";
+import type { ScriptingServiceType } from "../scripting-service";
 
 vi.mock("monaco-editor");
 
@@ -28,10 +25,8 @@ const lock = () => {
 describe("scripting-service", () => {
   let _knimeService: any,
     _jsonDataService: any,
-    getScriptingService: (
-      mock?: ScriptingServiceType,
-    ) => ScriptingServiceInternal,
-    getScriptingServiceWithoutEventPoller: () => ScriptingServiceInternal;
+    getScriptingService: (mock?: ScriptingServiceType) => ScriptingServiceType,
+    getScriptingServiceWithoutEventPoller: () => ScriptingServiceType;
 
   beforeEach(async () => {
     // Make sure the module is reloaded to reset the singleton instance
@@ -115,14 +110,10 @@ describe("scripting-service", () => {
 
     // @ts-ignore
     const scriptingService = getScriptingService(mockScriptingService);
-    expect(scriptingService.sendToService).toBe(
-      mockScriptingService.sendToService,
-    );
+    expect(scriptingService).toBe(mockScriptingService);
 
     // All future calls should return the mock
-    expect(scriptingService.sendToService).toBe(
-      mockScriptingService.sendToService,
-    );
+    expect(scriptingService).toBe(mockScriptingService);
   });
 
   describe("settings", () => {
@@ -261,64 +252,6 @@ describe("scripting-service", () => {
         stderr: false,
       });
     });
-
-    it("calls appends newline at the end of console message", async () => {
-      const scriptingService = getScriptingService();
-
-      const { promise, resolve } = lock();
-      const eventHandler = vi.fn(resolve);
-      scriptingService.registerConsoleEventHandler(eventHandler);
-
-      scriptingService.sendToConsole({
-        text: "my console text",
-      });
-      scriptingService.sendToConsole({
-        warning: "my console warning",
-      });
-      scriptingService.sendToConsole({
-        error: "my console error",
-      });
-
-      await promise;
-      expect(eventHandler).toHaveBeenNthCalledWith(1, {
-        text: "my console text\n",
-      });
-      expect(eventHandler).toHaveBeenNthCalledWith(2, {
-        warning: "my console warning\n",
-      });
-      expect(eventHandler).toHaveBeenNthCalledWith(3, {
-        error: "my console error\n",
-      });
-    });
-
-    it("does not append newline if console message ends with newline", async () => {
-      const scriptingService = getScriptingService();
-
-      const { promise, resolve } = lock();
-      const eventHandler = vi.fn(resolve);
-      scriptingService.registerConsoleEventHandler(eventHandler);
-
-      scriptingService.sendToConsole({
-        text: "my console text\n",
-      });
-      scriptingService.sendToConsole({
-        warning: "my console warning\n",
-      });
-      scriptingService.sendToConsole({
-        error: "my console error\n",
-      });
-
-      await promise;
-      expect(eventHandler).toHaveBeenNthCalledWith(1, {
-        text: "my console text\n",
-      });
-      expect(eventHandler).toHaveBeenNthCalledWith(2, {
-        warning: "my console warning\n",
-      });
-      expect(eventHandler).toHaveBeenNthCalledWith(3, {
-        error: "my console error\n",
-      });
-    });
   });
 
   describe("input / output objects", () => {
@@ -342,14 +275,5 @@ describe("scripting-service", () => {
         method: "getOutputObjects",
       });
     });
-  });
-
-  it("initializes clear console callback", () => {
-    const callback = vi.fn();
-    const scriptingService = getScriptingServiceWithoutEventPoller();
-    scriptingService.initClearConsoleCallback(callback);
-    scriptingService.clearConsole();
-    expect(callback).toHaveBeenCalled();
-    delete (getScriptingService() as any)._clearConsoleCallback;
   });
 });
