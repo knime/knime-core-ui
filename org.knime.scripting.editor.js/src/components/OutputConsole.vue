@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
-import { useResizeObserver, useDebounceFn } from "@vueuse/core";
-
+import { useDebounceFn, useResizeObserver } from "@vueuse/core";
 import type { XOR } from "ts-xor";
-import type { ITerminalOptions, ITheme, ITerminalInitOnlyOptions } from "xterm";
+import { onMounted, onUnmounted, ref } from "vue";
+import TrashIcon from "webapps-common/ui/assets/img/icons/trash.svg";
+import * as knimeColors from "webapps-common/ui/colors/knimeColors.mjs";
+import FunctionButton from "webapps-common/ui/components/FunctionButton.vue";
+import type { ITerminalInitOnlyOptions, ITerminalOptions, ITheme } from "xterm";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import { Unicode11Addon } from "xterm-addon-unicode11";
-import * as knimeColors from "webapps-common/ui/colors/knimeColors.mjs";
-import TrashIcon from "webapps-common/ui/assets/img/icons/trash.svg";
-import FunctionButton from "webapps-common/ui/components/FunctionButton.vue";
 
 export type ConsoleText = XOR<
   { text: string },
@@ -17,7 +16,11 @@ export type ConsoleText = XOR<
   { error: string }
 >;
 
-export type ConsoleHandler = (text: ConsoleText) => void;
+export type ConsoleHandler = {
+  writeln: (text: ConsoleText) => void;
+  write: (text: ConsoleText) => void;
+  clear: () => void;
+};
 
 const ANSI_ERROR_START = "\u001b[48;5;224m\u001b[30m";
 const ANSI_WARNING_START = "\u001b[47m\u001b[30m";
@@ -77,30 +80,26 @@ term.attachCustomKeyEventHandler((e) => {
   return true;
 });
 
-type ConsoleHandlerEmit = (
-  e: "console-created",
-  handler: ConsoleHandler,
-  clearConsoleCallback: () => void,
-) => void;
+const emit =
+  defineEmits<(event: "console-created", handler: ConsoleHandler) => void>();
 
-const emit = defineEmits<ConsoleHandlerEmit>();
-
-const write = (text: ConsoleText) => {
+const format = (text: ConsoleText) => {
   if ("error" in text) {
-    term.write(`❌ ${ANSI_ERROR_START}${text.error}${ANSI_RESET}`);
+    return `❌ ${ANSI_ERROR_START}${text.error}${ANSI_RESET}`;
   } else if ("warning" in text) {
-    term.write(`⚠️  ${ANSI_WARNING_START}${text.warning}${ANSI_RESET}`);
+    return `⚠️  ${ANSI_WARNING_START}${text.warning}${ANSI_RESET}`;
   } else {
-    term.write(text.text);
+    return text.text;
   }
 };
 
 onMounted(() => {
   term.open(termRef.value as HTMLElement);
-  const clearConsoleCallback = () => {
-    term?.reset();
-  };
-  emit("console-created", write, clearConsoleCallback);
+  emit("console-created", {
+    write: (text) => term.write(format(text)),
+    writeln: (text) => term.writeln(format(text)),
+    clear: () => term.reset(),
+  });
   const listener = term.onLineFeed(() => {
     fitAddon.fit();
     listener.dispose();

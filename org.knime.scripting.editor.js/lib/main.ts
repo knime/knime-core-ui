@@ -1,23 +1,23 @@
 import CompactTabBar from "@/components/CompactTabBar.vue";
+import OutputConsole, {
+  type ConsoleHandler,
+  type ConsoleText,
+} from "@/components/OutputConsole.vue";
+import ScriptingEditor from "@/components/ScriptingEditor.vue";
+import { type SettingsMenuItem } from "@/components/SettingsPage.vue";
+
 import type {
   UseCodeEditorParams,
   UseCodeEditorReturn,
   UseDiffEditorParams,
   UseDiffEditorReturn,
-} from "../src/editor";
-import editor from "../src/editor";
-import OutputConsole from "../src/components/OutputConsole.vue";
-import ScriptingEditor from "../src/components/ScriptingEditor.vue";
-import { type SettingsMenuItem } from "../src/components/SettingsPage.vue";
-import type {
-  NodeSettings,
-  ScriptingServiceType,
-} from "../src/scripting-service";
-import { getScriptingService as getScriptingServiceInternal } from "../src/scripting-service";
-import * as scriptingServiceBrowserMock from "../src/scripting-service-browser-mock";
+} from "@/editor";
+import editor from "@/editor";
 
-const getScriptingService = (mock?: Partial<ScriptingServiceType>) =>
-  getScriptingServiceInternal(mock) as ScriptingServiceType;
+import type { NodeSettings, ScriptingServiceType } from "@/scripting-service";
+import { getScriptingService } from "@/scripting-service";
+import * as scriptingServiceBrowserMock from "@/scripting-service-browser-mock";
+import { consoleHandler } from "@/consoleHandler";
 
 export {
   CompactTabBar,
@@ -26,8 +26,11 @@ export {
   editor,
   getScriptingService,
   scriptingServiceBrowserMock,
+  consoleHandler,
 };
 export type {
+  ConsoleHandler,
+  ConsoleText,
   NodeSettings,
   ScriptingServiceType,
   SettingsMenuItem,

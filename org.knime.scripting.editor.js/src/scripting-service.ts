@@ -2,11 +2,12 @@ import {
   IFrameKnimeService,
   JsonDataService,
 } from "@knime/ui-extension-service";
+import type { InputOutputModel } from "./components/InputOutputItem.vue";
 import type { ConsoleText } from "./components/OutputConsole.vue";
+import { useMainCodeEditorStore } from "./editor";
 import { MonacoLSPConnection } from "./lsp/connection";
 import { KnimeMessageReader, KnimeMessageWriter } from "./lsp/knime-io";
-import type { InputOutputModel } from "./components/InputOutputItem.vue";
-import { useMainCodeEditorStore } from "./editor";
+import { consoleHandler } from "@/consoleHandler";
 
 export type NodeSettings = { script: string; scriptUsedFlowVariable?: string };
 type LanugageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
@@ -18,7 +19,6 @@ class ScriptingService {
   private _eventHandlers: { [type: string]: (args: any) => void } = {};
   private _runEventPoller: boolean = true;
   private _monacoLSPConnection: MonacoLSPConnection | null = null;
-  protected _clearConsoleCallback?: Function;
 
   constructor() {
     const _createKnimeService = async () => {
@@ -102,25 +102,6 @@ class ScriptingService {
     this.registerEventHandler("console", handler);
   }
 
-  public sendToConsole(text: ConsoleText) {
-    const consoleEventHandler = this._eventHandlers?.console;
-    if (typeof consoleEventHandler === "undefined") {
-      throw Error("Console handler has not yet been registered");
-    }
-    // Get the key-value pairs of the ConsoleText object
-    const entries = Object.entries(text);
-
-    // Get the first entry (since ConsoleText is a XOR type)
-    const key = entries[0][0] as "warning" | "error" | "text";
-    const value = entries[0][1];
-
-    // Check if the value doesn't end with '\n' and append it if it doesn't
-    if (!value.endsWith("\n")) {
-      text[key] += "\n";
-    }
-    consoleEventHandler(text);
-  }
-
   public async connectToLanguageServer(): Promise<void> {
     // TODO move the complete logic somewhere else?
     const editorModel = useMainCodeEditorStore().value?.editorModel;
@@ -137,7 +118,7 @@ class ScriptingService {
         new KnimeMessageWriter(),
       );
     } else {
-      this.sendToConsole({
+      consoleHandler.writeln({
         text: status.message ?? "Starting the language server failed",
       });
     }
@@ -172,17 +153,6 @@ class ScriptingService {
   public getOutputObjects(): Promise<InputOutputModel[]> {
     return this.sendToService("getOutputObjects");
   }
-
-  public clearConsole() {
-    this._clearConsoleCallback?.();
-  }
-}
-
-// only for internal use inside knime-scripting-editor
-export class ScriptingServiceInternal extends ScriptingService {
-  public initClearConsoleCallback(clearConsoleCallback: () => void) {
-    this._clearConsoleCallback = clearConsoleCallback;
-  }
 }
 
 export type ScriptingServiceType = Pick<
@@ -190,18 +160,16 @@ export type ScriptingServiceType = Pick<
   keyof ScriptingService
 >;
 
-let activeScriptingAPI: ScriptingServiceInternal;
+let activeScriptingAPI: ScriptingServiceType;
 
 const getScriptingService = (
-  mock?: Partial<ScriptingServiceType>,
-): ScriptingServiceInternal => {
+  mock?: ScriptingServiceType,
+): ScriptingServiceType => {
   if (typeof activeScriptingAPI === "undefined") {
-    const scriptingService = new ScriptingServiceInternal();
     if (typeof mock === "undefined") {
-      activeScriptingAPI = scriptingService;
+      activeScriptingAPI = new ScriptingService();
     } else {
-      scriptingService.stopEventPoller();
-      activeScriptingAPI = Object.assign(scriptingService, mock);
+      activeScriptingAPI = mock;
     }
   }
   return activeScriptingAPI;

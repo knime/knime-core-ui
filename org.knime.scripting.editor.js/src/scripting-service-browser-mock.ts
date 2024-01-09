@@ -186,8 +186,6 @@ export const createScriptingServiceMock = (
     configureLanguageServer: doNothing("configureLanguageServer"),
 
     // Console handling
-    clearConsole: doNothing("clearConsole"),
-    sendToConsole: doNothing("sendToConsole"),
     eventHandlers,
   };
 };

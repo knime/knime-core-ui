@@ -1,5 +1,5 @@
 import OutputConsole, {
-  type ConsoleText,
+  type ConsoleHandler,
 } from "@/components/OutputConsole.vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -19,9 +19,11 @@ describe("OutputConsole", () => {
     // Get the handler to write to the console
     expect(wrapper.emitted()).toHaveProperty("console-created");
     // @ts-ignore
-    const handler = wrapper.emitted()["console-created"][0][0];
+    const handler = wrapper.emitted()[
+      "console-created"
+    ][0][0] as ConsoleHandler;
 
-    return { wrapper, term, handler: handler as (text: ConsoleText) => void };
+    return { wrapper, term, handler };
   };
 
   afterEach(() => {
@@ -36,21 +38,28 @@ describe("OutputConsole", () => {
   it("write to console", async () => {
     const { term, handler } = await doMount();
 
-    handler({ text: "hallo" });
+    handler.write({ text: "hallo" });
     expect(term.write).toBeCalledWith("hallo");
+  });
+
+  it("write to console with new line", async () => {
+    const { term, handler } = await doMount();
+
+    handler.writeln({ text: "hallo" });
+    expect(term.writeln).toBeCalledWith("hallo");
   });
 
   it("does not highlight text", async () => {
     const { term, handler } = await doMount();
 
-    handler({ text: "hallo" });
+    handler.write({ text: "hallo" });
     expect(term.write).toBeCalledWith("hallo");
   });
 
   it("highlights error red and bold", async () => {
     const { term, handler } = await doMount();
 
-    handler({ error: "my error" });
+    handler.write({ error: "my error" });
     expect(term.write).toBeCalledWith(
       "❌ \u001b[48;5;224m\u001b[30mmy error\u001b[0m",
     );
@@ -59,7 +68,7 @@ describe("OutputConsole", () => {
   it("highlights warning yellow", async () => {
     const { term, handler } = await doMount();
 
-    handler({ warning: "my warning" });
+    handler.write({ warning: "my warning" });
     expect(term.write).toBeCalledWith(
       "⚠️  \u001b[47m\u001b[30mmy warning\u001b[0m",
     );
@@ -73,6 +82,13 @@ describe("OutputConsole", () => {
     button.vm.$emit("click");
     await flushPromises();
 
+    expect(term.reset).toHaveBeenCalledOnce();
+  });
+
+  it("clear via handler", async () => {
+    const { term, handler } = await doMount();
+
+    handler.clear();
     expect(term.reset).toHaveBeenCalledOnce();
   });
 
