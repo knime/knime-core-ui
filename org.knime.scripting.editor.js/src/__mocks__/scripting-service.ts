@@ -5,8 +5,6 @@ export const scriptingServiceMock = {
   getInitialSettings: vi.fn(() =>
     Promise.resolve({ script: "myInitialScript" }),
   ),
-  registerConsoleEventHandler: vi.fn(),
-  registerLanguageServerEventHandler: vi.fn(),
   registerEventHandler: vi.fn(),
   isCodeAssistantEnabled: vi.fn(),
   isCodeAssistantInstalled: vi.fn(),
@@ -22,3 +20,4 @@ export const scriptingServiceMock = {
 } as ScriptingServiceType;
 
 export const getScriptingService = vi.fn(() => scriptingServiceMock);
+export const initConsoleEventHandler = vi.fn();

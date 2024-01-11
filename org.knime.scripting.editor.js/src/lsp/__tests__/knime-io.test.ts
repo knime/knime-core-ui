@@ -11,8 +11,7 @@ describe("knime-io", () => {
 
   describe("reader", () => {
     const languageServerEventHandler = () =>
-      vi.mocked(getScriptingService().registerLanguageServerEventHandler).mock
-        .calls[0][0];
+      vi.mocked(getScriptingService().registerEventHandler).mock.calls[0][1];
 
     it("calls callback", () => {
       const reader = new KnimeMessageReader();

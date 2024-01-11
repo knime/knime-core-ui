@@ -175,10 +175,6 @@ export const createScriptingServiceMock = (
       log("Called scriptingService.registerEventHandler", type);
       eventHandlers.set(type, handler);
     },
-    registerConsoleEventHandler: doNothing("registerConsoleEventHandler"),
-    registerLanguageServerEventHandler: doNothing(
-      "registerLanguageServerEventHandler",
-    ),
 
     // Language server
     connectToLanguageServer: doNothing("connectToLanguageServer"),

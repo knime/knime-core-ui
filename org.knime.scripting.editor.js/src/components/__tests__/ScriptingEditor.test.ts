@@ -3,7 +3,7 @@ import { onKeyStroke } from "@vueuse/core";
 import { Pane, Splitpanes, type PaneProps } from "splitpanes";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getScriptingService } from "@/__mocks__/scripting-service";
+import { initConsoleEventHandler } from "@/__mocks__/scripting-service";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
 import FooterBar from "../FooterBar.vue";
 import InputOutputPane from "../InputOutputPane.vue";
@@ -378,7 +378,6 @@ describe("ScriptingEditor", () => {
 
   it("registers console event handler on console-created", async () => {
     // setup
-    const spy = vi.spyOn(getScriptingService(), "registerConsoleEventHandler");
     const { wrapper } = doMount();
     const outputConsole = wrapper.findComponent(OutputConsole);
 
@@ -386,8 +385,7 @@ describe("ScriptingEditor", () => {
     expect(outputConsole.emitted()).toHaveProperty("console-created");
 
     // @ts-ignore
-    const handler = outputConsole.emitted()["console-created"][0][0];
-    expect(spy).toHaveBeenCalledWith(handler.write);
+    expect(initConsoleEventHandler).toHaveBeenCalledOnce();
   });
 
   it("shows settings page", async () => {

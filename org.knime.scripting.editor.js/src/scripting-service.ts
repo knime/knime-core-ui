@@ -3,7 +3,6 @@ import {
   JsonDataService,
 } from "@knime/ui-extension-service";
 import type { InputOutputModel } from "./components/InputOutputItem.vue";
-import type { ConsoleText } from "./components/OutputConsole.vue";
 import { useMainCodeEditorStore } from "./editor";
 import { MonacoLSPConnection } from "./lsp/connection";
 import { KnimeMessageReader, KnimeMessageWriter } from "./lsp/knime-io";
@@ -97,16 +96,6 @@ class ScriptingService {
     this._eventHandlers[type] = handler;
   }
 
-  public registerLanguageServerEventHandler(
-    handler: (message: string) => void,
-  ) {
-    this.registerEventHandler("language-server", handler);
-  }
-
-  public registerConsoleEventHandler(handler: (text: ConsoleText) => void) {
-    this.registerEventHandler("console", handler);
-  }
-
   public async connectToLanguageServer(): Promise<void> {
     // TODO move the complete logic somewhere else?
     const editorModel = useMainCodeEditorStore().value?.editorModel;
@@ -195,5 +184,9 @@ export type ScriptingServiceType = Pick<
  */
 export const getScriptingService = (): ScriptingServiceType =>
   getScriptingServiceInstance();
+
+export const initConsoleEventHandler = () => {
+  getScriptingService().registerEventHandler("console", consoleHandler.write);
+};
 
 setScriptingServiceInstance(new ScriptingService());
