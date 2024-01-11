@@ -41,8 +41,15 @@ describe("ScriptingEditor", () => {
       props: { title: "", language: "", fileName: "", ...args.props },
       slots: args.slots,
     });
-    const { leftPane, mainPane, topPane, bottomPane, editorPane, rightPane } =
-      wrapper.vm.$refs as Record<string, PaneProps>;
+    const findPane = (testId: string): PaneProps =>
+      (wrapper.findComponent(`[data-testid="${testId}"]`) as any).props();
+    const leftPane = findPane("leftPane");
+    const mainPane = findPane("mainPane");
+    const topPane = findPane("topPane");
+    const bottomPane = findPane("bottomPane");
+    const editorPane = findPane("editorPane");
+    const rightPane = findPane("rightPane");
+
     const allSplitpanes = wrapper.findAllComponents(Splitpanes);
     const mainSplitpane = allSplitpanes.at(0);
     const horizontalSplitpane = allSplitpanes.at(1);
