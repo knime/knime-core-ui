@@ -25,20 +25,25 @@ const lock = () => {
 describe("scripting-service", () => {
   let _knimeService: any,
     _jsonDataService: any,
-    getScriptingService: (mock?: ScriptingServiceType) => ScriptingServiceType,
-    getScriptingServiceWithoutEventPoller: () => ScriptingServiceType;
+    _resolveEventPoller: () => void;
 
-  beforeEach(async () => {
+  const getScriptingService = async (stopEventPoller = true) => {
+    const scriptingService = (
+      await import("../scripting-service")
+    ).getScriptingService() as ScriptingServiceType & {
+      stopEventPoller: () => void;
+    };
+
+    if (stopEventPoller) {
+      scriptingService.stopEventPoller();
+      _resolveEventPoller();
+    }
+    return scriptingService;
+  };
+
+  beforeEach(() => {
     // Make sure the module is reloaded to reset the singleton instance
     vi.resetModules();
-    getScriptingService = (await import("../scripting-service"))
-      .getScriptingService;
-
-    getScriptingServiceWithoutEventPoller = () => {
-      const scriptingService = getScriptingService();
-      scriptingService.stopEventPoller();
-      return scriptingService;
-    };
 
     // Mock the services
     _knimeService = {
@@ -46,13 +51,17 @@ describe("scripting-service", () => {
     };
     vi.mocked(IFrameKnimeService).mockReturnValue(_knimeService);
 
+    const { promise: blockEventPoller, resolve: resolveEventPoller } = lock();
     _jsonDataService = {
       registerDataGetter: vi.fn(() => {}),
       initialData: vi.fn(() => ({ script: "foo" })),
-      data: vi.fn(() => {}),
+      data: vi.fn((options: { method: string }) =>
+        options.method === "getEvent" ? blockEventPoller : Promise.resolve(),
+      ),
       applyData: vi.fn(() => {}),
     };
     vi.mocked(JsonDataService).mockReturnValue(_jsonDataService);
+    _resolveEventPoller = resolveEventPoller;
   });
 
   afterEach(() => {
@@ -66,7 +75,7 @@ describe("scripting-service", () => {
     // Replace the mock such that we can block the initialization
     const { promise, resolve } = lock();
     _knimeService.waitForInitialization.mockReturnValue(promise);
-    const sendToServicePromise = getScriptingServiceWithoutEventPoller()
+    const sendToServicePromise = (await getScriptingService())
       .sendToService("dummy")
       .then(() => {
         sendToServiceResolved();
@@ -87,46 +96,33 @@ describe("scripting-service", () => {
   });
 
   it("initializes the JsonDataService with the KnimeService", async () => {
-    await getScriptingServiceWithoutEventPoller().sendToService("dummy");
+    await (await getScriptingService()).sendToService("dummy");
     expect(JsonDataService).toHaveBeenCalled();
     expect(JsonDataService).toHaveBeenCalledWith(_knimeService);
   });
 
   it("sends requests to the JsonDataService", async () => {
-    await getScriptingServiceWithoutEventPoller().sendToService("dummy", [
-      "foo",
-      "bar",
-    ]);
+    await (await getScriptingService()).sendToService("dummy", ["foo", "bar"]);
     expect(_jsonDataService.data).toHaveBeenCalledWith({
       method: "dummy",
       options: ["foo", "bar"],
     });
   });
 
-  it("uses the mock if provided", () => {
-    const mockScriptingService: Partial<ScriptingServiceType> = {
-      sendToService: vi.fn(),
-    };
-
-    // @ts-ignore
-    const scriptingService = getScriptingService(mockScriptingService);
-    expect(scriptingService).toBe(mockScriptingService);
-
-    // All future calls should return the mock
-    expect(scriptingService).toBe(mockScriptingService);
-  });
-
   describe("settings", () => {
     it("gets initial data from the JsonDataService", async () => {
-      const initalSettings =
-        await getScriptingServiceWithoutEventPoller().getInitialSettings();
+      const initalSettings = await (
+        await getScriptingService()
+      ).getInitialSettings();
       expect(initalSettings).toEqual({ script: "foo" });
       expect(_jsonDataService.initialData).toHaveBeenCalledOnce();
       expect(_jsonDataService.initialData).toHaveBeenCalledWith();
     });
 
     it("saves settings by calling JsonDataService.applyData", async () => {
-      await getScriptingServiceWithoutEventPoller().saveSettings({
+      await (
+        await getScriptingService()
+      ).saveSettings({
         script: "bar",
       });
       expect(_jsonDataService.applyData).toHaveBeenCalledOnce();
@@ -140,7 +136,7 @@ describe("scripting-service", () => {
         },
       );
 
-      const scriptingService = getScriptingServiceWithoutEventPoller();
+      const scriptingService = await getScriptingService();
       await scriptingService.saveSettings({ script: "bar" });
       expect(dataGetter).not.toBeNull();
       expect(dataGetter!()).toEqual({ script: "bar" });
@@ -151,21 +147,6 @@ describe("scripting-service", () => {
   });
 
   describe("events handler", () => {
-    beforeEach(() => {
-      // Do not spam the event poller by returning events all the time
-      const { promise: blockForever } = lock();
-      _jsonDataService.data.mockImplementation(
-        ({ method }: { method: string }) => {
-          expect(method).toBe("getEvent");
-          return blockForever;
-        },
-      );
-    });
-
-    afterEach(() => {
-      getScriptingService().stopEventPoller();
-    });
-
     it("polls events from the service", async () => {
       // Return one event
       _jsonDataService.data.mockImplementationOnce(
@@ -175,17 +156,20 @@ describe("scripting-service", () => {
       );
 
       // Scripting service initialization starts the event poller
-      getScriptingService();
+      const scriptingService = await getScriptingService(false);
 
       // Wait for the event poller to fetch the event
       await sleep(10);
       expect(_jsonDataService.data).toHaveBeenCalledWith({
         method: "getEvent",
       });
+
+      scriptingService.stopEventPoller();
+      _resolveEventPoller();
     });
 
     it("calls the correct event handler", async () => {
-      const scriptingService = getScriptingService();
+      const scriptingService = await getScriptingService(false);
 
       // Event handler for foo (the first event resolves the promise)
       const { promise: eventFooPromise, resolve: resolveFooEvent } = lock();
@@ -205,15 +189,19 @@ describe("scripting-service", () => {
         return Promise.resolve({ type: "foo", data: "data for foo" });
       });
 
+      _resolveEventPoller();
       await eventFooPromise;
       expect(eventHandlerFoo).toHaveBeenCalledWith("data for foo");
 
       await eventBarPromise;
       expect(eventHandlerBar).toHaveBeenCalledWith("data for bar");
+
+      scriptingService.stopEventPoller();
+      _resolveEventPoller();
     });
 
     it("calls the language-server event handler", async () => {
-      const scriptingService = getScriptingService();
+      const scriptingService = await getScriptingService(false);
 
       const { promise, resolve } = lock();
       const eventHandler = vi.fn(resolve);
@@ -227,12 +215,16 @@ describe("scripting-service", () => {
         });
       });
 
+      _resolveEventPoller();
       await promise;
       expect(eventHandler).toHaveBeenCalledWith("data for language server");
+
+      scriptingService.stopEventPoller();
+      _resolveEventPoller();
     });
 
     it("calls the console event handler", async () => {
-      const scriptingService = getScriptingService();
+      const scriptingService = await getScriptingService(false);
 
       const { promise, resolve } = lock();
       const eventHandler = vi.fn(resolve);
@@ -246,31 +238,35 @@ describe("scripting-service", () => {
         });
       });
 
+      _resolveEventPoller();
       await promise;
       expect(eventHandler).toHaveBeenCalledWith({
         text: "my console text",
         stderr: false,
       });
+
+      scriptingService.stopEventPoller();
+      _resolveEventPoller();
     });
   });
 
   describe("input / output objects", () => {
     it("requests getFlowVariableInputs", async () => {
-      await getScriptingServiceWithoutEventPoller().getFlowVariableInputs();
+      await (await getScriptingService()).getFlowVariableInputs();
       expect(_jsonDataService.data).toHaveBeenCalledWith({
         method: "getFlowVariableInputs",
       });
     });
 
     it("requests getInputObjects", async () => {
-      await getScriptingServiceWithoutEventPoller().getInputObjects();
+      await (await getScriptingService()).getInputObjects();
       expect(_jsonDataService.data).toHaveBeenCalledWith({
         method: "getInputObjects",
       });
     });
 
     it("requests getOutputObjects", async () => {
-      await getScriptingServiceWithoutEventPoller().getOutputObjects();
+      await (await getScriptingService()).getOutputObjects();
       expect(_jsonDataService.data).toHaveBeenCalledWith({
         method: "getOutputObjects",
       });

@@ -19,7 +19,9 @@ export default defineConfig({
         new URL("tsconfig.app.json", import.meta.url),
       ),
     }),
-    cssInjectedByJsPlugin(), // not supported natively in Vite yet, see https://github.com/vitejs/vite/issues/1579]
+    cssInjectedByJsPlugin({
+      jsAssetsFilterFunction: (asset) => asset.fileName === "main.js",
+    }), // not supported natively in Vite yet, see https://github.com/vitejs/vite/issues/1579]
   ],
   resolve: {
     alias: {
@@ -28,8 +30,16 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: fileURLToPath(new URL("lib/main.ts", import.meta.url)),
-      fileName: "knime-scripting-editor",
+      entry: [
+        fileURLToPath(new URL("lib/main.ts", import.meta.url)),
+        fileURLToPath(
+          new URL("src/scripting-service-instance.ts", import.meta.url),
+        ),
+        fileURLToPath(
+          new URL("src/scripting-service-browser-mock.ts", import.meta.url),
+        ),
+      ],
+      // fileName: "knime-scripting-editor",
       formats: ["es"],
     },
     rollupOptions: {

@@ -14,19 +14,20 @@ import type {
 } from "@/editor";
 import editor from "@/editor";
 
-import type { NodeSettings, ScriptingServiceType } from "@/scripting-service";
-import { getScriptingService } from "@/scripting-service";
-import * as scriptingServiceBrowserMock from "@/scripting-service-browser-mock";
 import { consoleHandler } from "@/consoleHandler";
+import {
+  getScriptingService,
+  type NodeSettings,
+  type ScriptingServiceType,
+} from "@/scripting-service";
 
 export {
   CompactTabBar,
-  OutputConsole,
-  ScriptingEditor,
+  consoleHandler,
   editor,
   getScriptingService,
-  scriptingServiceBrowserMock,
-  consoleHandler,
+  OutputConsole,
+  ScriptingEditor,
 };
 export type {
   ConsoleHandler,

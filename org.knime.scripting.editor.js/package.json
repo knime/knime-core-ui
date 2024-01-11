@@ -73,8 +73,13 @@
   "files": [
     "dist"
   ],
-  "types": "./dist/knime-scripting-editor.d.ts",
-  "main": "./dist/knime-scripting-editor.js",
+  "types": "./dist/main.d.ts",
+  "main": "./dist/main.js",
+  "module": "./dist/main.js",
+  "exports": {
+    ".": "./dist/main.js",
+    "./scripting-service-browser-mock": "./dist/scripting-service-browser-mock.js"
+  },
   "engines": {
     "node": "18.x"
   },

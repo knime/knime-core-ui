@@ -6,20 +6,20 @@ const SLEEP_TIME_ANY_CALL = 100;
 const SLEEP_TIME_AI_SUGGESTION = 2000;
 
 const log = (message: any, ...args: any[]) => {
-  if (consola) {
-    consola.log(message, ...args);
-  } else {
+  if (typeof consola === "undefined") {
     // eslint-disable-next-line no-console
     console.log(message, ...args);
+  } else {
+    consola.log(message, ...args);
   }
 };
 
 const error = (message: any, ...args: any[]) => {
-  if (consola) {
-    consola.error(message, ...args);
-  } else {
+  if (typeof consola === "undefined") {
     // eslint-disable-next-line no-console
     console.error(message, ...args);
+  } else {
+    consola.error(message, ...args);
   }
 };
 
@@ -171,7 +171,6 @@ export const createScriptingServiceMock = (
     },
 
     // Event handler
-    stopEventPoller: doNothing("stopEventPoller"),
     registerEventHandler(type, handler) {
       log("Called scriptingService.registerEventHandler", type);
       eventHandlers.set(type, handler);
