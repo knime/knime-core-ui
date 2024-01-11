@@ -1,10 +1,7 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
 import InputOutputPane from "../InputOutputPane.vue";
-import {
-  getScriptingService,
-  scriptingServiceMock,
-} from "@/__mocks__/scripting-service";
+import { scriptingServiceMock } from "@/__mocks__/scripting-service";
 import {} from "node:test";
 import InputOutputItem, {
   INPUT_OUTPUT_DRAG_EVENT_ID,
@@ -35,17 +32,22 @@ describe("InputOutputPane", () => {
   });
 
   it("renders input / output items", async () => {
-    scriptingServiceMock.getInputObjects = vi.fn(() => [
-      { name: "myInputObject1", type: "myType" },
-      { name: "myInputObject2", type: "myType" },
-    ]);
-    scriptingServiceMock.getOutputObjects = vi.fn(() => [
-      { name: "myOutputObject", type: "myType" },
-    ]);
-    scriptingServiceMock.getFlowVariableInputs = vi.fn(() => ({
-      name: "myFlowVarInp",
-      type: "myType",
-    }));
+    vi.mocked(scriptingServiceMock.getInputObjects).mockImplementation(() =>
+      Promise.resolve([
+        { name: "myInputObject1", type: "myType" },
+        { name: "myInputObject2", type: "myType" },
+      ]),
+    );
+    vi.mocked(scriptingServiceMock.getOutputObjects).mockImplementation(() =>
+      Promise.resolve([{ name: "myOutputObject", type: "myType" }]),
+    );
+    vi.mocked(scriptingServiceMock.getFlowVariableInputs).mockImplementation(
+      () =>
+        Promise.resolve({
+          name: "myFlowVarInp",
+          type: "myType",
+        }),
+    );
     const wrapper = mount(InputOutputPane);
     await flushPromises();
     const inpOupPanes = wrapper.findAllComponents(InputOutputItem);
@@ -143,8 +145,6 @@ describe("InputOutputPane", () => {
       expect(
         wrongSourceDropEventMock.dataTransfer.getData,
       ).toHaveBeenCalledWith("eventId");
-      expect(getScriptingService().getScript).not.toHaveBeenCalled();
-      expect(getScriptingService().setScript).not.toHaveBeenCalled();
     });
 
     it("drop event handler adds required import", async () => {
@@ -185,9 +185,6 @@ describe("InputOutputPane", () => {
       )![0][0] as Function;
       // run drop event handler
       dropEventHandler(correctSourceDropEventMock);
-      expect(
-        getScriptingService().setOnDidChangeContentListener,
-      ).not.toHaveBeenCalled();
     });
 
     it("selection is not cleared after unsuccessful drop", async () => {

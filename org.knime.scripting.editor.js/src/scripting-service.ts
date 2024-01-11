@@ -8,6 +8,10 @@ import { useMainCodeEditorStore } from "./editor";
 import { MonacoLSPConnection } from "./lsp/connection";
 import { KnimeMessageReader, KnimeMessageWriter } from "./lsp/knime-io";
 import { consoleHandler } from "@/consoleHandler";
+import {
+  getScriptingServiceInstance,
+  setScriptingServiceInstance,
+} from "./scripting-service-instance";
 
 export type NodeSettings = { script: string; scriptUsedFlowVariable?: string };
 type LanugageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
@@ -61,7 +65,8 @@ class ScriptingService {
     }
   }
 
-  public stopEventPoller() {
+  // NB: this is only used in tests
+  private stopEventPoller() {
     this._runEventPoller = false;
   }
 
@@ -160,19 +165,35 @@ export type ScriptingServiceType = Pick<
   keyof ScriptingService
 >;
 
-let activeScriptingAPI: ScriptingServiceType;
+/**
+ * Get the singleton instance of the scripting service. The scripting service
+ * provides access to the backend KNIME instance.
+ *
+ * Note that it is possible to provide a custom scripting service instance in
+ * a browser development environment (see example).
+ *
+ * @returns the scripting service instance
+ * @example
+ * // Provide a custom scripting service instance in a browser development environment
+ * // vite.config.ts
+ *   resolve: {
+ *   alias: {
+ *     "./scripting-service-instance.js":
+ *       process.env.APP_ENV === "browser"
+ *         ? <path to scripting-service-instance-browser.ts>,
+ *         : "./scripting-service-instance.js",
+ *   },
+ * },
+ *
+ * // scripting-service-instance-browser.ts
+ * import { createScriptingServiceMock } from "@knime/scripting-editor/scripting-service-browser-mock";
+ * const scriptingService = createScriptingServiceMock({
+ *   // optional customizations
+ * });
+ * export const getScriptingServiceInstance = () => scriptingService;
+ * export const setScriptingServiceInstance = () => {};
+ */
+export const getScriptingService = (): ScriptingServiceType =>
+  getScriptingServiceInstance();
 
-const getScriptingService = (
-  mock?: ScriptingServiceType,
-): ScriptingServiceType => {
-  if (typeof activeScriptingAPI === "undefined") {
-    if (typeof mock === "undefined") {
-      activeScriptingAPI = new ScriptingService();
-    } else {
-      activeScriptingAPI = mock;
-    }
-  }
-  return activeScriptingAPI;
-};
-
-export { getScriptingService };
+setScriptingServiceInstance(new ScriptingService());
