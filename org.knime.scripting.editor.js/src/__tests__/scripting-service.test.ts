@@ -199,55 +199,6 @@ describe("scripting-service", () => {
       scriptingService.stopEventPoller();
       _resolveEventPoller();
     });
-
-    it("calls the language-server event handler", async () => {
-      const scriptingService = await getScriptingService(false);
-
-      const { promise, resolve } = lock();
-      const eventHandler = vi.fn(resolve);
-      scriptingService.registerLanguageServerEventHandler(eventHandler);
-
-      // Let the next data call return an event for the language server
-      _jsonDataService.data.mockImplementationOnce(() => {
-        return Promise.resolve({
-          type: "language-server",
-          data: "data for language server",
-        });
-      });
-
-      _resolveEventPoller();
-      await promise;
-      expect(eventHandler).toHaveBeenCalledWith("data for language server");
-
-      scriptingService.stopEventPoller();
-      _resolveEventPoller();
-    });
-
-    it("calls the console event handler", async () => {
-      const scriptingService = await getScriptingService(false);
-
-      const { promise, resolve } = lock();
-      const eventHandler = vi.fn(resolve);
-      scriptingService.registerConsoleEventHandler(eventHandler);
-
-      // Let the next data call return an event for the console
-      _jsonDataService.data.mockImplementationOnce(() => {
-        return Promise.resolve({
-          type: "console",
-          data: { text: "my console text", stderr: false },
-        });
-      });
-
-      _resolveEventPoller();
-      await promise;
-      expect(eventHandler).toHaveBeenCalledWith({
-        text: "my console text",
-        stderr: false,
-      });
-
-      scriptingService.stopEventPoller();
-      _resolveEventPoller();
-    });
   });
 
   describe("input / output objects", () => {

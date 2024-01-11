@@ -24,7 +24,7 @@ export class KnimeMessageReader
 
   constructor() {
     super();
-    getScriptingService().registerLanguageServerEventHandler((message) => {
+    getScriptingService().registerEventHandler("language-server", (message) => {
       this.readMessage(message);
     });
     this.callback = null;

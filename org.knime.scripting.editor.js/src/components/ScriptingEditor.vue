@@ -6,7 +6,10 @@ import { computed, onMounted, reactive, ref } from "vue";
 import type { MenuItem } from "webapps-common/ui/components/MenuItems.vue";
 
 import { useMainCodeEditor } from "@/editor";
-import { getScriptingService } from "@/scripting-service";
+import {
+  getScriptingService,
+  initConsoleEventHandler,
+} from "@/scripting-service";
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 import CompactTabBar from "./CompactTabBar.vue";
 import FooterBar from "./FooterBar.vue";
@@ -158,7 +161,7 @@ const bottomPaneOptions = [{ value: "console", label: "Console" }];
 const bottomPaneActiveTab = ref<"console">("console");
 const onConsoleCreated = (handler: ConsoleHandler) => {
   consoleHandlerStore.value = handler;
-  getScriptingService().registerConsoleEventHandler(handler.write);
+  initConsoleEventHandler();
 };
 </script>
 
