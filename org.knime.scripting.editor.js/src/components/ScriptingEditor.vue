@@ -185,7 +185,7 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
     </SettingsPage>
     <splitpanes
       v-show="!showSettingsPage"
-      ref="mainSplitpane"
+      data-testid="mainSplitpane"
       class="common-splitter unset-transition main-splitpane"
       :dbl-click-splitter="false"
       :class="{
@@ -203,14 +203,18 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
       "
       @resized="updatePreviousPaneSize('left')"
     >
-      <pane ref="leftPane" :size="currentPaneSizes.left" class="scrollable-y">
+      <pane
+        data-testid="leftPane"
+        :size="currentPaneSizes.left"
+        class="scrollable-y"
+      >
         <InputOutputPane
           @drop-event-handler-created="onDropEventHandlerCreated"
         />
       </pane>
-      <pane ref="mainPane" :size="usedMainPaneSize" min-size="40">
+      <pane data-testid="mainPane" :size="usedMainPaneSize" min-size="40">
         <splitpanes
-          ref="horizontalSplitpane"
+          data-testid="horizontalSplitpane"
           horizontal
           class="common-splitter horizontal-splitpane"
           :dbl-click-splitter="false"
@@ -222,12 +226,12 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
           @resize="resizePane($event[1].size, 'bottom')"
         >
           <pane
-            ref="topPane"
+            data-testid="topPane"
             :size="usedVerticalCodeEditorPaneSize"
             min-size="40"
           >
             <splitpanes
-              ref="verticalSplitpane"
+              data-testid="verticalSplitpane"
               class="common-splitter unset-transition vertical-splitpane"
               :class="{
                 'left-facing-splitter': isRightPaneCollapsed,
@@ -238,7 +242,7 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
               @resized="resizePane($event[1].size, 'right')"
             >
               <pane
-                ref="editorPane"
+                data-testid="editorPane"
                 :size="usedHorizontalCodeEditorPaneSize"
                 min-size="25"
               >
@@ -264,7 +268,7 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
                 </CodeEditorControlBar>
               </pane>
               <pane
-                ref="rightPane"
+                data-testid="rightPane"
                 :size="currentPaneSizes.right"
                 class="right-pane"
               >
@@ -272,7 +276,7 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
               </pane>
             </splitpanes>
           </pane>
-          <pane ref="bottomPane" :size="currentPaneSizes.bottom">
+          <pane data-testid="bottomPane" :size="currentPaneSizes.bottom">
             <div class="tab-bar-container">
               <CompactTabBar
                 v-model="bottomPaneActiveTab"
