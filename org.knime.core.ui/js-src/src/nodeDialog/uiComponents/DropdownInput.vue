@@ -153,7 +153,7 @@ const onChange = (value: string) => {
       :possible-values="options"
       @update:model-value="onChange"
     />
-    <div v-else-if="hasOneOption" class="default">
+    <div v-else-if="hasOneOption && options" class="default">
       {{ options[0].text }}
     </div>
     <div v-else class="default no-value">No possible values</div>
