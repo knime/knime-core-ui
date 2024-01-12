@@ -4,6 +4,9 @@
     "data": {
       "OneOfControl": "SUM",
       "SimpleDropdown": "SUM",
+      "OneOptionDropdown": "AVERAGE",
+      "OneOptionNoDropdown": "AVERAGE",
+      "NoOptionNoDropdown": "",
       "EmptyState": {
         "selected": ""
       },
@@ -117,6 +120,46 @@
           "title": "Async possible values (fail)",
           "description": "Possible values are fetched asynchronously but the result has state 'FAIL'",
           "default": ""
+        },
+        "OneOptionDropdown": {
+          "type": "object",
+          "properties": {
+            "selected": {
+              "type": "string"
+            }
+          },
+          "title": "Dropdown with one option",
+          "description": "Tests a dropdown with one option"
+        },
+        "OneOptionNoDropdown": {
+          "type": "object",
+          "properties": {
+            "selected": {
+              "type": "string"
+            }
+          },
+          "title": "One option displayed in text",
+          "description": "Tests show normal text with one option"
+        },
+        "NoOptionNoDropdown": {
+          "type": "object",
+          "properties": {
+            "selected": {
+              "type": "string"
+            }
+          },
+          "title": "No options displayed in text",
+          "description": "Tests show normal text with no option"
+        },
+        "NoPossibleValuesText": {
+          "type": "object",
+          "properties": {
+            "selected": {
+              "type": "string"
+            }
+          },
+          "title": "No possible values (without dropdown)",
+          "description": "Tests a dropdown with no possible values and display in text"
         }
       }
     },
@@ -153,6 +196,41 @@
                     "text": "Average"
                   }
                 ]
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/OneOptionNoDropdown",
+              "options": {
+                "format": "dropDown",
+                "showDropdown": false,
+                "possibleValues": [
+                  {
+                    "id": "AVERAGE",
+                    "text": "Average"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/OneOptionDropdown",
+              "options": {
+                "format": "dropDown",
+                "possibleValues": [
+                  {
+                    "id": "AVERAGE",
+                    "text": "Average"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/NoOptionNoDropdown",
+              "options": {
+                "format": "dropDown",
+                "showDropdown": false
               }
             }
           ]

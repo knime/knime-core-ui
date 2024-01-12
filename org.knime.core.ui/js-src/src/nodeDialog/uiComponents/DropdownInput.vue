@@ -50,6 +50,10 @@ const getFirstValueFromDropdownOrNull = (result: IdAndText[]) => {
   );
 };
 
+const showDropdown = computed(
+  () => control.value.uischema.options?.showDropdown ?? true,
+);
+
 const choicesUpdateHandler = computed(
   () => control.value.uischema.options?.choicesUpdateHandler,
 );
@@ -120,6 +124,14 @@ const dropdownValue = computed(() =>
   props.controlDataToDropdownValue(control.value.data),
 );
 
+const hasMultipleOptions = computed(() => {
+  return options.value ? Boolean(options.value.length > 1) : false;
+});
+
+const hasOneOption = computed(() => {
+  return options.value ? Boolean(options.value.length === 1) : false;
+});
+
 const onChange = (value: string) => {
   handleDirtyChange(props.dropdownValueToControlData(value));
 };
@@ -133,6 +145,7 @@ const onChange = (value: string) => {
   >
     <!-- eslint-disable vue/attribute-hyphenation typescript complains with ':aria-label' instead of ':ariaLabel'-->
     <LoadingDropdown
+      v-if="showDropdown || hasMultipleOptions"
       :id="labelForId ?? ''"
       :ariaLabel="control.label"
       :disabled="disabled"
@@ -140,5 +153,9 @@ const onChange = (value: string) => {
       :possible-values="options"
       @update:model-value="onChange"
     />
+    <div v-else-if="hasOneOption" class="default">
+      {{ options[0].text }}
+    </div>
+    <div v-else class="default no-value">No possible values</div>
   </LabeledInput>
 </template>

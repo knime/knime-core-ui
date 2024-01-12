@@ -207,6 +207,37 @@ describe("DropdownInput.vue", () => {
     expect(wrapper.findComponent(Dropdown).vm.disabled).toBeTruthy();
   });
 
+  it("checks that it does not render a dropdown if there is only one option and showDropdown is set to false", () => {
+    props.control.uischema.options.possibleValues = [
+      {
+        id: "Universe_0_0",
+        text: "Universe_0_0",
+      },
+    ];
+    props.control.uischema.options.showDropdown = false;
+    const { wrapper } = mountJsonFormsComponent(DropdownInput, { props });
+    expect(wrapper.findComponent(Dropdown).exists()).toBe(false);
+  });
+
+  it("checks that it does not render a dropdown if there is no option and showDropdown is set to false", () => {
+    props.control.uischema.options.possibleValues = [];
+    props.control.uischema.options.showDropdown = false;
+    const { wrapper } = mountJsonFormsComponent(DropdownInput, { props });
+    expect(wrapper.findComponent(Dropdown).exists()).toBe(false);
+    expect(wrapper.find(".no-value").text()).toBe("No possible values");
+  });
+
+  it("checks that it does render a dropdown if there is only one option and showDropdown is not set to false", () => {
+    props.control.uischema.options.possibleValues = [
+      {
+        id: "Universe_0_0",
+        text: "Universe_0_0",
+      },
+    ];
+    const { wrapper } = mountJsonFormsComponent(DropdownInput, { props });
+    expect(wrapper.findComponent(Dropdown).exists()).toBe(true);
+  });
+
   describe("dependencies to other settings", () => {
     let settingsChangeCallback,
       initialSettingsChangeCallback,
