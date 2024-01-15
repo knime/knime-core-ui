@@ -8,9 +8,13 @@ import { getScriptingService } from "@/scripting-service";
 import { useInputOutputSelectionStore } from "@/store/io-selection";
 import { useMainCodeEditorStore } from "@/editor";
 
-const emit = defineEmits<{
-  (e: "drop-event-handler-created", dropEventHandler: Function): void;
-}>();
+const emit =
+  defineEmits<
+    (
+      e: "drop-event-handler-created",
+      dropEventHandler: (payload: DragEvent) => void,
+    ) => void
+  >();
 
 const inputOutputItems: Ref<InputOutputModel[]> = ref([]);
 const inputOutputSelectionStore = useInputOutputSelectionStore();

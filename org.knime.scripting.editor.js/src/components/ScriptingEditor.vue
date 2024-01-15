@@ -135,8 +135,8 @@ onKeyStroke("z", (e) => {
   }
 });
 // Dropping input/output items
-const dropEventHandler = ref<Function>();
-const onDropEventHandlerCreated = (handler: Function) => {
+const dropEventHandler = ref<(payload: DragEvent) => void>();
+const onDropEventHandlerCreated = (handler: (payload: DragEvent) => void) => {
   dropEventHandler.value = handler;
 };
 
@@ -249,13 +249,7 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
                 <div
                   ref="editorContainer"
                   class="code-editor"
-                  @drop="
-                    (event: DragEvent) => {
-                      typeof dropEventHandler !== 'undefined'
-                        ? dropEventHandler(event)
-                        : null;
-                    }
-                  "
+                  @drop="dropEventHandler"
                 />
                 <CodeEditorControlBar
                   v-if="showControlBar"
