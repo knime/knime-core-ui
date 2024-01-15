@@ -19,7 +19,7 @@ import type { ConsoleHandler } from "./OutputConsole.vue";
 import OutputConsole from "./OutputConsole.vue";
 import type { SettingsMenuItem } from "./SettingsPage.vue";
 import SettingsPage from "./SettingsPage.vue";
-import { consoleHandlerStore } from "@/consoleHandler";
+import { setConsoleHandler } from "@/consoleHandler";
 
 export type PaneSizes = {
   [key in "left" | "right" | "bottom"]: number;
@@ -160,7 +160,7 @@ const onMenuItemClicked = (args: { event: Event; item: SettingsMenuItem }) => {
 const bottomPaneOptions = [{ value: "console", label: "Console" }];
 const bottomPaneActiveTab = ref<"console">("console");
 const onConsoleCreated = (handler: ConsoleHandler) => {
-  consoleHandlerStore.value = handler;
+  setConsoleHandler(handler);
   initConsoleEventHandler();
 };
 </script>

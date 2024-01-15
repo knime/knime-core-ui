@@ -11,7 +11,7 @@ import OutputConsole from "../OutputConsole.vue";
 import ScriptingEditor from "../ScriptingEditor.vue";
 import SettingsPage from "../SettingsPage.vue";
 import { useMainCodeEditor } from "@/editor";
-import { consoleHandlerStore } from "@/consoleHandler";
+import { consoleHandler } from "@/consoleHandler";
 
 vi.mock("xterm");
 vi.mock("@vueuse/core");
@@ -380,7 +380,7 @@ describe("ScriptingEditor", () => {
 
     // @ts-ignore
     const handler = outputConsole.emitted()["console-created"][0][0];
-    expect(consoleHandlerStore.value).toBe(handler);
+    expect(consoleHandler).toBe(handler);
   });
 
   it("registers console event handler on console-created", async () => {
