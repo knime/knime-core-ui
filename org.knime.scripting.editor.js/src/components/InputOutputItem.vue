@@ -137,7 +137,7 @@ const onHeaderDragEnd = () => {
 
 <template>
   <Collapser
-    v-if="inputOutputItem.subItems"
+    v-if="inputOutputItem.subItems?.length"
     :initially-expanded="
       inputOutputItem.subItems?.length <= INITIALLY_EXPANDED_MAX_SUBITEMS
     "

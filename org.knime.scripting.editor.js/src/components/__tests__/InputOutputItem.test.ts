@@ -209,6 +209,12 @@ describe("InputOutputItem", () => {
       wrapper.unmount();
     });
 
+    it("does not render collapser if subItems is array of length 0", () => {
+      const wrapper = doMount({ ...inputOutputItemMinimal, subItems: [] });
+      expect(wrapper.findComponent(Collapser).exists()).toBeFalsy();
+      wrapper.unmount();
+    });
+
     it("renders codeAlias in title if it exists", () => {
       const wrapper = doMount({
         ...inputOutputItemMinimal,
