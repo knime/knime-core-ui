@@ -44,43 +44,46 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 18, 2023 (Paul Bärnreuther): created
+ *   Jul 10, 2023 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil.createInstance;
+
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonUpdateHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.NoopButtonUpdateHandler;
 
 /**
+ * This class is used to supply handlers associated to specific widgets to the data service.
  *
+ * @param <H> The type of the handler class
+ * @param <A> the annotation containing the handler
  * @author Paul Bärnreuther
  */
-class ButtonWidgetUpdateHandlerHolder extends SingleAnnotationHandlerHolder<ButtonUpdateHandler<?, ?, ?>> {
+abstract class SingleAnnotationHandlerHolder<H> extends FieldHandlerHolder<H> {
 
-    /**
-     * @param settingsClasses
-     */
-    ButtonWidgetUpdateHandlerHolder(final Map<String, Class<? extends WidgetGroup>> settingsClasses) {
+    SingleAnnotationHandlerHolder(final Map<String, Class<? extends WidgetGroup>> settingsClasses) {
         super(settingsClasses);
     }
 
     @Override
-    Optional<Class<? extends ButtonUpdateHandler<?, ?, ?>>> getHandlerClass(final FieldWithDefaultNodeSettingsKey field) {
-        final var buttonWidget = field.field().propertyWriter().getAnnotation(ButtonWidget.class);
-        if (buttonWidget == null) {
-            return Optional.empty();
-        }
-        final var updateHandlerClass = buttonWidget.updateHandler();
-        if (updateHandlerClass == NoopButtonUpdateHandler.class) {
-            return Optional.empty();
-        }
-        return Optional.of(updateHandlerClass);
-
+    public Map<String, H> toHandlers(final List<FieldWithDefaultNodeSettingsKey> fields) {
+        final Map<String, H> handlers = new HashMap<>();
+        fields.forEach(a -> {
+            getHandlerClass(a)
+                .ifPresent(handlerClass -> handlers.put(handlerClass.getName(), createInstance(handlerClass)));
+        });
+        return handlers;
     }
+
+    /**
+     * @param field of the traversed settings
+     * @return the relevant handler parameter of the annotation
+     */
+    abstract Optional<Class<? extends H>> getHandlerClass(final FieldWithDefaultNodeSettingsKey field);
 
 }

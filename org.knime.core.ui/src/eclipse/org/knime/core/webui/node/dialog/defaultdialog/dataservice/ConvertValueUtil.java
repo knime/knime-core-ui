@@ -44,43 +44,35 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 18, 2023 (Paul Bärnreuther): created
+ *   Jan 25, 2024 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
 
-import java.util.Map;
-import java.util.Optional;
-
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonUpdateHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.NoopButtonUpdateHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
+import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyHandler;
 
 /**
- *
  * @author Paul Bärnreuther
  */
-class ButtonWidgetUpdateHandlerHolder extends SingleAnnotationHandlerHolder<ButtonUpdateHandler<?, ?, ?>> {
+class ConvertValueUtil {
 
-    /**
-     * @param settingsClasses
-     */
-    ButtonWidgetUpdateHandlerHolder(final Map<String, Class<? extends WidgetGroup>> settingsClasses) {
-        super(settingsClasses);
+    public static Object convertDependencies(final Object objectSettings, final DependencyHandler<?> handler,
+        final DefaultNodeSettingsContext context) {
+        final var settingsType = GenericTypeFinderUtil.getFirstGenericType(handler.getClass(), DependencyHandler.class);
+        return convertValue(objectSettings, settingsType, context);
     }
 
-    @Override
-    Optional<Class<? extends ButtonUpdateHandler<?, ?, ?>>> getHandlerClass(final FieldWithDefaultNodeSettingsKey field) {
-        final var buttonWidget = field.field().propertyWriter().getAnnotation(ButtonWidget.class);
-        if (buttonWidget == null) {
-            return Optional.empty();
+    public static Object convertValue(final Object objectSettings, final Class<?> settingsType,
+        final DefaultNodeSettingsContext context) {
+        PasswordHolder.setCredentialsProvider(context.getCredentialsProvider().orElse(null));
+        try {
+            return JsonFormsDataUtil.getMapper().convertValue(objectSettings, settingsType);
+        } finally {
+            PasswordHolder.removeCredentialsProvider();
         }
-        final var updateHandlerClass = buttonWidget.updateHandler();
-        if (updateHandlerClass == NoopButtonUpdateHandler.class) {
-            return Optional.empty();
-        }
-        return Optional.of(updateHandlerClass);
 
     }
-
 }

@@ -44,43 +44,30 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 18, 2023 (Paul Bärnreuther): created
+ *   Jan 24, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
+package org.knime.core.webui.node.dialog.defaultdialog.rule;
 
-import java.util.Map;
-import java.util.Optional;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonUpdateHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.NoopButtonUpdateHandler;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import org.knime.core.webui.node.dialog.defaultdialog.widget.UpdateHandler;
 
 /**
+ * This annotation can be used to restrict an {@link Update} to the subset of nested subsettings.
  *
  * @author Paul Bärnreuther
  */
-class ButtonWidgetUpdateHandlerHolder extends SingleAnnotationHandlerHolder<ButtonUpdateHandler<?, ?, ?>> {
+@Retention(RUNTIME)
+@Target(FIELD)
+public @interface UpdateWith {
 
     /**
-     * @param settingsClasses
+     * @return a handler used in an {@link UpdateHandler} on a parent field of the annotated field
      */
-    ButtonWidgetUpdateHandlerHolder(final Map<String, Class<? extends WidgetGroup>> settingsClasses) {
-        super(settingsClasses);
-    }
-
-    @Override
-    Optional<Class<? extends ButtonUpdateHandler<?, ?, ?>>> getHandlerClass(final FieldWithDefaultNodeSettingsKey field) {
-        final var buttonWidget = field.field().propertyWriter().getAnnotation(ButtonWidget.class);
-        if (buttonWidget == null) {
-            return Optional.empty();
-        }
-        final var updateHandlerClass = buttonWidget.updateHandler();
-        if (updateHandlerClass == NoopButtonUpdateHandler.class) {
-            return Optional.empty();
-        }
-        return Optional.of(updateHandlerClass);
-
-    }
+    Class<? extends UpdateHandler<?, ?>> updateHandler(); // NOSONAR
 
 }

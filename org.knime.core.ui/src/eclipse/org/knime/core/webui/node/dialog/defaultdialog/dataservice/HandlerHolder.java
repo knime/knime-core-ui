@@ -44,43 +44,20 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 18, 2023 (Paul Bärnreuther): created
+ *   Jan 24, 2024 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
-
-import java.util.Map;
-import java.util.Optional;
-
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonUpdateHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.NoopButtonUpdateHandler;
 
 /**
  *
  * @author Paul Bärnreuther
  */
-class ButtonWidgetUpdateHandlerHolder extends SingleAnnotationHandlerHolder<ButtonUpdateHandler<?, ?, ?>> {
+interface HandlerHolder<H> {
 
     /**
-     * @param settingsClasses
+     * @param handlerClassName the name of the handler class
+     * @return the present hander with that class name held by this class of null.
      */
-    ButtonWidgetUpdateHandlerHolder(final Map<String, Class<? extends WidgetGroup>> settingsClasses) {
-        super(settingsClasses);
-    }
-
-    @Override
-    Optional<Class<? extends ButtonUpdateHandler<?, ?, ?>>> getHandlerClass(final FieldWithDefaultNodeSettingsKey field) {
-        final var buttonWidget = field.field().propertyWriter().getAnnotation(ButtonWidget.class);
-        if (buttonWidget == null) {
-            return Optional.empty();
-        }
-        final var updateHandlerClass = buttonWidget.updateHandler();
-        if (updateHandlerClass == NoopButtonUpdateHandler.class) {
-            return Optional.empty();
-        }
-        return Optional.of(updateHandlerClass);
-
-    }
+    H getHandler(String handlerClassName);
 
 }

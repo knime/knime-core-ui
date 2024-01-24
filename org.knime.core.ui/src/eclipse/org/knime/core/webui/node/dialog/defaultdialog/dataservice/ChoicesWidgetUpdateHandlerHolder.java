@@ -48,11 +48,10 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
 
-import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.util.DefaultNodeSettingsFieldTraverser.TraversedField;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.NoopChoicesUpdateHandler;
@@ -62,18 +61,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.NoopCh
  *
  * @author Paul Bärnreuther
  */
-class ChoicesWidgetUpdateHandlerHolder extends WidgetHandlerHolder<ChoicesUpdateHandler<?>> {
+class ChoicesWidgetUpdateHandlerHolder extends SingleAnnotationHandlerHolder<ChoicesUpdateHandler<?>> {
 
     /**
      * @param settingsClasses
      */
-    ChoicesWidgetUpdateHandlerHolder(final Collection<Class<? extends DefaultNodeSettings>> settingsClasses) {
+    ChoicesWidgetUpdateHandlerHolder(final Map<String, Class<? extends WidgetGroup>> settingsClasses) {
         super(settingsClasses);
     }
 
     @Override
-    Optional<Class<? extends ChoicesUpdateHandler<?>>> getHandlerClass(final TraversedField field) {
-        final var choicesWidget = field.propertyWriter().getAnnotation(ChoicesWidget.class);
+    Optional<Class<? extends ChoicesUpdateHandler<?>>> getHandlerClass(final FieldWithDefaultNodeSettingsKey field) {
+        final var choicesWidget = field.field().propertyWriter().getAnnotation(ChoicesWidget.class);
         if (choicesWidget != null) {
             final var updateHandler = choicesWidget.choicesUpdateHandler();
             if (updateHandler != NoopChoicesUpdateHandler.class) {
