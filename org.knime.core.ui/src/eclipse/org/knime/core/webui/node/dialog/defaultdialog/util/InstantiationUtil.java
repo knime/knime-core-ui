@@ -54,6 +54,7 @@ import java.lang.reflect.InvocationTargetException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.schema.NodeSettingsCreationContext;
 
 /**
  *
@@ -88,7 +89,7 @@ public final class InstantiationUtil {
      * @return the instance provided by the constructor of clazz which takes a single {@link DefaultNodeSettingsContext} as
      *         a parameter.
      */
-    public static Object createInstanceWithContext(final Class<?> clazz, final DefaultNodeSettingsContext context) {
+    public static Object createInstanceWithContext(final Class<?> clazz, final NodeSettingsCreationContext context) {
         try {
             return createInstance(clazz.getDeclaredConstructor(DefaultNodeSettingsContext.class), context);
         } catch (NoSuchMethodException ex) { // NOSONAR

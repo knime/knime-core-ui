@@ -48,13 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
@@ -63,10 +58,9 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.FlowObjectStack;
-import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.node.workflow.VariableType;
+import org.knime.core.webui.node.dialog.defaultdialog.examples.ArrayWidgetExample;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.LayoutGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
@@ -91,6 +85,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
+import org.knime.core.webui.node.schema.NodeSettingsCreationContext;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -230,107 +225,11 @@ public interface DefaultNodeSettings extends PersistableSettings {
      * A context that holds any available information that might be relevant for creating a new instance of
      * {@link DefaultNodeSettings}.
      */
-    final class DefaultNodeSettingsContext {
-
-        private final PortObjectSpec[] m_specs;
-
-        private final FlowObjectStack m_stack;
-
-        private final CredentialsProvider m_credentialsProvider;
+    final class DefaultNodeSettingsContext extends NodeSettingsCreationContext {
 
         public DefaultNodeSettingsContext(final PortObjectSpec[] specs, final FlowObjectStack stack,
             final CredentialsProvider credentialsProvider) {
-            m_specs = specs;
-            m_stack = stack;
-            m_credentialsProvider = credentialsProvider;
-        }
-
-        /**
-         * @return the input {@link PortObjectSpec PortObjectSpecs} of the node; NOTE: array of specs can contain
-         *         {@code null} values, e.g., if input port is not connected!
-         */
-        public PortObjectSpec[] getPortObjectSpecs() {
-            return m_specs;
-        }
-
-        /**
-         * @param portIndex the port for which to retrieve the spec
-         * @return the {@link PortObjectSpec} at the given portIndex or {@link Optional#empty()} if it is not available
-         * @throws IndexOutOfBoundsException if the portIndex does not match the ports of the node
-         */
-        public Optional<PortObjectSpec> getPortObjectSpec(final int portIndex) {
-            return Optional.ofNullable(m_specs[portIndex]);
-        }
-
-        /**
-         * @return the input {@link DataTableSpec DataTableSpecs} of the node; NOTE: array of specs can contain
-         *         {@code null} values, e.g., if input port is not connected!
-         * @throws ClassCastException if any of the node's input ports does not hold a {@link DataTableSpec}
-         */
-        public DataTableSpec[] getDataTableSpecs() {
-            return Arrays.stream(m_specs).map(DataTableSpec.class::cast).toArray(DataTableSpec[]::new);
-        }
-
-        /**
-         * @param portIndex the port for which to retrieve the spec
-         * @return the {@link DataTableSpec} at the given portIndex or {@link Optional#empty()} if it is not available
-         * @throws ClassCastException if the requested port is not a table port
-         * @throws IndexOutOfBoundsException if the portIndex does not match the ports of the node
-         */
-        public Optional<DataTableSpec> getDataTableSpec(final int portIndex) {
-            return getPortObjectSpec(portIndex).map(DataTableSpec.class::cast);
-        }
-
-        /**
-         * @param name the name of the variable
-         * @param type the {@link VariableType} of the variable
-         * @param <T> the simple value type of the variable
-         * @return the simple non-null value of the top-most variable with the argument name and type, if present,
-         *         otherwise an empty {@link Optional}
-         * @throws NullPointerException if any argument is null
-         * @see FlowObjectStack#peekFlowVariable(String, VariableType)
-         */
-        public <T> Optional<T> peekFlowVariable(final String name, final VariableType<T> type) {
-            return m_stack.peekFlowVariable(name, type).map(flowVariable -> flowVariable.getValue(type));
-        }
-
-        /**
-         * @param types the {@link VariableType VariableTypes} of the requested {@link FlowVariable FlowVariables}
-         * @return the non-null read-only map of flow variable name -&gt; {@link FlowVariable}
-         * @throws NullPointerException if the argument is null
-         * @see FlowObjectStack#getAvailableFlowVariables(VariableType[])
-         */
-        public Map<String, FlowVariable> getAvailableInputFlowVariables(final VariableType<?>... types) {
-            Objects.requireNonNull(types, () -> "Variable types must not be null.");
-            return Collections.unmodifiableMap(Optional.ofNullable(m_stack)
-                .map(stack -> stack.getAvailableFlowVariables(types)).orElse(Collections.emptyMap()));
-        }
-
-        /**
-         * @return the names of the available flow variables or an empty array if there are no flow variables available
-         */
-        public String[] getAvailableFlowVariableNames() {
-            return m_stack != null ? m_stack.getAllAvailableFlowVariables().keySet().toArray(String[]::new)
-                : new String[0];
-        }
-
-        /**
-         * @param name the name of a flow variable
-         * @return the associated flow variable if it exists
-         */
-        public Optional<FlowVariable> getFlowVariableByName(final String name) {
-            if (m_stack == null) {
-                return Optional.empty();
-            }
-            return Optional.ofNullable(m_stack.getAllAvailableFlowVariables().get(name));
-        }
-
-        /**
-         * @return the {@link CredentialsProvider} associated with the node. Can be empty, e.g., if the node is a
-         *         component
-         */
-        public Optional<CredentialsProvider> getCredentialsProvider() {
-            return Optional.ofNullable(m_credentialsProvider);
+            super(specs, stack, credentialsProvider);
         }
 
     }
