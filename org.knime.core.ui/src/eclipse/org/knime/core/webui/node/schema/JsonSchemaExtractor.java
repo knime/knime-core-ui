@@ -68,6 +68,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.ConfigKeyUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
@@ -118,11 +119,18 @@ public final class JsonSchemaExtractor {
      * @param context of the node for which settings are created. Pass null if there is no context available.
      * @return a JsonSchemaExtractor that can extract the JsonSchema from classes that use the Parameter annotations
      */
-    public static JsonSchemaExtractor createParameterSchemaExtractor(final NodeSettingsCreationContext context, final ObjectMapper mapper) {
+    public static JsonSchemaExtractor createParameterSchemaExtractor(final NodeSettingsCreationContext context,
+        final ObjectMapper mapper) {
         return new JsonSchemaExtractor(f -> new ParameterPropertyAccessor(f, context), mapper);
     }
 
-    JsonSchemaExtractor(final Function<FieldScope, PropertyAccessor> propertyExtractorFactory, final ObjectMapper mapper) {
+    public static JsonSchemaExtractor createWidgetSchemaExtractor(final DefaultNodeSettingsContext context,
+        final ObjectMapper mapper) {
+        return new JsonSchemaExtractor(f -> new WidgetPropertyAccessor(f, context), mapper);
+    }
+
+    JsonSchemaExtractor(final Function<FieldScope, PropertyAccessor> propertyExtractorFactory,
+        final ObjectMapper mapper) {
         m_propertyExtractorFactory = propertyExtractorFactory;
         m_mapper = mapper;
     }

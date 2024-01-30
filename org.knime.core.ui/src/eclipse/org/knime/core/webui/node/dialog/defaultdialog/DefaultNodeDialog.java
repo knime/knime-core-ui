@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -187,6 +188,15 @@ public final class DefaultNodeDialog implements NodeDialog {
     @Override
     public Optional<OnApplyNodeModifier> getOnApplyNodeModifier() {
         return Optional.ofNullable(m_onApplyModifier);
+    }
+
+    /**
+     * @return the settings classes used by this dialog
+     * @hidden non-public API
+     * @noreference non-public API
+     */
+    public Map<SettingsType, Class<? extends DefaultNodeSettings>> getSettingsClasses() {
+        return Collections.unmodifiableMap(m_settingsClasses);
     }
 
 }
