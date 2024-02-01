@@ -1,30 +1,27 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import sleep from "webapps-common/util/sleep";
 
-import {
-  IFrameKnimeService,
-  JsonDataService,
-} from "@knime/ui-extension-service";
+import { JsonDataService, CloseService } from "@knime/ui-extension-service";
 import type { ScriptingServiceType } from "../scripting-service";
 
 vi.mock("monaco-editor");
 
 vi.mock("@knime/ui-extension-service", () => ({
-  IFrameKnimeService: vi.fn(),
   JsonDataService: vi.fn(),
+  CloseService: vi.fn(),
 }));
 
-const lock = () => {
-  let resolve: () => void = () => {};
-  const promise = new Promise<void>((r) => {
+const lock = <T = void>() => {
+  let resolve: (resolvedValue: T) => void = () => {};
+  const promise = new Promise<T>((r) => {
     resolve = r;
   });
   return { promise, resolve };
 };
 
 describe("scripting-service", () => {
-  let _knimeService: any,
-    _jsonDataService: any,
+  let _jsonDataService: any,
+    _closeService: any,
     _resolveEventPoller: () => void;
 
   const getScriptingService = async (stopEventPoller = true) => {
@@ -46,11 +43,6 @@ describe("scripting-service", () => {
     vi.resetModules();
 
     // Mock the services
-    _knimeService = {
-      waitForInitialization: vi.fn(() => Promise.resolve()),
-    };
-    vi.mocked(IFrameKnimeService).mockReturnValue(_knimeService);
-
     const { promise: blockEventPoller, resolve: resolveEventPoller } = lock();
     _jsonDataService = {
       registerDataGetter: vi.fn(() => {}),
@@ -60,7 +52,11 @@ describe("scripting-service", () => {
       ),
       applyData: vi.fn(() => {}),
     };
-    vi.mocked(JsonDataService).mockReturnValue(_jsonDataService);
+    _closeService = {
+      close: vi.fn(),
+    };
+    JsonDataService.getInstance = vi.fn().mockResolvedValue(_jsonDataService);
+    CloseService.getInstance = vi.fn().mockResolvedValue(_closeService);
     _resolveEventPoller = resolveEventPoller;
   });
 
@@ -73,8 +69,8 @@ describe("scripting-service", () => {
     const sendToServiceRejected = vi.fn();
 
     // Replace the mock such that we can block the initialization
-    const { promise, resolve } = lock();
-    _knimeService.waitForInitialization.mockReturnValue(promise);
+    const { promise, resolve } = lock<JsonDataService>();
+    JsonDataService.getInstance = vi.fn().mockReturnValue(promise);
     const sendToServicePromise = (await getScriptingService())
       .sendToService("dummy")
       .then(() => {
@@ -88,17 +84,11 @@ describe("scripting-service", () => {
     expect(sendToServiceRejected).not.toHaveBeenCalled();
 
     // Now the initialization should be resolved
-    resolve();
+    resolve(_jsonDataService);
 
     await sendToServicePromise;
     expect(sendToServiceResolved).toHaveBeenCalled();
     expect(sendToServiceRejected).not.toHaveBeenCalled();
-  });
-
-  it("initializes the JsonDataService with the KnimeService", async () => {
-    await (await getScriptingService()).sendToService("dummy");
-    expect(JsonDataService).toHaveBeenCalled();
-    expect(JsonDataService).toHaveBeenCalledWith(_knimeService);
   });
 
   it("sends requests to the JsonDataService", async () => {
@@ -107,6 +97,11 @@ describe("scripting-service", () => {
       method: "dummy",
       options: ["foo", "bar"],
     });
+  });
+
+  it("closes dialog using the CloseService", async () => {
+    await (await getScriptingService()).closeDialog();
+    expect(_closeService.close).toHaveBeenCalled();
   });
 
   describe("settings", () => {
@@ -128,21 +123,12 @@ describe("scripting-service", () => {
       expect(_jsonDataService.applyData).toHaveBeenCalledOnce();
     });
 
-    it("registers the data getter to return the last saved settings", async () => {
-      let dataGetter: (() => any) | null = null;
-      _jsonDataService.registerDataGetter.mockImplementation(
-        (providedDataGetter: () => any) => {
-          dataGetter = providedDataGetter;
-        },
-      );
-
+    it("applies saved settings", async () => {
       const scriptingService = await getScriptingService();
       await scriptingService.saveSettings({ script: "bar" });
-      expect(dataGetter).not.toBeNull();
-      expect(dataGetter!()).toEqual({ script: "bar" });
-
-      await scriptingService.saveSettings({ script: "print('Hello world')" });
-      expect(dataGetter!()).toEqual({ script: "print('Hello world')" });
+      expect(_jsonDataService.applyData).toHaveBeenCalledWith({
+        script: "bar",
+      });
     });
   });
 

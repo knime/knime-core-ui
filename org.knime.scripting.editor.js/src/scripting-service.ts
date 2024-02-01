@@ -1,7 +1,4 @@
-import {
-  IFrameKnimeService,
-  JsonDataService,
-} from "@knime/ui-extension-service";
+import { JsonDataService, CloseService } from "@knime/ui-extension-service";
 import type { InputOutputModel } from "./components/InputOutputItem.vue";
 import { useMainCodeEditorStore } from "./editor";
 import { MonacoLSPConnection } from "./lsp/connection";
@@ -16,28 +13,16 @@ export type NodeSettings = { script: string; scriptUsedFlowVariable?: string };
 type LanugageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
 
 class ScriptingService {
-  private _knimeService: Promise<IFrameKnimeService>;
   private _jsonDataService: Promise<JsonDataService>;
+  private _closeService: Promise<CloseService>;
   private _settings: NodeSettings | null = null;
   private _eventHandlers: { [type: string]: (args: any) => void } = {};
   private _runEventPoller: boolean = true;
   private _monacoLSPConnection: MonacoLSPConnection | null = null;
 
   constructor() {
-    const _createKnimeService = async () => {
-      const knimeServiceToInit = new IFrameKnimeService();
-      await knimeServiceToInit.waitForInitialization();
-      return knimeServiceToInit;
-    };
-    this._knimeService = _createKnimeService();
-
-    const _createJsonDataService = async () => {
-      const resolvedKnimeService = await this._knimeService;
-      const jsonDataService = new JsonDataService(resolvedKnimeService);
-      jsonDataService.registerDataGetter(() => this._settings);
-      return jsonDataService;
-    };
-    this._jsonDataService = _createJsonDataService();
+    this._jsonDataService = JsonDataService.getInstance();
+    this._closeService = CloseService.getInstance();
 
     // Start the event poller
     this.eventPoller();
@@ -85,11 +70,11 @@ class ScriptingService {
 
   public async saveSettings(settings: NodeSettings): Promise<void> {
     this._settings = settings;
-    (await this._jsonDataService).applyData();
+    (await this._jsonDataService).applyData(this._settings);
   }
 
   public async closeDialog() {
-    (await this._knimeService).closeWindow();
+    (await this._closeService).close();
   }
 
   public registerEventHandler(type: string, handler: (args: any) => void) {
