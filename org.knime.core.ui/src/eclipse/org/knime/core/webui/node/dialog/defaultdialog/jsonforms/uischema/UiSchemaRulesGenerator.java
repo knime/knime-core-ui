@@ -188,16 +188,31 @@ final class UiSchemaRulesGenerator {
         final var constructors = operationClass.getDeclaredConstructors();
         final var multiParameterConstructor = getMultiParameterConstructor(constructors, expressions.length);
         if (multiParameterConstructor != null) {
+            checkAccessible(multiParameterConstructor);
             return (Operator<JsonFormsExpression>)multiParameterConstructor.newInstance((Object[])expressions);
         }
         final var arrayConstructor = getArrayConstructor(constructors);
         if (arrayConstructor != null) {
+            checkAccessible(arrayConstructor);
             final Object[] parameters = new Object[]{expressions};
             return (Operator<JsonFormsExpression>)arrayConstructor.newInstance(parameters);
         }
         throw new UiSchemaGenerationException(
             String.format("No valid constructor found for operation %s with %s expressions",
                 operationClass.getSimpleName(), expressions.length));
+    }
+
+    /**
+     * Checks that the given constructor is accessible and if not tries to make it accessible,
+     * throwing if unable to do so.
+     *
+     * @param cstr constructor to ensure is accessible
+     */
+    private static void checkAccessible(final Constructor<?> cstr) {
+        if (!cstr.canAccess(null) && !cstr.trySetAccessible()) {
+            throw new UiSchemaGenerationException(
+                "Matching constructor \"%s\" found, but it could not be made accessible".formatted(cstr));
+        }
     }
 
     /**
