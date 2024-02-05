@@ -119,12 +119,11 @@ class UiSchemaDefaultNodeSettingsTraverser {
         traverser.traverse(field -> {
             final var scope = toScope(field.path(), settingsKey);
             final var payload = new TraversalConsumerPayload(scope, field, setting);
-            // TODO UIEXT-1573 only allow signals on widgets
-            addSignal.accept(payload);
             // ignore all fields that are not annotated with Widget for ui-schema-generation
             if (payload.field.propertyWriter().getAnnotation(Widget.class) == null) {
                 return;
             }
+            addSignal.accept(payload);
             addField.accept(payload);
         }, List.of(Layout.class, Effect.class));
     }
