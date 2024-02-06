@@ -44,44 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 10, 2023 (Paul Bärnreuther): created
+ *   Feb 6, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
+package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
 import static org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil.createInstance;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Action;;
 
 /**
- * This class is used to supply handlers associated to specific widgets to the data service.
  *
- * @param <H> The type of the handler class
- * @param <A> the annotation containing the handler
  * @author Paul Bärnreuther
  */
-abstract class SingleAnnotationHandlerHolder<H> extends FieldHandlerHolder<H> {
+final class ActionVertex extends Vertex {
 
-    SingleAnnotationHandlerHolder(final Map<String, Class<? extends WidgetGroup>> settingsClasses) {
-        super(settingsClasses);
+    private final Action<?> m_action;
+
+    private final Class<? extends Action> m_actionClass;
+
+    /**
+     * @param actionClass
+     */
+    public ActionVertex(final Class<? extends Action> actionClass) {
+        m_actionClass = actionClass;
+        m_action = createInstance(actionClass);
     }
 
     @Override
-    public Map<String, H> toHandlers(final List<FieldWithDefaultNodeSettingsKey> fields) {
-        final Map<String, H> handlers = new HashMap<>();
-        fields.forEach(field -> getHandlerClass(field)
-            .ifPresent(handlerClass -> handlers.put(handlerClass.getName(), createInstance(handlerClass))));
-        return handlers;
+    public <T> T visit(final VertexVisitor<T> visitor) {
+        return visitor.accept(this);
     }
 
-    /**
-     * @param field of the traversed settings
-     * @return the relevant handler parameter of the annotation
-     */
-    abstract Optional<Class<? extends H>> getHandlerClass(final FieldWithDefaultNodeSettingsKey field);
+    public Action<?> getAction() {
+        return m_action;
+    }
+
+    public Class<? extends Action> getActionClass() {
+        return m_actionClass;
+    }
 
 }

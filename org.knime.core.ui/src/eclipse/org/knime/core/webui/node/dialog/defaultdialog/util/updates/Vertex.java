@@ -44,44 +44,64 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 10, 2023 (Paul Bärnreuther): created
+ *   Feb 6, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
+package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil.createInstance;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * This class is used to supply handlers associated to specific widgets to the data service.
  *
- * @param <H> The type of the handler class
- * @param <A> the annotation containing the handler
  * @author Paul Bärnreuther
  */
-abstract class SingleAnnotationHandlerHolder<H> extends FieldHandlerHolder<H> {
+sealed abstract class Vertex permits UpdateVertex, ActionVertex, TriggerVertex, DependencyVertex {
 
-    SingleAnnotationHandlerHolder(final Map<String, Class<? extends WidgetGroup>> settingsClasses) {
-        super(settingsClasses);
+    private final Set<Vertex> m_children = new HashSet<Vertex>();
+
+    private final Set<Vertex> m_parents = new HashSet<Vertex>();
+
+    Set<Vertex> getChildren() {
+        return m_children;
     }
 
-    @Override
-    public Map<String, H> toHandlers(final List<FieldWithDefaultNodeSettingsKey> fields) {
-        final Map<String, H> handlers = new HashMap<>();
-        fields.forEach(field -> getHandlerClass(field)
-            .ifPresent(handlerClass -> handlers.put(handlerClass.getName(), createInstance(handlerClass))));
-        return handlers;
+    Set<Vertex> getParents() {
+        return m_parents;
     }
 
-    /**
-     * @param field of the traversed settings
-     * @return the relevant handler parameter of the annotation
-     */
-    abstract Optional<Class<? extends H>> getHandlerClass(final FieldWithDefaultNodeSettingsKey field);
+    void addChild(final Vertex childVertex) {
+        m_children.add(childVertex);
+        childVertex.m_parents.add(this);
+    }
+
+    void addParent(final Vertex parentVertex) {
+        m_parents.add(parentVertex);
+        parentVertex.m_children.add(this);
+    }
+
+    abstract <T> T visit(VertexVisitor<T> visitor);
+
+    interface VertexVisitor<T> {
+
+        default T accept(final UpdateVertex updateVertex) {
+            return acceptDefault(updateVertex);
+        }
+
+        default T accept(final ActionVertex actionVertex) {
+            return acceptDefault(actionVertex);
+        }
+
+        default T accept(final TriggerVertex triggerVertex) {
+            return acceptDefault(triggerVertex);
+        }
+
+        default T accept(final DependencyVertex dependencyVertex) {
+            return acceptDefault(dependencyVertex);
+        }
+
+        default T acceptDefault(@SuppressWarnings("unused") final Vertex vertex) {
+            return null;
+        }
+    }
 
 }

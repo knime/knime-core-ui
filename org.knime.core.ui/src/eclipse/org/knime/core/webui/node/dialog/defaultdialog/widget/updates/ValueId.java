@@ -44,44 +44,20 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 10, 2023 (Paul Bärnreuther): created
+ *   Feb 6, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.updates;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil.createInstance;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
- * This class is used to supply handlers associated to specific widgets to the data service.
+ * This interface can be extended by classes used as {@link Widget#id}. It is used to resolve dependencies between
+ * widgets in a type safe way.
  *
- * @param <H> The type of the handler class
- * @param <A> the annotation containing the handler
  * @author Paul Bärnreuther
+ * @param <FIELD> the type of the associated field in the {@link DefaultNodeSettings}.
  */
-abstract class SingleAnnotationHandlerHolder<H> extends FieldHandlerHolder<H> {
-
-    SingleAnnotationHandlerHolder(final Map<String, Class<? extends WidgetGroup>> settingsClasses) {
-        super(settingsClasses);
-    }
-
-    @Override
-    public Map<String, H> toHandlers(final List<FieldWithDefaultNodeSettingsKey> fields) {
-        final Map<String, H> handlers = new HashMap<>();
-        fields.forEach(field -> getHandlerClass(field)
-            .ifPresent(handlerClass -> handlers.put(handlerClass.getName(), createInstance(handlerClass))));
-        return handlers;
-    }
-
-    /**
-     * @param field of the traversed settings
-     * @return the relevant handler parameter of the annotation
-     */
-    abstract Optional<Class<? extends H>> getHandlerClass(final FieldWithDefaultNodeSettingsKey field);
+public interface ValueId<FIELD> {
 
 }

@@ -44,44 +44,58 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 10, 2023 (Paul Bärnreuther): created
+ *   Feb 7, 2024 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil.createInstance;
-
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.function.Function;
 
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.InvokeTrigger;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.SettingsClassesToValueIdsAndUpdates;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerVertex;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.UpdateVertex;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.ValueIdsAndUpdatesToDependencyTree;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueId;
 
 /**
- * This class is used to supply handlers associated to specific widgets to the data service.
+ * Used to convert triggers to a list of resulting updates given a map of dependencies.
  *
- * @param <H> The type of the handler class
- * @param <A> the annotation containing the handler
  * @author Paul Bärnreuther
  */
-abstract class SingleAnnotationHandlerHolder<H> extends FieldHandlerHolder<H> {
+public class TriggerInvocationHandler {
 
-    SingleAnnotationHandlerHolder(final Map<String, Class<? extends WidgetGroup>> settingsClasses) {
-        super(settingsClasses);
+    private final Collection<TriggerVertex> m_triggers;
+
+    TriggerInvocationHandler(final Map<String, Class<? extends WidgetGroup>> settingsClasses) {
+        final var valueIdsAndUpdates =
+            SettingsClassesToValueIdsAndUpdates.settingsClassesToValueIdsAndUpdates(settingsClasses);
+        m_triggers = ValueIdsAndUpdatesToDependencyTree.valueIdsAndUpdatesToDependencyTree(valueIdsAndUpdates);
     }
 
-    @Override
-    public Map<String, H> toHandlers(final List<FieldWithDefaultNodeSettingsKey> fields) {
-        final Map<String, H> handlers = new HashMap<>();
-        fields.forEach(field -> getHandlerClass(field)
-            .ifPresent(handlerClass -> handlers.put(handlerClass.getName(), createInstance(handlerClass))));
-        return handlers;
+    record PathAndValue(String path, Object value) {
     }
 
-    /**
-     * @param field of the traversed settings
-     * @return the relevant handler parameter of the annotation
-     */
-    abstract Optional<Class<? extends H>> getHandlerClass(final FieldWithDefaultNodeSettingsKey field);
+    List<PathAndValue> trigger(final String triggerId, final Map<String, Object> rawDependencies,
+        final DefaultNodeSettingsContext context) {
+        final var trigger = m_triggers.stream().filter(t -> t.getId().equals(triggerId)).findAny().orElseThrow();
+        final Function<Class<? extends ValueId>, Object> dependencyProvider = (valueId) -> {
+            final var rawDependencyObject = rawDependencies.get(valueId.getName());
+            return ConvertValueUtil.convertValueId(rawDependencyObject, valueId, context);
+        };
+        final var resultPerUpdateHandler = new InvokeTrigger(dependencyProvider).invokeTrigger(trigger);
+        return resultPerUpdateHandler.entrySet().stream()
+            .map(entry -> new PathAndValue(getScope(entry.getKey()), entry.getValue())).toList();
+    }
 
+    private static String getScope(final UpdateVertex updateVertex) {
+        final var path = updateVertex.getPath();
+        final var settingsKey = updateVertex.getSettingsKey();
+        return JsonFormsScopeUtil.toScope(path, settingsKey);
+    }
 }

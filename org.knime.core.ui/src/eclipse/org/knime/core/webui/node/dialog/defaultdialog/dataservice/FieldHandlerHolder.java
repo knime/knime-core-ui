@@ -58,8 +58,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.DefaultNodeSettingsFi
 import org.knime.core.webui.node.dialog.defaultdialog.util.DefaultNodeSettingsFieldTraverser.TraversedField;
 
 /**
+ * Takes care of accessing the fields in a given collection of {@link WidgetGroup}s. The implementer has to convert a
+ * the traversed fields to a map of handlers of type <H> to make it accessible later via {@link #getHandler}.
  *
  * @author Paul Bärnreuther
+ * @param <H> the type of the handler
  */
 public abstract class FieldHandlerHolder<H> implements HandlerHolder<H> {
 

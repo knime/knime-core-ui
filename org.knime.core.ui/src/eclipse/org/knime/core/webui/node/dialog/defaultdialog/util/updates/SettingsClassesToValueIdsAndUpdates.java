@@ -44,44 +44,73 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 10, 2023 (Paul Bärnreuther): created
+ *   Feb 6, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
+package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil.createInstance;
-
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.util.DefaultNodeSettingsFieldTraverser;
+import org.knime.core.webui.node.dialog.defaultdialog.util.DefaultNodeSettingsFieldTraverser.TraversedField;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Action;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Update;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueId;
 
 /**
- * This class is used to supply handlers associated to specific widgets to the data service.
  *
- * @param <H> The type of the handler class
- * @param <A> the annotation containing the handler
  * @author Paul Bärnreuther
  */
-abstract class SingleAnnotationHandlerHolder<H> extends FieldHandlerHolder<H> {
+public class SettingsClassesToValueIdsAndUpdates {
 
-    SingleAnnotationHandlerHolder(final Map<String, Class<? extends WidgetGroup>> settingsClasses) {
-        super(settingsClasses);
+    record ValueIdWrapper(Class<? extends ValueId> valueId, String settingsKey, List<String> path) {
     }
 
-    @Override
-    public Map<String, H> toHandlers(final List<FieldWithDefaultNodeSettingsKey> fields) {
-        final Map<String, H> handlers = new HashMap<>();
-        fields.forEach(field -> getHandlerClass(field)
-            .ifPresent(handlerClass -> handlers.put(handlerClass.getName(), createInstance(handlerClass))));
-        return handlers;
+    record UpdateWrapper(Class<? extends Action> action, String settingsKey, List<String> path) {
     }
 
-    /**
-     * @param field of the traversed settings
-     * @return the relevant handler parameter of the annotation
-     */
-    abstract Optional<Class<? extends H>> getHandlerClass(final FieldWithDefaultNodeSettingsKey field);
+    record ValueIdsAndUpdates(Collection<ValueIdWrapper> valueIds, Collection<UpdateWrapper> updates) {
+    }
+
+    public static ValueIdsAndUpdates
+        settingsClassesToValueIdsAndUpdates(final Map<String, Class<? extends WidgetGroup>> settingsClasses) {
+
+        final Collection<ValueIdWrapper> valueIds = new ArrayList<>();
+        final Collection<UpdateWrapper> updates = new ArrayList<>();
+
+        settingsClasses.entrySet().forEach(entry -> {
+            final var traverser = new DefaultNodeSettingsFieldTraverser(entry.getValue());
+            final var fields = traverser.getAllFields();
+
+            fields.stream().forEach(field -> {
+                addValueId(valueIds, field, entry.getKey());
+                addUpdate(updates, field, entry.getKey());
+            });
+
+        });
+
+        return new ValueIdsAndUpdates(valueIds, updates);
+
+    }
+
+    private static void addValueId(final Collection<ValueIdWrapper> valueIds, final TraversedField field,
+        final String settingsKey) {
+        final var widgetAnnotation = field.propertyWriter().getAnnotation(Widget.class);
+        if (widgetAnnotation != null && !widgetAnnotation.id().equals(ValueId.class)) {
+            valueIds.add(new ValueIdWrapper(widgetAnnotation.id(), settingsKey, field.path()));
+        }
+    }
+
+    private static void addUpdate(final Collection<UpdateWrapper> updates, final TraversedField field,
+        final String settingsKey) {
+        final var updateAnnotation = field.propertyWriter().getAnnotation(Update.class);
+        if (updateAnnotation != null) {
+            updates.add(new UpdateWrapper(updateAnnotation.updateHandler(), settingsKey, field.path()));
+        }
+    }
 
 }
