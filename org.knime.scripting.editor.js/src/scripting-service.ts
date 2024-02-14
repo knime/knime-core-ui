@@ -15,7 +15,6 @@ type LanugageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
 class ScriptingService {
   private _jsonDataService: Promise<JsonDataService>;
   private _closeService: Promise<CloseService>;
-  private _settings: NodeSettings | null = null;
   private _eventHandlers: { [type: string]: (args: any) => void } = {};
   private _runEventPoller: boolean = true;
   private _monacoLSPConnection: MonacoLSPConnection | null = null;
@@ -69,8 +68,7 @@ class ScriptingService {
   }
 
   public async saveSettings(settings: NodeSettings): Promise<void> {
-    this._settings = settings;
-    (await this._jsonDataService).applyData(this._settings);
+    (await this._jsonDataService).applyData(settings);
   }
 
   public async closeDialog() {
