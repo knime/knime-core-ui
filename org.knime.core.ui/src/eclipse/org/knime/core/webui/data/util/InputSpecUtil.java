@@ -51,6 +51,7 @@ package org.knime.core.webui.data.util;
 import java.util.Arrays;
 
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeOutPort;
 
@@ -88,7 +89,8 @@ public final class InputSpecUtil {
             } else {
                 outPort = wfm.getNodeContainer(sourceId).getOutPort(cc.getSourcePort());
             }
-            rawSpecs[cc.getDestPort()] = outPort.getPortObjectSpec();
+            var spec = outPort.getPortObjectSpec();
+            rawSpecs[cc.getDestPort()] = spec instanceof InactiveBranchPortObjectSpec ? null : spec;
         }
         return rawSpecs;
     }

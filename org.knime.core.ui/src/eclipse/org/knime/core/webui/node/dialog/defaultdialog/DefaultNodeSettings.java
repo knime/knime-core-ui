@@ -291,7 +291,8 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
          * @throws ClassCastException if any of the node's input ports does not hold a {@link DataTableSpec}
          */
         public DataTableSpec[] getDataTableSpecs() {
-            return Arrays.stream(m_specs).map(DataTableSpec.class::cast).toArray(DataTableSpec[]::new);
+            return Arrays.stream(m_specs).map(spec -> spec instanceof DataTableSpec dts ? dts : null)
+                .toArray(DataTableSpec[]::new);
         }
 
         /**
