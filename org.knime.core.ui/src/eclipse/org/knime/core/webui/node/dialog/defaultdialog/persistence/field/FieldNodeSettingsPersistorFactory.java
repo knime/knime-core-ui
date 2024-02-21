@@ -77,7 +77,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.LatentWidget;
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class FieldNodeSettingsPersistorFactory<S extends PersistableSettings> {
+public final class FieldNodeSettingsPersistorFactory<S extends PersistableSettings> {
 
     /**
      *
@@ -197,7 +197,7 @@ final class FieldNodeSettingsPersistorFactory<S extends PersistableSettings> {
         }
     }
 
-    private static NodeSettingsPersistor<?> createDefaultPersistor(final Class<?> type, final String configKey) {
+    public static NodeSettingsPersistor<?> createDefaultPersistor(final Class<?> type, final String configKey) {
         if (type.isArray() && PersistableSettings.class.isAssignableFrom(type.getComponentType())) {
             return createDefaultArrayPersistor(type.getComponentType(), configKey);
         } else if (PersistableSettings.class.isAssignableFrom(type)) {
