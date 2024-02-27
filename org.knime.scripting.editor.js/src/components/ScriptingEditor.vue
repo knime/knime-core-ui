@@ -9,10 +9,11 @@ import { useMainCodeEditor } from "@/editor";
 import {
   getScriptingService,
   initConsoleEventHandler,
+  registerSettingsGetterForApply,
+  type NodeSettings,
 } from "@/scripting-service";
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 import CompactTabBar from "./CompactTabBar.vue";
-import FooterBar from "./FooterBar.vue";
 import HeaderBar from "./HeaderBar.vue";
 import InputOutputPane from "./InputOutputPane.vue";
 import type { ConsoleHandler } from "./OutputConsole.vue";
@@ -38,6 +39,7 @@ interface Props {
   menuItems?: MenuItem[];
   showControlBar?: boolean;
   initialPaneSizes?: PaneSizes;
+  toSettings?: (settings: NodeSettings) => NodeSettings;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -49,6 +51,7 @@ const props = withDefaults(defineProps<Props>(), {
     right: 25,
     bottom: 30,
   }),
+  toSettings: (settings: NodeSettings) => settings,
 });
 
 const emit = defineEmits(["menu-item-clicked", "save-settings"]);
@@ -140,12 +143,9 @@ const onDropEventHandlerCreated = (handler: (payload: DragEvent) => void) => {
   dropEventHandler.value = handler;
 };
 
-// Saving and closing
-const saveSettings = () => {
-  const settings = { script: codeEditorState.text.value };
-  emit("save-settings", settings);
-};
-const closeDialog = () => getScriptingService().closeDialog();
+registerSettingsGetterForApply(() =>
+  props.toSettings({ script: codeEditorState.text.value }),
+);
 
 // Menu items and settings pane
 const showSettingsPage = ref(false);
@@ -292,11 +292,6 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
         </splitpanes>
       </pane>
     </splitpanes>
-    <FooterBar
-      v-show="!showSettingsPage"
-      @scripting-editor-okayed="saveSettings"
-      @scripting-editor-cancelled="closeDialog"
-    />
   </div>
 </template>
 
@@ -315,7 +310,7 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
 }
 
 .code-editor {
-  height: calc(100% - var(--controls-height));
+  height: 100%;
 }
 
 .tab-bar-container {
@@ -388,7 +383,6 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
 }
 
 .main-splitpane {
-  height: calc(100vh - (2 * var(--controls-height)));
   overflow: hidden;
 
   &:deep(> .splitpanes__splitter) {
@@ -413,11 +407,8 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
     }
   }
 }
-/* stylelint-enable selector-class-pattern */
-.settings-page {
-  height: calc(100vh - var(--controls-height));
-}
 
+/* stylelint-enable selector-class-pattern */
 .right-pane {
   background-color: var(--knime-gray-ultra-light);
 }
@@ -426,4 +417,3 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
   overflow-y: auto;
 }
 </style>
-@/consoleHandler
