@@ -21,3 +21,4 @@ export const scriptingServiceMock = {
 
 export const getScriptingService = vi.fn(() => scriptingServiceMock);
 export const initConsoleEventHandler = vi.fn();
+export const registerSettingsGetterForApply = vi.fn();

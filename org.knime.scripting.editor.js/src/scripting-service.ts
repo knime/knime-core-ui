@@ -1,4 +1,4 @@
-import { JsonDataService, CloseService } from "@knime/ui-extension-service";
+import { JsonDataService, DialogService } from "@knime/ui-extension-service";
 import type { InputOutputModel } from "./components/InputOutputItem.vue";
 import { useMainCodeEditorStore } from "./editor";
 import { MonacoLSPConnection } from "./lsp/connection";
@@ -14,14 +14,12 @@ type LanugageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
 
 class ScriptingService {
   private _jsonDataService: Promise<JsonDataService>;
-  private _closeService: Promise<CloseService>;
   private _eventHandlers: { [type: string]: (args: any) => void } = {};
   private _runEventPoller: boolean = true;
   private _monacoLSPConnection: MonacoLSPConnection | null = null;
 
   constructor() {
     this._jsonDataService = JsonDataService.getInstance();
-    this._closeService = CloseService.getInstance();
 
     // Start the event poller
     this.eventPoller();
@@ -65,14 +63,6 @@ class ScriptingService {
 
   public async getInitialSettings(): Promise<NodeSettings> {
     return (await this._jsonDataService).initialData();
-  }
-
-  public async saveSettings(settings: NodeSettings): Promise<void> {
-    (await this._jsonDataService).applyData(settings);
-  }
-
-  public async closeDialog() {
-    (await this._closeService).close();
   }
 
   public registerEventHandler(type: string, handler: (args: any) => void) {
@@ -170,6 +160,19 @@ export const getScriptingService = (): ScriptingServiceType =>
 
 export const initConsoleEventHandler = () => {
   getScriptingService().registerEventHandler("console", consoleHandler.write);
+};
+
+export const registerSettingsGetterForApply = async (
+  settingsGetter: () => NodeSettings,
+) => {
+  const dialogService = await DialogService.getInstance();
+  const jsonDataService = await JsonDataService.getInstance();
+
+  dialogService.setApplyListener(async () => {
+    const settings = settingsGetter();
+    await jsonDataService.applyData(settings);
+    return { isApplied: true };
+  });
 };
 
 setScriptingServiceInstance(new ScriptingService());

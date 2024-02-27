@@ -137,8 +137,6 @@ export const createScriptingServiceMock = (
       log("Called scriptingService.getInitialSettings");
       return Promise.resolve(opt.initialSettings ?? { script: "Hello world" });
     },
-    saveSettings: doNothing("saveSettings"),
-    closeDialog: doNothing("closeDialog"),
 
     // Input and output objects
     inputsAvailable() {

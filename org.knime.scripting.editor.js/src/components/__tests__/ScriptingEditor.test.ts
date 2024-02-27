@@ -5,13 +5,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { initConsoleEventHandler } from "@/__mocks__/scripting-service";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
-import FooterBar from "../FooterBar.vue";
 import InputOutputPane from "../InputOutputPane.vue";
 import OutputConsole from "../OutputConsole.vue";
 import ScriptingEditor from "../ScriptingEditor.vue";
 import SettingsPage from "../SettingsPage.vue";
 import { useMainCodeEditor } from "@/editor";
 import { consoleHandler } from "@/consoleHandler";
+import { registerSettingsGetterForApply } from "@/scripting-service";
 
 vi.mock("xterm");
 vi.mock("@vueuse/core");
@@ -357,17 +357,21 @@ describe("ScriptingEditor", () => {
     ).toBeTruthy();
   });
 
-  it("saves settings", async () => {
-    const { wrapper } = doMount();
-    await flushPromises();
-    const comp = wrapper.findComponent(FooterBar);
-    comp.vm.$emit("scriptingEditorOkayed");
-    expect(wrapper.emitted("save-settings")).toBeDefined();
-    expect(wrapper.emitted("save-settings")?.length).toBe(1);
-    // @ts-ignore
-    expect(wrapper.emitted("save-settings")[0][0]).toStrictEqual({
-      script: "myInitialScript",
-    });
+  it("registers default settings getter", () => {
+    doMount();
+    const settingsGetter = (registerSettingsGetterForApply as any).mock
+      .calls[0][0];
+    expect(settingsGetter()).toStrictEqual({ script: "myInitialScript" });
+  });
+
+  it("registers settings getter using toSettings prop", () => {
+    const settings = { script: "myScript" };
+    const toSettings = vi.fn().mockReturnValue(settings);
+    doMount({ props: { toSettings } });
+    const settingsGetter = (registerSettingsGetterForApply as any).mock
+      .calls[0][0];
+    expect(settingsGetter()).toBe(settings);
+    expect(toSettings).toHaveBeenCalledWith({ script: "myInitialScript" });
   });
 
   it("sets console handler store on console-created", async () => {

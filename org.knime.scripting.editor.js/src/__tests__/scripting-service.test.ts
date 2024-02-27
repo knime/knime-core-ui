@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import sleep from "webapps-common/util/sleep";
 
-import { JsonDataService, CloseService } from "@knime/ui-extension-service";
-import type { ScriptingServiceType } from "../scripting-service";
+import { DialogService, JsonDataService } from "@knime/ui-extension-service";
+import type { ScriptingServiceType } from "@/scripting-service";
 
 vi.mock("monaco-editor");
 
 vi.mock("@knime/ui-extension-service", () => ({
   JsonDataService: vi.fn(),
-  CloseService: vi.fn(),
+  DialogService: vi.fn(),
 }));
 
 const lock = <T = void>() => {
@@ -21,7 +21,7 @@ const lock = <T = void>() => {
 
 describe("scripting-service", () => {
   let _jsonDataService: any,
-    _closeService: any,
+    _dialogService: any,
     _resolveEventPoller: () => void;
 
   const getScriptingService = async (stopEventPoller = true) => {
@@ -52,11 +52,11 @@ describe("scripting-service", () => {
       ),
       applyData: vi.fn(() => {}),
     };
-    _closeService = {
-      close: vi.fn(),
+    _dialogService = {
+      setApplyListener: vi.fn(),
     };
     JsonDataService.getInstance = vi.fn().mockResolvedValue(_jsonDataService);
-    CloseService.getInstance = vi.fn().mockResolvedValue(_closeService);
+    DialogService.getInstance = vi.fn().mockResolvedValue(_dialogService);
     _resolveEventPoller = resolveEventPoller;
   });
 
@@ -99,11 +99,6 @@ describe("scripting-service", () => {
     });
   });
 
-  it("closes dialog using the CloseService", async () => {
-    await (await getScriptingService()).closeDialog();
-    expect(_closeService.close).toHaveBeenCalled();
-  });
-
   describe("settings", () => {
     it("gets initial data from the JsonDataService", async () => {
       const initalSettings = await (
@@ -112,23 +107,6 @@ describe("scripting-service", () => {
       expect(initalSettings).toEqual({ script: "foo" });
       expect(_jsonDataService.initialData).toHaveBeenCalledOnce();
       expect(_jsonDataService.initialData).toHaveBeenCalledWith();
-    });
-
-    it("saves settings by calling JsonDataService.applyData", async () => {
-      await (
-        await getScriptingService()
-      ).saveSettings({
-        script: "bar",
-      });
-      expect(_jsonDataService.applyData).toHaveBeenCalledOnce();
-    });
-
-    it("applies saved settings", async () => {
-      const scriptingService = await getScriptingService();
-      await scriptingService.saveSettings({ script: "bar" });
-      expect(_jsonDataService.applyData).toHaveBeenCalledWith({
-        script: "bar",
-      });
     });
   });
 
@@ -207,6 +185,26 @@ describe("scripting-service", () => {
       expect(_jsonDataService.data).toHaveBeenCalledWith({
         method: "getOutputObjects",
       });
+    });
+  });
+
+  describe("registerSettingsGetterForApply", () => {
+    /**
+     * Not possible to import directly since the @knime/ui-extension-service Services have to be mocked first
+     */
+    const registerSettingsGetterForApply = async (settingsGetter: any) =>
+      (await import("../scripting-service")).registerSettingsGetterForApply(
+        settingsGetter,
+      );
+
+    it("adds listener in DialogService to apply data in JsonDataService", async () => {
+      const settings = { script: "myScript" };
+      const settingsGetter = () => settings;
+      await registerSettingsGetterForApply(settingsGetter);
+      expect(_dialogService.setApplyListener).toHaveBeenCalled();
+      const applyListener = _dialogService.setApplyListener.mock.calls[0][0];
+      expect(await applyListener()).toStrictEqual({ isApplied: true });
+      expect(_jsonDataService.applyData).toHaveBeenCalledWith(settings);
     });
   });
 });
