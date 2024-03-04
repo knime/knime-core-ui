@@ -310,7 +310,7 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
 }
 
 .code-editor {
-  height: 100%;
+  height: calc(100% - var(--controls-height));
 }
 
 .tab-bar-container {
