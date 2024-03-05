@@ -24,9 +24,9 @@ import {
   type Message,
   type PromptResponseStore,
 } from "@/store/ai-bar";
-import type { PaneSizes } from "../ScriptingEditor.vue";
 import AiSuggestion from "./AiSuggestion.vue";
 import { consoleHandler } from "@/consoleHandler";
+import type { PaneSizes } from "@/components/utils/paneSizes";
 
 type Status =
   | "idle"
