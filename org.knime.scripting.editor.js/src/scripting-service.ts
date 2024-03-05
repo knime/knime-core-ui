@@ -12,27 +12,28 @@ import {
 export type NodeSettings = { script: string; scriptUsedFlowVariable?: string };
 type LanugageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
 
-class ScriptingService {
-  private _jsonDataService: Promise<JsonDataService>;
+// --- HELPER CLASSES ---
+
+// TODO(AP-19341) use Java-to-JS events
+/**
+ * This class is a singleton that polls for events from the
+ * Java backend and calls event handlers.
+ */
+class EventPoller {
+  // eslint-disable-next-line no-use-before-define
+  private static instance: EventPoller;
   private _eventHandlers: { [type: string]: (args: any) => void } = {};
-  private _runEventPoller: boolean = true;
-  private _monacoLSPConnection: MonacoLSPConnection | null = null;
 
-  constructor() {
-    this._jsonDataService = JsonDataService.getInstance();
-
-    // Start the event poller
-    this.eventPoller();
+  private constructor() {
+    this.startPolling();
   }
 
-  private async eventPoller() {
-    // TODO(AP-19341) use Java-to-JS events
+  private async startPolling() {
+    const jsonDataService = await JsonDataService.getInstance();
 
     // eslint-disable-next-line no-constant-condition
-    while (this._runEventPoller) {
-      // Get the next event
-      const res = await this.sendToService("getEvent");
-      // Give the event to the handler
+    while (true) {
+      const res = await jsonDataService.data({ method: "getEvent" });
       if (res) {
         if (res.type in this._eventHandlers) {
           this._eventHandlers[res.type](res.data);
@@ -42,35 +43,98 @@ class ScriptingService {
           );
         }
       }
-      /* else: no event wait for the next one */
     }
-  }
-
-  // NB: this is only used in tests
-  private stopEventPoller() {
-    this._runEventPoller = false;
-  }
-
-  public async sendToService(
-    methodName: string,
-    options?: any[],
-  ): Promise<any> {
-    return (await this._jsonDataService).data({
-      method: methodName,
-      options,
-    });
-  }
-
-  public async getInitialSettings(): Promise<NodeSettings> {
-    return (await this._jsonDataService).initialData();
   }
 
   public registerEventHandler(type: string, handler: (args: any) => void) {
     this._eventHandlers[type] = handler;
   }
 
-  public async connectToLanguageServer(): Promise<void> {
-    // TODO move the complete logic somewhere else?
+  public static getInstance(): EventPoller {
+    if (!EventPoller.instance) {
+      EventPoller.instance = new EventPoller();
+    }
+    return EventPoller.instance;
+  }
+}
+
+class RPCHelper {
+  // eslint-disable-next-line no-use-before-define
+  private static instance: RPCHelper;
+  private jsonDataService: Promise<JsonDataService>;
+
+  private constructor() {
+    this.jsonDataService = JsonDataService.getInstance();
+  }
+
+  public async sendToService(
+    methodName: string,
+    options?: any[],
+  ): Promise<any> {
+    return (await this.jsonDataService).data({
+      method: methodName,
+      options,
+    });
+  }
+
+  public static getInstance(): RPCHelper {
+    if (!RPCHelper.instance) {
+      RPCHelper.instance = new RPCHelper();
+    }
+    return RPCHelper.instance;
+  }
+}
+
+class SettingsHelper {
+  // eslint-disable-next-line no-use-before-define
+  private static instance: SettingsHelper;
+  private jsonDataService: Promise<JsonDataService>;
+
+  private constructor() {
+    this.jsonDataService = JsonDataService.getInstance();
+  }
+
+  public async getInitialSettings(): Promise<NodeSettings> {
+    return (await this.jsonDataService).initialData();
+  }
+
+  public async registerApplyListener(
+    settingsGetter: () => NodeSettings,
+  ): Promise<void> {
+    const dialogService = await DialogService.getInstance();
+    dialogService.setApplyListener(async () => {
+      const settings = settingsGetter();
+      await (await this.jsonDataService).applyData(settings);
+      return { isApplied: true };
+    });
+  }
+
+  public static getInstance(): SettingsHelper {
+    if (!SettingsHelper.instance) {
+      SettingsHelper.instance = new SettingsHelper();
+    }
+    return SettingsHelper.instance;
+  }
+}
+
+// --- SCRIPTING SERVICE ---
+
+const scriptingService = {
+  sendToService(methodName: string, options?: any[] | undefined): Promise<any> {
+    return RPCHelper.getInstance().sendToService(methodName, options);
+  },
+  registerEventHandler(type: string, handler: (args: any) => void) {
+    EventPoller.getInstance().registerEventHandler(type, handler);
+  },
+
+  // Settings
+  getInitialSettings(): Promise<NodeSettings> {
+    return SettingsHelper.getInstance().getInitialSettings();
+  },
+
+  // TODO move this logic somewhere else to remove the dependency from the
+  // scripting-service to the main editor state
+  async connectToLanguageServer() {
     const editorModel = useMainCodeEditorStore().value?.editorModel;
     if (typeof editorModel === "undefined") {
       throw Error("Editor model has not yet been initialized");
@@ -79,53 +143,37 @@ class ScriptingService {
       "connectToLanguageServer",
     )) as LanugageServerStatus;
     if (status.status === "RUNNING") {
-      this._monacoLSPConnection = await MonacoLSPConnection.create(
+      return MonacoLSPConnection.create(
         editorModel,
         new KnimeMessageReader(),
         new KnimeMessageWriter(),
       );
     } else {
-      consoleHandler.writeln({
-        text: status.message ?? "Starting the language server failed",
-      });
+      throw Error(status.message ?? "Starting the language server failed");
     }
-  }
+  },
 
-  public async configureLanguageServer(settings: any): Promise<void> {
-    if (this._monacoLSPConnection) {
-      await this._monacoLSPConnection.changeConfiguration(settings);
-    }
-  }
+  isCodeAssistantEnabled(): Promise<boolean> {
+    return RPCHelper.getInstance().sendToService("isCodeAssistantEnabled");
+  },
+  isCodeAssistantInstalled(): Promise<boolean> {
+    return RPCHelper.getInstance().sendToService("isCodeAssistantInstalled");
+  },
+  inputsAvailable(): Promise<boolean> {
+    return RPCHelper.getInstance().sendToService("inputsAvailable");
+  },
+  getFlowVariableInputs(): Promise<InputOutputModel> {
+    return RPCHelper.getInstance().sendToService("getFlowVariableInputs");
+  },
+  getInputObjects(): Promise<InputOutputModel[]> {
+    return RPCHelper.getInstance().sendToService("getInputObjects");
+  },
+  getOutputObjects(): Promise<InputOutputModel[]> {
+    return RPCHelper.getInstance().sendToService("getOutputObjects");
+  },
+};
 
-  public isCodeAssistantEnabled(): Promise<boolean> {
-    return this.sendToService("isCodeAssistantEnabled");
-  }
-
-  public isCodeAssistantInstalled(): Promise<boolean> {
-    return this.sendToService("isCodeAssistantInstalled");
-  }
-
-  public inputsAvailable(): Promise<boolean> {
-    return this.sendToService("inputsAvailable");
-  }
-
-  public getFlowVariableInputs(): Promise<InputOutputModel> {
-    return this.sendToService("getFlowVariableInputs");
-  }
-
-  public getInputObjects(): Promise<InputOutputModel[]> {
-    return this.sendToService("getInputObjects");
-  }
-
-  public getOutputObjects(): Promise<InputOutputModel[]> {
-    return this.sendToService("getOutputObjects");
-  }
-}
-
-export type ScriptingServiceType = Pick<
-  ScriptingService,
-  keyof ScriptingService
->;
+export type ScriptingServiceType = typeof scriptingService;
 
 /**
  * Get the singleton instance of the scripting service. The scripting service
@@ -162,17 +210,8 @@ export const initConsoleEventHandler = () => {
   getScriptingService().registerEventHandler("console", consoleHandler.write);
 };
 
-export const registerSettingsGetterForApply = async (
+export const registerSettingsGetterForApply = (
   settingsGetter: () => NodeSettings,
-) => {
-  const dialogService = await DialogService.getInstance();
-  const jsonDataService = await JsonDataService.getInstance();
+) => SettingsHelper.getInstance().registerApplyListener(settingsGetter);
 
-  dialogService.setApplyListener(async () => {
-    const settings = settingsGetter();
-    await jsonDataService.applyData(settings);
-    return { isApplied: true };
-  });
-};
-
-setScriptingServiceInstance(new ScriptingService());
+setScriptingServiceInstance(scriptingService);
