@@ -5,7 +5,8 @@ import AiCode from "webapps-common/ui/assets/img/icons/ai-general.svg";
 import AiBar from "./ai-assistant/AiBar.vue";
 import { getScriptingService } from "@/scripting-service";
 import { onClickOutside } from "@vueuse/core";
-import type { PaneSizes } from "./ScriptingEditor.vue";
+
+import type { PaneSizes } from "@/components/utils/paneSizes";
 
 const showBar = ref<boolean>(false);
 const aiBar = ref(null);

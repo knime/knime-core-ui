@@ -1,8 +1,7 @@
 import { flushPromises, mount } from "@vue/test-utils";
-import { onKeyStroke } from "@vueuse/core";
-import { Pane, Splitpanes, type PaneProps } from "splitpanes";
-import { afterEach, describe, expect, it, vi } from "vitest";
-
+import { onKeyStroke, useElementBounding } from "@vueuse/core";
+import { Pane, type PaneProps, Splitpanes } from "splitpanes";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { initConsoleEventHandler } from "@/__mocks__/scripting-service";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
 import InputOutputPane from "../InputOutputPane.vue";
@@ -12,14 +11,37 @@ import SettingsPage from "../SettingsPage.vue";
 import { useMainCodeEditor } from "@/editor";
 import { consoleHandler } from "@/consoleHandler";
 import { registerSettingsGetterForApply } from "@/scripting-service";
+import { nextTick, ref } from "vue";
+import MainEditorPanel from "../MainEditorPanel.vue";
+import { MIN_WIDTH_FOR_DISPLAYING_PANES } from "../utils/paneSizes";
+
+const mocks = vi.hoisted(() => {
+  return {
+    useElementBounding: vi.fn(),
+  };
+});
+
+vi.mock("@vueuse/core", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@vueuse/core")>();
+  return {
+    ...original,
+    useElementBounding: mocks.useElementBounding,
+    onKeyStroke: vi.fn(),
+  };
+});
 
 vi.mock("xterm");
-vi.mock("@vueuse/core");
 
 vi.mock("@/scripting-service");
 vi.mock("@/editor");
 
 describe("ScriptingEditor", () => {
+  beforeEach(() => {
+    vi.mocked(useElementBounding).mockReturnValue({
+      width: ref(MIN_WIDTH_FOR_DISPLAYING_PANES + 1),
+    } as ReturnType<typeof useElementBounding>);
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -41,6 +63,7 @@ describe("ScriptingEditor", () => {
       props: { title: "", language: "", fileName: "", ...args.props },
       slots: args.slots,
     });
+
     const findPane = (testId: string): PaneProps =>
       (wrapper.findComponent(`[data-testid="${testId}"]`) as any).props();
     const leftPane = findPane("leftPane");
@@ -148,6 +171,17 @@ describe("ScriptingEditor", () => {
       expect(editorPane.size).toBe(50);
       expect(bottomPane.size).toBe(40);
       expect(topPane.size).toBe(60);
+    });
+
+    it("set left/right and console pane sizes to zero when width is small", () => {
+      vi.mocked(useElementBounding).mockReturnValue({
+        width: ref(MIN_WIDTH_FOR_DISPLAYING_PANES - 1),
+      } as ReturnType<typeof useElementBounding>);
+
+      const { leftPane, rightPane, bottomPane } = doMount();
+      expect(leftPane.size).toBe(0);
+      expect(rightPane.size).toBe(0);
+      expect(bottomPane.size).toBe(0);
     });
 
     describe("resizing", () => {
@@ -438,17 +472,26 @@ describe("ScriptingEditor", () => {
     expect(settingsPage.find(".settings-content").exists()).toBeTruthy();
   });
 
-  it("sets drop event on code editor", () => {
+  it("sets drop event on code editor", async () => {
     const { wrapper } = doMount();
     const inOutPane = wrapper.findComponent(InputOutputPane);
     expect(inOutPane.exists()).toBeTruthy();
+
     const dropEventHandlerMock = vi.fn();
     const dropEventMock = { drop: "event" };
     inOutPane.vm.$emit("drop-event-handler-created", dropEventHandlerMock);
     expect((wrapper.vm as any).dropEventHandler).toStrictEqual(
       dropEventHandlerMock,
     );
-    wrapper.find(".code-editor").trigger("drop", dropEventMock);
+    await nextTick();
+
+    const editorComponent = wrapper.findComponent(MainEditorPanel);
+
+    expect(editorComponent.exists()).toBeTruthy();
+    expect(editorComponent.props().dropEventHandler).toBe(dropEventHandlerMock);
+
+    await editorComponent.trigger("drop", dropEventMock);
+
     expect(dropEventHandlerMock).toHaveBeenCalledWith(
       expect.objectContaining(dropEventMock),
     );

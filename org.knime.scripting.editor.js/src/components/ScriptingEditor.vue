@@ -1,18 +1,14 @@
 <script setup lang="ts">
-import { onKeyStroke } from "@vueuse/core";
+import { useElementBounding } from "@vueuse/core";
+
+import { computed, reactive, ref } from "vue";
 import { Pane, Splitpanes } from "splitpanes";
 import "splitpanes/dist/splitpanes.css";
-import { computed, onMounted, reactive, ref } from "vue";
 import type { MenuItem } from "webapps-common/ui/components/MenuItems.vue";
-
-import { useMainCodeEditor } from "@/editor";
 import {
-  getScriptingService,
   initConsoleEventHandler,
-  registerSettingsGetterForApply,
   type NodeSettings,
 } from "@/scripting-service";
-import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 import CompactTabBar from "./CompactTabBar.vue";
 import HeaderBar from "./HeaderBar.vue";
 import InputOutputPane from "./InputOutputPane.vue";
@@ -21,10 +17,12 @@ import OutputConsole from "./OutputConsole.vue";
 import type { SettingsMenuItem } from "./SettingsPage.vue";
 import SettingsPage from "./SettingsPage.vue";
 import { setConsoleHandler } from "@/consoleHandler";
-
-export type PaneSizes = {
-  [key in "left" | "right" | "bottom"]: number;
-};
+import MainEditorPanel from "@/components/MainEditorPanel.vue";
+import {
+  MIN_WIDTH_FOR_DISPLAYING_PANES,
+  type PaneSizes,
+} from "@/components/utils/paneSizes";
+import CodeEditorControlBar from "@/components/CodeEditorControlBar.vue";
 
 const commonMenuItems: MenuItem[] = [
   // TODO: add actual common menu items
@@ -54,98 +52,91 @@ const props = withDefaults(defineProps<Props>(), {
   toSettings: (settings: NodeSettings) => settings,
 });
 
-const emit = defineEmits(["menu-item-clicked", "save-settings"]);
-
 // Splitpane sizes
-const currentPaneSizes = reactive<PaneSizes>({
+const largeModePaneSizes = reactive<PaneSizes>({
   left: props.initialPaneSizes.left,
   right: props.initialPaneSizes.right,
   bottom: props.initialPaneSizes.bottom,
 });
-const previousPaneSizes = reactive<PaneSizes>({
+const previousLargeModePaneSizes = reactive<PaneSizes>({
   left: props.initialPaneSizes.left,
   right: props.initialPaneSizes.right,
   bottom: props.initialPaneSizes.bottom,
 });
-const usedMainPaneSize = computed(() => 100 - currentPaneSizes.left);
+
+const rootSplitPane = ref();
+const rootSplitPaneRef = useElementBounding(rootSplitPane);
+const isSlimMode = computed(
+  () => rootSplitPaneRef.width.value <= MIN_WIDTH_FOR_DISPLAYING_PANES,
+);
+const currentPaneSizes = computed(() => {
+  return isSlimMode.value
+    ? {
+        left: 0,
+        right: 0,
+        bottom: 0,
+      }
+    : largeModePaneSizes;
+});
+
+const usedMainPaneSize = computed(() => 100 - currentPaneSizes.value.left);
 const usedHorizontalCodeEditorPaneSize = computed(
-  () => 100 - currentPaneSizes.right,
+  () => 100 - currentPaneSizes.value.right,
 );
 const usedVerticalCodeEditorPaneSize = computed(
-  () => 100 - currentPaneSizes.bottom,
+  () => 100 - currentPaneSizes.value.bottom,
 );
-const isLeftPaneCollapsed = computed(() => currentPaneSizes.left === 0);
-const isRightPaneCollapsed = computed(() => currentPaneSizes.right === 0);
-const isBottomPaneCollapsed = computed(() => currentPaneSizes.bottom === 0);
+const isLeftPaneCollapsed = computed(() => currentPaneSizes.value.left === 0);
+const isRightPaneCollapsed = computed(() => currentPaneSizes.value.right === 0);
+const isBottomPaneCollapsed = computed(
+  () => currentPaneSizes.value.bottom === 0,
+);
 const updatePreviousPaneSize = (pane: keyof PaneSizes) => {
-  if (currentPaneSizes[pane] <= 0) {
+  if (currentPaneSizes.value[pane] <= 0) {
     return;
   }
-  previousPaneSizes[pane] = currentPaneSizes[pane];
+  previousLargeModePaneSizes[pane] = largeModePaneSizes[pane];
 };
 const resizePane = (
   size: number,
   pane: keyof PaneSizes,
   shouldUpdatePreviousPaneSize: boolean = true,
 ) => {
-  currentPaneSizes[pane] = size;
+  currentPaneSizes.value[pane] = size;
 
   if (shouldUpdatePreviousPaneSize) {
     updatePreviousPaneSize(pane);
   }
 };
 const updateRightPane = (size: number) => {
-  if (props.rightPaneLayout !== "fixed" || currentPaneSizes.right <= 0) {
+  if (props.rightPaneLayout !== "fixed" || currentPaneSizes.value.right <= 0) {
     return;
   }
   // keep right pane at same size when left pane is resized
   const newMainPaneSize = 100 - size;
   const absoluteRightPaneSize =
-    (100 - currentPaneSizes.left) * (previousPaneSizes.right / 100);
+    (100 - currentPaneSizes.value.left) *
+    (previousLargeModePaneSizes.right / 100);
   const newRightPaneSize = (absoluteRightPaneSize / newMainPaneSize) * 100;
 
   resizePane(newRightPaneSize, "right", false);
 };
 const collapsePane = (pane: keyof PaneSizes) => {
-  let newSize = currentPaneSizes[pane] === 0 ? previousPaneSizes[pane] : 0;
+  let newSize =
+    currentPaneSizes.value[pane] === 0 ? previousLargeModePaneSizes[pane] : 0;
   if (pane === "left") {
     updateRightPane(newSize);
   }
   resizePane(newSize, pane);
 };
 
-// Main editor
-const editorContainer = ref<HTMLDivElement>();
-const codeEditorState = useMainCodeEditor({
-  container: editorContainer,
-  language: props.language,
-  fileName: props.fileName,
-});
-onMounted(() => {
-  getScriptingService()
-    .getInitialSettings()
-    .then((settings) => {
-      codeEditorState.setInitialText(settings.script);
-    });
-});
-// register undo changes from outside the editor
-onKeyStroke("z", (e) => {
-  const key = navigator.userAgent.toLowerCase().includes("mac")
-    ? e.metaKey
-    : e.ctrlKey;
-  if (key) {
-    codeEditorState.editor.value?.trigger("window", "undo", {});
-  }
-});
 // Dropping input/output items
 const dropEventHandler = ref<(payload: DragEvent) => void>();
 const onDropEventHandlerCreated = (handler: (payload: DragEvent) => void) => {
   dropEventHandler.value = handler;
 };
 
-registerSettingsGetterForApply(() =>
-  props.toSettings({ script: codeEditorState.text.value }),
-);
+const emit = defineEmits(["menu-item-clicked"]);
 
 // Menu items and settings pane
 const showSettingsPage = ref(false);
@@ -163,15 +154,23 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
   setConsoleHandler(handler);
   initConsoleEventHandler();
 };
+
+// SplitPanes does interfere with the usage of flex box so the following line
+// is a workaround to allow to hide the control bar
+const controlBarHeight = computed(() => {
+  return props.showControlBar && !isSlimMode.value ? "40px" : "0px";
+});
 </script>
 
 <template>
-  <div class="layout">
+  <div class="layout" :style="{ '--controls-height': controlBarHeight }">
     <HeaderBar
       :title="title"
       :menu-items="[...commonMenuItems, ...menuItems]"
       @menu-item-click="onMenuItemClicked"
+      v-if="!isSlimMode"
     />
+
     <SettingsPage
       v-if="showSettingsPage"
       @close-settings-page="showSettingsPage = false"
@@ -183,12 +182,15 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
         <slot name="settings-content" />
       </template>
     </SettingsPage>
+
     <splitpanes
       v-show="!showSettingsPage"
+      ref="rootSplitPane"
       data-testid="mainSplitpane"
       class="common-splitter unset-transition main-splitpane"
       :dbl-click-splitter="false"
       :class="{
+        'slim-mode': isSlimMode,
         'left-facing-splitter': !isLeftPaneCollapsed,
         'right-facing-splitter': isLeftPaneCollapsed,
       }"
@@ -212,6 +214,7 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
           @drop-event-handler-created="onDropEventHandlerCreated"
         />
       </pane>
+
       <pane data-testid="mainPane" :size="usedMainPaneSize" min-size="40">
         <splitpanes
           data-testid="horizontalSplitpane"
@@ -246,13 +249,15 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
                 :size="usedHorizontalCodeEditorPaneSize"
                 min-size="25"
               >
-                <div
-                  ref="editorContainer"
-                  class="code-editor"
-                  @drop="dropEventHandler"
+                <MainEditorPanel
+                  :language="props.language"
+                  :file-name="props.fileName"
+                  :drop-event-handler="dropEventHandler"
+                  :to-settings="props.toSettings"
+                  class="main-editor-panel"
                 />
                 <CodeEditorControlBar
-                  v-if="showControlBar"
+                  v-if="showControlBar && !isSlimMode"
                   :language="language"
                   :current-pane-sizes="currentPaneSizes"
                 >
@@ -309,10 +314,6 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
   position: relative;
 }
 
-.code-editor {
-  height: calc(100% - var(--controls-height));
-}
-
 .tab-bar-container {
   display: flex;
   height: 100%;
@@ -327,6 +328,10 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
   }
 }
 
+.main-editor-panel {
+  height: calc(100% - var(--controls-height));
+}
+
 /* NB: we disable the rule because of classes defined by the splitpanes package */
 /* stylelint-disable selector-class-pattern */
 .common-splitter {
@@ -338,6 +343,13 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
     background-position: center;
     border-color: var(--knime-silver-sand);
     border-style: solid;
+  }
+}
+
+.common-splitter.slim-mode {
+  & :deep(.splitpanes__splitter) {
+    display: none;
+    pointer-events: none;
   }
 }
 
