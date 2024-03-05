@@ -23,13 +23,6 @@ const error = (message: any, ...args: any[]) => {
   }
 };
 
-const doNothing =
-  (fnName: string) =>
-  (...args: any[]) => {
-    log(`Called scriptingService.${fnName}`, ...args);
-    return Promise.resolve();
-  };
-
 export const DEFAULT_INPUT_OBJECTS = [
   {
     name: "Input Table 1",
@@ -175,8 +168,10 @@ export const createScriptingServiceMock = (
     },
 
     // Language server
-    connectToLanguageServer: doNothing("connectToLanguageServer"),
-    configureLanguageServer: doNothing("configureLanguageServer"),
+    connectToLanguageServer() {
+      log("Called scriptingService.connectToLanguageServer");
+      return Promise.reject(new Error("No language server in mock"));
+    },
 
     // Console handling
     eventHandlers,

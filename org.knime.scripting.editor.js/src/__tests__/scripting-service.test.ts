@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import sleep from "webapps-common/util/sleep";
 
 import { DialogService, JsonDataService } from "@knime/ui-extension-service";
-import type { ScriptingServiceType } from "@/scripting-service";
 
 vi.mock("monaco-editor");
 
@@ -20,36 +19,20 @@ const lock = <T = void>() => {
 };
 
 describe("scripting-service", () => {
-  let _jsonDataService: any,
-    _dialogService: any,
-    _resolveEventPoller: () => void;
+  let _jsonDataService: any, _dialogService: any;
 
-  const getScriptingService = async (stopEventPoller = true) => {
-    const scriptingService = (
-      await import("../scripting-service")
-    ).getScriptingService() as ScriptingServiceType & {
-      stopEventPoller: () => void;
-    };
-
-    if (stopEventPoller) {
-      scriptingService.stopEventPoller();
-      _resolveEventPoller();
-    }
-    return scriptingService;
-  };
+  const getScriptingService = async () =>
+    (await import("../scripting-service")).getScriptingService();
 
   beforeEach(() => {
     // Make sure the module is reloaded to reset the singleton instance
     vi.resetModules();
 
     // Mock the services
-    const { promise: blockEventPoller, resolve: resolveEventPoller } = lock();
     _jsonDataService = {
       registerDataGetter: vi.fn(() => {}),
       initialData: vi.fn(() => ({ script: "foo" })),
-      data: vi.fn((options: { method: string }) =>
-        options.method === "getEvent" ? blockEventPoller : Promise.resolve(),
-      ),
+      data: vi.fn(() => Promise.resolve()),
       applyData: vi.fn(() => {}),
     };
     _dialogService = {
@@ -57,7 +40,6 @@ describe("scripting-service", () => {
     };
     JsonDataService.getInstance = vi.fn().mockResolvedValue(_jsonDataService);
     DialogService.getInstance = vi.fn().mockResolvedValue(_dialogService);
-    _resolveEventPoller = resolveEventPoller;
   });
 
   afterEach(() => {
@@ -107,61 +89,6 @@ describe("scripting-service", () => {
       expect(initalSettings).toEqual({ script: "foo" });
       expect(_jsonDataService.initialData).toHaveBeenCalledOnce();
       expect(_jsonDataService.initialData).toHaveBeenCalledWith();
-    });
-  });
-
-  describe("events handler", () => {
-    it("polls events from the service", async () => {
-      // Return one event
-      _jsonDataService.data.mockImplementationOnce(
-        ({ method }: { method: string }) => {
-          expect(method).toBe("getEvent");
-        },
-      );
-
-      // Scripting service initialization starts the event poller
-      const scriptingService = await getScriptingService(false);
-
-      // Wait for the event poller to fetch the event
-      await sleep(10);
-      expect(_jsonDataService.data).toHaveBeenCalledWith({
-        method: "getEvent",
-      });
-
-      scriptingService.stopEventPoller();
-      _resolveEventPoller();
-    });
-
-    it("calls the correct event handler", async () => {
-      const scriptingService = await getScriptingService(false);
-
-      // Event handler for foo (the first event resolves the promise)
-      const { promise: eventFooPromise, resolve: resolveFooEvent } = lock();
-      const eventHandlerFoo = vi.fn(resolveFooEvent);
-      scriptingService.registerEventHandler("foo", eventHandlerFoo);
-
-      // Event handler for bar (the first event resolves the promise)
-      const { promise: eventBarPromise, resolve: resolveBarEvent } = lock();
-      const eventHandlerBar = vi.fn(resolveBarEvent);
-      scriptingService.registerEventHandler("bar", eventHandlerBar);
-
-      // Let the next data call return events for foo and bar
-      _jsonDataService.data.mockImplementationOnce(() => {
-        return Promise.resolve({ type: "bar", data: "data for bar" });
-      });
-      _jsonDataService.data.mockImplementationOnce(() => {
-        return Promise.resolve({ type: "foo", data: "data for foo" });
-      });
-
-      _resolveEventPoller();
-      await eventFooPromise;
-      expect(eventHandlerFoo).toHaveBeenCalledWith("data for foo");
-
-      await eventBarPromise;
-      expect(eventHandlerBar).toHaveBeenCalledWith("data for bar");
-
-      scriptingService.stopEventPoller();
-      _resolveEventPoller();
     });
   });
 
