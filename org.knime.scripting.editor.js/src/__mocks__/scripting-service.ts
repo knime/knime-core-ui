@@ -2,9 +2,6 @@ import type { ScriptingServiceType } from "@/scripting-service";
 import { vi } from "vitest";
 
 export const scriptingServiceMock = {
-  getInitialSettings: vi.fn(() =>
-    Promise.resolve({ script: "myInitialScript" }),
-  ),
   registerEventHandler: vi.fn(),
   isCodeAssistantEnabled: vi.fn(),
   isCodeAssistantInstalled: vi.fn(),
@@ -13,10 +10,12 @@ export const scriptingServiceMock = {
   getFlowVariableInputs: vi.fn(),
   getInputObjects: vi.fn(),
   getOutputObjects: vi.fn(),
-  configureLanguageServer: vi.fn(),
   connectToLanguageServer: vi.fn(),
-  saveSettings: vi.fn(),
   sendToService: vi.fn(),
+  getInitialSettings: vi.fn(() =>
+    Promise.resolve({ script: "myInitialScript" }),
+  ),
+  registerSettingsGetterForApply: vi.fn(),
 } as ScriptingServiceType;
 
 export const getScriptingService = vi.fn(() => scriptingServiceMock);

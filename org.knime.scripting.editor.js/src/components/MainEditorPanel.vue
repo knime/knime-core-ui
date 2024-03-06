@@ -3,11 +3,7 @@ import { onKeyStroke } from "@vueuse/core";
 import { onMounted, ref } from "vue";
 
 import { useMainCodeEditor } from "@/editor";
-import {
-  getScriptingService,
-  type NodeSettings,
-  registerSettingsGetterForApply,
-} from "@/scripting-service";
+import { getScriptingService, type NodeSettings } from "@/scripting-service";
 
 // Props
 interface Props {
@@ -51,7 +47,7 @@ onKeyStroke("z", (e) => {
   }
 });
 
-registerSettingsGetterForApply(() =>
+getScriptingService().registerSettingsGetterForApply(() =>
   props.toSettings({ script: codeEditorState.text.value }),
 );
 </script>
