@@ -10,7 +10,7 @@ import ScriptingEditor from "../ScriptingEditor.vue";
 import SettingsPage from "../SettingsPage.vue";
 import { useMainCodeEditor } from "@/editor";
 import { consoleHandler } from "@/consoleHandler";
-import { registerSettingsGetterForApply } from "@/scripting-service";
+import { getScriptingService } from "@/scripting-service";
 import { nextTick, ref } from "vue";
 import MainEditorPanel from "../MainEditorPanel.vue";
 import { MIN_WIDTH_FOR_DISPLAYING_PANES } from "../utils/paneSizes";
@@ -393,8 +393,9 @@ describe("ScriptingEditor", () => {
 
   it("registers default settings getter", () => {
     doMount();
-    const settingsGetter = (registerSettingsGetterForApply as any).mock
-      .calls[0][0];
+    const settingsGetter = (
+      getScriptingService().registerSettingsGetterForApply as any
+    ).mock.calls[0][0];
     expect(settingsGetter()).toStrictEqual({ script: "myInitialScript" });
   });
 
@@ -402,8 +403,9 @@ describe("ScriptingEditor", () => {
     const settings = { script: "myScript" };
     const toSettings = vi.fn().mockReturnValue(settings);
     doMount({ props: { toSettings } });
-    const settingsGetter = (registerSettingsGetterForApply as any).mock
-      .calls[0][0];
+    const settingsGetter = (
+      getScriptingService().registerSettingsGetterForApply as any
+    ).mock.calls[0][0];
     expect(settingsGetter()).toBe(settings);
     expect(toSettings).toHaveBeenCalledWith({ script: "myInitialScript" });
   });

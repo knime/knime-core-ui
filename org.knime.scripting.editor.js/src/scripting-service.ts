@@ -127,11 +127,6 @@ const scriptingService = {
     EventPoller.getInstance().registerEventHandler(type, handler);
   },
 
-  // Settings
-  getInitialSettings(): Promise<NodeSettings> {
-    return SettingsHelper.getInstance().getInitialSettings();
-  },
-
   // TODO move this logic somewhere else to remove the dependency from the
   // scripting-service to the main editor state
   async connectToLanguageServer() {
@@ -153,12 +148,15 @@ const scriptingService = {
     }
   },
 
+  // Code assistant
   isCodeAssistantEnabled(): Promise<boolean> {
     return RPCHelper.getInstance().sendToService("isCodeAssistantEnabled");
   },
   isCodeAssistantInstalled(): Promise<boolean> {
     return RPCHelper.getInstance().sendToService("isCodeAssistantInstalled");
   },
+
+  // Inputs and outputs
   inputsAvailable(): Promise<boolean> {
     return RPCHelper.getInstance().sendToService("inputsAvailable");
   },
@@ -171,6 +169,11 @@ const scriptingService = {
   getOutputObjects(): Promise<InputOutputModel[]> {
     return RPCHelper.getInstance().sendToService("getOutputObjects");
   },
+
+  // Settings
+  getInitialSettings: () => SettingsHelper.getInstance().getInitialSettings(),
+  registerSettingsGetterForApply: (settingsGetter: () => NodeSettings) =>
+    SettingsHelper.getInstance().registerApplyListener(settingsGetter),
 };
 
 export type ScriptingServiceType = typeof scriptingService;
@@ -209,9 +212,5 @@ export const getScriptingService = (): ScriptingServiceType =>
 export const initConsoleEventHandler = () => {
   getScriptingService().registerEventHandler("console", consoleHandler.write);
 };
-
-export const registerSettingsGetterForApply = (
-  settingsGetter: () => NodeSettings,
-) => SettingsHelper.getInstance().registerApplyListener(settingsGetter);
 
 setScriptingServiceInstance(scriptingService);

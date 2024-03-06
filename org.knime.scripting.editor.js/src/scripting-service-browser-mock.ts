@@ -130,6 +130,10 @@ export const createScriptingServiceMock = (
       log("Called scriptingService.getInitialSettings");
       return Promise.resolve(opt.initialSettings ?? { script: "Hello world" });
     },
+    registerSettingsGetterForApply() {
+      log("Called scriptingService.registerSettingsGetterForApply");
+      return Promise.resolve();
+    },
 
     // Input and output objects
     inputsAvailable() {

@@ -90,6 +90,18 @@ describe("scripting-service", () => {
       expect(_jsonDataService.initialData).toHaveBeenCalledOnce();
       expect(_jsonDataService.initialData).toHaveBeenCalledWith();
     });
+
+    describe("registerSettingsGetterForApply", () => {
+      it("adds listener in DialogService to apply data in JsonDataService", async () => {
+        const settings = { script: "myScript" };
+        const scriptingService = await getScriptingService();
+        await scriptingService.registerSettingsGetterForApply(() => settings);
+        expect(_dialogService.setApplyListener).toHaveBeenCalled();
+        const applyListener = _dialogService.setApplyListener.mock.calls[0][0];
+        expect(await applyListener()).toStrictEqual({ isApplied: true });
+        expect(_jsonDataService.applyData).toHaveBeenCalledWith(settings);
+      });
+    });
   });
 
   describe("input / output objects", () => {
@@ -112,26 +124,6 @@ describe("scripting-service", () => {
       expect(_jsonDataService.data).toHaveBeenCalledWith({
         method: "getOutputObjects",
       });
-    });
-  });
-
-  describe("registerSettingsGetterForApply", () => {
-    /**
-     * Not possible to import directly since the @knime/ui-extension-service Services have to be mocked first
-     */
-    const registerSettingsGetterForApply = async (settingsGetter: any) =>
-      (await import("../scripting-service")).registerSettingsGetterForApply(
-        settingsGetter,
-      );
-
-    it("adds listener in DialogService to apply data in JsonDataService", async () => {
-      const settings = { script: "myScript" };
-      const settingsGetter = () => settings;
-      await registerSettingsGetterForApply(settingsGetter);
-      expect(_dialogService.setApplyListener).toHaveBeenCalled();
-      const applyListener = _dialogService.setApplyListener.mock.calls[0][0];
-      expect(await applyListener()).toStrictEqual({ isApplied: true });
-      expect(_jsonDataService.applyData).toHaveBeenCalledWith(settings);
     });
   });
 });
