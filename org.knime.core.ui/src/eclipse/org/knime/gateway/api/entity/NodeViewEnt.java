@@ -50,6 +50,7 @@ package org.knime.gateway.api.entity;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -60,6 +61,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.NativeNodeContainer;
+import org.knime.core.node.workflow.NodeOutPort;
 import org.knime.core.webui.node.NodeWrapper;
 import org.knime.core.webui.node.PageResourceManager.PageType;
 import org.knime.core.webui.node.view.NodeTableView;
@@ -159,9 +161,11 @@ public final class NodeViewEnt extends NodeUIExtensionEnt<NodeWrapper> {
             var inPortIdx = ntv.getInPortIndex();
             var wfm = nnc.getParent();
             // plus 1 because the inPortIdx excludes the flow variable port
-            var conn = wfm.getIncomingConnectionFor(nnc.getID(), inPortIdx + 1);
-            return (DataTableSpec)wfm.getNodeContainer(conn.getSource()).getOutPort(conn.getSourcePort())
-                .getPortObjectSpec();
+            return Optional.ofNullable(wfm.getIncomingConnectionFor(nnc.getID(), inPortIdx + 1)) // connection
+                .map(conn -> wfm.getNodeContainer(conn.getSource()).getOutPort(conn.getSourcePort())) // port
+                .map(NodeOutPort::getPortObjectSpec) // spec
+                .map(spec -> spec instanceof DataTableSpec tableSpec ? tableSpec : null) //
+                .orElse(null);
         };
     }
 
@@ -181,7 +185,9 @@ public final class NodeViewEnt extends NodeUIExtensionEnt<NodeWrapper> {
             final var nodeView = nodeViewManager.getNodeView(nnc);
             if (nodeView instanceof NodeTableView ntv && specProvider != null) {
                 final var spec = specProvider.apply(ntv);
-                m_colorModelsEnt = getColorHandlerColumns(spec);
+                if (spec != null) {
+                    m_colorModelsEnt = getColorHandlerColumns(spec);
+                }
             }
         }
     }
