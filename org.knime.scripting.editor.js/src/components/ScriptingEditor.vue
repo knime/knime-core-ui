@@ -37,6 +37,7 @@ interface Props {
   menuItems?: MenuItem[];
   showControlBar?: boolean;
   initialPaneSizes?: PaneSizes;
+  rightPaneMinimumWidthInPixel?: number;
   toSettings?: (settings: NodeSettings) => NodeSettings;
 }
 
@@ -49,6 +50,7 @@ const props = withDefaults(defineProps<Props>(), {
     right: 25,
     bottom: 30,
   }),
+  rightPaneMinimumWidthInPixel: () => 0,
   toSettings: (settings: NodeSettings) => settings,
 });
 
@@ -69,6 +71,14 @@ const rootSplitPaneRef = useElementBounding(rootSplitPane);
 const isSlimMode = computed(
   () => rootSplitPaneRef.width.value <= MIN_WIDTH_FOR_DISPLAYING_PANES,
 );
+const minRatioOfRightPaneInPercent = computed(
+  () =>
+    (props.rightPaneMinimumWidthInPixel /
+      ((rootSplitPaneRef.width.value * (100 - largeModePaneSizes.left)) /
+        100)) *
+    100,
+);
+
 const currentPaneSizes = computed(() => {
   return isSlimMode.value
     ? {
@@ -76,7 +86,13 @@ const currentPaneSizes = computed(() => {
         right: 0,
         bottom: 0,
       }
-    : largeModePaneSizes;
+    : {
+        ...largeModePaneSizes,
+        right: Math.max(
+          largeModePaneSizes.right,
+          minRatioOfRightPaneInPercent.value,
+        ),
+      };
 });
 
 const usedMainPaneSize = computed(() => 100 - currentPaneSizes.value.left);
@@ -102,7 +118,7 @@ const resizePane = (
   pane: keyof PaneSizes,
   shouldUpdatePreviousPaneSize: boolean = true,
 ) => {
-  currentPaneSizes.value[pane] = size;
+  largeModePaneSizes[pane] = size;
 
   if (shouldUpdatePreviousPaneSize) {
     updatePreviousPaneSize(pane);
@@ -114,10 +130,14 @@ const updateRightPane = (size: number) => {
   }
   // keep right pane at same size when left pane is resized
   const newMainPaneSize = 100 - size;
+
   const absoluteRightPaneSize =
     (100 - currentPaneSizes.value.left) *
     (previousLargeModePaneSizes.right / 100);
-  const newRightPaneSize = (absoluteRightPaneSize / newMainPaneSize) * 100;
+  const newRightPaneSize = Math.max(
+    minRatioOfRightPaneInPercent.value,
+    (absoluteRightPaneSize / newMainPaneSize) * 100,
+  );
 
   resizePane(newRightPaneSize, "right", false);
 };
@@ -270,6 +290,7 @@ const controlBarHeight = computed(() => {
                 data-testid="rightPane"
                 :size="currentPaneSizes.right"
                 class="right-pane"
+                :min-size="minRatioOfRightPaneInPercent"
               >
                 <slot name="right-pane" />
               </pane>
