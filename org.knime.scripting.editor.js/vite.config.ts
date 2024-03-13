@@ -7,12 +7,14 @@ import vue from "@vitejs/plugin-vue";
 import dts from "vite-plugin-dts";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 import svgLoader from "vite-svg-loader";
+// @ts-ignore
+import { svgoConfig } from "webapps-common/config/svgo.config";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
-    svgLoader(),
+    svgLoader({ svgoConfig }),
     dts({
       insertTypesEntry: true,
       tsconfigPath: fileURLToPath(
