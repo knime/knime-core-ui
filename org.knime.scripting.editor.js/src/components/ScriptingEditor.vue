@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useElementBounding } from "@vueuse/core";
 
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, useSlots } from "vue";
 import { Pane, Splitpanes } from "splitpanes";
 import "splitpanes/dist/splitpanes.css";
 import type { MenuItem } from "webapps-common/ui/components/MenuItems.vue";
@@ -17,12 +17,12 @@ import OutputConsole from "./OutputConsole.vue";
 import type { SettingsMenuItem } from "./SettingsPage.vue";
 import SettingsPage from "./SettingsPage.vue";
 import { setConsoleHandler } from "@/consoleHandler";
-import MainEditorPanel from "@/components/MainEditorPanel.vue";
+import MainEditorPane from "./MainEditorPane.vue";
 import {
   MIN_WIDTH_FOR_DISPLAYING_PANES,
   type PaneSizes,
 } from "@/components/utils/paneSizes";
-import CodeEditorControlBar from "@/components/CodeEditorControlBar.vue";
+import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 
 const commonMenuItems: MenuItem[] = [
   // TODO: add actual common menu items
@@ -32,7 +32,7 @@ const commonMenuItems: MenuItem[] = [
 interface Props {
   title: string;
   language: string;
-  fileName: string;
+  fileName?: string | null;
   rightPaneLayout?: "fixed" | "relative";
   menuItems?: MenuItem[];
   showControlBar?: boolean;
@@ -42,6 +42,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  fileName: null,
   rightPaneLayout: "fixed",
   menuItems: () => [],
   showControlBar: true,
@@ -57,6 +58,7 @@ const props = withDefaults(defineProps<Props>(), {
 const isRightPaneCollapsable = computed(
   () => props.rightPaneMinimumWidthInPixel === 0,
 );
+const emit = defineEmits(["menu-item-clicked"]);
 
 // Splitpane sizes
 const largeModePaneSizes = reactive<PaneSizes>({
@@ -160,8 +162,6 @@ const onDropEventHandlerCreated = (handler: (payload: DragEvent) => void) => {
   dropEventHandler.value = handler;
 };
 
-const emit = defineEmits(["menu-item-clicked"]);
-
 // Menu items and settings pane
 const showSettingsPage = ref(false);
 const onMenuItemClicked = (args: { event: Event; item: SettingsMenuItem }) => {
@@ -179,11 +179,21 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
   initConsoleEventHandler();
 };
 
+// Convenient to have this computed property for reactive components
+const showControlBarDynamic = computed(() => {
+  return props.showControlBar && !isSlimMode.value;
+});
+
 // SplitPanes does interfere with the usage of flex box so the following line
 // is a workaround to allow to hide the control bar
 const controlBarHeight = computed(() => {
-  return props.showControlBar && !isSlimMode.value ? "40px" : "0px";
+  return showControlBarDynamic.value ? "40px" : "0px";
 });
+
+// We need either filename+languge, or provided editor slot
+if (props.fileName === null && !useSlots().editor) {
+  throw new Error("either fileName or editor slot must be provided");
+}
 </script>
 
 <template>
@@ -276,22 +286,34 @@ const controlBarHeight = computed(() => {
                 :size="usedHorizontalCodeEditorPaneSize"
                 min-size="25"
               >
-                <MainEditorPanel
-                  :language="props.language"
-                  :file-name="props.fileName"
-                  :drop-event-handler="dropEventHandler"
-                  :to-settings="props.toSettings"
-                  class="main-editor-panel"
-                />
-                <CodeEditorControlBar
-                  v-if="showControlBar && !isSlimMode"
-                  :language="language"
-                  :current-pane-sizes="currentPaneSizes"
+                <div
+                  class="multi-editor-container"
+                  :class="{ 'has-control-bar': showControlBarDynamic }"
                 >
-                  <template #controls>
-                    <slot name="code-editor-controls" />
+                  <template v-if="$slots.editor">
+                    <slot name="editor" />
                   </template>
-                </CodeEditorControlBar>
+                  <template v-else>
+                    <MainEditorPane
+                      :file-name="props.fileName!"
+                      :language="props.language"
+                      :show-control-bar="showControlBarDynamic"
+                      :drop-event-handler="dropEventHandler"
+                      :to-settings="props.toSettings"
+                    />
+                  </template>
+                </div>
+                <span class="run-button-panel">
+                  <CodeEditorControlBar
+                    v-if="showControlBarDynamic"
+                    :language="language"
+                    :current-pane-sizes="currentPaneSizes"
+                  >
+                    <template #controls>
+                      <slot name="code-editor-controls" />
+                    </template>
+                  </CodeEditorControlBar>
+                </span>
               </pane>
               <pane
                 data-testid="rightPane"
@@ -461,5 +483,35 @@ const controlBarHeight = computed(() => {
 
 .scrollable-y {
   overflow-y: auto;
+}
+
+/* We need to reduce the size of this pane slightly iff there's a control bar */
+.multi-editor-container.has-control-bar {
+  height: calc(100% - var(--controls-height));
+}
+
+.multi-editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  /* Enable scrolling if we have a lot of editors */
+  background-color: var(--knime-porcelain);
+  overflow-y: scroll;
+}
+
+.editor-and-controls-container {
+  flex-grow: 1;
+}
+
+.run-button-panel {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  height: var(--controls-height);
+  margin: 0;
+  background-color: var(--knime-gray-light-semi);
+  background-clip: padding-box;
+  border-top: 1px solid var(--knime-silver-sand);
 }
 </style>
