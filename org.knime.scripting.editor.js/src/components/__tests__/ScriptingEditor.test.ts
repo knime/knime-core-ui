@@ -12,8 +12,8 @@ import { useMainCodeEditor } from "@/editor";
 import { consoleHandler } from "@/consoleHandler";
 import { getScriptingService } from "@/scripting-service";
 import { nextTick, ref } from "vue";
-import MainEditorPanel from "../MainEditorPanel.vue";
 import { MIN_WIDTH_FOR_DISPLAYING_PANES } from "../utils/paneSizes";
+import MainEditorPane from "../MainEditorPane.vue";
 
 const mocks = vi.hoisted(() => {
   return {
@@ -138,6 +138,7 @@ describe("ScriptingEditor", () => {
   it("should register onKeyStroke handler", () => {
     doMount();
     expect(onKeyStroke).toHaveBeenCalledWith("z", expect.anything());
+    expect(onKeyStroke).toHaveBeenCalledWith("Escape", expect.anything());
   });
 
   describe("resizing and collapsing", () => {
@@ -487,15 +488,27 @@ describe("ScriptingEditor", () => {
     );
     await nextTick();
 
-    const editorComponent = wrapper.findComponent(MainEditorPanel);
+    const editorComponent = wrapper.findComponent(MainEditorPane);
+    const editorTextField = editorComponent.find(".code-editor");
 
-    expect(editorComponent.exists()).toBeTruthy();
+    expect(editorTextField.exists()).toBeTruthy();
     expect(editorComponent.props().dropEventHandler).toBe(dropEventHandlerMock);
 
-    await editorComponent.trigger("drop", dropEventMock);
+    await editorTextField.trigger("drop", dropEventMock);
 
     expect(dropEventHandlerMock).toHaveBeenCalledWith(
       expect.objectContaining(dropEventMock),
     );
+  });
+
+  it("displays anything we pass through via the 'editor' slot", () => {
+    const { wrapper } = doMount({
+      props: {},
+      slots: {
+        editor: "<p id='testeditorslotinjection'>Test</p>",
+      },
+    });
+
+    expect(wrapper.find("#testeditorslotinjection").exists()).toBeTruthy();
   });
 });

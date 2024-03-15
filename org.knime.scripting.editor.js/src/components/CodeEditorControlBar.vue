@@ -94,6 +94,7 @@ onMounted(async () => {
   background-color: var(--knime-gray-light-semi);
   border-top: 1px solid var(--knime-silver-sand);
   height: var(--controls-height);
+  width: 100%;
 }
 
 .button-controls {
