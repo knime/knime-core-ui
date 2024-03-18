@@ -165,10 +165,10 @@ const controlBarHeight = computed(() => {
 <template>
   <div class="layout" :style="{ '--controls-height': controlBarHeight }">
     <HeaderBar
+      v-if="!isSlimMode"
       :title="title"
       :menu-items="[...commonMenuItems, ...menuItems]"
       @menu-item-click="onMenuItemClicked"
-      v-if="!isSlimMode"
     />
 
     <SettingsPage
