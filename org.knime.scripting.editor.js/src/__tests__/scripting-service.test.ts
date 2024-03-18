@@ -101,6 +101,17 @@ describe("scripting-service", () => {
         expect(await applyListener()).toStrictEqual({ isApplied: true });
         expect(_jsonDataService.applyData).toHaveBeenCalledWith(settings);
       });
+
+      it("does not apply settings if they are invalid", async () => {
+        const settings = { script: "myScript" };
+        const scriptingService = await getScriptingService();
+        await scriptingService.registerSettingsGetterForApply(() => settings);
+        const applyListener = _dialogService.setApplyListener.mock.calls[0][0];
+        _jsonDataService.applyData.mockReturnValue(
+          Promise.reject(new Error("invalid settings")),
+        );
+        expect(await applyListener()).toStrictEqual({ isApplied: false });
+      });
     });
   });
 

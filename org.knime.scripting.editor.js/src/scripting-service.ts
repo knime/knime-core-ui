@@ -104,8 +104,13 @@ class SettingsHelper {
     const dialogService = await DialogService.getInstance();
     dialogService.setApplyListener(async () => {
       const settings = settingsGetter();
-      await (await this.jsonDataService).applyData(settings);
-      return { isApplied: true };
+      try {
+        await (await this.jsonDataService).applyData(settings);
+        return { isApplied: true };
+      } catch (e) {
+        consola.warn("Failed to apply settings", e);
+        return { isApplied: false };
+      }
     });
   }
 
