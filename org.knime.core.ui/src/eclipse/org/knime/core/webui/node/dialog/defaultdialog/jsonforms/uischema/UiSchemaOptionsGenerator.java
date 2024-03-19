@@ -192,6 +192,9 @@ final class UiSchemaOptionsGenerator {
                 case COLUMN_FILTER:
                     options.put(TAG_FORMAT, Format.COLUMN_FILTER);
                     break;
+                case NAME_FILTER:
+                    options.put(TAG_FORMAT, Format.TWIN_LIST);
+                    break;
                 case COLUMN_SELECTION:
                     options.put(TAG_FORMAT, Format.COLUMN_SELECTION);
                     break;
