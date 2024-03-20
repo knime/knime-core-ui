@@ -18,7 +18,7 @@ type TwinlistData = {
     manuallyDeselected: string[];
     includeUnknownColumns: boolean;
   };
-  typeFilter: {
+  typeFilter?: {
     selectedTypes: string[];
     typeDisplays: IdAndText[] | undefined;
   };
@@ -168,9 +168,13 @@ const typeDisplaysToMap = (keyValuePairs: IdAndText[] | undefined) => {
 };
 
 const getPreviouslySelectedTypes = () => {
-  const selectedTypesIds = control.value.data.typeFilter.selectedTypes;
+  const typeFilter = control.value.data.typeFilter;
+  if (!typeFilter) {
+    return [];
+  }
+  const selectedTypesIds = typeFilter.selectedTypes;
   const selectedTypesToDisplayedText = typeDisplaysToMap(
-    control.value.data.typeFilter.typeDisplays,
+    typeFilter.typeDisplays,
   );
   return selectedTypesIds.map((id) => ({
     id,
@@ -219,7 +223,7 @@ const rightLabel = computed(
       :show-search="showSearch"
       :disabled="disabled"
       :with-types="withTypes"
-      :initial-selected-types="control.data.typeFilter.selectedTypes"
+      :initial-selected-types="control.data.typeFilter?.selectedTypes"
       :additional-possible-types="previouslySelectedTypes"
       :initial-pattern="control.data.patternFilter.pattern"
       :initial-mode="control.data.mode.toLowerCase()"
