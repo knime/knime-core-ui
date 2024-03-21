@@ -64,9 +64,31 @@ watch(
   },
 );
 
-const handleClick = (event: MouseEvent, index?: number) => {
-  event.stopPropagation();
+const collapserRef = ref();
 
+const toggleExpansion = () => {
+  if (collapserRef.value) {
+    collapserRef.value.isExpanded = !collapserRef.value.isExpanded;
+  }
+};
+
+const isExpanded = () => {
+  return collapserRef.value?.isExpanded;
+};
+
+const setExpanded = (b: boolean) => {
+  if (collapserRef.value) {
+    collapserRef.value.isExpanded = b;
+  }
+};
+
+defineExpose({
+  toggleExpansion,
+  setExpanded,
+  isExpanded,
+});
+
+const handleClick = (event: MouseEvent, index?: number) => {
   // This is the selected item now - resets the selection on all other items
   inputOutputSelectionStore.selectedItem = props.inputOutputItem;
 
@@ -138,6 +160,7 @@ const onHeaderDragEnd = () => {
 <template>
   <Collapser
     v-if="inputOutputItem.subItems?.length"
+    ref="collapserRef"
     :initially-expanded="
       inputOutputItem.subItems?.length <= INITIALLY_EXPANDED_MAX_SUBITEMS
     "

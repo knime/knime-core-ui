@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch, type Ref } from "vue";
+import { onMounted, ref, watch, type Ref, type Directive } from "vue";
 import InputOutputItem, {
   INPUT_OUTPUT_DRAG_EVENT_ID,
   type InputOutputModel,
@@ -7,6 +7,7 @@ import InputOutputItem, {
 import { getScriptingService } from "@/scripting-service";
 import { useInputOutputSelectionStore } from "@/store/io-selection";
 import { useMainCodeEditorStore } from "@/editor";
+import useShouldFocusBePainted from "./utils/shouldFocusBePainted";
 
 const emit =
   defineEmits<
@@ -18,6 +19,9 @@ const emit =
 
 const inputOutputItems: Ref<InputOutputModel[]> = ref([]);
 const inputOutputSelectionStore = useInputOutputSelectionStore();
+
+const selectedItemIndex = ref<number>(0);
+const selectableItems = ref<(typeof InputOutputItem)[]>();
 
 const fetchInputOutputObjects = async (
   method: "getInputObjects" | "getOutputObjects",
@@ -34,6 +38,20 @@ const fetchFlowVariables = async () => {
     inputOutputItems.value.push(item);
   }
 };
+
+// Directive that removes element plus all children from tab flow. We will apply to all InputOutputItems.
+const vRemoveFromTabFlow = {
+  mounted: (thisElement: Element) => {
+    thisElement.setAttribute("tabindex", "-1");
+
+    const focusableElements = thisElement.querySelectorAll(
+      'a, button, input, textarea, select, details, [tabindex]:not([tabindex="-1"])',
+    );
+    focusableElements.forEach((childElement: Element) => {
+      childElement.setAttribute("tabindex", "-1");
+    });
+  },
+} satisfies Directive;
 
 const mainEditorState = useMainCodeEditorStore();
 
@@ -71,14 +89,59 @@ onMounted(async () => {
   await fetchInputOutputObjects("getOutputObjects");
   emit("drop-event-handler-created", dropEventHandler);
 });
+
+const paintFocus = useShouldFocusBePainted();
+
+const handleKeyDown = (e: KeyboardEvent) => {
+  switch (e.key) {
+    case "ArrowDown":
+      selectedItemIndex.value =
+        (selectedItemIndex.value + 1) % inputOutputItems.value.length;
+      break;
+    case "ArrowUp":
+      selectedItemIndex.value =
+        (selectedItemIndex.value - 1 + inputOutputItems.value.length) %
+        inputOutputItems.value.length;
+      break;
+    case "Enter":
+    case " ":
+      selectableItems.value?.[selectedItemIndex.value].toggleExpansion();
+      break;
+    case "ArrowRight":
+      selectableItems.value?.[selectedItemIndex.value].setExpanded(true);
+      break;
+    case "ArrowLeft":
+      selectableItems.value?.[selectedItemIndex.value].setExpanded(false);
+      break;
+    case "Home":
+      selectedItemIndex.value = 0;
+      break;
+    case "End":
+      selectedItemIndex.value = inputOutputItems.value.length - 1;
+      break;
+  }
+  e.preventDefault(); // Stop accidental scrolling
+};
 </script>
 
 <template>
-  <div class="in-out-container">
+  <div
+    class="in-out-container"
+    tabindex="0"
+    aria-role="menu"
+    @keydown="handleKeyDown"
+  >
     <InputOutputItem
-      v-for="inputOutputItem in inputOutputItems"
+      v-for="(inputOutputItem, i) in inputOutputItems"
       :key="inputOutputItem.name"
+      ref="selectableItems"
+      v-remove-from-tab-flow
       :input-output-item="inputOutputItem"
+      :class="{
+        'keyboard-selected': i === selectedItemIndex,
+        'focus-painted': paintFocus,
+      }"
+      @click="selectedItemIndex = i"
     />
   </div>
 </template>
@@ -88,5 +151,18 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   min-width: 150px;
+}
+
+.in-out-container:focus-within :deep(.focus-painted.keyboard-selected::after) {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--knime-cornflower);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.in-out-container:focus {
+  outline: none;
 }
 </style>

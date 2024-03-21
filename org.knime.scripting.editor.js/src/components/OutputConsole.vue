@@ -9,6 +9,7 @@ import type { ITerminalInitOnlyOptions, ITerminalOptions, ITheme } from "xterm";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import { Unicode11Addon } from "xterm-addon-unicode11";
+import useShouldFocusBePainted from "./utils/shouldFocusBePainted";
 
 export type ConsoleText = XOR<
   { text: string },
@@ -76,6 +77,14 @@ term.attachCustomKeyEventHandler((e) => {
       copyToClipboard(selection);
     }
     return false;
+  } else if (e.key === "Tab") {
+    // We don't want xterm to handle this itself, so return false.
+    return false;
+  } else if (e.key === "Escape") {
+    // Blur the terminal, and also return false so xterm doesn't try
+    // to handle the keypress.
+    term.blur();
+    return false;
   }
   return true;
 });
@@ -109,17 +118,24 @@ onMounted(() => {
 onUnmounted(() => {
   term?.dispose();
 });
+
+const paintFocus = useShouldFocusBePainted();
 </script>
 
 <template>
   <div class="console">
+    <!-- The order of elements here is unfortunately important so we can jump from console to clear. -->
+    <div
+      ref="termRef"
+      class="terminal"
+      :class="{ 'focus-painted': paintFocus }"
+    />
     <div class="console-overlay">
       <slot name="console-status" />
       <FunctionButton class="clear-button" @click="term.reset()">
         <TrashIcon />
       </FunctionButton>
     </div>
-    <div ref="termRef" class="terminal" />
   </div>
 </template>
 
@@ -142,6 +158,15 @@ onUnmounted(() => {
 
 .console {
   height: 100%;
+}
+
+.terminal.focus-painted:focus-within :deep(> div:first-of-type::after) {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  pointer-events: none;
+  z-index: 1;
+  border: 2px solid var(--knime-cornflower);
 }
 
 .terminal {
