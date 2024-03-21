@@ -23,6 +23,7 @@ import {
   type PaneSizes,
 } from "@/components/utils/paneSizes";
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
+import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
 
 const commonMenuItems: MenuItem[] = [
   // TODO: add actual common menu items
@@ -194,6 +195,8 @@ const controlBarHeight = computed(() => {
 if (props.fileName === null && !useSlots().editor) {
   throw new Error("either fileName or editor slot must be provided");
 }
+
+const paintFocus = useShouldFocusBePainted();
 </script>
 
 <template>
@@ -331,6 +334,7 @@ if (props.fileName === null && !useSlots().editor) {
                 v-model="bottomPaneActiveTab"
                 class="scripting-editor-tab-bar"
                 :possible-values="bottomPaneOptions"
+                :class="{ 'focus-painted': paintFocus }"
               />
               <div class="console-container">
                 <OutputConsole

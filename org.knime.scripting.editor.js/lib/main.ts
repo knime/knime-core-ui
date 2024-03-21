@@ -5,6 +5,7 @@ import OutputConsole, {
 } from "@/components/OutputConsole.vue";
 import ScriptingEditor from "@/components/ScriptingEditor.vue";
 import { type SettingsMenuItem } from "@/components/SettingsPage.vue";
+import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
 
 import type {
   UseCodeEditorParams,
@@ -28,6 +29,7 @@ export {
   getScriptingService,
   OutputConsole,
   ScriptingEditor,
+  useShouldFocusBePainted,
 };
 export type {
   ConsoleHandler,

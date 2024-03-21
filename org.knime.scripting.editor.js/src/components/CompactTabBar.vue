@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useVModel } from "@vueuse/core";
 import TabBar from "webapps-common/ui/components/TabBar.vue";
+import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
 
 const props = defineProps({
   disabled: {
@@ -23,12 +24,15 @@ const props = defineProps({
 
 const emit = defineEmits(["update:modelValue"]);
 const data = useVModel(props, "modelValue", emit);
+
+const paintFocus = useShouldFocusBePainted();
 </script>
 
 <template>
   <TabBar
     v-model="data"
     class="scripting-editor-tab-bar"
+    :class="{ 'focus-painted': paintFocus }"
     :possible-values="props.possibleValues"
     :name="name"
   />
@@ -71,5 +75,22 @@ const data = useVModel(props, "modelValue", emit);
       font-weight: 400;
     }
   }
+}
+
+.scripting-editor-tab-bar.focus-painted:focus-within
+  :deep(label:has(input[type="radio"]:checked)::after) {
+  content: "";
+  position: absolute;
+  display: block;
+  inset: -5px 0 -12px;
+  border: 2px solid var(--knime-cornflower);
+  z-index: 1;
+}
+
+/* Have to slightly shrink selection styling to paint focus nicely */
+.scripting-editor-tab-bar.focus-painted:focus-within
+  :deep(input[type="radio"]:checked + span::after) {
+  left: 4px;
+  right: 4px;
 }
 </style>
