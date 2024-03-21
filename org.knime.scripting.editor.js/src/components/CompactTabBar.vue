@@ -45,6 +45,7 @@ const data = useVModel(props, "modelValue", emit);
 
   & :deep(.carousel) {
     padding: 0;
+    overflow-y: hidden;
 
     &::before,
     &::after {
