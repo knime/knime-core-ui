@@ -42,55 +42,18 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
+ * 
  * History
- *   May 8, 2023 (benjamin): created
+ *   Mar 26, 2024 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
- * An annotation to set the button text and element title of array or collection settings.
- *
- * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
+ * 
  * @author Paul Bärnreuther
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface ArrayWidget {
-
-    /**
-     * @return the label of the add button which adds new elements to the settings
-     */
-    String addButtonText() default "";
-
-    /**
-     *
-     * @return a title that is shown above each element of the array in combination with the elements index
-     */
-    String elementTitle() default "";
-
-    /**
-     * TODO move to annotation on root of Array Layout element
-     *
-     * @return a custom title that is displayed above the element of the array. This may depend on values references
-     *         inside the array layout element.
-     */
-    Class<? extends ElementTitleProvider> elementTitleProvider() default ElementTitleProvider.class;
-
-    /**
-     * @return whether sort buttons should be shown that allow to change the order of the array elements
-     */
-    boolean showSortButtons() default false;
-
-    /**
-     * @return whether add and delete buttons should be hidden such that the size of the array cannot be changed
-     */
-    boolean hasFixedSize() default false;
+public interface ElementTitleProvider extends StateProvider<String> {
 
 }
