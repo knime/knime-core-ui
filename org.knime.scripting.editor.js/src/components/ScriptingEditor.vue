@@ -54,6 +54,10 @@ const props = withDefaults(defineProps<Props>(), {
   toSettings: (settings: NodeSettings) => settings,
 });
 
+const isRightPaneCollapsable = computed(
+  () => props.rightPaneMinimumWidthInPixel === 0,
+);
+
 // Splitpane sizes
 const largeModePaneSizes = reactive<PaneSizes>({
   left: props.initialPaneSizes.left,
@@ -257,11 +261,14 @@ const controlBarHeight = computed(() => {
               data-testid="verticalSplitpane"
               class="common-splitter unset-transition vertical-splitpane"
               :class="{
+                'slim-splitter': !isRightPaneCollapsable,
                 'left-facing-splitter': isRightPaneCollapsed,
                 'right-facing-splitter': !isRightPaneCollapsed,
               }"
               :dbl-click-splitter="false"
-              @splitter-click="collapsePane('right')"
+              @splitter-click="
+                isRightPaneCollapsable ? collapsePane('right') : undefined
+              "
               @resized="resizePane($event[1].size, 'right')"
             >
               <pane
@@ -371,6 +378,12 @@ const controlBarHeight = computed(() => {
   & :deep(.splitpanes__splitter) {
     display: none;
     pointer-events: none;
+  }
+}
+
+.common-splitter.slim-splitter {
+  & :deep(.splitpanes__splitter) {
+    min-width: 2px;
   }
 }
 
