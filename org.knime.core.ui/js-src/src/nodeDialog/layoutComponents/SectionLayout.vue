@@ -59,7 +59,7 @@ export default SectionLayout;
     margin: 0 calc(-1 * var(--horizontal-dialog-padding));
 
     & h3 {
-      margin: 0 var(--horizontal-dialog-padding) 9px;
+      margin: 0 var(--horizontal-dialog-padding) 20px;
       border-bottom: 1px solid var(--knime-silver-sand);
       color: var(--knime-masala);
       font-size: 16px;
