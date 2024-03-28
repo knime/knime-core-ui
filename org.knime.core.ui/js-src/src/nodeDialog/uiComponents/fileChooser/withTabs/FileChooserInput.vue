@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, watch } from "vue";
-import FileChooserInput from "./FileChooserInput.vue";
-import useDialogControl from "../../composables/components/useDialogControl";
-import LabeledInput from "../label/LabeledInput.vue";
+import SideDrawerContent from "./SideDrawerContent.vue";
+import useDialogControl from "../../../composables/components/useDialogControl";
+import LabeledInput from "../../label/LabeledInput.vue";
+import SettingsSubPanel from "@/nodeDialog/layoutComponents/settingsSubPanel/SettingsSubPanel.vue";
 import { rendererProps } from "@jsonforms/vue";
 import { FileChooserUiSchemaOptions } from "@/nodeDialog/types/FileChooserUiSchema";
 const props = defineProps(rendererProps());
@@ -52,12 +53,19 @@ watch(
     :control="control"
     @controlling-flow-variable-set="onChange"
   >
-    <FileChooserInput
-      :id="labelForId"
-      :disabled="disabled"
-      :model-value="data"
-      :browse-options="browseOptions"
-      @update:model-value="onChange"
-    />
+    <SettingsSubPanel>
+      <template #expand-button="{ expand }">
+        <button @click="expand">click me</button>
+      </template>
+      <template #default>
+        <SideDrawerContent
+          :id="labelForId"
+          :disabled="disabled"
+          :model-value="data"
+          :browse-options="browseOptions"
+          @update:model-value="onChange"
+        />
+      </template>
+    </SettingsSubPanel>
   </LabeledInput>
 </template>
