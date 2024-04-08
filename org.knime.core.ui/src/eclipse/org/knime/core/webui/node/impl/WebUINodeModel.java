@@ -66,6 +66,8 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.core.node.streamable.PartitionInfo;
+import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 
 /**
@@ -233,12 +235,35 @@ public abstract class WebUINodeModel<S extends DefaultNodeSettings> extends Node
         m_modelSettings = DefaultNodeSettings.loadSettings(settings, m_modelSettingsClass);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void reset() {
         //
     }
 
+    @Override
+    public StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
+            final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        return createStreamableOperator(partitionInfo, inSpecs, m_modelSettings);
+    }
+
+    /**
+     * Variant of {@link #createStreamableOperator(PartitionInfo, PortObjectSpec[])} also being provided the current
+     * model settings.
+     *
+     * @param partitionInfo The partition info describing the chunk (if distributable).
+     * @param inSpecs The port object specs of the input ports. These are identical to the specs that
+     *     {@link #configure(PortObjectSpec[])} was last called with (also on the remote side).
+     * @param modelSettings the current model settings
+     * @return A new operator for the (chunk) execution.
+     * @throws InvalidSettingsException Usually not thrown in the client but still part of the method signature as
+     *     implementations often run the same methods as during configure. (This method is not being called when
+     *     configure fails.)
+     * @noreference This method is not intended to be referenced by clients.
+     * @nooverride This method is currently not intended to be overwritten as it describes pending API.
+     * @see NodeModel#createStreamableOperator(PartitionInfo, PortObjectSpec[])
+     */
+    protected StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
+            final PortObjectSpec[] inSpecs, final S modelSettings) throws InvalidSettingsException {
+        return super.createStreamableOperator(partitionInfo, inSpecs);
+    }
 }
