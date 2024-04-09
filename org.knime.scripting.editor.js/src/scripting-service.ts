@@ -4,10 +4,6 @@ import { useMainCodeEditorStore } from "./editor";
 import { MonacoLSPConnection } from "./lsp/connection";
 import { KnimeMessageReader, KnimeMessageWriter } from "./lsp/knime-io";
 import { consoleHandler } from "@/consoleHandler";
-import {
-  getScriptingServiceInstance,
-  setScriptingServiceInstance,
-} from "./scripting-service-instance";
 
 export type NodeSettings = { script: string; scriptUsedFlowVariable?: string };
 type LanugageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
@@ -192,30 +188,24 @@ export type ScriptingServiceType = typeof scriptingService;
  *
  * @returns the scripting service instance
  * @example
- * // Provide a custom scripting service instance in a browser development environment
- * // vite.config.ts
- *   resolve: {
- *   alias: {
- *     "./scripting-service-instance.js":
- *       process.env.APP_ENV === "browser"
- *         ? <path to scripting-service-instance-browser.ts>,
- *         : "./scripting-service-instance.js",
- *   },
- * },
- *
- * // scripting-service-instance-browser.ts
  * import { createScriptingServiceMock } from "@knime/scripting-editor/scripting-service-browser-mock";
- * const scriptingService = createScriptingServiceMock({
- *   // optional customizations
- * });
- * export const getScriptingServiceInstance = () => scriptingService;
- * export const setScriptingServiceInstance = () => {};
+ * import { getScriptingService } from "@knime/scripting-editor";
+ *
+ * if (import.meta.env.MODE === "development.browser") {
+ *   const scriptingService = createScriptingServiceMock({
+ *     sendToServiceMockResponses: {
+ *       myBackendFunction: (options) => {
+ *         consola.log("called my backend function with", options);
+ *         return Promise.resolve();
+ *       },
+ *     },
+ *   });
+ *
+ *   Object.assign(getScriptingService(), scriptingService);
+ * }
  */
-export const getScriptingService = (): ScriptingServiceType =>
-  getScriptingServiceInstance();
+export const getScriptingService = (): ScriptingServiceType => scriptingService;
 
 export const initConsoleEventHandler = () => {
   getScriptingService().registerEventHandler("console", consoleHandler.write);
 };
-
-setScriptingServiceInstance(scriptingService);

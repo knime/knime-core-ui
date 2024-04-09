@@ -35,9 +35,6 @@ export default defineConfig({
       entry: [
         fileURLToPath(new URL("lib/main.ts", import.meta.url)),
         fileURLToPath(
-          new URL("src/scripting-service-instance.ts", import.meta.url),
-        ),
-        fileURLToPath(
           new URL("src/scripting-service-browser-mock.ts", import.meta.url),
         ),
       ],
