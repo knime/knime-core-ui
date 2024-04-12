@@ -98,6 +98,28 @@ public record InputOutputModel(String name, //
         final String subItemCodeAliasTemplate, //
         final String requiredImport //
     ) {
+        return InputOutputModel.createFromTableSpec(name, spec, codeAlias, subItemCodeAliasTemplate, true, requiredImport);
+    }
+
+    /**
+     * Helper method to convert a table spec into a {@link InputOutputModel}
+     *
+     * @param name
+     * @param spec
+     * @param codeAlias
+     * @param subItemCodeAliasTemplate
+     * @param requiredImport
+     * @param multipleSelection
+     * @return the {@link InputOutputModel} with the subItems from the table columns
+     */
+    public static InputOutputModel createFromTableSpec( //
+        final String name, //
+        final DataTableSpec spec, //
+        final String codeAlias, //
+        final String subItemCodeAliasTemplate, //
+        final boolean multipleSelection, //
+        final String requiredImport //
+    ) {
         final var columnNames = spec.getColumnNames();
         final var columnTypes = IntStream.range(0, spec.getNumColumns())
             .mapToObj(i -> spec.getColumnSpec(i).getType().getName()).toArray(String[]::new);
@@ -105,6 +127,6 @@ public record InputOutputModel(String name, //
             .mapToObj(i -> new InputOutputModelSubItem(columnNames[i], columnTypes[i]))
             .toArray(InputOutputModelSubItem[]::new);
 
-        return new InputOutputModel(name, codeAlias, subItemCodeAliasTemplate, requiredImport, true, subItems);
+        return new InputOutputModel(name, codeAlias, subItemCodeAliasTemplate, requiredImport, multipleSelection, subItems);
     }
 }
