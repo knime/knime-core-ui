@@ -5,7 +5,29 @@ import { MonacoLSPConnection } from "./lsp/connection";
 import { KnimeMessageReader, KnimeMessageWriter } from "./lsp/knime-io";
 import { consoleHandler } from "@/consoleHandler";
 
-export type NodeSettings = { script: string; scriptUsedFlowVariable?: string };
+export type PortViewConfig = {
+  label: string;
+  portViewIdx: number;
+};
+
+type PortConfig = {
+  /**
+   * null if no node is connected to an input port
+   */
+  nodeId: string | null;
+  portIdx: number;
+  portViewConfigs: PortViewConfig[];
+  portName: string;
+};
+
+export type PortConfigs = {
+  inputPorts: PortConfig[];
+};
+
+export type NodeSettings = {
+  script: string;
+  scriptUsedFlowVariable?: string;
+};
 type LanugageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
 
 // --- HELPER CLASSES ---
@@ -71,6 +93,25 @@ class RPCHelper {
       method: methodName,
       options,
     });
+  }
+
+  // Parameters need to be a valid port config, otherwise the call will fail
+  // even when callKnimeUiApi is available
+  public async isCallKnimeUiApiAvailable(
+    portToTestFor: PortConfig,
+  ): Promise<boolean> {
+    const baseService = ((await this.jsonDataService) as any).baseService;
+    if (baseService === null) {
+      return false;
+    }
+
+    return (
+      await baseService.callKnimeUiApi!("PortService.getPortView", {
+        nodeId: portToTestFor.nodeId,
+        portIdx: portToTestFor.portIdx,
+        viewIdx: portToTestFor.portViewConfigs[0]?.portViewIdx,
+      })
+    ).isSome;
   }
 
   public static getInstance(): RPCHelper {
@@ -170,9 +211,16 @@ const scriptingService = {
   getOutputObjects(): Promise<InputOutputModel[]> {
     return RPCHelper.getInstance().sendToService("getOutputObjects");
   },
+  getPortConfigs(): Promise<PortConfigs> {
+    return RPCHelper.getInstance().sendToService("getInputPortConfigs");
+  },
+  isCallKnimeUiApiAvailable(portToTestFor: PortConfig) {
+    return RPCHelper.getInstance().isCallKnimeUiApiAvailable(portToTestFor);
+  },
 
   // Settings
   getInitialSettings: () => SettingsHelper.getInstance().getInitialSettings(),
+
   registerSettingsGetterForApply: (settingsGetter: () => NodeSettings) =>
     SettingsHelper.getInstance().registerApplyListener(settingsGetter),
 };

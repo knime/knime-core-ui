@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { useElementBounding } from "@vueuse/core";
 
-import { computed, reactive, ref, useSlots } from "vue";
+import { computed, onMounted, reactive, type Ref, ref, useSlots } from "vue";
 import { Pane, Splitpanes } from "splitpanes";
 import "splitpanes/dist/splitpanes.css";
 import type { MenuItem } from "webapps-common/ui/components/MenuItems.vue";
 import {
+  getScriptingService,
   initConsoleEventHandler,
   type NodeSettings,
+  type PortConfigs,
 } from "@/scripting-service";
 import CompactTabBar from "./CompactTabBar.vue";
 import HeaderBar from "./HeaderBar.vue";
@@ -24,6 +26,7 @@ import {
 } from "@/components/utils/paneSizes";
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
+import InputPortTables from "@/components/InputPortTables.vue";
 import { useMainCodeEditorStore } from "@/editor";
 
 const commonMenuItems: MenuItem[] = [
@@ -173,9 +176,37 @@ const onMenuItemClicked = (args: { event: Event; item: SettingsMenuItem }) => {
   emit("menu-item-clicked", args);
 };
 
-// Bottom pane tabs
-const bottomPaneOptions = [{ value: "console", label: "Console" }];
-const bottomPaneActiveTab = ref<"console">("console");
+const portConfigs: PortConfigs = {
+  inputPorts: [],
+};
+
+const bottomPaneOptions: Ref<{ value: string; label: string }[]> = ref([
+  { value: "console", label: "Console" },
+]);
+
+const makeNodePortId = (nodeId: string, portIdx: number) =>
+  `${nodeId}-${portIdx}`;
+
+onMounted(async () => {
+  portConfigs.inputPorts = (
+    await getScriptingService().getPortConfigs()
+  ).inputPorts.filter((port) => port.nodeId !== null);
+
+  if (
+    portConfigs.inputPorts.length !== 0 &&
+    (await getScriptingService().isCallKnimeUiApiAvailable(
+      portConfigs.inputPorts[0],
+    ))
+  ) {
+    const inputPorts = portConfigs.inputPorts.map((port, index) => ({
+      value: makeNodePortId(port.nodeId!, port.portIdx),
+      label: `${index}: ${port.portName}`,
+    }));
+    bottomPaneOptions.value.push(...inputPorts);
+  }
+});
+
+const bottomPaneActiveTab = ref<string>("console");
 const onConsoleCreated = (handler: ConsoleHandler) => {
   setConsoleHandler(handler);
   initConsoleEventHandler();
@@ -210,7 +241,7 @@ const showControlBarDynamic = computed(() => {
   return props.showControlBar && !isSlimMode.value;
 });
 
-// We need either filename+languge, or provided editor slot
+// We need either filename+language, or provided editor slot
 if (props.fileName === null && !useSlots().editor) {
   throw new Error("either fileName or editor slot must be provided");
 }
@@ -367,6 +398,28 @@ const paintFocus = useShouldFocusBePainted();
                     <slot name="console-status" />
                   </template>
                 </OutputConsole>
+                <div
+                  v-for="port in portConfigs?.inputPorts"
+                  :key="port.portIdx"
+                  class="input-port-tables"
+                  :class="{
+                    collapsed:
+                      bottomPaneActiveTab !==
+                        makeNodePortId(port.nodeId!, port.portIdx) &&
+                      port.nodeId,
+                  }"
+                >
+                  <InputPortTables
+                    v-if="
+                      bottomPaneActiveTab ===
+                        makeNodePortId(port.nodeId!, port.portIdx) &&
+                      port.nodeId
+                    "
+                    :input-node-id="port.nodeId"
+                    :port-idx="port.portIdx"
+                    :port-view-configs="port.portViewConfigs"
+                  />
+                </div>
               </div>
             </div>
           </pane>
@@ -389,6 +442,10 @@ const paintFocus = useShouldFocusBePainted();
   position: relative;
 }
 
+.input-port-tables.collapsed {
+  display: none;
+}
+
 .editor-and-control-bar {
   height: 100%;
   display: flex;
@@ -405,8 +462,15 @@ const paintFocus = useShouldFocusBePainted();
 
   & .console-container {
     flex: 1;
+    height: 100%;
     min-height: 0;
   }
+}
+
+.input-port-tables {
+  height: 100%;
+  display: flex;
+  flex-grow: 1;
 }
 
 /* NB: we disable the rule because of classes defined by the splitpanes package */

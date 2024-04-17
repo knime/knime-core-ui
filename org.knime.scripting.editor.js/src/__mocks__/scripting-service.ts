@@ -1,5 +1,27 @@
-import type { ScriptingServiceType } from "@/scripting-service";
 import { vi } from "vitest";
+
+export const defaultPortConfig = {
+  inputPorts: [
+    {
+      nodeId: "root",
+      portName: "firstPort",
+      portIdx: 1,
+      portViewConfigs: [
+        { portViewIdx: 0, label: "firstView" },
+        { portViewIdx: 1, label: "secondView" },
+      ],
+    },
+    {
+      nodeId: "notRoot",
+      portName: "firstPort",
+      portIdx: 1,
+      portViewConfigs: [
+        { portViewIdx: 0, label: "firstView" },
+        { portViewIdx: 1, label: "secondView" },
+      ],
+    },
+  ],
+};
 
 export const scriptingServiceMock = {
   registerEventHandler: vi.fn(),
@@ -15,8 +37,10 @@ export const scriptingServiceMock = {
   getInitialSettings: vi.fn(() =>
     Promise.resolve({ script: "myInitialScript" }),
   ),
+  getPortConfigs: vi.fn(() => Promise.resolve(defaultPortConfig)),
+  isCallKnimeUiApiAvailable: vi.fn(() => Promise.resolve(true)),
   registerSettingsGetterForApply: vi.fn(),
-} as ScriptingServiceType;
+};
 
 export const getScriptingService = vi.fn(() => scriptingServiceMock);
 export const initConsoleEventHandler = vi.fn();
