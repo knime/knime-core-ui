@@ -2,6 +2,28 @@ import sleep from "webapps-common/util/sleep";
 import type { InputOutputModel } from "./components/InputOutputItem.vue";
 import type { NodeSettings, ScriptingServiceType } from "./scripting-service";
 
+const DEFAULT_PORT_CONFIGS = {
+  inputPorts: [
+    {
+      nodeId: "root",
+      portName: "firstPort",
+      portIdx: 1,
+      portViewConfigs: [
+        { portViewIdx: 0, label: "firstView" },
+        { portViewIdx: 1, label: "secondView" },
+      ],
+    },
+    {
+      nodeId: "notRoot",
+      portName: "firstPort",
+      portIdx: 1,
+      portViewConfigs: [
+        { portViewIdx: 0, label: "firstView" },
+        { portViewIdx: 1, label: "secondView" },
+      ],
+    },
+  ],
+};
 const SLEEP_TIME_ANY_CALL = 100;
 const SLEEP_TIME_AI_SUGGESTION = 2000;
 
@@ -153,6 +175,14 @@ export const createScriptingServiceMock = (
       return Promise.resolve(
         opt.flowVariableInputs ?? DEFAULT_FLOW_VARIABLE_INPUTS,
       );
+    },
+    getPortConfigs() {
+      log("Called scriptingService.getPortConfigs");
+      return Promise.resolve(DEFAULT_PORT_CONFIGS);
+    },
+    isCallKnimeUiApiAvailable() {
+      log("Called scriptingService.isCallKnimeUiApiAvailable");
+      return Promise.resolve(true);
     },
 
     // Code assistant

@@ -229,8 +229,14 @@ public abstract class ScriptingService {
                     return false;
                 }
             }
-
             return true;
+        }
+
+        /**
+         * @return input/output port configurations
+         */
+        public PortConfigs getInputPortConfigs() {
+            return new PortConfigs(NodeContext.getContext().getNodeContainer());
         }
 
         /**

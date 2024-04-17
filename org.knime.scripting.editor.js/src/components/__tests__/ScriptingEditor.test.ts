@@ -2,7 +2,10 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { onKeyStroke, useElementBounding } from "@vueuse/core";
 import { Pane, type PaneProps, Splitpanes } from "splitpanes";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { initConsoleEventHandler } from "@/__mocks__/scripting-service";
+import {
+  defaultPortConfig,
+  initConsoleEventHandler,
+} from "@/__mocks__/scripting-service";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
 import InputOutputPane from "../InputOutputPane.vue";
 import OutputConsole from "../OutputConsole.vue";
@@ -510,5 +513,25 @@ describe("ScriptingEditor", () => {
     });
 
     expect(wrapper.find("#testeditorslotinjection").exists()).toBeTruthy();
+  });
+
+  it("shows input table tabs for port views", async () => {
+    const { wrapper } = doMount();
+
+    await flushPromises();
+    const makeNodePortId = (nodeId: string, portIdx: number) =>
+      `${nodeId}-${portIdx}`;
+    const tabElements = wrapper.findAll(".tab-bar input");
+
+    for (const inputPort of defaultPortConfig.inputPorts) {
+      const expectedElement = tabElements.find(
+        (tab) =>
+          tab.attributes("value") ===
+          makeNodePortId(inputPort.nodeId!, inputPort.portIdx),
+      );
+
+      expect(expectedElement).toBeDefined();
+      expect(expectedElement!.isVisible()).toBeTruthy();
+    }
   });
 });
