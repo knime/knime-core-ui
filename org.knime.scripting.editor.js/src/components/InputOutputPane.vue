@@ -120,7 +120,10 @@ const handleKeyDown = (e: KeyboardEvent) => {
       selectedItemIndex.value = inputOutputItems.value.length - 1;
       break;
   }
-  e.preventDefault(); // Stop accidental scrolling
+
+  if (e.key !== "Tab") {
+    e.preventDefault(); // Stop accidental scrolling (but don't break tab navigation)
+  }
 };
 </script>
 
