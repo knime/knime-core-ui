@@ -185,12 +185,6 @@ const showControlBarDynamic = computed(() => {
   return props.showControlBar && !isSlimMode.value;
 });
 
-// SplitPanes does interfere with the usage of flex box so the following line
-// is a workaround to allow to hide the control bar
-const controlBarHeight = computed(() => {
-  return showControlBarDynamic.value ? "40px" : "0px";
-});
-
 // We need either filename+languge, or provided editor slot
 if (props.fileName === null && !useSlots().editor) {
   throw new Error("either fileName or editor slot must be provided");
@@ -200,7 +194,7 @@ const paintFocus = useShouldFocusBePainted();
 </script>
 
 <template>
-  <div class="layout" :style="{ '--controls-height': controlBarHeight }">
+  <div class="layout">
     <HeaderBar
       v-if="!isSlimMode"
       :title="title"
@@ -289,34 +283,36 @@ const paintFocus = useShouldFocusBePainted();
                 :size="usedHorizontalCodeEditorPaneSize"
                 min-size="25"
               >
-                <div
-                  class="multi-editor-container"
-                  :class="{ 'has-control-bar': showControlBarDynamic }"
-                >
-                  <template v-if="$slots.editor">
-                    <slot name="editor" />
-                  </template>
-                  <template v-else>
-                    <MainEditorPane
-                      :file-name="props.fileName!"
-                      :language="props.language"
-                      :show-control-bar="showControlBarDynamic"
-                      :drop-event-handler="dropEventHandler"
-                      :to-settings="props.toSettings"
-                    />
-                  </template>
-                </div>
-                <span class="run-button-panel">
-                  <CodeEditorControlBar
-                    v-if="showControlBarDynamic"
-                    :language="language"
-                    :current-pane-sizes="currentPaneSizes"
+                <div class="editor-and-control-bar">
+                  <div
+                    class="multi-editor-container"
+                    :class="{ 'has-control-bar': showControlBarDynamic }"
                   >
-                    <template #controls>
-                      <slot name="code-editor-controls" />
+                    <template v-if="$slots.editor">
+                      <slot name="editor" />
                     </template>
-                  </CodeEditorControlBar>
-                </span>
+                    <template v-else>
+                      <MainEditorPane
+                        :file-name="props.fileName!"
+                        :language="props.language"
+                        :show-control-bar="showControlBarDynamic"
+                        :drop-event-handler="dropEventHandler"
+                        :to-settings="props.toSettings"
+                      />
+                    </template>
+                  </div>
+                  <div class="run-button-panel">
+                    <CodeEditorControlBar
+                      v-if="showControlBarDynamic"
+                      :language="language"
+                      :current-pane-sizes="currentPaneSizes"
+                    >
+                      <template #controls>
+                        <slot name="code-editor-controls" />
+                      </template>
+                    </CodeEditorControlBar>
+                  </div>
+                </div>
               </pane>
               <pane
                 data-testid="rightPane"
@@ -356,7 +352,6 @@ const paintFocus = useShouldFocusBePainted();
 
 <style lang="postcss" scoped>
 .layout {
-  --controls-height: 40px;
   --description-button-size: 15px;
 
   display: flex;
@@ -366,6 +361,12 @@ const paintFocus = useShouldFocusBePainted();
   flex-grow: 0;
   overflow: hidden;
   position: relative;
+}
+
+.editor-and-control-bar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .tab-bar-container {
@@ -380,10 +381,6 @@ const paintFocus = useShouldFocusBePainted();
     flex: 1;
     min-height: 0;
   }
-}
-
-.main-editor-panel {
-  height: calc(100% - var(--controls-height));
 }
 
 /* NB: we disable the rule because of classes defined by the splitpanes package */
@@ -491,28 +488,26 @@ const paintFocus = useShouldFocusBePainted();
 
 /* We need to reduce the size of this pane slightly iff there's a control bar */
 .multi-editor-container.has-control-bar {
-  height: calc(100% - var(--controls-height));
+  height: auto;
 }
 
 .multi-editor-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  width: 100%;
+  flex-grow: 1;
 
   /* Enable scrolling if we have a lot of editors */
   background-color: var(--knime-porcelain);
   overflow-y: scroll;
 }
 
-.editor-and-controls-container {
-  flex-grow: 1;
-}
-
 .run-button-panel {
   display: flex;
+  flex-direction: row;
   justify-content: flex-end;
   align-items: center;
-  height: var(--controls-height);
+  height: fit-content;
   margin: 0;
   background-color: var(--knime-gray-light-semi);
   background-clip: padding-box;

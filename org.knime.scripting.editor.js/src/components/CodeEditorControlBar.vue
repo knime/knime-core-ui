@@ -88,9 +88,10 @@ onMounted(async () => {
 
 .controls {
   display: flex;
+  flex-wrap: wrap;
   place-content: center space-between;
   align-items: center;
-  padding: 0 10px;
+  padding: 2px 10px;
   background-color: var(--knime-gray-light-semi);
   border-top: 1px solid var(--knime-silver-sand);
   height: var(--controls-height);
@@ -100,6 +101,9 @@ onMounted(async () => {
 .button-controls {
   display: flex;
   justify-content: right;
+  flex-wrap: wrap;
+  row-gap: 2px;
+  padding-top: 2px;
 }
 
 .button-active {

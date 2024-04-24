@@ -104,7 +104,6 @@ describe("OutputConsole", () => {
 
   it("watches for output", async () => {
     const { term } = await doMount();
-    
     expect(term.onWriteParsed).toHaveBeenCalled();
   });
 });
