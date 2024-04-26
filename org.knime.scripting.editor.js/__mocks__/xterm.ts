@@ -9,5 +9,7 @@ Terminal.prototype.reset = vi.fn();
 Terminal.prototype.onLineFeed = vi.fn();
 Terminal.prototype.unicode = vi.fn();
 Terminal.prototype.attachCustomKeyEventHandler = vi.fn();
+Terminal.prototype.onWriteParsed = vi.fn();
+Terminal.prototype.scrollToBottom = vi.fn();
 
 export { Terminal };

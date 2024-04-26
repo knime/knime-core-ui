@@ -101,4 +101,10 @@ describe("OutputConsole", () => {
     const slotContent = wrapper.find(".test-class");
     expect(slotContent.exists()).toBeTruthy();
   });
+
+  it("watches for output", async () => {
+    const { term } = await doMount();
+    
+    expect(term.onWriteParsed).toHaveBeenCalled();
+  });
 });

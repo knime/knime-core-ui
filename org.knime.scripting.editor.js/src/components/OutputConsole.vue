@@ -89,6 +89,9 @@ term.attachCustomKeyEventHandler((e) => {
   return true;
 });
 
+// Scroll to bottom whenever something is printed to term
+term.onWriteParsed(() => term.scrollToBottom());
+
 const emit =
   defineEmits<(event: "console-created", handler: ConsoleHandler) => void>();
 
