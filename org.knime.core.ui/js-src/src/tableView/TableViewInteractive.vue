@@ -3,7 +3,11 @@
 import { JsonDataService } from "@knime/ui-extension-service";
 import TableViewDisplay from "./TableViewDisplay.vue";
 import { createDefaultFilterConfig, arrayEquals } from "@/tableView/utils";
-import { AutoSizeColumnsToContent } from "./types/ViewSettings";
+import {
+  AutoSizeColumnsToContent,
+  statisticsToTableViewSettings,
+  isStatisticsSettings,
+} from "./types/ViewSettings";
 import specialColumns from "./utils/specialColumns";
 import { inject } from "vue";
 import useSelectionCache from "./composables/useSelectionCache";
@@ -749,7 +753,10 @@ export default {
       return newSettings[key] !== this.settings[key];
     },
     async onViewSettingsChange(event) {
-      const newSettings = event.data.data.view;
+      let newSettings = event.data.data.view;
+      if (isStatisticsSettings(newSettings)) {
+        newSettings = statisticsToTableViewSettings(newSettings);
+      }
       const enablePaginationChanged = this.settingsChanged(
         newSettings,
         "enablePagination",

@@ -32,6 +32,48 @@ type TableViewViewSettings = {
   enableGlobalSearch: boolean;
   autoSizeColumnsToContent: AutoSizeColumnsToContent;
   title: string;
+  skipRemainingColumns: boolean;
+  showOnlySelectedRows: boolean;
+  showOnlySelectedRowsConfigurable: boolean;
+  displayedColumns: { selected: string[] };
+  enableCellCopying: boolean;
 };
 
 export default TableViewViewSettings;
+
+export type StatisticsDialogViewSettings = Pick<
+  TableViewViewSettings,
+  | "title"
+  | "showTableSize"
+  | "enablePagination"
+  | "pageSize"
+  | "autoSizeColumnsToContent"
+  | "enableGlobalSearch"
+  | "enableColumnSearch"
+  | "enableSortingByHeader"
+  | "enableCellCopying"
+> & {
+  displayedColumns: string[];
+};
+
+export const isStatisticsSettings = (
+  data: StatisticsDialogViewSettings | TableViewViewSettings,
+): data is StatisticsDialogViewSettings =>
+  !data.hasOwnProperty("selectionMode");
+
+export const statisticsToTableViewSettings = (
+  statisticsDialogSettings: StatisticsDialogViewSettings,
+): TableViewViewSettings => ({
+  ...statisticsDialogSettings,
+  displayedColumns: { selected: statisticsDialogSettings.displayedColumns },
+  showColumnDataType: false,
+  showRowIndices: false,
+  showRowKeys: false,
+  selectionMode: SelectionMode.OFF,
+  rowHeightMode: RowHeightMode.DEFAULT,
+  customRowHeight: 80,
+  enableRendererSelection: false,
+  showOnlySelectedRows: false,
+  showOnlySelectedRowsConfigurable: false,
+  skipRemainingColumns: false,
+});
