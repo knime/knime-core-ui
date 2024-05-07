@@ -40,6 +40,8 @@ const props = defineProps<{
   inputOutputItem: InputOutputModel;
 }>();
 
+const emit = defineEmits(["input-output-item-clicked"]);
+
 const multiSelection = useMultiSelection({
   singleSelectionOnly: ref(!props.inputOutputItem.multiSelection),
 });
@@ -99,6 +101,26 @@ const handleClick = (event: MouseEvent, index?: number) => {
   } else {
     // Click on a subItem
     multiSelection.handleSelectionClick(index, event);
+  }
+};
+
+const handleSubItemDoubleClick = (event: MouseEvent, index: number) => {
+  const codeToInsert = subItemCodeAliasTemplate({
+    subItems: [props.inputOutputItem.subItems?.[index]?.name],
+  });
+
+  emit(
+    "input-output-item-clicked",
+    codeToInsert,
+    props.inputOutputItem.requiredImport,
+  );
+};
+
+const handleHeaderDoubleClick = (event: MouseEvent) => {
+  // Only do something if we have a defined code alias
+  if (props.inputOutputItem.codeAlias) {
+    const codeToInsert = props.inputOutputItem.codeAlias;
+    emit("input-output-item-clicked", codeToInsert);
   }
 };
 
@@ -180,6 +202,7 @@ const onHeaderDragEnd = () => {
           }"
           :draggable="true"
           @mousedown="(event) => handleClick(event)"
+          @dblclick="handleHeaderDoubleClick($event)"
           @dragstart="
             (event) => onHeaderDragStart(event, inputOutputItem.codeAlias!)
           "
@@ -204,6 +227,7 @@ const onHeaderDragEnd = () => {
         @dragstart="(event) => onSubItemDragStart(event, index)"
         @dragend="onSubItemDragEnd"
         @click="(event) => handleClick(event, index)"
+        @dblclick="handleSubItemDoubleClick($event, index)"
       >
         <div class="cell">{{ subItem.name }}</div>
         <div class="cell">{{ subItem.type }}</div>

@@ -358,4 +358,14 @@ describe("InputOutputItem", () => {
       expect(multiSelection.handleSelectionClick).toHaveBeenCalledWith(1);
     });
   });
+
+  describe("double click behaviour", () => {
+    it("fires an event on double-click", () => {
+      const wrapper = doMount();
+      const subItem = wrapper.findAll(".sub-item")[1];
+      subItem.trigger("dblclick");
+
+      expect(wrapper.emitted()["input-output-item-clicked"].length).toBe(1);
+    });
+  });
 });

@@ -9,14 +9,15 @@ import { useInputOutputSelectionStore } from "@/store/io-selection";
 import { useMainCodeEditorStore } from "@/editor";
 import useShouldFocusBePainted from "./utils/shouldFocusBePainted";
 
-const emit =
-  defineEmits<
-    (
-      e: "drop-event-handler-created",
-      dropEventHandler: (payload: DragEvent) => void,
-    ) => void
-  >();
-
+const emit = defineEmits<{
+  "drop-event-handler-created": [
+    dropEventHandler: (payload: DragEvent) => void,
+  ];
+  "input-output-item-insertion": [
+    codeToInsert: string,
+    requiredImport: string | undefined,
+  ];
+}>();
 const inputOutputItems: Ref<InputOutputModel[]> = ref([]);
 const inputOutputSelectionStore = useInputOutputSelectionStore();
 
@@ -125,6 +126,13 @@ const handleKeyDown = (e: KeyboardEvent) => {
     e.preventDefault(); // Stop accidental scrolling (but don't break tab navigation)
   }
 };
+
+const handleOnClick = (
+  codeToInsert: string,
+  requiredImport: string | undefined,
+) => {
+  emit("input-output-item-insertion", codeToInsert, requiredImport);
+};
 </script>
 
 <template>
@@ -144,7 +152,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
         'keyboard-selected': i === selectedItemIndex,
         'focus-painted': paintFocus,
       }"
-      @click="selectedItemIndex = i"
+      @input-output-item-clicked="handleOnClick"
     />
   </div>
 </template>
