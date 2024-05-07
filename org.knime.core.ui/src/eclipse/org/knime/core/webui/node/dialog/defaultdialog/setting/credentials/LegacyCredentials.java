@@ -60,9 +60,9 @@ import org.knime.core.node.workflow.CredentialsProvider;
  */
 public final class LegacyCredentials {
 
-    private final Credentials m_credentials;
+    final Credentials m_credentials;
 
-    private final String m_flowVarName;
+    final String m_flowVarName;
 
     LegacyCredentials(final Credentials credentials) {
         this(credentials, null);
