@@ -54,6 +54,12 @@ export type UseCodeEditorReturn = {
    * @param text the text to set
    */
   setInitialText: (text: string) => void;
+
+  /**
+   * Inserts the specified text at the current cursor position in the editor.
+   * @param text the text to insert.
+   */
+  insertText: (text: string) => void;
 };
 
 export type UseDiffEditorParams = ContainerParams & {
@@ -168,6 +174,26 @@ const createDisposeFn = (
   };
 };
 
+/**
+ * Creates a function that inserts text into the editor.
+ * @param editor - The reference to the Monaco editor instance.
+ * @returns A function that can be used to insert text into the editor.
+ */
+const createInsertTextFn = (
+  editor: Ref<monaco.editor.IStandaloneCodeEditor | undefined>,
+) => {
+  return (text: string) => {
+    // Replaces anything highlighted if there is anything highlighted. Otherwise just insert at cursor
+    const insertionOperation = {
+      range: editor.value?.getSelection(),
+      text,
+      forceMoveMarkers: true,
+    } as monaco.editor.ISingleEditOperation;
+
+    editor.value?.executeEdits("", [insertionOperation]);
+  };
+};
+
 // ====== COMPOSABLES ======
 
 export const useCodeEditor = (
@@ -205,6 +231,7 @@ export const useCodeEditor = (
     editorModel,
     selection: readonly(selection),
     selectedLines: readonly(selectedLines),
+    insertText: createInsertTextFn(editor),
     ...syncWithModel(editorModel),
   };
 };

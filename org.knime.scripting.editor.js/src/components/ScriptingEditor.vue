@@ -24,6 +24,7 @@ import {
 } from "@/components/utils/paneSizes";
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
+import { useMainCodeEditorStore } from "@/editor";
 
 const commonMenuItems: MenuItem[] = [
   // TODO: add actual common menu items
@@ -59,7 +60,7 @@ const props = withDefaults(defineProps<Props>(), {
 const isRightPaneCollapsable = computed(
   () => props.rightPaneMinimumWidthInPixel === 0,
 );
-const emit = defineEmits(["menu-item-clicked"]);
+const emit = defineEmits(["menu-item-clicked", "input-output-item-insertion"]);
 
 // Splitpane sizes
 const largeModePaneSizes = reactive<PaneSizes>({
@@ -180,6 +181,30 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
   initConsoleEventHandler();
 };
 
+const slots = useSlots();
+
+const onInputOutputItemInsertion = (
+  codeAlias: string,
+  requiredImport: string | undefined,
+) => {
+  if (slots.editor) {
+    // If we got passed something via slot, we have to emit the event since we
+    // can't execute the edit ourselves.
+    emit("input-output-item-insertion", codeAlias, requiredImport);
+  } else {
+    // But if we're responsible for the editor, we can just insert directly.
+    useMainCodeEditorStore().value?.insertText(codeAlias);
+
+    if (requiredImport) {
+      const editorTextRef = useMainCodeEditorStore().value?.text;
+
+      if (editorTextRef && !editorTextRef.value.includes(requiredImport)) {
+        editorTextRef.value = `${requiredImport}\n${editorTextRef.value}`;
+      }
+    }
+  }
+};
+
 // Convenient to have this computed property for reactive components
 const showControlBarDynamic = computed(() => {
   return props.showControlBar && !isSlimMode.value;
@@ -243,6 +268,7 @@ const paintFocus = useShouldFocusBePainted();
       >
         <InputOutputPane
           @drop-event-handler-created="onDropEventHandlerCreated"
+          @input-output-item-insertion="onInputOutputItemInsertion"
         />
       </pane>
 
