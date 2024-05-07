@@ -173,7 +173,7 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
     @Effect(signals = RequiresCredentialsCondition.class, type = EffectType.SHOW)
     @CredentialsWidget(hasPasswordProvider = RequiresPasswordProvider.class,
         hasUsernameProvider = RequiresUsernameProvider.class)
-    final Credentials m_credentials;
+    final Credentials m_credentialsV2;
 
     /**
      * NONE selected and empty credentials
@@ -188,7 +188,7 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
      */
     public AuthenticationSettings(final AuthenticationType type, final Credentials credentials) {
         m_type = type;
-        m_credentials = credentials;
+        m_credentialsV2 = credentials;
     }
 
     /**
@@ -207,7 +207,7 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
         /**
          * The name of a field in {@link AuthenticationSettings}
          */
-        private static final String KEY_CREDENTIALS = "credentials";
+        private static final String KEY_CREDENTIALS = "credentialsV2";
 
         static final String SETTINGS_MODEL_KEY_TYPE = "settingsType";
 
@@ -259,7 +259,7 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
             return m_defaultPersistor.load(settings.getNodeSettings(getConfigKey()));
         }
 
-        boolean isSavedWithNewConfigKeys(final NodeSettingsRO settings) throws InvalidSettingsException {
+        private boolean isSavedWithNewConfigKeys(final NodeSettingsRO settings) throws InvalidSettingsException {
             return settings.getNodeSettings(getConfigKey()).containsKey(KEY_TYPE);
         }
 
@@ -309,14 +309,14 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
             return true;
         }
         if (obj instanceof AuthenticationSettings other) {
-            return Objects.equals(m_credentials, other.m_credentials) && Objects.equals(m_type, other.m_type);
+            return Objects.equals(m_credentialsV2, other.m_credentialsV2) && Objects.equals(m_type, other.m_type);
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(m_credentials, m_type);
+        return Objects.hash(m_credentialsV2, m_type);
     }
 
 }

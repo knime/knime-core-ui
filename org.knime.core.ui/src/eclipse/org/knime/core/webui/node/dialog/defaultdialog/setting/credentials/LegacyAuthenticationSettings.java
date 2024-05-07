@@ -59,9 +59,12 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DeprecatedConfigs;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DeprecatedConfigs.DeprecatedConfigsBuilder;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldBasedNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
@@ -90,7 +93,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  *
  * @author Paul Bärnreuther
  */
-public final class LegacyAuthenticationSettings implements WidgetGroup {
+public final class LegacyAuthenticationSettings implements WidgetGroup, PersistableSettings {
 
     @Widget(title = "Authentication type", description = "The type of the used authentication.")
     @ValueReference(AuthenticationTypeRef.class)
@@ -104,7 +107,7 @@ public final class LegacyAuthenticationSettings implements WidgetGroup {
         hasUsernameProvider = RequiresUsernameProvider.class)
     final LegacyCredentials m_legacyCredentials;
 
-    public LegacyAuthenticationSettings() {
+    LegacyAuthenticationSettings() {
         this(new AuthenticationSettings());
     }
 
@@ -112,7 +115,7 @@ public final class LegacyAuthenticationSettings implements WidgetGroup {
      * @param authenticationSettings
      */
     public LegacyAuthenticationSettings(final AuthenticationSettings authenticationSettings) {
-        this(authenticationSettings.m_type, new LegacyCredentials(authenticationSettings.m_credentials));
+        this(authenticationSettings.m_type, new LegacyCredentials(authenticationSettings.m_credentialsV2));
     }
 
     /**
@@ -173,11 +176,14 @@ public final class LegacyAuthenticationSettings implements WidgetGroup {
 
         @Override
         public LegacyAuthenticationSettings load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (m_authenticationSettingsPersistor.isSavedWithNewConfigKeys(settings)) {
-                return new LegacyAuthenticationSettings(
-                    m_authenticationSettingsPersistor.loadFromNewConfigKeys(settings));
+            if (isSavedWithNewConfigKeys(settings)) {
+                return getDefaultPersistor().load(settings.getNodeSettings(getConfigKey()));
             }
             return loadFromSettingsModelSettings(settings);
+        }
+
+        private boolean isSavedWithNewConfigKeys(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return settings.getNodeSettings(getConfigKey()).containsKey(KEY_TYPE);
         }
 
         private LegacyAuthenticationSettings loadFromSettingsModelSettings(final NodeSettingsRO settings)
@@ -199,7 +205,11 @@ public final class LegacyAuthenticationSettings implements WidgetGroup {
 
         @Override
         public void save(final LegacyAuthenticationSettings obj, final NodeSettingsWO settings) {
-            m_authenticationSettingsPersistor.save(obj.toAuthenticationSettings(), settings);
+            getDefaultPersistor().save(obj, settings.addNodeSettings(getConfigKey()));
+        }
+
+        private static NodeSettingsPersistor<LegacyAuthenticationSettings> getDefaultPersistor() {
+            return new FieldBasedNodeSettingsPersistor<>(LegacyAuthenticationSettings.class);
         }
 
         @Override

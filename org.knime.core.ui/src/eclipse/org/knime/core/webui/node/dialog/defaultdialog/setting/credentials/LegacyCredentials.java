@@ -50,6 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.credentials;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.CredentialsProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 
 /**
  * Wrapper around {@link Credentials} to help support
@@ -58,7 +59,7 @@ import org.knime.core.node.workflow.CredentialsProvider;
  *
  * @author Paul Bärnreuther
  */
-public final class LegacyCredentials {
+public final class LegacyCredentials implements PersistableSettings {
 
     final Credentials m_credentials;
 
