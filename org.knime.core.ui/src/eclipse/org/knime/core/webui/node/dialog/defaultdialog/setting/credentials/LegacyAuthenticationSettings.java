@@ -104,6 +104,10 @@ public final class LegacyAuthenticationSettings implements WidgetGroup {
         hasUsernameProvider = RequiresUsernameProvider.class)
     final LegacyCredentials m_legacyCredentials;
 
+    public LegacyAuthenticationSettings() {
+        this(new AuthenticationSettings());
+    }
+
     /**
      * @param authenticationSettings
      */

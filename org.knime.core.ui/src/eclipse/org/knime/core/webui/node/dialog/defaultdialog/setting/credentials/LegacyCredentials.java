@@ -64,6 +64,10 @@ public final class LegacyCredentials {
 
     final String m_flowVarName;
 
+    LegacyCredentials() {
+        this(new Credentials());
+    }
+
     LegacyCredentials(final Credentials credentials) {
         this(credentials, null);
     }
