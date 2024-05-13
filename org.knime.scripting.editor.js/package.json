@@ -21,7 +21,7 @@
     "ci:lint:css": "npm run lint:css -- -f json -o test-results/stylelint.json",
     "audit": "npm audit --omit dev",
     "coverage": "vitest run --coverage",
-    "install-husky": "cd .. && husky install ./org.knime.scripting.editor.js/.husky"
+    "install-husky": "cd .. && husky ./org.knime.scripting.editor.js/.husky"
   },
   "dependencies": {
     "@knime/ui-extension-service": "0.30.0",
