@@ -21,6 +21,7 @@ import {
   type NodeSettings,
   type ScriptingServiceType,
 } from "@/scripting-service";
+import { setActiveEditorStoreForAi } from "@/store/ai-bar";
 
 export {
   CompactTabBar,
@@ -30,6 +31,7 @@ export {
   OutputConsole,
   ScriptingEditor,
   useShouldFocusBePainted,
+  setActiveEditorStoreForAi,
 };
 export type {
   ConsoleHandler,

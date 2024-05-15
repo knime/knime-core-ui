@@ -15,9 +15,9 @@ import Button from "webapps-common/ui/components/Button.vue";
 import FunctionButton from "webapps-common/ui/components/FunctionButton.vue";
 import LoadingIcon from "webapps-common/ui/components/LoadingIcon.vue";
 
-import editor from "@/editor";
 import { getScriptingService } from "@/scripting-service";
 import {
+  activeEditorStore,
   clearPromptResponseStore,
   showDisclaimer,
   usePromptResponseStore,
@@ -66,7 +66,6 @@ let message: Message | null =
 let history: Array<Message | null> = [];
 const scriptingService = getScriptingService();
 const mouseOverLoadingSpinner = ref(false);
-const mainEditorState = editor.useMainCodeEditorStore();
 
 const abortRequest = () => {
   scriptingService?.sendToService("abortSuggestCodeRequest");
@@ -105,7 +104,7 @@ const handleCodeSuggestion = (codeSuggestion: CodeSuggestion) => {
 const acceptSuggestion = (acceptedCode: string) => {
   history.push(message);
   status.value = "idle";
-  mainEditorState.value!.text.value = acceptedCode;
+  activeEditorStore.value!.text.value = acceptedCode;
   clearPromptResponseStore();
   emit("accept-suggestion");
 };
@@ -118,7 +117,7 @@ const request = async () => {
   // code suggestions will be returned via events, see the response handler above
   await scriptingService.sendToService("suggestCode", [
     input.value,
-    mainEditorState.value?.text.value,
+    activeEditorStore.value?.text.value,
   ]);
 };
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import editor from "@/editor";
-import { usePromptResponseStore } from "@/store/ai-bar";
+import { activeEditorStore, usePromptResponseStore } from "@/store/ai-bar";
 import { ref, watch } from "vue";
 import ExportIcon from "webapps-common/ui/assets/img/icons/export.svg";
 import Button from "webapps-common/ui/components/Button.vue";
@@ -9,10 +9,9 @@ const emit =
   defineEmits<(e: "accept-suggestion", acceptedCode: string) => void>();
 
 const diffEditorContainer = ref<HTMLDivElement>();
-const mainEditorState = editor.useMainCodeEditorStore();
 const diffEditorState = editor.useDiffEditor({
   container: diffEditorContainer,
-  originalModel: mainEditorState.value!.editorModel,
+  originalModel: activeEditorStore.value!.editorModel,
   modifiedFileName: "ai-suggestion",
 });
 
