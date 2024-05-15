@@ -349,7 +349,9 @@ const paintFocus = useShouldFocusBePainted();
                     }"
                   >
                     <template v-if="$slots.editor">
-                      <slot name="editor" />
+                      <div class="editor-slot-container">
+                        <slot name="editor" />
+                      </div>
                     </template>
                     <template v-else>
                       <MainEditorPane
@@ -360,17 +362,17 @@ const paintFocus = useShouldFocusBePainted();
                         :to-settings="props.toSettings"
                       />
                     </template>
-                  </div>
-                  <div class="run-button-panel">
-                    <CodeEditorControlBar
-                      v-if="showControlBarDynamic"
-                      :language="language"
-                      :current-pane-sizes="currentPaneSizes"
-                    >
-                      <template #controls>
-                        <slot name="code-editor-controls" />
-                      </template>
-                    </CodeEditorControlBar>
+                    <div class="run-button-panel">
+                      <CodeEditorControlBar
+                        v-if="showControlBarDynamic"
+                        :language="language"
+                        :current-pane-sizes="currentPaneSizes"
+                      >
+                        <template #controls>
+                          <slot name="code-editor-controls" />
+                        </template>
+                      </CodeEditorControlBar>
+                    </div>
                   </div>
                 </div>
               </pane>
@@ -473,6 +475,14 @@ const paintFocus = useShouldFocusBePainted();
 .input-port-tables {
   height: 100%;
   display: flex;
+  flex-grow: 1;
+}
+
+.editor-slot-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: scroll;
   flex-grow: 1;
 }
 
