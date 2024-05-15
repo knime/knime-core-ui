@@ -1,4 +1,5 @@
-import { reactive, ref } from "vue";
+import { type UseCodeEditorReturn, useMainCodeEditorStore } from "@/editor";
+import { reactive, ref, shallowRef, watch } from "vue";
 
 export interface Message {
   role: "reply" | "request";
@@ -32,3 +33,14 @@ export const clearPromptResponseStore = (): void => {
 // This is part of the store so it is only shown the first time the user
 // opens the AI bar while the script editor is open.
 export const showDisclaimer = ref<boolean>(true);
+
+export const activeEditorStore = shallowRef<UseCodeEditorReturn>();
+
+export const setActiveEditorStoreForAi = (
+  store: UseCodeEditorReturn | undefined,
+): void => {
+  activeEditorStore.value = store;
+};
+
+// By default set the editor state to the main editor (this only happens if a main editor is open)
+watch(() => useMainCodeEditorStore().value, setActiveEditorStoreForAi);

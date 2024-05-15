@@ -5,10 +5,12 @@ import LoadingIcon from "webapps-common/ui/components/LoadingIcon.vue";
 import { getScriptingService } from "@/scripting-service";
 import {
   clearPromptResponseStore,
+  setActiveEditorStoreForAi,
   usePromptResponseStore,
 } from "@/store/ai-bar";
 import AiBar from "../AiBar.vue";
 import AiSuggestion from "../AiSuggestion.vue";
+import { ref } from "vue";
 
 vi.mock("@/scripting-service");
 vi.mock("@/editor");
@@ -40,6 +42,10 @@ describe("AiBar", () => {
     vi.mocked(getScriptingService().sendToService).mockImplementation(
       mockSendToService(),
     );
+    setActiveEditorStoreForAi({
+      text: ref(""),
+      editorModel: "myEditorModel",
+    } as any);
   });
 
   afterEach(() => {

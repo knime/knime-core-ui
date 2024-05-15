@@ -1,6 +1,9 @@
 import { diffEditorState } from "@/__mocks__/editor";
 import { useDiffEditor } from "@/editor";
-import { usePromptResponseStore } from "@/store/ai-bar";
+import {
+  setActiveEditorStoreForAi,
+  usePromptResponseStore,
+} from "@/store/ai-bar";
 import { mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref, nextTick } from "vue";
@@ -12,6 +15,10 @@ vi.mock("@/editor");
 describe("AiSuggestion", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    setActiveEditorStoreForAi({
+      text: ref(""),
+      editorModel: "myEditorModel",
+    } as any);
   });
 
   it("should render diff editor", () => {
