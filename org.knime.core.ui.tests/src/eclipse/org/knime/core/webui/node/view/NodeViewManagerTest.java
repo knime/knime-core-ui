@@ -75,6 +75,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.knime.core.data.RowKey;
+import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
@@ -473,6 +474,28 @@ public class NodeViewManagerTest {
         m_wfm.resetAndConfigureAll();
         m_wfm.executeAllAndWaitUntilDone();
         assertThat(NodeViewManager.getIdForNodeExecutionCycle(nnc)).isNotEqualTo(idForNodeExecutionCycle);
+    }
+
+    /**
+     * Tests {@link NodeViewManager#getInputDataTableSpecIfTableView(NodeContainer)}.
+     */
+    @Test
+    void testGetInputDataTableSpecIfTableView() {
+        var sourceNode = WorkflowManagerUtil.createAndAddNode(m_wfm, new NodeViewNodeFactory(0, 1));
+        var metanode =
+            m_wfm.createAndAddSubWorkflow(new PortType[]{BufferedDataTable.TYPE}, new PortType[]{}, "metanode");
+        var viewNode = WorkflowManagerUtil.createAndAddNode(metanode, new NodeViewNodeFactory(1, 1));
+        var viewNode2 = WorkflowManagerUtil.createAndAddNode(metanode, new NodeViewNodeFactory(1, 0));
+        m_wfm.addConnection(sourceNode.getID(), 1, metanode.getID(), 0);
+        metanode.addConnection(metanode.getID(), 0, viewNode.getID(), 1);
+        metanode.addConnection(viewNode.getID(), 1, viewNode2.getID(), 1);
+
+        // view node directly connected to inner metanode input port
+        assertThat(NodeViewManager.getInstance().getInputDataTableSpecIfTableView(viewNode).get())
+            .isEqualTo(sourceNode.getOutPort(1).getPortObjectSpec());
+
+        assertThat(NodeViewManager.getInstance().getInputDataTableSpecIfTableView(viewNode2).get())
+            .isEqualTo(viewNode.getOutPort(1).getPortObjectSpec());
     }
 
     /**
