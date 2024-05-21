@@ -60,6 +60,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.workflow.ConnectionContainer.ConnectionType;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeOutPort;
 import org.knime.core.webui.node.NodeWrapper;
@@ -162,7 +163,13 @@ public final class NodeViewEnt extends NodeUIExtensionEnt<NodeWrapper> {
             var wfm = nnc.getParent();
             // plus 1 because the inPortIdx excludes the flow variable port
             return Optional.ofNullable(wfm.getIncomingConnectionFor(nnc.getID(), inPortIdx + 1)) // connection
-                .map(conn -> wfm.getNodeContainer(conn.getSource()).getOutPort(conn.getSourcePort())) // port
+                .map(conn -> {
+                    if (conn.getType() == ConnectionType.WFMIN) {
+                        return wfm.getWorkflowIncomingPort(conn.getSourcePort());
+                    } else {
+                        return wfm.getNodeContainer(conn.getSource()).getOutPort(conn.getSourcePort());
+                    }
+                }) // port
                 .map(NodeOutPort::getPortObjectSpec) // spec
                 .map(spec -> spec instanceof DataTableSpec tableSpec ? tableSpec : null) //
                 .orElse(null);
