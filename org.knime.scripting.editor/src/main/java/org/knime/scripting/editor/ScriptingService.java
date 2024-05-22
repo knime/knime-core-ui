@@ -171,6 +171,15 @@ public abstract class ScriptingService {
     }
 
     /**
+     * Inform the frontend that the output table has changed.
+     * @param numRows number of rows in the output table preview
+     *
+     */
+    protected void updateOutputTable(final int numRows) {
+        sendEvent("updateOutputTable", numRows);
+    }
+
+    /**
      * @return the service that provides its methods via JSON-RPC to the frontend
      */
     public abstract RpcService getJsonRpcService();

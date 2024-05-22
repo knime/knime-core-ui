@@ -91,6 +91,7 @@ class PortConfigs {
         if (connection == null) {
             return new PortConfig(null, 0, Collections.emptyList(), "null");
         }
+
         final var sourcePort = connection.getSourcePort();
         final var sourceId = connection.getSource();
         final var sourceNode = nodeContainer.getParent().getNodeContainer(sourceId);
@@ -102,6 +103,7 @@ class PortConfigs {
 
     private static List<PortViewConfig> getPortViewConfigs(final NodeContainerState nodeContainerState,
         final PortType portType) {
+
         final var portViews = PortViewManager.getPortViews(portType);
         final var viewDescriptions = portViews.viewDescriptors();
         if (nodeContainerState.isExecuted()) {

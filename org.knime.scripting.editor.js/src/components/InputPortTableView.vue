@@ -11,10 +11,6 @@ import {
   type UIExtensionService,
 } from "@knime/ui-extension-service";
 
-const noop = () => {
-  /* mock unused api fields */
-};
-
 interface Props {
   inputNodeId: string;
   portIdx: number;
@@ -29,6 +25,9 @@ const extensionConfig = ref<ExtensionConfig | null>(null);
 const resourceLocation = ref<string | null>(null);
 const baseService = ref<UIExtensionService<UIExtensionAPILayer> | null>(null);
 
+const noop = () => {
+  /* mock unused api fields */
+};
 const apiLayer: UIExtensionAPILayer = {
   registerPushEventService: () => () => {},
   callNodeDataService: async ({ dataServiceRequest, serviceType }) => {
@@ -100,7 +99,6 @@ watchEffect(() => {
           extensionConfig.value?.resourceInfo?.baseUrl +
           extensionConfig.value?.resourceInfo?.path;
       }
-
       dataAvailable.value = true;
     })
     .catch((error) => {
@@ -135,6 +133,5 @@ onUnmounted(() => {
 <style lang="postcss" scoped>
 .port-table {
   height: 100%;
-  overflow-x: scroll;
 }
 </style>

@@ -17,6 +17,7 @@ import { getScriptingService } from "@/scripting-service";
 import { nextTick, ref } from "vue";
 import { MIN_WIDTH_FOR_DISPLAYING_PANES } from "../utils/paneSizes";
 import MainEditorPane from "../MainEditorPane.vue";
+import OutputTablePreview from "../OutputTablePreview.vue";
 
 const mocks = vi.hoisted(() => {
   return {
@@ -130,6 +131,11 @@ describe("ScriptingEditor", () => {
       const { wrapper } = doMount();
       const outputConsole = wrapper.findComponent(OutputConsole);
       expect(outputConsole.exists()).toBeTruthy();
+    });
+
+    it("display output preview table", () => {
+      const { wrapper } = doMount();
+      expect(wrapper.findComponent(OutputTablePreview).exists()).toBeTruthy();
     });
 
     it("display input/output pane", () => {

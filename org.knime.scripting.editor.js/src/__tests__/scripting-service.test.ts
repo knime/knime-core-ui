@@ -76,7 +76,7 @@ describe("scripting-service", () => {
   it("sends requests to the JsonDataService", async () => {
     await (await getScriptingService()).sendToService("dummy", ["foo", "bar"]);
     expect(_jsonDataService.data).toHaveBeenCalledWith({
-      method: "dummy",
+      method: "ScriptingService.dummy",
       options: ["foo", "bar"],
     });
   });
@@ -119,21 +119,21 @@ describe("scripting-service", () => {
     it("requests getFlowVariableInputs", async () => {
       await (await getScriptingService()).getFlowVariableInputs();
       expect(_jsonDataService.data).toHaveBeenCalledWith({
-        method: "getFlowVariableInputs",
+        method: "ScriptingService.getFlowVariableInputs",
       });
     });
 
     it("requests getInputObjects", async () => {
       await (await getScriptingService()).getInputObjects();
       expect(_jsonDataService.data).toHaveBeenCalledWith({
-        method: "getInputObjects",
+        method: "ScriptingService.getInputObjects",
       });
     });
 
     it("requests getOutputObjects", async () => {
       await (await getScriptingService()).getOutputObjects();
       expect(_jsonDataService.data).toHaveBeenCalledWith({
-        method: "getOutputObjects",
+        method: "ScriptingService.getOutputObjects",
       });
     });
   });
