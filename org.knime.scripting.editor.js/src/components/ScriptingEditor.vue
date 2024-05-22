@@ -28,6 +28,7 @@ import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
 import InputPortTables from "@/components/InputPortTables.vue";
 import { useMainCodeEditorStore } from "@/editor";
+import OutputTablePreview from "@/components/OutputTablePreview.vue";
 
 const commonMenuItems: MenuItem[] = [
   // TODO: add actual common menu items
@@ -182,6 +183,7 @@ const portConfigs: PortConfigs = {
 
 const bottomPaneOptions: Ref<{ value: string; label: string }[]> = ref([
   { value: "console", label: "Console" },
+  { value: "outputTable", label: "Output Table" },
 ]);
 
 const makeNodePortId = (nodeId: string, portIdx: number) =>
@@ -198,15 +200,15 @@ onMounted(async () => {
       portConfigs.inputPorts[0],
     ))
   ) {
-    const inputPorts = portConfigs.inputPorts.map((port, index) => ({
+    const inputPorts = portConfigs.inputPorts.reverse().map((port, index) => ({
       value: makeNodePortId(port.nodeId!, port.portIdx),
       label: `${index}: ${port.portName}`,
     }));
-    bottomPaneOptions.value.push(...inputPorts);
+    bottomPaneOptions.value = [...inputPorts, ...bottomPaneOptions.value];
   }
 });
 
-const bottomPaneActiveTab = ref<string>("console");
+const bottomPaneActiveTab = ref<string>(bottomPaneOptions.value[0].value);
 const onConsoleCreated = (handler: ConsoleHandler) => {
   setConsoleHandler(handler);
   initConsoleEventHandler();
@@ -405,7 +407,7 @@ const paintFocus = useShouldFocusBePainted();
                 <div
                   v-for="port in portConfigs?.inputPorts"
                   :key="port.portIdx"
-                  class="input-port-tables"
+                  class="port-tables"
                   :class="{
                     collapsed:
                       bottomPaneActiveTab !==
@@ -423,6 +425,15 @@ const paintFocus = useShouldFocusBePainted();
                     :port-idx="port.portIdx"
                     :port-view-configs="port.portViewConfigs"
                   />
+                </div>
+                <div
+                  v-show="bottomPaneActiveTab === 'outputTable'"
+                  class="port-tables"
+                  :class="{
+                    collapsed: bottomPaneActiveTab !== 'outputTable',
+                  }"
+                >
+                  <OutputTablePreview />
                 </div>
               </div>
             </div>
@@ -446,10 +457,6 @@ const paintFocus = useShouldFocusBePainted();
   position: relative;
 }
 
-.input-port-tables.collapsed {
-  display: none;
-}
-
 .editor-and-control-bar {
   height: 100%;
   display: flex;
@@ -471,10 +478,14 @@ const paintFocus = useShouldFocusBePainted();
   }
 }
 
-.input-port-tables {
+.port-tables {
   height: 100%;
   display: flex;
   flex-grow: 1;
+}
+
+.port-tables.collapsed {
+  display: none;
 }
 
 .editor-slot-container {

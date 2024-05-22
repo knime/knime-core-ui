@@ -51,7 +51,9 @@ class EventPoller {
 
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      const res = await jsonDataService.data({ method: "getEvent" });
+      const res = await jsonDataService.data({
+        method: "ScriptingService.getEvent",
+      });
       if (res) {
         if (res.type in this._eventHandlers) {
           this._eventHandlers[res.type](res.data);
@@ -90,7 +92,7 @@ class RPCHelper {
     options?: any[],
   ): Promise<any> {
     return (await this.jsonDataService).data({
-      method: methodName,
+      method: `ScriptingService.${methodName}`,
       options,
     });
   }
