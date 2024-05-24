@@ -222,17 +222,17 @@ const onInputOutputItemInsertion = (
     // If we got passed something via slot, we have to emit the event since we
     // can't execute the edit ourselves.
     emit("input-output-item-insertion", codeAlias, requiredImport);
-  } else {
+  } else if (
     // But if we're responsible for the editor, we can just insert directly.
-    useMainCodeEditorStore().value?.insertText(codeAlias);
-
-    if (requiredImport) {
-      const editorTextRef = useMainCodeEditorStore().value?.text;
-
-      if (editorTextRef && !editorTextRef.value.includes(requiredImport)) {
-        editorTextRef.value = `${requiredImport}\n${editorTextRef.value}`;
-      }
-    }
+    requiredImport &&
+    !useMainCodeEditorStore().value?.text.value.includes(requiredImport)
+  ) {
+    useMainCodeEditorStore().value?.insertColumnReference(
+      codeAlias,
+      requiredImport,
+    );
+  } else {
+    useMainCodeEditorStore().value?.insertColumnReference(codeAlias);
   }
 };
 

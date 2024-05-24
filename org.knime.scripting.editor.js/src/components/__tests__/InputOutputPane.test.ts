@@ -156,20 +156,22 @@ describe("InputOutputPane", () => {
 
       // run drop event handler
       dropEventHandler(correctSourceDropEventMock);
+
       expect(
         correctSourceDropEventMock.dataTransfer.getData,
       ).toHaveBeenCalledWith("eventId");
 
       const script = useMainCodeEditorStore().value!.text;
 
-      // fake the monaco drop event
+      // fake the monaco drop event. Since the next text change
+      // after the drop event is assumed to be the addition of
+      // the column, we can add literally any text and it'll
+      // be interpreted as an inserted column.
       script.value = "this is my script\nand a dropped line";
       await nextTick();
 
       // check whether script contains import
-      expect(script.value).toBe(
-        "import me\nthis is my script\nand a dropped line",
-      );
+      expect(script.value).toContain("import me");
 
       // check that following changes do not add import again
       script.value = "my replaced script";
@@ -180,11 +182,24 @@ describe("InputOutputPane", () => {
     it("drop event handler does not add required import if it is already in script", async () => {
       const wrapper = mount(InputOutputPane);
       await flushPromises();
+
+      // Add the import to the script before we trigger any drop events
+      const script = useMainCodeEditorStore().value!.text;
+      script.value = `import me\n${script.value}`;
+
       const dropEventHandler = wrapper.emitted(
         "drop-event-handler-created",
       )![0][0] as Function;
+
       // run drop event handler
       dropEventHandler(correctSourceDropEventMock);
+
+      // fake dropping some text
+      script.value = `${script.value}\nand a dropped line`;
+
+      // Check that the import only appears once
+      const countImportOccurences = script.value.split("import me").length - 1;
+      expect(countImportOccurences).toBe(1);
     });
 
     it("selection is not cleared after unsuccessful drop", async () => {

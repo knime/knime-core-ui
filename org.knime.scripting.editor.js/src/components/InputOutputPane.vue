@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch, type Ref, type Directive } from "vue";
+import { onMounted, ref, type Ref, type Directive } from "vue";
 import InputOutputItem, {
   INPUT_OUTPUT_DRAG_EVENT_ID,
   type InputOutputModel,
@@ -8,6 +8,7 @@ import { getScriptingService } from "@/scripting-service";
 import { useInputOutputSelectionStore } from "@/store/io-selection";
 import { useMainCodeEditorStore } from "@/editor";
 import useShouldFocusBePainted from "./utils/shouldFocusBePainted";
+import * as monaco from "monaco-editor";
 
 const emit = defineEmits<{
   "drop-event-handler-created": [
@@ -71,13 +72,21 @@ const dropEventHandler = (event: DragEvent) => {
     !mainEditorState.value?.text.value.includes(requiredImport)
   ) {
     // wait until monaco has processed drop event
-    const unwatch = watch(
-      () => mainEditorState.value?.text.value,
-      (newScript) => {
-        unwatch();
-        mainEditorState.value!.text.value = `${requiredImport}\n${newScript}`;
-      },
-    );
+    const disposer =
+      mainEditorState.value?.editor.value?.onDidChangeModelContent(() => {
+        disposer?.dispose();
+
+        const addImportEdit = {
+          range: new monaco.Range(1, 1, 1, 1),
+          text: `${requiredImport}\n`,
+          forceMoveMarkers: true,
+        };
+        mainEditorState.value?.editorModel?.pushEditOperations(
+          [],
+          [addImportEdit],
+          () => null,
+        );
+      });
   }
 
   // clear selection

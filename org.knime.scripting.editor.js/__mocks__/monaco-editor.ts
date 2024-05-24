@@ -53,3 +53,5 @@ export const languages = {
   registerHoverProvider: vi.fn(),
   registerCompletionItemProvider: vi.fn(),
 };
+
+export class Range {}

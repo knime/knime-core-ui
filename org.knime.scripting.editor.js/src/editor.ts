@@ -60,6 +60,13 @@ export type UseCodeEditorReturn = {
    * @param text the text to insert.
    */
   insertText: (text: string) => void;
+
+  /**
+   * Inserts the specified text at the current cursor position in the editor,
+   * and adds the required import if one is provided.
+   * @param text the text to insert.
+   */
+  insertColumnReference: (text: string, requiredImport?: string) => void;
 };
 
 export type UseDiffEditorParams = ContainerParams & {
@@ -174,23 +181,56 @@ const createDisposeFn = (
   };
 };
 
-/**
- * Creates a function that inserts text into the editor.
- * @param editor - The reference to the Monaco editor instance.
- * @returns A function that can be used to insert text into the editor.
- */
-const createInsertTextFn = (
+/** Helper to insert a column reference at the current cursor position */
+const createInsertColumnReferenceFunction = (
   editor: Ref<monaco.editor.IStandaloneCodeEditor | undefined>,
 ) => {
-  return (text: string) => {
-    // Replaces anything highlighted if there is anything highlighted. Otherwise just insert at cursor
-    const insertionOperation = {
-      range: editor.value?.getSelection(),
-      text,
-      forceMoveMarkers: true,
-    } as monaco.editor.ISingleEditOperation;
+  return (textToInsert: string, requiredImport?: string) => {
+    // Start with an edit that inserts the text at the current cursor position
+    // replacing the current selection if there is one
+    const requiredEdits = [] as monaco.editor.IIdentifiedSingleEditOperation[];
 
-    editor.value?.executeEdits("", [insertionOperation]);
+    // Add requiredImport before the text so it is inserted before the text
+    // even if the cursor is at the top of the editor
+    if (requiredImport) {
+      requiredEdits.push({
+        range: new monaco.Selection(1, 1, 1, 1),
+        text: `${requiredImport}\n`,
+        forceMoveMarkers: true,
+      });
+    }
+
+    requiredEdits.push({
+      range: editor.value?.getSelection(),
+      text: textToInsert,
+      forceMoveMarkers: true,
+    } as monaco.editor.IIdentifiedSingleEditOperation);
+
+    editor.value?.getModel()?.pushEditOperations([], requiredEdits, () => null);
+
+    // Create an undo stop so the user can undo the insert
+    editor.value?.getModel()?.pushStackElement();
+  };
+};
+
+const createInsertTextFunction = (
+  editor: Ref<monaco.editor.IStandaloneCodeEditor | undefined>,
+) => {
+  return (textToInsert: string) => {
+    // Inserts the text at the current cursor position
+    // replacing the current selection if there is one
+    const requiredEdits = [
+      {
+        range: editor.value?.getSelection(),
+        text: textToInsert,
+        forceMoveMarkers: true,
+      },
+    ] as monaco.editor.IIdentifiedSingleEditOperation[];
+
+    editor.value?.getModel()?.pushEditOperations([], requiredEdits, () => null);
+
+    // Create an undo stop so the user can undo the insert
+    editor.value?.getModel()?.pushStackElement();
   };
 };
 
@@ -231,7 +271,8 @@ export const useCodeEditor = (
     editorModel,
     selection: readonly(selection),
     selectedLines: readonly(selectedLines),
-    insertText: createInsertTextFn(editor),
+    insertColumnReference: createInsertColumnReferenceFunction(editor),
+    insertText: createInsertTextFunction(editor),
     ...syncWithModel(editorModel),
   };
 };
