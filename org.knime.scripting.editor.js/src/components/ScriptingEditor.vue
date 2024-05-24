@@ -343,7 +343,10 @@ const paintFocus = useShouldFocusBePainted();
                 <div class="editor-and-control-bar">
                   <div
                     class="multi-editor-container"
-                    :class="{ 'has-control-bar': showControlBarDynamic }"
+                    :class="{
+                      'has-control-bar': showControlBarDynamic,
+                      'scrollable-y': $slots.editor,
+                    }"
                   >
                     <template v-if="$slots.editor">
                       <slot name="editor" />
@@ -586,10 +589,10 @@ const paintFocus = useShouldFocusBePainted();
   flex-direction: column;
   width: 100%;
   flex-grow: 1;
+  min-height: 0;
 
   /* Enable scrolling if we have a lot of editors */
   background-color: var(--knime-porcelain);
-  overflow-y: scroll;
 }
 
 .run-button-panel {
