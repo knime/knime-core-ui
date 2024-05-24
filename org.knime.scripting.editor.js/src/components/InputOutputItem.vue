@@ -120,7 +120,11 @@ const handleHeaderDoubleClick = (event: MouseEvent) => {
   // Only do something if we have a defined code alias
   if (props.inputOutputItem.codeAlias) {
     const codeToInsert = props.inputOutputItem.codeAlias;
-    emit("input-output-item-clicked", codeToInsert);
+    emit(
+      "input-output-item-clicked",
+      codeToInsert,
+      props.inputOutputItem.requiredImport,
+    );
   }
 };
 
