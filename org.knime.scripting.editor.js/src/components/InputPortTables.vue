@@ -31,7 +31,7 @@ const selectedViewIndex = computed(
     <div class="view-value-switch">
       <ValueSwitch
         v-model="selectedView"
-        variant="compact"
+        compact
         :possible-values="valueSwitchPossibleValues"
       />
     </div>
