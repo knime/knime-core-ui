@@ -345,7 +345,6 @@ const paintFocus = useShouldFocusBePainted();
                     class="multi-editor-container"
                     :class="{
                       'has-control-bar': showControlBarDynamic,
-                      'scrollable-y': $slots.editor,
                     }"
                   >
                     <template v-if="$slots.editor">
@@ -482,7 +481,7 @@ const paintFocus = useShouldFocusBePainted();
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow-y: scroll;
+  overflow-y: auto;
   flex-grow: 1;
 }
 
