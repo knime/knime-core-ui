@@ -59,6 +59,7 @@ import java.util.Map;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil.LayoutSkeleton;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.ScopedExpression;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesAdder;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -81,6 +82,8 @@ final class LayoutNodesGenerator {
 
     private final AsyncChoicesAdder m_asyncChoicesAdder;
 
+    private final Map<Class<?>, String> m_references;
+
     /**
      * @param layout a record containing controls (as a mapping between layout parts and their contained settings
      *            controls) and a ruleSourcesMap (the mapping between ids of rule sources to their conditions)
@@ -90,6 +93,7 @@ final class LayoutNodesGenerator {
     LayoutNodesGenerator(final LayoutSkeleton layout, final DefaultNodeSettingsContext context,
         final AsyncChoicesAdder asyncChoicesAdder) {
         m_signals = layout.signals();
+        m_references = layout.references();
         m_fields = layout.fields();
         m_rootLayoutTree = layout.layoutTreeRoot();
         m_defaultNodeSettingsContext = context;
@@ -105,7 +109,7 @@ final class LayoutNodesGenerator {
     private void buildLayout(final LayoutTreeNode rootNode, final ArrayNode parentNode) {
         final var layoutPart = LayoutPart.determineFromClassAnnotation(rootNode.getValue());
         final var layoutNode =
-            layoutPart.create(m_defaultNodeSettingsContext, parentNode, rootNode.getValue(), m_signals);
+            layoutPart.create(m_defaultNodeSettingsContext, parentNode, rootNode.getValue(), m_signals, m_references);
         rootNode.getControls().forEach(control -> addControlElement(layoutNode, control));
         rootNode.getChildren().forEach(childLayoutNode -> buildLayout(childLayoutNode, layoutNode));
     }
@@ -132,8 +136,11 @@ final class LayoutNodesGenerator {
 
     private void addRule(final JsonFormsControl controlElement, final ObjectNode control) {
         try {
-            new UiSchemaRulesGenerator(controlElement.trackedAnnotations().effect(), m_signals,
-                m_defaultNodeSettingsContext).applyRulesTo(control);
+            final var rulesGenerator =
+                new UiSchemaRulesGenerator(m_signals, m_references, m_defaultNodeSettingsContext);
+            rulesGenerator.applyEffectTo(controlElement.trackedAnnotations().effect(), control);
+            final var widget = controlElement.field().getAnnotation(Widget.class);
+            rulesGenerator.applyWidgetEffectTo(widget, control);
         } catch (UiSchemaGenerationException ex) {
             throw new UiSchemaGenerationException(String.format("Error when resolving @Effect annotation for %s.: %s",
                 controlElement.scope(), ex.getMessage()), ex);

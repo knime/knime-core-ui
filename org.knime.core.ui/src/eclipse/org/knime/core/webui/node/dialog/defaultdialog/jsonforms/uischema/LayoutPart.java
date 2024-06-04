@@ -48,7 +48,6 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
-
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.OPTIONS_IS_ADVANCED;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ELEMENTS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_LABEL;
@@ -97,9 +96,9 @@ enum LayoutPart {
         return VIRTUAL_SECTION;
     }
 
-    ArrayNode create(final DefaultNodeSettingsContext context, final ArrayNode parent,
-        final Class<?> layoutClass, final Map<Class<?>, ScopedExpression> signals) {
-        return m_create.apply(new LayoutNodeCreationContext(parent, layoutClass, signals, context));
+    ArrayNode create(final DefaultNodeSettingsContext context, final ArrayNode parent, final Class<?> layoutClass,
+        final Map<Class<?>, ScopedExpression> signals, final Map<Class<?>, String> references) {
+        return m_create.apply(new LayoutNodeCreationContext(parent, layoutClass, signals, references, context));
     }
 
     private static ArrayNode getSection(final LayoutNodeCreationContext creationContext) {
@@ -126,11 +125,11 @@ enum LayoutPart {
     }
 
     private static void applyRules(final ObjectNode node, final LayoutNodeCreationContext creationContext) {
-        new UiSchemaRulesGenerator(creationContext.layoutClass.getAnnotation(Effect.class),
-            creationContext.signals(), creationContext.context()).applyRulesTo(node);
+        new UiSchemaRulesGenerator(creationContext.signals(), creationContext.references(), creationContext.context())
+            .applyEffectTo(creationContext.layoutClass.getAnnotation(Effect.class), node);
     }
 
     private record LayoutNodeCreationContext(ArrayNode parent, Class<?> layoutClass,
-        Map<Class<?>, ScopedExpression> signals, DefaultNodeSettingsContext context) {
+        Map<Class<?>, ScopedExpression> signals, Map<Class<?>, String> references, DefaultNodeSettingsContext context) {
     }
 }

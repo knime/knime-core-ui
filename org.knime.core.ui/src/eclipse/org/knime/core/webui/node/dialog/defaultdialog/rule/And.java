@@ -48,6 +48,11 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.rule;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.knime.core.webui.node.dialog.defaultdialog.rule.PredicateProvider.Predicate;
+
 /**
  * A logical AND {@link Operator} that combines multiple child {@link Expression Expressions}.
  *
@@ -57,21 +62,21 @@ package org.knime.core.webui.node.dialog.defaultdialog.rule;
  */
 public non-sealed class And<E extends AtomicExpression<E>> implements Operator<E> {
 
-    private final Expression<E>[] m_children;
+    private final Predicate[] m_children;
 
     /**
      * @param children the expressions that are combined using this AND operator
      */
     @SafeVarargs
-    public And(final Expression<E>... children) {
+    public And(final Predicate... children) {
         m_children = children;
     }
 
     /**
      * @return the expressions that are combined using an operation
      */
-    public Expression<E>[] getChildren() {
-        return m_children;
+    public List<Expression<E>> getChildren() {
+        return Arrays.stream(m_children).map(child -> (Expression<E>)child).toList();
     }
 
     @Override

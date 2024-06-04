@@ -51,7 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.FIELD_NAME_SCHEMA;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_NOT;
 
-import java.util.Arrays;
+import java.util.List;
 
 import org.knime.core.webui.node.dialog.defaultdialog.rule.And;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Expression;
@@ -91,8 +91,9 @@ final class JsonFormsExpressionNegator implements ExpressionVisitor<ObjectNode, 
     }
 
     @SuppressWarnings("unchecked")
-    private static Expression<JsonFormsExpression>[] reverseAll(final Expression<JsonFormsExpression>[] expressions) {
-        return Arrays.asList(expressions).stream().map(Not<JsonFormsExpression>::new).toArray(Expression[]::new);
+    private static Expression<JsonFormsExpression>[]
+        reverseAll(final List<Expression<JsonFormsExpression>> expressions) {
+        return expressions.stream().map(Not<JsonFormsExpression>::new).toArray(Expression[]::new);
     }
 
     @Override

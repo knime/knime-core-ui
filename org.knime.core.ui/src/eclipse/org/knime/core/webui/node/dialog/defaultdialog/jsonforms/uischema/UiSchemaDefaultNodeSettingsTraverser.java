@@ -63,11 +63,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.ScopedExpression;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Signals;
+import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser;
 import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.TraversedField;
-import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LatentWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 
@@ -97,32 +99,41 @@ class UiSchemaDefaultNodeSettingsTraverser {
      * settings/controls associated to them by {@link Layout} annotations. If a setting has no {@Link Layout} annotation
      * it is associated to {@code null}.
      *
-     * signals - the present signal annotations in the default node settings.
+     * signals - the present signal annotations in the default node settings. TODO Remove
+     *
+     * @param references a map of all present {@link Reference} annotations to their field scope (references nested in
+     *            array layouts map to the inner scope)
      *
      * @author Paul Bärnreuther
      */
     static record TraversalResult(Map<Class<?>, List<JsonFormsControl>> layoutPartToControls,
-        Map<Class<?>, ScopedExpression> signals, Collection<JsonFormsControl> fields) {
+        Map<Class<?>, ScopedExpression> signals, Map<Class<?>, String> references,
+        Collection<JsonFormsControl> fields) {
     }
 
     TraversalResult traverse(final Map<String, Class<? extends WidgetGroup>> settings) {
         final Collection<JsonFormsControl> fields = new HashSet<>();
         final Map<Class<?>, List<JsonFormsControl>> layoutPartToControls = new HashMap<>();
         final Map<Class<?>, ScopedExpression> signals = new HashMap<>();
+        final Map<Class<?>, String> references = new HashMap();
         final var addField = getAddFieldConsumer(fields, layoutPartToControls);
         final var addSignal = getAddSignalConsumer(signals);
-        settings.forEach((settingsKey, setting) -> traverseSettingsClass(addField, addSignal, settingsKey, setting));
-        return new TraversalResult(layoutPartToControls, signals, fields);
+        final var addReference = getAddReferenceConsumer(references);
+        settings.forEach(
+            (settingsKey, setting) -> traverseSettingsClass(addField, addSignal, addReference, settingsKey, setting));
+        return new TraversalResult(layoutPartToControls, signals, references, fields);
     }
 
     private static void traverseSettingsClass(final Consumer<TraversalConsumerPayload> addField,
-        final Consumer<TraversalConsumerPayload> addSignal, final String settingsKey, final Class<?> setting) {
+        final Consumer<TraversalConsumerPayload> addSignal, final Consumer<TraversalConsumerPayload> addReference,
+        final String settingsKey, final Class<?> setting) {
         final var traverser = new WidgetGroupTraverser(setting);
         traverser.traverse(field -> {
             final var scope = JsonFormsScopeUtil.toScope(field.path(), settingsKey);
             final var payload = new TraversalConsumerPayload(scope, field, setting);
             final var isWidget = payload.field.propertyWriter().getAnnotation(Widget.class) != null;
             final var isLatent = payload.field.propertyWriter().getAnnotation(LatentWidget.class) != null;
+            addReference.accept(payload);
             if (isWidget || isLatent) {
                 addSignal.accept(payload);
             }
@@ -137,6 +148,15 @@ class UiSchemaDefaultNodeSettingsTraverser {
     private static Consumer<TraversalConsumerPayload>
         getAddSignalConsumer(final Map<Class<?>, ScopedExpression> signals) {
         return payload -> getSignalList(payload.field().propertyWriter()).forEach(addSignal(signals, payload.scope()));
+    }
+
+    private static Consumer<TraversalConsumerPayload> getAddReferenceConsumer(final Map<Class<?>, String> references) {
+        return payload -> {
+            final var reference = payload.field().propertyWriter().getAnnotation(ValueReference.class);
+            if (reference != null) {
+                references.put(reference.value(), payload.scope());
+            }
+        };
     }
 
     private static List<Signal> getSignalList(final PropertyWriter field) {

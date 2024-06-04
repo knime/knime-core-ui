@@ -59,6 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.ScopedExpression;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesAdder;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -137,16 +138,18 @@ public final class JsonFormsUiSchemaUtil {
         final var traverser = new UiSchemaDefaultNodeSettingsTraverser();
         final var traversalResult = traverser.traverse(settings);
         final var layoutTreeRoot = new LayoutTree(traversalResult.layoutPartToControls()).getRootNode();
-        return new LayoutSkeleton(layoutTreeRoot, traversalResult.signals(), traversalResult.fields());
+        return new LayoutSkeleton(layoutTreeRoot, traversalResult.signals(), traversalResult.references(), traversalResult.fields());
     }
 
     /**
      * @param layoutTreeRoot a tree structure representation of the node dialogs layout. Its leafs represent controls
      *            and other nodes can be visible layout elements or just structural placeholders.
-     * @param signals a map of all present {@link Signal} annotations.
+     * @param signals a map of all present {@link Signal} annotations. TODO Remove
+     * @param references a map of all present {@link Reference} annotations to their field scope (references nested in
+     *            array layouts map to the inner scope)
      * @param fields a collection of all traversed fields (the leaves of the tree)
      */
     public static record LayoutSkeleton(LayoutTreeNode layoutTreeRoot, Map<Class<?>, ScopedExpression> signals,
-        Collection<JsonFormsControl> fields) {
+        Map<Class<?>, String> references, Collection<JsonFormsControl> fields) {
     }
 }

@@ -58,19 +58,26 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.DefaultFieldReferrer.ScopeFromReference;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.ConstantExpression;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.ConstantSignal;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Expression;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.JsonFormsExpression;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Operator;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.ScopedExpression;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Signal;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -81,7 +88,7 @@ final class UiSchemaRulesGenerator {
 
     private final Map<Class<?>, ScopedExpression> m_signalsMap;
 
-    private final Effect m_effect;
+    private final Map<Class<?>, String> m_referencesMap;
 
     private final DefaultNodeSettingsContext m_nodeSettingsContext;
 
@@ -93,10 +100,10 @@ final class UiSchemaRulesGenerator {
      *            annotations to a construct holding the respective condition and the scope of the associated field.
      * @param nodeSettingsContext the node's context (inputs, flow vars)
      */
-    UiSchemaRulesGenerator(final Effect effect, final Map<Class<?>, ScopedExpression> signalsMap,
+    UiSchemaRulesGenerator(final Map<Class<?>, ScopedExpression> signalsMap, final Map<Class<?>, String> referencesMap,
         final DefaultNodeSettingsContext nodeSettingsContext) {
-        m_effect = effect;
         m_signalsMap = signalsMap;
+        m_referencesMap = referencesMap;
         m_nodeSettingsContext = nodeSettingsContext;
         m_visitor = new JsonFormsExpressionResolver();
     }
@@ -108,25 +115,108 @@ final class UiSchemaRulesGenerator {
      *
      * @param control the object node to which the rule should be applied
      */
-    public void applyRulesTo(final ObjectNode control) {
-        if (m_effect == null) {
-            return;
+    public void applyEffectTo(final Effect effect, final ObjectNode control) {
+        extractExpressionFromAnnotation(effect)
+            .ifPresent(expression -> writeExpressionAsRule(effect.type(), expression, control));
+    }
+
+    /**
+     * Applies a rule to an object node based on the {@link Effect} annotation of a given field. The linked sources are
+     * fetched and combined using the provided operator, with nested operations being resolved recursively. For more
+     * information on the resolution of different operations, see {@link JsonFormsUiSchemaUtil}.
+     *
+     * @param control the object node to which the rule should be applied
+     */
+    public void applyWidgetEffectTo(final Widget widget, final ObjectNode control) {
+        extractExpressionFromAnnotation(widget)
+            .ifPresent(pair -> writeExpressionAsRule(pair.getFirst(), pair.getSecond(), control));
+
+    }
+
+    private JsonNode writeExpressionAsRule(final EffectType type, final Expression<JsonFormsExpression> expression,
+        final ObjectNode control) {
+        return control.putObject(TAG_RULE)//
+            .put(TAG_EFFECT, String.valueOf(type)) //
+            .set(TAG_CONDITION, expression.accept(m_visitor));
+    }
+
+    /**
+     * @param widget
+     * @return
+     */
+    private Optional<Pair<EffectType, Expression<JsonFormsExpression>>>
+        extractExpressionFromAnnotation(final Widget widget) {
+        if (widget == null) {
+            return Optional.empty();
         }
-        final var signalClasses = m_effect.signals();
+
+        final var providers = Stream.of(new Pair<>(EffectType.HIDE, widget.hide()), //
+            new Pair<>(EffectType.SHOW, widget.show()), //
+            new Pair<>(EffectType.DISABLE, widget.disable()), //
+            new Pair<>(EffectType.ENABLE, widget.enable())//
+        ).filter(pair -> pair.getSecond() != PredicateProvider.class).toList();
+
+        if (providers.size() > 1) {
+            throw new UiSchemaGenerationException(
+                "Using more than one of the effects \"show\", \"hide\", \"disable\" and \"enable\" at a time for a widget is not supported.");
+        }
+        return providers.stream().findAny().flatMap(pair -> createExpression(pair.getSecond())
+            .map(expression -> new Pair<EffectType, Expression<JsonFormsExpression>>(pair.getFirst(), expression)));
+    }
+
+    @SuppressWarnings("unchecked")
+    private Optional<Expression<JsonFormsExpression>> extractExpressionFromAnnotation(final Effect effect) {
+        if (effect == null) {
+            return Optional.empty();
+        }
+        final var expressionCreatorClass = effect.condition();
+        if (expressionCreatorClass != PredicateProvider.class) {
+            try {
+                return createExpression(expressionCreatorClass);
+            } catch (InvalidReferenceException e) {
+                if (effect.ignoreOnMissingSignals()) {
+                    return Optional.empty();
+                }
+                throw new UiSchemaGenerationException(String.format("Missing reference annotation: %s. "
+                    + "If this is wanted and the rule should be ignored instead of throwing this error, "
+                    + "use the respective flag in the @Effect annotation.", e.getReference().getName()), e);
+            }
+        } else { // TODO Remove this
+            final var signalClasses = effect.signals();
+            final var operationClass = effect.operation();
+            return createExpressionLegacy(effect, signalClasses, operationClass);
+        }
+    }
+
+    private Optional<Expression<JsonFormsExpression>> createExpressionLegacy(final Effect effect,
+        final Class<?>[] signalClasses, final Class<? extends Operator> operationClass) {
         final var expressionList = new ArrayList<JsonFormsExpression>();
         for (var i = 0; i < signalClasses.length; i++) {
             final var signalClass = signalClasses[i];
-            final var expressionOptional = createExpressionFromSignal(signalClass);
+            final var expressionOptional = createExpressionFromSignal(signalClass, effect.ignoreOnMissingSignals());
             if (expressionOptional.isEmpty()) {
-                return; // "ignoreOnMissingSignals"
+                return Optional.empty(); // "ignoreOnMissingSignals"
             }
             expressionList.add(expressionOptional.get());
         }
-        final var rule = control.putObject(TAG_RULE).put(TAG_EFFECT, String.valueOf(m_effect.type()));
+        return Optional.of(instantiateOperation(operationClass, expressionList.toArray(JsonFormsExpression[]::new)));
+    }
 
-        final var operationClass = m_effect.operation();
-        rule.set(TAG_CONDITION,
-            instantiateOperation(operationClass, expressionList.toArray(JsonFormsExpression[]::new)).accept(m_visitor));
+    private Optional<Expression<JsonFormsExpression>>
+        createExpression(final Class<? extends PredicateProvider> expressionCreatorClass) {
+        final var scopeFromReference = new ScopeFromReference() {
+
+            @Override
+            public String getScope(final Class<?> reference) throws InvalidReferenceException {
+                if (m_referencesMap.containsKey(reference)) {
+                    return m_referencesMap.get(reference);
+                }
+                throw new InvalidReferenceException(reference);
+            }
+        };
+        final var referrer = new DefaultFieldReferrer(scopeFromReference, m_nodeSettingsContext);
+        return Optional.of(
+            (Expression<JsonFormsExpression>)InstantiationUtil.createInstance(expressionCreatorClass).init(referrer));
     }
 
     /**
@@ -136,7 +226,8 @@ final class UiSchemaRulesGenerator {
      * @return Either an expression or an empty optional if the effect has the {@link Effect#ignoreOnMissingSignals()}
      *         set.
      */
-    private Optional<JsonFormsExpression> createExpressionFromSignal(final Class<?> signalClass) {
+    private Optional<JsonFormsExpression> createExpressionFromSignal(final Class<?> signalClass,
+        final boolean ignoreOnMissingSignals) {
         JsonFormsExpression expression = m_signalsMap.get(signalClass);
         if (expression == null) {
             if (ConstantSignal.class.isAssignableFrom(signalClass)) {
@@ -148,7 +239,7 @@ final class UiSchemaRulesGenerator {
                     throw new UiSchemaGenerationException("Unable to instantiate instance of " + signalClass.getName(),
                         ex);
                 }
-            } else if (m_effect.ignoreOnMissingSignals()) {
+            } else if (ignoreOnMissingSignals) {
                 return Optional.empty();
             } else {
                 throw new UiSchemaGenerationException(String.format("Missing source annotation: %s. "

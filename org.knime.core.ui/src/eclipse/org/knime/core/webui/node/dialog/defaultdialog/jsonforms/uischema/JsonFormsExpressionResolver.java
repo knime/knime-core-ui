@@ -55,6 +55,8 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_TYPE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil.getMapper;
 
+import java.util.List;
+
 import org.knime.core.webui.node.dialog.defaultdialog.rule.And;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.ConstantExpression;
 import org.knime.core.webui.node.dialog.defaultdialog.rule.Expression;
@@ -109,7 +111,7 @@ class JsonFormsExpressionResolver implements ExpressionVisitor<ObjectNode, JsonF
     }
 
     private void addAllConditions(final ObjectNode expressionNode,
-        final Expression<JsonFormsExpression>[] expressions) {
+        final List<Expression<JsonFormsExpression>> expressions) {
         final var node = expressionNode.putArray(TAG_CONDITIONS);
         for (var expression : expressions) {
             node.add(expression.accept(this));

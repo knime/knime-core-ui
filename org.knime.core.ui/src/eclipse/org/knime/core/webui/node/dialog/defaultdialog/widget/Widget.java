@@ -55,6 +55,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.rule.PredicateProvider;
 
 /**
  * An annotation for a field indicating that its contributing to the dialog UI. And it allows one to control common
@@ -92,5 +93,33 @@ public @interface Widget {
      *         description.
      */
     boolean hideTitle() default false;
+
+    /**
+     * Hide the widget when the provided predicate yields true
+     *
+     * @return a predicate provider
+     */
+    Class<? extends PredicateProvider> hide() default PredicateProvider.class;
+
+    /**
+     * Show the widget only when the provided predicate yields true
+     *
+     * @return a predicate provider
+     */
+    Class<? extends PredicateProvider> show() default PredicateProvider.class;
+
+    /**
+     * Disable the widget when the provided predicate yields true
+     *
+     * @return a predicate provider
+     */
+    Class<? extends PredicateProvider> disable() default PredicateProvider.class;
+
+    /**
+     * Enable the widget only when the provided predicate yields true
+     *
+     * @return a predicate provider
+     */
+    Class<? extends PredicateProvider> enable() default PredicateProvider.class;
 
 }

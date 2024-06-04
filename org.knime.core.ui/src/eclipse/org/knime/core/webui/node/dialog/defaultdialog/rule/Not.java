@@ -48,6 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.rule;
 
+import org.knime.core.webui.node.dialog.defaultdialog.rule.PredicateProvider.Predicate;
+
 /**
  *
  * @author Paul Bärnreuther
@@ -56,8 +58,8 @@ public non-sealed class Not<E extends AtomicExpression<E>> implements Operator<E
 
     private final Expression<E> m_childOperation;
 
-    public Not(final Expression<E> childOperation) {
-        m_childOperation = childOperation;
+    public Not(final Predicate childOperation) {
+        m_childOperation = (Expression<E>)childOperation;
     }
 
     public Expression<E> getChildOperation() {

@@ -44,32 +44,22 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   22 Mar 2023 (Marc Bux, KNIME GmbH, Berlin, Germany): created
+ *   Jun 5, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.rule;
+package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
-import org.knime.core.webui.node.dialog.defaultdialog.rule.PredicateProvider.Predicate;
+class InvalidReferenceException extends RuntimeException {
 
-/**
- * An expression in terms of propositional logic. An expression can either be an {@link AtomicExpression} or one of the
- * three {@link Operator}s ({@link And}, {@link Or} or {@link Not}) defining how to combine multiple
- * {@link AtomicExpression}s.
- *
- * Each implementation offers its own {@link AtomicExpression}.
- *
- * Expressions are resolved via {@link ExpressionVisitor}s.
- *
- * @param <E> the type of atomic expressions used for this implementation
- *
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
- */
-public sealed interface Expression<E extends AtomicExpression<E>> extends Predicate permits Operator, AtomicExpression  {
+    private static final long serialVersionUID = 1L;
 
-    /**
-     * @param <T> the type of the resolved value
-     * @param visitor an implementation dependent expression resolver
-     * @return a resolved value of the expression depending on the implementation.
-     */
-    <T> T accept(ExpressionVisitor<T, E> visitor);
+    private final Class<?> m_referenceClass;
+
+    InvalidReferenceException(final Class<?> referenceClass) {
+        m_referenceClass = referenceClass;
+    }
+
+    Class<?> getReference() {
+        return m_referenceClass;
+    }
 
 }

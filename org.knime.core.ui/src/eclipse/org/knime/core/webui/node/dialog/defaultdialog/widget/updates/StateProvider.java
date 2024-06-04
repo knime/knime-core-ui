@@ -91,6 +91,7 @@ public interface StateProvider<S> {
          */
         <T> Supplier<T> computeFromValueSupplier(Class<? extends Reference<T>> ref);
 
+
         /**
          * Sets value ref as <b>Dependency</b> and not as <b>Trigger</b>, i.e.:
          *
