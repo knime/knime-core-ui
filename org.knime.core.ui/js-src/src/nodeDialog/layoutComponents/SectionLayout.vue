@@ -26,7 +26,7 @@ export default SectionLayout;
 </script>
 
 <template>
-  <LayoutComponentWrapper :layout="layout">
+  <LayoutComponentWrapper :layout="layout" class="section-container">
     <div class="section">
       <div class="section-header">
         <h3>{{ layout.uischema.label }}</h3>
@@ -50,20 +50,25 @@ export default SectionLayout;
 </template>
 
 <style lang="postcss" scoped>
+.section-container:not(:first-child) {
+  margin-top: var(--spacing-56);
+}
+
 .section {
   & .section-header {
     position: sticky;
     top: 0;
+    padding-top: var(--spacing-16);
     background-color: var(--knime-gray-ultra-light);
     z-index: 1;
     margin: 0 calc(-1 * var(--horizontal-dialog-padding));
 
     & h3 {
-      margin: 0 var(--horizontal-dialog-padding) 9px;
+      margin: 0 var(--horizontal-dialog-padding) 0;
       border-bottom: 1px solid var(--knime-silver-sand);
       color: var(--knime-masala);
       font-size: 16px;
-      line-height: 40px;
+      line-height: 20px;
     }
   }
 }

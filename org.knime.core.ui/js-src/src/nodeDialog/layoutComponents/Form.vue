@@ -18,7 +18,7 @@ container
 }
 
 .form {
-  --horizontal-dialog-padding: 20px;
+  --horizontal-dialog-padding: var(--spacing-16);
 
   flex-grow: 1;
   display: flex;

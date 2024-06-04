@@ -14,11 +14,9 @@ defineProps<{ elements: object[] }>();
 .vertical-layout {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--spacing-16);
 
-  --vertical-padding: 11px;
-
-  padding-bottom: var(--vertical-padding);
+  --vertical-padding: 16px;
 
   /* TODO: UIEXT-1061 workaround to make the last dialog element fill the remaining height, used in RichTextInput */
 
