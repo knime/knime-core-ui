@@ -51,7 +51,7 @@ export default SectionLayout;
 
 <style lang="postcss" scoped>
 .section-container:not(:first-child) {
-  margin-top: var(--spacing-56);
+  margin-top: var(--spacing-32);
 }
 
 .section {

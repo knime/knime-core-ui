@@ -23,7 +23,7 @@ container
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  padding: 0 var(--horizontal-dialog-padding);
+  padding: 0 var(--horizontal-dialog-padding) var(--spacing-16);
   overflow: hidden;
   overflow-y: auto;
 
