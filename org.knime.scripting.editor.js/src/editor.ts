@@ -65,8 +65,23 @@ export type UseCodeEditorReturn = {
    * Inserts the specified text at the current cursor position in the editor,
    * and adds the required import if one is provided.
    * @param text the text to insert.
+   * @param requiredImport the import to add before the text. Can be left out.
    */
-  insertColumnReference: (text: string, requiredImport?: string) => void;
+  insertColumnReference: (
+    textToInsert: string,
+    requiredImport?: string,
+  ) => void;
+
+  /**
+   * Inserts the specified function reference at the current cursor position in the editor.
+   * Uses snippets to give really nice insertion behavior for function arguments.
+   * @param functionName
+   * @param functionArgs the arguments to the function.
+   */
+  insertFunctionReference: (
+    functionName: string,
+    functionArgs: string[],
+  ) => void;
 };
 
 export type UseDiffEditorParams = ContainerParams & {
@@ -135,7 +150,7 @@ const syncWithModel = (model: monaco.editor.ITextModel) => {
 
   const text = computed({
     get: () => textFromModel.value,
-    set: (newText) => {
+    set: (newText: string) => {
       // NB: We push a stack element to allow undoing the set call
       model.pushStackElement();
       model.pushEditOperations(
@@ -234,6 +249,20 @@ const createInsertTextFunction = (
   };
 };
 
+const createInsertFunctionReferenceFunction = (
+  editor: Ref<monaco.editor.IStandaloneCodeEditor | undefined>,
+) => {
+  return (functionName: string, args: string[]) => {
+    const snippetController = editor.value?.getContribution(
+      "snippetController2",
+    ) as any; // The Monaco API doesn't expose the type for us :(
+
+    snippetController?.insert(
+      `${functionName}(${args.map((arg, i) => `$\{${i + 1}:${arg}}`).join(", ")})`,
+    );
+  };
+};
+
 // ====== COMPOSABLES ======
 
 export const useCodeEditor = (
@@ -272,6 +301,7 @@ export const useCodeEditor = (
     selection: readonly(selection),
     selectedLines: readonly(selectedLines),
     insertColumnReference: createInsertColumnReferenceFunction(editor),
+    insertFunctionReference: createInsertFunctionReferenceFunction(editor),
     insertText: createInsertTextFunction(editor),
     ...syncWithModel(editorModel),
   };
