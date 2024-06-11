@@ -53,6 +53,7 @@ import static org.knime.scripting.editor.ScriptingNodeSettings.SCRIPT_CFG_KEY;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.data.rpc.json.impl.ObjectMapperUtil;
@@ -149,6 +150,7 @@ public class ScriptingNodeSettingsService implements NodeSettingsService {
 
     @Override
     public final void toNodeSettings(final String textSettings,
+        final Map<SettingsType, NodeSettingsRO> previousSettings,
         final Map<SettingsType, NodeAndVariableSettingsWO> settings) {
         try {
             var settingsJson = (ObjectNode)OBJECT_MAPPER.readTree(textSettings);
