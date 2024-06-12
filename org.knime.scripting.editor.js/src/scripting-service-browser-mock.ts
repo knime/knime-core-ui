@@ -47,7 +47,7 @@ const error = (message: any, ...args: any[]) => {
 
 export const DEFAULT_INPUT_OBJECTS = [
   {
-    name: "Input Table 1",
+    name: "Input table 1",
     subItems: [
       {
         name: "Column 1",
@@ -67,7 +67,7 @@ export const DEFAULT_INPUT_OBJECTS = [
 
 export const DEFAULT_OUTPUT_OBJECTS = [
   {
-    name: "Output Table 1",
+    name: "Output table 1",
   },
 ] satisfies InputOutputModel[];
 
