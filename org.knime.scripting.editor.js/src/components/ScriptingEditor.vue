@@ -183,7 +183,7 @@ const portConfigs: PortConfigs = {
 
 const bottomPaneOptions: Ref<{ value: string; label: string }[]> = ref([
   { value: "console", label: "Console" },
-  { value: "outputTable", label: "Output Table" },
+  { value: "outputTable", label: "Output table" },
 ]);
 
 const bottomPaneActiveTab = ref<string>(bottomPaneOptions.value[0].value);
