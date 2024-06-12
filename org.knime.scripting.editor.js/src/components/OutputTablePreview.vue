@@ -20,6 +20,8 @@ const resourceLocation = ref<string>("");
 const dataAvailable = ref<boolean>(false);
 const numberOfOutputRows = ref<number>(0);
 
+const emit = defineEmits(["output-table-updated"]);
+
 const makeExtensionConfig = async (
   nodeId: string,
   projectId: string,
@@ -105,6 +107,7 @@ onMounted(async () => {
       await updateExtensionConfig(extensionConfigLoaded);
       dataAvailable.value = true;
       numberOfOutputRows.value = numberOfRows;
+      emit("output-table-updated");
     },
   );
 });
@@ -133,7 +136,7 @@ onMounted(async () => {
     </div>
   </div>
   <div v-else class="output-table-preview pre-evaluation-sign">
-    evaluate first to see a preview of the output table
+    To see the preview, please evaluate the expression using the button above.
   </div>
 </template>
 
@@ -152,7 +155,6 @@ onMounted(async () => {
   display: flex;
   height: 35px;
   justify-content: center;
-  background-color: var(--knime-yellow);
   border-radius: 10px;
 }
 
