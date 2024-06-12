@@ -80,7 +80,7 @@ describe("OutputTablePreview", () => {
     const preEvaluationSign = wrapper.find(".pre-evaluation-sign");
 
     expect(preEvaluationSign.exists()).toBe(true);
-    expect(preEvaluationSign.text()).toContain("evaluate first");
+    expect(preEvaluationSign.text()).toContain("To see the preview");
   });
 
   it("updates state when updateOutputTable event is triggered", async () => {

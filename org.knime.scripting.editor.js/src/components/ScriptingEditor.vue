@@ -186,6 +186,8 @@ const bottomPaneOptions: Ref<{ value: string; label: string }[]> = ref([
   { value: "outputTable", label: "Output Table" },
 ]);
 
+const bottomPaneActiveTab = ref<string>(bottomPaneOptions.value[0].value);
+
 const makeNodePortId = (nodeId: string, portIdx: number) =>
   `${nodeId}-${portIdx}`;
 
@@ -208,7 +210,6 @@ onMounted(async () => {
   }
 });
 
-const bottomPaneActiveTab = ref<string>(bottomPaneOptions.value[0].value);
 const onConsoleCreated = (handler: ConsoleHandler) => {
   setConsoleHandler(handler);
   initConsoleEventHandler();
@@ -433,7 +434,11 @@ const paintFocus = useShouldFocusBePainted();
                     collapsed: bottomPaneActiveTab !== 'outputTable',
                   }"
                 >
-                  <OutputTablePreview />
+                  <OutputTablePreview
+                    @output-table-updated="
+                      () => (bottomPaneActiveTab = 'outputTable')
+                    "
+                  />
                 </div>
               </div>
             </div>
