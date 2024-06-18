@@ -522,9 +522,22 @@ const paintFocus = useShouldFocusBePainted();
   }
 }
 
-.common-splitter.slim-splitter {
-  & :deep(.splitpanes__splitter) {
-    min-width: 2px;
+.common-splitter.slim-splitter :deep(.splitpanes__splitter) {
+  position: relative;
+  min-width: 2px;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 11px;
+    height: 100%;
+    background: transparent;
+    cursor: ew-resize;
+    z-index: 1;
   }
 }
 
