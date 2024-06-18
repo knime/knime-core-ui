@@ -60,6 +60,8 @@ import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.VariableSettingsRO;
+import org.knime.core.webui.node.dialog.VariableSettingsWO;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -156,8 +158,33 @@ public class ScriptingNodeSettingsService implements NodeSettingsService {
             var script = settingsJson.get(SCRIPT_JSON_KEY).asText();
             settings.get(m_scriptSettingsType).addString(SCRIPT_CFG_KEY, script);
             addAdditionalSettingsToNodeSettings(settingsJson, settings);
+            for (var settingsType : settings.keySet()) {
+                copyVariableSettings(previousSettings.get(settingsType), settings.get(settingsType));
+            }
         } catch (JsonProcessingException e) {
             // Should not happen because the frontend gives a correct JSON settings
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static void copyVariableSettings(final VariableSettingsRO from, final VariableSettingsWO to) {
+        try {
+            for (String key : from.getVariableSettingsIterable()) {
+                if (from.isVariableSetting(key)) {
+                    var usedVariable = from.getUsedVariable(key);
+                    if (usedVariable != null) {
+                        to.addUsedVariable(key, usedVariable);
+                    }
+                    var exposedVariable = from.getExposedVariable(key);
+                    if (exposedVariable != null) {
+                        to.addExposedVariable(key, exposedVariable);
+                    }
+                } else {
+                    copyVariableSettings(from.getVariableSettings(key), to.getOrCreateVariableSettings(key));
+                }
+            }
+        } catch (InvalidSettingsException e) {
+            // should never happen
             throw new IllegalStateException(e);
         }
     }
