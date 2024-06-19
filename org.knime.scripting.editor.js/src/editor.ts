@@ -75,7 +75,7 @@ export type UseCodeEditorReturn = {
   /**
    * Inserts the specified function reference at the current cursor position in the editor.
    * Uses snippets to give really nice insertion behavior for function arguments. If the
-   * arguments are not provided, the function will be inserted without arguments OR brackets.
+   * arguments are null, the function will be inserted without arguments OR brackets.
    * If the arguments are an empty list, the function will be inserted with empty brackets.
    *
    * @param functionName
@@ -83,7 +83,7 @@ export type UseCodeEditorReturn = {
    */
   insertFunctionReference: (
     functionName: string,
-    functionArgs?: string[],
+    functionArgs: string[] | null,
   ) => void;
 };
 
@@ -255,12 +255,12 @@ const createInsertTextFunction = (
 const createInsertFunctionReferenceFunction = (
   editor: Ref<monaco.editor.IStandaloneCodeEditor | undefined>,
 ) => {
-  return (functionName: string, args?: string[]) => {
+  return (functionName: string, args: string[] | null) => {
     const snippetController = editor.value?.getContribution(
       "snippetController2",
     ) as any; // The Monaco API doesn't expose the type for us :(
 
-    if (typeof args === "undefined") {
+    if (args === null) {
       snippetController?.insert(functionName);
     } else {
       snippetController?.insert(
