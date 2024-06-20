@@ -2,6 +2,14 @@
 export type InputOutputModel = {
   name: string;
   /**
+   * Represents the type of the item, e.g. input table, flow variable, port object...
+   */
+  portType?: "table" | "flowVariable" | "object" | "view";
+  /**
+   * Color of the port icon
+   */
+  portIconColor?: string;
+  /**
    * Code alias for inserting the entire I/O-Object
    */
   codeAlias?: string;
@@ -33,6 +41,8 @@ import { ref, watch } from "vue";
 import Collapser from "webapps-common/ui/components/Collapser.vue";
 import { useMultiSelection } from "webapps-common/ui/components/FileExplorer/useMultiSelection";
 import { createDragGhost, removeDragGhost } from "./utils/dragGhost";
+import PortIcon from "webapps-common/ui/components/node/PortIcon.vue";
+import EyeIcon from "webapps-common/ui/assets/img/icons/eye.svg";
 
 const INITIALLY_EXPANDED_MAX_SUBITEMS = 15;
 
@@ -195,6 +205,15 @@ const onHeaderDragEnd = () => {
     <template #title>
       <div class="top-card has-collapser">
         <div class="title">
+          <div class="port-icon-container">
+            <EyeIcon v-if="inputOutputItem.portType === 'view'" />
+            <svg v-else viewBox="-6 -6 12 12">
+              <PortIcon
+                :type="inputOutputItem.portType"
+                :color="inputOutputItem.portIconColor"
+              />
+            </svg>
+          </div>
           {{ inputOutputItem.name }}
         </div>
         <div
@@ -233,13 +252,22 @@ const onHeaderDragEnd = () => {
         @click="(event) => handleClick(event, index)"
         @dblclick="handleSubItemDoubleClick($event, index)"
       >
-        <div class="cell">{{ subItem.name }}</div>
-        <div class="cell">{{ subItem.type }}</div>
+        <div class="cell subitem-name">{{ subItem.name }}</div>
+        <div class="cell subitem-type">{{ subItem.type }}</div>
       </div>
     </div>
   </Collapser>
   <div v-else class="top-card bottom-border">
     <div class="title">
+      <div class="port-icon-container">
+        <EyeIcon v-if="inputOutputItem.portType === 'view'" />
+        <svg v-else viewBox="-6 -6 12 12">
+          <PortIcon
+            :type="inputOutputItem.portType"
+            :color="inputOutputItem.portIconColor"
+          />
+        </svg>
+      </div>
       {{ inputOutputItem.name }}
     </div>
     <div
@@ -263,7 +291,9 @@ const onHeaderDragEnd = () => {
 
 <style scoped lang="postcss">
 .top-card {
-  min-height: 42px;
+  --in-out-item-icon-size: 12px;
+
+  min-height: 28px;
   background-color: var(--knime-porcelain);
   padding-left: 8px;
   position: relative;
@@ -272,19 +302,45 @@ const onHeaderDragEnd = () => {
   font-weight: bold;
   display: flex;
   flex-direction: row;
-  justify-content: left;
+  justify-content: space-between;
+  gap: 8px;
   align-items: center;
   line-height: 26px;
   overflow: auto;
-}
-
-.has-collapser {
   padding-right: 32px;
 }
 
+.port-icon-container {
+  width: var(--in-out-item-icon-size);
+  min-width: var(--in-out-item-icon-size);
+  height: var(--in-out-item-icon-size);
+  display: inline-block;
+  overflow: hidden;
+  position: relative;
+  margin-right: var(--space-8);
+
+  & svg {
+    width: var(--in-out-item-icon-size);
+    height: var(--in-out-item-icon-size);
+    display: block;
+    top: 0;
+    left: 0;
+    margin: 0;
+  }
+}
+
+.subitem-type {
+  font-style: italic;
+}
+
 .title {
-  flex-basis: 100px;
+  flex-basis: calc(100px + var(--in-out-item-icon-size) + var(--space-4));
   min-width: 60px;
+  align-items: center;
+  display: flex;
+  text-wrap: nowrap;
+  text-overflow: ellipsis;
+  padding-right: 2px;
 }
 
 .collapser-content {
@@ -297,6 +353,10 @@ const onHeaderDragEnd = () => {
   border-bottom: 1px solid var(--knime-porcelain);
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
+  height: 22px;
+  line-height: 18px;
+  align-items: center;
 }
 
 .selected {
@@ -317,15 +377,17 @@ const onHeaderDragEnd = () => {
 
 .cell {
   padding: 10px;
-  flex: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-wrap: nowrap;
 }
 
 .code-alias {
   font-family: monospace;
   font-weight: normal;
   font-size: 12px;
-  padding-left: 8px;
-  padding-right: 8px;
+  padding-left: var(--space-8);
+  padding-right: var(--space-8);
   text-overflow: ellipsis;
   overflow: hidden;
   flex-shrink: 10;
@@ -353,13 +415,13 @@ const onHeaderDragEnd = () => {
   z-index: 10;
 
   & :deep(.dropdown) {
-    width: 20px;
-    height: 20px;
-    top: 10px;
+    width: 14px;
+    height: 14px;
+    top: 7px;
 
     & .dropdown-icon {
-      width: 12px;
-      height: 12px;
+      width: 10px;
+      height: 10px;
     }
   }
 

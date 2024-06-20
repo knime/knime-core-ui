@@ -48,11 +48,13 @@
  */
 package org.knime.scripting.editor;
 
+import java.util.Collection;
 import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.node.workflow.FlowVariable;
 
 /**
  * An item that will be displayed in the input/output panel of the script editor
@@ -64,13 +66,30 @@ import org.knime.core.data.DataType;
  * @param requiredImport The import statement that is needed to use this object or null if there is none.
  * @param multiSelection whether to enable multi selection in the frontend.
  * @param subItems A (possibly empty) list of sub items.
+ * @param portType The type of this item, e.g. flow variable, input table, etc.
+ * @param portIconColor The color of the port icon.
  */
 public record InputOutputModel(String name, //
     String codeAlias, //
     String subItemCodeAliasTemplate, //
     String requiredImport, //
     boolean multiSelection, //
-    InputOutputModelSubItem[] subItems) {
+    InputOutputModelSubItem[] subItems, //
+    String portType, //
+    String portIconColor //
+) {
+
+    public static final String FLOW_VAR_PORT_TYPE_NAME = "flowVariable";
+
+    public static final String FLOW_VAR_PORT_ICON_COLOR = null;
+
+    public static final String TABLE_PORT_TYPE_NAME = "table";
+
+    public static final String TABLE_PORT_ICON_COLOR = null;
+
+    public static final String OBJECT_PORT_TYPE_NAME = "object";
+
+    public static final String VIEW_PORT_TYPE_NAME = "view";
 
     /**
      * An item in an InputOutputModel, e.g. for table columns
@@ -152,6 +171,53 @@ public record InputOutputModel(String name, //
             .map(colSpec -> new InputOutputModelSubItem(colSpec.getName(), colSpec.getType().getName())) //
             .toArray(InputOutputModelSubItem[]::new);
         return new InputOutputModel(name, codeAlias, subItemCodeAliasTemplate, requiredImport, multipleSelection,
-            subItems);
+            subItems, TABLE_PORT_TYPE_NAME, TABLE_PORT_ICON_COLOR);
+    }
+
+    /**
+     * Helper method to create a table {@link InputOutputModel} for a table that is not connected
+     *
+     * @param name
+     * @param codeAlias
+     * @param subItemCodeAliasTemplate
+     * @param requiredImport
+     * @param multiSelection
+     * @return the {@link InputOutputModel} with no subItems
+     */
+    public static InputOutputModel createForNonAvailableTable( //
+        final String name, //
+        final String codeAlias, //
+        final String subItemCodeAliasTemplate, //
+        final String requiredImport, //
+        final boolean multiSelection //
+    ) {
+        return new InputOutputModel(name, codeAlias, subItemCodeAliasTemplate, requiredImport, multiSelection, null,
+            TABLE_PORT_TYPE_NAME, TABLE_PORT_ICON_COLOR);
+    }
+
+    /**
+     * Helper method to create a flow variables {@link InputOutputModel}.
+     *
+     * @param flowVariables
+     * @param codeAlias
+     * @param subItemCodeAliasTemplate
+     * @param requiredImport
+     * @param multiSelection
+     *
+     * @return the {@link InputOutputModel} with subItems from the collection of flow variables
+     */
+    public static InputOutputModel createFromFlowVariables( //
+        final Collection<FlowVariable> flowVariables, //
+        final String codeAlias, //
+        final String subItemCodeAliasTemplate, //
+        final String requiredImport, //
+        final boolean multiSelection //
+    ) {
+        var subItems = flowVariables.stream() //
+            .map(f -> new InputOutputModelSubItem(f.getName(), f.getVariableType().toString())) //
+            .toArray(InputOutputModelSubItem[]::new);
+
+        return new InputOutputModel("Flow variables", codeAlias, subItemCodeAliasTemplate, requiredImport,
+            multiSelection, subItems, FLOW_VAR_PORT_TYPE_NAME, FLOW_VAR_PORT_ICON_COLOR);
     }
 }

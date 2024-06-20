@@ -48,6 +48,7 @@ const error = (message: any, ...args: any[]) => {
 export const DEFAULT_INPUT_OBJECTS = [
   {
     name: "Input table 1",
+    portType: "table",
     subItems: [
       {
         name: "Column 1",
@@ -68,11 +69,13 @@ export const DEFAULT_INPUT_OBJECTS = [
 export const DEFAULT_OUTPUT_OBJECTS = [
   {
     name: "Output table 1",
+    portType: "table",
   },
 ] satisfies InputOutputModel[];
 
 export const DEFAULT_FLOW_VARIABLE_INPUTS = {
   name: "Flow Variables",
+  portType: "flowVariable",
   subItems: [
     {
       name: "flowVar1",
