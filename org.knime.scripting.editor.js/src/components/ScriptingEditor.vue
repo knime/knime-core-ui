@@ -22,6 +22,7 @@ import { setConsoleHandler } from "@/consoleHandler";
 import MainEditorPane from "./MainEditorPane.vue";
 import {
   MIN_WIDTH_FOR_DISPLAYING_PANES,
+  MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
   type PaneSizes,
 } from "@/components/utils/paneSizes";
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
@@ -80,8 +81,11 @@ const previousLargeModePaneSizes = reactive<PaneSizes>({
 
 const rootSplitPane = ref();
 const rootSplitPaneRef = useElementBounding(rootSplitPane);
-const isSlimMode = computed(
+const collapseAllPanes = computed(
   () => rootSplitPaneRef.width.value <= MIN_WIDTH_FOR_DISPLAYING_PANES,
+);
+const collapseLeftPane = computed(
+  () => rootSplitPaneRef.width.value <= MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
 );
 const minRatioOfRightPaneInPercent = computed(
   () =>
@@ -92,19 +96,27 @@ const minRatioOfRightPaneInPercent = computed(
 );
 
 const currentPaneSizes = computed(() => {
-  return isSlimMode.value
-    ? {
-        left: 0,
-        right: 0,
-        bottom: 0,
-      }
-    : {
-        ...largeModePaneSizes,
-        right: Math.max(
-          largeModePaneSizes.right,
-          minRatioOfRightPaneInPercent.value,
-        ),
-      };
+  if (collapseAllPanes.value) {
+    return {
+      left: 0,
+      right: 0,
+      bottom: 0,
+    };
+  } else if (collapseLeftPane.value) {
+    return {
+      left: 0,
+      right: largeModePaneSizes.right,
+      bottom: largeModePaneSizes.bottom,
+    };
+  } else {
+    return {
+      ...largeModePaneSizes,
+      right: Math.max(
+        largeModePaneSizes.right,
+        minRatioOfRightPaneInPercent.value,
+      ),
+    };
+  }
 });
 
 const usedMainPaneSize = computed(() => 100 - currentPaneSizes.value.left);
@@ -241,7 +253,7 @@ const onInputOutputItemInsertion = (
 
 // Convenient to have this computed property for reactive components
 const showControlBarDynamic = computed(() => {
-  return props.showControlBar && !isSlimMode.value;
+  return props.showControlBar && !collapseAllPanes.value;
 });
 
 // We need either filename+language, or provided editor slot
@@ -255,7 +267,7 @@ const paintFocus = useShouldFocusBePainted();
 <template>
   <div class="layout">
     <HeaderBar
-      v-if="!isSlimMode"
+      v-if="!collapseAllPanes"
       :title="title"
       :menu-items="[...commonMenuItems, ...menuItems]"
       @menu-item-click="onMenuItemClicked"
@@ -280,7 +292,7 @@ const paintFocus = useShouldFocusBePainted();
       class="common-splitter unset-transition main-splitpane"
       :dbl-click-splitter="false"
       :class="{
-        'slim-mode': isSlimMode,
+        'slim-mode': collapseAllPanes,
         'left-facing-splitter': !isLeftPaneCollapsed,
         'right-facing-splitter': isLeftPaneCollapsed,
       }"
