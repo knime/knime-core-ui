@@ -37,7 +37,7 @@ const commonMenuItems: MenuItem[] = [
 
 // Props
 interface Props {
-  title: string;
+  title?: string | null;
   language: string;
   fileName?: string | null;
   rightPaneLayout?: "fixed" | "relative";
@@ -49,6 +49,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  title: null,
   fileName: null,
   rightPaneLayout: "fixed",
   menuItems: () => [],
@@ -267,8 +268,8 @@ const paintFocus = useShouldFocusBePainted();
 <template>
   <div class="layout">
     <HeaderBar
-      v-if="!collapseAllPanes"
-      :title="title"
+      v-if="!collapseAllPanes && title !== null"
+      :title="title!"
       :menu-items="[...commonMenuItems, ...menuItems]"
       @menu-item-click="onMenuItemClicked"
     />
