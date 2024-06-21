@@ -24,6 +24,10 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  showButtonText: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const setupOnClickOutside = () => {
@@ -65,14 +69,17 @@ onMounted(async () => {
       <Button
         v-if="showAiButton"
         ref="aiButton"
-        class="ai-button"
         :disabled="!enableAiButton"
         compact
         :with-border="true"
-        :class="{ 'button-active': showBar }"
+        class="ai-button"
+        :class="{
+          'button-active': showBar,
+          'hide-button-text': !showButtonText,
+        }"
         @click="showBar = !showBar"
       >
-        <AiCode viewBox="0 0 32 32" /> Ask K-AI
+        <AiCode viewBox="0 0 32 32" /> {{ showButtonText ? "Ask K-AI" : null }}
       </Button>
     </div>
     <div class="button-controls">
@@ -82,8 +89,10 @@ onMounted(async () => {
 </template>
 
 <style lang="postcss" scoped>
-.ai-bar {
-  flex: 0 0 auto; /* Let the element ignore its size and not grow or shrink */
+.hide-button-text {
+  & :deep(svg) {
+    margin-right: 0;
+  }
 }
 
 .controls {
