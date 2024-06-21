@@ -105,6 +105,10 @@ class PortConfigs {
         final PortType portType) {
 
         final var portViews = PortViewManager.getPortViews(portType);
+        if (portViews == null) {
+            return Collections.emptyList();
+        }
+
         final var viewDescriptions = portViews.viewDescriptors();
         if (nodeContainerState.isExecuted()) {
             return getAvailableViews(viewDescriptions, portViews.executedIndices());
