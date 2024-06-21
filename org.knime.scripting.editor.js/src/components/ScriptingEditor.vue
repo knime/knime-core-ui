@@ -528,6 +528,7 @@ const paintFocus = useShouldFocusBePainted();
 .common-splitter.slim-splitter :deep(.splitpanes__splitter) {
   position: relative;
   min-width: 2px;
+  border-width: 0 0 0 1px;
 
   &::before {
     content: "";
@@ -645,6 +646,5 @@ const paintFocus = useShouldFocusBePainted();
   margin: 0;
   background-color: var(--knime-gray-light-semi);
   background-clip: padding-box;
-  border-top: 1px solid var(--knime-silver-sand);
 }
 </style>
