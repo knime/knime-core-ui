@@ -23,6 +23,7 @@ import MainEditorPane from "./MainEditorPane.vue";
 import {
   MIN_WIDTH_FOR_DISPLAYING_PANES,
   MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
+  MIN_WIDTH_FOR_SHOWING_BUTTON_TEXT,
   type PaneSizes,
 } from "@/components/utils/paneSizes";
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
@@ -82,11 +83,17 @@ const previousLargeModePaneSizes = reactive<PaneSizes>({
 
 const rootSplitPane = ref();
 const rootSplitPaneRef = useElementBounding(rootSplitPane);
+const editorSplitPane = ref();
+const editorSplitPaneRef = useElementBounding(editorSplitPane);
+
 const collapseAllPanes = computed(
   () => rootSplitPaneRef.width.value <= MIN_WIDTH_FOR_DISPLAYING_PANES,
 );
 const collapseLeftPane = computed(
   () => rootSplitPaneRef.width.value <= MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
+);
+const showButtonText = computed(
+  () => editorSplitPaneRef.width.value > MIN_WIDTH_FOR_SHOWING_BUTTON_TEXT,
 );
 const minRatioOfRightPaneInPercent = computed(
   () =>
@@ -354,6 +361,7 @@ const paintFocus = useShouldFocusBePainted();
               @resized="resizePane($event[1].size, 'right')"
             >
               <pane
+                ref="editorSplitPane"
                 data-testid="editorPane"
                 :size="usedHorizontalCodeEditorPaneSize"
                 min-size="25"
@@ -384,9 +392,13 @@ const paintFocus = useShouldFocusBePainted();
                         v-if="showControlBarDynamic"
                         :language="language"
                         :current-pane-sizes="currentPaneSizes"
+                        :show-button-text="showButtonText"
                       >
                         <template #controls>
-                          <slot name="code-editor-controls" />
+                          <slot
+                            name="code-editor-controls"
+                            :show-button-text="showButtonText"
+                          />
                         </template>
                       </CodeEditorControlBar>
                     </div>
