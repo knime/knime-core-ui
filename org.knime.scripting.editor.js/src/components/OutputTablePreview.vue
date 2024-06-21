@@ -121,10 +121,9 @@ onMounted(async () => {
     <div class="output-table-preview">
       <div class="preview-background">
         <div class="preview-warning-text">
-          This is a PREVIEW! Only {{ numberOfOutputRows }} row{{
-            numberOfOutputRows === 1 ? " is" : "s are"
+          Preview computed on first {{ numberOfOutputRows }} row{{
+            numberOfOutputRows === 1 ? "" : "s"
           }}
-          used.
         </div>
       </div>
       <UIExtension
@@ -176,11 +175,12 @@ onMounted(async () => {
 .preview-warning-text {
   background-color: white;
   color: black;
-  padding: 5px;
-  border-radius: 15px;
+  padding: 2px 8px;
+  border-radius: 999vw;
   box-shadow: 0 4px 8px rgb(0 0 0 / 10%);
   text-align: center;
   font-size: small;
   font-weight: bold;
+  vertical-align: middle;
 }
 </style>

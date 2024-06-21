@@ -399,6 +399,7 @@ const paintFocus = useShouldFocusBePainted();
               <div class="console-container">
                 <OutputConsole
                   v-show="bottomPaneActiveTab === 'console'"
+                  class="console"
                   @console-created="onConsoleCreated"
                 >
                   <template #console-status>
@@ -472,14 +473,16 @@ const paintFocus = useShouldFocusBePainted();
   display: flex;
   height: 100%;
   flex-direction: column;
-  padding-left: 10px;
-  padding-right: 10px;
   position: relative;
 
   & .console-container {
     flex: 1;
     height: 100%;
     min-height: 0;
+
+    & .console {
+      padding: 0 8px;
+    }
   }
 }
 
