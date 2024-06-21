@@ -632,9 +632,6 @@ const paintFocus = useShouldFocusBePainted();
   width: 100%;
   flex-grow: 1;
   min-height: 0;
-
-  /* Enable scrolling if we have a lot of editors */
-  background-color: var(--knime-porcelain);
 }
 
 .run-button-panel {
