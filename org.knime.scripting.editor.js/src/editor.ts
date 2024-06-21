@@ -113,6 +113,7 @@ export type UseDiffEditorReturn = {
 
 const EDITOR_OPTIONS = {
   minimap: { enabled: false },
+  overviewRulerLanes: 0, // Stops warnings/errors showing on scrollbar
   automaticLayout: true,
   glyphMargin: false,
   lightbulb: {
