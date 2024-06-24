@@ -48,10 +48,11 @@
  */
 package org.knime.scripting.editor;
 
-import java.util.stream.IntStream;
+import java.util.function.Predicate;
+import java.util.stream.StreamSupport;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.scripting.editor.InputOutputModel.InputOutputModelSubItem;
+import org.knime.core.data.DataType;
 
 /**
  * An item that will be displayed in the input/output panel of the script editor
@@ -98,7 +99,8 @@ public record InputOutputModel(String name, //
         final String subItemCodeAliasTemplate, //
         final String requiredImport //
     ) {
-        return InputOutputModel.createFromTableSpec(name, spec, codeAlias, subItemCodeAliasTemplate, true, requiredImport);
+        return InputOutputModel.createFromTableSpec(name, spec, codeAlias, subItemCodeAliasTemplate, true,
+            requiredImport);
     }
 
     /**
@@ -120,13 +122,36 @@ public record InputOutputModel(String name, //
         final boolean multipleSelection, //
         final String requiredImport //
     ) {
-        final var columnNames = spec.getColumnNames();
-        final var columnTypes = IntStream.range(0, spec.getNumColumns())
-            .mapToObj(i -> spec.getColumnSpec(i).getType().getName()).toArray(String[]::new);
-        final var subItems = IntStream.range(0, spec.getNumColumns())
-            .mapToObj(i -> new InputOutputModelSubItem(columnNames[i], columnTypes[i]))
-            .toArray(InputOutputModelSubItem[]::new);
+        return createFromTableSpec(name, spec, codeAlias, subItemCodeAliasTemplate, multipleSelection, requiredImport,
+            type -> true);
+    }
 
-        return new InputOutputModel(name, codeAlias, subItemCodeAliasTemplate, requiredImport, multipleSelection, subItems);
+    /**
+     * Helper method to convert a table spec into a {@link InputOutputModel}
+     *
+     * @param name
+     * @param spec
+     * @param codeAlias
+     * @param subItemCodeAliasTemplate
+     * @param requiredImport
+     * @param multipleSelection
+     * @param dataTypeFilter predicate to filter out columns of unsupported types
+     * @return the {@link InputOutputModel} with the subItems from the table columns
+     */
+    public static InputOutputModel createFromTableSpec( //
+        final String name, //
+        final DataTableSpec spec, //
+        final String codeAlias, //
+        final String subItemCodeAliasTemplate, //
+        final boolean multipleSelection, //
+        final String requiredImport, //
+        final Predicate<DataType> dataTypeFilter //
+    ) {
+        final var subItems = StreamSupport.stream(spec.spliterator(), false) //
+            .filter(colSpec -> dataTypeFilter.test(colSpec.getType())) //
+            .map(colSpec -> new InputOutputModelSubItem(colSpec.getName(), colSpec.getType().getName())) //
+            .toArray(InputOutputModelSubItem[]::new);
+        return new InputOutputModel(name, codeAlias, subItemCodeAliasTemplate, requiredImport, multipleSelection,
+            subItems);
     }
 }
