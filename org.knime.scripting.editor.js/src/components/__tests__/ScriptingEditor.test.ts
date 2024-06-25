@@ -15,7 +15,10 @@ import { useMainCodeEditor } from "@/editor";
 import { consoleHandler } from "@/consoleHandler";
 import { getScriptingService } from "@/scripting-service";
 import { nextTick, ref } from "vue";
-import { MIN_WIDTH_FOR_DISPLAYING_PANES } from "../utils/paneSizes";
+import {
+  MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
+  MIN_WIDTH_FOR_DISPLAYING_PANES,
+} from "../utils/paneSizes";
 import MainEditorPane from "../MainEditorPane.vue";
 import OutputTablePreview from "../OutputTablePreview.vue";
 
@@ -42,7 +45,7 @@ vi.mock("@/editor");
 describe("ScriptingEditor", () => {
   beforeEach(() => {
     vi.mocked(useElementBounding).mockReturnValue({
-      width: ref(MIN_WIDTH_FOR_DISPLAYING_PANES + 1),
+      width: ref(MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE + 1),
     } as ReturnType<typeof useElementBounding>);
   });
 
@@ -192,6 +195,17 @@ describe("ScriptingEditor", () => {
       expect(leftPane.size).toBe(0);
       expect(rightPane.size).toBe(0);
       expect(bottomPane.size).toBe(0);
+    });
+
+    it("set  and console pane sizes to zero when width is small", () => {
+      vi.mocked(useElementBounding).mockReturnValue({
+        width: ref(MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE - 1),
+      } as ReturnType<typeof useElementBounding>);
+
+      const { leftPane, rightPane, bottomPane } = doMount();
+      expect(leftPane.size).toBe(0);
+      expect(rightPane.size).not.toBe(0);
+      expect(bottomPane.size).not.toBe(0);
     });
 
     describe("resizing", () => {
