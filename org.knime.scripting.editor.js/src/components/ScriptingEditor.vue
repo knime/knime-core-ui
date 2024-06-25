@@ -295,6 +295,7 @@ const paintFocus = useShouldFocusBePainted();
         'slim-mode': collapseAllPanes,
         'left-facing-splitter': !isLeftPaneCollapsed,
         'right-facing-splitter': isLeftPaneCollapsed,
+        'collapse-left-pane': collapseLeftPane,
       }"
       @splitter-click="
         collapsePane('left');
@@ -308,6 +309,7 @@ const paintFocus = useShouldFocusBePainted();
       @resized="updatePreviousPaneSize('left')"
     >
       <pane
+        v-show="!collapseLeftPane"
         data-testid="leftPane"
         :size="currentPaneSizes.left"
         class="scrollable-y"
@@ -532,6 +534,13 @@ const paintFocus = useShouldFocusBePainted();
 
 .common-splitter.slim-mode {
   & :deep(.splitpanes__splitter) {
+    display: none;
+    pointer-events: none;
+  }
+}
+
+.collapse-left-pane {
+  & :deep(> .splitpanes__splitter) {
     display: none;
     pointer-events: none;
   }
