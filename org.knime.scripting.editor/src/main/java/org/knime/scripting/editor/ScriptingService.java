@@ -172,11 +172,15 @@ public abstract class ScriptingService {
 
     /**
      * Inform the frontend that the output table has changed.
-     * @param numRows number of rows in the output table preview
+     *
+     * @param numberOfRowsForPreview number of rows in the output table preview
+     * @param totalNumberOfRowsInTable total number of rows in the output table
      *
      */
-    protected void updateOutputTable(final int numRows) {
-        sendEvent("updateOutputTable", numRows);
+    protected void updateOutputTable(final int numberOfRowsForPreview, final long totalNumberOfRowsInTable) {
+        record TableUpdateMetadata(int numberOfRows, long totalNumberOfRows) {
+        }
+        sendEvent("updateOutputTable", new TableUpdateMetadata(numberOfRowsForPreview, totalNumberOfRowsInTable));
     }
 
     /**

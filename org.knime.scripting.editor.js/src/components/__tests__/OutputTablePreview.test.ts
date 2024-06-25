@@ -89,14 +89,21 @@ describe("OutputTablePreview", () => {
     const triggerUpdateOutputTableUpdate = () =>
       vi.mocked(getScriptingService().registerEventHandler).mock.calls[0][1];
 
-    const mockRows = 10;
-    triggerUpdateOutputTableUpdate()(JSON.stringify(mockRows));
+    const mockRows = {
+      numberOfRows: 10,
+      totalNumberOfRows: 100,
+    };
+    triggerUpdateOutputTableUpdate()(mockRows);
     await flushPromises();
 
     const previewWarningText = wrapper.find(".preview-warning-text");
     expect(previewWarningText.exists()).toBe(true);
+    expect(previewWarningText.text()).toContain("Preview");
     expect(previewWarningText.text()).toContain(
-      `Preview computed on first ${mockRows} rows`,
+      mockRows.numberOfRows.toString(),
+    );
+    expect(previewWarningText.text()).toContain(
+      mockRows.totalNumberOfRows.toString(),
     );
   });
 
