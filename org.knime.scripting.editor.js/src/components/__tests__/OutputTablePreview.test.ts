@@ -96,7 +96,7 @@ describe("OutputTablePreview", () => {
     const previewWarningText = wrapper.find(".preview-warning-text");
     expect(previewWarningText.exists()).toBe(true);
     expect(previewWarningText.text()).toContain(
-      `This is a PREVIEW! Only ${mockRows} rows are used.`,
+      `Preview computed on first ${mockRows} rows`,
     );
   });
 
