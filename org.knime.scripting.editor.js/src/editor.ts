@@ -17,8 +17,9 @@ type ContainerParams = {
   container: Ref<HTMLDivElement | undefined>;
 };
 
-export type UseCodeEditorParams = ContainerParams &
-  (
+export type UseCodeEditorParams = ContainerParams & {
+  hideOverviewRulerLanes?: boolean;
+} & (
     | {
         language: string;
         fileName: string;
@@ -113,7 +114,6 @@ export type UseDiffEditorReturn = {
 
 const EDITOR_OPTIONS = {
   minimap: { enabled: false },
-  overviewRulerLanes: 0, // Stops warnings/errors showing on scrollbar
   automaticLayout: true,
   glyphMargin: false,
   lightbulb: {
@@ -283,8 +283,14 @@ export const useCodeEditor = (
 
   onMounted(() => {
     assertElementProvided(params.container);
+
+    const DEFAULT_OVERVIEW_RULER_LANES = 3;
+
     editor.value = monaco.editor.create(params.container.value, {
       model: editorModel,
+      overviewRulerLanes: params.hideOverviewRulerLanes
+        ? 0
+        : DEFAULT_OVERVIEW_RULER_LANES,
       ...EDITOR_OPTIONS,
     });
 
