@@ -75,7 +75,10 @@ describe("editor", () => {
 
   describe("useCodeEditor", () => {
     const mountTestComponent = (
-      params: Omit<UseCodeEditorParams, "container"> = {
+      params: Omit<
+        UseCodeEditorParams,
+        "container" | "hideOverviewRulerLanes"
+      > = {
         language: "javascript",
         fileName: "test.js",
       },
