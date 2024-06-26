@@ -45,7 +45,7 @@ const error = (message: any, ...args: any[]) => {
   }
 };
 
-export const DEFAULT_INPUT_OBJECTS = [
+export const DEFAULT_INPUT_OBJECTS: InputOutputModel[] = [
   {
     name: "Input table 1",
     portType: "table",
@@ -64,16 +64,16 @@ export const DEFAULT_INPUT_OBJECTS = [
       },
     ],
   },
-] satisfies InputOutputModel[];
+];
 
-export const DEFAULT_OUTPUT_OBJECTS = [
+export const DEFAULT_OUTPUT_OBJECTS: InputOutputModel[] = [
   {
     name: "Output table 1",
     portType: "table",
   },
-] satisfies InputOutputModel[];
+];
 
-export const DEFAULT_FLOW_VARIABLE_INPUTS = {
+export const DEFAULT_FLOW_VARIABLE_INPUTS: InputOutputModel = {
   name: "Flow Variables",
   portType: "flowVariable",
   subItems: [
@@ -90,7 +90,7 @@ export const DEFAULT_FLOW_VARIABLE_INPUTS = {
       type: "String",
     },
   ],
-} satisfies InputOutputModel;
+};
 
 export type ScriptingServiceMockOptions = {
   sendToServiceMockResponses?: Record<
