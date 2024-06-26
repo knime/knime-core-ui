@@ -61,10 +61,10 @@ const paintFocus = useShouldFocusBePainted();
 }
 
 .scripting-editor-tab-bar {
-  margin-right: 10px;
+  margin-right: var(--space-8);
 
   & :deep(.tab-bar) {
-    padding-top: 8px;
+    padding-top: var(--space-8);
     padding-bottom: 0;
 
     & span {
