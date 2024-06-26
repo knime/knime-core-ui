@@ -295,7 +295,7 @@ const onHeaderDragEnd = () => {
 
   min-height: 28px;
   background-color: var(--knime-porcelain);
-  padding-left: 8px;
+  padding-left: var(--space-8);
   position: relative;
   margin: 0;
   font-size: 13px;
@@ -303,11 +303,11 @@ const onHeaderDragEnd = () => {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--space-8);
   align-items: center;
   line-height: 26px;
   overflow: auto;
-  padding-right: 32px;
+  padding-right: var(--space-32);
 }
 
 .port-icon-container {
@@ -317,7 +317,7 @@ const onHeaderDragEnd = () => {
   display: inline-block;
   overflow: hidden;
   position: relative;
-  margin-right: var(--space-8);
+  margin-right: var(--space-4);
 
   & svg {
     width: var(--in-out-item-icon-size);

@@ -156,7 +156,7 @@ const paintFocus = useShouldFocusBePainted();
   right: 20px;
   align-items: center;
   font-size: 13px;
-  gap: 10px;
+  gap: var(--space-8);
 }
 
 .console {

@@ -517,7 +517,7 @@ const paintFocus = useShouldFocusBePainted();
     min-height: 0;
 
     & .console {
-      padding: 0 8px;
+      padding: 0 var(--space-8);
     }
   }
 }

@@ -361,7 +361,7 @@ scriptingService.sendToService("getHubId").then((id) => {
 }
 
 .ai-bar-container {
-  --ai-bar-margin: 13px;
+  --ai-bar-margin: var(--space-12);
 
   display: flex;
   flex-direction: column;
@@ -374,12 +374,12 @@ scriptingService.sendToService("getHubId").then((id) => {
   z-index: 11; /* to display ai bar above the main code editor's scroll bar */
   overflow: visible;
   box-shadow: 0 -2px 8px 0 var(--knime-silver-sand-semi);
-  margin-bottom: 12px; /* to hover above ai icon */
+  margin-bottom: var(--space-12); /* to hover above ai icon */
   transition: width 0.2s ease-in-out;
 
   & .subtitle {
     color: var(--knime-black);
-    margin-top: 9px;
+    margin-top: var(--space-8);
     font-style: italic;
     display: flex;
     justify-content: flex-start;
@@ -387,7 +387,7 @@ scriptingService.sendToService("getHubId").then((id) => {
     flex-direction: row;
 
     & .text {
-      margin-right: 2px;
+      margin-right: var(--space-4);
     }
 
     & .button {
@@ -433,9 +433,9 @@ scriptingService.sendToService("getHubId").then((id) => {
         overflow: hidden;
         resize: none;
         border-radius: 0;
-        bottom: -1;
-        padding: 15px;
-        padding-right: 30px;
+        bottom: -1; /* is this intentional? */
+        padding: var(--space-16);
+        padding-right: var(--space-32);
         margin: var(--ai-bar-margin);
         color: var(--knime-masala);
         font-size: 13px;
@@ -505,13 +505,13 @@ scriptingService.sendToService("getHubId").then((id) => {
 
 .notification {
   line-height: 15.23px;
-  margin: 15px;
+  margin: var(--space-16);
 }
 
 .notification-button {
   height: 30px;
-  margin: 9px;
-  margin-right: 15px;
+  margin: var(--space-8);
+  margin-right: var(--space-16);
 }
 
 .disclaimer-container {
@@ -520,9 +520,9 @@ scriptingService.sendToService("getHubId").then((id) => {
 }
 
 .disclaimer-text {
-  margin: 10px;
+  margin: var(--space-8);
   line-height: 20px;
-  padding: 5px;
+  padding: var(--space-4);
   background-color: var(--knime-white);
 }
 

@@ -42,7 +42,7 @@ const emit = defineEmits<{
   align-items: center;
 
   & .back-button {
-    padding-right: 15px;
+    padding-right: var(--space-16);
   }
 
   & .arrow-left {

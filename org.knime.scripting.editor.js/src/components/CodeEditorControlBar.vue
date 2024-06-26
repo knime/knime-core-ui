@@ -100,7 +100,7 @@ onMounted(async () => {
   flex-wrap: wrap;
   place-content: center space-between;
   align-items: center;
-  padding: 2px 10px;
+  padding: var(--space-4) var(--space-8);
   background-color: var(--knime-gray-light-semi);
   border-top: 1px solid var(--knime-silver-sand);
   height: var(--controls-height);
@@ -111,8 +111,7 @@ onMounted(async () => {
   display: flex;
   justify-content: right;
   flex-wrap: wrap;
-  row-gap: 2px;
-  padding-top: 2px;
+  row-gap: var(--space-4);
 }
 
 .button-active {

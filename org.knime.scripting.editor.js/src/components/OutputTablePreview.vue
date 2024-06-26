@@ -165,7 +165,7 @@ onMounted(async () => {
 .preview-background {
   width: 100%;
   background-color: var(--knime-cornflower-semi);
-  padding: 5px 0;
+  padding: var(--space-4) 0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -175,7 +175,7 @@ onMounted(async () => {
 .preview-warning-text {
   background-color: white;
   color: black;
-  padding: 2px 8px;
+  padding: var(--space-4) var(--space-8);
   border-radius: 999vw;
   box-shadow: 0 4px 8px rgb(0 0 0 / 10%);
   text-align: center;
