@@ -60,6 +60,10 @@ const draggedItem = ref<{ name: string; type: string }>({
   name: "",
   type: "",
 });
+
+Handlebars.registerHelper("escapeDblQuotes", (str: string) => {
+  return str.replace("\\", "\\\\").replace(/"/g, '\\"');
+});
 const subItemCodeAliasTemplate = Handlebars.compile(
   props.inputOutputItem.subItemCodeAliasTemplate ?? "",
 );
