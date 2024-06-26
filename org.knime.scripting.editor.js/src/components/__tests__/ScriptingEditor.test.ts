@@ -136,9 +136,18 @@ describe("ScriptingEditor", () => {
       expect(outputConsole.exists()).toBeTruthy();
     });
 
-    it("display output preview table", () => {
-      const { wrapper } = doMount();
+    it("display output preview table when opt-in via props", () => {
+      const { wrapper } = doMount({
+        props: {
+          showOutputTable: true,
+        },
+      });
       expect(wrapper.findComponent(OutputTablePreview).exists()).toBeTruthy();
+    });
+
+    it("do not display output preview table when not opt-in", () => {
+      const { wrapper } = doMount();
+      expect(wrapper.findComponent(OutputTablePreview).exists()).toBeFalsy();
     });
 
     it("display input/output pane", () => {

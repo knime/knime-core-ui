@@ -47,6 +47,7 @@ interface Props {
   initialPaneSizes?: PaneSizes;
   rightPaneMinimumWidthInPixel?: number;
   toSettings?: (settings: NodeSettings) => NodeSettings;
+  showOutputTable?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -62,6 +63,7 @@ const props = withDefaults(defineProps<Props>(), {
   }),
   rightPaneMinimumWidthInPixel: () => 0,
   toSettings: (settings: NodeSettings) => settings,
+  showOutputTable: false,
 });
 
 const isRightPaneCollapsable = computed(
@@ -201,10 +203,15 @@ const portConfigs: PortConfigs = {
   inputPorts: [],
 };
 
-const bottomPaneOptions: Ref<{ value: string; label: string }[]> = ref([
-  { value: "console", label: "Console" },
-  { value: "outputTable", label: "Output table" },
-]);
+const initalBottomPaneOptions = [{ value: "console", label: "Console" }];
+
+if (props.showOutputTable) {
+  initalBottomPaneOptions.push({ value: "outputTable", label: "Output table" });
+}
+
+const bottomPaneOptions: Ref<{ value: string; label: string }[]> = ref(
+  initalBottomPaneOptions,
+);
 
 const bottomPaneActiveTab = ref<string>(bottomPaneOptions.value[0].value);
 
@@ -455,19 +462,21 @@ const paintFocus = useShouldFocusBePainted();
                     :port-view-configs="port.portViewConfigs"
                   />
                 </div>
-                <div
-                  v-show="bottomPaneActiveTab === 'outputTable'"
-                  class="port-tables"
-                  :class="{
-                    collapsed: bottomPaneActiveTab !== 'outputTable',
-                  }"
-                >
-                  <OutputTablePreview
-                    @output-table-updated="
-                      () => (bottomPaneActiveTab = 'outputTable')
-                    "
-                  />
-                </div>
+                <template v-if="showOutputTable">
+                  <div
+                    v-show="bottomPaneActiveTab === 'outputTable'"
+                    class="port-tables"
+                    :class="{
+                      collapsed: bottomPaneActiveTab !== 'outputTable',
+                    }"
+                  >
+                    <OutputTablePreview
+                      @output-table-updated="
+                        () => (bottomPaneActiveTab = 'outputTable')
+                      "
+                    />
+                  </div>
+                </template>
               </div>
             </div>
           </pane>
