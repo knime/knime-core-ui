@@ -79,7 +79,7 @@ onMounted(async () => {
         }"
         @click="showBar = !showBar"
       >
-        <AiCode viewBox="0 0 32 32" /> {{ showButtonText ? "Ask K-AI" : null }}
+        <AiCode viewBox="0 0 32 32" /> {{ showButtonText ? "Ask K-AI" : "" }}
       </Button>
     </div>
     <div class="button-controls">

@@ -112,7 +112,7 @@ export type UseDiffEditorReturn = {
 
 // ====== CONSTANTS ======
 
-const EDITOR_OPTIONS = {
+const EDITOR_OPTIONS: monaco.editor.IEditorConstructionOptions = {
   minimap: { enabled: false },
   automaticLayout: true,
   glyphMargin: false,
@@ -126,7 +126,7 @@ const EDITOR_OPTIONS = {
   fontWeight: "400",
   lineNumbersMinChars: 3,
   lineDecorationsWidth: "0.0ch",
-} satisfies monaco.editor.IEditorConstructionOptions;
+} as const;
 
 // ====== HELPERS ======
 
