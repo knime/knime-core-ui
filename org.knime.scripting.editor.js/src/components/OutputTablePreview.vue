@@ -180,7 +180,6 @@ onMounted(async () => {
   box-shadow: 0 4px 8px rgb(0 0 0 / 10%);
   text-align: center;
   font-size: small;
-  font-weight: bold;
   vertical-align: middle;
 }
 </style>
