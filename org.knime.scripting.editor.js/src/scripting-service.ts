@@ -26,7 +26,7 @@ export type PortConfigs = {
 
 export type NodeSettings = {
   script: string;
-  scriptUsedFlowVariable?: string;
+  scriptUsedFlowVariable?: string | null;
 };
 type LanugageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
 

@@ -283,6 +283,7 @@ export const useCodeEditor = (
 ): UseCodeEditorReturn => {
   const editor = shallowRef<monaco.editor.IStandaloneCodeEditor>();
   const editorModel = getEditorModel(params);
+
   const selection = ref("");
   const selectedLines = ref("");
 
@@ -364,7 +365,9 @@ export const useMainCodeEditorStore = () => {
 };
 
 // Only exported to be used in the ScriptingEditor.vue component
-export const useMainCodeEditor = (params: UseCodeEditorParams) => {
+export const useMainCodeEditor = (
+  params: UseCodeEditorParams,
+): UseCodeEditorReturn => {
   const editorState = useCodeEditor(params);
   mainEditorStore.value = editorState;
   return editorState;
