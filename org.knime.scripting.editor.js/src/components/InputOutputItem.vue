@@ -345,6 +345,7 @@ const onHeaderDragEnd = () => {
   text-wrap: nowrap;
   text-overflow: ellipsis;
   padding-right: 2px;
+  font-weight: 500;
 }
 
 .collapser-content {
