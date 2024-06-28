@@ -58,6 +58,8 @@ export default defineComponent({
   margin-left: 10px;
   height: var(--controls-height);
   line-height: var(--controls-height);
+  display: flex;
+  align-items: center;
 }
 
 .open-icon {
