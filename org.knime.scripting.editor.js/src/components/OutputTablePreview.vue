@@ -135,7 +135,7 @@ onMounted(async () => {
     </div>
   </div>
   <div v-else class="output-table-preview pre-evaluation-sign">
-    To see the preview, please evaluate the expression using the button above.
+    To see the preview, evaluate the expression using the button above.
   </div>
 </template>
 
