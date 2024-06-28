@@ -31,6 +31,7 @@ export const mainEditorStore = shallowRef({
         },
       );
     }),
+    updateOptions: vi.fn(() => {}),
   }),
 });
 

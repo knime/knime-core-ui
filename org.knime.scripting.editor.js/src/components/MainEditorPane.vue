@@ -18,17 +18,11 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 // Main editor
-const editorContainer = ref<HTMLDivElement>();
+const editorRef = ref<HTMLDivElement>();
 const codeEditorState = useMainCodeEditor({
-  container: editorContainer,
-  language: props.language,
+  container: editorRef,
   fileName: props.fileName,
-});
-
-onKeyStroke("Escape", () => {
-  if (codeEditorState.editor.value?.hasTextFocus()) {
-    (document.activeElement as HTMLElement)?.blur();
-  }
+  language: props.language,
 });
 
 onMounted(() => {
@@ -36,7 +30,19 @@ onMounted(() => {
     .getInitialSettings()
     .then((settings) => {
       codeEditorState.setInitialText(settings.script);
+      codeEditorState.editor.value?.updateOptions({
+        readOnly: typeof settings.scriptUsedFlowVariable === "string",
+        readOnlyMessage: {
+          value: `Read-Only-Mode: The script is set by the flow variable '${settings.scriptUsedFlowVariable}'.`,
+        },
+      });
     });
+});
+
+onKeyStroke("Escape", () => {
+  if (codeEditorState.editor.value?.hasTextFocus()) {
+    (document.activeElement as HTMLElement)?.blur();
+  }
 });
 
 // register undo changes from outside the editor
@@ -51,13 +57,13 @@ onKeyStroke("z", (e) => {
 });
 
 getScriptingService().registerSettingsGetterForApply(() =>
-  props.toSettings({ script: codeEditorState.text.value }),
+  props.toSettings({ script: codeEditorState.text.value ?? "" }),
 );
 </script>
 
 <template>
   <div class="editor-container">
-    <div ref="editorContainer" class="code-editor" @drop="dropEventHandler" />
+    <div ref="editorRef" class="code-editor" @drop="dropEventHandler" />
   </div>
 </template>
 
