@@ -116,12 +116,29 @@ public class ScriptingNodeSettingsService implements NodeSettingsService {
      * and write them to the settings objects.
      *
      * @param settingsJson a JSON object to read from. This object was provided by the dialog.
-     * @param settings the settings to write to. Forwarded from {@link NodeSettingsService#toNodeSettings(String, Map)}.
+     * @param settings the settings to write to. Forwarded from {@link NodeSettingsService#toNodeSettings}.
      *
      */
     protected void addAdditionalSettingsToNodeSettings(final ObjectNode settingsJson,
-        final Map<SettingsType, NodeAndVariableSettingsWO> settings) {
+        final Map<SettingsType, ? extends NodeSettingsWO> settings) {
         // Nothing to do in the default implementation
+    }
+
+    /**
+     * Override this method to set specific variable settings. The default implementation copies the variable settings
+     * from the previous settings. Make sure to call {@link #copyScriptVariableSetting} to copy the used and exposed
+     * variables for the script configuration.
+     *
+     * @param settingsJson a JSON object to read from. This object was provided by the dialog.
+     * @param previousSettings the previous settings
+     * @param settings the settings to write to. Forwarded from {@link NodeSettingsService#toNodeSettings}.
+     */
+    protected void setVariableSettings(final ObjectNode settingsJson,
+        final Map<SettingsType, ? extends VariableSettingsRO> previousSettings,
+        final Map<SettingsType, ? extends VariableSettingsWO> settings) {
+        for (var settingsType : settings.keySet()) {
+            copyVariableSettings(previousSettings.get(settingsType), settings.get(settingsType));
+        }
     }
 
     @Override
@@ -158,27 +175,39 @@ public class ScriptingNodeSettingsService implements NodeSettingsService {
             var script = settingsJson.get(SCRIPT_JSON_KEY).asText();
             settings.get(m_scriptSettingsType).addString(SCRIPT_CFG_KEY, script);
             addAdditionalSettingsToNodeSettings(settingsJson, settings);
-            for (var settingsType : settings.keySet()) {
-                copyVariableSettings(previousSettings.get(settingsType), settings.get(settingsType));
-            }
+            setVariableSettings(settingsJson, previousSettings, settings);
         } catch (JsonProcessingException e) {
             // Should not happen because the frontend gives a correct JSON settings
             throw new IllegalStateException(e);
         }
     }
 
+    /**
+     * Utility to copy the variable setting for the script configuration to from the previous settings to the new
+     * settings.
+     *
+     * @param previousSettings the previous settings
+     * @param settings the new settings
+     */
+    protected void copyScriptVariableSetting(final Map<SettingsType, ? extends VariableSettingsRO> previousSettings,
+        final Map<SettingsType, ? extends VariableSettingsWO> settings) {
+        try {
+            var from = previousSettings.get(m_scriptSettingsType);
+            if (from.isVariableSetting(SCRIPT_JSON_KEY)) {
+                copyVariableSetting(from, settings.get(m_scriptSettingsType), SCRIPT_CFG_KEY);
+            }
+        } catch (InvalidSettingsException e) {
+            // should never happen
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /** Utility method to copy all variable settings from a the previous settings to the new settings */
     private static void copyVariableSettings(final VariableSettingsRO from, final VariableSettingsWO to) {
         try {
             for (String key : from.getVariableSettingsIterable()) {
                 if (from.isVariableSetting(key)) {
-                    var usedVariable = from.getUsedVariable(key);
-                    if (usedVariable != null) {
-                        to.addUsedVariable(key, usedVariable);
-                    }
-                    var exposedVariable = from.getExposedVariable(key);
-                    if (exposedVariable != null) {
-                        to.addExposedVariable(key, exposedVariable);
-                    }
+                    copyVariableSetting(from, to, key);
                 } else {
                     copyVariableSettings(from.getVariableSettings(key), to.getOrCreateVariableSettings(key));
                 }
@@ -186,6 +215,19 @@ public class ScriptingNodeSettingsService implements NodeSettingsService {
         } catch (InvalidSettingsException e) {
             // should never happen
             throw new IllegalStateException(e);
+        }
+    }
+
+    /** Copies a single variable setting from the previous settings to the new settings */
+    private static void copyVariableSetting(final VariableSettingsRO from, final VariableSettingsWO to,
+        final String key) throws InvalidSettingsException {
+        var usedVariable = from.getUsedVariable(key);
+        if (usedVariable != null) {
+            to.addUsedVariable(key, usedVariable);
+        }
+        var exposedVariable = from.getExposedVariable(key);
+        if (exposedVariable != null) {
+            to.addExposedVariable(key, exposedVariable);
         }
     }
 }
