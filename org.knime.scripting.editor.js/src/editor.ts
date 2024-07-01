@@ -10,6 +10,11 @@ import {
   type Ref,
 } from "vue";
 
+// Force monaco to remeasure fonts after they are loaded
+document.fonts?.ready.then(() => {
+  monaco.editor.remeasureFonts();
+});
+
 // ====== TYPES ======
 
 type ContainerParams = {
