@@ -49,12 +49,14 @@
 package org.knime.scripting.editor;
 
 import java.util.Collection;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.node.workflow.VariableType;
 
 /**
  * An item that will be displayed in the input/output panel of the script editor
@@ -142,11 +144,12 @@ public record InputOutputModel(String name, //
         final String requiredImport //
     ) {
         return createFromTableSpec(name, spec, codeAlias, subItemCodeAliasTemplate, multipleSelection, requiredImport,
-            type -> true);
+            type -> type.getName());
     }
 
     /**
-     * Helper method to convert a table spec into a {@link InputOutputModel}
+     * Helper method to convert a table spec into a {@link InputOutputModel} but with a custom mapper for getting the
+     * types from the type name. If the mapper returns null for a type, the column will be ignored.
      *
      * @param name
      * @param spec
@@ -154,7 +157,7 @@ public record InputOutputModel(String name, //
      * @param subItemCodeAliasTemplate
      * @param requiredImport
      * @param multipleSelection
-     * @param dataTypeFilter predicate to filter out columns of unsupported types
+     * @param typeNameMapper
      * @return the {@link InputOutputModel} with the subItems from the table columns
      */
     public static InputOutputModel createFromTableSpec( //
@@ -164,11 +167,13 @@ public record InputOutputModel(String name, //
         final String subItemCodeAliasTemplate, //
         final boolean multipleSelection, //
         final String requiredImport, //
-        final Predicate<DataType> dataTypeFilter //
+        final Function<DataType, String> typeNameMapper //
     ) {
+        Predicate<DataType> typeFilter = type -> typeNameMapper.apply(type) != null;
+
         final var subItems = StreamSupport.stream(spec.spliterator(), false) //
-            .filter(colSpec -> dataTypeFilter.test(colSpec.getType())) //
-            .map(colSpec -> new InputOutputModelSubItem(colSpec.getName(), colSpec.getType().getName())) //
+            .filter(colSpec -> typeFilter.test(colSpec.getType())) //
+            .map(colSpec -> new InputOutputModelSubItem(colSpec.getName(), typeNameMapper.apply(colSpec.getType()))) //
             .toArray(InputOutputModelSubItem[]::new);
         return new InputOutputModel(name, codeAlias, subItemCodeAliasTemplate, requiredImport, multipleSelection,
             subItems, TABLE_PORT_TYPE_NAME, TABLE_PORT_ICON_COLOR);
@@ -213,11 +218,38 @@ public record InputOutputModel(String name, //
         final String requiredImport, //
         final boolean multiSelection //
     ) {
+        return createFromFlowVariables(flowVariables, codeAlias, subItemCodeAliasTemplate, requiredImport,
+            multiSelection, type -> type.toString());
+    }
+
+    /**
+     * Helper method to create a flow variables {@link InputOutputModel}, but with a custom mapper for getting the types
+     * from the type name.
+     *
+     * @param flowVariables
+     * @param codeAlias
+     * @param subItemCodeAliasTemplate
+     * @param requiredImport
+     * @param multiSelection
+     * @param typeNameMapper
+     *
+     * @return the {@link InputOutputModel} with subItems from the collection of flow variables
+     */
+    public static InputOutputModel createFromFlowVariables( //
+        final Collection<FlowVariable> flowVariables, //
+        final String codeAlias, //
+        final String subItemCodeAliasTemplate, //
+        final String requiredImport, //
+        final boolean multiSelection, //
+        final Function<VariableType<?>, String> typeNameMapper //
+    ) {
+
         var subItems = flowVariables.stream() //
-            .map(f -> new InputOutputModelSubItem(f.getName(), f.getVariableType().toString())) //
+            .map(f -> new InputOutputModelSubItem(f.getName(), typeNameMapper.apply(f.getVariableType()))) //
             .toArray(InputOutputModelSubItem[]::new);
 
         return new InputOutputModel("Flow variables", codeAlias, subItemCodeAliasTemplate, requiredImport,
             multiSelection, subItems, FLOW_VAR_PORT_TYPE_NAME, FLOW_VAR_PORT_ICON_COLOR);
     }
+
 }
