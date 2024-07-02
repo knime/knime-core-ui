@@ -126,7 +126,10 @@ const EDITOR_OPTIONS: monaco.editor.IEditorConstructionOptions = {
   },
   scrollBeyondLastLine: true,
   fixedOverflowWidgets: true,
-  suggest: { showWords: false }, // Disable word suggestions - better suggestions are provided by the language server
+  suggest: {
+    showWords: false, // Disable word suggestions - better suggestions are provided by the language server
+    snippetsPreventQuickSuggestions: false,
+  },
   fontFamily: '"Roboto Mono", serif',
   fontWeight: "400",
   lineNumbersMinChars: 3,
