@@ -6,6 +6,10 @@ import OutputConsole, {
 import ScriptingEditor from "@/components/ScriptingEditor.vue";
 import { type SettingsMenuItem } from "@/components/SettingsPage.vue";
 import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
+import {
+  MIN_WIDTH_FOR_DISPLAYING_PANES,
+  MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
+} from "@/components/utils/paneSizes";
 
 import type {
   UseCodeEditorParams,
@@ -32,6 +36,8 @@ export {
   ScriptingEditor,
   useShouldFocusBePainted,
   setActiveEditorStoreForAi,
+  MIN_WIDTH_FOR_DISPLAYING_PANES,
+  MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
 };
 export type {
   ConsoleHandler,
