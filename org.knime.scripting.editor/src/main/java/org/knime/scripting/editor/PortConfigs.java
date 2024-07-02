@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import org.knime.core.node.port.PortType;
+import org.knime.core.node.workflow.ConnectionContainer.ConnectionType;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContainerState;
 import org.knime.core.node.workflow.NodeID;
@@ -88,7 +89,7 @@ class PortConfigs {
     private static PortConfig createInputPortConfig(final int portIdx, final NodeContainer nodeContainer) {
         final var nodeId = nodeContainer.getID();
         final var connection = nodeContainer.getParent().getIncomingConnectionFor(nodeId, portIdx);
-        if (connection == null) {
+        if (connection == null || connection.getType() !=  ConnectionType.STD) {
             return new PortConfig(null, 0, Collections.emptyList(), "null");
         }
 
