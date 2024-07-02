@@ -1,7 +1,7 @@
 {
   "name": "@knime/scripting-editor",
   "type": "module",
-  "version": "0.0.70",
+  "version": "0.0.71",
   "description": "Shared Scripting Editor components for KNIME",
   "author": "KNIME AG, Zurich, Switzerland",
   "license": "See the file license.txt",
