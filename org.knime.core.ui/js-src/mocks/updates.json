@@ -40,6 +40,17 @@
             "updatedByUpdatedByA": {
               "format": "int32",
               "type": "integer"
+            },
+            "updateUpdatedByB": {
+              "type": "object"
+            },
+            "updatedByB": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "updatedByUpdatedByB": {
+              "format": "int32",
+              "type": "integer"
             }
           }
         }
@@ -75,6 +86,23 @@
             {
               "type": "Control",
               "scope": "#/properties/view/properties/updatedByUpdatedByA"
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/view/properties/updateUpdatedByB",
+              "options": {
+                "format": "simpleButton",
+                "triggerId": "Trigger_Button",
+                "icon": "reload"
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/view/properties/updatedByB"
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/view/properties/updatedByUpdatedByB"
             }
           ]
         }
@@ -121,6 +149,29 @@
             {
               "scopes": ["#/properties/view/properties/updatedByA"],
               "id": "UpdatedByA"
+            }
+          ]
+        },
+        {
+          "trigger": {
+            "id": "Trigger_Button"
+          },
+          "dependencies": [
+            {
+              "scopes": ["#/properties/view/properties/b"],
+              "id": "B"
+            }
+          ]
+        },
+        {
+          "trigger": {
+            "scopes": ["#/properties/view/properties/updatedByB"],
+            "id": "Trigger_Updated_By_B"
+          },
+          "dependencies": [
+            {
+              "scopes": ["#/properties/view/properties/updatedByB"],
+              "id": "UpdatedByB"
             }
           ]
         }
