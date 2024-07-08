@@ -16,7 +16,8 @@ vi.mock("../utils/dragGhost", () => ({
   createDragGhost: vi.fn(),
   removeDragGhost: vi.fn(),
 }));
-vi.mock("webapps-common/ui/components/FileExplorer/useMultiSelection", () => {
+vi.mock("@knime/components", async () => {
+  const actual = await vi.importActual("@knime/components");
   const selectedIndexes = ref([0]);
   const multiSelection = {
     isSelected: vi.fn((idx) => selectedIndexes.value.includes(idx)),
@@ -25,6 +26,7 @@ vi.mock("webapps-common/ui/components/FileExplorer/useMultiSelection", () => {
     handleSelectionClick: vi.fn(),
   };
   return {
+    ...actual,
     useMultiSelection: vi.fn(() => multiSelection),
   };
 });
