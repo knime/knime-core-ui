@@ -602,25 +602,25 @@ const paintFocus = useShouldFocusBePainted();
 
 .left-facing-splitter {
   & :deep(> .splitpanes__splitter) {
-    background-image: url("../../webapps-common/ui/assets/img/icons/arrow-prev.svg");
+    background-image: url("@knime/styles/img/icons/arrow-prev.svg");
   }
 }
 
 .right-facing-splitter {
   & :deep(> .splitpanes__splitter) {
-    background-image: url("../../webapps-common/ui/assets/img/icons/arrow-next.svg");
+    background-image: url("@knime/styles/img/icons/arrow-next.svg");
   }
 }
 
 .down-facing-splitter {
   & :deep(> .splitpanes__splitter) {
-    background-image: url("../../webapps-common/ui/assets/img/icons/arrow-dropdown.svg");
+    background-image: url("@knime/styles/img/icons/arrow-dropdown.svg");
   }
 }
 
 .up-facing-splitter {
   & :deep(> .splitpanes__splitter) {
-    background-image: url("../../webapps-common/ui/assets/img/icons/arrow-dropdown.svg");
+    background-image: url("@knime/styles/img/icons/arrow-dropdown.svg");
     transform: scaleY(-1);
   }
 }
