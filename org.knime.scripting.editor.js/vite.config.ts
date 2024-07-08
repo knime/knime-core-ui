@@ -47,7 +47,7 @@ export default defineConfig({
   },
   test: {
     include: ["src/**/__tests__/**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-    exclude: ["**/node_modules/**", "**/dist/**", "webapps-common/**"],
+    exclude: ["**/node_modules/**", "**/dist/**"],
     environment: "jsdom",
     reporters: ["default"],
     setupFiles: [
@@ -65,7 +65,6 @@ export default defineConfig({
       exclude: [
         "coverage/**",
         "dist/**",
-        "webapps-common/**",
         "lib/**",
         "**/*.d.ts",
         "**/__tests__/**",
