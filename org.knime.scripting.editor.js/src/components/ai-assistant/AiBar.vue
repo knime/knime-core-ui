@@ -8,12 +8,10 @@ import {
   ref,
   type PropType,
 } from "vue";
-import AbortIcon from "webapps-common/ui/assets/img/icons/cancel-execution.svg";
-import LinkIcon from "webapps-common/ui/assets/img/icons/link.svg";
-import SendIcon from "webapps-common/ui/assets/img/icons/paper-flier.svg";
-import Button from "webapps-common/ui/components/Button.vue";
-import FunctionButton from "webapps-common/ui/components/FunctionButton.vue";
-import LoadingIcon from "webapps-common/ui/components/LoadingIcon.vue";
+import AbortIcon from "@knime/styles/img/icons/cancel-execution.svg";
+import LinkIcon from "@knime/styles/img/icons/link.svg";
+import SendIcon from "@knime/styles/img/icons/paper-flier.svg";
+import { Button, FunctionButton, LoadingIcon } from "@knime/components";
 
 import { getScriptingService } from "@/scripting-service";
 import {

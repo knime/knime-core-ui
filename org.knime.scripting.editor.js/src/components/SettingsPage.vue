@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { MenuItem } from "webapps-common/ui/components/MenuItems.vue";
+import type { MenuItem } from "@knime/components";
 
 export interface SettingsMenuItem extends MenuItem {
   showSettingsPage?: boolean;
@@ -7,8 +7,8 @@ export interface SettingsMenuItem extends MenuItem {
 </script>
 
 <script setup lang="ts">
-import Button from "webapps-common/ui/components/Button.vue";
-import ArrowLeft from "webapps-common/ui/assets/img/icons/arrow-left.svg";
+import { Button } from "@knime/components";
+import ArrowLeft from "@knime/styles/img/icons/arrow-left.svg";
 
 const emit = defineEmits<{
   (e: "close-settings-page"): void; // NOSONAR

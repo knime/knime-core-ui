@@ -2,9 +2,8 @@
 import { defineComponent } from "vue";
 import type { PropType } from "vue";
 
-import MenuIcon from "webapps-common/ui/assets/img/icons/menu-options.svg";
-import type { MenuItem } from "webapps-common/ui/components/MenuItems.vue";
-import SubMenu from "webapps-common/ui/components/SubMenu.vue";
+import MenuIcon from "@knime/styles/img/icons/menu-options.svg";
+import { SubMenu, type MenuItem } from "@knime/components";
 
 export default defineComponent({
   name: "HeaderBar",

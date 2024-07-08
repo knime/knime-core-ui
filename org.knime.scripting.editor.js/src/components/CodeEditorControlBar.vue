@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, type PropType } from "vue";
-import Button from "webapps-common/ui/components/Button.vue";
-import AiCode from "webapps-common/ui/assets/img/icons/ai-general.svg";
+import { Button } from "@knime/components";
+import AiCode from "@knime/styles/img/icons/ai-general.svg";
 import AiBar from "./ai-assistant/AiBar.vue";
 import { getScriptingService } from "@/scripting-service";
 import { onClickOutside } from "@vueuse/core";

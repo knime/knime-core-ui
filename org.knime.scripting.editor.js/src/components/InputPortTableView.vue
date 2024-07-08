@@ -3,7 +3,7 @@ import {
   type ExtensionConfig,
   UIExtension,
   type UIExtensionAPILayer,
-} from "webapps-common/ui/uiExtensions";
+} from "@knime/ui-extensions-renderer";
 import { onMounted, onUnmounted, ref, watchEffect } from "vue";
 import {
   AlertingService,

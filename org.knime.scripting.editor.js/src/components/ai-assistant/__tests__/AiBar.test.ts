@@ -1,6 +1,6 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import LoadingIcon from "webapps-common/ui/components/LoadingIcon.vue";
+import { LoadingIcon } from "@knime/components";
 
 import { getScriptingService } from "@/scripting-service";
 import {
