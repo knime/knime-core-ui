@@ -11,7 +11,7 @@ import {
   ResourceTypes,
   UIExtension,
   type UIExtensionAPILayer,
-} from "webapps-common/ui/uiExtensions";
+} from "@knime/ui-extensions-renderer";
 import { getScriptingService } from "@/scripting-service";
 
 const baseService = ref<UIExtensionService<UIExtensionAPILayer> | null>(null);

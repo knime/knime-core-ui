@@ -3,7 +3,7 @@ import OutputConsole, {
 } from "@/components/OutputConsole.vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import FunctionButton from "webapps-common/ui/components/FunctionButton.vue";
+import { FunctionButton } from "@knime/components";
 import { Terminal } from "xterm";
 
 vi.mock("xterm");

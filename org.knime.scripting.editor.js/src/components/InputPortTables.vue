@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import type { PortViewConfig } from "@/scripting-service";
-import ValueSwitch from "webapps-common/ui/components/forms/ValueSwitch.vue";
+import { ValueSwitch } from "@knime/components";
 import InputPortTableView from "@/components/InputPortTableView.vue";
 
 interface Props {

@@ -4,7 +4,7 @@ import { useElementBounding } from "@vueuse/core";
 import { computed, onMounted, reactive, type Ref, ref, useSlots } from "vue";
 import { Pane, Splitpanes } from "splitpanes";
 import "splitpanes/dist/splitpanes.css";
-import type { MenuItem } from "webapps-common/ui/components/MenuItems.vue";
+import type { MenuItem } from "@knime/components";
 import {
   getScriptingService,
   initConsoleEventHandler,

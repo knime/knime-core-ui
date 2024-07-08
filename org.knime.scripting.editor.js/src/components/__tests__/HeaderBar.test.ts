@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
 import HeaderBar from "../HeaderBar.vue";
-import SubMenu from "webapps-common/ui/components/SubMenu.vue";
-import MenuIcon from "webapps-common/ui/assets/img/icons/menu-options.svg";
+import { SubMenu } from "@knime/components";
+import MenuIcon from "@knime/styles/img/icons/menu-options.svg";
 
 describe("HeaderBar", () => {
   const defaultProps = {

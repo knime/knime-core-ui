@@ -12,7 +12,7 @@ import {
   type InitializeResult,
   type PublishDiagnosticsParams,
 } from "vscode-languageserver-protocol";
-import sleep from "webapps-common/util/sleep";
+import { sleep } from "@knime/utils";
 
 import { MonacoLSPConnection } from "../connection";
 

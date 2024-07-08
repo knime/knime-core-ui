@@ -8,7 +8,7 @@ import { mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref, nextTick } from "vue";
 import AiSuggestion from "../AiSuggestion.vue";
-import Button from "webapps-common/ui/components/Button.vue";
+import { Button } from "@knime/components";
 
 vi.mock("@/editor");
 

@@ -3,8 +3,7 @@ import { mount } from "@vue/test-utils";
 import Handlebars from "handlebars";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick, ref } from "vue";
-import Collapser from "webapps-common/ui/components/Collapser.vue";
-import { useMultiSelection } from "webapps-common/ui/components/FileExplorer/useMultiSelection";
+import { Collapser, useMultiSelection } from "@knime/components";
 import InputOutputItem, {
   INPUT_OUTPUT_DRAG_EVENT_ID,
   type InputOutputModel,

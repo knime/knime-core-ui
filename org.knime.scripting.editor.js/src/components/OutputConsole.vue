@@ -2,9 +2,10 @@
 import { useDebounceFn, useResizeObserver } from "@vueuse/core";
 import type { XOR } from "ts-xor";
 import { onMounted, onUnmounted, ref } from "vue";
-import TrashIcon from "webapps-common/ui/assets/img/icons/trash.svg";
-import * as knimeColors from "webapps-common/ui/colors/knimeColors.mjs";
-import FunctionButton from "webapps-common/ui/components/FunctionButton.vue";
+import TrashIcon from "@knime/styles/img/icons/trash.svg";
+// @ts-ignore
+import * as knimeColors from "@knime/styles/colors/knimeColors.mjs";
+import { FunctionButton } from "@knime/components";
 import type { ITerminalInitOnlyOptions, ITerminalOptions, ITheme } from "xterm";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";

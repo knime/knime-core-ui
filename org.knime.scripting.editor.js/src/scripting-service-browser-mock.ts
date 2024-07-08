@@ -1,4 +1,4 @@
-import sleep from "webapps-common/util/sleep";
+import { sleep } from "@knime/utils";
 import type { InputOutputModel } from "./components/InputOutputItem.vue";
 import type { NodeSettings, ScriptingServiceType } from "./scripting-service";
 

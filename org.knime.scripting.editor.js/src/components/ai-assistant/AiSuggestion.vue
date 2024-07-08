@@ -2,8 +2,8 @@
 import editor from "@/editor";
 import { activeEditorStore, usePromptResponseStore } from "@/store/ai-bar";
 import { ref, watch } from "vue";
-import ExportIcon from "webapps-common/ui/assets/img/icons/export.svg";
-import Button from "webapps-common/ui/components/Button.vue";
+import ExportIcon from "@knime/styles/img/icons/export.svg";
+import { Button } from "@knime/components";
 
 const emit =
   defineEmits<(e: "accept-suggestion", acceptedCode: string) => void>();

@@ -38,11 +38,9 @@ export const INPUT_OUTPUT_DRAG_EVENT_ID = "input_output_drag_event";
 import { useInputOutputSelectionStore } from "@/store/io-selection";
 import Handlebars from "handlebars";
 import { ref, watch } from "vue";
-import Collapser from "webapps-common/ui/components/Collapser.vue";
-import { useMultiSelection } from "webapps-common/ui/components/FileExplorer/useMultiSelection";
+import { Collapser, PortIcon, useMultiSelection } from "@knime/components";
 import { createDragGhost, removeDragGhost } from "./utils/dragGhost";
-import PortIcon from "webapps-common/ui/components/node/PortIcon.vue";
-import EyeIcon from "webapps-common/ui/assets/img/icons/eye.svg";
+import EyeIcon from "@knime/styles/img/icons/eye.svg";
 
 const INITIALLY_EXPANDED_MAX_SUBITEMS = 15;
 
