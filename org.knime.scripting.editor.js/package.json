@@ -24,7 +24,11 @@
     "install-husky": "cd .. && husky ./org.knime.scripting.editor.js/.husky"
   },
   "dependencies": {
+    "@knime/components": "^1.0.5",
+    "@knime/styles": "^1.0.0",
     "@knime/ui-extension-service": "0.33.0",
+    "@knime/ui-extensions-renderer": "^1.0.5",
+    "@knime/utils": "^1.0.4",
     "@vueuse/core": "10.09.0",
     "handlebars": "4.7.8",
     "splitpanes": "3.1.5",
