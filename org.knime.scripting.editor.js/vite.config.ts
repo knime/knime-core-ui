@@ -43,6 +43,11 @@ export default defineConfig({
     },
     rollupOptions: {
       external: ["vue", "monaco-editor"],
+      treeshake: {
+        // NB: This prevents bundling dependencies of dependencies that are not really used but imported
+        // we never rely on side effects of dependencies, so this is safe
+        moduleSideEffects: false,
+      },
     },
   },
   test: {
