@@ -1,12 +1,16 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
-  "include": ["src/**/*", "lib/**/*"],
+  "include": ["src/**/*", "src/**/*.vue", "lib/**/*"],
   "exclude": ["**/__tests__/*", "**/__mocks__/*"],
   "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
-    "allowJs": true
+    "allowJs": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noImplicitAny": false // TODO this is needed for @knime/utils and @knime/components but it should be removed
   }
 }
