@@ -21,7 +21,8 @@
     "ci:lint:css": "npm run lint:css -- -f json -o test-results/stylelint.json",
     "audit": "npm audit --omit dev",
     "coverage": "vitest run --coverage",
-    "install-husky": "cd .. && husky ./org.knime.scripting.editor.js/.husky"
+    "install-husky": "cd .. && husky ./org.knime.scripting.editor.js/.husky",
+    "postinstall": "license-check -c"
   },
   "dependencies": {
     "@knime/components": "^1.0.5",
@@ -39,6 +40,7 @@
   },
   "devDependencies": {
     "@knime/eslint-config": "8.1.0",
+    "@knime/licenses": "^1.0.3",
     "@rushstack/eslint-patch": "1.10.3",
     "@tsconfig/node20": "20.1.4",
     "@types/jsdom": "21.1.7",
