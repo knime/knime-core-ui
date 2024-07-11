@@ -137,7 +137,7 @@ public class ScriptingNodeSettingsService implements NodeSettingsService {
         final Map<SettingsType, ? extends VariableSettingsRO> previousSettings,
         final Map<SettingsType, ? extends VariableSettingsWO> settings) {
         for (var settingsType : settings.keySet()) {
-            copyVariableSettings(previousSettings.get(settingsType), settings.get(settingsType));
+            SettingsServiceUtils.copyVariableSettings(previousSettings.get(settingsType), settings.get(settingsType));
         }
     }
 
@@ -194,40 +194,11 @@ public class ScriptingNodeSettingsService implements NodeSettingsService {
         try {
             var from = previousSettings.get(m_scriptSettingsType);
             if (from.isVariableSetting(SCRIPT_JSON_KEY)) {
-                copyVariableSetting(from, settings.get(m_scriptSettingsType), SCRIPT_CFG_KEY);
+                SettingsServiceUtils.copyVariableSetting(from, settings.get(m_scriptSettingsType), SCRIPT_CFG_KEY);
             }
         } catch (InvalidSettingsException e) {
             // should never happen
             throw new IllegalStateException(e);
-        }
-    }
-
-    /** Utility method to copy all variable settings from a the previous settings to the new settings */
-    private static void copyVariableSettings(final VariableSettingsRO from, final VariableSettingsWO to) {
-        try {
-            for (String key : from.getVariableSettingsIterable()) {
-                if (from.isVariableSetting(key)) {
-                    copyVariableSetting(from, to, key);
-                } else {
-                    copyVariableSettings(from.getVariableSettings(key), to.getOrCreateVariableSettings(key));
-                }
-            }
-        } catch (InvalidSettingsException e) {
-            // should never happen
-            throw new IllegalStateException(e);
-        }
-    }
-
-    /** Copies a single variable setting from the previous settings to the new settings */
-    private static void copyVariableSetting(final VariableSettingsRO from, final VariableSettingsWO to,
-        final String key) throws InvalidSettingsException {
-        var usedVariable = from.getUsedVariable(key);
-        if (usedVariable != null) {
-            to.addUsedVariable(key, usedVariable);
-        }
-        var exposedVariable = from.getExposedVariable(key);
-        if (exposedVariable != null) {
-            to.addExposedVariable(key, exposedVariable);
         }
     }
 }
