@@ -120,7 +120,7 @@ public final class NodeDialogManager {
      * @return a node dialog instance
      * @throws IllegalArgumentException if the passed node does not provide a node dialog
      */
-    NodeDialogAdapter getNodeDialog(final NodeContainer nc) {
+    public NodeDialogAdapter getNodeDialog(final NodeContainer nc) {
         if (!hasNodeDialog(nc)) {
             throw new IllegalArgumentException("The node " + nc.getNameWithID() + " doesn't provide a node dialog");
         }
