@@ -10,7 +10,7 @@ import {
   MIN_WIDTH_FOR_DISPLAYING_PANES,
   MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
 } from "@/components/utils/paneSizes";
-
+import type { InputOutputModel } from "@/components/InputOutputItem.vue";
 import type {
   UseCodeEditorParams,
   UseCodeEditorReturn,
@@ -43,6 +43,7 @@ export type {
   ConsoleHandler,
   ConsoleText,
   NodeSettings,
+  InputOutputModel,
   ScriptingServiceType,
   SettingsMenuItem,
   UseCodeEditorParams,
