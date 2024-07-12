@@ -8,9 +8,6 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "allowJs": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "noImplicitAny": false // TODO this is needed for @knime/utils and @knime/components but it should be removed
+    "strict": true
   }
 }
