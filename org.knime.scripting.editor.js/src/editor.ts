@@ -213,6 +213,10 @@ const createInsertColumnReferenceFunction = (
   editor: Ref<monaco.editor.IStandaloneCodeEditor | undefined>,
 ) => {
   return (textToInsert: string, requiredImport?: string) => {
+    if (editor.value?.getOption(monaco.editor.EditorOption.readOnly)) {
+      return;
+    }
+
     // Start with an edit that inserts the text at the current cursor position
     // replacing the current selection if there is one
     const requiredEdits = [] as monaco.editor.IIdentifiedSingleEditOperation[];
@@ -244,6 +248,10 @@ const createInsertTextFunction = (
   editor: Ref<monaco.editor.IStandaloneCodeEditor | undefined>,
 ) => {
   return (textToInsert: string) => {
+    if (editor.value?.getOption(monaco.editor.EditorOption.readOnly)) {
+      return;
+    }
+
     // Inserts the text at the current cursor position
     // replacing the current selection if there is one
     const requiredEdits = [
@@ -265,6 +273,10 @@ const createInsertFunctionReferenceFunction = (
   editor: Ref<monaco.editor.IStandaloneCodeEditor | undefined>,
 ) => {
   return (functionName: string, args: string[] | null) => {
+    if (editor.value?.getOption(monaco.editor.EditorOption.readOnly)) {
+      return;
+    }
+
     const snippetController = editor.value?.getContribution(
       "snippetController2",
     ) as any; // The Monaco API doesn't expose the type for us :(

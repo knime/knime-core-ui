@@ -5,6 +5,7 @@ import { onKeyStroke } from "@vueuse/core";
 import { getScriptingService, type NodeSettings } from "@/scripting-service";
 import { insertionEventHelper } from "@/components/utils/insertionEventHelper";
 import { COLUMN_INSERTION_EVENT } from "@/components/InputOutputItem.vue";
+import { useReadonlyStore } from "@/store/readOnly";
 
 interface Props {
   showControlBar: boolean;
@@ -41,11 +42,14 @@ onMounted(() => {
     .getInitialSettings()
     .then((settings) => {
       codeEditorState.setInitialText(settings.script);
+      useReadonlyStore().value =
+        typeof settings.scriptUsedFlowVariable === "string";
       codeEditorState.editor.value?.updateOptions({
-        readOnly: typeof settings.scriptUsedFlowVariable === "string",
+        readOnly: useReadonlyStore().value,
         readOnlyMessage: {
           value: `Read-Only-Mode: The script is set by the flow variable '${settings.scriptUsedFlowVariable}'.`,
         },
+        renderValidationDecorations: "on",
       });
     });
 });
@@ -74,7 +78,15 @@ getScriptingService().registerSettingsGetterForApply(() =>
 
 <template>
   <div class="editor-container">
-    <div ref="editorRef" class="code-editor" @drop="dropEventHandler" />
+    <div
+      ref="editorRef"
+      class="code-editor"
+      @drop="
+        useReadonlyStore().value
+          ? $event.preventDefault()
+          : dropEventHandler($event)
+      "
+    />
   </div>
 </template>
 

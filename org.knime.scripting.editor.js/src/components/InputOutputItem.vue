@@ -43,12 +43,15 @@ import { Collapser, PortIcon, useMultiSelection } from "@knime/components";
 import { createDragGhost, removeDragGhost } from "./utils/dragGhost";
 import { insertionEventHelper } from "@/components/utils/insertionEventHelper";
 import EyeIcon from "@knime/styles/img/icons/eye.svg";
+import { useReadonlyStore } from "@/store/readOnly";
 
 const INITIALLY_EXPANDED_MAX_SUBITEMS = 15;
 
-const props = defineProps<{
+type PropType = {
   inputOutputItem: InputOutputModel;
-}>();
+};
+
+const props = defineProps<PropType>();
 
 const multiSelection = useMultiSelection({
   singleSelectionOnly: ref(!props.inputOutputItem.multiSelection),
@@ -71,7 +74,7 @@ const inputOutputSelectionStore = useInputOutputSelectionStore();
 // Reset selection if another item is selected
 watch(
   () => inputOutputSelectionStore.selectedItem,
-  (newItem, oldItem) => {
+  (newItem) => {
     if (newItem !== props.inputOutputItem) {
       multiSelection.resetSelection();
     }
@@ -199,6 +202,8 @@ const onHeaderDragEnd = () => {
   isDraggingHeader.value = false;
   removeDragGhost();
 };
+
+const readOnly = useReadonlyStore();
 </script>
 
 <template>
@@ -230,8 +235,9 @@ const onHeaderDragEnd = () => {
           :class="{
             'code-alias-dragging': isDraggingHeader,
             'code-alias-not-dragging': !isDraggingHeader,
+            'read-only': readOnly,
           }"
-          :draggable="true"
+          :draggable="!readOnly"
           @mousedown="(event) => handleClick(event)"
           @dblclick="handleHeaderDoubleClick($event)"
           @dragstart="
@@ -253,8 +259,11 @@ const onHeaderDragEnd = () => {
           selected:
             props.inputOutputItem.subItemCodeAliasTemplate &&
             multiSelection.isSelected(index),
+          'read-only': readOnly,
         }"
-        :draggable="Boolean(props.inputOutputItem.subItemCodeAliasTemplate)"
+        :draggable="
+          Boolean(inputOutputItem.subItemCodeAliasTemplate && !readOnly)
+        "
         @dragstart="(event) => onSubItemDragStart(event, index)"
         @dragend="onSubItemDragEnd"
         @click="(event) => handleClick(event, index)"
@@ -284,8 +293,9 @@ const onHeaderDragEnd = () => {
       :class="{
         'code-alias-dragging': isDraggingHeader,
         'code-alias-not-dragging': !isDraggingHeader,
+        'read-only': readOnly,
       }"
-      :draggable="true"
+      :draggable="!readOnly"
       @mousedown="(event) => handleClick(event)"
       @dragstart="
         (event) => onHeaderDragStart(event, inputOutputItem.codeAlias!)
@@ -339,6 +349,11 @@ const onHeaderDragEnd = () => {
 
 .subitem-type {
   font-style: italic;
+}
+
+.read-only {
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 .title {
