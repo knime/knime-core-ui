@@ -21,6 +21,7 @@ import type {
   UseDiffEditorReturn,
 } from "@/editor";
 import editor from "@/editor";
+import { useReadonlyStore } from "@/store/readOnly";
 
 import { consoleHandler } from "@/consoleHandler";
 import {
@@ -45,6 +46,7 @@ export {
   ScriptingEditor,
   useShouldFocusBePainted,
   setActiveEditorStoreForAi,
+  useReadonlyStore,
   MIN_WIDTH_FOR_DISPLAYING_PANES,
   MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
   COLUMN_INSERTION_EVENT,
