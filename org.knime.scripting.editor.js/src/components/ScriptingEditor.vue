@@ -400,6 +400,8 @@ const paintFocus = useShouldFocusBePainted();
 </template>
 
 <style lang="postcss" scoped>
+@import url("@/components/splitterstyles.css");
+
 .layout {
   --description-button-size: 15px;
 
@@ -453,122 +455,6 @@ const paintFocus = useShouldFocusBePainted();
   flex-grow: 1;
 }
 
-/* NB: we disable the rule because of classes defined by the splitpanes package */
-/* stylelint-disable selector-class-pattern */
-.common-splitter {
-  & :deep(.splitpanes__splitter) {
-    min-width: 11px;
-    min-height: 11px;
-    background-color: var(--knime-porcelain);
-    background-repeat: no-repeat;
-    background-position: center;
-    border-color: var(--knime-silver-sand);
-    border-style: solid;
-  }
-}
-
-.common-splitter.slim-mode {
-  & :deep(.splitpanes__splitter) {
-    display: none;
-    pointer-events: none;
-  }
-}
-
-.collapse-left-pane {
-  & :deep(> .splitpanes__splitter) {
-    display: none;
-    pointer-events: none;
-  }
-}
-
-.common-splitter.slim-splitter :deep(.splitpanes__splitter) {
-  position: relative;
-  min-width: 2px;
-  border-width: 0 0 0 1px;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 11px;
-    height: 100%;
-    background: transparent;
-    cursor: ew-resize;
-    z-index: 1;
-  }
-}
-
-.splitpanes--vertical {
-  & :deep(> .splitpanes__splitter) {
-    border-width: 0 1px;
-  }
-}
-
-.splitpanes--horizontal {
-  & :deep(> .splitpanes__splitter) {
-    border-width: 1px 0;
-  }
-}
-
-.left-facing-splitter {
-  & :deep(> .splitpanes__splitter) {
-    background-image: url("@knime/styles/img/icons/arrow-prev.svg");
-  }
-}
-
-.right-facing-splitter {
-  & :deep(> .splitpanes__splitter) {
-    background-image: url("@knime/styles/img/icons/arrow-next.svg");
-  }
-}
-
-.down-facing-splitter {
-  & :deep(> .splitpanes__splitter) {
-    background-image: url("@knime/styles/img/icons/arrow-dropdown.svg");
-  }
-}
-
-.up-facing-splitter {
-  & :deep(> .splitpanes__splitter) {
-    background-image: url("@knime/styles/img/icons/arrow-dropdown.svg");
-    transform: scaleY(-1);
-  }
-}
-
-.splitpanes__pane {
-  transition: unset;
-}
-
-.main-splitpane {
-  overflow: hidden;
-
-  &:deep(> .splitpanes__splitter) {
-    &:hover {
-      border-right: 1px solid var(--knime-masala);
-    }
-  }
-}
-
-.horizontal-splitpane {
-  &:deep(> .splitpanes__splitter) {
-    &:hover {
-      border-top: 1px solid var(--knime-masala);
-    }
-  }
-}
-
-.vertical-splitpane {
-  &:deep(> .splitpanes__splitter) {
-    &:hover {
-      border-left: 1px solid var(--knime-masala);
-    }
-  }
-}
-
-/* stylelint-enable selector-class-pattern */
 .right-pane {
   background-color: var(--knime-gray-ultra-light);
 }
