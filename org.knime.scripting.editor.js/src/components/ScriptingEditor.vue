@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useElementBounding } from "@vueuse/core";
 
-import { computed, onMounted, reactive, type Ref, ref, useSlots } from "vue";
+import { computed, onMounted, type Ref, ref, useSlots } from "vue";
 import { Pane, Splitpanes } from "splitpanes";
 import "splitpanes/dist/splitpanes.css";
 import type { MenuItem } from "@knime/components";
@@ -20,17 +20,13 @@ import type { SettingsMenuItem } from "./SettingsPage.vue";
 import SettingsPage from "./SettingsPage.vue";
 import { setConsoleHandler } from "@/consoleHandler";
 import MainEditorPane from "./MainEditorPane.vue";
-import {
-  MIN_WIDTH_FOR_DISPLAYING_PANES,
-  MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
-  MIN_WIDTH_FOR_SHOWING_BUTTON_TEXT,
-  type PaneSizes,
-} from "@/components/utils/paneSizes";
+import { type PaneSizes } from "@/components/utils/paneSizes";
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
 import InputPortTables from "@/components/InputPortTables.vue";
 import { useMainCodeEditorStore } from "@/editor";
 import OutputTablePreview from "@/components/OutputTablePreview.vue";
+import { useResizeLogic } from "@/components/utils/resizeLogic";
 
 const commonMenuItems: MenuItem[] = [
   // TODO: add actual common menu items
@@ -71,118 +67,35 @@ const isRightPaneCollapsable = computed(
 );
 const emit = defineEmits(["menu-item-clicked", "input-output-item-insertion"]);
 
-// Splitpane sizes
-const largeModePaneSizes = reactive<PaneSizes>({
-  left: props.initialPaneSizes.left,
-  right: props.initialPaneSizes.right,
-  bottom: props.initialPaneSizes.bottom,
-});
-const previousLargeModePaneSizes = reactive<PaneSizes>({
-  left: props.initialPaneSizes.left,
-  right: props.initialPaneSizes.right,
-  bottom: props.initialPaneSizes.bottom,
-});
-
 const rootSplitPane = ref();
 const rootSplitPaneRef = useElementBounding(rootSplitPane);
 const editorSplitPane = ref();
 const editorSplitPaneRef = useElementBounding(editorSplitPane);
 
-const collapseAllPanes = computed(
-  () => rootSplitPaneRef.width.value <= MIN_WIDTH_FOR_DISPLAYING_PANES,
-);
-const collapseLeftPane = computed(
-  () => rootSplitPaneRef.width.value <= MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
-);
-const showButtonText = computed(
-  () => editorSplitPaneRef.width.value > MIN_WIDTH_FOR_SHOWING_BUTTON_TEXT,
-);
-const minRatioOfRightPaneInPercent = computed(
-  () =>
-    (props.rightPaneMinimumWidthInPixel /
-      ((rootSplitPaneRef.width.value * (100 - largeModePaneSizes.left)) /
-        100)) *
-    100,
-);
-
-const currentPaneSizes = computed(() => {
-  if (collapseAllPanes.value) {
-    return {
-      left: 0,
-      right: 0,
-      bottom: 0,
-    };
-  } else if (collapseLeftPane.value) {
-    return {
-      left: 0,
-      right: largeModePaneSizes.right,
-      bottom: largeModePaneSizes.bottom,
-    };
-  } else {
-    return {
-      ...largeModePaneSizes,
-      right: Math.max(
-        largeModePaneSizes.right,
-        minRatioOfRightPaneInPercent.value,
-      ),
-    };
-  }
+// All the logic for resizing panes
+const {
+  collapseAllPanes,
+  collapsePane,
+  collapseLeftPane,
+  currentPaneSizes,
+  isBottomPaneCollapsed,
+  isLeftPaneCollapsed,
+  isRightPaneCollapsed,
+  minRatioOfRightPaneInPercent,
+  resizePane,
+  updatePreviousPaneSize,
+  updateRightPane,
+  showButtonText,
+  usedHorizontalCodeEditorPaneSize,
+  usedMainPaneSize,
+  usedVerticalCodeEditorPaneSize,
+} = useResizeLogic({
+  initialPaneSizes: props.initialPaneSizes,
+  rightPaneMinimumWidthInPixel: props.rightPaneMinimumWidthInPixel,
+  rightPaneLayout: props.rightPaneLayout,
+  rootSplitPaneRef,
+  editorSplitPaneRef,
 });
-
-const usedMainPaneSize = computed(() => 100 - currentPaneSizes.value.left);
-const usedHorizontalCodeEditorPaneSize = computed(
-  () => 100 - currentPaneSizes.value.right,
-);
-const usedVerticalCodeEditorPaneSize = computed(
-  () => 100 - currentPaneSizes.value.bottom,
-);
-const isLeftPaneCollapsed = computed(() => currentPaneSizes.value.left === 0);
-const isRightPaneCollapsed = computed(() => currentPaneSizes.value.right === 0);
-const isBottomPaneCollapsed = computed(
-  () => currentPaneSizes.value.bottom === 0,
-);
-const updatePreviousPaneSize = (pane: keyof PaneSizes) => {
-  if (currentPaneSizes.value[pane] <= 0) {
-    return;
-  }
-  previousLargeModePaneSizes[pane] = largeModePaneSizes[pane];
-};
-const resizePane = (
-  size: number,
-  pane: keyof PaneSizes,
-  shouldUpdatePreviousPaneSize: boolean = true,
-) => {
-  largeModePaneSizes[pane] = size;
-
-  if (shouldUpdatePreviousPaneSize) {
-    updatePreviousPaneSize(pane);
-  }
-};
-const updateRightPane = (size: number) => {
-  if (props.rightPaneLayout !== "fixed" || currentPaneSizes.value.right <= 0) {
-    return;
-  }
-  // keep right pane at same size when left pane is resized
-  const newMainPaneSize = 100 - size;
-
-  const absoluteRightPaneSize =
-    (100 - currentPaneSizes.value.left) *
-    (previousLargeModePaneSizes.right / 100);
-  const newRightPaneSize = Math.max(
-    minRatioOfRightPaneInPercent.value,
-    (absoluteRightPaneSize / newMainPaneSize) * 100,
-  );
-
-  resizePane(newRightPaneSize, "right", false);
-};
-const collapsePane = (pane: keyof PaneSizes) => {
-  let newSize =
-    currentPaneSizes.value[pane] === 0 ? previousLargeModePaneSizes[pane] : 0;
-  if (pane === "left") {
-    updateRightPane(newSize);
-  }
-  resizePane(newSize, pane);
-};
 
 // Dropping input/output items
 const dropEventHandler = ref<(payload: DragEvent) => void>();
