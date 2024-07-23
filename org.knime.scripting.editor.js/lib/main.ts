@@ -10,7 +10,10 @@ import {
   MIN_WIDTH_FOR_DISPLAYING_PANES,
   MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
 } from "@/components/utils/paneSizes";
-import type { InputOutputModel } from "@/components/InputOutputItem.vue";
+import {
+  type InputOutputModel,
+  COLUMN_INSERTION_EVENT,
+} from "@/components/InputOutputItem.vue";
 import type {
   UseCodeEditorParams,
   UseCodeEditorReturn,
@@ -26,6 +29,10 @@ import {
   type ScriptingServiceType,
 } from "@/scripting-service";
 import { setActiveEditorStoreForAi } from "@/store/ai-bar";
+import {
+  insertionEventHelper,
+  type InsertionEvent,
+} from "@/components/utils/insertionEventHelper";
 
 export {
   CompactTabBar,
@@ -38,6 +45,8 @@ export {
   setActiveEditorStoreForAi,
   MIN_WIDTH_FOR_DISPLAYING_PANES,
   MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
+  COLUMN_INSERTION_EVENT,
+  insertionEventHelper,
 };
 export type {
   ConsoleHandler,
@@ -50,4 +59,5 @@ export type {
   UseCodeEditorReturn,
   UseDiffEditorParams,
   UseDiffEditorReturn,
+  InsertionEvent,
 };

@@ -6,9 +6,11 @@ import { nextTick, ref } from "vue";
 import { Collapser, useMultiSelection } from "@knime/components";
 import InputOutputItem, {
   INPUT_OUTPUT_DRAG_EVENT_ID,
+  COLUMN_INSERTION_EVENT,
   type InputOutputModel,
 } from "../InputOutputItem.vue";
 import { createDragGhost, removeDragGhost } from "../utils/dragGhost";
+import { insertionEventHelper } from "../utils/insertionEventHelper";
 
 vi.mock("monaco-editor");
 vi.mock("@/scripting-service");
@@ -364,9 +366,19 @@ describe("InputOutputItem", () => {
     it("fires an event on double-click", () => {
       const wrapper = doMount();
       const subItem = wrapper.findAll(".sub-item")[1];
+
+      const listener = vi.fn();
+      insertionEventHelper
+        .getInsertionEventHelper(COLUMN_INSERTION_EVENT)
+        .registerInsertionListener(listener);
+
       subItem.trigger("dblclick");
 
-      expect(wrapper.emitted()["input-output-item-clicked"].length).toBe(1);
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          textToInsert: "my template row 2",
+        }),
+      );
     });
   });
 });
