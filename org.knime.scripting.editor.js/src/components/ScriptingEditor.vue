@@ -24,7 +24,6 @@ import { type PaneSizes } from "@/components/utils/paneSizes";
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
 import InputPortTables from "@/components/InputPortTables.vue";
-import { useMainCodeEditorStore } from "@/editor";
 import OutputTablePreview from "@/components/OutputTablePreview.vue";
 import { useResizeLogic } from "@/components/utils/resizeLogic";
 
@@ -65,7 +64,7 @@ const props = withDefaults(defineProps<Props>(), {
 const isRightPaneCollapsable = computed(
   () => props.rightPaneMinimumWidthInPixel === 0,
 );
-const emit = defineEmits(["menu-item-clicked", "input-output-item-insertion"]);
+const emit = defineEmits(["menu-item-clicked"]);
 
 const rootSplitPane = ref();
 const rootSplitPaneRef = useElementBounding(rootSplitPane);
@@ -155,30 +154,6 @@ const onConsoleCreated = (handler: ConsoleHandler) => {
   initConsoleEventHandler();
 };
 
-const slots = useSlots();
-
-const onInputOutputItemInsertion = (
-  codeAlias: string,
-  requiredImport: string | undefined,
-) => {
-  if (slots.editor) {
-    // If we got passed something via slot, we have to emit the event since we
-    // can't execute the edit ourselves.
-    emit("input-output-item-insertion", codeAlias, requiredImport);
-  } else if (
-    // But if we're responsible for the editor, we can just insert directly.
-    requiredImport &&
-    !useMainCodeEditorStore().value?.text.value.includes(requiredImport)
-  ) {
-    useMainCodeEditorStore().value?.insertColumnReference(
-      codeAlias,
-      requiredImport,
-    );
-  } else {
-    useMainCodeEditorStore().value?.insertColumnReference(codeAlias);
-  }
-};
-
 // Convenient to have this computed property for reactive components
 const showControlBarDynamic = computed(() => {
   return props.showControlBar && !collapseAllPanes.value;
@@ -244,7 +219,6 @@ const paintFocus = useShouldFocusBePainted();
       >
         <InputOutputPane
           @drop-event-handler-created="onDropEventHandlerCreated"
-          @input-output-item-insertion="onInputOutputItemInsertion"
         />
       </pane>
 

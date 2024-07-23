@@ -3,6 +3,8 @@ import { onMounted, ref } from "vue";
 import { useMainCodeEditor } from "@/editor";
 import { onKeyStroke } from "@vueuse/core";
 import { getScriptingService, type NodeSettings } from "@/scripting-service";
+import { insertionEventHelper } from "@/components/utils/insertionEventHelper";
+import { COLUMN_INSERTION_EVENT } from "@/components/InputOutputItem.vue";
 
 interface Props {
   showControlBar: boolean;
@@ -24,6 +26,12 @@ const codeEditorState = useMainCodeEditor({
   fileName: props.fileName,
   language: props.language,
 });
+
+insertionEventHelper
+  .getInsertionEventHelper(COLUMN_INSERTION_EVENT)
+  .registerInsertionListener((event) => {
+    codeEditorState.insertColumnReference(event.textToInsert);
+  });
 
 onMounted(() => {
   getScriptingService()

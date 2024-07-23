@@ -32,6 +32,7 @@ export type InputOutputModel = {
   }[];
 };
 export const INPUT_OUTPUT_DRAG_EVENT_ID = "input_output_drag_event";
+export const COLUMN_INSERTION_EVENT = "columnInsertion";
 </script>
 
 <script setup lang="ts">
@@ -40,6 +41,7 @@ import Handlebars from "handlebars";
 import { ref, watch } from "vue";
 import { Collapser, PortIcon, useMultiSelection } from "@knime/components";
 import { createDragGhost, removeDragGhost } from "./utils/dragGhost";
+import { insertionEventHelper } from "@/components/utils/insertionEventHelper";
 import EyeIcon from "@knime/styles/img/icons/eye.svg";
 
 const INITIALLY_EXPANDED_MAX_SUBITEMS = 15;
@@ -47,8 +49,6 @@ const INITIALLY_EXPANDED_MAX_SUBITEMS = 15;
 const props = defineProps<{
   inputOutputItem: InputOutputModel;
 }>();
-
-const emit = defineEmits(["input-output-item-clicked"]);
 
 const multiSelection = useMultiSelection({
   singleSelectionOnly: ref(!props.inputOutputItem.multiSelection),
@@ -121,22 +121,28 @@ const handleSubItemDoubleClick = (event: MouseEvent, index: number) => {
     subItems: [props.inputOutputItem.subItems?.[index]?.name],
   });
 
-  emit(
-    "input-output-item-clicked",
-    codeToInsert,
-    props.inputOutputItem.requiredImport,
-  );
+  insertionEventHelper
+    .getInsertionEventHelper(COLUMN_INSERTION_EVENT)
+    .handleInsertion({
+      textToInsert: codeToInsert,
+      extraArgs: {
+        requiredImport: props.inputOutputItem.requiredImport,
+      },
+    });
 };
 
 const handleHeaderDoubleClick = (event: MouseEvent) => {
   // Only do something if we have a defined code alias
   if (props.inputOutputItem.codeAlias) {
     const codeToInsert = props.inputOutputItem.codeAlias;
-    emit(
-      "input-output-item-clicked",
-      codeToInsert,
-      props.inputOutputItem.requiredImport,
-    );
+    insertionEventHelper
+      .getInsertionEventHelper(COLUMN_INSERTION_EVENT)
+      .handleInsertion({
+        textToInsert: codeToInsert,
+        extraArgs: {
+          requiredImport: props.inputOutputItem.requiredImport,
+        },
+      });
   }
 };
 
