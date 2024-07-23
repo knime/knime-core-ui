@@ -11,6 +11,6 @@ Bundle-ClassPath: .,
  objenesis-3.2.jar
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Bundle-RequiredExecutionEnvironment: JavaSE-17
-Fragment-Host: org.knime.scripting.editor;bundle-version="[5.3.0,6.0.0)"
+Fragment-Host: org.knime.scripting.editor;bundle-version="[5.4.0,6.0.0)"
 Require-Bundle: junit-jupiter-api;bundle-version="[5.9.2,6.0.0)"
 Automatic-Module-Name: org.knime.scripting.editor.tests
