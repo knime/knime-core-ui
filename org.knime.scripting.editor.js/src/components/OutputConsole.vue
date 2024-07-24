@@ -2,10 +2,8 @@
 import { useDebounceFn, useResizeObserver } from "@vueuse/core";
 import type { XOR } from "ts-xor";
 import { onMounted, onUnmounted, ref } from "vue";
-import TrashIcon from "@knime/styles/img/icons/trash.svg";
 // @ts-ignore
 import * as knimeColors from "@knime/styles/colors/knimeColors.ts";
-import { FunctionButton } from "@knime/components";
 import type { ITerminalInitOnlyOptions, ITerminalOptions, ITheme } from "xterm";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
@@ -127,20 +125,11 @@ const paintFocus = useShouldFocusBePainted();
 </script>
 
 <template>
-  <div class="console">
-    <!-- The order of elements here is unfortunately important so we can jump from console to clear. -->
-    <div
-      ref="termRef"
-      class="terminal"
-      :class="{ 'focus-painted': paintFocus }"
-    />
-    <div class="console-overlay">
-      <slot name="console-status" />
-      <FunctionButton class="clear-button" @click="term.reset()">
-        <TrashIcon />
-      </FunctionButton>
-    </div>
-  </div>
+  <div
+    ref="termRef"
+    class="terminal"
+    :class="{ 'focus-painted': paintFocus }"
+  />
 </template>
 
 <style lang="postcss">
@@ -148,18 +137,6 @@ const paintFocus = useShouldFocusBePainted();
 </style>
 
 <style lang="postcss" scoped>
-.console-overlay {
-  position: absolute;
-  display: flex;
-  flex-direction: row;
-  z-index: 1;
-  top: 2px;
-  right: 20px;
-  align-items: center;
-  font-size: 13px;
-  gap: var(--space-8);
-}
-
 .console {
   height: 100%;
 }

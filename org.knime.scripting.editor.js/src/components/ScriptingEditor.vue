@@ -1,35 +1,28 @@
 <script setup lang="ts">
 import { useElementBounding } from "@vueuse/core";
-
-import { computed, onMounted, type Ref, ref, useSlots } from "vue";
+import { computed, ref, useSlots } from "vue";
 import { Pane, Splitpanes } from "splitpanes";
 import "splitpanes/dist/splitpanes.css";
 import type { MenuItem } from "@knime/components";
-import {
-  getScriptingService,
-  initConsoleEventHandler,
-  type NodeSettings,
-  type PortConfigs,
-} from "@/scripting-service";
-import CompactTabBar from "./CompactTabBar.vue";
+import { type NodeSettings } from "@/scripting-service";
 import HeaderBar from "./HeaderBar.vue";
 import InputOutputPane from "./InputOutputPane.vue";
-import type { ConsoleHandler } from "./OutputConsole.vue";
-import OutputConsole from "./OutputConsole.vue";
 import type { SettingsMenuItem } from "./SettingsPage.vue";
 import SettingsPage from "./SettingsPage.vue";
-import { setConsoleHandler } from "@/consoleHandler";
 import MainEditorPane from "./MainEditorPane.vue";
 import { type PaneSizes } from "@/components/utils/paneSizes";
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
-import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
-import InputPortTables from "@/components/InputPortTables.vue";
-import OutputTablePreview from "@/components/OutputTablePreview.vue";
 import { useResizeLogic } from "@/components/utils/resizeLogic";
+import ScriptingEditorBottomPane from "./ScriptingEditorBottomPane.vue";
 
 const commonMenuItems: MenuItem[] = [
   // TODO: add actual common menu items
 ];
+
+type TabItem = {
+  label: string;
+  value: string;
+};
 
 // Props
 interface Props {
@@ -42,7 +35,7 @@ interface Props {
   initialPaneSizes?: PaneSizes;
   rightPaneMinimumWidthInPixel?: number;
   toSettings?: (settings: NodeSettings) => NodeSettings;
-  showOutputTable?: boolean;
+  additionalBottomPaneTabContent?: TabItem[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -58,7 +51,7 @@ const props = withDefaults(defineProps<Props>(), {
   }),
   rightPaneMinimumWidthInPixel: () => 0,
   toSettings: (settings: NodeSettings) => settings,
-  showOutputTable: false,
+  additionalBottomPaneTabContent: () => [] as TabItem[],
 });
 
 const isRightPaneCollapsable = computed(
@@ -111,49 +104,6 @@ const onMenuItemClicked = (args: { event: Event; item: SettingsMenuItem }) => {
   emit("menu-item-clicked", args);
 };
 
-const portConfigs: PortConfigs = {
-  inputPorts: [],
-};
-
-const initalBottomPaneOptions = [{ value: "console", label: "Console" }];
-
-if (props.showOutputTable) {
-  initalBottomPaneOptions.push({ value: "outputTable", label: "Output table" });
-}
-
-const bottomPaneOptions: Ref<{ value: string; label: string }[]> = ref(
-  initalBottomPaneOptions,
-);
-
-const bottomPaneActiveTab = ref<string>(bottomPaneOptions.value[0].value);
-
-const makeNodePortId = (nodeId: string, portIdx: number) =>
-  `${nodeId}-${portIdx}`;
-
-onMounted(async () => {
-  portConfigs.inputPorts = (
-    await getScriptingService().getPortConfigs()
-  ).inputPorts.filter((port) => port.nodeId !== null);
-
-  if (
-    portConfigs.inputPorts.length !== 0 &&
-    (await getScriptingService().isCallKnimeUiApiAvailable(
-      portConfigs.inputPorts[0],
-    ))
-  ) {
-    const inputPorts = portConfigs.inputPorts.reverse().map((port, index) => ({
-      value: makeNodePortId(port.nodeId!, port.portIdx),
-      label: `${index}: ${port.portName}`,
-    }));
-    bottomPaneOptions.value = [...inputPorts, ...bottomPaneOptions.value];
-  }
-});
-
-const onConsoleCreated = (handler: ConsoleHandler) => {
-  setConsoleHandler(handler);
-  initConsoleEventHandler();
-};
-
 // Convenient to have this computed property for reactive components
 const showControlBarDynamic = computed(() => {
   return props.showControlBar && !collapseAllPanes.value;
@@ -163,8 +113,6 @@ const showControlBarDynamic = computed(() => {
 if (props.fileName === null && !useSlots().editor) {
   throw new Error("either fileName or editor slot must be provided");
 }
-
-const paintFocus = useShouldFocusBePainted();
 </script>
 
 <template>
@@ -310,62 +258,19 @@ const paintFocus = useShouldFocusBePainted();
             </splitpanes>
           </pane>
           <pane data-testid="bottomPane" :size="currentPaneSizes.bottom">
-            <div class="tab-bar-container">
-              <CompactTabBar
-                v-model="bottomPaneActiveTab"
-                class="scripting-editor-tab-bar"
-                :possible-values="bottomPaneOptions"
-                :class="{ 'focus-painted': paintFocus }"
-              />
-              <div class="console-container">
-                <OutputConsole
-                  v-show="bottomPaneActiveTab === 'console'"
-                  class="console"
-                  @console-created="onConsoleCreated"
-                >
-                  <template #console-status>
-                    <slot name="console-status" />
-                  </template>
-                </OutputConsole>
-                <div
-                  v-for="port in portConfigs?.inputPorts"
-                  :key="port.portIdx"
-                  class="port-tables"
-                  :class="{
-                    collapsed:
-                      bottomPaneActiveTab !==
-                        makeNodePortId(port.nodeId!, port.portIdx) &&
-                      port.nodeId,
-                  }"
-                >
-                  <InputPortTables
-                    v-if="
-                      bottomPaneActiveTab ===
-                        makeNodePortId(port.nodeId!, port.portIdx) &&
-                      port.nodeId
-                    "
-                    :input-node-id="port.nodeId"
-                    :port-idx="port.portIdx"
-                    :port-view-configs="port.portViewConfigs"
-                  />
-                </div>
-                <template v-if="showOutputTable">
-                  <div
-                    v-show="bottomPaneActiveTab === 'outputTable'"
-                    class="port-tables"
-                    :class="{
-                      collapsed: bottomPaneActiveTab !== 'outputTable',
-                    }"
-                  >
-                    <OutputTablePreview
-                      @output-table-updated="
-                        () => (bottomPaneActiveTab = 'outputTable')
-                      "
-                    />
-                  </div>
-                </template>
-              </div>
-            </div>
+            <ScriptingEditorBottomPane
+              :slotted-tabs="additionalBottomPaneTabContent"
+            >
+              <template
+                v-for="tab in additionalBottomPaneTabContent"
+                #[tab.value]="{ grabFocus }"
+              >
+                <slot :name="tab.value" :grab-focus="grabFocus" />
+              </template>
+              <template #console-status>
+                <slot name="console-status" />
+              </template>
+            </ScriptingEditorBottomPane>
           </pane>
         </splitpanes>
       </pane>
@@ -377,8 +282,6 @@ const paintFocus = useShouldFocusBePainted();
 @import url("@/components/splitterstyles.css");
 
 .layout {
-  --description-button-size: 15px;
-
   display: flex;
   flex-direction: column;
   height: calc(100vh);
@@ -392,41 +295,33 @@ const paintFocus = useShouldFocusBePainted();
   height: 100%;
   display: flex;
   flex-direction: column;
-}
 
-.tab-bar-container {
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  position: relative;
-
-  & .console-container {
-    flex: 1;
-    height: 100%;
+  & .multi-editor-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    flex-grow: 1;
     min-height: 0;
 
-    & .console {
-      padding: 0 var(--space-8);
+    & .editor-slot-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow-y: auto;
+      flex-grow: 1;
+    }
+
+    & .run-button-panel {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+      align-items: center;
+      height: fit-content;
+      margin: 0;
+      background-color: var(--knime-gray-light-semi);
+      background-clip: padding-box;
     }
   }
-}
-
-.port-tables {
-  height: 100%;
-  display: flex;
-  flex-grow: 1;
-}
-
-.port-tables.collapsed {
-  display: none;
-}
-
-.editor-slot-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow-y: auto;
-  flex-grow: 1;
 }
 
 .right-pane {
@@ -435,29 +330,5 @@ const paintFocus = useShouldFocusBePainted();
 
 .scrollable-y {
   overflow-y: auto;
-}
-
-/* We need to reduce the size of this pane slightly iff there's a control bar */
-.multi-editor-container.has-control-bar {
-  height: auto;
-}
-
-.multi-editor-container {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  flex-grow: 1;
-  min-height: 0;
-}
-
-.run-button-panel {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  align-items: center;
-  height: fit-content;
-  margin: 0;
-  background-color: var(--knime-gray-light-semi);
-  background-clip: padding-box;
 }
 </style>

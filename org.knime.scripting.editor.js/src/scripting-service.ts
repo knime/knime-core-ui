@@ -10,7 +10,7 @@ export type PortViewConfig = {
   portViewIdx: number;
 };
 
-type PortConfig = {
+export type PortConfig = {
   /**
    * null if no node is connected to an input port
    */

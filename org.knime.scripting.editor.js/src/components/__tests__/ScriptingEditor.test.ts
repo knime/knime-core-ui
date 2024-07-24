@@ -20,7 +20,7 @@ import {
   MIN_WIDTH_FOR_DISPLAYING_PANES,
 } from "../utils/paneSizes";
 import MainEditorPane from "../MainEditorPane.vue";
-import OutputTablePreview from "../OutputTablePreview.vue";
+import ScriptingEditorBottomPane from "../ScriptingEditorBottomPane.vue";
 
 const mocks = vi.hoisted(() => {
   return {
@@ -134,20 +134,6 @@ describe("ScriptingEditor", () => {
       const { wrapper } = doMount();
       const outputConsole = wrapper.findComponent(OutputConsole);
       expect(outputConsole.exists()).toBeTruthy();
-    });
-
-    it("display output preview table when opt-in via props", () => {
-      const { wrapper } = doMount({
-        props: {
-          showOutputTable: true,
-        },
-      });
-      expect(wrapper.findComponent(OutputTablePreview).exists()).toBeTruthy();
-    });
-
-    it("do not display output preview table when not opt-in", () => {
-      const { wrapper } = doMount();
-      expect(wrapper.findComponent(OutputTablePreview).exists()).toBeFalsy();
     });
 
     it("display input/output pane", () => {
@@ -412,7 +398,7 @@ describe("ScriptingEditor", () => {
     });
   });
 
-  it("passes slotted content to output console", () => {
+  it("passes slotted content to bottom pane", () => {
     const { wrapper } = doMount({
       props: {},
       slots: {
@@ -420,7 +406,10 @@ describe("ScriptingEditor", () => {
       },
     });
     expect(
-      wrapper.findComponent(OutputConsole).find(".test-class").exists(),
+      wrapper
+        .findComponent(ScriptingEditorBottomPane)
+        .find(".test-class")
+        .exists(),
     ).toBeTruthy();
   });
 

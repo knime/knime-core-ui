@@ -3,7 +3,6 @@ import OutputConsole, {
 } from "@/components/OutputConsole.vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { FunctionButton } from "@knime/components";
 import { Terminal } from "xterm";
 
 vi.mock("xterm");
@@ -74,32 +73,11 @@ describe("OutputConsole", () => {
     );
   });
 
-  it("clear via click button", async () => {
-    const { wrapper, term } = await doMount();
-
-    // get Clear Button and Click it
-    const button = wrapper.findComponent(FunctionButton);
-    button.vm.$emit("click");
-    await flushPromises();
-
-    expect(term.reset).toHaveBeenCalledOnce();
-  });
-
   it("clear via handler", async () => {
     const { term, handler } = await doMount();
 
     handler.clear();
     expect(term.reset).toHaveBeenCalledOnce();
-  });
-
-  it("displays slotted content", () => {
-    const wrapper = mount(OutputConsole, {
-      slots: {
-        "console-status": "<div class='test-class'>Test</div>",
-      },
-    });
-    const slotContent = wrapper.find(".test-class");
-    expect(slotContent.exists()).toBeTruthy();
   });
 
   it("watches for output", async () => {

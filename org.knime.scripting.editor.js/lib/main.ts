@@ -33,6 +33,7 @@ import {
   insertionEventHelper,
   type InsertionEvent,
 } from "@/components/utils/insertionEventHelper";
+import OutputTablePreview from "@/components/OutputTablePreview.vue";
 
 export {
   CompactTabBar,
@@ -40,6 +41,7 @@ export {
   editor,
   getScriptingService,
   OutputConsole,
+  OutputTablePreview,
   ScriptingEditor,
   useShouldFocusBePainted,
   setActiveEditorStoreForAi,
