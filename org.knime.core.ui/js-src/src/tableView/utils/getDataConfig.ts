@@ -191,15 +191,16 @@ export default ({
   }
   const autoMode = rowHeightMode === RowHeightMode.AUTO;
   const customMode = rowHeightMode === RowHeightMode.CUSTOM;
-  const defaultMode = rowHeightMode === RowHeightMode.DEFAULT;
   const compactMode = verticalPaddingMode === VerticalPaddingMode.COMPACT;
   return {
     columnConfigs,
     rowConfig: {
-      ...(autoMode && { rowHeight: currentRowHeight.value }),
+      ...(autoMode && {
+        rowHeight: enableDynamicRowHeight
+          ? ("dynamic" as const)
+          : currentRowHeight.value,
+      }),
       ...(customMode && { rowHeight: getCustomRowHeight({ customRowHeight }) }),
-      ...(defaultMode &&
-        enableDynamicRowHeight && { rowHeight: "dynamic" as const }),
       compactMode,
       enableResizing: enableRowResizing,
     },

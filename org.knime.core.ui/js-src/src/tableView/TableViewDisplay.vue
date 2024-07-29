@@ -12,15 +12,10 @@ import getDataConfig from "./utils/getDataConfig";
 import getTableConfig from "./utils/getTableConfig";
 import useColumnSizes from "./composables/useColumnSizes";
 import useAutoColumnSizes from "./composables/useAutoColumnSizes";
-import type {
-  HeaderMenuItem,
-  TableViewDisplayProps,
-  ColumnSizes,
-} from "./types";
+import type { HeaderMenuItem, TableViewDisplayProps } from "./types";
 import useBoolean from "./utils/useBoolean";
 import { separateSpecialColumns } from "./utils/specialColumns";
 import { BORDER_BOTTOM_WIDTH } from "./constants";
-import { RowHeightMode } from "./types/ViewSettings";
 import LoadingIcon from "webapps-common/ui/components/LoadingIcon.vue";
 
 const emit = defineEmits<{
@@ -114,12 +109,6 @@ const {
   enableDynamicRowHeight,
 } = toRefs(props);
 
-const hasDynamicRowHeight = computed(
-  () =>
-    enableDynamicRowHeight.value &&
-    settings.value.rowHeightMode !== RowHeightMode.CUSTOM,
-);
-
 const {
   autoColumnSizes,
   autoColumnSizesActive,
@@ -130,7 +119,7 @@ const {
   settings,
   firstRowImageDimensions,
   currentRowHeight,
-  hasDynamicRowHeight,
+  enableDynamicRowHeight,
 });
 
 const {
@@ -205,14 +194,6 @@ const tableIsReady = ref(false);
 const onTableIsReady = () => {
   emit("tableIsReady");
   tableIsReady.value = true;
-};
-
-const onAutoSizesUpdate = (
-  newAutoColumnSizes: ColumnSizes,
-  newRowHeight: number,
-) => {
-  onAutoColumnSizesUpdate(newAutoColumnSizes);
-  emit("rowHeightUpdate", newRowHeight);
 };
 
 defineExpose({
@@ -313,7 +294,8 @@ const onCopySelection = ({
             getColumnId(colIndex) as string,
           )
       "
-      @auto-sizes-update="onAutoSizesUpdate"
+      @auto-column-sizes-update="onAutoColumnSizesUpdate"
+      @auto-row-height-update="$emit('rowHeightUpdate', $event)"
       @row-height-update="$emit('rowHeightUpdate', $event)"
       @ready="onTableIsReady"
       @copy-selection="onCopySelection"
