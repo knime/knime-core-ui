@@ -260,7 +260,7 @@ final class FieldNodeSettingsPersistorFactory<S extends PersistableSettings> {
             return values;
         }
 
-        private void ensureEnoughPersistors(final int numPersistors) {
+        private synchronized void ensureEnoughPersistors(final int numPersistors) {
             for (int i = m_persistors.size(); i < numPersistors; i++) {
                 m_persistors.add(new NestedFieldBasedNodeSettingsPersistor<>(Integer.toString(i), m_elementType));
             }
