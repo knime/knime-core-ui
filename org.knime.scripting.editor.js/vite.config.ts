@@ -37,6 +37,12 @@ export default defineConfig({
         fileURLToPath(
           new URL("src/scripting-service-browser-mock.ts", import.meta.url),
         ),
+        fileURLToPath(
+          new URL("src/initial-data-service-browser-mock.ts", import.meta.url),
+        ),
+        fileURLToPath(
+          new URL("src/settings-service-browser-mock.ts", import.meta.url),
+        ),
       ],
       // fileName: "knime-scripting-editor",
       formats: ["es"],

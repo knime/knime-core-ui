@@ -2,8 +2,7 @@
 import { useDebounceFn, useResizeObserver } from "@vueuse/core";
 import type { XOR } from "ts-xor";
 import { onMounted, onUnmounted, ref } from "vue";
-// @ts-ignore
-import * as knimeColors from "@knime/styles/colors/knimeColors.ts";
+import * as knimeColors from "@knime/styles/colors/knimeColors";
 import type { ITerminalInitOnlyOptions, ITerminalOptions, ITheme } from "xterm";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";

@@ -2,7 +2,10 @@
 import { onMounted, ref } from "vue";
 import { useMainCodeEditor } from "@/editor";
 import { onKeyStroke } from "@vueuse/core";
-import { getScriptingService, type NodeSettings } from "@/scripting-service";
+import {
+  getSettingsService,
+  type GenericNodeSettings,
+} from "@/settings-service";
 import { insertionEventHelper } from "@/components/utils/insertionEventHelper";
 import { COLUMN_INSERTION_EVENT } from "@/components/InputOutputItem.vue";
 import { useReadonlyStore } from "@/store/readOnly";
@@ -11,12 +14,12 @@ interface Props {
   showControlBar: boolean;
   language: string;
   fileName: string;
-  toSettings?: (settings: NodeSettings) => NodeSettings;
+  toSettings?: (settings: GenericNodeSettings) => GenericNodeSettings;
   dropEventHandler?: (event: DragEvent) => void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  toSettings: (settings: NodeSettings) => settings,
+  toSettings: (settings: GenericNodeSettings) => settings,
   dropEventHandler: () => {},
 });
 
@@ -38,12 +41,13 @@ insertionEventHelper
   });
 
 onMounted(() => {
-  getScriptingService()
-    .getInitialSettings()
-    .then((settings) => {
+  getSettingsService()
+    .getSettings()
+    .then((settings: GenericNodeSettings) => {
       codeEditorState.setInitialText(settings.script);
+
       useReadonlyStore().value =
-        typeof settings.scriptUsedFlowVariable === "string";
+        settings.settingsAreOverriddenByFlowVariable ?? false;
       codeEditorState.editor.value?.updateOptions({
         readOnly: useReadonlyStore().value,
         readOnlyMessage: {
@@ -71,7 +75,7 @@ onKeyStroke("z", (e) => {
   }
 });
 
-getScriptingService().registerSettingsGetterForApply(() =>
+getSettingsService().registerSettingsGetterForApply(() =>
   props.toSettings({ script: codeEditorState.text.value ?? "" }),
 );
 </script>

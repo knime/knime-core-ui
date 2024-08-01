@@ -3,7 +3,7 @@ import { nextTick, onMounted, ref, type PropType } from "vue";
 import { Button } from "@knime/components";
 import AiCode from "@knime/styles/img/icons/ai-general.svg";
 import AiBar from "./ai-assistant/AiBar.vue";
-import { getScriptingService } from "@/scripting-service";
+import { getInitialDataService } from "@/initial-data-service";
 import { onClickOutside } from "@vueuse/core";
 
 import type { PaneSizes } from "@/components/utils/paneSizes";
@@ -46,8 +46,10 @@ const setupOnClickOutside = () => {
 };
 
 onMounted(async () => {
-  showAiButton.value = await getScriptingService().isCodeAssistantEnabled();
-  enableAiButton.value = await getScriptingService().inputsAvailable();
+  const initialData = await getInitialDataService().getInitialData();
+
+  showAiButton.value = initialData.kAiConfig.codeAssistantEnabled;
+  enableAiButton.value = initialData.inputsAvailable;
   nextTick(() => {
     setupOnClickOutside();
   });

@@ -44,65 +44,46 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 11, 2024 (david): created
+ *   Jul 30, 2024 (david): created
  */
 package org.knime.scripting.editor;
 
+import java.util.Map;
+
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.VariableSettingsRO;
-import org.knime.core.webui.node.dialog.VariableSettingsWO;
+import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
+import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
+import org.knime.core.webui.node.dialog.SettingsType;
 
 /**
+ * Used by the {@link ScriptingNodeSettingsService} to supply settings data to the editor and then save it again.
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("restriction") // VariableSettings is yet not public API
-public final class SettingsServiceUtils {
-
-    private SettingsServiceUtils() {
-    }
+public interface GenericSettingsIOManager {
 
     /**
-     * Utility method to copy all variable settings from a the previous settings to the new settings
+     * Convert the provided NodeSettings to a map.
      *
-     * @param from the previous settings
-     * @param to the new settings
+     * @param settings the settings to read from
+     * @return the map representation of the settings
+     * @throws InvalidSettingsException if the settings are invalid. This could happen if the user has overridden
+     *             specific settings by flow variable, and the resulting settings are invalid. Settings supplied by us
+     *             should always be valid.
      */
-    public static void copyVariableSettings(final VariableSettingsRO from, final VariableSettingsWO to) {
-
-        try {
-            for (String key : from.getVariableSettingsIterable()) {
-                if (from.isVariableSetting(key)) {
-                    SettingsServiceUtils.copyVariableSetting(from, to, key);
-                } else {
-                    copyVariableSettings(from.getVariableSettings(key), to.getOrCreateVariableSettings(key));
-                }
-            }
-        } catch (InvalidSettingsException e) {
-            throw new IllegalStateException(
-                "Implementation error: failed to copy variable settings from previous settings to new settings", e);
-        }
-    }
+    Map<String, Object> convertNodeSettingsToMap(Map<SettingsType, NodeAndVariableSettingsRO> settings)
+        throws InvalidSettingsException;
 
     /**
-     * Copies a single variable setting from the previous settings to the new settings
+     * Write the provided map to the provided NodeSettings.
      *
-     * @param from the previous settings
-     * @param to the new settings
-     * @param key the key of the variable setting to copy
-     *
-     * @throws InvalidSettingsException if the key doesn't correspond to a setting
+     * @param data the map to read from
+     * @param settings the settings to write to
+     * @throws InvalidSettingsException if the settings are invalid. This should only happen in the event of an
+     *             implementation error, because we expect the frontend to give us valid settings.
      */
-    public static void copyVariableSetting(final VariableSettingsRO from, final VariableSettingsWO to, final String key)
-        throws InvalidSettingsException {
+    void writeMapToNodeSettings(final Map<String, Object> data, Map<SettingsType, NodeAndVariableSettingsWO> settings)
+        throws InvalidSettingsException;
 
-        var usedVariable = from.getUsedVariable(key);
-        if (usedVariable != null) {
-            to.addUsedVariable(key, usedVariable);
-        }
-        var exposedVariable = from.getExposedVariable(key);
-        if (exposedVariable != null) {
-            to.addExposedVariable(key, exposedVariable);
-        }
-    }
 }

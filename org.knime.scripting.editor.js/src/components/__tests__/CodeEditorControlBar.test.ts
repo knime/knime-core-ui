@@ -1,44 +1,53 @@
-import { describe, afterEach, beforeEach, it, vi, expect } from "vitest";
-
+import { describe, afterEach, it, vi, expect } from "vitest";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
 import { flushPromises, mount } from "@vue/test-utils";
-
 import AiBar from "../ai-assistant/AiBar.vue";
-import { getScriptingService } from "@/scripting-service";
+import { getInitialDataService } from "@/initial-data-service";
+import { beforeEach } from "node:test";
+import { ref } from "vue";
+import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
 
 vi.mock("@/scripting-service");
+vi.mock("@/initial-data-service", () => ({
+  getInitialDataService: vi.fn(() => ({
+    getInitialData: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_DATA)),
+    isInitialDataLoaded: vi.fn(() => true),
+  })),
+}));
 
 describe("CodeEditorControlBar", () => {
-  beforeEach(() => {
-    vi.mocked(getScriptingService().inputsAvailable).mockReturnValue(
-      Promise.resolve(true),
-    );
-    vi.mocked(getScriptingService().isCodeAssistantEnabled).mockReturnValue(
-      Promise.resolve(true),
-    );
-    vi.mocked(getScriptingService().isCodeAssistantInstalled).mockReturnValue(
-      Promise.resolve(true),
-    );
-    vi.mocked(getScriptingService().sendToService).mockReturnValue(
-      Promise.resolve(null), // Hub Id (not relevant for these tests)
-    );
-  });
-
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
-  it("hides ai button if ai assistant disabled", () => {
-    vi.mocked(getScriptingService().isCodeAssistantEnabled).mockReturnValueOnce(
-      Promise.resolve(false),
-    );
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  it("hides ai button if ai assistant disabled", async () => {
+    vi.mocked(getInitialDataService).mockReturnValue({
+      getInitialData: vi.fn(() =>
+        Promise.resolve({
+          ...DEFAULT_INITIAL_DATA,
+          kAiConfig: {
+            ...DEFAULT_INITIAL_DATA.kAiConfig,
+            codeAssistantEnabled: false,
+          },
+        }),
+      ),
+      isInitialDataLoaded: vi.fn(() => ref(true)),
+    });
+
     const wrapper = mount(CodeEditorControlBar);
+    await flushPromises();
+
     expect(wrapper.findComponent({ ref: "aiButton" }).exists()).toBeFalsy();
   });
 
   it("ai button opens ai bar", async () => {
     const wrapper = mount(CodeEditorControlBar);
     await flushPromises();
+
     const button = wrapper.find(".ai-button");
 
     // aiBar should be turned off at mount
@@ -92,8 +101,14 @@ describe("CodeEditorControlBar", () => {
   });
 
   it("test aiButton is disabled if inputs are not available", async () => {
-    vi.mocked(getScriptingService().inputsAvailable).mockImplementation(() => {
-      return Promise.resolve(false);
+    vi.mocked(getInitialDataService).mockReturnValue({
+      getInitialData: vi.fn(() =>
+        Promise.resolve({
+          ...DEFAULT_INITIAL_DATA,
+          inputsAvailable: false,
+        }),
+      ),
+      isInitialDataLoaded: vi.fn(() => ref(true)),
     });
 
     const wrapper = mount(CodeEditorControlBar);
@@ -103,10 +118,14 @@ describe("CodeEditorControlBar", () => {
     expect(button.props().disabled).toBeTruthy();
   });
 
-  it("test aiButton is enabled even if code assistance is not installed", async () => {
-    vi.mocked(
-      getScriptingService().isCodeAssistantInstalled,
-    ).mockReturnValueOnce(Promise.resolve(false));
+  it("test aiButton is enabled even if code assistant is not installed", async () => {
+    vi.mocked(getInitialDataService().getInitialData).mockResolvedValue({
+      ...DEFAULT_INITIAL_DATA,
+      kAiConfig: {
+        ...DEFAULT_INITIAL_DATA.kAiConfig,
+        codeAssistantInstalled: false,
+      },
+    });
 
     const wrapper = mount(CodeEditorControlBar);
     await flushPromises();

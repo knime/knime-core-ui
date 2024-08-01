@@ -1,33 +1,10 @@
-import { JsonDataService, DialogService } from "@knime/ui-extension-service";
-import type { InputOutputModel } from "./components/InputOutputItem.vue";
+import { JsonDataService } from "@knime/ui-extension-service";
 import { useMainCodeEditorStore } from "./editor";
 import { MonacoLSPConnection } from "./lsp/connection";
 import { KnimeMessageReader, KnimeMessageWriter } from "./lsp/knime-io";
 import { consoleHandler } from "@/consoleHandler";
+import type { PortConfig } from "./initial-data-service";
 
-export type PortViewConfig = {
-  label: string;
-  portViewIdx: number;
-};
-
-export type PortConfig = {
-  /**
-   * null if no node is connected to an input port
-   */
-  nodeId: string | null;
-  portIdx: number;
-  portViewConfigs: PortViewConfig[];
-  portName: string;
-};
-
-export type PortConfigs = {
-  inputPorts: PortConfig[];
-};
-
-export type NodeSettings = {
-  script: string;
-  scriptUsedFlowVariable?: string | null;
-};
 type LanugageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
 
 // --- HELPER CLASSES ---
@@ -124,43 +101,6 @@ class RPCHelper {
   }
 }
 
-class SettingsHelper {
-  // eslint-disable-next-line no-use-before-define
-  private static instance: SettingsHelper;
-  private jsonDataService: Promise<JsonDataService>;
-
-  private constructor() {
-    this.jsonDataService = JsonDataService.getInstance();
-  }
-
-  public async getInitialSettings(): Promise<NodeSettings> {
-    return (await this.jsonDataService).initialData();
-  }
-
-  public async registerApplyListener(
-    settingsGetter: () => NodeSettings,
-  ): Promise<void> {
-    const dialogService = await DialogService.getInstance();
-    dialogService.setApplyListener(async () => {
-      const settings = settingsGetter();
-      try {
-        await (await this.jsonDataService).applyData(settings);
-        return { isApplied: true };
-      } catch (e) {
-        consola.warn("Failed to apply settings", e);
-        return { isApplied: false };
-      }
-    });
-  }
-
-  public static getInstance(): SettingsHelper {
-    if (!SettingsHelper.instance) {
-      SettingsHelper.instance = new SettingsHelper();
-    }
-    return SettingsHelper.instance;
-  }
-}
-
 // --- SCRIPTING SERVICE ---
 
 const scriptingService = {
@@ -192,39 +132,9 @@ const scriptingService = {
     }
   },
 
-  // Code assistant
-  isCodeAssistantEnabled(): Promise<boolean> {
-    return RPCHelper.getInstance().sendToService("isCodeAssistantEnabled");
-  },
-  isCodeAssistantInstalled(): Promise<boolean> {
-    return RPCHelper.getInstance().sendToService("isCodeAssistantInstalled");
-  },
-
-  // Inputs and outputs
-  inputsAvailable(): Promise<boolean> {
-    return RPCHelper.getInstance().sendToService("inputsAvailable");
-  },
-  getFlowVariableInputs(): Promise<InputOutputModel> {
-    return RPCHelper.getInstance().sendToService("getFlowVariableInputs");
-  },
-  getInputObjects(): Promise<InputOutputModel[]> {
-    return RPCHelper.getInstance().sendToService("getInputObjects");
-  },
-  getOutputObjects(): Promise<InputOutputModel[]> {
-    return RPCHelper.getInstance().sendToService("getOutputObjects");
-  },
-  getPortConfigs(): Promise<PortConfigs> {
-    return RPCHelper.getInstance().sendToService("getInputPortConfigs");
-  },
   isCallKnimeUiApiAvailable(portToTestFor: PortConfig) {
     return RPCHelper.getInstance().isCallKnimeUiApiAvailable(portToTestFor);
   },
-
-  // Settings
-  getInitialSettings: () => SettingsHelper.getInstance().getInitialSettings(),
-
-  registerSettingsGetterForApply: (settingsGetter: () => NodeSettings) =>
-    SettingsHelper.getInstance().registerApplyListener(settingsGetter),
 };
 
 export type ScriptingServiceType = typeof scriptingService;
