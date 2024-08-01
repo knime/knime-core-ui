@@ -1,6 +1,11 @@
 import { isControl, rankWith } from "@jsonforms/core";
-import SortListInput from "../uiComponents/SortListInput.vue";
 import { inputFormats, priorityRanks } from "../constants";
+
+import { defineAsyncComponent } from "vue";
+
+const SortListInput = defineAsyncComponent(() =>
+  import("../uiComponents/SortListInput.vue"),
+);
 
 export const sortListTester = (uischema, _schema) =>
   isControl(uischema) && uischema.options?.format === inputFormats.sortList;

@@ -1,6 +1,11 @@
 import { rankWith, isStringControl } from "@jsonforms/core";
 import { priorityRanks, inputFormats } from "../constants";
-import RichTextInput from "../uiComponents/RichTextInput.vue";
+
+import { defineAsyncComponent } from "vue";
+
+const RichTextInput = defineAsyncComponent(() =>
+  import("../uiComponents/RichTextInput.vue"),
+);
 
 export const richTextInputTester = (uischema, _schema) => {
   const isString = isStringControl(uischema, _schema);

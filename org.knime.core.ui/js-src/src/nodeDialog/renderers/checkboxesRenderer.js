@@ -1,6 +1,11 @@
 import { rankWith, isAnyOfControl } from "@jsonforms/core";
-import CheckboxesInput from "../uiComponents/CheckboxesInput.vue";
 import { priorityRanks, inputFormats } from "../constants";
+
+import { defineAsyncComponent } from "vue";
+
+const CheckboxesInput = defineAsyncComponent(() =>
+  import("../uiComponents/CheckboxesInput.vue"),
+);
 
 export const checkboxesTester = (uischema, schema) => {
   const isAnyOf = isAnyOfControl(uischema, schema);

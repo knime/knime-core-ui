@@ -7,7 +7,6 @@ import {
   CreateAlertParams,
   SharedDataService,
 } from "@knime/ui-extension-service";
-import { vanillaRenderers } from "@jsonforms/vue-vanilla";
 import { JsonForms } from "@jsonforms/vue";
 import Form from "./layoutComponents/Form.vue";
 import "../common/main.css";
@@ -39,11 +38,7 @@ import {
 } from "./composables/nodeDialog/useArrayIds";
 import useProvidedFlowVariablesMap from "./composables/components/useProvidedFlowVariablesMap";
 
-const renderers = [
-  ...vanillaRenderers,
-  ...fallbackRenderers,
-  ...defaultRenderers,
-];
+const renderers = [...fallbackRenderers, ...defaultRenderers];
 
 export default {
   components: {

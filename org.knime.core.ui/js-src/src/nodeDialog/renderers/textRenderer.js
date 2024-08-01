@@ -1,6 +1,11 @@
 import { rankWith, isStringControl } from "@jsonforms/core";
 import { priorityRanks } from "../constants";
-import TextInput from "../uiComponents/TextInput.vue";
+
+import { defineAsyncComponent } from "vue";
+
+const TextInput = defineAsyncComponent(() =>
+  import("../uiComponents/TextInput.vue"),
+);
 
 export const textTester = isStringControl;
 

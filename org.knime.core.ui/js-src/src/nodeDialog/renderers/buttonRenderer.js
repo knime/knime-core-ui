@@ -1,6 +1,11 @@
 import { rankWith } from "@jsonforms/core";
 import { priorityRanks, inputFormats } from "../constants";
-import ButtonInput from "../uiComponents/ButtonInput.vue";
+
+import { defineAsyncComponent } from "vue";
+
+const ButtonInput = defineAsyncComponent(() =>
+  import("../uiComponents/ButtonInput.vue"),
+);
 
 export const buttonTester = (uischema, _schema) =>
   uischema.options?.format === inputFormats.button;

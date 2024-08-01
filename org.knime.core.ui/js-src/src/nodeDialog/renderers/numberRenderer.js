@@ -1,6 +1,11 @@
 import { rankWith, isNumberControl } from "@jsonforms/core";
-import NumberInput from "../uiComponents/NumberInput.vue";
 import { priorityRanks, inputFormats } from "../constants";
+
+import { defineAsyncComponent } from "vue";
+
+const NumberInput = defineAsyncComponent(() =>
+  import("../uiComponents/NumberInput.vue"),
+);
 
 export const numberTester = (uischema, schema) => {
   const isNumber = isNumberControl(uischema, schema);

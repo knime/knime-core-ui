@@ -1,6 +1,11 @@
 import { and, hasType, rankWith, schemaMatches } from "@jsonforms/core";
-import ComboBoxInput from "../uiComponents/ComboBoxInput.vue";
 import { inputFormats, priorityRanks } from "@/nodeDialog/constants";
+
+import { defineAsyncComponent } from "vue";
+
+const ComboBoxInput = defineAsyncComponent(() =>
+  import("../uiComponents/ComboBoxInput.vue"),
+);
 
 const isArray = schemaMatches((s) => hasType(s, "array"));
 const hasComboBoxFormat = (uischema, _schema) =>

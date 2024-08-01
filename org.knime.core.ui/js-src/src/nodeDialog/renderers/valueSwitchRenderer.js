@@ -1,6 +1,11 @@
 import { rankWith, isOneOfControl } from "@jsonforms/core";
 import { priorityRanks, inputFormats } from "../constants";
-import ValueSwitchInput from "../uiComponents/ValueSwitchInput.vue";
+
+import { defineAsyncComponent } from "vue";
+
+const ValueSwitchInput = defineAsyncComponent(() =>
+  import("../uiComponents/ValueSwitchInput.vue"),
+);
 
 export const valueSwitchTester = (uischema, schema) => {
   const isOneOf = isOneOfControl(uischema, schema);
