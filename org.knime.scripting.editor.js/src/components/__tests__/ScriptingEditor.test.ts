@@ -1,5 +1,5 @@
 import { flushPromises, mount } from "@vue/test-utils";
-import { onKeyStroke, useElementBounding } from "@vueuse/core";
+import { useElementBounding } from "@vueuse/core";
 import { Pane, type PaneProps, Splitpanes } from "splitpanes";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -11,9 +11,7 @@ import InputOutputPane from "../InputOutputPane.vue";
 import OutputConsole from "../OutputConsole.vue";
 import ScriptingEditor from "../ScriptingEditor.vue";
 import SettingsPage from "../SettingsPage.vue";
-import { useMainCodeEditor } from "@/editor";
 import { consoleHandler } from "@/consoleHandler";
-import { getScriptingService } from "@/scripting-service";
 import { nextTick, ref } from "vue";
 import {
   MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
@@ -21,6 +19,9 @@ import {
 } from "../utils/paneSizes";
 import MainEditorPane from "../MainEditorPane.vue";
 import ScriptingEditorBottomPane from "../ScriptingEditorBottomPane.vue";
+
+import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
+import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
 
 const mocks = vi.hoisted(() => {
   return {
@@ -41,6 +42,21 @@ vi.mock("xterm");
 
 vi.mock("@/scripting-service");
 vi.mock("@/editor");
+
+vi.mock("@/settings-service", () => ({
+  getSettingsService: vi.fn(() => ({
+    getSettings: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_SETTINGS)),
+    areSettingsLoaded: vi.fn(() => true),
+    registerSettingsGetterForApply: vi.fn(() => Promise.resolve()),
+  })),
+}));
+
+vi.mock("@/initial-data-service", () => ({
+  getInitialDataService: vi.fn(() => ({
+    getInitialData: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_DATA)),
+    isInitialDataLoaded: vi.fn(() => true),
+  })),
+}));
 
 describe("ScriptingEditor", () => {
   beforeEach(() => {
@@ -112,16 +128,9 @@ describe("ScriptingEditor", () => {
       expect(wrapper.findComponent(Pane).exists()).toBeTruthy();
     });
 
-    it("displays code editor and passes props", () => {
-      doMount();
-      expect(useMainCodeEditor).toHaveBeenCalledWith({
-        container: expect.anything(),
-        language: "someLanguage",
-        fileName: "myFile.ts",
-      });
-      expect(
-        vi.mocked(useMainCodeEditor).mock.calls[0][0].container.value,
-      ).toBeDefined();
+    it("mounts the main editor pane by default", () => {
+      const { wrapper } = doMount();
+      expect(wrapper.findComponent(MainEditorPane).exists()).toBeTruthy();
     });
 
     it("uses the provided title", () => {
@@ -140,12 +149,6 @@ describe("ScriptingEditor", () => {
       const { wrapper } = doMount();
       expect(wrapper.findComponent(InputOutputPane).exists()).toBeTruthy();
     });
-  });
-
-  it("should register onKeyStroke handler", () => {
-    doMount();
-    expect(onKeyStroke).toHaveBeenCalledWith("z", expect.anything());
-    expect(onKeyStroke).toHaveBeenCalledWith("Escape", expect.anything());
   });
 
   describe("resizing and collapsing", () => {
@@ -411,25 +414,6 @@ describe("ScriptingEditor", () => {
         .find(".test-class")
         .exists(),
     ).toBeTruthy();
-  });
-
-  it("registers default settings getter", () => {
-    doMount();
-    const settingsGetter = (
-      getScriptingService().registerSettingsGetterForApply as any
-    ).mock.calls[0][0];
-    expect(settingsGetter()).toStrictEqual({ script: "myInitialScript" });
-  });
-
-  it("registers settings getter using toSettings prop", () => {
-    const settings = { script: "myScript" };
-    const toSettings = vi.fn().mockReturnValue(settings);
-    doMount({ props: { toSettings } });
-    const settingsGetter = (
-      getScriptingService().registerSettingsGetterForApply as any
-    ).mock.calls[0][0];
-    expect(settingsGetter()).toBe(settings);
-    expect(toSettings).toHaveBeenCalledWith({ script: "myInitialScript" });
   });
 
   it("sets console handler store on console-created", async () => {

@@ -44,161 +44,101 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 16, 2023 (benjamin): created
+ *   Aug 19, 2024 (david): created
  */
 package org.knime.scripting.editor;
 
-import static org.knime.scripting.editor.ScriptingNodeSettings.SCRIPT_CFG_KEY;
-
+import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.data.rpc.json.impl.ObjectMapperUtil;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.VariableSettingsRO;
-import org.knime.core.webui.node.dialog.VariableSettingsWO;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.type.MapType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 
 /**
- * A {@link NodeSettingsService} implementation for scripting editor dialogs.
- * <ul>
- * <li>Provides the setting "script" to the dialog</li>
- * <li>Provides the name of the variable used for the "script" setting to the dialog (if configured)</li>
- * <li>Saves the setting "script" to the {@link NodeSettingsWO} on apply</li>
- * </ul>
+ * A generic specialisation of {@link NodeSettingsService} for scripting nodes. Relies upon a
+ * {@link GenericSettingsIOManager} to save and load the settings, and a {@link GenericInitialDataBuilder} to provide
+ * the initial data.
  *
- * To be used together with {@link ScriptingNodeSettings}.
- *
- * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-@SuppressWarnings("restriction") // NodeSettingsService is no yet public API
-public class ScriptingNodeSettingsService implements NodeSettingsService {
+@SuppressWarnings("restriction")
+public final class ScriptingNodeSettingsService implements NodeSettingsService {
 
-    private static final String SCRIPT_JSON_KEY = "script";
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private static final String SCRIPT_USED_FLOW_VAR_JSON_KEY = "scriptUsedFlowVariable";
+    private static final MapType JACKSON_HASHMAP_TYPE =
+        TypeFactory.defaultInstance().constructMapType(HashMap.class, String.class, Object.class);
 
-    private static final ObjectMapper OBJECT_MAPPER = ObjectMapperUtil.getInstance().getObjectMapper();
+    private final Supplier<GenericSettingsIOManager> m_settingsIOManagerSupplier;
 
-    private final SettingsType m_scriptSettingsType;
-
-    /**
-     * @param scriptSettingsType the type of settings to use for the user script
-     */
-    public ScriptingNodeSettingsService(final SettingsType scriptSettingsType) {
-        m_scriptSettingsType = scriptSettingsType;
-    }
+    private final GenericInitialDataBuilder m_initialDataSupplier;
 
     /**
-     * Override this method to load additional settings when loading settings for the dialog. Read them from the
-     * settings objects and write them to the JSON object.
-     *
-     * @param settings the settings to read from. Forwarded from
-     *            {@link NodeSettingsService#fromNodeSettings(Map, PortObjectSpec[])}.
-     * @param specs the specs. Forwarded from {@link NodeSettingsService#fromNodeSettings(Map, PortObjectSpec[])}.
-     * @param settingsJson a JSON object to write to. This object will be sent to the dialog.
+     * @param settingsIOManagerSupplier supplier that provides an implementation of {@link GenericSettingsIOManager}. It
+     *            will be called multiple times and should ideally return a clean new instance each time.
+     * @param initialDataBuilder supplier that provides the initial data for the node.
      */
-    protected void putAdditionalSettingsToJson(final Map<SettingsType, NodeAndVariableSettingsRO> settings,
-        final PortObjectSpec[] specs, final ObjectNode settingsJson) {
-        // Nothing to do in the default implementation
-    }
-
-    /**
-     * Override this method to save additional settings when applying dialog settings. Read them from the JSON object
-     * and write them to the settings objects.
-     *
-     * @param settingsJson a JSON object to read from. This object was provided by the dialog.
-     * @param settings the settings to write to. Forwarded from {@link NodeSettingsService#toNodeSettings}.
-     *
-     */
-    protected void addAdditionalSettingsToNodeSettings(final ObjectNode settingsJson,
-        final Map<SettingsType, ? extends NodeSettingsWO> settings) {
-        // Nothing to do in the default implementation
-    }
-
-    /**
-     * Override this method to set specific variable settings. The default implementation copies the variable settings
-     * from the previous settings. Make sure to call {@link #copyScriptVariableSetting} to copy the used and exposed
-     * variables for the script configuration.
-     *
-     * @param settingsJson a JSON object to read from. This object was provided by the dialog.
-     * @param previousSettings the previous settings
-     * @param settings the settings to write to. Forwarded from {@link NodeSettingsService#toNodeSettings}.
-     */
-    protected void setVariableSettings(final ObjectNode settingsJson,
-        final Map<SettingsType, ? extends VariableSettingsRO> previousSettings,
-        final Map<SettingsType, ? extends VariableSettingsWO> settings) {
-        for (var settingsType : settings.keySet()) {
-            SettingsServiceUtils.copyVariableSettings(previousSettings.get(settingsType), settings.get(settingsType));
-        }
+    public ScriptingNodeSettingsService( //
+        final Supplier<GenericSettingsIOManager> settingsIOManagerSupplier, //
+        final GenericInitialDataBuilder initialDataBuilder //
+    ) {
+        m_settingsIOManagerSupplier = settingsIOManagerSupplier;
+        m_initialDataSupplier = initialDataBuilder;
     }
 
     @Override
-    public final String fromNodeSettings(final Map<SettingsType, NodeAndVariableSettingsRO> settings,
+    public String fromNodeSettings(final Map<SettingsType, NodeAndVariableSettingsRO> settings,
         final PortObjectSpec[] specs) {
+
         try {
-            var settingsForScript = settings.get(m_scriptSettingsType);
-            var script = settingsForScript.getString(SCRIPT_CFG_KEY);
+            var rootNode = MAPPER.createObjectNode();
 
-            String scriptUsedFlowVariable = null;
-            if (settingsForScript.isVariableSetting(SCRIPT_CFG_KEY)) {
-                scriptUsedFlowVariable = settingsForScript.getUsedVariable(SCRIPT_CFG_KEY);
-            }
+            rootNode.set("initialData", MAPPER.valueToTree(m_initialDataSupplier.toMap()));
+            rootNode.set("settings",
+                MAPPER.valueToTree(m_settingsIOManagerSupplier.get().convertNodeSettingsToMap(settings)));
 
-            // Construct the JSON output
-            var settingsJson = OBJECT_MAPPER.createObjectNode() //
-                .put(SCRIPT_JSON_KEY, script) //
-                .put(SCRIPT_USED_FLOW_VAR_JSON_KEY, scriptUsedFlowVariable);
-            putAdditionalSettingsToJson(settings, specs, settingsJson);
+            return rootNode.toString();
 
-            return settingsJson.toString();
-        } catch (InvalidSettingsException e) {
-            // IllegalSettings: Should not happen because we do not save invalid settings
-            throw new IllegalStateException(e);
+        } catch (InvalidSettingsException ex) {
+            NodeLogger.getLogger(getClass()).error(ex);
+            throw new IllegalStateException("Failed to convert node settings to map: " + ex.getMessage(), ex);
+        } catch (Exception ex) { // NOSONAR
+            NodeLogger.getLogger(getClass()).error(ex);
+            throw new IllegalStateException("Failed to convert initial data to map: " + ex.getMessage(), ex);
         }
     }
 
     @Override
-    public final void toNodeSettings(final String textSettings,
+    public void toNodeSettings(final String textSettings,
         final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
         final Map<SettingsType, NodeAndVariableSettingsWO> settings) {
-        try {
-            var settingsJson = (ObjectNode)OBJECT_MAPPER.readTree(textSettings);
-            var script = settingsJson.get(SCRIPT_JSON_KEY).asText();
-            settings.get(m_scriptSettingsType).addString(SCRIPT_CFG_KEY, script);
-            addAdditionalSettingsToNodeSettings(settingsJson, settings);
-            setVariableSettings(settingsJson, previousSettings, settings);
-        } catch (JsonProcessingException e) {
-            // Should not happen because the frontend gives a correct JSON settings
-            throw new IllegalStateException(e);
-        }
-    }
 
-    /**
-     * Utility to copy the variable setting for the script configuration to from the previous settings to the new
-     * settings.
-     *
-     * @param previousSettings the previous settings
-     * @param settings the new settings
-     */
-    protected void copyScriptVariableSetting(final Map<SettingsType, ? extends VariableSettingsRO> previousSettings,
-        final Map<SettingsType, ? extends VariableSettingsWO> settings) {
         try {
-            var from = previousSettings.get(m_scriptSettingsType);
-            if (from.isVariableSetting(SCRIPT_JSON_KEY)) {
-                SettingsServiceUtils.copyVariableSetting(from, settings.get(m_scriptSettingsType), SCRIPT_CFG_KEY);
+            Map<String, Object> settingsFromText = MAPPER.readValue(textSettings, JACKSON_HASHMAP_TYPE);
+
+            m_settingsIOManagerSupplier.get().writeMapToNodeSettings(settingsFromText, settings);
+
+            // Copy over settings that are exposed as flow variables, or overridden by flow variables
+            for (var settingType : settings.keySet()) {
+                SettingsServiceUtils.copyVariableSettings(previousSettings.get(settingType), settings.get(settingType));
             }
-        } catch (InvalidSettingsException e) {
-            // should never happen
-            throw new IllegalStateException(e);
+        } catch (InvalidSettingsException ex) {
+            throw new IllegalStateException(
+                "Implementation error: Failed to write settings map to node settings: " + ex.getMessage(), ex);
+        } catch (JsonProcessingException ex) {
+            throw new IllegalStateException("Implementation error: Failed to parse text settings: " + ex.getMessage(),
+                ex);
         }
     }
 }

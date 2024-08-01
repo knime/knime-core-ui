@@ -72,7 +72,7 @@ public class WorkflowControl {
 
     private final NodeContainer m_nc;
 
-    WorkflowControl(final NodeContainer nc) {
+    public WorkflowControl(final NodeContainer nc) {
         m_nc = nc;
     }
 

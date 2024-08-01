@@ -1,29 +1,6 @@
 import { sleep } from "@knime/utils";
-import type { InputOutputModel } from "./components/InputOutputItem.vue";
-import type { NodeSettings, ScriptingServiceType } from "./scripting-service";
+import type { ScriptingServiceType } from "./scripting-service";
 
-const DEFAULT_PORT_CONFIGS = {
-  inputPorts: [
-    {
-      nodeId: "root",
-      portName: "firstPort",
-      portIdx: 1,
-      portViewConfigs: [
-        { portViewIdx: 0, label: "firstView" },
-        { portViewIdx: 1, label: "secondView" },
-      ],
-    },
-    {
-      nodeId: "notRoot",
-      portName: "firstPort",
-      portIdx: 1,
-      portViewConfigs: [
-        { portViewIdx: 0, label: "firstView" },
-        { portViewIdx: 1, label: "secondView" },
-      ],
-    },
-  ],
-};
 const SLEEP_TIME_ANY_CALL = 100;
 const SLEEP_TIME_AI_SUGGESTION = 2000;
 
@@ -45,69 +22,11 @@ const error = (message: any, ...args: any[]) => {
   }
 };
 
-export const DEFAULT_INPUT_OBJECTS: InputOutputModel[] = [
-  {
-    name: "Input table 1",
-    portType: "table",
-    subItems: [
-      {
-        name: "Column 1",
-        type: "Number",
-        supported: true,
-      },
-      {
-        name: "Column 2",
-        type: "String",
-        supported: true,
-      },
-      {
-        name: "Column 3",
-        type: "Bit Vector",
-        supported: false,
-      },
-    ],
-  },
-];
-
-export const DEFAULT_OUTPUT_OBJECTS: InputOutputModel[] = [
-  {
-    name: "Output table 1",
-    portType: "table",
-  },
-];
-
-export const DEFAULT_FLOW_VARIABLE_INPUTS: InputOutputModel = {
-  name: "Flow Variables",
-  portType: "flowVariable",
-  subItems: [
-    {
-      name: "flowVar1",
-      type: "Number",
-      supported: true,
-    },
-    {
-      name: "flowVar2",
-      type: "String",
-      supported: true,
-    },
-    {
-      name: "flowVar3",
-      type: "Something",
-      supported: false,
-    },
-  ],
-};
-
 export type ScriptingServiceMockOptions = {
   sendToServiceMockResponses?: Record<
     string,
     (options?: any[]) => Promise<any>
   >;
-  initialSettings?: NodeSettings;
-  inputsAvailable?: boolean;
-  inputObjects?: InputOutputModel[];
-  outputObjects?: InputOutputModel[];
-  flowVariableInputs?: InputOutputModel;
 };
 
 export const createScriptingServiceMock = (
@@ -116,9 +35,10 @@ export const createScriptingServiceMock = (
   eventHandlers: Map<string, (args: any) => void>;
 } => {
   const eventHandlers = new Map<string, (args: any) => void>();
-  const sendToServiceMockResponses = {
-    getHubId: () => Promise.resolve("My Mocked KNIME Hub"),
-    isLoggedIn: () => Promise.resolve(true),
+  const sendToServiceMockResponses: Record<
+    string,
+    (options?: any[]) => Promise<any>
+  > = {
     suggestCode: async () => {
       await sleep(SLEEP_TIME_AI_SUGGESTION);
       const fn = eventHandlers.get("codeSuggestion");
@@ -131,12 +51,14 @@ export const createScriptingServiceMock = (
       return {};
     },
     abortSuggestCodeRequest: () => Promise.resolve(),
-  } as Record<string, (options?: any[]) => Promise<any>>;
+  };
 
   return {
     async sendToService(methodName: string, options?: any[]) {
       log(`Called scriptingService.sendToService("${methodName}")`, options);
+
       await sleep(SLEEP_TIME_ANY_CALL);
+
       if (
         opt.sendToServiceMockResponses &&
         methodName in opt.sendToServiceMockResponses
@@ -157,50 +79,8 @@ export const createScriptingServiceMock = (
     },
 
     // Settings and dialog window
-    getInitialSettings() {
-      log("Called scriptingService.getInitialSettings");
-      return Promise.resolve(opt.initialSettings ?? { script: "Hello world" });
-    },
-    registerSettingsGetterForApply() {
-      log("Called scriptingService.registerSettingsGetterForApply");
-      return Promise.resolve();
-    },
-
-    // Input and output objects
-    inputsAvailable() {
-      log("Called scriptingService.inputsAvailable");
-      return Promise.resolve(opt.inputsAvailable ?? true);
-    },
-    getInputObjects() {
-      log("Called scriptingService.getInputObjects");
-      return Promise.resolve(opt.inputObjects ?? DEFAULT_INPUT_OBJECTS);
-    },
-    getOutputObjects() {
-      log("Called scriptingService.getOutputObjects");
-      return Promise.resolve(opt.outputObjects ?? DEFAULT_OUTPUT_OBJECTS);
-    },
-    getFlowVariableInputs() {
-      log("Called scriptingService.getFlowVariableInputs");
-      return Promise.resolve(
-        opt.flowVariableInputs ?? DEFAULT_FLOW_VARIABLE_INPUTS,
-      );
-    },
-    getPortConfigs() {
-      log("Called scriptingService.getPortConfigs");
-      return Promise.resolve(DEFAULT_PORT_CONFIGS);
-    },
     isCallKnimeUiApiAvailable() {
       log("Called scriptingService.isCallKnimeUiApiAvailable");
-      return Promise.resolve(true);
-    },
-
-    // Code assistant
-    isCodeAssistantInstalled() {
-      log("Called scriptingService.isCodeAssistantInstalled");
-      return Promise.resolve(true);
-    },
-    isCodeAssistantEnabled() {
-      log("Called scriptingService.isCodeAssistantEnabled");
       return Promise.resolve(true);
     },
 

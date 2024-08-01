@@ -49,10 +49,7 @@
 package org.knime.scripting.editor;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -82,11 +79,6 @@ public abstract class ScriptingService {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(ScriptingService.class);
 
-    private static final String AI_ASSISTANT_FEATURE_FLAG = "org.knime.ui.feature.ai_assistant";
-
-    private static final boolean AI_ASSISTANT_FEATURE_ENABLED =
-        System.getProperty(AI_ASSISTANT_FEATURE_FLAG) == null || Boolean.getBoolean(AI_ASSISTANT_FEATURE_FLAG);
-
     private final LanguageServerStarter m_languageServerCreator;
 
     // TODO(AP-19341) Replace the event queue with Java->JS events
@@ -94,14 +86,17 @@ public abstract class ScriptingService {
 
     private final Optional<WorkflowControl> m_workflowControl;
 
+    /**
+     * Filter that determines which flow variables are supported by this node (and hence which are shown in the dialog).
+     */
+    protected final Predicate<VariableType<?>> m_flowVariableFilter;
+
     private Optional<LanguageServerProxy> m_languageServer;
 
     // is shutdown onDeactivate
     private ExecutorService m_executorService;
 
     private Future<?> m_lastCodeSuggestion;
-
-    private final Predicate<VariableType<?>> m_flowVariableFilter;
 
     /**
      * Create a new {@link ScriptingService} without a language server.
@@ -128,27 +123,6 @@ public abstract class ScriptingService {
             .map(WorkflowControl::new);
 
         m_flowVariableFilter = flowVariableFilter;
-    }
-
-    /**
-     * @return all available flow variables
-     */
-    public Collection<FlowVariable> getAllFlowVariables() {
-        var flowObjectStack = getWorkflowControl().getFlowObjectStack();
-
-        if (flowObjectStack == null) {
-            return new ArrayList<>();
-        }
-
-        var flowVars = flowObjectStack.getAllAvailableFlowVariables().values();
-        return Collections.unmodifiableCollection(flowVars);
-    }
-
-    /**
-     * @return available flow variables that match the flow variable filter
-     */
-    public Collection<FlowVariable> getSupportedFlowVariables() {
-        return getAllFlowVariables().stream().filter(v -> m_flowVariableFilter.test(v.getVariableType())).toList();
     }
 
     /**
@@ -225,43 +199,6 @@ public abstract class ScriptingService {
         private static final String CODE_SUGGESTION_EVENT = "codeSuggestion";
 
         /**
-         * @return information about the flow variables, all available flow variables are listed as subitems in the
-         *         {@link InputOutputModel }
-         */
-        public abstract InputOutputModel getFlowVariableInputs();
-
-        /**
-         * @return Information about all input ports. Each port is returned as an {@link InputOutputModel }.
-         */
-        public abstract List<InputOutputModel> getInputObjects();
-
-        /**
-         * @return Information about all output ports. Each port is returned as an {@link InputOutputModel }.
-         */
-        public abstract List<InputOutputModel> getOutputObjects();
-
-        /**
-         * @return True if all inputs are connected and the upstream nodes are executed.
-         */
-        public boolean inputsAvailable() {
-            var inputPortObjects = getWorkflowControl().getInputData();
-
-            for (var po : inputPortObjects) {
-                if (po == null) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        /**
-         * @return input/output port configurations
-         */
-        public PortConfigs getInputPortConfigs() {
-            return new PortConfigs(NodeContext.getContext().getNodeContainer());
-        }
-
-        /**
          * Remove the next event for the frontend and return it.
          *
          * @return the next event for the frontend
@@ -310,27 +247,6 @@ public abstract class ScriptingService {
         }
 
         /**
-         * @return True if AI supported code generation is not disabled via the feature flag
-         */
-        public final boolean isCodeAssistantEnabled() {
-            return AI_ASSISTANT_FEATURE_ENABLED;
-        }
-
-        /**
-         * @return True if AI supported code generation is installed
-         */
-        public final boolean isCodeAssistantInstalled() {
-            return AI_ASSISTANT_FEATURE_ENABLED && HubConnection.INSTANCE.isAvailable();
-        }
-
-        /**
-         * @return the ID of the connected Hub
-         */
-        public final String getHubId() {
-            return HubConnection.INSTANCE.isAvailable() ? HubConnection.INSTANCE.getHubId() : null;
-        }
-
-        /**
          * Log in to the currently selected Hub end point
          *
          * The login status will be sent to JS as event with identifier "hubLogin".
@@ -340,13 +256,6 @@ public abstract class ScriptingService {
                 boolean status = HubConnection.INSTANCE.loginToHub();
                 sendEvent("hubLogin", status);
             }).start();
-        }
-
-        /**
-         * @return true if the user is logged in to the currently selected Hub end point
-         */
-        public boolean isLoggedIn() {
-            return HubConnection.INSTANCE.isLoggedIn();
         }
 
         /**
@@ -397,6 +306,16 @@ public abstract class ScriptingService {
                     "Code suggestion request was cancelled by user."));
                 m_lastCodeSuggestion = null;
             }
+        }
+
+        /**
+         * Get a collection of all supported flow variables supported by this scripting node.
+         *
+         * @return a collection of all supported flow variables
+         */
+        public Collection<FlowVariable> getSupportedFlowVariables() {
+            return getWorkflowControl().getFlowObjectStack().getAllAvailableFlowVariables().values().stream()
+                .filter(v -> m_flowVariableFilter.test(v.getVariableType())).toList();
         }
     }
 

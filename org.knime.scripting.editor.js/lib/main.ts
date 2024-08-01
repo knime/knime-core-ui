@@ -26,7 +26,6 @@ import { useReadonlyStore } from "@/store/readOnly";
 import { consoleHandler } from "@/consoleHandler";
 import {
   getScriptingService,
-  type NodeSettings,
   type ScriptingServiceType,
 } from "@/scripting-service";
 import { setActiveEditorStoreForAi } from "@/store/ai-bar";
@@ -35,33 +34,50 @@ import {
   type InsertionEvent,
 } from "@/components/utils/insertionEventHelper";
 import OutputTablePreview from "@/components/OutputTablePreview.vue";
+import {
+  getInitialDataService,
+  type InitialDataServiceType,
+  type GenericInitialData,
+  type KAIConfig,
+  type PortConfigs,
+} from "@/initial-data-service";
+import {
+  type GenericNodeSettings,
+  getSettingsService,
+} from "@/settings-service";
 
 export {
+  COLUMN_INSERTION_EVENT,
   CompactTabBar,
   consoleHandler,
   editor,
+  getInitialDataService,
   getScriptingService,
+  getSettingsService,
+  insertionEventHelper,
+  MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
+  MIN_WIDTH_FOR_DISPLAYING_PANES,
   OutputConsole,
   OutputTablePreview,
   ScriptingEditor,
-  useShouldFocusBePainted,
   setActiveEditorStoreForAi,
+  useShouldFocusBePainted,
   useReadonlyStore,
-  MIN_WIDTH_FOR_DISPLAYING_PANES,
-  MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
-  COLUMN_INSERTION_EVENT,
-  insertionEventHelper,
 };
 export type {
   ConsoleHandler,
   ConsoleText,
-  NodeSettings,
+  GenericInitialData,
+  GenericNodeSettings,
+  InitialDataServiceType,
   InputOutputModel,
+  InsertionEvent,
+  KAIConfig,
+  PortConfigs,
   ScriptingServiceType,
   SettingsMenuItem,
   UseCodeEditorParams,
   UseCodeEditorReturn,
   UseDiffEditorParams,
   UseDiffEditorReturn,
-  InsertionEvent,
 };

@@ -4,7 +4,6 @@ import { computed, ref, useSlots } from "vue";
 import { Pane, Splitpanes } from "splitpanes";
 import "splitpanes/dist/splitpanes.css";
 import type { MenuItem } from "@knime/components";
-import { type NodeSettings } from "@/scripting-service";
 import HeaderBar from "./HeaderBar.vue";
 import InputOutputPane from "./InputOutputPane.vue";
 import type { SettingsMenuItem } from "./SettingsPage.vue";
@@ -14,6 +13,7 @@ import { type PaneSizes } from "@/components/utils/paneSizes";
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 import { useResizeLogic } from "@/components/utils/resizeLogic";
 import ScriptingEditorBottomPane from "./ScriptingEditorBottomPane.vue";
+import { type GenericNodeSettings } from "@/settings-service";
 
 const commonMenuItems: MenuItem[] = [
   // TODO: add actual common menu items
@@ -34,7 +34,7 @@ interface Props {
   showControlBar?: boolean;
   initialPaneSizes?: PaneSizes;
   rightPaneMinimumWidthInPixel?: number;
-  toSettings?: (settings: NodeSettings) => NodeSettings;
+  toSettings?: (settings: GenericNodeSettings) => GenericNodeSettings;
   additionalBottomPaneTabContent?: TabItem[];
 }
 
@@ -50,8 +50,8 @@ const props = withDefaults(defineProps<Props>(), {
     bottom: 30,
   }),
   rightPaneMinimumWidthInPixel: () => 0,
-  toSettings: (settings: NodeSettings) => settings,
   additionalBottomPaneTabContent: () => [] as TabItem[],
+  toSettings: (settings: GenericNodeSettings) => settings,
 });
 
 const isRightPaneCollapsable = computed(

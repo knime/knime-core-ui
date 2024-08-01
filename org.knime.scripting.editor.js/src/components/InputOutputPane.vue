@@ -4,7 +4,7 @@ import InputOutputItem, {
   INPUT_OUTPUT_DRAG_EVENT_ID,
   type InputOutputModel,
 } from "./InputOutputItem.vue";
-import { getScriptingService } from "@/scripting-service";
+import { getInitialDataService } from "@/initial-data-service";
 import { useInputOutputSelectionStore } from "@/store/io-selection";
 import { useMainCodeEditorStore } from "@/editor";
 import useShouldFocusBePainted from "./utils/shouldFocusBePainted";
@@ -25,19 +25,15 @@ const inputOutputSelectionStore = useInputOutputSelectionStore();
 const selectedItemIndex = ref<number>(0);
 const selectableItems = ref<(typeof InputOutputItem)[]>();
 
-const fetchInputOutputObjects = async (
-  method: "getInputObjects" | "getOutputObjects",
-) => {
-  const items = await getScriptingService()[method]();
-  if (items) {
-    inputOutputItems.value.push(...items);
-  }
-};
+const fetchInitialData = async () => {
+  const initialData = await getInitialDataService().getInitialData();
+  inputOutputItems.value = [
+    ...initialData.inputObjects,
+    initialData.flowVariables,
+  ];
 
-const fetchFlowVariables = async () => {
-  const item = await getScriptingService().getFlowVariableInputs();
-  if (item) {
-    inputOutputItems.value.push(item);
+  if (initialData.outputObjects) {
+    inputOutputItems.value.push(...initialData.outputObjects);
   }
 };
 
@@ -94,9 +90,7 @@ const dropEventHandler = (event: DragEvent) => {
 };
 
 onMounted(async () => {
-  await fetchInputOutputObjects("getInputObjects");
-  await fetchFlowVariables();
-  await fetchInputOutputObjects("getOutputObjects");
+  await fetchInitialData();
   emit("drop-event-handler-created", dropEventHandler);
 });
 

@@ -82,7 +82,9 @@
   "module": "./dist/main.js",
   "exports": {
     ".": "./dist/main.js",
-    "./scripting-service-browser-mock": "./dist/scripting-service-browser-mock.js"
+    "./scripting-service-browser-mock": "./dist/scripting-service-browser-mock.js",
+    "./settings-service-browser-mock": "./dist/settings-service-browser-mock.js",
+    "./initial-data-service-browser-mock": "./dist/initial-data-service-browser-mock.js"
   },
   "engines": {
     "node": "20.x"

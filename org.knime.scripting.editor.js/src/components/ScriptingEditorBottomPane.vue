@@ -12,10 +12,13 @@ import { FunctionButton } from "@knime/components";
 import {
   initConsoleEventHandler,
   getScriptingService,
-  type PortConfig,
-  type PortConfigs,
 } from "@/scripting-service";
 import InputPortTables from "./InputPortTables.vue";
+import {
+  getInitialDataService,
+  type PortConfig,
+  type PortConfigs,
+} from "@/initial-data-service";
 
 const paintFocus = useShouldFocusBePainted();
 
@@ -52,8 +55,8 @@ const makeGrabFocusFunction = (tabValue: string) => {
 const portConfigs: Ref<PortConfigs> = computedAsync(
   async () => {
     const inputPorts = (
-      await getScriptingService().getPortConfigs()
-    ).inputPorts.filter((port) => port.nodeId !== null);
+      await getInitialDataService().getInitialData()
+    ).inputPortConfigs.inputPorts.filter((port) => port.nodeId !== null);
 
     if (
       !(await getScriptingService().isCallKnimeUiApiAvailable(inputPorts[0]))

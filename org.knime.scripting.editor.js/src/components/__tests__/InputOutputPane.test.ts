@@ -1,7 +1,6 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
 import InputOutputPane from "../InputOutputPane.vue";
-import { scriptingServiceMock } from "@/__mocks__/scripting-service";
 import {} from "node:test";
 import InputOutputItem, {
   INPUT_OUTPUT_DRAG_EVENT_ID,
@@ -13,10 +12,26 @@ import {
 } from "../../store/io-selection";
 import { useMainCodeEditorStore } from "@/editor";
 import { nextTick } from "vue";
+import { getInitialDataService } from "@/initial-data-service";
+import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
+import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
 
 vi.mock("monaco-editor");
 vi.mock("@/scripting-service");
 vi.mock("@/editor");
+vi.mock("@/initial-data-service", () => ({
+  getInitialDataService: vi.fn(() => ({
+    getInitialData: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_DATA)),
+    isInitialDataLoaded: vi.fn(() => true),
+  })),
+}));
+vi.mock("@/settings-service", () => ({
+  getSettingsService: vi.fn(() => ({
+    registerSettingsGetterForApply: vi.fn(() => Promise.resolve()),
+    areSettingsLoaded: vi.fn(() => true),
+    getSettings: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_SETTINGS)),
+  })),
+}));
 
 describe("InputOutputPane", () => {
   afterEach(() => {
@@ -26,56 +41,32 @@ describe("InputOutputPane", () => {
   it("fetches input/output objects", async () => {
     mount(InputOutputPane);
     await flushPromises();
-    expect(scriptingServiceMock.getInputObjects).toHaveBeenCalledOnce();
-    expect(scriptingServiceMock.getOutputObjects).toHaveBeenCalledOnce();
-    expect(scriptingServiceMock.getFlowVariableInputs).toHaveBeenCalledOnce();
+    expect(getInitialDataService).toHaveBeenCalledOnce();
   });
 
   it("renders input / output items", async () => {
-    vi.mocked(scriptingServiceMock.getInputObjects).mockImplementation(() =>
-      Promise.resolve([
-        { name: "myInputObject1", type: "myType" },
-        { name: "myInputObject2", type: "myType" },
-      ]),
-    );
-    vi.mocked(scriptingServiceMock.getOutputObjects).mockImplementation(() =>
-      Promise.resolve([{ name: "myOutputObject", type: "myType" }]),
-    );
-    vi.mocked(scriptingServiceMock.getFlowVariableInputs).mockImplementation(
-      () =>
-        Promise.resolve({
-          name: "myFlowVarInp",
-          type: "myType",
-        }),
-    );
     const wrapper = mount(InputOutputPane);
+
+    const numInputObjects = DEFAULT_INITIAL_DATA.inputObjects.length;
+    const numOutputObjects = DEFAULT_INITIAL_DATA.outputObjects!.length;
+    const numFlowVariables = 1;
+
     await flushPromises();
-    const inpOupPanes = wrapper.findAllComponents(InputOutputItem);
-    expect(inpOupPanes.length).toBe(4);
-    expect(inpOupPanes.at(0)!.props()).toEqual({
-      inputOutputItem: {
-        name: "myInputObject1",
-        type: "myType",
-      },
-    });
-    expect(inpOupPanes.at(1)!.props()).toEqual({
-      inputOutputItem: {
-        name: "myInputObject2",
-        type: "myType",
-      },
-    });
-    expect(inpOupPanes.at(2)!.props()).toEqual({
-      inputOutputItem: {
-        name: "myFlowVarInp",
-        type: "myType",
-      },
-    });
-    expect(inpOupPanes.at(3)!.props()).toEqual({
-      inputOutputItem: {
-        name: "myOutputObject",
-        type: "myType",
-      },
-    });
+    const inputOutputItemComponents =
+      wrapper.findAllComponents(InputOutputItem);
+    expect(inputOutputItemComponents.length).toBe(
+      numInputObjects + numOutputObjects + numFlowVariables,
+    );
+    expect(inputOutputItemComponents.at(0)!.props().inputOutputItem).toEqual(
+      DEFAULT_INITIAL_DATA.inputObjects[0],
+    );
+    expect(
+      inputOutputItemComponents.at(numInputObjects)!.props().inputOutputItem,
+    ).toEqual(DEFAULT_INITIAL_DATA.flowVariables);
+    expect(
+      inputOutputItemComponents.at(numFlowVariables + numInputObjects)!.props()
+        .inputOutputItem,
+    ).toEqual(DEFAULT_INITIAL_DATA.outputObjects![0]);
   });
 
   it("does not render input / output items if no data is fetched", async () => {

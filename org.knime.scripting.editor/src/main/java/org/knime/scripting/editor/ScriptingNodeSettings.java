@@ -48,95 +48,95 @@
  */
 package org.knime.scripting.editor;
 
+import java.util.Map;
+import java.util.Optional;
+
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
+import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.SettingsType;
 
 /**
- * Generic scripting settings which only contain the setting "script". The setting can be saved to the
- * {@link SettingsType#MODEL model} settings or {@link SettingsType#VIEW view} settings.
+ * Generic scripting settings. The setting can be saved to the {@link SettingsType#MODEL model} settings or
+ * {@link SettingsType#VIEW view} settings.
  *
- * To be used together with {@link ScriptingNodeSettingsService}.
+ * To be used together with {@link GenericInitialDataBuilder} to build a {@link ScriptingNodeSettingsService}.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
 @SuppressWarnings("restriction") // SettingsType is not yet public API
-public class ScriptingNodeSettings {
+public abstract class ScriptingNodeSettings {
 
-    static final String SCRIPT_CFG_KEY = "script";
-
-    private String m_script;
-
-    private final SettingsType m_scriptSettingsType;
+    protected final SettingsType m_scriptSettingsType;
 
     /**
-     * @param script the initial user script
      * @param scriptSettingsType the type of settings to use for the user script
      */
-    public ScriptingNodeSettings(final String script, final SettingsType scriptSettingsType) {
-        m_script = script;
+    public ScriptingNodeSettings(final SettingsType scriptSettingsType) {
         m_scriptSettingsType = scriptSettingsType;
     }
 
-    /**
-     * @return the script
-     */
-    public String getScript() {
-        return m_script;
+    public void saveSettingsTo(final Map<SettingsType, NodeAndVariableSettingsWO> settings) {
+        saveSettingsTo(settings.get(m_scriptSettingsType));
     }
 
+    public void loadSettingsFrom(final Map<SettingsType, NodeAndVariableSettingsRO> settings)
+        throws InvalidSettingsException {
+
+        loadSettingsFrom(settings.get(m_scriptSettingsType));
+    }
+
+    public void validate(final Map<SettingsType, NodeAndVariableSettingsRO> settings) throws InvalidSettingsException {
+        loadSettingsFrom(settings);
+    }
+
+    public void validate(final NodeSettingsRO settings) throws InvalidSettingsException {
+        loadSettingsFrom(settings);
+    }
+
+    public abstract void saveSettingsTo(final NodeSettingsWO settings);
+
+    public abstract void loadSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException;
+
     /**
-     * Save the {@link SettingsType#MODEL model} settings. Adds the script if it is configured to be saved in the model
-     * settings.
+     * Get the name of the flow variable that is used to override the value of the given key. Returns an empty optional
+     * if no flow variable is used to override the value.
      *
-     * @param settings the model settings
+     * @param settings
+     * @param key
+     * @return an optional containing the name of the overriding flow variable, or empty if there isn't one
      */
-    public void saveModelSettingsTo(final NodeSettingsWO settings) {
-        saveSettingsTo(SettingsType.MODEL, settings);
-    }
+    public static Optional<String> getOverridingFlowVariableName(final NodeAndVariableSettingsRO settings,
+        final String key) {
 
-    /**
-     * Save the {@link SettingsType#VIEW view} settings. Adds the script if it is configured to be saved in the view
-     * settings.
-     *
-     * @param settings the view settings
-     */
-    public void saveViewSettingsTo(final NodeSettingsWO settings) {
-        saveSettingsTo(SettingsType.VIEW, settings);
-    }
-
-    /**
-     * Loads the {@link SettingsType#MODEL model} settings. Loads the script if it is configured to be saved in the
-     * model settings.
-     *
-     * @param settings the model settings
-     * @throws InvalidSettingsException if the "script" key is not available
-     */
-    public void loadModelSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        loadSettings(SettingsType.MODEL, settings);
-    }
-
-    /**
-     * Loads the {@link SettingsType#VIEW view} settings. Loads the script if it is configured to be saved in the view
-     * settings.
-     *
-     * @param settings the view settings
-     * @throws InvalidSettingsException if the "script" key is not available
-     */
-    public void loadViewSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        loadSettings(SettingsType.VIEW, settings);
-    }
-
-    private void saveSettingsTo(final SettingsType type, final NodeSettingsWO settings) {
-        if (m_scriptSettingsType == type) {
-            settings.addString(SCRIPT_CFG_KEY, m_script);
+        try {
+            String overridingFlowVarName = null;
+            if (settings.isVariableSetting(key) && (overridingFlowVarName = settings.getUsedVariable(key)) != null) {
+                return Optional.of(overridingFlowVarName);
+            } else {
+                return Optional.empty();
+            }
+        } catch (InvalidSettingsException ex) {
+            throw new IllegalStateException("Implementation error - failed to query if "
+                + "a flow variable was used for key: " + key + " in the settings.", ex);
         }
     }
 
-    private void loadSettings(final SettingsType type, final NodeSettingsRO settings) throws InvalidSettingsException {
-        if (m_scriptSettingsType == type) {
-            m_script = settings.getString(SCRIPT_CFG_KEY);
+    /**
+     * Check if the value of the given key is overridden by a flow variable.
+     *
+     * @param settings
+     * @param key
+     * @return true if the value of the key is overridden by a flow variable, false otherwise
+     */
+    public static boolean isOverriddenByFlowVariable(final NodeAndVariableSettingsRO settings, final String key) {
+        try {
+            return settings.isVariableSetting(key) && settings.getUsedVariable(key) != null;
+        } catch (InvalidSettingsException ex) {
+            throw new IllegalStateException("Implementation error - failed to query if "
+                + "a flow variable was used for key: " + key + " in the settings.", ex);
         }
     }
 }
