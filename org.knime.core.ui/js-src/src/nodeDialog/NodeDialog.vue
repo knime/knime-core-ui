@@ -329,15 +329,21 @@ export default {
     <div ref="subPanels" />
     <Form>
       <div ref="dialogPopoverTeleportDest" class="popover-container" />
-      <JsonForms
-        v-if="ready"
-        ref="jsonforms"
-        :data="markRaw(currentData)"
-        :schema="schema"
-        :uischema="uischema"
-        :renderers="renderers"
-        @change="onSettingsChanged"
-      />
+      <Suspense>
+        <!-- component with nested async dependencies -->
+        <JsonForms
+          v-if="ready"
+          ref="jsonforms"
+          :data="markRaw(currentData)"
+          :schema="schema"
+          :uischema="uischema"
+          :renderers="renderers"
+          @change="onSettingsChanged"
+        />
+
+        <!-- loading state via #fallback slot -->
+        <template #fallback> Loading... </template>
+      </Suspense>
       <a
         v-if="hasAdvancedOptions()"
         class="advanced-options"
