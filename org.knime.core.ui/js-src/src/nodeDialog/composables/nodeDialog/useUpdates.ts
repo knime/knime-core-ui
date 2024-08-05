@@ -1,5 +1,5 @@
 import { Update, UpdateResult, ValueReference } from "../../types/Update";
-import { cloneDeep, set, get } from "lodash-es";
+import { set, get } from "lodash-es";
 import { composePaths, toDataPath } from "@jsonforms/core";
 import { inject } from "vue";
 import {
@@ -19,7 +19,7 @@ type DialogSettingsObject = DialogSettings & object;
 
 export type TransformSettingsMethod = (
   newSettings: DialogSettingsObject,
-) => Promise<DialogSettingsObject>;
+) => Promise<void>;
 
 /**
  * @returns an array of paths. If there are multiple, all but the first one lead to an array in
@@ -78,20 +78,13 @@ const getToBeAdjustedSegments = (
   };
 };
 
-const copyAndTransform = <T>(
-  settings: DialogSettingsObject,
-  updateSettings: (newSettings: DialogSettingsObject) => T,
-): T => {
-  const newSettings = cloneDeep(settings);
-  return updateSettings(newSettings);
-};
-
 export default ({
   callStateProviderListener,
   registerWatcher,
   registerTrigger,
   updateData,
   sendAlert,
+  publishSettings,
 }: {
   callStateProviderListener: (
     location: { id: string; indexIds?: string[] },
@@ -110,6 +103,7 @@ export default ({
     callback: (indexIds: string[]) => TransformSettingsMethod,
   ) => void;
   sendAlert: (params: CreateAlertParams) => void;
+  publishSettings: () => void;
 }) => {
   const baseService = inject<() => UIExtensionService>("getKnimeService")!();
   const jsonDataService = new JsonDataService(baseService);
@@ -143,29 +137,22 @@ export default ({
             set(settings, lastPathSegment, value);
             updateData(composePaths(path, lastPathSegment), newSettings);
           });
+          publishSettings();
         }
       } else if (id) {
         callStateProviderListener({ id, indexIds }, value);
       }
-      return newSettings;
     };
 
   const resolveUpdateResults = (
     initialUpdates: UpdateResult[],
     currentSettings: DialogSettingsObject,
-  ) => {
-    if (initialUpdates.length === 0) {
-      return currentSettings;
-    }
-    return copyAndTransform(currentSettings, (newSettings) => {
-      initialUpdates
-        .map((updateResult) => resolveUpdateResult(updateResult))
-        .forEach((transform) => {
-          newSettings = transform(newSettings);
-        });
-      return newSettings;
-    });
-  };
+  ) =>
+    initialUpdates
+      .map((updateResult) => resolveUpdateResult(updateResult))
+      .forEach((transform) => {
+        transform(currentSettings);
+      });
 
   const setValueTrigger = (
     scope: string[],
@@ -187,13 +174,10 @@ export default ({
     }
     const transformSettings =
       (indexIds: string[]): TransformSettingsMethod =>
-      (settings) =>
-        copyAndTransform(settings, async (settings) => {
-          const inducedTransformation = await triggerCallback(indexIds)(
-            settings,
-          );
-          return inducedTransformation(settings);
-        });
+      async (settings) => {
+        const inducedTransformation = await triggerCallback(indexIds)(settings);
+        inducedTransformation(settings);
+      };
 
     if (trigger.triggerInitially) {
       return transformSettings([]);
@@ -239,7 +223,7 @@ export default ({
     (indexIds: string[]) =>
     async (
       dependencySettings: DialogSettingsObject,
-    ): Promise<(newSettings: DialogSettingsObject) => DialogSettingsObject> => {
+    ): Promise<(newSettings: DialogSettingsObject) => void> => {
       const indicesBeforeUpdate = resolveToIndices(indexIds);
       if (!indicesAreDefined(indicesBeforeUpdate)) {
         throw Error("Trigger called with wrong ids: No indices found.");
@@ -259,13 +243,9 @@ export default ({
         }
         if (response.state === "SUCCESS") {
           (response.result ?? []).forEach((updateResult: UpdateResult) => {
-            newSettings = resolveUpdateResult(
-              updateResult,
-              indexIds,
-            )(newSettings);
+            resolveUpdateResult(updateResult, indexIds)(newSettings);
           });
         }
-        return newSettings;
       };
     };
 
