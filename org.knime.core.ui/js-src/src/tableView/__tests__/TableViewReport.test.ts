@@ -5,7 +5,7 @@ import TableViewReport from "../TableViewReport.vue";
 import TableViewDisplay from "../TableViewDisplay.vue";
 import flushPromises from "flush-promises";
 import type { DataType } from "../types";
-import { SelectionMode } from "../types/ViewSettings";
+import { SelectionMode, VerticalPaddingMode } from "../types/ViewSettings";
 
 describe("TableViewReport.vue", () => {
   let initialDataMock: {
@@ -47,6 +47,7 @@ describe("TableViewReport.vue", () => {
       settings: {
         enablePagination: true,
         selectionMode: SelectionMode.EDIT,
+        verticalPaddingMode: VerticalPaddingMode.DEFAULT,
       },
     };
     // eslint-disable-next-line no-extra-parens

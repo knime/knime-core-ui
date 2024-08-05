@@ -200,7 +200,9 @@ export default ({
           ? ("dynamic" as const)
           : currentRowHeight.value,
       }),
-      ...(customMode && { rowHeight: getCustomRowHeight({ customRowHeight }) }),
+      ...(customMode && {
+        rowHeight: getCustomRowHeight({ customRowHeight, verticalPaddingMode }),
+      }),
       compactMode,
       enableResizing: enableRowResizing,
     },

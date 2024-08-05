@@ -8,22 +8,27 @@ type RelevantViewSettings = Pick<
   "customRowHeight" | "rowHeightMode" | "verticalPaddingMode"
 >;
 
+const getRowHeightByVerticalPadding = (
+  verticalPaddingMode: VerticalPaddingMode,
+) =>
+  verticalPaddingMode === VerticalPaddingMode.DEFAULT
+    ? constants.DEFAULT_ROW_HEIGHT
+    : constants.COMPACT_ROW_HEIGHT;
+
 export const getCustomRowHeight = ({
   customRowHeight,
-}: Pick<RelevantViewSettings, "customRowHeight">) => {
-  return Math.max(customRowHeight, constants.MIN_ROW_HEIGHT);
+  verticalPaddingMode,
+}: Pick<RelevantViewSettings, "customRowHeight" | "verticalPaddingMode">) => {
+  return Math.max(
+    customRowHeight,
+    getRowHeightByVerticalPadding(verticalPaddingMode),
+  );
 };
 
-export const getInitialRowHeight = (settings: RelevantViewSettings) => {
-  switch (settings.rowHeightMode) {
-    case RowHeightMode.CUSTOM:
-      return getCustomRowHeight(settings);
-    default:
-      return settings.verticalPaddingMode === VerticalPaddingMode.DEFAULT
-        ? constants.DEFAULT_ROW_HEIGHT
-        : constants.COMPACT_ROW_HEIGHT;
-  }
-};
+export const getInitialRowHeight = (settings: RelevantViewSettings) =>
+  settings.rowHeightMode === RowHeightMode.CUSTOM
+    ? getCustomRowHeight(settings)
+    : getRowHeightByVerticalPadding(settings.verticalPaddingMode);
 
 export default () => {
   const currentRowHeight = ref(constants.DEFAULT_ROW_HEIGHT);

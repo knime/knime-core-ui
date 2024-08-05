@@ -12,7 +12,7 @@ type RelevantViewSettings = Pick<
   TableViewViewSettings,
   "autoSizeColumnsToContent" | "rowHeightMode"
 >;
-export interface UseAutoColumnSizesOptions {
+export interface UseAutoSizesOptions {
   settings: Ref<RelevantViewSettings>;
   firstRowImageDimensions: Ref<
     TableViewDisplayProps["firstRowImageDimensions"]
@@ -26,7 +26,7 @@ export default ({
   firstRowImageDimensions,
   currentRowHeight,
   enableDynamicRowHeight,
-}: UseAutoColumnSizesOptions) => {
+}: UseAutoSizesOptions) => {
   const autoColumnSizes: Ref<ColumnSizes> = ref({});
 
   /**

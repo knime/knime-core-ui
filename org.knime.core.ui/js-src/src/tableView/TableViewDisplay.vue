@@ -11,7 +11,7 @@ import MultiLineTextRenderer from "./renderers/MultiLineTextRenderer.vue";
 import getDataConfig from "./utils/getDataConfig";
 import getTableConfig from "./utils/getTableConfig";
 import useColumnSizes from "./composables/useColumnSizes";
-import useAutoColumnSizes from "./composables/useAutoColumnSizes";
+import useAutoSizes from "./composables/useAutoSizes";
 import type { HeaderMenuItem, TableViewDisplayProps } from "./types";
 import useBoolean from "./utils/useBoolean";
 import { separateSpecialColumns } from "./utils/specialColumns";
@@ -115,7 +115,7 @@ const {
   autoColumnSizesOptions,
   autoRowHeightOptions,
   onAutoColumnSizesUpdate,
-} = useAutoColumnSizes({
+} = useAutoSizes({
   settings,
   firstRowImageDimensions,
   currentRowHeight,

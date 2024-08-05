@@ -9,8 +9,12 @@ import specialColumns from "../utils/specialColumns";
 import TableViewDisplay from "../TableViewDisplay.vue";
 import { ref, unref } from "vue";
 import useColumnSizes from "../composables/useColumnSizes";
-import useAutoColumnSizes from "../composables/useAutoColumnSizes";
-import { RowHeightMode, SelectionMode } from "../types/ViewSettings";
+import useAutoSizes from "../composables/useAutoSizes";
+import {
+  RowHeightMode,
+  SelectionMode,
+  VerticalPaddingMode,
+} from "../types/ViewSettings";
 import LoadingIcon from "webapps-common/ui/components/LoadingIcon.vue";
 
 const useColumnSizesMock: { [key: string]: any } = {
@@ -23,7 +27,7 @@ vi.mock("../composables/useColumnSizes", () => ({
   default: vi.fn(() => useColumnSizesMock),
 }));
 
-const useAutoColumnSizesMock: { [key: string]: any } = {
+const useAutoSizesMock: { [key: string]: any } = {
   autoColumnSizes: { col1: 55 },
   autoColumnSizesActive: true,
   autoColumnSizesOptions: {
@@ -33,8 +37,8 @@ const useAutoColumnSizesMock: { [key: string]: any } = {
   },
   onAutoColumnSizesUpdate: vi.fn(),
 };
-vi.mock("../composables/useAutoColumnSizes", () => ({
-  default: vi.fn(() => useAutoColumnSizesMock),
+vi.mock("../composables/useAutoSizes", () => ({
+  default: vi.fn(() => useAutoSizesMock),
 }));
 
 describe("TableViewDisplay.vue", () => {
@@ -320,13 +324,13 @@ describe("TableViewDisplay.vue", () => {
 
         it("sets minimal row config", () => {
           const wrapper = shallowMountDisplay({ props });
-          expect(getRowConfig(wrapper)?.rowHeight).toBeFalsy();
+          expect(getRowConfig(wrapper)?.rowHeight).toBe(50);
           expect(getRowConfig(wrapper)?.compactMode).toBeFalsy();
           expect(getRowConfig(wrapper)?.enableResizing).toBeFalsy();
         });
 
-        it("sets compact row height", () => {
-          props.settings.rowHeightMode = RowHeightMode.COMPACT;
+        it("sets compact mode", () => {
+          props.settings.verticalPaddingMode = VerticalPaddingMode.COMPACT;
           const wrapper = shallowMountDisplay({ props });
           expect(getRowConfig(wrapper)?.compactMode).toBeTruthy();
         });
@@ -342,7 +346,7 @@ describe("TableViewDisplay.vue", () => {
         });
 
         it("sets dynamic row height", () => {
-          props.settings.rowHeightMode = RowHeightMode.DEFAULT;
+          props.settings.rowHeightMode = RowHeightMode.AUTO;
           props.enableDynamicRowHeight = true;
           const wrapper = shallowMountDisplay({ props });
           const rowConfig = getRowConfig(wrapper);
@@ -542,8 +546,8 @@ describe("TableViewDisplay.vue", () => {
   });
 
   describe("column size composables", () => {
-    it("uses useAutoColumnSizes with correct values", async () => {
-      (useAutoColumnSizes as Mock).mockClear();
+    it("uses useAutoSizes with correct values", async () => {
+      (useAutoSizes as Mock).mockClear();
       props.firstRowImageDimensions = {
         col1: { widthInPx: 20, heightInPx: 50 },
       };
@@ -553,17 +557,17 @@ describe("TableViewDisplay.vue", () => {
           settings,
           firstRowImageDimensions,
           currentRowHeight,
-          hasDynamicRowHeight,
+          enableDynamicRowHeight,
         },
-      ] = (useAutoColumnSizes as any).mock.calls[0];
+      ] = (useAutoSizes as any).mock.calls[0];
       expect(unref(settings)).toStrictEqual(props.settings);
       expect(unref(firstRowImageDimensions)).toStrictEqual(
         props.firstRowImageDimensions,
       );
       expect(unref(currentRowHeight)).toBe(props.currentRowHeight);
-      expect(unref(hasDynamicRowHeight)).toBe(false);
+      expect(unref(enableDynamicRowHeight)).toBe(false);
       await wrapper.setProps({ enableDynamicRowHeight: true });
-      expect(unref(hasDynamicRowHeight)).toBe(true);
+      expect(unref(enableDynamicRowHeight)).toBe(true);
     });
 
     it("uses useColumnSizes with correct values", () => {
@@ -576,10 +580,10 @@ describe("TableViewDisplay.vue", () => {
       expect(unref(settings)).toStrictEqual(props.settings);
       expect(unref(header)).toStrictEqual(props.header);
       expect(unref(autoColumnSizes)).toStrictEqual(
-        useAutoColumnSizesMock.autoColumnSizes,
+        useAutoSizesMock.autoColumnSizes,
       );
       expect(unref(autoColumnSizesActive)).toBe(
-        useAutoColumnSizesMock.autoColumnSizesActive,
+        useAutoSizesMock.autoColumnSizesActive,
       );
     });
 
@@ -610,7 +614,7 @@ describe("TableViewDisplay.vue", () => {
         { col1: 55, col2: 66, col3: 77 },
       ],
     ])(
-      "calls the method %s within useAutoColumnSizes on emit of %s",
+      "calls the method %s within useAutoSizes on emit of %s",
       (composableMethodName, emitMethodName, emitParams, calledWithParams) => {
         const wrapper = shallowMountDisplay({ props });
         const tableUIWithAutoSizeCalculation = wrapper.findComponent(
@@ -618,9 +622,9 @@ describe("TableViewDisplay.vue", () => {
         );
 
         tableUIWithAutoSizeCalculation.vm.$emit(emitMethodName, emitParams);
-        expect(
-          useAutoColumnSizesMock[composableMethodName],
-        ).toHaveBeenCalledWith(calledWithParams);
+        expect(useAutoSizesMock[composableMethodName]).toHaveBeenCalledWith(
+          calledWithParams,
+        );
       },
     );
   });
