@@ -48,11 +48,15 @@
  */
 package org.knime.core.webui.node.view.table;
 
+import static org.knime.core.webui.node.view.table.RowHeightPersistorUtil.createDefaultConfigsDeprecations;
+import static org.knime.core.webui.node.view.table.RowHeightPersistorUtil.getLoadResultFromLegacySettings;
+
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
@@ -79,7 +83,7 @@ import org.knime.core.webui.node.view.table.TableViewLayout.InteractivitySection
 import org.knime.core.webui.node.view.table.TableViewLayout.ViewSection;
 import org.knime.core.webui.node.view.table.TableViewViewSettings.RowHeightMode.CompactModeAndLegacyRowHeightModePersistor;
 import org.knime.core.webui.node.view.table.TableViewViewSettings.RowHeightMode.RowHeightIsCustom;
-import org.knime.core.webui.node.view.table.TableViewViewSettings.VerticalPaddingMode.RowHeightModeToVerticalPaddingModePersistor;
+import org.knime.core.webui.node.view.table.TableViewViewSettings.VerticalPaddingMode.VerticalPaddingModePersistor;
 
 /**
  * @author Konrad Amtenbrink, KNIME GmbH, Berlin, Germany
@@ -237,25 +241,18 @@ public class TableViewViewSettings implements DefaultNodeSettings {
             @Override
             public RowHeightMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
 
-                if (!settings.containsKey(getConfigKey())) {
-                    if (settings.containsKey(COMPACT_MODE_LEGACY_CONFIG_KEY)) {
-                        final var compactModeLegacySetting = settings.getBoolean(COMPACT_MODE_LEGACY_CONFIG_KEY);
-                        return compactModeLegacySetting ? CUSTOM : AUTO;
-                    }
-                    return AUTO;
-                }
-
-                final var rowHeightMode = settings.getString(getConfigKey());
-
-                if (rowHeightMode.equals("DEFAULT") || rowHeightMode.equals("COMPACT")) {
-                    return RowHeightMode.CUSTOM;
-                }
-                return m_persistor.load(settings);
+                final var legacyLoadResult = getLoadResultFromLegacySettings(settings);
+                return legacyLoadResult.isEmpty() ? m_persistor.load(settings) : legacyLoadResult.get().rowHeightMode();
             }
 
             @Override
             public void save(final RowHeightMode obj, final NodeSettingsWO settings) {
                 m_persistor.save(obj, settings);
+            }
+
+            @Override
+            public ConfigsDeprecation[] getConfigsDeprecations() {
+                return createDefaultConfigsDeprecations(getConfigKey());
             }
         }
     }
@@ -271,6 +268,36 @@ public class TableViewViewSettings implements DefaultNodeSettings {
     @Signal(condition = RowHeightIsCustom.class)
     public RowHeightMode m_rowHeightMode = RowHeightMode.AUTO;
 
+    static final class CustomRowHeightPersistor extends NodeSettingsPersistorWithConfigKey<Integer> {
+
+        @Override
+        public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            final var legacyLoadResult = getLoadResultFromLegacySettings(settings);
+            return legacyLoadResult.isEmpty() ? settings.getInt(getConfigKey())
+                : legacyLoadResult.get().customRowHeight();
+        }
+
+        @Override
+        public void save(final Integer customRowHeight, final NodeSettingsWO settings) {
+            settings.addInt(getConfigKey(), customRowHeight);
+        }
+
+        @Override
+        public ConfigsDeprecation[] getConfigsDeprecations() {
+            return createDefaultConfigsDeprecations(getConfigKey());
+        }
+    }
+
+    /**
+     * The custom row height used when m_rowHeightMode is custom
+     */
+    @Widget(title = "Custom row height", description = "Set the initial height of the rows.")
+    @NumberInputWidget(min = 24, max = 1000000)
+    @Layout(ViewSection.class)
+    @Persist(customPersistor = CustomRowHeightPersistor.class)
+    @Effect(signals = RowHeightIsCustom.class, type = EffectType.SHOW)
+    public int m_customRowHeight = 80;
+
     @SuppressWarnings("javadoc")
     public enum VerticalPaddingMode {
             @Label(value = "Default",
@@ -281,7 +308,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
                     + " as possible in given space.")
             COMPACT;
 
-        static final class RowHeightModeToVerticalPaddingModePersistor
+        static final class VerticalPaddingModePersistor
             extends NodeSettingsPersistorWithConfigKey<VerticalPaddingMode> {
 
             private NodeSettingsPersistor<VerticalPaddingMode> m_persistor;
@@ -294,19 +321,12 @@ public class TableViewViewSettings implements DefaultNodeSettings {
 
             @Override
             public VerticalPaddingMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
-
+                final var legacyLoadResult = getLoadResultFromLegacySettings(settings);
+                if (legacyLoadResult.isPresent()) {
+                    return legacyLoadResult.get().verticalPaddingMode();
+                }
                 if (settings.containsKey(getConfigKey())) {
                     return m_persistor.load(settings);
-                }
-
-                if (settings.containsKey(COMPACT_MODE_LEGACY_CONFIG_KEY)) {
-                    final var compactModeLegacySetting = settings.getBoolean(COMPACT_MODE_LEGACY_CONFIG_KEY);
-                    return compactModeLegacySetting ? COMPACT : DEFAULT;
-                }
-
-                if (settings.containsKey(ROW_HEIGHT_MODE_CONFIG_KEY)
-                    && settings.getString(ROW_HEIGHT_MODE_CONFIG_KEY).equals("COMPACT")) {
-                    return VerticalPaddingMode.COMPACT;
                 }
                 return DEFAULT;
             }
@@ -314,6 +334,11 @@ public class TableViewViewSettings implements DefaultNodeSettings {
             @Override
             public void save(final VerticalPaddingMode verticalPaddingMode, final NodeSettingsWO settings) {
                 m_persistor.save(verticalPaddingMode, settings);
+            }
+
+            @Override
+            public ConfigsDeprecation[] getConfigsDeprecations() {
+                return createDefaultConfigsDeprecations(getConfigKey());
             }
         }
     }
@@ -324,60 +349,8 @@ public class TableViewViewSettings implements DefaultNodeSettings {
     @Widget(title = "Row padding", description = "Set the vertical white space of the rows:")
     @ValueSwitchWidget
     @Layout(ViewSection.class)
-    @Persist(customPersistor = RowHeightModeToVerticalPaddingModePersistor.class)
+    @Persist(customPersistor = VerticalPaddingModePersistor.class)
     public VerticalPaddingMode m_verticalPaddingMode = VerticalPaddingMode.DEFAULT;
-
-    static final int DEFAULT_CUSTOM_ROW_HEIGHT = 80;
-
-    /**
-     * The row height used in the table to show a single line with a compact padding
-     */
-    public static final int CUSTOM_ROW_HEIGHT_COMPACT_PADDING = 24;
-
-    /**
-     * The row height used in the table to show a single line with the default padding
-     */
-    public static final int CUSTOM_ROW_HEIGHT_DEFAULT_PADDING = 40;
-
-    static final class RowHeightModeToCustomRowHeightPersistor extends NodeSettingsPersistorWithConfigKey<Integer> {
-
-        @Override
-        public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
-
-            if (!settings.containsKey("verticalPaddingMode")) {
-                if (settings.containsKey(COMPACT_MODE_LEGACY_CONFIG_KEY)
-                    && settings.getBoolean(COMPACT_MODE_LEGACY_CONFIG_KEY)) {
-                    return CUSTOM_ROW_HEIGHT_COMPACT_PADDING;
-                }
-
-                if (settings.containsKey(ROW_HEIGHT_MODE_CONFIG_KEY)) {
-                    if (settings.getString(ROW_HEIGHT_MODE_CONFIG_KEY).equals("COMPACT")) {
-                        return CUSTOM_ROW_HEIGHT_COMPACT_PADDING;
-                    }
-                    if (settings.getString(ROW_HEIGHT_MODE_CONFIG_KEY).equals("DEFAULT")) {
-                        return CUSTOM_ROW_HEIGHT_DEFAULT_PADDING;
-                    }
-                }
-            }
-
-            return settings.getInt(getConfigKey());
-        }
-
-        @Override
-        public void save(final Integer customRowHeight, final NodeSettingsWO settings) {
-            settings.addInt(getConfigKey(), customRowHeight);
-        }
-    }
-
-    /**
-     *
-     */
-    @Widget(title = "Custom row height", description = "Set the initial height of the rows.")
-    @NumberInputWidget(min = 24, max = 1000000)
-    @Layout(ViewSection.class)
-    @Persist(customPersistor = RowHeightModeToCustomRowHeightPersistor.class)
-    @Effect(signals = RowHeightIsCustom.class, type = EffectType.SHOW)
-    public int m_customRowHeight = DEFAULT_CUSTOM_ROW_HEIGHT;
 
     /**
      * If global search is enabled

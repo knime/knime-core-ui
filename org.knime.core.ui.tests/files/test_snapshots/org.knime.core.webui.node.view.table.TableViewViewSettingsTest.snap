@@ -28,8 +28,8 @@
       "pageSize" : 10,
       "autoSizeColumnsToContent" : "FIXED",
       "rowHeightMode" : "AUTO",
-      "verticalPaddingMode" : "DEFAULT",
       "customRowHeight" : 80,
+      "verticalPaddingMode" : "DEFAULT",
       "enableGlobalSearch" : true,
       "enableColumnSearch" : true,
       "enableSortingByHeader" : true,
@@ -71,7 +71,11 @@
             "default" : 80,
             "minimum" : 24.0,
             "maximum" : 1000000.0,
-            "configKeys" : [ "customRowHeight" ]
+            "configKeys" : [ "customRowHeight" ],
+            "deprecatedConfigKeys" : [ {
+              "new" : [ [ "customRowHeight" ], [ "customRowHeight" ] ],
+              "deprecated" : [ [ "compactMode" ], [ "rowHeightMode" ] ]
+            } ]
           },
           "displayedColumns" : {
             "type" : "object",
@@ -267,7 +271,11 @@
             "title" : "Row height",
             "description" : "Set the initial height of the rows. In case of reporting each row will be as high as its content regardless of this setting.\n<ul>\n<li><b>Auto</b>: the rows are sized according to the largest element across all columns and rows within the first 11 rows or within the current page when the page size is smaller than 11.</li>\n<li><b>Custom</b>: shows as much as you need. For instance, shows images at a size that enables to grasp their gist.</li>\n</ul>",
             "default" : "AUTO",
-            "configKeys" : [ "rowHeightMode" ]
+            "configKeys" : [ "rowHeightMode" ],
+            "deprecatedConfigKeys" : [ {
+              "new" : [ [ "rowHeightMode" ], [ "rowHeightMode" ] ],
+              "deprecated" : [ [ "compactMode" ], [ "rowHeightMode" ] ]
+            } ]
           },
           "selectionMode" : {
             "oneOf" : [ {
@@ -350,7 +358,11 @@
             "title" : "Row padding",
             "description" : "Set the vertical white space of the rows:\n<ul>\n<li><b>Default</b>: sets the default amount of white space to increase the differentiation of the rows.</li>\n<li><b>Compact</b>: reduces white space around rows to a minimum. Choose this option to show as many rows as possible in given space.</li>\n</ul>",
             "default" : "DEFAULT",
-            "configKeys" : [ "verticalPaddingMode" ]
+            "configKeys" : [ "verticalPaddingMode" ],
+            "deprecatedConfigKeys" : [ {
+              "new" : [ [ "verticalPaddingMode" ], [ "verticalPaddingMode" ] ],
+              "deprecated" : [ [ "compactMode" ], [ "rowHeightMode" ] ]
+            } ]
           }
         }
       }
@@ -459,12 +471,6 @@
         }
       }, {
         "type" : "Control",
-        "scope" : "#/properties/view/properties/verticalPaddingMode",
-        "options" : {
-          "format" : "valueSwitch"
-        }
-      }, {
-        "type" : "Control",
         "scope" : "#/properties/view/properties/customRowHeight",
         "rule" : {
           "effect" : "SHOW",
@@ -476,6 +482,12 @@
               } ]
             }
           }
+        }
+      }, {
+        "type" : "Control",
+        "scope" : "#/properties/view/properties/verticalPaddingMode",
+        "options" : {
+          "format" : "valueSwitch"
         }
       } ]
     }, {

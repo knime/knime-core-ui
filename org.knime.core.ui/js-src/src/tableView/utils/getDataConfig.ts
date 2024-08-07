@@ -190,19 +190,19 @@ export default ({
     );
   }
   const autoMode = rowHeightMode === RowHeightMode.AUTO;
-  const customMode = rowHeightMode === RowHeightMode.CUSTOM;
   const compactMode = verticalPaddingMode === VerticalPaddingMode.COMPACT;
+
+  const rowHeightByModes = autoMode
+    ? currentRowHeight.value
+    : getCustomRowHeight({ customRowHeight, verticalPaddingMode });
+  const rowHeight = enableDynamicRowHeight
+    ? ("dynamic" as const)
+    : rowHeightByModes;
+
   return {
     columnConfigs,
     rowConfig: {
-      ...(autoMode && {
-        rowHeight: enableDynamicRowHeight
-          ? ("dynamic" as const)
-          : currentRowHeight.value,
-      }),
-      ...(customMode && {
-        rowHeight: getCustomRowHeight({ customRowHeight, verticalPaddingMode }),
-      }),
+      rowHeight,
       compactMode,
       enableResizing: enableRowResizing,
     },
