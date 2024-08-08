@@ -30,7 +30,10 @@ const codeEditorState = useMainCodeEditor({
 insertionEventHelper
   .getInsertionEventHelper(COLUMN_INSERTION_EVENT)
   .registerInsertionListener((event) => {
-    codeEditorState.insertColumnReference(event.textToInsert);
+    codeEditorState.insertColumnReference(
+      event.textToInsert,
+      event.extraArgs?.requiredImport,
+    );
   });
 
 onMounted(() => {
