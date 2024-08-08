@@ -138,6 +138,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBoolean
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.WidgetAnnotation;
+import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
 import com.fasterxml.jackson.databind.JavaType;
@@ -276,6 +277,19 @@ final class UiSchemaOptionsGenerator {
         if (annotatedWidgets.contains(FileReaderWidget.class)) {
             final var fileReaderWidget = m_field.getAnnotation(FileReaderWidget.class);
             resolveFileExtensions(options, fileReaderWidget.fileExtensions());
+            final var fileSystemPortIndexSupplier = fileReaderWidget.fileSystemPortIndexSupplier();
+            if (!FileReaderWidget.FileSystemPortIndexSupplier.class.equals(fileSystemPortIndexSupplier)) {
+                final var fileSystemPortIndex = InstantiationUtil.createInstance(fileSystemPortIndexSupplier)
+                    .getFileSystemPortIndex(m_defaultNodeSettingsContext);
+                fileSystemPortIndex.ifPresent(index -> {
+                    options.put("portIndex", index);
+                    final var portObjectSpec =
+                        m_defaultNodeSettingsContext.getPortObjectSpec(index).map(FileSystemPortObjectSpec.class::cast);
+                    portObjectSpec.ifPresent(spec -> {
+                        options.put("fileSystemType", spec.getFileSystemType());
+                    });
+                });
+            }
         }
         if (annotatedWidgets.contains(FileWriterWidget.class)) {
             options.put(TAG_IS_WRITER, true);

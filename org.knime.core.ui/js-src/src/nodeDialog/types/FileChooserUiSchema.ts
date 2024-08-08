@@ -1,6 +1,8 @@
 export interface FileChooserOptions {
   isWriter?: boolean;
   isLocal?: boolean;
+  portIndex?: number;
+  fileSystemType?: string;
   fileExtension?: string;
   fileExtensions?: string[];
   fileExtensionProvider?: string;
