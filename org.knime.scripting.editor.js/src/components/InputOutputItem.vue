@@ -151,9 +151,9 @@ const handleHeaderDoubleClick = (event: MouseEvent) => {
 };
 
 const getSubItemCodeToInsert = () => {
-  const subItems = [...multiSelection.selectedIndexes.value].map(
-    (item) => props.inputOutputItem.subItems?.[item].name,
-  );
+  const subItems = [...multiSelection.selectedIndexes.value]
+    .filter((item) => props.inputOutputItem.subItems?.[item].supported)
+    .map((item) => props.inputOutputItem.subItems?.[item].name);
   const codeToInsert = subItemCodeAliasTemplate({ subItems });
   return codeToInsert;
 };
@@ -174,7 +174,9 @@ const onSubItemDragStart = (event: DragEvent, index: number) => {
       { text: draggedItem.value.name },
       { text: draggedItem.value.type },
     ],
-    numSelectedItems: multiSelection.selectedIndexes.value.length,
+    numSelectedItems: multiSelection.selectedIndexes.value.filter(
+      (item) => props.inputOutputItem.subItems?.[item].supported,
+    ).length,
   });
   event.dataTransfer?.setDragImage(dragGhost, 0, 0);
   const codeToInsert = getSubItemCodeToInsert();
