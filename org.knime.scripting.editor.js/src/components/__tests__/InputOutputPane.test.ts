@@ -112,9 +112,9 @@ describe("InputOutputPane", () => {
       name: "input item 1",
       requiredImport: "import me",
       subItems: [
-        { name: "subitem1", type: "type1" },
-        { name: "subitem2", type: "type2" },
-        { name: "subitem3", type: "type3" },
+        { name: "subitem1", type: "type1", supported: true },
+        { name: "subitem2", type: "type2", supported: true },
+        { name: "subitem3", type: "type3", supported: true },
       ],
     };
 

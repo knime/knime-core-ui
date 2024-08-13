@@ -53,14 +53,17 @@ export const DEFAULT_INPUT_OBJECTS: InputOutputModel[] = [
       {
         name: "Column 1",
         type: "Number",
+        supported: true,
       },
       {
         name: "Column 2",
         type: "String",
+        supported: true,
       },
       {
         name: "Column 3",
-        type: "String",
+        type: "Bit Vector",
+        supported: false,
       },
     ],
   },
@@ -80,14 +83,17 @@ export const DEFAULT_FLOW_VARIABLE_INPUTS: InputOutputModel = {
     {
       name: "flowVar1",
       type: "Number",
+      supported: true,
     },
     {
       name: "flowVar2",
       type: "String",
+      supported: true,
     },
     {
       name: "flowVar3",
-      type: "String",
+      type: "Something",
+      supported: false,
     },
   ],
 };
