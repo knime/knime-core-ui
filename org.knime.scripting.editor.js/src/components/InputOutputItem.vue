@@ -29,6 +29,7 @@ export type InputOutputModel = {
   subItems?: {
     name: string;
     type: string;
+    supported: boolean;
   }[];
 };
 export const INPUT_OUTPUT_DRAG_EVENT_ID = "input_output_drag_event";
@@ -164,6 +165,7 @@ const onSubItemDragStart = (event: DragEvent, index: number) => {
     multiSelection.resetSelection();
     multiSelection.handleSelectionClick(index);
   }
+
   draggedItem.value = props.inputOutputItem.subItems?.[index]!;
   const width = (event.target as any).offsetWidth;
   const dragGhost = createDragGhost({
@@ -203,7 +205,7 @@ const onHeaderDragEnd = () => {
   removeDragGhost();
 };
 
-const readOnly = useReadonlyStore();
+const globalReadOnly = useReadonlyStore();
 </script>
 
 <template>
@@ -235,9 +237,9 @@ const readOnly = useReadonlyStore();
           :class="{
             'code-alias-dragging': isDraggingHeader,
             'code-alias-not-dragging': !isDraggingHeader,
-            'read-only': readOnly,
+            disabled: globalReadOnly,
           }"
-          :draggable="!readOnly"
+          :draggable="!globalReadOnly"
           @mousedown="(event) => handleClick(event)"
           @dblclick="handleHeaderDoubleClick($event)"
           @dragstart="
@@ -258,11 +260,16 @@ const readOnly = useReadonlyStore();
           'clickable-sub-item': props.inputOutputItem.subItemCodeAliasTemplate,
           selected:
             props.inputOutputItem.subItemCodeAliasTemplate &&
-            multiSelection.isSelected(index),
-          'read-only': readOnly,
+            multiSelection.isSelected(index) &&
+            subItem.supported,
+          disabled: !subItem.supported || globalReadOnly,
         }"
         :draggable="
-          Boolean(inputOutputItem.subItemCodeAliasTemplate && !readOnly)
+          Boolean(
+            inputOutputItem.subItemCodeAliasTemplate &&
+              !globalReadOnly &&
+              subItem.supported,
+          )
         "
         @dragstart="(event) => onSubItemDragStart(event, index)"
         @dragend="onSubItemDragEnd"
@@ -293,9 +300,9 @@ const readOnly = useReadonlyStore();
       :class="{
         'code-alias-dragging': isDraggingHeader,
         'code-alias-not-dragging': !isDraggingHeader,
-        'read-only': readOnly,
+        disabled: globalReadOnly,
       }"
-      :draggable="!readOnly"
+      :draggable="!globalReadOnly"
       @mousedown="(event) => handleClick(event)"
       @dragstart="
         (event) => onHeaderDragStart(event, inputOutputItem.codeAlias!)
@@ -351,11 +358,6 @@ const readOnly = useReadonlyStore();
   font-style: italic;
 }
 
-.read-only {
-  pointer-events: none;
-  opacity: 0.5;
-}
-
 .title {
   flex-basis: calc(100px + var(--in-out-item-icon-size) + var(--space-4));
   min-width: 60px;
@@ -381,6 +383,11 @@ const readOnly = useReadonlyStore();
   height: 22px;
   line-height: 18px;
   align-items: center;
+
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
 }
 
 .selected {

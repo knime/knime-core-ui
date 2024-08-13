@@ -93,71 +93,29 @@ public record InputOutputModel(String name, //
 
     public static final String VIEW_PORT_TYPE_NAME = "view";
 
+    private static final String UNSUPPORTED_TYPE = "not supported";
+
     /**
      * An item in an InputOutputModel, e.g. for table columns
      *
      * @param name The name of the sub item
      * @param type The display name of the type of the sub item
+     * @param supported Whether this sub item is supported by the current editor
      */
-    public static record InputOutputModelSubItem(String name, String type) {
-
+    public static record InputOutputModelSubItem(String name, String type, boolean supported) {
     }
 
     /**
-     * Helper method to convert a table spec into a {@link InputOutputModel}
+     * Helper method to convert a table spec into a {@link InputOutputModel}.
      *
-     * @param name
-     * @param spec
-     * @param codeAlias
-     * @param subItemCodeAliasTemplate
-     * @param requiredImport
-     * @return the {@link InputOutputModel} with the subItems from the table columns
-     */
-    public static InputOutputModel createFromTableSpec( //
-        final String name, //
-        final DataTableSpec spec, //
-        final String codeAlias, //
-        final String subItemCodeAliasTemplate, //
-        final String requiredImport //
-    ) {
-        return InputOutputModel.createFromTableSpec(name, spec, codeAlias, subItemCodeAliasTemplate, true,
-            requiredImport);
-    }
-
-    /**
-     * Helper method to convert a table spec into a {@link InputOutputModel}
-     *
-     * @param name
-     * @param spec
-     * @param codeAlias
-     * @param subItemCodeAliasTemplate
-     * @param requiredImport
-     * @param multipleSelection
-     * @return the {@link InputOutputModel} with the subItems from the table columns
-     */
-    public static InputOutputModel createFromTableSpec( //
-        final String name, //
-        final DataTableSpec spec, //
-        final String codeAlias, //
-        final String subItemCodeAliasTemplate, //
-        final boolean multipleSelection, //
-        final String requiredImport //
-    ) {
-        return createFromTableSpec(name, spec, codeAlias, subItemCodeAliasTemplate, multipleSelection, requiredImport,
-            type -> type.getName());
-    }
-
-    /**
-     * Helper method to convert a table spec into a {@link InputOutputModel} but with a custom mapper for getting the
-     * types from the type name. If the mapper returns null for a type, the column will be ignored.
-     *
-     * @param name
-     * @param spec
-     * @param codeAlias
-     * @param subItemCodeAliasTemplate
-     * @param requiredImport
-     * @param multipleSelection
-     * @param typeNameMapper
+     * @param name The name of the item
+     * @param spec The table spec
+     * @param codeAlias The code alias needed to access this entire item in the code
+     * @param subItemCodeAliasTemplate A Handlebars.js template that is used for code alias insertion for the subitems
+     * @param multipleSelection Whether to enable multi selection in the frontend
+     * @param requiredImport The import statement that is needed to use this object or null if there is none
+     * @param typeNameMapper A function that maps a {@link DataType} to a string that represents the type
+     * @param isSupported A predicate that checks whether a {@link DataType} is supported by the editor
      * @return the {@link InputOutputModel} with the subItems from the table columns
      */
     public static InputOutputModel createFromTableSpec( //
@@ -167,13 +125,15 @@ public record InputOutputModel(String name, //
         final String subItemCodeAliasTemplate, //
         final boolean multipleSelection, //
         final String requiredImport, //
-        final Function<DataType, String> typeNameMapper //
+        final Function<DataType, String> typeNameMapper, //
+        final Predicate<DataType> isSupported //
     ) {
-        Predicate<DataType> typeFilter = type -> typeNameMapper.apply(type) != null;
+        Function<DataType, String> fallbackTypeNameMapper =
+            dt -> isSupported.test(dt) ? typeNameMapper.apply(dt) : UNSUPPORTED_TYPE;
 
         final var subItems = StreamSupport.stream(spec.spliterator(), false) //
-            .filter(colSpec -> typeFilter.test(colSpec.getType())) //
-            .map(colSpec -> new InputOutputModelSubItem(colSpec.getName(), typeNameMapper.apply(colSpec.getType()))) //
+            .map(colSpec -> new InputOutputModelSubItem(colSpec.getName(),
+                fallbackTypeNameMapper.apply(colSpec.getType()), isSupported.test(colSpec.getType()))) //
             .toArray(InputOutputModelSubItem[]::new);
         return new InputOutputModel(name, codeAlias, subItemCodeAliasTemplate, requiredImport, multipleSelection,
             subItems, TABLE_PORT_TYPE_NAME, TABLE_PORT_ICON_COLOR);
@@ -216,10 +176,11 @@ public record InputOutputModel(String name, //
         final String codeAlias, //
         final String subItemCodeAliasTemplate, //
         final String requiredImport, //
-        final boolean multiSelection //
+        final boolean multiSelection, //
+        final Predicate<VariableType<?>> isSupportedPredicate //
     ) {
         return createFromFlowVariables(flowVariables, codeAlias, subItemCodeAliasTemplate, requiredImport,
-            multiSelection, type -> type.toString());
+            multiSelection, type -> type.toString(), isSupportedPredicate);
     }
 
     /**
@@ -241,11 +202,17 @@ public record InputOutputModel(String name, //
         final String subItemCodeAliasTemplate, //
         final String requiredImport, //
         final boolean multiSelection, //
-        final Function<VariableType<?>, String> typeNameMapper //
+        final Function<VariableType<?>, String> typeNameMapper, //
+        final Predicate<VariableType<?>> isSupportedPredicate //
     ) {
 
         var subItems = flowVariables.stream() //
-            .map(f -> new InputOutputModelSubItem(f.getName(), typeNameMapper.apply(f.getVariableType()))) //
+            .map(f -> new InputOutputModelSubItem( //
+                f.getName(), //
+                isSupportedPredicate.test(f.getVariableType()) ? typeNameMapper.apply(f.getVariableType())
+                    : UNSUPPORTED_TYPE, //
+                isSupportedPredicate.test(f.getVariableType())) //
+            ) //
             .toArray(InputOutputModelSubItem[]::new);
 
         return new InputOutputModel("Flow variables", codeAlias, subItemCodeAliasTemplate, requiredImport,

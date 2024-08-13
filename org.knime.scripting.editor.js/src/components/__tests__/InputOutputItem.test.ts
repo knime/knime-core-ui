@@ -48,8 +48,8 @@ describe("InputOutputItem", () => {
     codeAlias: "super.mock",
     subItemCodeAliasTemplate: "my template {{ subItems }}",
     subItems: [
-      { name: "row 1", type: "String" },
-      { name: "row 2", type: "Double" },
+      { name: "row 1", type: "String", supported: true },
+      { name: "row 2", type: "Double", supported: false },
     ],
   };
 
@@ -150,6 +150,15 @@ describe("InputOutputItem", () => {
         0,
         0,
       );
+      wrapper.unmount();
+    });
+
+    it("has the correct class if it's disabled", () => {
+      const wrapper = doMount();
+      const subItem1 = wrapper.findAll(".sub-item")[0];
+      expect(subItem1.classes()).not.toContain("disabled");
+      const subItem2 = wrapper.findAll(".sub-item")[1];
+      expect(subItem2.classes()).toContain("disabled");
       wrapper.unmount();
     });
 

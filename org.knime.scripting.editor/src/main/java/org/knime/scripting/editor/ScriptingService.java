@@ -51,6 +51,7 @@ package org.knime.scripting.editor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
@@ -64,6 +65,7 @@ import java.util.function.Predicate;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.node.workflow.VariableType;
 import org.knime.scripting.editor.ai.HubConnection;
 import org.knime.scripting.editor.lsp.LanguageServerProxy;
 
@@ -92,14 +94,14 @@ public abstract class ScriptingService {
 
     private final Optional<WorkflowControl> m_workflowControl;
 
-    private final Predicate<FlowVariable> m_flowVariableFilter;
-
     private Optional<LanguageServerProxy> m_languageServer;
 
     // is shutdown onDeactivate
     private ExecutorService m_executorService;
 
     private Future<?> m_lastCodeSuggestion;
+
+    private final Predicate<VariableType<?>> m_flowVariableFilter;
 
     /**
      * Create a new {@link ScriptingService} without a language server.
@@ -116,20 +118,22 @@ public abstract class ScriptingService {
      * @param flowVariableFilter filters flowvariable given a set of allowed types.
      */
     protected ScriptingService(final LanguageServerStarter languageServerCreator,
-        final Predicate<FlowVariable> flowVariableFilter) {
+        final Predicate<VariableType<?>> flowVariableFilter) {
+
         m_languageServerCreator = Optional.ofNullable(languageServerCreator).orElse(() -> null);
         m_languageServer = Optional.empty();
         m_eventQueue = new LinkedBlockingQueue<>();
         m_workflowControl = Optional.ofNullable(NodeContext.getContext()) //
             .map(NodeContext::getNodeContainer) //
             .map(WorkflowControl::new);
+
         m_flowVariableFilter = flowVariableFilter;
     }
 
     /**
-     * @return available flow variables that match the flow variable filter
+     * @return all available flow variables
      */
-    public Collection<FlowVariable> getFlowVariables() {
+    public Collection<FlowVariable> getAllFlowVariables() {
         var flowObjectStack = getWorkflowControl().getFlowObjectStack();
 
         if (flowObjectStack == null) {
@@ -137,9 +141,14 @@ public abstract class ScriptingService {
         }
 
         var flowVars = flowObjectStack.getAllAvailableFlowVariables().values();
-        return flowVars.stream() //
-            .filter(m_flowVariableFilter) //
-            .toList();
+        return Collections.unmodifiableCollection(flowVars);
+    }
+
+    /**
+     * @return available flow variables that match the flow variable filter
+     */
+    public Collection<FlowVariable> getSupportedFlowVariables() {
+        return getAllFlowVariables().stream().filter(v -> m_flowVariableFilter.test(v.getVariableType())).toList();
     }
 
     /**
