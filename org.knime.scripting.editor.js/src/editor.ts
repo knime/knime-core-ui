@@ -134,6 +134,9 @@ const EDITOR_OPTIONS: monaco.editor.IEditorConstructionOptions = {
   fontWeight: "400",
   lineNumbersMinChars: 3,
   lineDecorationsWidth: "0.0ch",
+  scrollbar: {
+    alwaysConsumeMouseWheel: false,
+  },
 } as const;
 
 // ====== HELPERS ======
