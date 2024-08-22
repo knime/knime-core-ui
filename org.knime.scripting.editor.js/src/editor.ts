@@ -23,7 +23,7 @@ type ContainerParams = {
 };
 
 export type UseCodeEditorParams = ContainerParams & {
-  hideOverviewRulerLanes?: boolean;
+  extraEditorOptions?: monaco.editor.IStandaloneEditorConstructionOptions;
 } & (
     | {
         language: string;
@@ -96,6 +96,7 @@ export type UseCodeEditorReturn = {
 export type UseDiffEditorParams = ContainerParams & {
   originalModel: monaco.editor.ITextModel;
   modifiedFileName: string;
+  extraEditorOptions?: monaco.editor.IDiffEditorConstructionOptions;
 };
 
 export type UseDiffEditorReturn = {
@@ -117,7 +118,7 @@ export type UseDiffEditorReturn = {
 
 // ====== CONSTANTS ======
 
-const EDITOR_OPTIONS: monaco.editor.IEditorConstructionOptions = {
+const EDITOR_OPTIONS_COMMON: monaco.editor.IEditorConstructionOptions = {
   minimap: { enabled: false },
   automaticLayout: true,
   glyphMargin: false,
@@ -137,7 +138,14 @@ const EDITOR_OPTIONS: monaco.editor.IEditorConstructionOptions = {
   scrollbar: {
     alwaysConsumeMouseWheel: false,
   },
-} as const;
+};
+
+const EDITOR_OPTIONS_DIFF: monaco.editor.IDiffEditorConstructionOptions = {
+  ...EDITOR_OPTIONS_COMMON,
+  renderOverviewRuler: false,
+  overviewRulerBorder: false,
+  originalEditable: false,
+};
 
 // ====== HELPERS ======
 
@@ -308,14 +316,10 @@ export const useCodeEditor = (
   onMounted(() => {
     assertElementProvided(params.container);
 
-    const DEFAULT_OVERVIEW_RULER_LANES = 3;
-
     editor.value = monaco.editor.create(params.container.value, {
       model: editorModel,
-      overviewRulerLanes: params.hideOverviewRulerLanes
-        ? 0
-        : DEFAULT_OVERVIEW_RULER_LANES,
-      ...EDITOR_OPTIONS,
+      ...EDITOR_OPTIONS_COMMON,
+      ...(params.extraEditorOptions ?? {}),
     });
 
     editor.value.onDidChangeCursorSelection((e) => {
@@ -360,8 +364,8 @@ export const useDiffEditor = (
   onMounted(() => {
     assertElementProvided(params.container);
     editor.value = monaco.editor.createDiffEditor(params.container.value, {
-      originalEditable: false,
-      ...EDITOR_OPTIONS,
+      ...EDITOR_OPTIONS_DIFF,
+      ...(params.extraEditorOptions ?? {}),
     });
     editor.value.setModel(editorModel);
   });
