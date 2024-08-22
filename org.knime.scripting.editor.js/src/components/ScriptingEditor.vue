@@ -279,7 +279,7 @@ if (props.fileName === null && !useSlots().editor) {
 </template>
 
 <style lang="postcss" scoped>
-@import url("@/components/splitterstyles.css");
+@import url("@/components/splitterstyles.pcss");
 
 .layout {
   display: flex;
