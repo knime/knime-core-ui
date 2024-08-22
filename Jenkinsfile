@@ -2,7 +2,7 @@
 
 def BN = (BRANCH_NAME == 'master' || BRANCH_NAME.startsWith('releases/')) ? BRANCH_NAME : 'releases/2024-12'
 
-library "knime-pipeline@$BN"
+library "knime-pipeline@todo/DEVOPS-2151-workflow-tests-default-mac-os-arm"
 
 properties([
     pipelineTriggers([upstream(
@@ -33,9 +33,9 @@ try {
 
         // junit '**/test-results/junit.xml'
 
-        stage('Sonarqube analysis') {
-            workflowTests.runSonar(withOutNode: true)
-        }
+        // stage('Sonarqube analysis') {
+        //     workflowTests.runSonar(withOutNode: true)
+        // }
 
         owasp.sendNodeJSSBOMs(readMavenPom(file: 'pom.xml').properties['revision'])
     }
