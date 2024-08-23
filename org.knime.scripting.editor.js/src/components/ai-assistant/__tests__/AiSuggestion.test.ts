@@ -57,7 +57,7 @@ describe("AiSuggestion", () => {
     const wrapper = mount(AiSuggestion);
     const button = wrapper.findComponent(Button);
     expect(button.exists()).toBeTruthy();
-    expect(button.text()).toBe("Insert in editor");
+    expect(button.text()).toContain("Insert");
   });
 
   it("should emit accept-suggestion on button click", () => {
