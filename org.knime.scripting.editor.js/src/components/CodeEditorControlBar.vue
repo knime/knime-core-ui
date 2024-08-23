@@ -1,89 +1,27 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref, type PropType } from "vue";
-import { Button } from "@knime/components";
-import AiCode from "@knime/styles/img/icons/ai-general.svg";
-import AiBar from "./ai-assistant/AiBar.vue";
-import { getInitialDataService } from "@/initial-data-service";
-import { onClickOutside } from "@vueuse/core";
+import { type PropType } from "vue";
+import AiButton from "@/components/ai-assistant/AiButton.vue";
 
 import type { PaneSizes } from "@/components/utils/paneSizes";
-
-const showBar = ref<boolean>(false);
-const aiBar = ref(null);
-const aiButton = ref(null);
-
-const showAiButton = ref<boolean>(false);
-const enableAiButton = ref<boolean>(false);
 
 const props = defineProps({
   currentPaneSizes: {
     type: Object as PropType<PaneSizes>,
-    default: () => ({ left: 20, right: 25, bottom: 30 }),
-  },
-  language: {
-    type: String,
-    default: null,
+    required: true,
   },
   showButtonText: {
     type: Boolean,
     default: true,
   },
 });
-
-const setupOnClickOutside = () => {
-  const splitters = [...document.querySelectorAll(".splitpanes__splitter")].map(
-    (splitter) => splitter as HTMLElement,
-  );
-  onClickOutside(
-    aiBar,
-    () => {
-      if (showBar.value) {
-        showBar.value = !showBar.value;
-      }
-    },
-    { ignore: [aiButton, ...splitters] },
-  );
-};
-
-onMounted(async () => {
-  const initialData = await getInitialDataService().getInitialData();
-
-  showAiButton.value = initialData.kAiConfig.codeAssistantEnabled;
-  enableAiButton.value = initialData.inputsAvailable;
-  nextTick(() => {
-    setupOnClickOutside();
-  });
-});
 </script>
 
 <template>
-  <div v-if="showBar" class="ai-bar">
-    <AiBar
-      ref="aiBar"
-      :current-pane-sizes="props.currentPaneSizes"
-      :language="language"
-      @accept-suggestion="showBar = false"
-      @close-ai-bar="showBar = false"
-    />
-  </div>
   <div class="controls">
-    <div>
-      <Button
-        v-if="showAiButton"
-        ref="aiButton"
-        :disabled="!enableAiButton"
-        compact
-        :with-border="true"
-        class="ai-button"
-        :class="{
-          'button-active': showBar,
-          'hide-button-text': !showButtonText,
-        }"
-        @click="showBar = !showBar"
-      >
-        <AiCode viewBox="0 0 32 32" /> {{ showButtonText ? "Ask K-AI" : "" }}
-      </Button>
-    </div>
+    <AiButton
+      :current-pane-sizes="props.currentPaneSizes"
+      :show-button-text="showButtonText"
+    />
     <div class="button-controls">
       <slot name="controls" />
     </div>
