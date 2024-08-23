@@ -1,19 +1,19 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { LoadingIcon } from "@knime/components";
 import { getScriptingService } from "@/scripting-service";
 import {
   clearPromptResponseStore,
   setActiveEditorStoreForAi,
   usePromptResponseStore,
 } from "@/store/ai-bar";
-import AiBar from "../AiBar.vue";
-import AiSuggestion from "../AiSuggestion.vue";
+import AiPopupContent from "@/components/ai-assistant/AiPopupContent.vue";
+import AiSuggestion from "@/components/ai-assistant/AiSuggestion.vue";
 import { getInitialDataService } from "@/initial-data-service";
 import { ref } from "vue";
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
 import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
 import { getSettingsService } from "@/settings-service";
+import InfinityLoadingBar from "@/components/InfinityLoadingBar.vue";
 
 vi.mock("@/scripting-service");
 vi.mock("@/editor");
@@ -29,7 +29,13 @@ vi.mock("@/settings-service", () => ({
   })),
 }));
 
-describe("AiBar", () => {
+const doMount = async () => {
+  const wrapper = mount(AiPopupContent);
+  await flushPromises();
+  return wrapper;
+};
+
+describe("AiPopup", () => {
   beforeEach(() => {
     vi.resetModules();
     clearPromptResponseStore();
@@ -44,14 +50,14 @@ describe("AiBar", () => {
   });
 
   it("renders chat controls if no prompt is active", async () => {
-    const bar = mount(AiBar);
+    const bar = await doMount();
     await flushPromises();
     expect(bar.find(".textarea").exists()).toBeTruthy();
     expect(bar.findComponent({ ref: "sendButton" }).exists()).toBeTruthy();
   });
 
   it("test aiBar success", async () => {
-    const bar = mount(AiBar);
+    const bar = await doMount();
     await flushPromises();
     (bar.vm as any).showDisclaimer = false;
     await bar.vm.$nextTick();
@@ -82,7 +88,7 @@ describe("AiBar", () => {
   });
 
   it("test aiBar with empty input disables button", async () => {
-    const bar = mount(AiBar);
+    const bar = await doMount();
     await flushPromises();
 
     // click Send Button
@@ -93,7 +99,7 @@ describe("AiBar", () => {
   });
 
   it("test aiBar abort request", async () => {
-    const bar = mount(AiBar);
+    const bar = await doMount();
     await flushPromises();
     const scriptingService = getScriptingService();
 
@@ -120,7 +126,7 @@ describe("AiBar", () => {
   });
 
   it("show diff editor when code suggestion is available", async () => {
-    const bar = mount(AiBar);
+    const bar = await doMount();
     expect(bar.findComponent(AiSuggestion).exists()).toBeFalsy();
     await (bar.vm as any).handleCodeSuggestion({
       code: JSON.stringify({ code: "some code" }),
@@ -129,18 +135,21 @@ describe("AiBar", () => {
     expect(bar.findComponent(AiSuggestion).exists()).toBeTruthy();
   });
 
-  it("show diff editor when previous prompt is available", () => {
+  it("show diff editor when previous prompt is available", async () => {
     usePromptResponseStore().promptResponse = {
       message: { role: "reply", content: "blah" },
       suggestedCode: "code",
     };
 
-    const bar = mount(AiBar);
+    const bar = await doMount();
     expect(bar.findComponent(AiSuggestion).exists()).toBeTruthy();
   });
 
   it("show disclaimer on first startup", async () => {
-    const bar = mount(AiBar);
+    vi.mocked(getScriptingService().sendToService).mockReturnValue(
+      Promise.resolve(true), // logged in = true
+    );
+    const bar = await doMount();
     await flushPromises();
     (bar.vm as any).showDisclaimer = true;
     await bar.vm.$nextTick();
@@ -151,7 +160,7 @@ describe("AiBar", () => {
   it("show login button if not logged in yet", async () => {
     vi.mocked(getScriptingService().isLoggedIntoHub).mockResolvedValue(false);
 
-    const bar = mount(AiBar);
+    const bar = await doMount();
     await flushPromises();
 
     const downloadNotification = bar.findAll(".notification-bar").at(0);
@@ -183,7 +192,7 @@ describe("AiBar", () => {
       ),
     });
 
-    const bar = mount(AiBar);
+    const bar = await doMount();
     await flushPromises();
 
     const downloadNotification = bar.findAll(".notification-bar").at(0);
@@ -213,7 +222,7 @@ describe("AiBar", () => {
       registerSettingsGetterForApply: vi.fn(() => Promise.resolve()),
     });
 
-    const bar = mount(AiBar);
+    const bar = await doMount();
     await flushPromises();
     const downloadNotification = bar.findAll(".notification-bar").at(0);
     const loginNotification = bar.findAll(".notification-bar").at(1);
@@ -229,7 +238,7 @@ describe("AiBar", () => {
   });
 
   it("neither install nor login buttons are visible if ai assistant is ready to be used", async () => {
-    const bar = mount(AiBar);
+    const bar = await doMount();
     await flushPromises();
     const downloadNotification = bar.findAll(".notification-bar").at(0);
     const loginNotification = bar.findAll(".notification-bar").at(1);
@@ -239,8 +248,8 @@ describe("AiBar", () => {
     expect(loginNotification?.isVisible()).toBeFalsy();
   });
 
-  it("shows loading spinner in waiting state", async () => {
-    const bar = mount(AiBar);
+  it("shows abort button and loading bar in waiting state", async () => {
+    const bar = await doMount();
     await flushPromises();
     const message = "Do something!";
     // write to textarea
@@ -257,16 +266,18 @@ describe("AiBar", () => {
       }),
     );
 
-    expect(bar.findComponent(LoadingIcon).exists()).toBeFalsy();
+    expect(bar.findComponent(InfinityLoadingBar).exists()).toBeFalsy();
+    expect(bar.find(".abort-button").exists()).toBeFalsy();
 
     const sendButton = bar.findComponent({ ref: "sendButton" });
     await sendButton.vm.$emit("click");
 
-    expect(bar.findComponent(LoadingIcon).exists()).toBeTruthy();
+    expect(bar.findComponent(InfinityLoadingBar).exists()).toBeTruthy();
+    expect(bar.find(".abort-button").exists()).toBeTruthy();
   });
 
   it("aborts active request if ai bar is dismissed", async () => {
-    const bar = mount(AiBar);
+    const bar = await doMount();
     await flushPromises();
     (bar.vm as any).status = "waiting";
     bar.unmount();
@@ -276,7 +287,7 @@ describe("AiBar", () => {
   });
 
   it("does not abort request if ai bar is dismissed and there is no active request", async () => {
-    const bar = mount(AiBar);
+    const bar = await doMount();
     await flushPromises();
     bar.unmount();
     expect(getScriptingService().sendToService).not.toHaveBeenCalledWith(

@@ -22,6 +22,7 @@ import ScriptingEditorBottomPane from "../ScriptingEditorBottomPane.vue";
 
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
 import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
+import { getScriptingService } from "@/scripting-service";
 
 const mocks = vi.hoisted(() => {
   return {
@@ -61,6 +62,7 @@ describe("ScriptingEditor", () => {
     vi.mocked(useElementBounding).mockReturnValue({
       width: ref(MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE + 1),
     } as ReturnType<typeof useElementBounding>);
+    vi.mocked(getScriptingService().sendToService).mockResolvedValue({});
   });
 
   afterEach(() => {
