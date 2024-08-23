@@ -85,6 +85,11 @@
 
 .splitpanes__pane {
   transition: unset;
+
+  /* Needed so that the flow layout shrinks correctly */
+  overflow: visible;
+  min-width: 0;
+  min-height: 0;
 }
 
 .main-splitpane {

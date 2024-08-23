@@ -35,7 +35,7 @@ const acceptSuggestion = () => {
     <div ref="diffEditorContainer" class="diff-editor" />
     <div class="accept-decline-buttons">
       <Button with-border compact @click="acceptSuggestion">
-        <ExportIcon /> Insert in editor
+        <ExportIcon /> Insert
       </Button>
     </div>
   </div>
@@ -45,12 +45,21 @@ const acceptSuggestion = () => {
 .suggestion-container {
   display: flex;
   flex-direction: column;
+  position: relative;
 
   & .diff-editor {
     flex-grow: 1;
+    overflow: hidden;
+    border-radius: var(--ai-bar-corner-radius);
+    position: absolute;
+    inset: 0;
   }
 
   & .accept-decline-buttons {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+
     & .button {
       float: right;
       margin-top: var(--ai-bar-margin);

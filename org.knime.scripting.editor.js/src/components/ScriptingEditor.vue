@@ -232,7 +232,6 @@ if (props.fileName === null && !useSlots().editor) {
                     <div class="run-button-panel">
                       <CodeEditorControlBar
                         v-if="showControlBarDynamic"
-                        :language="language"
                         :current-pane-sizes="currentPaneSizes"
                         :show-button-text="showButtonText"
                       >

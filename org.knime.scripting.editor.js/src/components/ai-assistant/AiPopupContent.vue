@@ -1,17 +1,20 @@
+<script lang="ts">
+/**
+ * Content for the popup that contains the prompt for the KAi, as well as holding the components
+ * that show the diff and disclaimer.
+ */
+export default {};
+</script>
+
 <script setup lang="ts">
 import { useTextareaAutosize } from "@vueuse/core";
-import {
-  computed,
-  nextTick,
-  onMounted,
-  onUnmounted,
-  ref,
-  type PropType,
-} from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import AbortIcon from "@knime/styles/img/icons/cancel-execution.svg";
 import LinkIcon from "@knime/styles/img/icons/link.svg";
 import SendIcon from "@knime/styles/img/icons/paper-flier.svg";
-import { Button, FunctionButton, LoadingIcon } from "@knime/components";
+import { Button, FunctionButton } from "@knime/components";
+import InfinityLoadingBar from "@/components/InfinityLoadingBar.vue";
+import WarningIcon from "@knime/styles/img/icons/circle-warning.svg";
 import { getScriptingService } from "@/scripting-service";
 import {
   getInitialDataService,
@@ -27,8 +30,7 @@ import {
   type PromptResponseStore,
 } from "@/store/ai-bar";
 import AiSuggestion from "./AiSuggestion.vue";
-import { consoleHandler } from "@/consoleHandler";
-import type { PaneSizes } from "@/components/utils/paneSizes";
+import AiDisclaimer from "./AiDisclaimer.vue";
 
 type Status =
   | "idle"
@@ -38,28 +40,9 @@ type Status =
   | "unauthorized"
   | "readonly";
 
-// sizes in viewport width/height
-const DEFAULT_AI_BAR_WIDTH = 65;
-const DEFAULT_AI_BAR_HEIGHT = 40;
-const DEFAULT_LEFT_OVERFLOW = 10;
-
 const { textarea, input } = useTextareaAutosize();
 
-const props = defineProps({
-  currentPaneSizes: {
-    type: Object as PropType<PaneSizes>,
-    default: () => ({ left: 20, right: 25, bottom: 30 }),
-  },
-  language: {
-    type: String,
-    default: null,
-  },
-});
-
-const emit = defineEmits<{
-  (e: "accept-suggestion"): void;
-  (e: "close-ai-bar"): void;
-}>();
+const emit = defineEmits(["request-close"]);
 
 const promptResponseStore: PromptResponseStore = usePromptResponseStore();
 const status = ref<Status>("idle" as Status);
@@ -67,7 +50,6 @@ let message: Message | null =
   promptResponseStore.promptResponse?.message ?? null;
 let history: Array<Message | null> = [];
 const scriptingService = getScriptingService();
-const mouseOverLoadingSpinner = ref(false);
 
 const abortRequest = () => {
   scriptingService?.sendToService("abortSuggestCodeRequest");
@@ -81,11 +63,13 @@ type CodeSuggestion = {
   error: string | undefined;
 };
 
+const errorText = ref<string | null>(null);
+
 const handleCodeSuggestion = (codeSuggestion: CodeSuggestion) => {
+  errorText.value = null;
+
   if (codeSuggestion.status === "ERROR") {
-    consoleHandler.writeln({
-      text: `ERROR: ${codeSuggestion.error}`,
-    });
+    errorText.value = codeSuggestion.error ?? null;
     status.value = "error";
   } else if (codeSuggestion.status === "CANCELLED") {
     status.value = "idle";
@@ -100,15 +84,8 @@ const handleCodeSuggestion = (codeSuggestion: CodeSuggestion) => {
     input.value = "";
   }
   nextTick(() => {
-    textarea.value.focus();
+    textarea.value?.focus();
   });
-};
-const acceptSuggestion = (acceptedCode: string) => {
-  history.push(message);
-  status.value = "idle";
-  activeEditorStore.value!.text.value = acceptedCode;
-  clearPromptResponseStore();
-  emit("accept-suggestion");
 };
 
 scriptingService.registerEventHandler("codeSuggestion", handleCodeSuggestion);
@@ -135,25 +112,21 @@ const handleKeyDown = (e: KeyboardEvent) => {
     input.value = history.length ? history[history.length - 1]!.content : "";
   }
 };
-const leftPosition = computed(() =>
-  Math.max(props.currentPaneSizes.left - DEFAULT_LEFT_OVERFLOW, 0),
-);
-const leftOverflow = computed(
-  () => props.currentPaneSizes.left - leftPosition.value,
-);
-const bottomPosition = computed(
-  () =>
-    // (100vh - 98px) * bottomPaneSize = actual size of bottom pane (49 px is size of controls)
-    // + 2*49px offset (footer and control bar)
-    `calc( ((100vh - 98px) * ${props.currentPaneSizes.bottom / 100}) + 98px )`,
-);
-const aiBarWidth = computed(() => {
-  return Math.min(DEFAULT_AI_BAR_WIDTH, 100 - leftPosition.value);
-});
+
+const acceptSuggestion = (acceptedCode: string) => {
+  history.push(message);
+  status.value = "idle";
+  activeEditorStore.value!.text.value = acceptedCode;
+  clearPromptResponseStore();
+
+  emit("request-close");
+};
 
 onMounted(async () => {
-  const settings = await getSettingsService().getSettings();
-  const initialData = await getInitialDataService().getInitialData();
+  const [settings, initialData] = await Promise.all([
+    getSettingsService().getSettings(),
+    getInitialDataService().getInitialData(),
+  ]);
 
   if (!initialData.kAiConfig.codeAssistantInstalled) {
     status.value = "uninstalled";
@@ -206,21 +179,8 @@ getInitialDataService()
 </script>
 
 <template>
-  <div
-    class="ai-bar-container"
-    :style="{
-      bottom: `${bottomPosition}`,
-      left: `${leftPosition}vw`,
-      width: `${aiBarWidth}vw`,
-      height: `${DEFAULT_AI_BAR_HEIGHT}`,
-      ...(promptResponseStore.promptResponse ? {} : { 'max-width': '800px' }),
-    }"
-  >
-    <div
-      v-show="status === 'uninstalled'"
-      class="notification-bar"
-      :style="{ '--left-distance': `calc(${leftOverflow}vw + 30px)` }"
-    >
+  <div class="popup-content">
+    <div v-show="status === 'uninstalled'" class="notification-bar">
       <span class="notification">
         To start generating code with our AI assistant, install the
         <i>KNIME AI Assistant</i> extension
@@ -234,11 +194,7 @@ getInitialDataService()
         <LinkIcon />Download from KNIME Hub
       </Button>
     </div>
-    <div
-      v-show="status === 'unauthorized'"
-      class="notification-bar"
-      :style="{ '--left-distance': `calc(${leftOverflow}vw + 30px)` }"
-    >
+    <div v-show="status === 'unauthorized'" class="notification-bar">
       <span class="notification">
         To start generating code with our AI assistant, please log into your
         <i>KNIME Hub</i> account
@@ -247,11 +203,7 @@ getInitialDataService()
         Login to {{ hubId }}
       </Button>
     </div>
-    <div
-      v-show="status === 'readonly'"
-      class="notification-bar"
-      :style="{ '--left-distance': `calc(${leftOverflow}vw + 30px)` }"
-    >
+    <div v-show="status === 'readonly'" class="notification-bar">
       <span class="notification">
         Script is overwritten by a flow variable.
       </span>
@@ -264,36 +216,10 @@ getInitialDataService()
       "
     >
       <Transition name="disclaimer-slide-fade">
-        <div v-if="showDisclaimer" class="disclaimer-container">
-          <div class="disclaimer-text">
-            <p style="font-weight: bold">Disclaimer</p>
-            <p>
-              By using this coding assistant, you acknowledge and agree the
-              following: Any information you enter into the prompt, as well as
-              the current code (being edited) and table headers, may be shared
-              with OpenAI and KNIME in order to provide and improve this
-              service.
-            </p>
-
-            <p>
-              KNIME is not responsible for any content, input or output, or
-              actions triggered by the generated code, and is not liable for any
-              damages arising from or related to your use of the coding
-              assistant.
-            </p>
-
-            <p>This is an experimental service, USE AT YOUR OWN RISK.</p>
-          </div>
-          <div class="disclaimer-button-container">
-            <Button
-              compact
-              primary
-              class="notification-button"
-              @click="showDisclaimer = false"
-              >Accept and close</Button
-            >
-          </div>
-        </div>
+        <AiDisclaimer
+          v-if="showDisclaimer"
+          @accept-disclaimer="showDisclaimer = false"
+        />
       </Transition>
       <Transition name="slide-fade">
         <AiSuggestion
@@ -305,29 +231,31 @@ getInitialDataService()
       <div
         class="chat-controls"
         :class="{ 'chat-controls-border-top': hasTopContent }"
-        :style="{ '--left-distance': `calc(${leftOverflow}vw + 30px)` }"
       >
         <Transition name="slide-fade">
           <div v-if="promptResponseStore.promptResponse" class="prompt-bar">
             {{ promptResponseStore.promptResponse.message.content }}
           </div>
         </Transition>
+        <InfinityLoadingBar v-if="status === 'waiting'" />
         <div class="chat-controls-text-input">
           <textarea
             ref="textarea"
             v-model="input"
             :disabled="status === 'waiting' || showDisclaimer"
             class="textarea"
-            placeholder="Type your prompt"
+            placeholder="Describe your task"
+            wrap="soft"
             @keydown="handleKeyDown"
           />
           <div class="chat-controls-buttons">
             <FunctionButton
               v-if="status === 'error' || status === 'idle'"
               ref="sendButton"
+              primary
               title="Send"
               :disabled="!input || showDisclaimer"
-              class="textarea-button"
+              class="send-button"
               @click="request"
             >
               <SendIcon class="icon" />
@@ -336,15 +264,18 @@ getInitialDataService()
               v-if="status === 'waiting'"
               ref="abortButton"
               title="Cancel"
-              class="textarea-button"
+              class="send-button abort-button"
               @click="abortRequest"
-              @mouseover="mouseOverLoadingSpinner = true"
-              @mouseleave="mouseOverLoadingSpinner = false"
             >
-              <AbortIcon v-if="mouseOverLoadingSpinner" class="icon" />
-              <LoadingIcon v-else class="icon" />
+              <AbortIcon class="icon" />
             </FunctionButton>
           </div>
+        </div>
+        <div v-if="status === 'error'" class="error-message">
+          <WarningIcon class="error-icon" />
+          <span class="error-text">
+            {{ errorText }}
+          </span>
         </div>
       </div>
     </div>
@@ -366,22 +297,21 @@ getInitialDataService()
   opacity: 0;
 }
 
-.ai-bar-container {
-  --ai-bar-margin: var(--space-12);
+.popup-content {
+  --ai-bar-margin: var(--space-8);
+  --ai-bar-corner-radius: 8px;
 
   display: flex;
   flex-direction: column;
-  position: absolute;
-  bottom: 20px;
   background-color: var(--knime-gray-ultra-light);
-  border: 1px solid var(--knime-silver-sand);
+  border: 1px solid var(--knime-porcelain);
+  border-radius: var(--ai-bar-corner-radius);
   font-size: 13px;
-  line-height: 17px;
+  line-height: 27px;
   z-index: 11; /* to display ai bar above the main code editor's scroll bar */
-  overflow: visible;
-  box-shadow: 0 -2px 8px 0 var(--knime-silver-sand-semi);
-  margin-bottom: var(--space-12); /* to hover above ai icon */
+  box-shadow: var(--shadow-elevation-2);
   transition: width 0.2s ease-in-out;
+  overflow: hidden;
 
   & .subtitle {
     color: var(--knime-black);
@@ -414,7 +344,7 @@ getInitialDataService()
   }
 
   & .chat-controls-border-top {
-    border-top: 1px solid var(--knime-silver-sand);
+    border-top: 1px solid var(--knime-porcelain);
   }
 
   & .chat-controls {
@@ -427,29 +357,59 @@ getInitialDataService()
       margin-right: var(--ai-bar-margin);
       margin-left: var(--ai-bar-margin);
       line-height: 15.23px;
+      word-wrap: break-word;
+    }
+
+    & .error-message {
+      color: var(--knime-coral-dark);
+      z-index: 12;
+      margin: 0 var(--ai-bar-margin) var(--ai-bar-margin) var(--ai-bar-margin);
+      line-height: 15.23px;
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+
+      & .error-icon {
+        stroke: var(--knime-coral-dark);
+        width: 13px;
+        min-width: 13px;
+        height: 13px;
+        margin-right: var(--space-8);
+      }
+
+      & .error-text {
+        white-space: normal;
+        word-wrap: break-word;
+        font-size: 12px;
+      }
     }
 
     & .chat-controls-text-input {
       display: flex;
-      flex-direction: row;
+      flex-flow: row nowrap;
+      align-items: center;
+      z-index: 12;
 
       & .textarea {
         flex-grow: 1;
-        border: 1px solid var(--knime-silver-sand);
-        overflow: hidden;
+        border: 2px solid var(--knime-porcelain);
         resize: none;
         border-radius: 0;
-        bottom: -1; /* is this intentional? */
-        padding: var(--space-16);
-        padding-right: var(--space-32);
+        padding: var(--space-8);
         margin: var(--ai-bar-margin);
         color: var(--knime-masala);
         font-size: 13px;
         font-weight: lighter;
         font-family: Roboto, sans-serif;
+        overflow: hidden;
+        text-wrap: soft;
 
         &::placeholder {
-          color: var(--knime-stone);
+          color: var(--knime-dove-gray);
+        }
+
+        &:disabled {
+          opacity: 0.5;
         }
 
         &:focus {
@@ -458,54 +418,19 @@ getInitialDataService()
       }
 
       & .chat-controls-buttons {
-        & .textarea-button {
-          position: absolute;
-          right: 20px;
-          bottom: 20px;
-        }
+        margin: var(--ai-bar-margin);
+        margin-left: 0;
       }
     }
-  }
-
-  & :deep(.chat-controls::after) {
-    --arrow-size: 18px;
-
-    width: var(--arrow-size);
-    height: var(--arrow-size);
-    left: calc(var(--left-distance) + 40px);
-    content: "";
-    position: absolute;
-    background-color: var(--knime-gray-ultra-light);
-    bottom: 0;
-    z-index: 1;
-    border-right: 1px solid var(--knime-silver-sand);
-    border-top: 1px solid var(--knime-silver-sand);
-    transform: translate(-50%, 50%) rotate(135deg);
   }
 
   & .notification-bar {
     display: flex;
     justify-content: space-between;
     vertical-align: middle;
-    border-top: 1px solid var(--knime-silver-sand);
+    border-top: 1px solid var(--knime-porcelain);
     position: relative;
     height: 49px;
-  }
-
-  & :deep(.notification-bar::after) {
-    --arrow-size: 18px;
-
-    width: var(--arrow-size);
-    height: var(--arrow-size);
-    left: calc(var(--left-distance) + 40px);
-    content: "";
-    position: absolute;
-    background-color: var(--knime-gray-ultra-light);
-    bottom: 0;
-    z-index: 1;
-    border-right: 1px solid var(--knime-silver-sand);
-    border-top: 1px solid var(--knime-silver-sand);
-    transform: translate(-50%, 50%) rotate(135deg);
   }
 }
 
@@ -520,31 +445,7 @@ getInitialDataService()
   margin-right: var(--space-16);
 }
 
-.disclaimer-container {
-  display: flex;
-  flex-direction: column;
-}
-
-.disclaimer-text {
-  margin: var(--space-8);
-  line-height: 20px;
-  padding: var(--space-4);
-  background-color: var(--knime-white);
-}
-
-.disclaimer-button-container {
-  display: flex;
-  justify-content: right;
-}
-
-.disclaimer-slide-fade-leave-active {
-  transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1);
-}
-
-.disclaimer-slide-fade-enter-from,
-.disclaimer-slide-fade-leave-to {
-  transform: translateY(30px);
-  opacity: 0;
+.abort-button {
+  border: 1px solid var(--knime-silver-sand);
 }
 </style>
-@/consoleHandler
