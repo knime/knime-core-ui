@@ -118,6 +118,21 @@ public class TableViewDataServiceImpl implements TableViewDataService {
     private final Supplier<Set<RowKey>> m_selectionSupplier;
 
     /**
+     * Introduced as part of UIEXT-2118: This static record has no reference to 'this' and can be used safely as cleanup
+     * runnable in {@link Cleaner#register(Object, Runnable)}. The {@link Cleaner} class requires the {@code Runnable}
+     * argument to have no reference to the object to be collected (ie. 'this').
+     */
+    private static record Cleanup(TableCache sortedTableCache, TableCache filteredAndSortedTableCache,
+        TableWithIndicesSupplier tableWithIndicesSupplier) implements Runnable {
+        @Override
+        public void run() {
+            sortedTableCache.clear();
+            filteredAndSortedTableCache.clear();
+            tableWithIndicesSupplier.clear();
+        }
+    }
+
+    /**
      * @param tableSupplier supplier for the table from which to obtain data
      * @param tableId a globally unique id; used to uniquely identify images in the renderer-registry which belong to
      *            the table supplied here
@@ -135,12 +150,8 @@ public class TableViewDataServiceImpl implements TableViewDataService {
         m_rendererFactory = rendererFactory;
         m_rendererRegistry = rendererRegistry;
         m_selectionSupplier = null;
-        CLEANER.register(this, () -> { // NOSONAR exposing a partially constructed instance is no problem here
-            /** because it's not really used (just to determine whether 'this' is phantom-reachable) */
-            m_sortedTableCache.clear();
-            m_filteredAndSortedTableCache.clear();
-            m_tableWithIndicesSupplier.clear();
-        });
+        CLEANER.register(this, // NOSONAR exposing a partially constructed instance is no problem here
+            new Cleanup(m_sortedTableCache, m_filteredAndSortedTableCache, m_tableWithIndicesSupplier));
     }
 
     /**
@@ -163,12 +174,8 @@ public class TableViewDataServiceImpl implements TableViewDataService {
         m_tableId = tableId;
         m_rendererFactory = rendererFactory;
         m_rendererRegistry = rendererRegistry;
-        CLEANER.register(this, () -> { // NOSONAR exposing a partially constructed instance is no problem here
-            /** because it's not really used (just to determine whether 'this' is phantom-reachable) */
-            m_sortedTableCache.clear();
-            m_filteredAndSortedTableCache.clear();
-            m_tableWithIndicesSupplier.clear();
-        });
+        CLEANER.register(this, // NOSONAR exposing a partially constructed instance is no problem here
+            new Cleanup(m_sortedTableCache, m_filteredAndSortedTableCache, m_tableWithIndicesSupplier));
     }
 
     @Override
