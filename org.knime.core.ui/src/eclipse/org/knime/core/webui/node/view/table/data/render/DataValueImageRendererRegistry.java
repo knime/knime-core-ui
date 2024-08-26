@@ -60,6 +60,8 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.imageio.ImageIO;
+
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.NodeLogger;
@@ -96,6 +98,10 @@ public final class DataValueImageRendererRegistry {
     private final Supplier<String> m_pageIdSupplier;
 
     private final Map<String, Images> m_imagesPerTable = Collections.synchronizedMap(new HashMap<>());
+
+    static {
+        ImageIO.setUseCache(false);
+    }
 
     /**
      * @param pageIdSupplier the page id of the view (see, e.g.,
