@@ -4,14 +4,12 @@ import { flushPromises, mount } from "@vue/test-utils";
 import AiBar from "../ai-assistant/AiBar.vue";
 import { getInitialDataService } from "@/initial-data-service";
 import { beforeEach } from "node:test";
-import { ref } from "vue";
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
 
 vi.mock("@/scripting-service");
 vi.mock("@/initial-data-service", () => ({
   getInitialDataService: vi.fn(() => ({
     getInitialData: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_DATA)),
-    isInitialDataLoaded: vi.fn(() => true),
   })),
 }));
 
@@ -35,7 +33,6 @@ describe("CodeEditorControlBar", () => {
           },
         }),
       ),
-      isInitialDataLoaded: vi.fn(() => ref(true)),
     });
 
     const wrapper = mount(CodeEditorControlBar);
@@ -108,7 +105,6 @@ describe("CodeEditorControlBar", () => {
           inputsAvailable: false,
         }),
       ),
-      isInitialDataLoaded: vi.fn(() => ref(true)),
     });
 
     const wrapper = mount(CodeEditorControlBar);

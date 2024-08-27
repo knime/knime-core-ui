@@ -1,4 +1,3 @@
-import { ref } from "vue";
 import type {
   GenericNodeSettings,
   SettingsServiceType,
@@ -22,15 +21,11 @@ export const createSettingsServiceMock = (
   data?: GenericNodeSettings,
 ): SettingsServiceType => ({
   getSettings: () => {
-    log("Called initial data service mock getInitialData");
+    log("Called settings service mock getSettings");
     return Promise.resolve(data ?? DEFAULT_INITIAL_SETTINGS);
   },
-  areSettingsLoaded: () => {
-    log("Called initial data service mock isInitialDataLoaded");
-    return ref(true);
-  },
   registerSettingsGetterForApply: () => {
-    log("Called initial data service mock registerApplyListener");
+    log("Called settings service mock registerSettingsGetterForApply");
     return Promise.resolve();
   },
 });

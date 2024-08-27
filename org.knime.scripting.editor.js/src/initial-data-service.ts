@@ -1,4 +1,3 @@
-import { ref } from "vue";
 import { getSettingsHelper } from "@/settings-helper";
 import type { InputOutputModel } from "@/components/InputOutputItem.vue";
 
@@ -38,18 +37,12 @@ export type GenericInitialData = {
   // [key: string]: any;
 };
 
-const initialDataLoaded = ref(false);
-
 const loadDataPromise = getSettingsHelper()
   .getInitialDataAndSettings()
-  .then((data): GenericInitialData => {
-    initialDataLoaded.value = true;
-    return data.initialData;
-  });
+  .then((data): GenericInitialData => data.initialData);
 
 const initialDataService = {
   getInitialData: () => loadDataPromise,
-  isInitialDataLoaded: () => initialDataLoaded,
 };
 export type InitialDataServiceType = typeof initialDataService;
 

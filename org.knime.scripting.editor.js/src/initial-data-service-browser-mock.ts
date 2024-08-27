@@ -1,4 +1,3 @@
-import { ref } from "vue";
 import {
   type GenericInitialData,
   type InitialDataServiceType,
@@ -111,9 +110,5 @@ export const createInitialDataServiceMock = (
   getInitialData: () => {
     log("Called initial data service mock getInitialData");
     return Promise.resolve(data ?? DEFAULT_INITIAL_DATA);
-  },
-  isInitialDataLoaded: () => {
-    log("Called initial data service mock isInitialDataLoaded");
-    return ref(true);
   },
 });

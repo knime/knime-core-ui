@@ -46,7 +46,6 @@ vi.mock("@/editor");
 vi.mock("@/settings-service", () => ({
   getSettingsService: vi.fn(() => ({
     getSettings: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_SETTINGS)),
-    areSettingsLoaded: vi.fn(() => true),
     registerSettingsGetterForApply: vi.fn(() => Promise.resolve()),
   })),
 }));
@@ -54,7 +53,6 @@ vi.mock("@/settings-service", () => ({
 vi.mock("@/initial-data-service", () => ({
   getInitialDataService: vi.fn(() => ({
     getInitialData: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_DATA)),
-    isInitialDataLoaded: vi.fn(() => true),
   })),
 }));
 

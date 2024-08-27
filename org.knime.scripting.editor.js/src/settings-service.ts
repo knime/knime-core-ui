@@ -17,7 +17,6 @@ const loadDataPromise = getSettingsHelper()
 
 const settingsService = {
   getSettings: () => loadDataPromise,
-  areSettingsLoaded: () => settingsLoaded,
   registerSettingsGetterForApply: (settingsGetter: () => GenericNodeSettings) =>
     getSettingsHelper().registerApplyListener(settingsGetter),
 };
