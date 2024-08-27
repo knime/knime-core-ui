@@ -16,5 +16,5 @@ Require-Bundle: org.knime.core;bundle-version="[5.4.0,6.0.0)",
  org.knime.scripting.editor.ai;bundle-version="[5.4.0,6.0.0)",
  org.knime.gateway.api;bundle-version="[5.4.0,6.0.0)"
 Bundle-ClassPath: knime-scripting-editor.jar
-Export-Package: org.knime.scripting.editor;x-internal:=true,
- org.knime.scripting.editor.lsp;x-internal:=true
+Export-Package: org.knime.scripting.editor;x-friends:="org.knime.python3.scripting.nodes,org.knime.base.expressions,org.knime.base.views",
+ org.knime.scripting.editor.lsp;x-friends:="org.knime.python3.scripting.nodes"
