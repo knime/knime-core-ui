@@ -76,14 +76,17 @@ public interface GenericSettingsIOManager {
         throws InvalidSettingsException;
 
     /**
-     * Write the provided map to the provided NodeSettings.
+     * Write the provided map to the provided NodeSettings. Must also set the variable settings. In most cases it
+     * suffices to call {@link ScriptingNodeSettings#copyVariableSettings(Map, Map)} with the previous settings.
      *
      * @param data the map to read from
+     * @param previousSettings the version the node settings that were used when opening the dialog
      * @param settings the settings to write to
      * @throws InvalidSettingsException if the settings are invalid. This should only happen in the event of an
      *             implementation error, because we expect the frontend to give us valid settings.
      */
-    void writeMapToNodeSettings(final Map<String, Object> data, Map<SettingsType, NodeAndVariableSettingsWO> settings)
-        throws InvalidSettingsException;
+    void writeMapToNodeSettings(final Map<String, Object> data,
+        Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
+        Map<SettingsType, NodeAndVariableSettingsWO> settings) throws InvalidSettingsException;
 
 }
