@@ -82,6 +82,8 @@ export default defineConfig({
         "**/__mocks__/**",
         "test-setup/**",
         "src/scripting-service-browser-mock.ts",
+        "src/initial-data-service-browser-mock.ts",
+        "src/settings-service-browser-mock.ts",
         "**/{vite,vitest,postcss,lint-staged}.config.{js,cjs,mjs,ts}",
         "**/.{eslint,prettier,stylelint}rc.{js,cjs,yml}",
       ],
