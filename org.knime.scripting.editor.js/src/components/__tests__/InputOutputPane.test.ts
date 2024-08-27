@@ -22,13 +22,11 @@ vi.mock("@/editor");
 vi.mock("@/initial-data-service", () => ({
   getInitialDataService: vi.fn(() => ({
     getInitialData: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_DATA)),
-    isInitialDataLoaded: vi.fn(() => true),
   })),
 }));
 vi.mock("@/settings-service", () => ({
   getSettingsService: vi.fn(() => ({
     registerSettingsGetterForApply: vi.fn(() => Promise.resolve()),
-    areSettingsLoaded: vi.fn(() => true),
     getSettings: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_SETTINGS)),
   })),
 }));

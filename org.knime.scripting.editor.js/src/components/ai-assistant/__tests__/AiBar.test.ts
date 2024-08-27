@@ -20,13 +20,11 @@ vi.mock("@/editor");
 vi.mock("@/initial-data-service", () => ({
   getInitialDataService: vi.fn(() => ({
     getInitialData: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_DATA)),
-    isInitialDataLoaded: vi.fn(() => true),
   })),
 }));
 vi.mock("@/settings-service", () => ({
   getSettingsService: vi.fn(() => ({
     registerSettingsGetterForApply: vi.fn(() => Promise.resolve()),
-    areSettingsLoaded: vi.fn(() => true),
     getSettings: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_SETTINGS)),
   })),
 }));
@@ -161,7 +159,6 @@ describe("AiBar", () => {
           },
         }),
       ),
-      isInitialDataLoaded: vi.fn(() => ref(true)),
     });
 
     const bar = mount(AiBar);
@@ -194,7 +191,6 @@ describe("AiBar", () => {
           },
         }),
       ),
-      isInitialDataLoaded: vi.fn(() => ref(true)),
     });
 
     const bar = mount(AiBar);
@@ -224,7 +220,6 @@ describe("AiBar", () => {
           script: "myScript",
         }),
       ),
-      areSettingsLoaded: vi.fn(() => ref(true)),
       registerSettingsGetterForApply: vi.fn(() => Promise.resolve()),
     });
 

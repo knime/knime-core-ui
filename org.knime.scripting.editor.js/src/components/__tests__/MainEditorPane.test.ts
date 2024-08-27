@@ -24,7 +24,6 @@ const registerSettingsGetterForApplyMock = vi.hoisted(() =>
 vi.mock("@/settings-service", () => ({
   getSettingsService: vi.fn(() => ({
     getSettings: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_SETTINGS)),
-    areSettingsLoaded: vi.fn(() => true),
     registerSettingsGetterForApply: registerSettingsGetterForApplyMock,
   })),
 }));
