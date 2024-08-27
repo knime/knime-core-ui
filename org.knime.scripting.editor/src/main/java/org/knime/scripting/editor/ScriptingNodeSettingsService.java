@@ -126,13 +126,7 @@ public final class ScriptingNodeSettingsService implements NodeSettingsService {
 
         try {
             Map<String, Object> settingsFromText = MAPPER.readValue(textSettings, JACKSON_HASHMAP_TYPE);
-
-            m_settingsIOManagerSupplier.get().writeMapToNodeSettings(settingsFromText, settings);
-
-            // Copy over settings that are exposed as flow variables, or overridden by flow variables
-            for (var settingType : settings.keySet()) {
-                SettingsServiceUtils.copyVariableSettings(previousSettings.get(settingType), settings.get(settingType));
-            }
+            m_settingsIOManagerSupplier.get().writeMapToNodeSettings(settingsFromText, previousSettings, settings);
         } catch (InvalidSettingsException ex) {
             throw new IllegalStateException(
                 "Implementation error: Failed to write settings map to node settings: " + ex.getMessage(), ex);

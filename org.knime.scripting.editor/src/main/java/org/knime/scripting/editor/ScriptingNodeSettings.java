@@ -57,6 +57,8 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.VariableSettingsRO;
+import org.knime.core.webui.node.dialog.VariableSettingsWO;
 
 /**
  * Generic scripting settings. The setting can be saved to the {@link SettingsType#MODEL model} settings or
@@ -137,6 +139,63 @@ public abstract class ScriptingNodeSettings {
         } catch (InvalidSettingsException ex) {
             throw new IllegalStateException("Implementation error - failed to query if "
                 + "a flow variable was used for key: " + key + " in the settings.", ex);
+        }
+    }
+
+    /**
+     * Copies all variable settings from the previous settings to the new settings.
+     *
+     * @param previousSettings
+     * @param settings
+     */
+    public static void copyVariableSettings(final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
+        final Map<SettingsType, NodeAndVariableSettingsWO> settings) {
+        for (var settingType : settings.keySet()) {
+            copyVariableSettings(previousSettings.get(settingType), settings.get(settingType));
+        }
+    }
+
+    /**
+     * Utility method to copy all variable settings from a the previous settings to the new settings
+     *
+     * @param from the previous settings
+     * @param to the new settings
+     */
+    public static void copyVariableSettings(final VariableSettingsRO from, final VariableSettingsWO to) {
+
+        try {
+            for (String key : from.getVariableSettingsIterable()) {
+                if (from.isVariableSetting(key)) {
+                    copyVariableSetting(from, to, key);
+                } else {
+                    copyVariableSettings(from.getVariableSettings(key), to.getOrCreateVariableSettings(key));
+                }
+            }
+        } catch (InvalidSettingsException e) {
+            throw new IllegalStateException(
+                "Implementation error: failed to copy variable settings from previous settings to new settings", e);
+        }
+    }
+
+    /**
+     * Copies a single variable setting from the previous settings to the new settings
+     *
+     * @param from the previous settings
+     * @param to the new settings
+     * @param key the key of the variable setting to copy
+     *
+     * @throws InvalidSettingsException if the key doesn't correspond to a setting
+     */
+    public static void copyVariableSetting(final VariableSettingsRO from, final VariableSettingsWO to, final String key)
+        throws InvalidSettingsException {
+
+        var usedVariable = from.getUsedVariable(key);
+        if (usedVariable != null) {
+            to.addUsedVariable(key, usedVariable);
+        }
+        var exposedVariable = from.getExposedVariable(key);
+        if (exposedVariable != null) {
+            to.addExposedVariable(key, exposedVariable);
         }
     }
 }
