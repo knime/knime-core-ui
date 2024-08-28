@@ -56,6 +56,10 @@ import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.
 import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil.rootJsonToVariableSettings;
 import static org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil.restrictValues;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
@@ -165,7 +169,19 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
         final var mapper = JsonFormsDataUtil.getMapper();
         final var root = jsonFormsSettingsToJson(jsonFormsSettings, mapper);
         addVariableSettingsToRootJson(root, restrictValues(settings), context);
-        return jsonToString(root, mapper);
+        var json = jsonToString(root, mapper);
+        writeToDisk(json);
+        return json;
+    }
+
+    private static void writeToDisk(final String json) {
+        var nodeName = NodeContext.getContext().getNodeContainer().getNameWithID();
+        var path = Paths.get("C:/Users/adrian.nembach/Desktop/dialog_reps/", nodeName.replaceAll(":", "_"));
+        try {
+            Files.write(path, json.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private ObjectNode jsonFormsSettingsToJson(final JsonFormsSettings jsonFormsSettings, final ObjectMapper mapper) {
