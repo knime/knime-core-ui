@@ -133,7 +133,7 @@ public abstract class ScriptingNodeSettings {
      * @param key
      * @return true if the value of the key is overridden by a flow variable, false otherwise
      */
-    public static boolean isOverriddenByFlowVariable(final NodeAndVariableSettingsRO settings, final String key) {
+    public static boolean isOverriddenByFlowVariable(final VariableSettingsRO settings, final String key) {
         try {
             return settings.isVariableSetting(key) && settings.getUsedVariable(key) != null;
         } catch (InvalidSettingsException ex) {
