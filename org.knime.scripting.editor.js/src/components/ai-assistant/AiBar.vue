@@ -159,7 +159,7 @@ onMounted(async () => {
     status.value = "uninstalled";
   } else if (settings.settingsAreOverriddenByFlowVariable) {
     status.value = "readonly";
-  } else if (!initialData.kAiConfig.loggedIn) {
+  } else if (!(await getScriptingService().isLoggedIntoHub())) {
     status.value = "unauthorized";
   }
 });

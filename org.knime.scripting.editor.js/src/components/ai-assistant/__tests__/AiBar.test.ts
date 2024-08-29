@@ -149,17 +149,7 @@ describe("AiBar", () => {
   });
 
   it("show login button if not logged in yet", async () => {
-    vi.mocked(getInitialDataService).mockReturnValue({
-      getInitialData: vi.fn(() =>
-        Promise.resolve({
-          ...DEFAULT_INITIAL_DATA,
-          kAiConfig: {
-            ...DEFAULT_INITIAL_DATA.kAiConfig,
-            loggedIn: false,
-          },
-        }),
-      ),
-    });
+    vi.mocked(getScriptingService().isLoggedIntoHub).mockResolvedValue(false);
 
     const bar = mount(AiBar);
     await flushPromises();

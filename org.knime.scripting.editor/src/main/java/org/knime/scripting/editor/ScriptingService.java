@@ -309,6 +309,13 @@ public abstract class ScriptingService {
         }
 
         /**
+         * @return true iff the user is logged in to the currently selected Hub end point
+         */
+        public boolean isLoggedIntoHub() {
+            return HubConnection.INSTANCE.isLoggedIn();
+        }
+
+        /**
          * Get a collection of all supported flow variables supported by this scripting node.
          *
          * @return a collection of all supported flow variables
