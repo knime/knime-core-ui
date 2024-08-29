@@ -90,7 +90,6 @@ export const DEFAULT_INITIAL_DATA: GenericInitialData = {
     codeAssistantEnabled: true,
     codeAssistantInstalled: true,
     hubId: "My Mocked KNIME Hub",
-    loggedIn: true,
   },
   inputsAvailable: true,
 };

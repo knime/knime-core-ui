@@ -135,6 +135,10 @@ const scriptingService = {
   isCallKnimeUiApiAvailable(portToTestFor: PortConfig) {
     return RPCHelper.getInstance().isCallKnimeUiApiAvailable(portToTestFor);
   },
+
+  isLoggedIntoHub() {
+    return this.sendToService("isLoggedIntoHub");
+  },
 };
 
 export type ScriptingServiceType = typeof scriptingService;

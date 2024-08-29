@@ -24,7 +24,6 @@ export type KAIConfig = {
   codeAssistantEnabled: boolean;
   codeAssistantInstalled: boolean;
   hubId: string;
-  loggedIn: boolean;
 };
 
 export type GenericInitialData = {

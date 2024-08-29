@@ -84,6 +84,11 @@ export const createScriptingServiceMock = (
       return Promise.resolve(true);
     },
 
+    isLoggedIntoHub() {
+      log("Called scriptingService.isLoggedIntoHub");
+      return Promise.resolve(true);
+    },
+
     // Event handler
     registerEventHandler(type, handler) {
       log("Called scriptingService.registerEventHandler", type);
