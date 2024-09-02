@@ -1,9 +1,8 @@
-import { describe, afterEach, it, vi, expect } from "vitest";
+import { describe, afterEach, it, vi, expect, beforeEach } from "vitest";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import AiBar from "../ai-assistant/AiBar.vue";
 import { getInitialDataService } from "@/initial-data-service";
-import { beforeEach } from "node:test";
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
 
 vi.mock("@/scripting-service");
