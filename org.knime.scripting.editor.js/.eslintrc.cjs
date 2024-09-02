@@ -18,5 +18,7 @@ module.exports = {
       },
     },
   },
-  rules: {},
+  rules: {
+    "vitest/no-import-node-test": "error",
+  },
 };

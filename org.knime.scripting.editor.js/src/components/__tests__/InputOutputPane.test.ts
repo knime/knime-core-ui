@@ -1,7 +1,6 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
 import InputOutputPane from "../InputOutputPane.vue";
-import {} from "node:test";
 import InputOutputItem, {
   INPUT_OUTPUT_DRAG_EVENT_ID,
   type InputOutputModel,
