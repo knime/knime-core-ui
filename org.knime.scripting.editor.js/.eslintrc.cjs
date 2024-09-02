@@ -18,8 +18,5 @@ module.exports = {
       },
     },
   },
-  rules: {
-    // TODO: turn this on again after fixing splitpanes import problems
-    "import/extensions": "off",
-  },
+  rules: {},
 };
