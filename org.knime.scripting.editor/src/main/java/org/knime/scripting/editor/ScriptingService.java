@@ -50,6 +50,7 @@ package org.knime.scripting.editor;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -58,6 +59,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.workflow.FlowVariable;
@@ -321,9 +323,20 @@ public abstract class ScriptingService {
          * @return a collection of all supported flow variables
          */
         public Collection<FlowVariable> getSupportedFlowVariables() {
-            return getWorkflowControl().getFlowObjectStack().getAllAvailableFlowVariables().values().stream()
-                .filter(v -> m_flowVariableFilter.test(v.getVariableType())).toList();
+            return getSupportedFlowVariablesMap().values();
         }
+
+        /**
+         * Get a map of all supported flow variables supported by this scripting node.
+         *
+         * @return a map of flow variables
+         */
+        public Map<String, FlowVariable> getSupportedFlowVariablesMap() {
+            return getWorkflowControl().getFlowObjectStack().getAllAvailableFlowVariables().entrySet().stream()
+                .filter(v -> m_flowVariableFilter.test(v.getValue().getVariableType()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
+
     }
 
     /**
