@@ -27,7 +27,7 @@
   "dependencies": {
     "@knime/components": "^1.0.5",
     "@knime/styles": "^1.0.0",
-    "@knime/ui-extensions-renderer": "^1.0.11",
+    "@knime/ui-extension-renderer": "^1.1.0",
     "@knime/utils": "^1.0.4",
     "@vueuse/core": "10.09.0",
     "handlebars": "4.7.8",
