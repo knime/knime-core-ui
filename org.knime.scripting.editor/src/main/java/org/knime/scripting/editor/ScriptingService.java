@@ -332,9 +332,14 @@ public abstract class ScriptingService {
          * @return a map of flow variables
          */
         public Map<String, FlowVariable> getSupportedFlowVariablesMap() {
-            return getWorkflowControl().getFlowObjectStack().getAllAvailableFlowVariables().entrySet().stream()
-                .filter(v -> m_flowVariableFilter.test(v.getValue().getVariableType()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            var stack = getWorkflowControl().getFlowObjectStack();
+            if (stack == null) {
+                return Map.of();
+            } else {
+                return stack.getAllAvailableFlowVariables().entrySet().stream()
+                    .filter(v -> m_flowVariableFilter.test(v.getValue().getVariableType()))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            }
         }
 
     }
