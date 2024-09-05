@@ -143,8 +143,15 @@ onMounted(() => {
       border-right: 1px solid var(--knime-porcelain);
       border-top: 1px solid var(--knime-porcelain);
 
-      /* we clip the arrow to stop it casting a shadow on the rest of the popup */
-      clip-path: rect(calc(0px - 100vw) calc(100% + 100vw) 100% 0);
+      /* we clip the arrow to stop it casting a shadow on the rest of the popup.
+      Note that at the time of writing, the CEF version doesn't support many of
+      the shapes that would make this easier. */
+      clip-path: polygon(
+        0 calc(0px - 100vw),
+        calc(100% + 100vw) calc(0px - 100vw),
+        calc(100% + 100vw) 100%,
+        0 100%
+      );
       box-shadow: var(--shadow-elevation-2);
       transform: translateX(
           calc(
