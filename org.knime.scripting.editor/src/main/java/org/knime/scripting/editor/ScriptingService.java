@@ -86,7 +86,7 @@ public abstract class ScriptingService {
     // TODO(AP-19341) Replace the event queue with Java->JS events
     private final BlockingQueue<Event> m_eventQueue;
 
-    private final Optional<WorkflowControl> m_workflowControl;
+    private final WorkflowControl m_workflowControl;
 
     /**
      * Filter that determines which flow variables are supported by this node (and hence which are shown in the dialog).
@@ -99,6 +99,14 @@ public abstract class ScriptingService {
     private ExecutorService m_executorService;
 
     private Future<?> m_lastCodeSuggestion;
+
+    /** Utility to initialize the workflow control from the current NodeContext */
+    private static WorkflowControl getWorkflowControlFromContext() {
+        return Optional.ofNullable(NodeContext.getContext()) //
+            .map(NodeContext::getNodeContainer) //
+            .map(WorkflowControl::new) //
+            .orElse(null);
+    }
 
     /**
      * Create a new {@link ScriptingService} without a language server.
@@ -116,13 +124,25 @@ public abstract class ScriptingService {
      */
     protected ScriptingService(final LanguageServerStarter languageServerCreator,
         final Predicate<VariableType<?>> flowVariableFilter) {
+        this(languageServerCreator, flowVariableFilter, getWorkflowControlFromContext());
+    }
+
+    /**
+     * Create a new {@link ScriptingService} with a special workflow control. Use this constructor directly only for
+     * testing with a mocked workflow control.
+     *
+     * @param languageServerCreator create a language server that will be available to the frontend. Can be
+     *            <code>null</code>.
+     * @param flowVariableFilter filters flowvariable given a set of allowed types.
+     * @param workflowControl the workflow control that should be used to control the workflow
+     */
+    protected ScriptingService(final LanguageServerStarter languageServerCreator,
+        final Predicate<VariableType<?>> flowVariableFilter, final WorkflowControl workflowControl) {
 
         m_languageServerCreator = Optional.ofNullable(languageServerCreator).orElse(() -> null);
         m_languageServer = Optional.empty();
         m_eventQueue = new LinkedBlockingQueue<>();
-        m_workflowControl = Optional.ofNullable(NodeContext.getContext()) //
-            .map(NodeContext::getNodeContainer) //
-            .map(WorkflowControl::new);
+        m_workflowControl = workflowControl;
 
         m_flowVariableFilter = flowVariableFilter;
     }
@@ -131,9 +151,11 @@ public abstract class ScriptingService {
      * @return the workflowControl
      */
     protected WorkflowControl getWorkflowControl() {
-        return m_workflowControl
-            .orElseThrow(() -> new IllegalStateException("Trying to control the workflow of a scripting service that "
-                + "was not created in the node context is not supported. This is an implementation error."));
+        if (m_workflowControl == null) {
+            throw new IllegalStateException("Trying to control the workflow of a scripting service that "
+                + "was not created in the node context is not supported. This is an implementation error.");
+        }
+        return m_workflowControl;
     }
 
     /**
