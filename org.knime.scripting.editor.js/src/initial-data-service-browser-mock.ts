@@ -2,6 +2,7 @@ import {
   type GenericInitialData,
   type InitialDataServiceType,
   type PortConfigs,
+  type InputConnectionInfo,
 } from "@/initial-data-service";
 import type { InputOutputModel } from "lib/main";
 
@@ -26,6 +27,19 @@ export const DEFAULT_INPUT_OBJECTS: InputOutputModel[] = [
         supported: false,
       },
     ],
+  },
+];
+
+export const DEFAULT_PORT_INFORMATION: InputConnectionInfo[] = [
+  {
+    // flow variable port
+    status: "OK",
+    isOptional: true,
+  },
+  {
+    // input port
+    status: "OK",
+    isOptional: false,
   },
 ];
 
@@ -91,7 +105,7 @@ export const DEFAULT_INITIAL_DATA: GenericInitialData = {
     codeAssistantInstalled: true,
     hubId: "My Mocked KNIME Hub",
   },
-  inputsAvailable: true,
+  inputConnectionInfo: DEFAULT_PORT_INFORMATION,
 };
 
 const log = (message: any, ...args: any[]) => {

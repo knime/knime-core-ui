@@ -48,6 +48,7 @@
  */
 package org.knime.scripting.editor;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
@@ -163,6 +164,58 @@ public class WorkflowControl {
         return IntStream.range(0, getNrInPorts()) //
             .mapToObj(i -> m_nc.getInPort(i).getPortType()) //
             .toArray(PortType[]::new);
+    }
+
+    /**
+     * States that an input port can be in.
+     */
+    public enum ConnectionStatus {
+            /** The input is not connected */
+            MISSING_CONNECTION,
+            /** The input is connected, but the predecessor is not configured */
+            UNCONFIGURED_CONNECTION,
+            /** The input is connected and configured, but the predecessor is not executed */
+            UNEXECUTED_CONNECTION,
+            /** The input is connected, configured, and executed */
+            OK
+    }
+
+    /**
+     * A record to store the connection information of an input port.
+     *
+     * @param status the current status of the connection
+     * @param isOptional flag to indicate if the port is optional
+     *
+     */
+    public record InputConnectionInfo(ConnectionStatus status, boolean isOptional) {
+    }
+
+    /**
+     * @return port information of each port.
+     */
+    public InputConnectionInfo[] getInputConnectionInfo() {
+        var inputPortTypes = getInputPortTypes();
+
+        InputConnectionInfo[] inputConnectionInfo = new InputConnectionInfo[getNrInPorts()];
+        Arrays.setAll(inputConnectionInfo,
+            i -> new InputConnectionInfo(ConnectionStatus.MISSING_CONNECTION, inputPortTypes[i].isOptional()));
+
+        runForEachIncomingConnection((destPortIdx, outPort) -> {
+            inputConnectionInfo[destPortIdx] =
+                new InputConnectionInfo(getPortConnectionStatus(outPort), inputPortTypes[destPortIdx].isOptional());
+        });
+
+        return inputConnectionInfo;
+    }
+
+    private static ConnectionStatus getPortConnectionStatus(final NodeOutPort outPort) {
+        if (outPort.getPortObjectSpec() == null) {
+            return ConnectionStatus.UNCONFIGURED_CONNECTION;
+        }
+        if (outPort.getPortObject() == null) {
+            return ConnectionStatus.UNEXECUTED_CONNECTION;
+        }
+        return ConnectionStatus.OK;
     }
 
     /**

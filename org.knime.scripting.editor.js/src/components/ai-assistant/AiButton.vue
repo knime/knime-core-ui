@@ -23,7 +23,9 @@ const showAiButton = computedAsync<boolean>(
   false,
 );
 const enableAiButton = computedAsync<boolean>(
-  async () => (await getInitialDataService().getInitialData()).inputsAvailable,
+  async () =>
+    (await getInitialDataService().getInitialData()).inputConnectionInfo[1]
+      .status === "OK",
   false,
 );
 

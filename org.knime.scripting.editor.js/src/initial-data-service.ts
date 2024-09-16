@@ -20,6 +20,21 @@ export type PortConfigs = {
   inputPorts: PortConfig[];
 };
 
+export type ConnectionStatus =
+  /** The input is not connected */
+  | "MISSING_CONNECTION"
+  /** The input is connected, but the predecessor is not configured */
+  | "UNCONFIGURED_CONNECTION"
+  /** The input is connected and configured, but the predecessor is not executed */
+  | "UNEXECUTED_CONNECTION"
+  /** The input is connected, configured, and executed */
+  | "OK";
+
+export type InputConnectionInfo = {
+  status: ConnectionStatus;
+  isOptional: boolean;
+};
+
 export type KAIConfig = {
   codeAssistantEnabled: boolean;
   codeAssistantInstalled: boolean;
@@ -30,10 +45,9 @@ export type GenericInitialData = {
   inputPortConfigs: PortConfigs;
   inputObjects: InputOutputModel[];
   flowVariables: InputOutputModel;
-  inputsAvailable: boolean;
+  inputConnectionInfo: InputConnectionInfo[];
   outputObjects?: InputOutputModel[];
   kAiConfig: KAIConfig;
-  // [key: string]: any;
 };
 
 const loadDataPromise = getSettingsHelper()
