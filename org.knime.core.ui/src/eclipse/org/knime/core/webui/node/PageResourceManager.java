@@ -101,7 +101,9 @@ public final class PageResourceManager<N extends NodeWrapper> {
             /**
              * A port view.
              */
-            PORT;
+            PORT,
+            /** TODO */
+            DATA_VALUE;
 
         @Override
         public String toString() {
