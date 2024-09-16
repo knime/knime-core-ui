@@ -2,7 +2,10 @@ import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
 import { it, vi, expect, describe, afterEach } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 import AiButton from "@/components/ai-assistant/AiButton.vue";
-import { getInitialDataService } from "@/initial-data-service";
+import {
+  getInitialDataService,
+  type InputConnectionInfo,
+} from "@/initial-data-service";
 import type { PaneSizes } from "@/components/utils/paneSizes";
 
 vi.mock("@/scripting-service");
@@ -105,7 +108,16 @@ describe("AiButton", () => {
       getInitialData: vi.fn(() =>
         Promise.resolve({
           ...DEFAULT_INITIAL_DATA,
-          inputsAvailable: false,
+          inputConnectionInfo: [
+            {
+              status: "OK",
+              isOptional: true,
+            },
+            {
+              status: "MISSING_CONNECTION",
+              isOptional: false,
+            },
+          ] satisfies InputConnectionInfo[],
         }),
       ),
     });

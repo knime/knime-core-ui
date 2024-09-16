@@ -40,6 +40,7 @@ import {
   type GenericInitialData,
   type KAIConfig,
   type PortConfigs,
+  type InputConnectionInfo,
 } from "@/initial-data-service";
 import {
   type GenericNodeSettings,
@@ -74,6 +75,7 @@ export type {
   InsertionEvent,
   KAIConfig,
   PortConfigs,
+  InputConnectionInfo,
   ScriptingServiceType,
   SettingsMenuItem,
   UseCodeEditorParams,

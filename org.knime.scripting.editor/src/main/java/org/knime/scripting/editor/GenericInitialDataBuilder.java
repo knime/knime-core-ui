@@ -48,10 +48,8 @@
  */
 package org.knime.scripting.editor;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.scripting.editor.ai.HubConnection;
@@ -111,7 +109,7 @@ public final class GenericInitialDataBuilder {
 
         return new GenericInitialDataBuilder() //
             .addDataSupplier("inputPortConfigs", createInputPortConfigsSupplier(context)) //
-            .addDataSupplier("inputsAvailable", createInputsAvailableSupplier(context)) //
+            .addDataSupplier("inputConnectionInfo", createInputConnectionInfoSupplier(context)) //
             .addDataSupplier("kAiConfig", createKAIConfigSupplier());
     }
 
@@ -122,14 +120,16 @@ public final class GenericInitialDataBuilder {
      */
 
     /**
-     * Create a {@link DataSupplier} that provides a boolean telling whether there are inputs available to the node.
+     * Create a {@link DataSupplier} that provides a summary of the current status of incoming Ports. Each port is
+     * represented by an entry in the returning array.
      *
      * @param context the node context for the current node (see {@link NodeContext#getContext()})
      * @return the data supplier
      */
-    public static DataSupplier createInputsAvailableSupplier(final NodeContext context) {
-        return () -> Arrays.stream(new WorkflowControl(context.getNodeContainer()).getInputData())
-            .allMatch(Objects::nonNull);
+    public static DataSupplier createInputConnectionInfoSupplier(final NodeContext context) {
+        return () -> {
+            return new WorkflowControl(context.getNodeContainer()).getInputConnectionInfo();
+        };
     }
 
     /**
