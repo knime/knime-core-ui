@@ -45,7 +45,8 @@ const createDragGhostContent = (
     const flex = `${Math.floor(100 / elements.length)}%`;
     applyStyles(el, {
       flex,
-      padding: "10px",
+      padding: "var(--space-4) var(--space-8)",
+      translate: "-var(--space-4)",
     });
     return el;
   });
@@ -69,8 +70,9 @@ export const createDragGhost = ({
     position: "absolute",
     top: "-1000px",
     width,
-    background: "var(--knime-cornflower-semi)",
+    backgroundColor: "var(--knime-cornflower-semi)",
     color: "var(--knime-cornflower-dark)",
+    borderRadius: "30px",
     display: "flex",
     fontSize: "11px",
     flexDirection: "row",

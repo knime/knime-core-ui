@@ -12,8 +12,10 @@ import {
 } from "@/components/utils/paneSizes";
 import {
   type InputOutputModel,
+  type SubItem,
   COLUMN_INSERTION_EVENT,
 } from "@/components/InputOutputItem.vue";
+import InputOutputPane from "@/components/InputOutputPane.vue";
 import type {
   UseCodeEditorParams,
   UseCodeEditorReturn,
@@ -61,6 +63,7 @@ export {
   OutputConsole,
   OutputTablePreview,
   ScriptingEditor,
+  InputOutputPane,
   setActiveEditorStoreForAi,
   useShouldFocusBePainted,
   useReadonlyStore,
@@ -71,6 +74,7 @@ export type {
   GenericInitialData,
   GenericNodeSettings,
   InitialDataServiceType,
+  SubItem,
   InputOutputModel,
   InsertionEvent,
   KAIConfig,

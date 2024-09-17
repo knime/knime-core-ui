@@ -8,10 +8,9 @@ import InputOutputItem, {
 import {
   useInputOutputSelectionStore,
   type InputOutputSelectionStore,
-} from "../../store/io-selection";
+} from "@/store/io-selection";
 import { useMainCodeEditorStore } from "@/editor";
 import { nextTick } from "vue";
-import { getInitialDataService } from "@/initial-data-service";
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
 import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
 
@@ -35,14 +34,19 @@ describe("InputOutputPane", () => {
     vi.restoreAllMocks();
   });
 
-  it("fetches input/output objects", async () => {
-    mount(InputOutputPane);
-    await flushPromises();
-    expect(getInitialDataService).toHaveBeenCalledOnce();
-  });
+  const doMount = () =>
+    mount(InputOutputPane, {
+      props: {
+        inputOutputItems: [
+          ...DEFAULT_INITIAL_DATA.inputObjects,
+          DEFAULT_INITIAL_DATA.flowVariables,
+          ...DEFAULT_INITIAL_DATA.outputObjects!,
+        ],
+      },
+    });
 
   it("renders input / output items", async () => {
-    const wrapper = mount(InputOutputPane);
+    const wrapper = doMount();
 
     const numInputObjects = DEFAULT_INITIAL_DATA.inputObjects.length;
     const numOutputObjects = DEFAULT_INITIAL_DATA.outputObjects!.length;
@@ -67,7 +71,7 @@ describe("InputOutputPane", () => {
   });
 
   it("does not render input / output items if no data is fetched", async () => {
-    const wrapper = mount(InputOutputPane);
+    const wrapper = doMount();
     await flushPromises();
     expect(wrapper.findComponent(InputOutputItem).exists());
   });
@@ -118,13 +122,13 @@ describe("InputOutputPane", () => {
     });
 
     it("emits drop event on mount", async () => {
-      const wrapper = mount(InputOutputPane);
+      const wrapper = doMount();
       await flushPromises();
       expect(wrapper.emitted("drop-event-handler-created")).toBeTruthy();
     });
 
     it("drop event handler does nothing if drag source is not from input output pane", async () => {
-      const wrapper = mount(InputOutputPane);
+      const wrapper = doMount();
       await flushPromises();
       const dropEventHandler = wrapper.emitted(
         "drop-event-handler-created",
@@ -136,7 +140,7 @@ describe("InputOutputPane", () => {
     });
 
     it("drop event handler adds required import", async () => {
-      const wrapper = mount(InputOutputPane);
+      const wrapper = doMount();
       await flushPromises();
       const dropEventHandler = wrapper.emitted(
         "drop-event-handler-created",
@@ -168,7 +172,7 @@ describe("InputOutputPane", () => {
     });
 
     it("drop event handler does not add required import if it is already in script", async () => {
-      const wrapper = mount(InputOutputPane);
+      const wrapper = doMount();
       await flushPromises();
 
       // Add the import to the script before we trigger any drop events
@@ -191,7 +195,7 @@ describe("InputOutputPane", () => {
     });
 
     it("selection is not cleared after unsuccessful drop", async () => {
-      const wrapper = mount(InputOutputPane);
+      const wrapper = doMount();
       await flushPromises();
       expect(inputOutputSelectionStore.selectedItem).toStrictEqual(item1);
       const dropEventHandler = wrapper.emitted(
@@ -202,7 +206,7 @@ describe("InputOutputPane", () => {
     });
 
     it("selection is cleared after successful drop", async () => {
-      const wrapper = mount(InputOutputPane);
+      const wrapper = doMount();
       await flushPromises();
       const dropEventHandler = wrapper.emitted(
         "drop-event-handler-created",
