@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useElementBounding } from "@vueuse/core";
-import { computed, ref, useSlots } from "vue";
+import { computed, onMounted, ref, useSlots } from "vue";
 import { Pane, Splitpanes } from "splitpanes";
 import "splitpanes/dist/splitpanes.css";
 import type { MenuItem } from "@knime/components";
@@ -14,14 +14,18 @@ import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 import { useResizeLogic } from "@/components/utils/resizeLogic";
 import ScriptingEditorBottomPane from "./ScriptingEditorBottomPane.vue";
 import { type GenericNodeSettings } from "@/settings-service";
+import { getInitialDataService } from "@/initial-data-service";
+import type { InputOutputModel } from "@/components/InputOutputItem.vue";
 
 const commonMenuItems: MenuItem[] = [
   // TODO: add actual common menu items
 ];
 
+type BottomPaneTabSlot = `bottomPaneTabSlot:${string}`;
+
 type TabItem = {
   label: string;
-  value: string;
+  value: BottomPaneTabSlot;
 };
 
 // Props
@@ -53,6 +57,17 @@ const props = withDefaults(defineProps<Props>(), {
   additionalBottomPaneTabContent: () => [] as TabItem[],
   toSettings: (settings: GenericNodeSettings) => settings,
 });
+
+const slots = defineSlots<{
+  "left-pane": () => any;
+  editor: () => any;
+  "settings-title": () => any;
+  "settings-content": () => any;
+  "right-pane": () => any;
+  "code-editor-controls": (props: { showButtonText: boolean }) => any;
+  "console-status": () => any;
+  [key: BottomPaneTabSlot]: (props: { grabFocus: () => void }) => any;
+}>();
 
 const isRightPaneCollapsable = computed(
   () => props.rightPaneMinimumWidthInPixel === 0,
@@ -113,6 +128,23 @@ const showControlBarDynamic = computed(() => {
 if (props.fileName === null && !useSlots().editor) {
   throw new Error("either fileName or editor slot must be provided");
 }
+
+const defaultInputOutputItems = ref<InputOutputModel[]>([]);
+onMounted(async () => {
+  if (!slots["left-pane"]) {
+    const initialData = await getInitialDataService().getInitialData();
+    const initialItems = [
+      ...initialData.inputObjects,
+      initialData.flowVariables,
+    ];
+
+    if (initialData.outputObjects) {
+      initialItems.push(...initialData.outputObjects);
+    }
+
+    defaultInputOutputItems.value = initialItems;
+  }
+});
 </script>
 
 <template>
@@ -165,9 +197,12 @@ if (props.fileName === null && !useSlots().editor) {
         :size="currentPaneSizes.left"
         class="scrollable-y"
       >
-        <InputOutputPane
-          @drop-event-handler-created="onDropEventHandlerCreated"
-        />
+        <slot name="left-pane">
+          <InputOutputPane
+            :input-output-items="defaultInputOutputItems"
+            @drop-event-handler-created="onDropEventHandlerCreated"
+          />
+        </slot>
       </pane>
 
       <pane data-testid="mainPane" :size="usedMainPaneSize" min-size="40">

@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref, type Ref, type Directive } from "vue";
+import { type Directive, ref } from "vue";
 import InputOutputItem, {
   INPUT_OUTPUT_DRAG_EVENT_ID,
   type InputOutputModel,
 } from "./InputOutputItem.vue";
-import { getInitialDataService } from "@/initial-data-service";
 import { useInputOutputSelectionStore } from "@/store/io-selection";
 import { useMainCodeEditorStore } from "@/editor";
 import useShouldFocusBePainted from "./utils/shouldFocusBePainted";
@@ -19,26 +18,23 @@ const emit = defineEmits<{
     requiredImport: string | undefined,
   ];
 }>();
-const inputOutputItems: Ref<InputOutputModel[]> = ref([]);
+
+const props = withDefaults(
+  defineProps<{
+    inputOutputItems: InputOutputModel[];
+  }>(),
+  {
+    inputOutputItems: () => [],
+  },
+);
+
 const inputOutputSelectionStore = useInputOutputSelectionStore();
 
 const selectedItemIndex = ref<number>(0);
 const selectableItems = ref<(typeof InputOutputItem)[]>();
 
-const fetchInitialData = async () => {
-  const initialData = await getInitialDataService().getInitialData();
-  inputOutputItems.value = [
-    ...initialData.inputObjects,
-    initialData.flowVariables,
-  ];
-
-  if (initialData.outputObjects) {
-    inputOutputItems.value.push(...initialData.outputObjects);
-  }
-};
-
 // Directive that removes element plus all children from tab flow. We will apply to all InputOutputItems.
-const vRemoveFromTabFlow = {
+const vRemoveFromTabFlow: Directive = {
   mounted: (thisElement: Element) => {
     thisElement.setAttribute("tabindex", "-1");
 
@@ -49,7 +45,7 @@ const vRemoveFromTabFlow = {
       childElement.setAttribute("tabindex", "-1");
     });
   },
-} satisfies Directive;
+};
 
 const mainEditorState = useMainCodeEditorStore();
 
@@ -89,10 +85,7 @@ const dropEventHandler = (event: DragEvent) => {
   delete inputOutputSelectionStore.selectedItem;
 };
 
-onMounted(async () => {
-  await fetchInitialData();
-  emit("drop-event-handler-created", dropEventHandler);
-});
+emit("drop-event-handler-created", dropEventHandler);
 
 const paintFocus = useShouldFocusBePainted();
 
@@ -100,12 +93,12 @@ const handleKeyDown = (e: KeyboardEvent) => {
   switch (e.key) {
     case "ArrowDown":
       selectedItemIndex.value =
-        (selectedItemIndex.value + 1) % inputOutputItems.value.length;
+        (selectedItemIndex.value + 1) % props.inputOutputItems.length;
       break;
     case "ArrowUp":
       selectedItemIndex.value =
-        (selectedItemIndex.value - 1 + inputOutputItems.value.length) %
-        inputOutputItems.value.length;
+        (selectedItemIndex.value - 1 + props.inputOutputItems.length) %
+        props.inputOutputItems.length;
       break;
     case "Enter":
     case " ":
@@ -121,7 +114,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
       selectedItemIndex.value = 0;
       break;
     case "End":
-      selectedItemIndex.value = inputOutputItems.value.length - 1;
+      selectedItemIndex.value = props.inputOutputItems.length - 1;
       break;
   }
 
@@ -146,7 +139,7 @@ const handleOnClick = (
     @keydown="handleKeyDown"
   >
     <InputOutputItem
-      v-for="(inputOutputItem, i) in inputOutputItems"
+      v-for="(inputOutputItem, i) in props.inputOutputItems"
       :key="inputOutputItem.name"
       ref="selectableItems"
       v-remove-from-tab-flow

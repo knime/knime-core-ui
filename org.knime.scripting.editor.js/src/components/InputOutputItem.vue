@@ -1,4 +1,17 @@
 <script lang="ts">
+import type { Component } from "vue";
+
+export type SubItem<PropType extends Record<string, any>> = {
+  name: string;
+  type:
+    | string
+    | {
+        component: Component;
+        props?: PropType;
+      };
+  supported: boolean;
+};
+
 export type InputOutputModel = {
   name: string;
   /**
@@ -26,12 +39,9 @@ export type InputOutputModel = {
    * Whether multi selection of subItems is supported or not
    */
   multiSelection?: boolean;
-  subItems?: {
-    name: string;
-    type: string;
-    supported: boolean;
-  }[];
+  subItems?: SubItem<Record<string, any>>[];
 };
+
 export const INPUT_OUTPUT_DRAG_EVENT_ID = "input_output_drag_event";
 export const COLUMN_INSERTION_EVENT = "columnInsertion";
 </script>
@@ -56,11 +66,6 @@ const props = defineProps<PropType>();
 
 const multiSelection = useMultiSelection({
   singleSelectionOnly: ref(!props.inputOutputItem.multiSelection),
-});
-
-const draggedItem = ref<{ name: string; type: string }>({
-  name: "",
-  type: "",
 });
 
 Handlebars.registerHelper("escapeDblQuotes", (str: string) => {
@@ -135,7 +140,7 @@ const handleSubItemDoubleClick = (event: MouseEvent, index: number) => {
     });
 };
 
-const handleHeaderDoubleClick = (event: MouseEvent) => {
+const handleHeaderDoubleClick = () => {
   // Only do something if we have a defined code alias
   if (props.inputOutputItem.codeAlias) {
     const codeToInsert = props.inputOutputItem.codeAlias;
@@ -166,14 +171,11 @@ const onSubItemDragStart = (event: DragEvent, index: number) => {
     multiSelection.handleSelectionClick(index);
   }
 
-  draggedItem.value = props.inputOutputItem.subItems?.[index]!;
+  const draggedItem = props.inputOutputItem.subItems?.[index]!;
   const width = (event.target as any).offsetWidth;
   const dragGhost = createDragGhost({
     width: `${width}px`,
-    elements: [
-      { text: draggedItem.value.name },
-      { text: draggedItem.value.type },
-    ],
+    elements: [{ text: draggedItem.name }],
     numSelectedItems: multiSelection.selectedIndexes.value.filter(
       (item) => props.inputOutputItem.subItems?.[item].supported,
     ).length,
@@ -238,12 +240,11 @@ const globalReadOnly = useReadonlyStore();
           class="code-alias"
           :class="{
             'code-alias-dragging': isDraggingHeader,
-            'code-alias-not-dragging': !isDraggingHeader,
             disabled: globalReadOnly,
           }"
           :draggable="!globalReadOnly"
           @mousedown="(event) => handleClick(event)"
-          @dblclick="handleHeaderDoubleClick($event)"
+          @dblclick="handleHeaderDoubleClick"
           @dragstart="
             (event) => onHeaderDragStart(event, inputOutputItem.codeAlias!)
           "
@@ -259,27 +260,41 @@ const globalReadOnly = useReadonlyStore();
         :key="index"
         class="sub-item"
         :class="{
-          'clickable-sub-item': props.inputOutputItem.subItemCodeAliasTemplate,
           selected:
             props.inputOutputItem.subItemCodeAliasTemplate &&
             multiSelection.isSelected(index) &&
             subItem.supported,
           disabled: !subItem.supported || globalReadOnly,
         }"
-        :draggable="
-          Boolean(
-            inputOutputItem.subItemCodeAliasTemplate &&
-              !globalReadOnly &&
-              subItem.supported,
-          )
-        "
-        @dragstart="(event) => onSubItemDragStart(event, index)"
-        @dragend="onSubItemDragEnd"
-        @click="(event) => handleClick(event, index)"
-        @dblclick="handleSubItemDoubleClick($event, index)"
       >
-        <div class="cell subitem-name">{{ subItem.name }}</div>
-        <div class="cell subitem-type">{{ subItem.type }}</div>
+        <div
+          class="cell subitem-name"
+          :class="{
+            'clickable-sub-item':
+              props.inputOutputItem.subItemCodeAliasTemplate,
+          }"
+          :draggable="
+            Boolean(
+              inputOutputItem.subItemCodeAliasTemplate &&
+                !globalReadOnly &&
+                subItem.supported,
+            )
+          "
+          @dragstart="(event) => onSubItemDragStart(event, index)"
+          @dragend="onSubItemDragEnd"
+          @click="(event) => handleClick(event, index)"
+          @dblclick="handleSubItemDoubleClick($event, index)"
+        >
+          {{ subItem.name }}
+        </div>
+        <div class="cell subitem-type">
+          <component
+            :is="subItem.type.component"
+            v-if="typeof subItem.type !== 'string'"
+            v-bind="subItem.type.props"
+          />
+          <span v-else>{{ subItem.type }}</span>
+        </div>
       </div>
     </div>
   </Collapser>
@@ -301,7 +316,6 @@ const globalReadOnly = useReadonlyStore();
       class="code-alias"
       :class="{
         'code-alias-dragging': isDraggingHeader,
-        'code-alias-not-dragging': !isDraggingHeader,
         disabled: globalReadOnly,
       }"
       :draggable="!globalReadOnly"
@@ -357,7 +371,11 @@ const globalReadOnly = useReadonlyStore();
 }
 
 .subitem-type {
+  padding-right: var(--space-8);
   font-style: italic;
+  text-align: end;
+  align-self: end;
+  min-width: 55px;
 }
 
 .title {
@@ -367,7 +385,7 @@ const globalReadOnly = useReadonlyStore();
   display: flex;
   text-wrap: nowrap;
   text-overflow: ellipsis;
-  padding-right: 2px;
+  padding-right: var(--space-4);
   font-weight: 500;
 }
 
@@ -378,7 +396,6 @@ const globalReadOnly = useReadonlyStore();
 
 .sub-item {
   width: 100%;
-  border-bottom: 1px solid var(--knime-porcelain);
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -398,18 +415,17 @@ const globalReadOnly = useReadonlyStore();
 
 .clickable-sub-item {
   cursor: grab;
-
-  &:active {
-    cursor: grabbing;
-  }
+  padding: 2px var(--space-8);
+  background-color: transparent;
+  border-radius: 30px;
+  transition: background-color 0.1s ease;
 
   &:hover {
-    box-shadow: 1px 1px 4px 1px hsl(195deg 2% 52% / 40%);
+    background-color: var(--knime-stone-light);
   }
 }
 
 .cell {
-  padding: 10px;
   overflow: hidden;
   text-overflow: ellipsis;
   text-wrap: nowrap;
@@ -418,29 +434,29 @@ const globalReadOnly = useReadonlyStore();
 .code-alias {
   font-family: monospace;
   font-weight: normal;
-  font-size: 12px;
+  font-size: 10px;
+  line-height: var(--space-16);
   padding-left: var(--space-8);
   padding-right: var(--space-8);
   text-overflow: ellipsis;
   overflow: hidden;
   flex-shrink: 10;
   cursor: grab;
+  border-radius: 30px;
 
   &:active {
     cursor: grabbing;
   }
-}
 
-.code-alias-dragging {
-  background-color: var(--knime-cornflower-semi);
-  box-shadow: 1px 1px 4px 1px hsl(195deg 2% 52% / 40%);
-}
-
-.code-alias-not-dragging {
   &:hover {
     background-color: var(--knime-stone-light);
     box-shadow: 1px 1px 4px 1px hsl(195deg 2% 52% / 40%);
   }
+}
+
+.code-alias-dragging {
+  background-color: var(--knime-stone-light);
+  box-shadow: 1px 1px 4px 1px hsl(195deg 2% 52% / 40%);
 }
 
 .collapser {
