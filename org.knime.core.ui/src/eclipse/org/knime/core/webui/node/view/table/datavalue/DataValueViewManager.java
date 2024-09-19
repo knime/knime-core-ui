@@ -53,9 +53,9 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.WeakHashMap;
 
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataValue;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.webui.node.DataServiceManager;
 import org.knime.core.webui.node.DataValueWrapper;
@@ -121,13 +121,12 @@ public class DataValueViewManager {
         if (table == null) {
             throw new NoSuchElementException("No data table available at index " + portIdx);
         }
-        var dataValue = getDataValueAt(wrapper.getRowIdx(), wrapper.getColIdx(), table);
-
-
-        if (m_dataValueViewFactories.containsKey(((StringCell)dataValue).getClass().getInterfaces()[0])) {
+        var dataCell = getDataCellAt(wrapper.getRowIdx(), wrapper.getColIdx(), table);
+        var chosenValue = findCompatibleValue(dataCell);
+        if (!chosenValue.isEmpty()) {
             @SuppressWarnings("rawtypes")
-            DataValueViewFactory factory = m_dataValueViewFactories.get(((StringCell)dataValue).getClass().getInterfaces()[0]);
-            dataValueView = factory.createDataValueViews(dataValue)[wrapper.getViewIdx()];
+            DataValueViewFactory factory = m_dataValueViewFactories.get(chosenValue);
+            dataValueView = factory.createDataValueViews(dataCell)[wrapper.getViewIdx()];
             m_dataValueViewMap.put(wrapper, dataValueView);
             return dataValueView;
         } else {
@@ -135,7 +134,12 @@ public class DataValueViewManager {
         }
     }
 
-    private static DataValue getDataValueAt(final int rowIdx, final int colIdx, final BufferedDataTable table) {
+    private java.util.Optional<Class<? extends DataValue>> findCompatibleValue(final DataCell cell) {
+        return cell.getType().getValueClasses().stream().filter(value -> m_dataValueViewFactories.containsKey(value)).findFirst();
+
+    }
+
+    private static DataCell getDataCellAt(final int rowIdx, final int colIdx, final BufferedDataTable table) {
         DataRow row = null;
         try (var it = table.iterator()) {
             row = it.next();
