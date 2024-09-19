@@ -18,10 +18,12 @@ import { separateSpecialColumns } from "./utils/specialColumns";
 import { BORDER_BOTTOM_WIDTH } from "./constants";
 import { RowHeightMode } from "./types/ViewSettings";
 import { LoadingIcon } from "@knime/components";
+import { DataValueViewConfig } from "@knime/ui-extension-service";
 
 const emit = defineEmits<{
   pageChange: [pageNumberDiff: -1 | 1];
   columnSort: [colInd: number, columnId: string | symbol];
+  dataValueView: [config: DataValueViewConfig];
   rowSelect: [
     selected: boolean,
     rowInd: number,
@@ -306,6 +308,7 @@ const onCopySelection = ({
       @row-height-update="$emit('rowHeightUpdate', $event)"
       @ready="onTableIsReady"
       @copy-selection="onCopySelection"
+      @data-value-view="$emit('dataValueView', $event)"
     >
       <template
         v-for="index in numberOfUsedColumns"

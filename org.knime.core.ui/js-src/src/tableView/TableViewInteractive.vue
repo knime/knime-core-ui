@@ -1,11 +1,13 @@
 <!-- eslint-disable max-lines -->
 <script lang="ts">
 import {
+  DataValueViewService,
   JsonDataService,
   UIExtensionService,
   SelectionModes,
   SelectionService,
   SharedDataService,
+  DataValueViewConfig,
 } from "@knime/ui-extension-service";
 import TableViewDisplay from "./TableViewDisplay.vue";
 import { createDefaultFilterConfig, arrayEquals } from "@/tableView/utils";
@@ -102,6 +104,7 @@ export default {
       settings: {} as TableViewViewSettings,
       displayedColumns: [] as string[],
       columnCount: 0,
+      dataValueViewService: null as null | DataValueViewService,
       jsonDataService: null as null | JsonDataService,
       sharedDataService: null as null | SharedDataService,
       selectionService: null as null | SelectionService,
@@ -234,6 +237,7 @@ export default {
   },
   async mounted() {
     this.jsonDataService = new JsonDataService(this.knimeService);
+    this.dataValueViewService = new DataValueViewService(this.knimeService);
     this.sharedDataService = new SharedDataService(this.knimeService);
     this.sharedDataService.addSharedDataListener(
       this.onViewSettingsChange.bind(this),
@@ -391,6 +395,9 @@ export default {
         endIndex - startIndex + 2 * this.bufferSize,
         this.minScopeSize,
       );
+    },
+    onDataValueView(config: DataValueViewConfig) {
+      this.dataValueViewService?.triggerDataValueView(config);
     },
 
     async updateData(options: DataRequestOptions) {
@@ -1263,6 +1270,7 @@ export default {
     :first-row-image-dimensions="table.firstRowImageDimensions || {}"
     :settings-items="settingsItems"
     @page-change="onPageChange"
+    @data-value-view="onDataValueView"
     @column-sort="onColumnSort"
     @row-select="onRowSelect"
     @row-height-update="onRowHeightChange"

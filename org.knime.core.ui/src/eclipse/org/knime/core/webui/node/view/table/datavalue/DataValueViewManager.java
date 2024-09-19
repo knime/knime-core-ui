@@ -122,6 +122,8 @@ public class DataValueViewManager {
             throw new NoSuchElementException("No data table available at index " + portIdx);
         }
         var dataValue = getDataValueAt(wrapper.getRowIdx(), wrapper.getColIdx(), table);
+
+
         if (m_dataValueViewFactories.containsKey(((StringCell)dataValue).getClass().getInterfaces()[0])) {
             @SuppressWarnings("rawtypes")
             DataValueViewFactory factory = m_dataValueViewFactories.get(((StringCell)dataValue).getClass().getInterfaces()[0]);
