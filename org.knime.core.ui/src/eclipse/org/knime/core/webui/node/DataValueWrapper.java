@@ -103,14 +103,13 @@ public interface DataValueWrapper extends NodePortWrapper {
 
             @Override
             public List<NodeContainer> getNodesConnectedToOutputPorts() {
+                return null;
                 // TODO
-                throw new UnsupportedOperationException();
             }
 
             @Override
             public <T> T getWithContext(final Supplier<T> supplier) {
-                // TODO
-                throw new UnsupportedOperationException();
+                return supplier.get();
             }
 
             @Override

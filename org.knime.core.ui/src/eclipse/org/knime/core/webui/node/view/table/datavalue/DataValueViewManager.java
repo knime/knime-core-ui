@@ -55,6 +55,7 @@ import java.util.WeakHashMap;
 
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.webui.node.DataServiceManager;
 import org.knime.core.webui.node.DataValueWrapper;
@@ -121,10 +122,9 @@ public class DataValueViewManager {
             throw new NoSuchElementException("No data table available at index " + portIdx);
         }
         var dataValue = getDataValueAt(wrapper.getRowIdx(), wrapper.getColIdx(), table);
-
-        if (m_dataValueViewFactories.containsKey(dataValue.getClass())) {
+        if (m_dataValueViewFactories.containsKey(((StringCell)dataValue).getClass().getInterfaces()[0])) {
             @SuppressWarnings("rawtypes")
-            DataValueViewFactory factory = m_dataValueViewFactories.get(dataValue.getClass());
+            DataValueViewFactory factory = m_dataValueViewFactories.get(((StringCell)dataValue).getClass().getInterfaces()[0]);
             dataValueView = factory.createDataValueViews(dataValue)[wrapper.getViewIdx()];
             m_dataValueViewMap.put(wrapper, dataValueView);
             return dataValueView;
@@ -136,6 +136,7 @@ public class DataValueViewManager {
     private static DataValue getDataValueAt(final int rowIdx, final int colIdx, final BufferedDataTable table) {
         DataRow row = null;
         try (var it = table.iterator()) {
+            row = it.next();
             for (int i = 0; i < rowIdx; i++) {
                 row = it.next();
             }

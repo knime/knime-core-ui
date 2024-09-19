@@ -324,9 +324,8 @@ public class TableViewDataServiceImpl implements TableViewDataService {
             rc.thenComparingRowKey(rk -> rk.withAlphanumericComparison().withDescendingSortOrder(!sortAscending));
         } else {
             final var colType = dts.getColumnSpec(sortColIndex).getType();
-            rc.thenComparingColumn(sortColIndex,
-                col -> col.withAlphanumericComparison(StringCell.TYPE.equals(colType))
-                    .withDescendingSortOrder(!sortAscending));
+            rc.thenComparingColumn(sortColIndex, col -> col.withAlphanumericComparison(StringCell.TYPE.equals(colType))
+                .withDescendingSortOrder(!sortAscending));
         }
         final Comparator<DataRow> comp = rc.build();
         try {
