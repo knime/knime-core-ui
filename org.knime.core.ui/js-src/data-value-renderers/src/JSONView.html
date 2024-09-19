@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>KNIME JSONView</title>
+  </head>
+  <body>
+    <div id="editor-container"><div id="editor" /></div>
+    <script type="module">
+      import { JSONView } from "./renderers/JSONView.ts";
+
+      const editor = new JSONView(
+        document.getElementById("editor-container"),
+        document.getElementById("editor"),
+      );
+      editor.init();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.app.json",
+  "include": ["src/**/*", "test/unit/**/*"],
+  "exclude": [],
+  "paths": {
+    "@/*": ["./src/*"]
+  },
+  "compilerOptions": {
+    "composite": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "types": ["node", "jsdom", "@types/jest"],
+    "esModuleInterop": true
+  }
+}
