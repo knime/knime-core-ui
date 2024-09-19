@@ -125,7 +125,7 @@ public class DataValueViewManager {
         var chosenValue = findCompatibleValue(dataCell);
         if (!chosenValue.isEmpty()) {
             @SuppressWarnings("rawtypes")
-            DataValueViewFactory factory = m_dataValueViewFactories.get(chosenValue);
+            DataValueViewFactory factory = m_dataValueViewFactories.get(chosenValue.get());
             dataValueView = factory.createDataValueViews(dataCell)[wrapper.getViewIdx()];
             m_dataValueViewMap.put(wrapper, dataValueView);
             return dataValueView;
