@@ -250,6 +250,13 @@ const onCopySelection = ({
     isTop: id,
   });
 };
+
+const onDataValueView = (config: DataValueViewConfig) => {
+  emit("dataValueView", {
+    ...config,
+    colIndex: config.colIndex - numberOfDisplayedIdColumns.value,
+  });
+};
 </script>
 
 <template>
@@ -308,7 +315,7 @@ const onCopySelection = ({
       @row-height-update="$emit('rowHeightUpdate', $event)"
       @ready="onTableIsReady"
       @copy-selection="onCopySelection"
-      @data-value-view="$emit('dataValueView', $event)"
+      @data-value-view="onDataValueView"
     >
       <template
         v-for="index in numberOfUsedColumns"
