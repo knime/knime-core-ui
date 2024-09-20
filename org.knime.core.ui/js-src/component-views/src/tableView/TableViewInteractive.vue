@@ -321,6 +321,7 @@ export default {
       startIndex: number;
       endIndex: number;
     }) {
+      this.dataValueViewService?.triggerCloseDataValueView();
       if (!this.useLazyLoading) {
         return;
       }
