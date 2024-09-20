@@ -9,4 +9,5 @@ body {
 #editor-container {
   width: 100vw;
   height: 100vh;
+  padding: 8px;
 }
