@@ -123,10 +123,12 @@ public interface DataValueWrapper extends NodePortWrapper {
                 if (getClass() != o.getClass()) {
                     return false;
                 }
-                var w = (NodePortWrapper)o;
+                var w = (DataValueWrapper)o;
                 return Objects.equal(nc, w.get()) //
                     && portIdx == w.getPortIdx() //
                     && viewIdx == w.getViewIdx() //
+                    && colIdx == w.getColIdx()//
+                    && rowIdx == w.getRowIdx()//
                     && Objects.equal(this.getNodesConnectedToOutputPorts(), w.getNodesConnectedToOutputPorts());
             }
 
@@ -136,6 +138,8 @@ public interface DataValueWrapper extends NodePortWrapper {
                     .append(nc)//
                     .append(portIdx)//
                     .append(viewIdx)//
+                    .append(colIdx)//
+                    .append(rowIdx)//
                     .append(this.getNodesConnectedToOutputPorts())//
                     .toHashCode();
             }
