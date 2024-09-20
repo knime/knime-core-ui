@@ -77,8 +77,8 @@ public interface DataValueWrapper extends NodePortWrapper {
 
             @Override
             public String getNodeWrapperTypeId() {
-                // TODO
-                return nc.getOutPort(portIdx).getPortType().getPortObjectClass().getName();
+                //TODO replace node id ':' with '_'
+                return String.format("%s_%s_%s_%s_%s", nc.getID().toString(), portIdx, rowIdx, colIdx, viewIdx) ;
             }
 
             @Override
@@ -127,8 +127,8 @@ public interface DataValueWrapper extends NodePortWrapper {
                 return Objects.equal(nc, w.get()) //
                     && portIdx == w.getPortIdx() //
                     && viewIdx == w.getViewIdx() //
-                    && colIdx == w.getColIdx()//
-                    && rowIdx == w.getRowIdx()//
+                    && colIdx == w.getColIdx() //
+                    && rowIdx == w.getRowIdx() //
                     && Objects.equal(this.getNodesConnectedToOutputPorts(), w.getNodesConnectedToOutputPorts());
             }
 
