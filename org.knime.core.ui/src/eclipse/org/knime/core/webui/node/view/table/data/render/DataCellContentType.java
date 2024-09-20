@@ -75,7 +75,12 @@ public enum DataCellContentType {
         /**
          * If a {@link DataCell} shall be represented as an image which is given by a relative path.
          */
-        IMG_PATH;
+        IMG_PATH,
+
+        /**
+         * If a {@link DataCell} shall be represented as formatted and highlighted JSON.
+         */
+        JSON;
 
     @Override
     public String toString() {

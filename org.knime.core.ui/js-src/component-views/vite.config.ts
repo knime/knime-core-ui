@@ -22,7 +22,7 @@ const COMPONENTS = [
   "TextView",
   "FlowVariableView",
   "ImageView",
-  "JSONView"
+  "JSONView",
 ] as const;
 
 type ComponentLibraries = (typeof COMPONENTS)[number];

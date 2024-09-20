@@ -61,6 +61,7 @@ import javax.imageio.ImageIO;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.json.JSONValueRenderer2;
 import org.knime.core.data.property.ValueFormatHandler;
 import org.knime.core.data.renderer.AbstractPainterDataValueRenderer;
 import org.knime.core.data.renderer.DefaultDataValueRenderer;
@@ -149,6 +150,9 @@ public final class SwingBasedRendererFactory implements DataValueRendererFactory
 
         @Override
         public DataCellContentType getContentType() {
+            if (m_renderer instanceof JSONValueRenderer2) {
+                return DataCellContentType.JSON;
+            }
             if (m_renderer instanceof MultiLineStringValueRenderer) {
                 return DataCellContentType.MULTI_LINE_TXT;
             }

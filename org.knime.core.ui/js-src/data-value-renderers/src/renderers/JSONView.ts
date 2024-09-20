@@ -56,8 +56,8 @@ export class JSONView {
       .getElementsByTagName("body")[0]
       .getBoundingClientRect();
     this.editor.layout({
-      height: Math.ceil(height) - top - 16, // padding left + right, see ../styles.css
-      width: Math.ceil(width) - left - 16,
+      height: Math.ceil(height) - top,
+      width: Math.ceil(width) - left,
     });
   }
 }

@@ -8,6 +8,7 @@ import {
 import ImageRenderer from "./renderers/ImageRenderer.vue";
 import HtmlRenderer from "./renderers/HtmlRenderer.vue";
 import MultiLineTextRenderer from "./renderers/MultiLineTextRenderer.vue";
+import JSONRenderer from "./renderers/JSONRenderer.vue";
 import getDataConfig from "./utils/getDataConfig";
 import getTableConfig from "./utils/getTableConfig";
 import useColumnSizes from "./composables/useColumnSizes";
@@ -350,6 +351,10 @@ const onDataValueView = (config: DataValueViewConfig) => {
           v-else-if="getContentType(index) === 'multi_line_txt'"
           :text="cell"
           :padding-top-bottom="paddingTopBottom"
+        />
+        <JSONRenderer
+          v-else-if="getContentType(index) === 'json'"
+          :content="cell"
         />
       </template>
     </TableUIWithAutoSizeCalculation>

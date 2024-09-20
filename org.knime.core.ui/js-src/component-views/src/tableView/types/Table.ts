@@ -9,7 +9,12 @@ export interface ImageDimension {
   heightInPx: number;
 }
 
-export type ColumnContentType = "txt" | "img_path" | "multi_line_txt" | "html";
+export type ColumnContentType =
+  | "txt"
+  | "img_path"
+  | "multi_line_txt"
+  | "html"
+  | "json";
 
 interface Table {
   /**

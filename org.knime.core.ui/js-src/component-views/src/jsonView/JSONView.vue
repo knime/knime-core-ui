@@ -1,7 +1,5 @@
 <script>
-import {
-  JsonDataService,
-} from "@knime/ui-extension-service";
+import { JsonDataService } from "@knime/ui-extension-service";
 import "../common/main.css";
 
 export default {
@@ -20,7 +18,7 @@ export default {
   async mounted() {
     this.jsonDataService = new JsonDataService(this.knimeService);
 
-    const {json} = await this.jsonDataService.initialData();
+    const { json } = await this.jsonDataService.initialData();
     this.json = json;
   },
 };
