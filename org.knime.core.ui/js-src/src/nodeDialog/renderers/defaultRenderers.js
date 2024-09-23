@@ -64,7 +64,7 @@ export const defaultRenderers = [
   fileChooserRenderer,
   dynamicValueRenderer,
   /**
-   * Internal renderers
+   * Internal synchronous renderers
    */
   editResetButtonRenderer,
   elementCheckboxRenderer,
