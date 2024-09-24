@@ -37,12 +37,14 @@ import {
 import useProvidedFlowVariablesMap from "./composables/components/useProvidedFlowVariablesMap";
 import useCurrentData from "./composables/nodeDialog/useCurrentData";
 import useServices from "./composables/nodeDialog/useServices";
+import LoadingDialog from "./loading/LoadingDialog.vue";
 
 const renderers = [...fallbackRenderers, ...defaultRenderers];
 
 export default {
   components: {
     JsonForms,
+    LoadingDialog,
     Form,
   },
   inject: ["getKnimeService"],
@@ -368,7 +370,7 @@ export default {
           @change="onSettingsChanged"
         />
         <!-- loading state via #fallback slot -->
-        <template #fallback><div class="loading">Loading...</div></template>
+        <template #fallback><LoadingDialog /></template>
       </Suspense>
       <a
         v-if="hasAdvancedOptions()"
@@ -398,11 +400,6 @@ export default {
   & .popover-container {
     position: relative;
     width: 100%;
-  }
-
-  & .loading {
-    margin-top: var(--space-32);
-    height: 100%;
   }
 
   & .advanced-options {
