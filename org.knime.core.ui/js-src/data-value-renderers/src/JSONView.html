@@ -5,14 +5,13 @@
     <title>KNIME JSONView</title>
   </head>
   <body>
-    <div id="editor-container"><div id="editor" /></div>
+    <div id="editor-container">
+      <div id="editor" />
+    </div>
     <script type="module">
       import { JSONView } from "./renderers/JSONView.ts";
 
-      const editor = new JSONView(
-        document.getElementById("editor-container"),
-        document.getElementById("editor"),
-      );
+      const editor = new JSONView(document.getElementById("editor"));
       editor.init();
     </script>
   </body>

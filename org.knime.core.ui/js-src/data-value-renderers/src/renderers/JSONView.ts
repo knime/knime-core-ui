@@ -20,21 +20,19 @@ self.MonacoEnvironment = {
 };
 
 export class JSONView {
-  editorContainerElement: HTMLElement;
   editorElement: HTMLElement;
   editor!: editor.IStandaloneCodeEditor;
   jsonDataService!: JsonDataService;
   sharedDataService!: SharedDataService;
 
-  constructor(editorContainerElement: HTMLElement, editorElement: HTMLElement) {
-    if (!editorContainerElement) {
+  constructor(editorElement: HTMLElement) {
+    if (!editorElement) {
       const message = "Editor container element not found";
       AlertingService.getInstance().then((service) => {
         service.sendAlert({ message });
       });
       throw new Error(message);
     }
-    this.editorContainerElement = editorContainerElement;
     this.editorElement = editorElement;
   }
 
@@ -50,14 +48,7 @@ export class JSONView {
       readOnly: true,
       scrollBeyondLastLine: false,
       lineNumbersMinChars: 1,
-    });
-
-    const { width, height, top, left } = document
-      .getElementsByTagName("body")[0]
-      .getBoundingClientRect();
-    this.editor.layout({
-      height: Math.ceil(height) - top,
-      width: Math.ceil(width) - left,
+      automaticLayout: true,
     });
   }
 }
