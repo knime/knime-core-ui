@@ -360,7 +360,6 @@ export default {
     <Form>
       <div ref="dialogPopoverTeleportDest" class="popover-container" />
       <Suspense v-if="ready">
-        <!-- component with nested async dependencies -->
         <JsonForms
           ref="jsonforms"
           :data="getCurrentData()"
@@ -369,7 +368,6 @@ export default {
           :renderers="renderers"
           @change="onSettingsChanged"
         />
-        <!-- loading state via #fallback slot -->
         <template #fallback><LoadingDialog /></template>
       </Suspense>
       <a

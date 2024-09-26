@@ -3,9 +3,14 @@ import { priorityRanks, inputFormats } from "../constants";
 
 import { defineAsyncComponent } from "vue";
 
-const ValueSwitchControl = defineAsyncComponent(() =>
-  import("../uiComponents/ValueSwitchControl.vue"),
-);
+export const delay = (time) =>
+  new Promise((resolve) => setTimeout(resolve, time));
+
+const ValueSwitchControl = defineAsyncComponent(async () => {
+  console.log("Starting to load ValueSwitchControl");
+  await delay(1000);
+  return import("../uiComponents/ValueSwitchControl.vue");
+});
 
 export const valueSwitchTester = (uischema, schema) => {
   const isOneOf = isOneOfControl(uischema, schema);

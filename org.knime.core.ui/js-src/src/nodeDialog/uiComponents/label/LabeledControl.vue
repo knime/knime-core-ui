@@ -28,30 +28,24 @@ const triggersReexecution = useTriggersReexecution(control);
 </script>
 
 <template>
-  <DialogComponentWrapper
-    :control="control"
+  <DialogLabel
     :class="{ fill }"
-    :style="{ marginBottom: `${marginBottom}px` }"
+    :title="control.label"
+    :show-reexecution-icon="triggersReexecution"
+    :description="control.description"
+    :errors="[control.errors]"
+    :show="show"
+    @controlling-flow-variable-set="
+      (event) => $emit('controllingFlowVariableSet', event)
+    "
   >
-    <DialogLabel
-      :class="{ fill }"
-      :title="control.label"
-      :show-reexecution-icon="triggersReexecution"
-      :description="control.description"
-      :errors="[control.errors]"
-      :show="show"
-      @controlling-flow-variable-set="
-        (event) => $emit('controllingFlowVariableSet', event)
-      "
-    >
-      <template #default="{ labelForId }">
-        <slot :label-for-id="labelForId" />
-      </template>
-      <template #before-label>
-        <slot name="before-label" />
-      </template>
-    </DialogLabel>
-  </DialogComponentWrapper>
+    <template #default="{ labelForId }">
+      <slot :label-for-id="labelForId" />
+    </template>
+    <template #before-label>
+      <slot name="before-label" />
+    </template>
+  </DialogLabel>
 </template>
 
 <style scoped>

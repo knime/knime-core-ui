@@ -29,6 +29,40 @@ import { vennDiagramLayoutRenderer } from "./vennDiagramRenderer";
 import { dynamicValueRenderer } from "./dynamicValueRenderer";
 import { editResetButtonRenderer } from "./editResetButtonRenderer";
 import { elementCheckboxRenderer } from "./elementCheckboxRenderer";
+import { defineComponent, h, Suspense } from "vue";
+import LoadingDialog from "../loading/LoadingDialog.vue";
+import DialogComponentWrapper from "../uiComponents/DialogComponentWrapper.vue";
+
+const wrapInSuspense = (component, fallback = null) =>
+  defineComponent({
+    render() {
+      return h(
+        Suspense,
+        {
+          suspensible: true,
+          timeout: 1000,
+          onPending: () => console.log("pending"),
+          onFallback: () => console.log("fallback"),
+          onResolve: () => console.log("resolve"),
+        },
+        {
+          default: () => h(component, { ...this.$attrs }),
+          fallback: () => h(LoadingDialog),
+        },
+      );
+    },
+  });
+
+const toDialogComponent = (component, { fill } = { fill: false }) => {
+  const suspendedComponent = wrapInSuspense(component);
+  return defineComponent({
+    render() {
+      return h(DialogComponentWrapper, { fill, control: this.$attrs }, [
+        h(suspendedComponent, { ...this.$attrs }),
+      ]);
+    },
+  });
+};
 
 export const defaultRenderers = [
   /* layout renderers */
@@ -68,4 +102,8 @@ export const defaultRenderers = [
    */
   editResetButtonRenderer,
   elementCheckboxRenderer,
-];
+].map(({ name, renderer, tester }) => ({
+  name,
+  tester,
+  renderer: toDialogComponent(renderer),
+}));

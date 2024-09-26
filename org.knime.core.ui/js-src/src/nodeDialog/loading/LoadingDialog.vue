@@ -1,6 +1,6 @@
 <!-- The component shown when resolving dynamic imports-->
 <template>
-  <div :class="['loading-dialog', 'skeleton-wrapper']">
+  <div :class="['skeleton-wrapper', 'loading-dialog']">
     <div :class="['skeleton', 'loading-dialog-content']" />
   </div>
 </template>

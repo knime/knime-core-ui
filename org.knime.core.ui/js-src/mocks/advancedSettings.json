@@ -126,36 +126,7 @@
           "type": "Section",
           "label": "Some Section",
           "description": "test",
-          "elements": [
-            {
-              "type": "Control",
-              "scope": "#/properties/model/properties/categoryColumn",
-              "options": {
-                "format": "columnSelection",
-                "showRowKeys": false,
-                "showNoneColumn": false,
-                "isAdvanced": true
-              }
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/model/properties/longLabelSingleWord",
-              "options": {
-                "isAdvanced": true
-              }
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/model/properties/noDescription"
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/model/properties/formattedDescription",
-              "options": {
-                "isAdvanced": true
-              }
-            }
-          ]
+          "elements": []
         },
         {
           "type": "Section",
@@ -165,22 +136,6 @@
             "isAdvanced": true
           },
           "elements": [
-            {
-              "type": "Control",
-              "scope": "#/properties/model/properties/longDescription"
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/model/properties/frequencyColumns"
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/model/properties/longDescriptionSingleWord"
-            },
-            {
-              "type": "Control",
-              "scope": "#/properties/model/properties/checkbox"
-            },
             {
               "type": "Control",
               "scope": "#/properties/model/properties/valueSwitch",

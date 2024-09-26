@@ -11,6 +11,10 @@ const DialogComponentWrapper = defineComponent({
       default: () => {},
     },
   },
+  mounted() {
+    console.log("DialogComponentWrapper mounted");
+    console.log(this.control);
+  },
 });
 export default DialogComponentWrapper;
 </script>

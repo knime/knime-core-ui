@@ -14,7 +14,21 @@
         },
         "iAppear": {
           "type": "string",
-          "title": "... I Appear"
+          "title": "... I Appear",
+          "oneOf": [
+            {
+              "const": "a",
+              "title": "A"
+            },
+            {
+              "const": "b",
+              "title": "B"
+            },
+            {
+              "const": "c",
+              "title": "C"
+            }
+          ]
         }
       }
     },
@@ -27,6 +41,9 @@
         {
           "type": "Control",
           "scope": "#/properties/iAppear",
+          "options": {
+            "format": "valueSwitch"
+          },
           "rule": {
             "effect": "SHOW",
             "condition": {
