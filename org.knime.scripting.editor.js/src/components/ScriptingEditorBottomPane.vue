@@ -2,17 +2,8 @@
 import { computed, type Ref } from "vue";
 import { computedAsync } from "@vueuse/core";
 import CompactTabBar from "@/components/CompactTabBar.vue";
-import OutputConsole, {
-  type ConsoleHandler,
-} from "@/components/OutputConsole.vue";
-import { setConsoleHandler, consoleHandler } from "@/consoleHandler";
 import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
-import TrashIcon from "@knime/styles/img/icons/trash.svg";
-import { FunctionButton } from "@knime/components";
-import {
-  initConsoleEventHandler,
-  getScriptingService,
-} from "@/scripting-service";
+import { getScriptingService } from "@/scripting-service";
 import InputPortTables from "./InputPortTables.vue";
 import {
   getInitialDataService,
@@ -22,11 +13,13 @@ import {
 
 const paintFocus = useShouldFocusBePainted();
 
-const activeTab = defineModel<string>({ default: "console" });
-
-type SlottedTab = {
+export type BottomPaneTabSlotName = `bottomPaneTabSlot:${string}`;
+export type BottomPaneTabControlsSlotName =
+  `bottomPaneControlsTabSlot:${string}`;
+export type SlottedTab = {
   label: string;
-  value: string;
+  slotName: BottomPaneTabSlotName;
+  associatedControlsSlotName?: BottomPaneTabControlsSlotName;
 };
 type PropsType = {
   slottedTabs: SlottedTab[];
@@ -35,16 +28,15 @@ const props = withDefaults(defineProps<PropsType>(), {
   slottedTabs: () => [] as SlottedTab[],
 });
 
-const onConsoleCreated = (console: ConsoleHandler) => {
-  setConsoleHandler(console);
-  initConsoleEventHandler();
-};
+const makeNodePortId = (
+  nodeId: string,
+  portIdx: number,
+): BottomPaneTabSlotName => `bottomPaneTabSlot:${nodeId}-${portIdx}`;
 
-const makeNodePortId = (nodeId: string, portIdx: number): string =>
-  `${nodeId}-${portIdx}`;
-
-const makeNodePortIdFromPort = (port: PortConfig): string =>
+const makeNodePortIdFromPort = (port: PortConfig): BottomPaneTabSlotName =>
   makeNodePortId(port.nodeId!, port.portIdx);
+
+const activeTab = defineModel<string>();
 
 const makeGrabFocusFunction = (tabValue: string) => {
   return () => {
@@ -80,16 +72,19 @@ const portConfigTabBarOpts: Ref<SlottedTab[]> = computed(() => {
     .slice()
     .reverse()
     .map((port, index) => ({
-      value: makeNodePortIdFromPort(port),
+      slotName: makeNodePortIdFromPort(port),
       label: `${index}: ${port.portName}`,
     }));
 });
 
-const allTabs: Ref<SlottedTab[]> = computed(() => [
-  { label: "Console", value: "console" },
-  ...portConfigTabBarOpts.value,
-  ...props.slottedTabs,
-]);
+const allPossibleTabvalues = computed(() => {
+  return [...portConfigTabBarOpts.value, ...props.slottedTabs].map(
+    (slottedTab: SlottedTab) => ({
+      value: slottedTab.slotName,
+      label: slottedTab.label,
+    }),
+  );
+});
 </script>
 
 <template>
@@ -98,19 +93,18 @@ const allTabs: Ref<SlottedTab[]> = computed(() => [
       <CompactTabBar
         v-model="activeTab"
         class="scripting-editor-tab-bar"
-        :possible-values="allTabs"
+        :possible-values="allPossibleTabvalues"
         :class="{ 'focus-painted': paintFocus }"
       />
-      <span v-show="activeTab === 'console'" class="tab-bar-buttons">
-        <slot name="console-status" />
-        <FunctionButton class="clear-button" @click="consoleHandler.clear()">
-          <TrashIcon />
-        </FunctionButton>
+      <span class="tab-bar-buttons">
+        <slot name="status-label" />
+        <template v-for="slot in props.slottedTabs" :key="slot.value">
+          <div v-show="activeTab === slot.slotName">
+            <slot :name="slot.associatedControlsSlotName" />
+          </div>
+        </template>
       </span>
     </span>
-    <div v-show="activeTab === 'console'" class="tab-content">
-      <OutputConsole class="console" @console-created="onConsoleCreated" />
-    </div>
     <template v-for="port in portConfigs.inputPorts" :key="port.portName">
       <InputPortTables
         v-show="activeTab === makeNodePortIdFromPort(port)"
@@ -120,10 +114,10 @@ const allTabs: Ref<SlottedTab[]> = computed(() => [
       />
     </template>
     <template v-for="slot in props.slottedTabs" :key="slot.value">
-      <div v-show="activeTab === slot.value" class="tab-content">
+      <div v-show="activeTab === slot.slotName" class="tab-content">
         <slot
-          :name="slot.value"
-          :grab-focus="makeGrabFocusFunction(slot.value)"
+          :name="slot.slotName"
+          :grab-focus="makeGrabFocusFunction(slot.slotName)"
         />
       </div>
     </template>

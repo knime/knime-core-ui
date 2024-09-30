@@ -132,7 +132,7 @@ const paintFocus = useShouldFocusBePainted();
 </template>
 
 <style lang="postcss">
-@import url("xterm/css/xterm.css");
+@import url("@xterm/xterm/css/xterm.css");
 </style>
 
 <style lang="postcss" scoped>
