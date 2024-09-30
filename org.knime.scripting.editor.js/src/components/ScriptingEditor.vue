@@ -12,7 +12,11 @@ import MainEditorPane from "./MainEditorPane.vue";
 import { type PaneSizes } from "@/components/utils/paneSizes";
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 import { useResizeLogic } from "@/components/utils/resizeLogic";
-import ScriptingEditorBottomPane from "./ScriptingEditorBottomPane.vue";
+import ScriptingEditorBottomPane, {
+  type SlottedTab,
+  type BottomPaneTabSlotName,
+  type BottomPaneTabControlsSlotName,
+} from "./ScriptingEditorBottomPane.vue";
 import { type GenericNodeSettings } from "@/settings-service";
 import { getInitialDataService } from "@/initial-data-service";
 import type { InputOutputModel } from "@/components/InputOutputItem.vue";
@@ -20,13 +24,6 @@ import type { InputOutputModel } from "@/components/InputOutputItem.vue";
 const commonMenuItems: MenuItem[] = [
   // TODO: add actual common menu items
 ];
-
-type BottomPaneTabSlot = `bottomPaneTabSlot:${string}`;
-
-type TabItem = {
-  label: string;
-  value: BottomPaneTabSlot;
-};
 
 // Props
 interface Props {
@@ -39,7 +36,7 @@ interface Props {
   initialPaneSizes?: PaneSizes;
   rightPaneMinimumWidthInPixel?: number;
   toSettings?: (settings: GenericNodeSettings) => GenericNodeSettings;
-  additionalBottomPaneTabContent?: TabItem[];
+  additionalBottomPaneTabContent?: SlottedTab[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -54,7 +51,7 @@ const props = withDefaults(defineProps<Props>(), {
     bottom: 30,
   }),
   rightPaneMinimumWidthInPixel: () => 0,
-  additionalBottomPaneTabContent: () => [] as TabItem[],
+  additionalBottomPaneTabContent: () => [] as SlottedTab[],
   toSettings: (settings: GenericNodeSettings) => settings,
 });
 
@@ -65,8 +62,9 @@ const slots = defineSlots<{
   "settings-content": () => any;
   "right-pane": () => any;
   "code-editor-controls": (props: { showButtonText: boolean }) => any;
-  "console-status": () => any;
-  [key: BottomPaneTabSlot]: (props: { grabFocus: () => void }) => any;
+  "bottom-pane-status-label": () => any;
+  [key: BottomPaneTabSlotName]: (props: { grabFocus: () => void }) => any;
+  [key: BottomPaneTabControlsSlotName]: () => any;
 }>();
 
 const isRightPaneCollapsable = computed(
@@ -297,12 +295,21 @@ onMounted(async () => {
             >
               <template
                 v-for="tab in additionalBottomPaneTabContent"
-                #[tab.value]="{ grabFocus }"
+                #[tab.slotName]="{ grabFocus }"
               >
-                <slot :name="tab.value" :grab-focus="grabFocus" />
+                <slot :name="tab.slotName" :grab-focus="grabFocus" />
               </template>
-              <template #console-status>
-                <slot name="console-status" />
+              <template
+                v-for="tab in additionalBottomPaneTabContent"
+                #[tab.associatedControlsSlotName!]
+              >
+                <slot
+                  v-if="tab.associatedControlsSlotName"
+                  :name="tab.associatedControlsSlotName"
+                />
+              </template>
+              <template #status-label>
+                <slot name="bottom-pane-status-label" />
               </template>
             </ScriptingEditorBottomPane>
           </pane>

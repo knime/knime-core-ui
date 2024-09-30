@@ -4,6 +4,7 @@ import OutputConsole, {
   type ConsoleText,
 } from "@/components/OutputConsole.vue";
 import ScriptingEditor from "@/components/ScriptingEditor.vue";
+import { setConsoleHandler, consoleHandler } from "@/consoleHandler";
 import { type SettingsMenuItem } from "@/components/SettingsPage.vue";
 import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
 import {
@@ -24,10 +25,9 @@ import type {
 } from "@/editor";
 import editor from "@/editor";
 import { useReadonlyStore } from "@/store/readOnly";
-
-import { consoleHandler } from "@/consoleHandler";
 import {
   getScriptingService,
+  initConsoleEventHandler,
   type ScriptingServiceType,
 } from "@/scripting-service";
 import { setActiveEditorStoreForAi } from "@/store/ai-bar";
@@ -54,6 +54,7 @@ export {
   CompactTabBar,
   consoleHandler,
   editor,
+  initConsoleEventHandler,
   getInitialDataService,
   getScriptingService,
   getSettingsService,
@@ -65,6 +66,7 @@ export {
   ScriptingEditor,
   InputOutputPane,
   setActiveEditorStoreForAi,
+  setConsoleHandler,
   useShouldFocusBePainted,
   useReadonlyStore,
 };
