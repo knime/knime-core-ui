@@ -3,9 +3,7 @@ import OutputConsole, {
 } from "@/components/OutputConsole.vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Terminal } from "xterm";
-
-vi.mock("xterm");
+import { Terminal } from "@xterm/xterm";
 
 describe("OutputConsole", () => {
   const doMount = async () => {

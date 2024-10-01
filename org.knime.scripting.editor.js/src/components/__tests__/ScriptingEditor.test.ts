@@ -36,8 +36,6 @@ vi.mock("@vueuse/core", async (importOriginal) => {
   };
 });
 
-vi.mock("xterm");
-
 vi.mock("@/scripting-service");
 vi.mock("@/editor");
 
