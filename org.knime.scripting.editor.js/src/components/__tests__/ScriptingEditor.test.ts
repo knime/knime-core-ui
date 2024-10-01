@@ -2,23 +2,20 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { useElementBounding } from "@vueuse/core";
 import { Pane, type PaneProps, Splitpanes } from "splitpanes";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  defaultPortConfig,
-  initConsoleEventHandler,
-} from "@/__mocks__/scripting-service";
+import { defaultPortConfig } from "@/__mocks__/scripting-service";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
 import InputOutputPane from "../InputOutputPane.vue";
-import OutputConsole from "../OutputConsole.vue";
 import ScriptingEditor from "../ScriptingEditor.vue";
 import SettingsPage from "../SettingsPage.vue";
-import { consoleHandler } from "@/consoleHandler";
 import { nextTick, ref } from "vue";
 import {
   MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
   MIN_WIDTH_FOR_DISPLAYING_PANES,
 } from "../utils/paneSizes";
 import MainEditorPane from "../MainEditorPane.vue";
-import ScriptingEditorBottomPane from "../ScriptingEditorBottomPane.vue";
+import ScriptingEditorBottomPane, {
+  type BottomPaneTabSlotName,
+} from "../ScriptingEditorBottomPane.vue";
 
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
 import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
@@ -137,12 +134,6 @@ describe("ScriptingEditor", () => {
       const { wrapper } = doMount();
       const heading = wrapper.find("div.title");
       expect(heading.element.textContent).toBe("myTitle");
-    });
-
-    it("display output console", () => {
-      const { wrapper } = doMount();
-      const outputConsole = wrapper.findComponent(OutputConsole);
-      expect(outputConsole.exists()).toBeTruthy();
     });
 
     it("display input/output pane", () => {
@@ -401,11 +392,11 @@ describe("ScriptingEditor", () => {
     });
   });
 
-  it("passes slotted content to bottom pane", () => {
+  it("passes slotted status label to bottom pane", () => {
     const { wrapper } = doMount({
       props: {},
       slots: {
-        "console-status": "<div class='test-class'>Test</div>",
+        "bottom-pane-status-label": "<div class='test-class'>Test</div>",
       },
     });
     expect(
@@ -414,31 +405,6 @@ describe("ScriptingEditor", () => {
         .find(".test-class")
         .exists(),
     ).toBeTruthy();
-  });
-
-  it("sets console handler store on console-created", async () => {
-    // setup
-    const { wrapper } = doMount();
-    const outputConsole = wrapper.findComponent(OutputConsole);
-
-    await flushPromises();
-    expect(outputConsole.emitted()).toHaveProperty("console-created");
-
-    // @ts-ignore
-    const handler = outputConsole.emitted()["console-created"][0][0];
-    expect(consoleHandler).toBe(handler);
-  });
-
-  it("registers console event handler on console-created", async () => {
-    // setup
-    const { wrapper } = doMount();
-    const outputConsole = wrapper.findComponent(OutputConsole);
-
-    await flushPromises();
-    expect(outputConsole.emitted()).toHaveProperty("console-created");
-
-    // @ts-ignore
-    expect(initConsoleEventHandler).toHaveBeenCalledOnce();
   });
 
   it("shows settings page", async () => {
@@ -521,8 +487,10 @@ describe("ScriptingEditor", () => {
     const { wrapper } = doMount();
 
     await flushPromises();
-    const makeNodePortId = (nodeId: string, portIdx: number) =>
-      `${nodeId}-${portIdx}`;
+    const makeNodePortId = (
+      nodeId: string,
+      portIdx: number,
+    ): BottomPaneTabSlotName => `bottomPaneTabSlot:${nodeId}-${portIdx}`;
     const tabElements = wrapper.findAll(".tab-bar input");
 
     for (const inputPort of defaultPortConfig.inputPorts) {
