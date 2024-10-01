@@ -3,10 +3,14 @@ import { useDebounceFn, useResizeObserver } from "@vueuse/core";
 import type { XOR } from "ts-xor";
 import { onMounted, onUnmounted, ref } from "vue";
 import * as knimeColors from "@knime/styles/colors/knimeColors";
-import type { ITerminalInitOnlyOptions, ITerminalOptions, ITheme } from "xterm";
-import { Terminal } from "xterm";
-import { FitAddon } from "xterm-addon-fit";
-import { Unicode11Addon } from "xterm-addon-unicode11";
+import type {
+  ITerminalInitOnlyOptions,
+  ITerminalOptions,
+  ITheme,
+} from "@xterm/xterm";
+import { Terminal } from "@xterm/xterm";
+import { FitAddon } from "@xterm/addon-fit";
+import { Unicode11Addon } from "@xterm/addon-unicode11";
 import useShouldFocusBePainted from "./utils/shouldFocusBePainted";
 
 export type ConsoleText = XOR<
