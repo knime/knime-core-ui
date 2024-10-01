@@ -172,9 +172,7 @@ const onSubItemDragStart = (event: DragEvent, index: number) => {
   }
 
   const draggedItem = props.inputOutputItem.subItems?.[index]!;
-  const width = (event.target as any).offsetWidth;
   const dragGhost = createDragGhost({
-    width: `${width}px`,
     elements: [{ text: draggedItem.name }],
     numSelectedItems: multiSelection.selectedIndexes.value.filter(
       (item) => props.inputOutputItem.subItems?.[item].supported,
@@ -194,7 +192,6 @@ const isDraggingHeader = ref(false);
 const onHeaderDragStart = (event: DragEvent, codeAlias: string) => {
   isDraggingHeader.value = true;
   const dragGhost = createDragGhost({
-    width: "auto",
     elements: [{ text: props.inputOutputItem.codeAlias! }],
     numSelectedItems: 1,
     font: "monospace",
@@ -260,18 +257,16 @@ const globalReadOnly = useReadonlyStore();
         :key="index"
         class="sub-item"
         :class="{
-          selected:
-            props.inputOutputItem.subItemCodeAliasTemplate &&
-            multiSelection.isSelected(index) &&
-            subItem.supported,
           disabled: !subItem.supported || globalReadOnly,
         }"
       >
-        <div
-          class="cell subitem-name"
+        <span
+          class="sub-item-name"
           :class="{
-            'clickable-sub-item':
-              props.inputOutputItem.subItemCodeAliasTemplate,
+            draggable:
+              inputOutputItem.subItemCodeAliasTemplate &&
+              !globalReadOnly &&
+              subItem.supported,
           }"
           :draggable="
             Boolean(
@@ -285,9 +280,20 @@ const globalReadOnly = useReadonlyStore();
           @click="(event) => handleClick(event, index)"
           @dblclick="handleSubItemDoubleClick($event, index)"
         >
-          {{ subItem.name }}
-        </div>
-        <div class="cell subitem-type">
+          <div
+            :class="{
+              interactive: props.inputOutputItem.subItemCodeAliasTemplate,
+              selected:
+                props.inputOutputItem.subItemCodeAliasTemplate &&
+                props.inputOutputItem.multiSelection &&
+                multiSelection.isSelected(index) &&
+                subItem.supported,
+            }"
+          >
+            {{ subItem.name }}
+          </div>
+        </span>
+        <div class="subitem-type">
           <component
             :is="subItem.type.component"
             v-if="typeof subItem.type !== 'string'"
@@ -370,14 +376,6 @@ const globalReadOnly = useReadonlyStore();
   }
 }
 
-.subitem-type {
-  padding-right: var(--space-8);
-  font-style: italic;
-  text-align: end;
-  align-self: end;
-  min-width: 55px;
-}
-
 .title {
   flex-basis: calc(100px + var(--in-out-item-icon-size) + var(--space-4));
   min-width: 60px;
@@ -398,10 +396,12 @@ const globalReadOnly = useReadonlyStore();
   width: 100%;
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
-  height: 22px;
+  gap: var(--space-8);
+  height: 24px;
   line-height: 18px;
   align-items: center;
+  padding-right: 10px;
+  padding-left: 2px;
 
   &.disabled {
     opacity: 0.5;
@@ -409,25 +409,46 @@ const globalReadOnly = useReadonlyStore();
   }
 }
 
+.sub-item-name {
+  flex-grow: 1;
+  min-width: 0;
+
+  &.draggable {
+    cursor: grab;
+  }
+}
+
 .selected {
   background-color: var(--knime-cornflower-semi);
 }
 
-.clickable-sub-item {
-  cursor: grab;
-  padding: 2px var(--space-8);
+.interactive {
   background-color: transparent;
   border-radius: 30px;
   transition: background-color 0.1s ease;
+  min-width: 0;
+  text-wrap: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: min-content;
+  max-width: 100%;
+  padding: 2px var(--space-8);
 
-  &:hover {
-    background-color: var(--knime-stone-light);
+  &.selected {
+    background-color: var(--knime-cornflower-semi);
   }
 }
 
-.cell {
-  overflow: hidden;
-  text-overflow: ellipsis;
+.sub-item-name:hover .clickable-sub-item {
+  background-color: var(--knime-stone-light);
+  cursor: grab;
+}
+
+.subitem-type {
+  font-style: italic;
+  text-align: end;
+  min-width: min-content;
+  flex-grow: 0;
   text-wrap: nowrap;
 }
 

@@ -54,12 +54,10 @@ const createDragGhostContent = (
 };
 
 export const createDragGhost = ({
-  width,
   elements,
   numSelectedItems,
   font,
 }: {
-  width: string;
   elements: { text: string }[];
   numSelectedItems: number;
   font?: string;
@@ -69,9 +67,10 @@ export const createDragGhost = ({
   applyStyles(ghostDiv, {
     position: "absolute",
     top: "-1000px",
-    width,
+    width: "min-content",
+    textWrap: "nowrap",
     backgroundColor: "var(--knime-cornflower-semi)",
-    color: "var(--knime-cornflower-dark)",
+    color: "var(--knime-masala)",
     borderRadius: "30px",
     display: "flex",
     fontSize: "11px",

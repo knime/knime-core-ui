@@ -95,7 +95,6 @@ describe("InputOutputItem", () => {
       codeAliasInTitle.trigger("dragstart");
       expect(createDragGhost).toHaveBeenCalledWith({
         elements: [{ text: "super.mock" }],
-        width: "auto",
         font: "monospace",
         numSelectedItems: 1,
       });
@@ -129,7 +128,7 @@ describe("InputOutputItem", () => {
 
     it("subitem creates drag ghost on drag start", async () => {
       const wrapper = doMount();
-      const subItem = wrapper.findAll(".clickable-sub-item")[0];
+      const subItem = wrapper.findAll(".interactive")[0];
       const dragGhostMock = { drag: "my drag ghost" };
       (createDragGhost as any).mockReturnValueOnce(dragGhostMock);
       await subItem.trigger("dragstart", dragEventMock);
@@ -141,7 +140,6 @@ describe("InputOutputItem", () => {
           },
         ],
         numSelectedItems: 1,
-        width: "0px",
       });
       expect(dragEventMock.dataTransfer.setDragImage).toHaveBeenCalledWith(
         dragGhostMock,
@@ -162,7 +160,7 @@ describe("InputOutputItem", () => {
 
     it("subitem removes drag ghost on drag end", () => {
       const wrapper = doMount();
-      const subItem = wrapper.findAll(".clickable-sub-item")[0];
+      const subItem = wrapper.findAll(".interactive")[0];
       subItem.trigger("dragend");
       expect(removeDragGhost).toHaveBeenCalledWith();
       wrapper.unmount();
@@ -175,7 +173,7 @@ describe("InputOutputItem", () => {
         inputOutputItemWithRowsAndAlias.subItemCodeAliasTemplate,
       );
       const template = (wrapper.vm as any).subItemCodeAliasTemplate;
-      const subItem = wrapper.findAll(".clickable-sub-item")[0];
+      const subItem = wrapper.findAll(".interactive")[0];
       subItem.trigger("dragstart", dragEventMock);
       expect(dragEventMock.dataTransfer.setData).toHaveBeenNthCalledWith(
         1,
@@ -240,7 +238,6 @@ describe("InputOutputItem", () => {
       codeAliasInTitle.trigger("dragstart");
       expect(createDragGhost).toHaveBeenCalledWith({
         elements: [{ text: "super.mock" }],
-        width: "auto",
         font: "monospace",
         numSelectedItems: 1,
       });
@@ -300,7 +297,7 @@ describe("InputOutputItem", () => {
 
     it("click on subitem sets selectedItem", () => {
       const wrapper = doMount();
-      const subItem = wrapper.findAll(".clickable-sub-item")[0];
+      const subItem = wrapper.findAll(".interactive")[0];
       subItem.trigger("click");
       expect(useInputOutputSelectionStore().selectedItem).toEqual(
         inputOutputItemWithRowsAndAlias,
@@ -310,7 +307,7 @@ describe("InputOutputItem", () => {
 
     it("store change resets selection", async () => {
       const wrapper = doMount();
-      const subItem = wrapper.findAll(".clickable-sub-item")[0];
+      const subItem = wrapper.findAll(".interactive")[0];
       await subItem.trigger("click"); // item selected
 
       expect(useInputOutputSelectionStore().selectedItem).toEqual(
@@ -318,7 +315,7 @@ describe("InputOutputItem", () => {
       );
 
       // Select another item
-      useInputOutputSelectionStore().selectedItem = "foo bar" as any;
+      useInputOutputSelectionStore().selectedItem = undefined;
       await nextTick();
       expect(multiSelection.resetSelection).toHaveBeenCalledOnce();
       wrapper.unmount();
@@ -326,7 +323,7 @@ describe("InputOutputItem", () => {
 
     it("sets selected item on sub-item dragstart", () => {
       const wrapper = doMount();
-      const subItem = wrapper.findAll(".clickable-sub-item")[1];
+      const subItem = wrapper.findAll(".interactive")[1];
       subItem.trigger("dragstart");
       expect(useInputOutputSelectionStore().selectedItem).toStrictEqual(
         inputOutputItemWithRowsAndAlias,
@@ -345,7 +342,7 @@ describe("InputOutputItem", () => {
 
     it("should update multi-selection on sub-item click", () => {
       const wrapper = doMount();
-      const subItem = wrapper.findAll(".clickable-sub-item")[1];
+      const subItem = wrapper.findAll(".interactive")[1];
       subItem.trigger("click");
       expect(multiSelection.handleSelectionClick).toHaveBeenCalledWith(
         1,
@@ -362,7 +359,7 @@ describe("InputOutputItem", () => {
 
     it("should reset multi-selection on sub-item dragstart on unselected", () => {
       const wrapper = doMount();
-      const subItem = wrapper.findAll(".clickable-sub-item")[1];
+      const subItem = wrapper.findAll(".interactive")[1];
       subItem.trigger("dragstart");
       expect(multiSelection.resetSelection).toHaveBeenCalledOnce();
       expect(multiSelection.handleSelectionClick).toHaveBeenCalledWith(1);
@@ -372,7 +369,7 @@ describe("InputOutputItem", () => {
   describe("double click behaviour", () => {
     it("fires an event on double-click", () => {
       const wrapper = doMount();
-      const subItem = wrapper.findAll(".clickable-sub-item")[1];
+      const subItem = wrapper.findAll(".interactive")[1];
 
       const listener = vi.fn();
       insertionEventHelper

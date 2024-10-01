@@ -8,7 +8,6 @@ describe("draghGhost", () => {
 
   it("create drag ghost for single element", () => {
     const dragGhost = createDragGhost({
-      width: "100px",
       elements: [{ text: "elem 1" }, { text: "elem 2" }],
       numSelectedItems: 1,
     });
@@ -18,7 +17,6 @@ describe("draghGhost", () => {
 
   it("sets drag ghost content", () => {
     createDragGhost({
-      width: "100px",
       elements: [{ text: "elem 1" }, { text: "elem 2" }],
       numSelectedItems: 1,
     });
@@ -31,7 +29,6 @@ describe("draghGhost", () => {
 
   it("create badge for multiple elements", () => {
     createDragGhost({
-      width: "100px",
       elements: [{ text: "elem 1" }, { text: "elem 2" }],
       numSelectedItems: 10,
     });
@@ -44,7 +41,6 @@ describe("draghGhost", () => {
 
   it("remove drag ghost", () => {
     createDragGhost({
-      width: "100px",
       elements: [{ text: "elem 1" }, { text: "elem 2" }],
       numSelectedItems: 10,
     });
