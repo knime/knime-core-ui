@@ -62,8 +62,8 @@ export default defineComponent({
 }
 
 .open-icon {
-  width: 25px;
-  height: 50px;
+  width: 18px;
+  height: 18px;
   margin: auto;
 }
 
