@@ -1,17 +1,10 @@
 import { sleep } from "@knime/utils";
 import type { ScriptingServiceType } from "./scripting-service";
 
+import { log } from "@/log";
+
 const SLEEP_TIME_ANY_CALL = 100;
 const SLEEP_TIME_AI_SUGGESTION = 2000;
-
-const log = (message: any, ...args: any[]) => {
-  if (typeof consola === "undefined") {
-    // eslint-disable-next-line no-console
-    console.log(message, ...args);
-  } else {
-    consola.log(message, ...args);
-  }
-};
 
 const error = (message: any, ...args: any[]) => {
   if (typeof consola === "undefined") {

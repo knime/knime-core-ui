@@ -1,4 +1,8 @@
-import { DialogService, JsonDataService } from "@knime/ui-extension-service";
+import {
+  DialogService,
+  JsonDataService,
+  type SettingState,
+} from "@knime/ui-extension-service";
 import type { GenericInitialData } from "./initial-data-service";
 import type { GenericNodeSettings } from "./settings-service";
 
@@ -11,11 +15,13 @@ class SettingsHelper {
   // eslint-disable-next-line no-use-before-define
   private static instance: SettingsHelper;
   private jsonDataService: Promise<JsonDataService>;
+  private readonly dialogService: Promise<DialogService>;
 
   private cachedInitialDataAndSettings: InitialDataAndSettings | null = null;
 
   private constructor() {
     this.jsonDataService = JsonDataService.getInstance();
+    this.dialogService = DialogService.getInstance();
   }
 
   private async loadDataIntoCache(): Promise<void> {
@@ -35,7 +41,7 @@ class SettingsHelper {
   public async registerApplyListener(
     settingsGetter: () => GenericNodeSettings,
   ): Promise<void> {
-    const dialogService = await DialogService.getInstance();
+    const dialogService = await this.dialogService;
     dialogService.setApplyListener(async () => {
       const settings = settingsGetter();
       try {
@@ -46,6 +52,16 @@ class SettingsHelper {
         return { isApplied: false };
       }
     });
+  }
+
+  public async registerSettings<T>(
+    modelOrView: "view" | "model",
+  ): Promise<(initialSetting: T) => SettingState> {
+    const dialogService = await this.dialogService;
+    return (initialSetting: T) =>
+      dialogService.registerSettings(modelOrView)({
+        initialValue: initialSetting,
+      });
   }
 
   public static getInstance(): SettingsHelper {

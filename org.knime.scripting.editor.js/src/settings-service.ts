@@ -19,6 +19,8 @@ const settingsService = {
   getSettings: () => loadDataPromise,
   registerSettingsGetterForApply: (settingsGetter: () => GenericNodeSettings) =>
     getSettingsHelper().registerApplyListener(settingsGetter),
+  registerSettings: (modelOrView: "model" | "view") =>
+    getSettingsHelper().registerSettings(modelOrView),
 };
 export type SettingsServiceType = typeof settingsService;
 

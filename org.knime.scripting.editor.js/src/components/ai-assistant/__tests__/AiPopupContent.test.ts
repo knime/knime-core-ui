@@ -11,7 +11,10 @@ import AiSuggestion from "@/components/ai-assistant/AiSuggestion.vue";
 import { getInitialDataService } from "@/initial-data-service";
 import { ref } from "vue";
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
-import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
+import {
+  DEFAULT_INITIAL_SETTINGS,
+  registerSettingsMock,
+} from "@/settings-service-browser-mock";
 import { getSettingsService } from "@/settings-service";
 import InfinityLoadingBar from "@/components/InfinityLoadingBar.vue";
 
@@ -26,6 +29,7 @@ vi.mock("@/settings-service", () => ({
   getSettingsService: vi.fn(() => ({
     registerSettingsGetterForApply: vi.fn(() => Promise.resolve()),
     getSettings: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_SETTINGS)),
+    registerSettings: vi.fn(registerSettingsMock),
   })),
 }));
 
@@ -220,6 +224,7 @@ describe("AiPopup", () => {
         }),
       ),
       registerSettingsGetterForApply: vi.fn(() => Promise.resolve()),
+      registerSettings: vi.fn(registerSettingsMock),
     });
 
     const bar = await doMount();

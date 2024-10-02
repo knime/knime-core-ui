@@ -4,7 +4,9 @@ import {
   type PortConfigs,
   type InputConnectionInfo,
 } from "@/initial-data-service";
-import type { InputOutputModel } from "lib/main";
+
+import { log } from "@/log";
+import type { InputOutputModel } from "@/components/InputOutputItem.vue";
 
 export const DEFAULT_INPUT_OBJECTS: InputOutputModel[] = [
   {
@@ -106,15 +108,6 @@ export const DEFAULT_INITIAL_DATA: GenericInitialData = {
     hubId: "My Mocked KNIME Hub",
   },
   inputConnectionInfo: DEFAULT_PORT_INFORMATION,
-};
-
-const log = (message: any, ...args: any[]) => {
-  if (typeof consola === "undefined") {
-    // eslint-disable-next-line no-console
-    console.log(message, ...args);
-  } else {
-    consola.log(message, ...args);
-  }
 };
 
 export const createInitialDataServiceMock = (
