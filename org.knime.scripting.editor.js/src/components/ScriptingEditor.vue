@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useElementBounding } from "@vueuse/core";
-import { computed, onMounted, ref, useSlots } from "vue";
+import { computedAsync, useElementBounding } from "@vueuse/core";
+import { computed, ref, useSlots } from "vue";
 import { Pane, Splitpanes } from "splitpanes";
 import "splitpanes/dist/splitpanes.css";
 import type { MenuItem } from "@knime/components";
@@ -127,9 +127,10 @@ if (props.fileName === null && !useSlots().editor) {
   throw new Error("either fileName or editor slot must be provided");
 }
 
-const defaultInputOutputItems = ref<InputOutputModel[]>([]);
-onMounted(async () => {
-  if (!slots["left-pane"]) {
+const defaultInputOutputItems = computedAsync<InputOutputModel[]>(async () => {
+  if (slots["left-pane"]) {
+    return [];
+  } else {
     const initialData = await getInitialDataService().getInitialData();
     const initialItems = [
       ...initialData.inputObjects,
@@ -140,9 +141,9 @@ onMounted(async () => {
       initialItems.push(...initialData.outputObjects);
     }
 
-    defaultInputOutputItems.value = initialItems;
+    return initialItems;
   }
-});
+}, []);
 </script>
 
 <template>
