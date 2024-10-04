@@ -482,7 +482,6 @@ const globalReadOnly = useReadonlyStore();
 
 .collapser {
   position: relative;
-  z-index: 10;
 
   & :deep(.dropdown) {
     width: 14px;
