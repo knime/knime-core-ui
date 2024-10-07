@@ -46,7 +46,7 @@
  * History
  *   Oct 4, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
+package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
 import java.util.Arrays;
 import java.util.List;
@@ -65,13 +65,19 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-final class PersistUtil {
+/**
+ * For adding the "persist" object to the UI schema
+ *
+ * @author Paul Bärnreuther
+ */
+public final class PersistUtil {
 
     private PersistUtil() {
         // Utility
     }
 
-    static void addPersist(final ObjectNode uiSchema, final Map<SettingsType, Tree<PersistableSettings>> persistTrees) {
+    public static void addPersist(final ObjectNode uiSchema,
+        final Map<SettingsType, Tree<PersistableSettings>> persistTrees) {
         final var persist = uiSchema.putObject("persist");
         persistTrees.entrySet()
             .forEach(entry -> addPersist(persist.putObject(entry.getKey().getConfigKey()), entry.getValue()));
@@ -113,6 +119,9 @@ final class PersistUtil {
 
     /** Add a "configKeys" array to the field if a custom persistor is used */
     private static void addConfigKeys(final ObjectNode node, final TreeNode<PersistableSettings> field) {
+        if (field.getName().isEmpty())  { // TODO
+            return;
+        }
         var configKeys = ConfigKeyUtil.getConfigKeysUsedByPersistNode(field);
         if (configKeys.length > 0) {
             var configKeysNode = node.putArray("configKeys");
