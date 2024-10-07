@@ -1,8 +1,4 @@
-import Control, {
-  Schema,
-  isArraySchema,
-  isObjectSchema,
-} from "../types/Control";
+import { PersistSchema } from "../types/Persist";
 import {
   DeprecatedConfigPathsCandidate,
   createNewCandidate,
@@ -21,7 +17,7 @@ const getNextConfigPathSegments = ({
   schema,
   segment,
 }: {
-  schema: Schema;
+  schema: PersistSchema;
   segment: string;
 }) => {
   const configKeys = schema.configKeys;
@@ -32,7 +28,7 @@ const getNextConfigPathSegments = ({
 };
 
 const getSubConfigKeysRecursive = (
-  schema: Schema,
+  schema: PersistSchema,
   prefix: string[],
 ): string[][] => {
   if (!schema) {
@@ -46,9 +42,9 @@ const getSubConfigKeysRecursive = (
     ]);
   }
 
-  if (isArraySchema(schema) && schema.items) {
+  if (schema.type === "array") {
     return getSubConfigKeysRecursive(schema.items, prefix);
-  } else if (isObjectSchema(schema) && schema.properties) {
+  } else if (schema.type === "object") {
     const subConfigKeys: string[][] = [];
     for (const key of Object.keys(schema.properties)) {
       const configKeys = getNextConfigPathSegments({
@@ -77,7 +73,7 @@ const getSubConfigKeysRecursive = (
  * @see getConfigPaths). Further traversal at any segment ends prematurely if, (i) custom sub config keys are found in
  * the segment's schema or (ii) the current segment's config key is hidden (i.e., suffixed with "_Internals").
  */
-export const getSubConfigKeys = (schema: Schema): string[][] => {
+export const getSubConfigKeys = (schema: PersistSchema): string[][] => {
   return getSubConfigKeysRecursive(schema, []);
 };
 
@@ -106,13 +102,13 @@ const composePathWithSubConfigKeys = (
  * Note that there exists at least one data path in any case.
  */
 export const getDataPaths = ({
-  control,
+  persistSchema,
   path,
 }: {
-  control: Control;
+  persistSchema: PersistSchema;
   path: string;
 }) => {
-  return composePathWithSubConfigKeys(path, getSubConfigKeys(control.schema));
+  return composePathWithSubConfigKeys(path, getSubConfigKeys(persistSchema));
 };
 
 /**
@@ -121,20 +117,22 @@ export const getDataPaths = ({
  * schemas. Potential sub config keys are then appended to to the determined config paths.
  * @see getSubConfigKeys for details on how subConfigKeys are determined.
  */
-export const getConfigPaths = (params: {
-  control: Control;
+export const getConfigPaths = ({
+  path,
+  persistSchema,
+}: {
+  persistSchema: PersistSchema;
   path: string;
 }): { configPath: string; deprecatedConfigPaths: string[] }[] => {
-  const { path, control } = params;
   const segments = path.split(".");
   let configPaths = [""];
-  let schema: Schema = control.rootSchema;
+  let schema = persistSchema;
   let deprecatedConfigPathsCandidates: DeprecatedConfigPathsCandidate[] = [];
   for (const segment of segments) {
-    if (isArraySchema(schema)) {
+    if (schema.type === "array") {
       configPaths = configPaths.map((p) => composePaths(p, segment));
       schema = schema.items;
-    } else if (isObjectSchema(schema) && schema.properties) {
+    } else if (schema.type === "object") {
       schema = schema.properties[segment];
 
       (schema.deprecatedConfigKeys ?? []).forEach((part) =>
@@ -162,7 +160,7 @@ export const getConfigPaths = (params: {
     }
   }
 
-  const subConfigKeys = getSubConfigKeys(control.schema);
+  const subConfigKeys = getSubConfigKeys(persistSchema);
   configPaths = configPaths.flatMap((configPath) =>
     composePathWithSubConfigKeys(configPath, subConfigKeys),
   );
