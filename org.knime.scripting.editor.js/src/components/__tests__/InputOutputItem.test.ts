@@ -46,10 +46,18 @@ describe("InputOutputItem", () => {
   const inputOutputItemWithRowsAndAlias: InputOutputModel = {
     name: "supermock",
     codeAlias: "super.mock",
-    subItemCodeAliasTemplate: "my template {{ subItems }}",
+    subItemCodeAliasTemplate: "my template {{ subItems.[0].name }}",
     subItems: [
-      { name: "row 1", type: "String", supported: true },
-      { name: "row 2", type: "Double", supported: false },
+      {
+        name: "row 1",
+        type: "String",
+        supported: true,
+      },
+      {
+        name: "row 2",
+        type: "Double",
+        supported: false,
+      },
     ],
   };
 
@@ -178,7 +186,7 @@ describe("InputOutputItem", () => {
       expect(dragEventMock.dataTransfer.setData).toHaveBeenNthCalledWith(
         1,
         "text",
-        template({ subItems: "row 1" }),
+        template({ subItems: [{ name: "row 1" }] }),
       );
       wrapper.unmount();
     });
