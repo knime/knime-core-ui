@@ -79,14 +79,14 @@ public final class PersistUtil {
     public static void addPersist(final ObjectNode uiSchema,
         final Map<SettingsType, Tree<PersistableSettings>> persistTrees) {
         final var persist = uiSchema.putObject("persist");
+        final var properties = getObjectProperties(persist);
         persistTrees.entrySet()
-            .forEach(entry -> addPersist(persist.putObject(entry.getKey().getConfigKey()), entry.getValue()));
+            .forEach(entry -> addPersist(properties.putObject(entry.getKey().getConfigKey()), entry.getValue()));
     }
 
-    static void addPersist(final ObjectNode objectNode, final Tree<PersistableSettings> persistTree) {
-        objectNode.put("type", "object");
+    private static void addPersist(final ObjectNode objectNode, final Tree<PersistableSettings> persistTree) {
         addConfigKeys(objectNode, persistTree);
-        final var properties = objectNode.putObject("properties");
+        final var properties = getObjectProperties(objectNode);
         persistTree.getChildrenByName().entrySet().forEach(entry -> {
             final var childObjectNode = properties.putObject(entry.getKey());
             final var childTreeNode = entry.getValue();
@@ -102,8 +102,13 @@ public final class PersistUtil {
         });
     }
 
+    private static ObjectNode getObjectProperties(final ObjectNode objectNode) {
+        objectNode.put("type", "object");
+        final var properties = objectNode.putObject("properties");
+        return properties;
+    }
+
     private static void addPersist(final ObjectNode childObjectNode, final LeafNode<PersistableSettings> leafNode) {
-        childObjectNode.put("type", "not an object, not an array");
         addConfigKeys(childObjectNode, leafNode);
     }
 
@@ -115,14 +120,12 @@ public final class PersistUtil {
         addPersist(items, arrayParentNode.getElementTree());
     }
 
-    // Mostly copied from JsonFormsSchemaUtil
-
     /** Add a "configKeys" array to the field if a custom persistor is used */
     private static void addConfigKeys(final ObjectNode node, final TreeNode<PersistableSettings> field) {
-        if (field.getName().isEmpty())  { // TODO
+        if (field.getName().isEmpty()) { // TODO
             return;
         }
-        var configKeys = ConfigKeyUtil.getConfigKeysUsedByPersistNode(field);
+        var configKeys = ConfigKeyUtil.getConfigKeysUsedByField(field);
         if (configKeys.length > 0) {
             var configKeysNode = node.putArray("configKeys");
             Arrays.stream(configKeys).forEach(configKeysNode::add);

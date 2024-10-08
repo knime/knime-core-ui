@@ -72,7 +72,7 @@ public final class ConfigKeyUtil {
      * @param node
      * @return the config key used by the persistor or the default key if none is set
      */
-    public static String[] getConfigKeysUsedByPersistNode(final TreeNode<PersistableSettings> node) {
+    public static String[] getConfigKeysUsedByField(final TreeNode<PersistableSettings> node) {
         var persist = node.getAnnotation(Persist.class);
         if (persist.isEmpty()) {
             return new String[]{};

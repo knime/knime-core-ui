@@ -95,35 +95,27 @@ const composePathWithSubConfigKeys = (
 };
 
 /**
- * Data (JsonForms schema) paths are assembled by concatenating the given path with any potential sub config keys of the
- * given control's schema.
- * @see getSubConfigKeys for details on how subConfigKeys are determined.
- *
- * Note that there exists at least one data path in any case.
- */
-export const getDataPaths = ({
-  persistSchema,
-  path,
-}: {
-  persistSchema: PersistSchema;
-  path: string;
-}) => {
-  return composePathWithSubConfigKeys(path, getSubConfigKeys(persistSchema));
-};
-
-/**
- * Config (persist) paths are assembled by traversing the control's root schema along the given path, replacing any
+ * Config (persist) paths are assembled by traversing the persist schema along the given path, replacing any
  * segments along the traversal with custom config keys, if such custom config keys are found in any of the segments'
  * schemas. Potential sub config keys are then appended to to the determined config paths.
+ *
+ * Data (JsonForms schema) paths are assembled by concatenating the given path with any potential sub config keys of the
+ * given control's schema.
+ *
+ * Note that there exists at least one data path in any case.
+ *
  * @see getSubConfigKeys for details on how subConfigKeys are determined.
  */
-export const getConfigPaths = ({
+export const getDataAndConfigPaths = ({
   path,
   persistSchema,
 }: {
   persistSchema: PersistSchema;
   path: string;
-}): { configPath: string; deprecatedConfigPaths: string[] }[] => {
+}): {
+  configPaths: { configPath: string; deprecatedConfigPaths: string[] }[];
+  dataPaths: string[];
+} => {
   const segments = path.split(".");
   let configPaths = [""];
   let schema = persistSchema;
@@ -160,15 +152,17 @@ export const getConfigPaths = ({
     }
   }
 
-  const subConfigKeys = getSubConfigKeys(persistSchema);
+  const subConfigKeys = getSubConfigKeys(schema);
   configPaths = configPaths.flatMap((configPath) =>
     composePathWithSubConfigKeys(configPath, subConfigKeys),
   );
-
-  return toConfigPathsWithDeprecatedConfigPaths(
-    configPaths,
-    deprecatedConfigPathsCandidates,
-  );
+  return {
+    configPaths: toConfigPathsWithDeprecatedConfigPaths(
+      configPaths,
+      deprecatedConfigPathsCandidates,
+    ),
+    dataPaths: composePathWithSubConfigKeys(path, subConfigKeys),
+  };
 };
 
 /**
