@@ -102,7 +102,7 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
             return createNestedFieldBasedPersistor(configKey, tree);
 
         } else {
-            return DefaultFieldNodeSettingsPersistorFactory.createPersistor(node.getType(), configKey);
+            return createPersistor(node.getType(), configKey);
         }
     }
 

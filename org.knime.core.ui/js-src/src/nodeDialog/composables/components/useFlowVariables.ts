@@ -1,5 +1,5 @@
 import { InjectionKey, Ref, computed, inject, provide } from "vue";
-import { getConfigPaths, getDataPaths } from "@/nodeDialog/utils/paths";
+import { getDataAndConfigPaths } from "@/nodeDialog/utils/paths";
 import { FlowSettings } from "@/nodeDialog/api/types";
 import { SettingStateWrapper } from "../nodeDialog/useDirtySettings";
 import { getFlowVariablesMap } from "./useProvidedFlowVariablesMap";
@@ -105,12 +105,11 @@ export const useFlowSettings = (
   const { path, settingState, hideFlowVariableButton } = params;
   const flowVariablesMap = getFlowVariablesMap();
   const persistSchema = injectForFlowVariables("getPersistSchema")();
-  const configPaths = computed(() =>
-    getConfigPaths({ persistSchema, path: path.value }),
+  const configAndDataPaths = computed(() =>
+    getDataAndConfigPaths({ persistSchema, path: path.value }),
   );
-  const dataPaths = computed(() =>
-    getDataPaths({ persistSchema, path: path.value }),
-  );
+  const configPaths = computed(() => configAndDataPaths.value.configPaths);
+  const dataPaths = computed(() => configAndDataPaths.value.dataPaths);
   const flowSettings = computed(() => {
     return toFlowSetting(flowVariablesMap, configPaths.value);
   });
