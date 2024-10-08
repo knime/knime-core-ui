@@ -3,13 +3,27 @@ import type { Component } from "vue";
 
 export type SubItem<PropType extends Record<string, any>> = {
   name: string;
+  /**
+   * The type of the subItem. Can be a string, in which case that is displayed as
+   * the type, or a component with optional props, in which case the component is
+   * responsible for displaying the type.
+   */
   type:
     | string
     | {
         component: Component;
         props?: PropType;
       };
+  /**
+   * Whether the subItem is supported in the current editor or not. If not, it is
+   * displayed differently and does not support insertion.
+   */
   supported: boolean;
+  /**
+   * For supported editors, setting this to any truthy string value will insert only
+   * that value, with no extra decorations or delimiters.
+   */
+  insertionText?: string | null;
 };
 
 export type InputOutputModel = {
@@ -39,6 +53,9 @@ export type InputOutputModel = {
    * Whether multi selection of subItems is supported or not
    */
   multiSelection?: boolean;
+  /**
+   * List of SubItems for this I/O-Object
+   */
   subItems?: SubItem<Record<string, any>>[];
 };
 
@@ -127,7 +144,7 @@ const handleClick = (event: MouseEvent, index?: number) => {
 
 const handleSubItemDoubleClick = (event: MouseEvent, index: number) => {
   const codeToInsert = subItemCodeAliasTemplate({
-    subItems: [props.inputOutputItem.subItems?.[index]?.name],
+    subItems: [props.inputOutputItem.subItems?.[index]],
   });
 
   insertionEventHelper
@@ -158,8 +175,10 @@ const handleHeaderDoubleClick = () => {
 const getSubItemCodeToInsert = () => {
   const subItems = [...multiSelection.selectedIndexes.value]
     .filter((item) => props.inputOutputItem.subItems?.[item].supported)
-    .map((item) => props.inputOutputItem.subItems?.[item].name);
+    .map((item) => props.inputOutputItem.subItems?.[item]);
+
   const codeToInsert = subItemCodeAliasTemplate({ subItems });
+
   return codeToInsert;
 };
 
