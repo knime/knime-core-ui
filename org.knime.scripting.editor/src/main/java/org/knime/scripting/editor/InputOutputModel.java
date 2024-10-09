@@ -63,10 +63,11 @@ import org.knime.core.node.workflow.VariableType;
  *
  * @param name The name of the item
  * @param codeAlias The code alias needed to access this item in the code
- * @param subItemCodeAliasTemplate A Handlebars.js template that is used for code alias insertion. It should have a
- *            single input parameter { subItems: string[] } that can be used to fill in the subItems.
+ * @param subItemCodeAliasTemplate A Handlebars.js template that is used for code alias insertion of one or multiple sub
+ *            items. It should have a single input parameter { subItems: { name: string, insertionText: string | null
+ *            }[] } that can be used to fill in the subItems.
  * @param requiredImport The import statement that is needed to use this object or null if there is none.
- * @param multiSelection whether to enable multi selection in the frontend.
+ * @param multiSelection Whether to enable simultaneous selection of multiple subitems in the frontend
  * @param subItems A (possibly empty) list of sub items.
  * @param portType The type of this item, e.g. flow variable, input table, etc.
  * @param portIconColor The color of the port icon.
@@ -101,9 +102,8 @@ public record InputOutputModel(String name, //
      * @param name The name of the sub item
      * @param type The display name of the type of the sub item
      * @param supported Whether this sub item is supported by the current editor
-     * @param insertionText The exact text that will be inserted into the code when this sub item is inserted. If it is
-     *            null, then the name of the sub item will be inserted, along with whatever formatting is provided by
-     *            the templating engine.
+     * @param insertionText A text that is provided to the template when this sub item is inserted into the code. Note
+     *            that this is optional. The template also has access to the name which can be enough.
      */
     public static record InputOutputModelSubItem(String name, String type, boolean supported, String insertionText) {
     }
