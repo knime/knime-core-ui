@@ -136,6 +136,13 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
     }
 
     /**
+     * @return whether the current node has a parent. This is true for the global root as well as for the
+     */
+    public boolean isRoot() {
+        return m_parent == null;
+    }
+
+    /**
      * @return the name of this node. It is empty in case of a root tree node (which can be an element widget tree of an
      *         {@link ArrayParentNode})
      */
