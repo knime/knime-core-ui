@@ -180,6 +180,28 @@ public final class DynamicValuesInput implements PersistableSettings {
         return new DynamicValuesInput(dataType, defaultValue);
     }
 
+    /**
+     * @return a dynamic values input for a single value of RowID.
+     */
+    public static DynamicValuesInput forRowID() {
+        return new DynamicValuesInput(StringCell.TYPE, new StringCell(""));
+    }
+
+    /**
+     * @param dataType data type to offer widget for Row number comparisons,
+     *                 must be {@link StringCell#TYPE} or {@link LongCell#TYPE}
+     * @return a dynamic values input for a single value of Row Number.
+     */
+    public static DynamicValuesInput forRowNumber(final DataType dataType) {
+        if (StringCell.TYPE.equals(dataType)) {
+            return new DynamicValuesInput(dataType, new StringCell("1"));
+        } else if (LongCell.TYPE.equals(dataType)) {
+            return new DynamicValuesInput(LongCell.TYPE, new LongCell(1));
+        }
+        throw new IllegalArgumentException(
+            "Data type must be either String or Long type, was \"%s\"".formatted(dataType));
+    }
+
     private enum InputKind {
             SINGLE, DOUBLE, COLLECTION
     }
@@ -852,20 +874,6 @@ public final class DynamicValuesInput implements PersistableSettings {
             new DynamicValue(BooleanCell.TYPE),//
             //new DynamicValue(IntervalCell.TYPE)// currently breaks things, since we have no validation on dialog close
         }, InputKind.SINGLE);
-    }
-
-    /**
-     * @return a dynamic values input for a single value of RowID.
-     */
-    public static DynamicValuesInput forRowID() {
-        return new DynamicValuesInput(StringCell.TYPE, new StringCell(""));
-    }
-
-    /**
-     * @return a dynamic values input for a single value of Row Number.
-     */
-    public static DynamicValuesInput forRowNumber() {
-        return new DynamicValuesInput(LongCell.TYPE, new LongCell(1));
     }
 
     /* == Lookup of type-mappers. == */

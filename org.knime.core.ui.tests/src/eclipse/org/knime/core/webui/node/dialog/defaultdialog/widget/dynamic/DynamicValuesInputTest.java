@@ -50,6 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -60,6 +61,9 @@ import org.knime.chem.types.SmilesCell;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataType;
 import org.knime.core.data.collection.CollectionCellFactory;
+import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.time.localdate.LocalDateCellFactory;
 import org.knime.core.node.InvalidSettingsException;
@@ -226,5 +230,29 @@ class DynamicValuesInputTest {
         final var converted = input.convertToType(DynamicValuesInput.emptySingle());
         assertThat(converted).isEmpty().as("Conversion should fail due to mismatched input kind");
     }
+
+    @Test
+    void testRowNumberInput() {
+        // normal mode
+        final var numeric = DynamicValuesInput.forRowNumber(LongCell.TYPE).getCellAt(0);
+        assertThat(numeric).isNotEmpty().as("Numeric row number input should have a default value");
+        assertThat(numeric).contains(new LongCell(1)).as("Default row number value should be 1");
+        // test input used for "matches regex" and "matches wildcard"
+        final var string = DynamicValuesInput.forRowNumber(StringCell.TYPE).getCellAt(0);
+        assertThat(string).isNotEmpty().as("String-based row number input should have a default value");
+        assertThat(string).contains(new StringCell("1")).as("Default string-based row number value should be \"1\"");
+        // anything else is unsupported (currently)
+        for (final var type : new DataType[] {IntCell.TYPE, DoubleCell.TYPE, SmilesCell.TYPE }) {
+            try {
+                DynamicValuesInput.forRowNumber(type).getCellAt(0);
+                fail("Expected exception of type IllegalArgumentException for unsupported "
+                    + "data type \"%s\", but there was none.".formatted(type));
+            } catch (final IllegalArgumentException e) {
+                // expected
+                continue;
+            }
+        }
+    }
+
 
 }
