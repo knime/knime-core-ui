@@ -513,7 +513,6 @@
           "type" : "object",
           "properties" : {
             "displayedColumns" : {
-              "configKeys" : [ "displayedColumns" ],
               "type" : "object",
               "properties" : {
                 "selected" : {
@@ -555,30 +554,14 @@
                 }
               }
             },
-            "showRowIndices" : {
-              "configKeys" : [ "showRowIndices" ]
-            },
-            "showRowKeys" : {
-              "configKeys" : [ "showRowKeys" ]
-            },
-            "title" : {
-              "configKeys" : [ "title" ]
-            },
-            "showTableSize" : {
-              "configKeys" : [ "showTableSize" ]
-            },
-            "showColumnDataType" : {
-              "configKeys" : [ "showColumnDataType" ]
-            },
-            "enablePagination" : {
-              "configKeys" : [ "enablePagination" ]
-            },
-            "pageSize" : {
-              "configKeys" : [ "pageSize" ]
-            },
-            "autoSizeColumnsToContent" : {
-              "configKeys" : [ "autoSizeColumnsToContent" ]
-            },
+            "showRowIndices" : { },
+            "showRowKeys" : { },
+            "title" : { },
+            "showTableSize" : { },
+            "showColumnDataType" : { },
+            "enablePagination" : { },
+            "pageSize" : { },
+            "autoSizeColumnsToContent" : { },
             "rowHeightMode" : {
               "configKeys" : [ "rowHeightModeV2" ],
               "deprecatedConfigKeys" : [ {
@@ -593,7 +576,6 @@
               } ]
             },
             "customRowHeight" : {
-              "configKeys" : [ "customRowHeight" ],
               "deprecatedConfigKeys" : [ {
                 "new" : [ [ "customRowHeight" ] ],
                 "deprecated" : [ ]
@@ -606,7 +588,6 @@
               } ]
             },
             "verticalPaddingMode" : {
-              "configKeys" : [ "verticalPaddingMode" ],
               "deprecatedConfigKeys" : [ {
                 "new" : [ [ "verticalPaddingMode" ] ],
                 "deprecated" : [ ]
@@ -618,30 +599,14 @@
                 "deprecated" : [ [ "rowHeightMode" ] ]
               } ]
             },
-            "enableGlobalSearch" : {
-              "configKeys" : [ "enableGlobalSearch" ]
-            },
-            "enableColumnSearch" : {
-              "configKeys" : [ "enableColumnSearch" ]
-            },
-            "enableSortingByHeader" : {
-              "configKeys" : [ "enableSortingByHeader" ]
-            },
-            "enableRendererSelection" : {
-              "configKeys" : [ "enableRendererSelection" ]
-            },
-            "enableCellCopying" : {
-              "configKeys" : [ "enableCellCopying" ]
-            },
-            "selectionMode" : {
-              "configKeys" : [ "selectionMode" ]
-            },
-            "showOnlySelectedRows" : {
-              "configKeys" : [ "showOnlySelectedRows" ]
-            },
-            "showOnlySelectedRowsConfigurable" : {
-              "configKeys" : [ "showOnlySelectedRowsConfigurable" ]
-            },
+            "enableGlobalSearch" : { },
+            "enableColumnSearch" : { },
+            "enableSortingByHeader" : { },
+            "enableRendererSelection" : { },
+            "enableCellCopying" : { },
+            "selectionMode" : { },
+            "showOnlySelectedRows" : { },
+            "showOnlySelectedRowsConfigurable" : { },
             "skipRemainingColumns" : {
               "configKeys" : [ "skipRemainingColumns_Internals" ]
             }

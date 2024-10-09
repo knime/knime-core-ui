@@ -85,7 +85,9 @@ public final class PersistUtil {
     }
 
     private static void addPersist(final ObjectNode objectNode, final Tree<PersistableSettings> persistTree) {
-        addConfigKeys(objectNode, persistTree);
+        if (!persistTree.isRoot()) {
+            addConfigKeys(objectNode, persistTree);
+        }
         final var properties = getObjectProperties(objectNode);
         persistTree.getChildrenByName().entrySet().forEach(entry -> {
             final var childObjectNode = properties.putObject(entry.getKey());
@@ -102,12 +104,6 @@ public final class PersistUtil {
         });
     }
 
-    private static ObjectNode getObjectProperties(final ObjectNode objectNode) {
-        objectNode.put("type", "object");
-        final var properties = objectNode.putObject("properties");
-        return properties;
-    }
-
     private static void addPersist(final ObjectNode childObjectNode, final LeafNode<PersistableSettings> leafNode) {
         addConfigKeys(childObjectNode, leafNode);
     }
@@ -120,13 +116,16 @@ public final class PersistUtil {
         addPersist(items, arrayParentNode.getElementTree());
     }
 
+    private static ObjectNode getObjectProperties(final ObjectNode objectNode) {
+        objectNode.put("type", "object");
+        final var properties = objectNode.putObject("properties");
+        return properties;
+    }
+
     /** Add a "configKeys" array to the field if a custom persistor is used */
     private static void addConfigKeys(final ObjectNode node, final TreeNode<PersistableSettings> field) {
-        if (field.getName().isEmpty()) { // TODO
-            return;
-        }
         var configKeys = ConfigKeyUtil.getConfigKeysUsedByField(field);
-        if (configKeys.length > 0) {
+        if (configKeys.length > 0 && !isFieldName(field, configKeys)) {
             var configKeysNode = node.putArray("configKeys");
             Arrays.stream(configKeys).forEach(configKeysNode::add);
         }
@@ -144,6 +143,10 @@ public final class PersistUtil {
             Arrays.stream(deprecatedConfigsArray)
                 .forEach(deprecatedConfigs -> putDeprecatedConfig(deprecatedConfigsNode, deprecatedConfigs));
         }
+    }
+
+    private static boolean isFieldName(final TreeNode<PersistableSettings> field, final String[] configKeys) {
+        return configKeys.length == 1 && configKeys[0].equals(field.getName().orElse(null));
     }
 
     private static void putDeprecatedConfig(final ArrayNode deprecatedConfigsNode,
