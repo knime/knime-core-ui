@@ -234,7 +234,10 @@ const createInsertColumnReferenceFunction = (
 
     // Add requiredImport before the text so it is inserted before the text
     // even if the cursor is at the top of the editor
-    if (requiredImport) {
+    if (
+      requiredImport &&
+      !editor.value?.getModel()?.getValue().includes(requiredImport)
+    ) {
       requiredEdits.push({
         range: new monaco.Selection(1, 1, 1, 1),
         text: `${requiredImport}\n`,
