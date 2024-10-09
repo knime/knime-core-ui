@@ -143,23 +143,22 @@ public class FieldBasedNodeSettingsPersistor<S extends PersistableSettings> impl
     @SuppressWarnings("unchecked")
     public S load(final NodeSettingsRO settings) throws InvalidSettingsException {
         final var settingsClass = m_settingsTree.getType();
-        final var loaded = (S)ReflectionUtil.createInstance(settingsClass).orElseThrow(() -> new IllegalArgumentException(
-            String.format("The provided PersistableSettings '%s' don't provide an empty constructor.", settingsClass)));
+        final var loaded =
+            (S)ReflectionUtil.createInstance(settingsClass).orElseThrow(() -> new IllegalArgumentException(String
+                .format("The provided PersistableSettings '%s' don't provide an empty constructor.", settingsClass)));
         callForAllFields((persistor, node) -> node.setInParentValue(loaded, persistor.load(settings)));//NOSONAR
         return loaded;
     }
 
     private void callForAllFields(final PersistorConsumer consumer) throws InvalidSettingsException {
-        for (var entry : m_persistors.entrySet()) {
-            var fieldName = entry.getKey();
+        for (var treeNode : m_settingsTree.getChildren()) {
             try {
-                consumer.accept(entry.getValue(), entry.getKey());
+                consumer.accept(m_persistors.get(treeNode), treeNode);
             } catch (IllegalAccessException ex) {
                 // because we use black magic (Field#setAccessible) to make the field accessible
-                throw new IllegalStateException(
-                    String.format("Could not access the field '%s' although reflection was used to make it accessible.",
-                        fieldName),
-                    ex);
+                throw new IllegalStateException(String.format(
+                    "Could not access the field at path '%s' although reflection was used to make it accessible.",
+                    treeNode.getPath()), ex);
             } catch (SecurityException ex) {
                 throw new IllegalStateException(
                     "Security exception while accessing field although it was possible to access it during creation of"
