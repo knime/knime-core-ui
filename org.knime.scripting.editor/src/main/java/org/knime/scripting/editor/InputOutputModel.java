@@ -48,7 +48,9 @@
  */
 package org.knime.scripting.editor;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
@@ -59,7 +61,9 @@ import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
 
 /**
- * An item that will be displayed in the input/output panel of the script editor
+ * An item that will be displayed in the input/output panel of the script editor. Use {@link InputOutputModel#table()},
+ * {@link InputOutputModel#flowVariables()}, {@link InputOutputModel#portObject(String)}, or
+ * {@link InputOutputModel#view()}, to create builders for input/output models.
  *
  * @param name The name of the item
  * @param codeAlias The code alias needed to access this item in the code
@@ -108,120 +112,212 @@ public record InputOutputModel(String name, //
     public static record InputOutputModelSubItem(String name, String type, boolean supported, String insertionText) {
     }
 
-    /**
-     * Helper method to convert a table spec into a {@link InputOutputModel}.
-     *
-     * @param name The name of the item
-     * @param spec The table spec
-     * @param codeAlias The code alias needed to access this entire item in the code
-     * @param subItemCodeAliasTemplate A Handlebars.js template that is used for code alias insertion for the subitems
-     * @param multipleSelection Whether to enable simultaneous selection of multiple subitems in the frontend
-     * @param requiredImport The import statement that is needed to use this object or null if there is none
-     * @param typeNameMapper A function that maps a {@link DataType} to a string that represents the type
-     * @param isSupported A predicate that checks whether a {@link DataType} is supported by the editor
-     * @return the {@link InputOutputModel} with the subItems from the table columns
-     */
-    public static InputOutputModel createFromTableSpec( //
-        final String name, //
-        final DataTableSpec spec, //
-        final String codeAlias, //
-        final String subItemCodeAliasTemplate, //
-        final boolean multipleSelection, //
-        final String requiredImport, //
-        final Function<DataType, String> typeNameMapper, //
-        final Predicate<DataType> isSupported //
-    ) {
-        Function<DataType, String> fallbackTypeNameMapper =
-            dt -> isSupported.test(dt) ? typeNameMapper.apply(dt) : UNSUPPORTED_TYPE;
-
-        final var subItems = StreamSupport.stream(spec.spliterator(), false) //
-            .map(colSpec -> new InputOutputModelSubItem(colSpec.getName(),
-                fallbackTypeNameMapper.apply(colSpec.getType()), isSupported.test(colSpec.getType()), null)) //
-            .toArray(InputOutputModelSubItem[]::new);
-        return new InputOutputModel(name, codeAlias, subItemCodeAliasTemplate, requiredImport, multipleSelection,
-            subItems, TABLE_PORT_TYPE_NAME, TABLE_PORT_ICON_COLOR);
+    private static RequiresNameBuilder builder(final String portType, final String portIconColor) {
+        return name -> new Builder(portType, portIconColor, name);
     }
 
     /**
-     * Helper method to create a table {@link InputOutputModel} for a table that is not connected
-     *
-     * @param name
-     * @param codeAlias
-     * @param subItemCodeAliasTemplate
-     * @param requiredImport
-     * @param multiSelection
-     * @return the {@link InputOutputModel} with no subItems
+     * @return A builder for an {@link InputOutputModel} that represents a table port
      */
-    public static InputOutputModel createForNonAvailableTable( //
-        final String name, //
-        final String codeAlias, //
-        final String subItemCodeAliasTemplate, //
-        final String requiredImport, //
-        final boolean multiSelection //
-    ) {
-        return new InputOutputModel(name, codeAlias, subItemCodeAliasTemplate, requiredImport, multiSelection, null,
-            TABLE_PORT_TYPE_NAME, TABLE_PORT_ICON_COLOR);
+    public static RequiresNameBuilder table() {
+        return builder(TABLE_PORT_TYPE_NAME, TABLE_PORT_ICON_COLOR);
     }
 
     /**
-     * Helper method to create a flow variables {@link InputOutputModel}.
-     *
-     * @param flowVariables
-     * @param codeAlias
-     * @param subItemCodeAliasTemplate
-     * @param requiredImport
-     * @param multiSelection
-     * @param isSupportedPredicate
-     *
-     * @return the {@link InputOutputModel} with subItems from the collection of flow variables
+     * @return A builder for an {@link InputOutputModel} that represents flow variables
      */
-    public static InputOutputModel createFromFlowVariables( //
-        final Collection<FlowVariable> flowVariables, //
-        final String codeAlias, //
-        final String subItemCodeAliasTemplate, //
-        final String requiredImport, //
-        final boolean multiSelection, //
-        final Predicate<VariableType<?>> isSupportedPredicate //
-    ) {
-        return createFromFlowVariables(flowVariables, codeAlias, subItemCodeAliasTemplate, requiredImport,
-            multiSelection, type -> type.toString(), isSupportedPredicate);
+    public static Builder flowVariables() {
+        return builder(FLOW_VAR_PORT_TYPE_NAME, FLOW_VAR_PORT_ICON_COLOR).name("Flow variables");
     }
 
     /**
-     * Helper method to create a flow variables {@link InputOutputModel}, but with a custom mapper for getting the types
-     * from the type name.
-     *
-     * @param flowVariables
-     * @param codeAlias
-     * @param subItemCodeAliasTemplate
-     * @param requiredImport
-     * @param multiSelection
-     * @param typeNameMapper
-     * @param isSupportedPredicate
-     *
-     * @return the {@link InputOutputModel} with subItems from the collection of flow variables
+     * @param portIconColor The color of the port icon
+     * @return A builder for an {@link InputOutputModel} that represents an object port
      */
-    public static InputOutputModel createFromFlowVariables( //
-        final Collection<FlowVariable> flowVariables, //
-        final String codeAlias, //
-        final String subItemCodeAliasTemplate, //
-        final String requiredImport, //
-        final boolean multiSelection, //
-        final Function<VariableType<?>, String> typeNameMapper, //
-        final Predicate<VariableType<?>> isSupportedPredicate //
-    ) {
-
-        var subItems = flowVariables.stream() //
-            .map(f -> new InputOutputModelSubItem( //
-                f.getName(), //
-                isSupportedPredicate.test(f.getVariableType()) ? typeNameMapper.apply(f.getVariableType())
-                    : UNSUPPORTED_TYPE, //
-                isSupportedPredicate.test(f.getVariableType()), //
-                null //
-            )).toArray(InputOutputModelSubItem[]::new);
-
-        return new InputOutputModel("Flow variables", codeAlias, subItemCodeAliasTemplate, requiredImport,
-            multiSelection, subItems, FLOW_VAR_PORT_TYPE_NAME, FLOW_VAR_PORT_ICON_COLOR);
+    public static RequiresNameBuilder portObject(final String portIconColor) {
+        return builder(OBJECT_PORT_TYPE_NAME, portIconColor);
     }
 
+    /**
+     * @return A builder for an {@link InputOutputModel} that represents a view
+     */
+    public static RequiresNameBuilder view() {
+        return builder(VIEW_PORT_TYPE_NAME, null);
+    }
+
+    /** A builder for an {@link InputOutputModel} that requires a name to be set. */
+    public interface RequiresNameBuilder {
+
+        /**
+         * @param name The name of the item
+         * @return A builder for all optional parameters
+         */
+        Builder name(String name);
+    }
+
+    /**
+     * Builder for an {@link InputOutputModel}. Only contains the optional stages. Note that the required stage
+     * {@link RequiresNameBuilder} is not included. Use {@link InputOutputModel#table()},
+     * {@link InputOutputModel#flowVariables()}, {@link InputOutputModel#portObject(String)}, or
+     * {@link InputOutputModel#view()}, to create builders for input/output models.
+     */
+    public static class Builder {
+
+        private final String m_portType;
+
+        private final String m_portIconColor;
+
+        private final String m_name;
+
+        private String m_codeAlias;
+
+        private String m_subItemCodeAliasTemplate;
+
+        private String m_requiredImport;
+
+        private boolean m_multiSelection;
+
+        private List<InputOutputModelSubItem> m_subItems;
+
+        private Builder(final String portType, final String portIconColor, final String name) {
+            this.m_portType = portType;
+            this.m_portIconColor = portIconColor;
+            this.m_name = name;
+        }
+
+        /**
+         * @param codeAlias The code alias needed to access this item in the code. Can be null in which case code
+         *            insertion is disabled (default).
+         * @return this builder
+         */
+        public Builder codeAlias(final String codeAlias) {
+            this.m_codeAlias = codeAlias;
+            return this;
+        }
+
+        /**
+         * @param subItemCodeAliasTemplate A Handlebars.js template that is used for code alias insertion of one or
+         *            multiple sub items. It should have a single input parameter { subItems: { name: string,
+         *            insertionText: string | null }[] } that can be used to fill in the subItems. Can be null in which
+         *            case code insertion is disabled (default).
+         * @return this builder
+         */
+        public Builder subItemCodeAliasTemplate(final String subItemCodeAliasTemplate) {
+            this.m_subItemCodeAliasTemplate = subItemCodeAliasTemplate;
+            return this;
+        }
+
+        /**
+         * @param requiredImport The import statement that is needed to use this object or null if there is none
+         * @return this builder
+         */
+        public Builder requiredImport(final String requiredImport) {
+            this.m_requiredImport = requiredImport;
+            return this;
+        }
+
+        /**
+         * @param multiSelection Whether to enable simultaneous selection of multiple subitems in the frontend (default:
+         *            false)
+         * @return this builder
+         */
+        public Builder multiSelection(final boolean multiSelection) {
+            this.m_multiSelection = multiSelection;
+            return this;
+        }
+
+        /**
+         * Add subItems to the builder. If subItems have already been added, this will append the new subItems to the
+         * existing ones.
+         *
+         * @param subItems The subItems to add
+         * @return this builder
+         */
+        public Builder subItems(final Collection<InputOutputModelSubItem> subItems) {
+            if (this.m_subItems == null) {
+                this.m_subItems = new ArrayList<>();
+            }
+            this.m_subItems.addAll(subItems);
+            return this;
+        }
+
+        /**
+         * Add subItems to the builder from the columns of the {@link DataTableSpec}. If subItems have already been
+         * added, this will append the new subItems to the existing ones. All columns are marked as supported.
+         *
+         * @param spec The {@link DataTableSpec} to get the columns from
+         * @param typeNameMapper A function that maps a {@link DataType} to a string that represents the type
+         * @return this builder
+         */
+        public Builder subItems(final DataTableSpec spec, final Function<DataType, String> typeNameMapper) {
+            return subItems(spec, typeNameMapper, dt -> true);
+        }
+
+        /**
+         * Add subItems to the builder from the columns of the {@link DataTableSpec}. If subItems have already been
+         * added, this will append the new subItems to the existing ones.
+         *
+         * @param spec The {@link DataTableSpec} to get the columns from
+         * @param typeNameMapper A function that maps a {@link DataType} to a string that represents the type
+         * @param isSupported A predicate that checks whether a {@link DataType} is supported by the editor
+         * @return this builder
+         */
+        public Builder subItems(final DataTableSpec spec, final Function<DataType, String> typeNameMapper,
+            final Predicate<DataType> isSupported) {
+            Function<DataType, String> fallbackTypeNameMapper =
+                dt -> isSupported.test(dt) ? typeNameMapper.apply(dt) : UNSUPPORTED_TYPE;
+            return subItems( //
+                StreamSupport.stream(spec.spliterator(), false) //
+                    .map(colSpec -> new InputOutputModelSubItem(colSpec.getName(),
+                        fallbackTypeNameMapper.apply(colSpec.getType()), isSupported.test(colSpec.getType()), null)) //
+                    .toList() //
+            );
+        }
+
+        /**
+         * Add subItems to the builder from the collection of {@link FlowVariable}s. If subItems have already been
+         * added, this will append the new subItems to the existing ones. Uses the {@link VariableType#toString()} as
+         * the type name.
+         *
+         * @param flowVariables The flow variables to get the subItems from
+         * @param isSupportedPredicate A predicate that checks whether a {@link VariableType} is supported by the editor
+         * @return this builder
+         */
+        public Builder subItems(final Collection<FlowVariable> flowVariables,
+            final Predicate<VariableType<?>> isSupportedPredicate) {
+            return subItems(flowVariables, type -> type.toString(), isSupportedPredicate);
+        }
+
+        /**
+         * Add subItems to the builder from the collection of {@link FlowVariable}s. If subItems have already been
+         * added, this will append the new subItems to the existing ones.
+         *
+         * @param flowVariables The flow variables to get the subItems from
+         * @param typeNameMapper A function that maps a {@link VariableType} to a string that represents the type
+         * @param isSupportedPredicate A predicate that checks whether a {@link VariableType} is supported by the editor
+         * @return this builder
+         */
+        public Builder subItems(final Collection<FlowVariable> flowVariables,
+            final Function<VariableType<?>, String> typeNameMapper,
+            final Predicate<VariableType<?>> isSupportedPredicate) {
+
+            return subItems( //
+                flowVariables.stream() //
+                    .map(f -> new InputOutputModelSubItem( //
+                        f.getName(), //
+                        isSupportedPredicate.test(f.getVariableType()) ? typeNameMapper.apply(f.getVariableType())
+                            : UNSUPPORTED_TYPE, //
+                        isSupportedPredicate.test(f.getVariableType()), //
+                        null //
+                    )).toList() //
+            );
+        }
+
+        /** @return the {@link InputOutputModel} with the current state of the builder */
+        public InputOutputModel build() {
+            var subItems = m_subItems == null ? null : m_subItems.toArray(InputOutputModelSubItem[]::new);
+            return new InputOutputModel(m_name, m_codeAlias, m_subItemCodeAliasTemplate, m_requiredImport,
+                m_multiSelection, subItems, m_portType, m_portIconColor);
+        }
+    }
 }
