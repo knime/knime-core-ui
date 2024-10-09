@@ -310,7 +310,6 @@ public final class DynamicValuesInput implements PersistableSettings {
          * @param initial initial value or {@link DataType#getMissingCell()}
          * @param caseMatchingSettings optional settings for String case matching
          */
-        @SuppressWarnings("unchecked")
         private DynamicValue(final DataType columnType, final DataCell initial,
             final StringCaseMatchingSettings caseMatchingSettings) {
             m_value = Objects.requireNonNull(initial);
@@ -853,7 +852,8 @@ public final class DynamicValuesInput implements PersistableSettings {
             new DynamicValue(DoubleCell.TYPE), //
             new DynamicValue(IntCell.TYPE), //
             new DynamicValue(BooleanCell.TYPE),//
-                //new DynamicValue(IntervalCell.TYPE)// currently breaks things, since we have no validation on dialog close
+                /** currently breaks things, since we have no validation on dialog close */
+                //new DynamicValue(IntervalCell.TYPE)
         }, InputKind.SINGLE);
     }
 
