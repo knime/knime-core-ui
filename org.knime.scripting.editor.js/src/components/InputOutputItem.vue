@@ -20,8 +20,9 @@ export type SubItem<PropType extends Record<string, any>> = {
    */
   supported: boolean;
   /**
-   * For supported editors, setting this to any truthy string value will insert only
-   * that value, with no extra decorations or delimiters.
+   * A text that is provided to the template when this sub item is inserted into
+   * the code. Note that this is optional. The template also has access to the name
+   * which can be enough.
    */
   insertionText?: string | null;
 };
