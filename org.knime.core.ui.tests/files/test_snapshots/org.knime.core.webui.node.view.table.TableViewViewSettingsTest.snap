@@ -541,7 +541,7 @@
                     "selectedTypes" : { },
                     "typeDisplays" : {
                       "type" : "array",
-                      "subConfigKeys" : [ ],
+                      "configKeys" : [ ],
                       "items" : {
                         "type" : "object",
                         "properties" : {
