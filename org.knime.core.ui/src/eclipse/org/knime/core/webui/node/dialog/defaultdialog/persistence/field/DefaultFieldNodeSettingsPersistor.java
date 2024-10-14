@@ -66,7 +66,7 @@ final class DefaultFieldNodeSettingsPersistor<T> implements FieldNodeSettingsPer
 
     private final FieldPersistor<T> m_impl;
 
-    private final String[] m_subConfigKeysWithoutJsonEquivalent;
+    private final String[] m_subConfigKeys;
 
     DefaultFieldNodeSettingsPersistor(final String configKey, final FieldPersistor<T> impl) {
         this(configKey, null, impl);
@@ -75,7 +75,7 @@ final class DefaultFieldNodeSettingsPersistor<T> implements FieldNodeSettingsPer
     DefaultFieldNodeSettingsPersistor(final String configKey, final String[] subConfigKeysWithoutJsonEquivalent,
         final FieldPersistor<T> impl) {
         m_configKey = configKey;
-        m_subConfigKeysWithoutJsonEquivalent = subConfigKeysWithoutJsonEquivalent;
+        m_subConfigKeys = subConfigKeysWithoutJsonEquivalent;
         m_impl = impl;
     }
 
@@ -90,15 +90,11 @@ final class DefaultFieldNodeSettingsPersistor<T> implements FieldNodeSettingsPer
     }
 
     @Override
-    public String[] getConfigKeys() {
-        if (m_subConfigKeysWithoutJsonEquivalent == null) {
-            return null; 
+    public String[][] getConfigPaths() {
+        if (m_subConfigKeys == null) {
+            return null;
         }
-        /**
-         * TODO: UIEXT-2127 Remove this workaround again.
-         */
-        return Arrays.stream(m_subConfigKeysWithoutJsonEquivalent)
-            .map(subKey -> String.format("%s.%s", m_configKey, subKey)).toArray(String[]::new);
+        return Arrays.stream(m_subConfigKeys).map(subKey -> new String[]{m_configKey, subKey}).toArray(String[][]::new);
     }
 
     @Override
