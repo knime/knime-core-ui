@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>KNIME String Renderer</title>
+    <style>
+      html,
+      body,
+      #view {
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="view" style="background-color: white; padding: 8px"></div>
+    <script type="module">
+      import { StringRenderer } from "./renderers/StringRenderer.ts";
+
+      const stringRenderer = new StringRenderer(
+        document.getElementById("view"),
+      );
+      stringRenderer.init();
+    </script>
+  </body>
+</html>

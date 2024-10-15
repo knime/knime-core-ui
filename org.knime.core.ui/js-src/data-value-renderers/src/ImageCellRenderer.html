@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>KNIME Image Renderer</title>
+  </head>
+  <body>
+    <div id="view"></div>
+    <script type="module">
+      import { ImageRenderer } from "./renderers/ImageRenderer.ts";
+
+      const imageRenderer = new ImageRenderer(document.getElementById("view"));
+      imageRenderer.init();
+    </script>
+  </body>
+</html>
