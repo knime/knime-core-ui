@@ -1,0 +1,1 @@
+./org.knime.core.ui/js-src/component-views/node_modules/.bin/knime-eslint-config-prepare-commit-msg "$@"
