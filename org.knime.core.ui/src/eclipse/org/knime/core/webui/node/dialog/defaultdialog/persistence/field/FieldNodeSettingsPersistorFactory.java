@@ -121,6 +121,7 @@ final class FieldNodeSettingsPersistorFactory {
     /**
      * @throws IllegalArgumentException if there is no persistor available for the provided field
      */
+    @SuppressWarnings({"rawtypes"})
     private static NodeSettingsPersistor<?> getCustomOrDefaultPersistor(final TreeNode<PersistableSettings> node) {
         var isLatentWidget = node.getAnnotation(LatentWidget.class).isPresent();
         if (isLatentWidget) {
@@ -132,7 +133,12 @@ final class FieldNodeSettingsPersistorFactory {
         if (persist.isPresent()) {
             final var customPersistorClass = persist.get().customPersistor();
             if (!customPersistorClass.equals(FieldNodeSettingsPersistor.class)) {
-                return createCustomPersistor(customPersistorClass, node.getType(), configKey);
+                final var customPersistor = createCustomPersistor(customPersistorClass, node.getType(), configKey);
+                if (LegacyNodeSettingsPersistor.class.isAssignableFrom(customPersistorClass)) {
+                    return new LegacyNodeSettingsPersistorWrapper((LegacyNodeSettingsPersistor<?>)customPersistor,
+                        createDefaultPersistor(node, configKey));
+                }
+                return customPersistor;
             }
         }
         return createDefaultPersistor(node, configKey);

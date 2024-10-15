@@ -53,6 +53,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 
@@ -71,9 +73,37 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
  */
 public final class ConfigsDeprecation {
 
+    /**
+     *
+     * @param <T>
+     */
+    @FunctionalInterface
+    public interface DeprecationLoader<T> {
+        /**
+         * @param settings the settings containing deprecated config to load
+         * @return T the type of the new config
+         * @throws InvalidSettingsException
+         */
+        T apply(NodeSettingsRO settings) throws InvalidSettingsException;
+    }
+
+    @FunctionalInterface
+    public interface DeprecationMatcher {
+        /**
+         * @param settings the settings containing deprecated config to load
+         * @return whether a deprecated config was found
+         * @throws InvalidSettingsException
+         */
+        boolean test(NodeSettingsRO settings) throws InvalidSettingsException;
+    }
+
     private Collection<ConfigPath> m_newConfigPaths;
 
     private Collection<ConfigPath> m_deprecatedConfigPaths;
+
+    private DeprecationMatcher m_matcher;
+
+    private DeprecationLoader<?> m_loader;
 
     /**
      * Private. Use the {@link Builder} instead.
@@ -82,9 +112,12 @@ public final class ConfigsDeprecation {
      * @param deprecatedConfigPaths
      */
     private ConfigsDeprecation(final Collection<ConfigPath> newConfigPaths,
-        final Collection<ConfigPath> deprecatedConfigPaths) {
+        final Collection<ConfigPath> deprecatedConfigPaths, final DeprecationMatcher matcher,
+        final DeprecationLoader<?> loader) {
         this.m_newConfigPaths = newConfigPaths;
         this.m_deprecatedConfigPaths = deprecatedConfigPaths;
+        this.m_matcher = matcher;
+        this.m_loader = loader;
     }
 
     /**
@@ -102,6 +135,20 @@ public final class ConfigsDeprecation {
     }
 
     /**
+     * @return the loader, which converts the old setting into the new one during load
+     */
+    public DeprecationLoader<?> getLoader() {
+        return m_loader;
+    }
+
+    /**
+     * @return the matchers, which determines when the loader should be used
+     */
+    public DeprecationMatcher getMatcher() {
+        return m_matcher;
+    }
+
+    /**
      * Builder for {@link ConfigsDeprecation}.
      *
      * @author Paul Bärnreuther
@@ -111,6 +158,10 @@ public final class ConfigsDeprecation {
         private final List<ConfigPath> m_newConfigPaths = new ArrayList<>(0);
 
         private final List<ConfigPath> m_deprecatedConfigPaths = new ArrayList<>(0);
+
+        private DeprecationMatcher m_matcher = null;
+
+        private DeprecationLoader<?> m_loader = null;
 
         /**
          * Builder for {@link ConfigsDeprecation}. See {@link ConfigsDeprecation} for more information.
@@ -147,13 +198,44 @@ public final class ConfigsDeprecation {
         }
 
         /**
+         * Specify a predicate, which determines based on the {@link NodeSettingsRO} whether a legacy config exists
+         * which should be loaded in a different way by a {@link #withLoader(DeprecationLoader) loader}. This method can
+         * be called once.
+         *
+         * @param predicate the predicate used to determine whether settings need to be loaded in a different way
+         * @return the builder
+         */
+        public Builder withMatcher(final DeprecationMatcher predicate) {
+            m_matcher = predicate;
+            return this;
+        }
+
+        /**
+         * Specify a loader which loads legacy configs in the {@link NodeSettingsRO} into the new config. This method
+         * can be called once. Specifying a loader requires the specification of a corresponding {@link #withMatcher
+         * matcher}.
+         *
+         * @param loader the loader which uses the legacy config to load the settings based on the new config
+         * @return the builder
+         */
+        public Builder withLoader(final DeprecationLoader<?> loader) {
+            m_loader = loader;
+            return this;
+        }
+
+        /**
          * @return a new {@link ConfigsDeprecation} to be used in
          *         {@link FieldNodeSettingsPersistor#getConfigsDeprecations()}
          */
         public ConfigsDeprecation build() {
-            return new ConfigsDeprecation(m_newConfigPaths, m_deprecatedConfigPaths);
+            final var matcherIsNull = m_matcher == null;
+            final var loaderIsNull = m_loader == null;
+            if (matcherIsNull && !loaderIsNull || !matcherIsNull && loaderIsNull) {
+                throw new NullPointerException(
+                    "Either both, a matcher and a loader must be specified or none of them.");
+            }
+            return new ConfigsDeprecation(m_newConfigPaths, m_deprecatedConfigPaths, m_matcher, m_loader);
         }
 
     }
-
 }
