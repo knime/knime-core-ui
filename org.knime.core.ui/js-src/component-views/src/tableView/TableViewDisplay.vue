@@ -341,6 +341,10 @@ const onCopySelection = ({
           :text="cell"
           :padding-top-bottom="paddingTopBottom"
         />
+        <JSONRenderer
+          v-else-if="getContentType(index) === 'json'"
+          :content="cell"
+        />
       </template>
     </TableUIWithAutoSizeCalculation>
     <div v-else class="center">

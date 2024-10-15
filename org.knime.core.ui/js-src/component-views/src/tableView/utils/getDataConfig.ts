@@ -17,6 +17,7 @@ const isImage = (contentType?: ColumnContentType) => contentType === "img_path";
 const isHtml = (contentType?: ColumnContentType) => contentType === "html";
 const isMultiLineTxt = (contentType?: ColumnContentType) =>
   contentType === "multi_line_txt";
+const isJSON = (contentType?: ColumnContentType) => contentType === "json";
 
 const getRowHeightByRowHeightMode = (
   rowHeightMode: RowHeightMode,
@@ -123,7 +124,8 @@ export default ({
     hasSlotContent:
       isImage(contentType) ||
       isHtml(contentType) ||
-      isMultiLineTxt(contentType),
+      isMultiLineTxt(contentType) ||
+      isJSON(contentType),
     size: columnSizes[index],
     filterConfig,
     ...(columnTypeRenderers && {
