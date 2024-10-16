@@ -4,16 +4,16 @@ import type { Component } from "vue";
 export type SubItem<PropType extends Record<string, any>> = {
   name: string;
   /**
-   * The type of the subItem. Can be a string, in which case that is displayed as
-   * the type, or a component with optional props, in which case the component is
-   * responsible for displaying the type.
+   * The type of the subItem that is displayed in the inputOutputPane
    */
-  type:
-    | string
-    | {
-        component: Component;
-        props?: PropType;
-      };
+  type: string;
+  /**
+   * An optional Component that is displayed before the name of the subItem.
+   */
+  icon?: {
+    component: Component;
+    props?: PropType;
+  };
   /**
    * Whether the subItem is supported in the current editor or not. If not, it is
    * displayed differently and does not support insertion.
@@ -280,13 +280,18 @@ const globalReadOnly = useReadonlyStore();
           disabled: !subItem.supported || globalReadOnly,
         }"
       >
+        <div v-if="typeof subItem.icon !== 'undefined'" class="sub-item-icon">
+          <component :is="subItem.icon.component" v-bind="subItem.icon.props" />
+        </div>
+
         <span
-          class="sub-item-name"
+          class="sub-item-content"
           :class="{
             draggable:
               inputOutputItem.subItemCodeAliasTemplate &&
               !globalReadOnly &&
               subItem.supported,
+            interactive: props.inputOutputItem.subItemCodeAliasTemplate,
           }"
           :draggable="
             Boolean(
@@ -300,9 +305,9 @@ const globalReadOnly = useReadonlyStore();
           @click="(event) => handleClick(event, index)"
           @dblclick="handleSubItemDoubleClick($event, index)"
         >
-          <div
+          <span
+            class="sub-item-name"
             :class="{
-              interactive: props.inputOutputItem.subItemCodeAliasTemplate,
               selected:
                 props.inputOutputItem.subItemCodeAliasTemplate &&
                 props.inputOutputItem.multiSelection &&
@@ -311,16 +316,11 @@ const globalReadOnly = useReadonlyStore();
             }"
           >
             {{ subItem.name }}
-          </div>
+          </span>
+          <span class="subitem-type">
+            {{ subItem.type }}
+          </span>
         </span>
-        <div class="subitem-type">
-          <component
-            :is="subItem.type.component"
-            v-if="typeof subItem.type !== 'string'"
-            v-bind="subItem.type.props"
-          />
-          <span v-else>{{ subItem.type }}</span>
-        </div>
       </div>
     </div>
   </Collapser>
@@ -373,8 +373,9 @@ const globalReadOnly = useReadonlyStore();
   gap: var(--space-8);
   align-items: center;
   line-height: 26px;
-  overflow: auto;
+  overflow: hidden;
   padding-right: var(--space-32);
+  width: 100%;
 }
 
 .port-icon-container {
@@ -396,6 +397,11 @@ const globalReadOnly = useReadonlyStore();
   }
 }
 
+.sub-item-icon {
+  padding-left: 6px;
+  margin-right: -3px;
+}
+
 .title {
   flex-basis: calc(100px + var(--in-out-item-icon-size) + var(--space-4));
   min-width: 60px;
@@ -410,18 +416,18 @@ const globalReadOnly = useReadonlyStore();
 .collapser-content {
   font-size: 11px;
   width: 100%;
+  padding-top: 1px;
 }
 
 .sub-item {
   width: 100%;
   display: flex;
   flex-direction: row;
-  gap: var(--space-8);
-  height: 24px;
+  height: 22px;
   line-height: 18px;
   align-items: center;
   padding-right: 10px;
-  padding-left: 2px;
+  padding-left: 1px;
 
   &.disabled {
     opacity: 0.5;
@@ -429,47 +435,49 @@ const globalReadOnly = useReadonlyStore();
   }
 }
 
-.sub-item-name {
-  flex-grow: 1;
-  min-width: 0;
+.sub-item-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 
   &.draggable {
     cursor: grab;
   }
 }
 
-.selected {
-  background-color: var(--knime-cornflower-semi);
-}
-
 .interactive {
-  background-color: transparent;
-  border-radius: 30px;
-  transition: background-color 0.1s ease;
-  min-width: 0;
   text-wrap: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: min-content;
-  max-width: 100%;
+}
+
+.sub-item-name {
   padding: 2px var(--space-8);
+  background-color: transparent;
+  border-radius: 30px;
+  transition: background-color 0.1s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   &.selected {
     background-color: var(--knime-cornflower-semi);
   }
 }
 
-.sub-item-name:hover .clickable-sub-item {
+.sub-item-content:hover .sub-item-name:not(.selected) {
   background-color: var(--knime-stone-light);
-  cursor: grab;
 }
 
 .subitem-type {
   font-style: italic;
   text-align: end;
-  min-width: min-content;
-  flex-grow: 0;
   text-wrap: nowrap;
+  flex-shrink: 0;
+  padding-right: 1px;
+  margin-left: var(--space-4);
 }
 
 .code-alias {
