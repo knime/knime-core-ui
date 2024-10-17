@@ -48,26 +48,32 @@
  */
 package org.knime.core.webui.node;
 
-import java.util.List;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.knime.core.data.DataValue;
 import org.knime.core.node.workflow.NodeContainer;
+import org.knime.core.webui.node.view.table.datavalue.DataValueViewManager;
 
 import com.google.common.base.Objects;
 
 /**
+ * Wrapper referencing a {@link DataValue}.
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
-public interface DataValueWrapper extends NodePortWrapper {
+public interface DataValueWrapper extends NodeWrapper {
 
-    int getColIdx();
-
-    int getRowIdx();
-
-    static DataValueWrapper of(final NodeContainer nc, final int portIdx, final int rowIdx, final int colIdx,
-        final int viewIdx) {
+    /**
+     * Convenience method to create a {@link DataValueWrapper}-instance.
+     *
+     * @param nc The node under consideration
+     * @param portIdx The index of the output port (which has to be a table port)
+     * @param rowIdx the row index within the table
+     * @param colIdx the col index within the table
+     * @return a new instance
+     */
+    static DataValueWrapper of(final NodeContainer nc, final int portIdx, final int rowIdx, final int colIdx) {
         return new DataValueWrapper() { // NOSONAR
 
             @Override
@@ -77,8 +83,7 @@ public interface DataValueWrapper extends NodePortWrapper {
 
             @Override
             public String getNodeWrapperTypeId() {
-                //TODO replace node id ':' with '_'
-                return String.format("%s_%s_%s_%s_%s", nc.getID().toString(), portIdx, rowIdx, colIdx, viewIdx) ;
+                return DataValueViewManager.getInstance().getChosenType(this).map(Class::getName).orElseThrow();
             }
 
             @Override
@@ -94,17 +99,6 @@ public interface DataValueWrapper extends NodePortWrapper {
             @Override
             public int getColIdx() {
                 return colIdx;
-            }
-
-            @Override
-            public int getViewIdx() {
-                return viewIdx;
-            }
-
-            @Override
-            public List<NodeContainer> getNodesConnectedToOutputPorts() {
-                return null;
-                // TODO
             }
 
             @Override
@@ -126,10 +120,8 @@ public interface DataValueWrapper extends NodePortWrapper {
                 var w = (DataValueWrapper)o;
                 return Objects.equal(nc, w.get()) //
                     && portIdx == w.getPortIdx() //
-                    && viewIdx == w.getViewIdx() //
                     && colIdx == w.getColIdx() //
-                    && rowIdx == w.getRowIdx() //
-                    && Objects.equal(this.getNodesConnectedToOutputPorts(), w.getNodesConnectedToOutputPorts());
+                    && rowIdx == w.getRowIdx();
             }
 
             @Override
@@ -137,13 +129,26 @@ public interface DataValueWrapper extends NodePortWrapper {
                 return new HashCodeBuilder()//
                     .append(nc)//
                     .append(portIdx)//
-                    .append(viewIdx)//
                     .append(colIdx)//
                     .append(rowIdx)//
-                    .append(this.getNodesConnectedToOutputPorts())//
                     .toHashCode();
             }
         };
     }
+
+    /**
+     * @return the output port index
+     */
+    int getPortIdx();
+
+    /**
+     * @return the row index
+     */
+    int getRowIdx();
+
+    /**
+     * @return the column index
+     */
+    int getColIdx();
 
 }

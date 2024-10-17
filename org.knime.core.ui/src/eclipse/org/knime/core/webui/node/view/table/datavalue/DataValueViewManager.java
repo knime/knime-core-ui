@@ -51,11 +51,13 @@ package org.knime.core.webui.node.view.table.datavalue;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.WeakHashMap;
 
 import org.knime.core.data.DataCell;
-import org.knime.core.data.DataRow;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.container.filter.TableFilter;
+import org.knime.core.data.v2.RowCursor;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.webui.node.DataServiceManager;
 import org.knime.core.webui.node.DataValueWrapper;
@@ -63,11 +65,15 @@ import org.knime.core.webui.node.PageResourceManager;
 import org.knime.core.webui.node.PageResourceManager.PageType;
 
 /**
- * TODO
+ * Singleton for registering factories for creating (@link DataValueView}s.
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
-public class DataValueViewManager {
+public final class DataValueViewManager {
+
+    private DataValueViewManager() {
+        // singleton
+    }
 
     private static DataValueViewManager instance;
 
@@ -80,9 +86,11 @@ public class DataValueViewManager {
         new PageResourceManager<>(PageType.DATA_VALUE, dvw -> getDataValueView(dvw).getPage(), null, null, true);
 
     private final DataServiceManager<DataValueWrapper> m_dataServiceManager =
-            new DataServiceManager<>(dvw -> getDataValueView(dvw));
+        new DataServiceManager<>(dvw -> getDataValueView(dvw));
 
-
+    /**
+     * @return a singleton instance of this class
+     */
     public static synchronized DataValueViewManager getInstance() {
         if (instance == null) {
             instance = new DataValueViewManager();
@@ -91,23 +99,50 @@ public class DataValueViewManager {
     }
 
     /**
-     * TODO
+     * Register a factory used to create {@link DataValueView}s for a specific {@link DataValue} type.
+     *
+     * @param dataValueClass the data value type
+     * @param factory the factory
+     * @param <V>
      */
     public static <V extends DataValue> void registerDataValueViewFactory(final Class<V> dataValueClass,
         final DataValueViewFactory<V> factory) {
         getInstance().m_dataValueViewFactories.put(dataValueClass, factory);
     }
 
-    private DataValueViewManager() {
-        // singleton
-    }
-
+    /**
+     * @param wrapper identifying a data value
+     * @return the {@link DataValueView} for the given {@link DataValueWrapper}
+     * @throws NoSuchElementException if no data value can be created
+     * @throws NoSuchElementException if no data value view is available
+     */
+    @SuppressWarnings("unchecked")
     public DataValueView getDataValueView(final DataValueWrapper wrapper) {
         var dataValueView = m_dataValueViewMap.get(wrapper); // NOSONAR
         if (dataValueView != null) {
             return dataValueView;
         }
 
+        var dataCell = extractDataCell(wrapper);
+        var chosenValue = findCompatibleValue(dataCell);
+        if (chosenValue.isPresent()) {
+            @SuppressWarnings("rawtypes")
+            DataValueViewFactory factory = m_dataValueViewFactories.get(chosenValue.get());
+            dataValueView = factory.createDataValueView(dataCell);
+            m_dataValueViewMap.put(wrapper, dataValueView);
+            return dataValueView;
+        } else {
+            throw new NoSuchElementException(
+                String.format("No data value view is available for data type %s", dataCell.getType()));
+        }
+    }
+
+    public Optional<Class<? extends DataValue>> getChosenType(final DataValueWrapper wrapper) {
+        var dataCell = extractDataCell(wrapper);
+        return findCompatibleValue(dataCell);
+    }
+
+    private static DataCell extractDataCell(final DataValueWrapper wrapper) {
         var nc = wrapper.get();
         var portIdx = wrapper.getPortIdx();
         if (portIdx < 0 || portIdx >= nc.getNrOutPorts()) {
@@ -122,32 +157,27 @@ public class DataValueViewManager {
             throw new NoSuchElementException("No data table available at index " + portIdx);
         }
         var dataCell = getDataCellAt(wrapper.getRowIdx(), wrapper.getColIdx(), table);
-        var chosenValue = findCompatibleValue(dataCell);
-        if (!chosenValue.isEmpty()) {
-            @SuppressWarnings("rawtypes")
-            DataValueViewFactory factory = m_dataValueViewFactories.get(chosenValue.get());
-            dataValueView = factory.createDataValueViews(dataCell)[wrapper.getViewIdx()];
-            m_dataValueViewMap.put(wrapper, dataValueView);
-            return dataValueView;
-        } else {
-            throw new NoSuchElementException("TODO");
-        }
+        return dataCell;
     }
 
-    private java.util.Optional<Class<? extends DataValue>> findCompatibleValue(final DataCell cell) {
-        return cell.getType().getValueClasses().stream().filter(value -> m_dataValueViewFactories.containsKey(value)).findFirst();
+    private Optional<Class<? extends DataValue>> findCompatibleValue(final DataCell cell) {
+        return cell.getType().getValueClasses().stream().filter(m_dataValueViewFactories::containsKey).findFirst();
 
     }
 
     private static DataCell getDataCellAt(final int rowIdx, final int colIdx, final BufferedDataTable table) {
-        DataRow row = null;
-        try (var it = table.iterator()) {
-            row = it.next();
-            for (int i = 0; i < rowIdx; i++) {
-                row = it.next();
-            }
+        try (final var cursor = createCursor(rowIdx, colIdx, table)) {
+            return cursor.forward().getAsDataCell(colIdx);
         }
-        return row.getCell(colIdx);
+    }
+
+    private static RowCursor createCursor(final int rowIdx, final int colIdx, final BufferedDataTable table) {
+        var filter = new TableFilter.Builder() //
+            .withFromRowIndex(rowIdx)//
+            .withToRowIndex(rowIdx + 1)//
+            .withMaterializeColumnIndices(colIdx)//
+            .build();
+        return table.cursor(filter);
     }
 
     /**

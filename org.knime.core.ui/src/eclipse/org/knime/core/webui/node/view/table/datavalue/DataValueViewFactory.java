@@ -51,17 +51,17 @@ package org.knime.core.webui.node.view.table.datavalue;
 import org.knime.core.data.DataValue;
 
 /**
+ * Pending API - needs to be integrated with {@link DataValue}.
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
+ * @param <V> the type of data value this data value view works with
  */
 public interface DataValueViewFactory<V extends DataValue> {
 
     /**
-     * TODO
-     *
      * @param value
-     * @return
+     * @return the data value view for this value
      */
-    DataValueView[] createDataValueViews(V value);
+    DataValueView createDataValueView(V value);
 
 }

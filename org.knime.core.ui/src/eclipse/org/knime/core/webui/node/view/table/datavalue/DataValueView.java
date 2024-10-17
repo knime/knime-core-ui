@@ -50,12 +50,13 @@ package org.knime.core.webui.node.view.table.datavalue;
 
 import java.util.Optional;
 
+import org.knime.core.data.DataValue;
 import org.knime.core.webui.UIExtension;
 import org.knime.core.webui.data.ApplyDataService;
 import org.knime.core.webui.data.DataServiceProvider;
 
 /**
- * TODO
+ * A view associated to a {@link DataValue} for showing data of a single cell.
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
@@ -63,7 +64,7 @@ public interface DataValueView extends UIExtension, DataServiceProvider {
 
     @Override
     default <D> Optional<ApplyDataService<D>> createApplyDataService() {
-        // not available to port views
+        // not available to data value views
         throw new UnsupportedOperationException();
     }
 
