@@ -44,9 +44,9 @@ const getSubConfigKeysRecursive = (
     return getSubConfigKeysRecursive(schema.items, prefix);
   } else if (schema.type === "object") {
     const subConfigKeys: string[][] = [];
-    Object.entries(schema.properties).forEach(([key, subscheam]) => {
+    Object.entries(schema.properties).forEach(([key, subschema]) => {
       const { configPaths, continueTraversal } = getNextConfigPathSegments({
-        schema: subscheam,
+        schema: subschema,
         segment: key,
       });
       configPaths

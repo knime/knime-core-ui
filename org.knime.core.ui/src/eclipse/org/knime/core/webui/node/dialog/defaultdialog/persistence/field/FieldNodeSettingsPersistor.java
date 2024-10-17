@@ -109,7 +109,7 @@ public interface FieldNodeSettingsPersistor<T> extends NodeSettingsPersistor<T> 
      */
     default String[][] getConfigPaths() {
         if (getConfigKeys() == null) {
-            return null;
+            return null; // NOSONAR
         }
         return Arrays.stream(getConfigKeys()).map(key -> new String[]{key}).toArray(String[][]::new);
     }

@@ -140,7 +140,7 @@ public final class PersistUtil {
         final var persist = field.getAnnotation(Persist.class);
         final var configRename = persist.map(Persist::configKey).filter(key -> !key.isEmpty());
         final var configPaths = persistor.map(FieldNodeSettingsPersistor::getConfigPaths);
-        final var isHidden = persist.map(Persist::hidden).orElse(false);
+        final boolean isHidden = persist.map(Persist::hidden).orElse(false);
 
         if (configPaths.isPresent()) {
             final var filteredValidatedConfigPaths = Arrays.stream(configPaths.get()).map(
@@ -169,8 +169,8 @@ public final class PersistUtil {
     private static String validateKey(final String key) {
         if (key.contains(".")) {
             throw new IllegalArgumentException("Config key must not contain dots. "
-                + "If nested config keys are required, use getConfigPaths instead of getConfigKeys instead."
-                + " Config key: " + key);
+                + "If nested config keys are required, use getConfigPaths instead of getConfigKeys." + " Config key: "
+                + key);
         }
         return key;
     }
