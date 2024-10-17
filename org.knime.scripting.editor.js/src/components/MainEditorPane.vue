@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useMainCodeEditor } from "@/editor";
 import { onKeyStroke } from "@vueuse/core";
 import {
@@ -16,6 +16,7 @@ interface Props {
   fileName: string;
   toSettings?: (settings: GenericNodeSettings) => GenericNodeSettings;
   dropEventHandler?: (event: DragEvent) => void;
+  modelOrView: "model" | "view";
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -40,22 +41,28 @@ insertionEventHelper
     );
   });
 
-onMounted(() => {
-  getSettingsService()
-    .getSettings()
-    .then((settings: GenericNodeSettings) => {
-      codeEditorState.setInitialText(settings.script);
+onMounted(async () => {
+  const initialSettings = await getSettingsService().getSettings();
 
-      useReadonlyStore().value =
-        settings.settingsAreOverriddenByFlowVariable ?? false;
-      codeEditorState.editor.value?.updateOptions({
-        readOnly: useReadonlyStore().value,
-        readOnlyMessage: {
-          value: `Read-Only-Mode: The script is set by the flow variable '${settings.scriptUsedFlowVariable}'.`,
-        },
-        renderValidationDecorations: "on",
-      });
-    });
+  codeEditorState.setInitialText(initialSettings.script);
+
+  useReadonlyStore().value =
+    initialSettings.settingsAreOverriddenByFlowVariable ?? false;
+  codeEditorState.editor.value?.updateOptions({
+    readOnly: useReadonlyStore().value,
+    readOnlyMessage: {
+      value: `Read-Only-Mode: The script is set by the flow variable '${initialSettings.scriptUsedFlowVariable}'.`,
+    },
+    renderValidationDecorations: "on",
+  });
+
+  const register = await getSettingsService().registerSettings(
+    props.modelOrView,
+  );
+  const onScriptChange = register(initialSettings.script);
+  watch(codeEditorState.text, () => {
+    onScriptChange.setValue(codeEditorState.text.value ?? "");
+  });
 });
 
 onKeyStroke("Escape", () => {
