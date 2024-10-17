@@ -37,6 +37,13 @@ interface Props {
   rightPaneMinimumWidthInPixel?: number;
   toSettings?: (settings: GenericNodeSettings) => GenericNodeSettings;
   additionalBottomPaneTabContent?: SlottedTab[];
+  /*
+   * When using the single editor pane, this prop can be used to determine
+   * whether the editor is used for a model or a view.
+   * This will influence how the dirty state is handled.
+   * default: "model"
+   */
+  modelOrView?: "model" | "view";
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -53,6 +60,7 @@ const props = withDefaults(defineProps<Props>(), {
   rightPaneMinimumWidthInPixel: () => 0,
   additionalBottomPaneTabContent: () => [] as SlottedTab[],
   toSettings: (settings: GenericNodeSettings) => settings,
+  modelOrView: "model",
 });
 
 const slots = defineSlots<{
@@ -261,6 +269,7 @@ const defaultInputOutputItems = computedAsync<InputOutputModel[]>(async () => {
                         :show-control-bar="showControlBarDynamic"
                         :drop-event-handler="dropEventHandler"
                         :to-settings="props.toSettings"
+                        :model-or-view="props.modelOrView"
                       />
                     </template>
                     <div class="run-button-panel">

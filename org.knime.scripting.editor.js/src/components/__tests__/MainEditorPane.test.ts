@@ -1,5 +1,8 @@
 import { type GenericNodeSettings } from "@/settings-service";
-import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
+import {
+  DEFAULT_INITIAL_SETTINGS,
+  registerSettingsMock,
+} from "@/settings-service-browser-mock";
 import { flushPromises, mount } from "@vue/test-utils";
 import { describe, it, vi, expect, afterEach, beforeEach } from "vitest";
 import MainEditorPane from "../MainEditorPane.vue";
@@ -21,10 +24,12 @@ const registerSettingsGetterForApplyMock = vi.hoisted(() =>
     return Promise.resolve();
   }),
 );
+
 vi.mock("@/settings-service", () => ({
   getSettingsService: vi.fn(() => ({
     getSettings: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_SETTINGS)),
     registerSettingsGetterForApply: registerSettingsGetterForApplyMock,
+    registerSettings: vi.fn(registerSettingsMock),
   })),
 }));
 
@@ -36,6 +41,7 @@ const doMount = (
       showControlBar: true,
       language: "something",
       fileName: "something.js",
+      modelOrView: "model",
       ...props,
     },
   });

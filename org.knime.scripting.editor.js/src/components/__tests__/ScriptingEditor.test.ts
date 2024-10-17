@@ -18,7 +18,10 @@ import ScriptingEditorBottomPane, {
 } from "../ScriptingEditorBottomPane.vue";
 
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
-import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
+import {
+  DEFAULT_INITIAL_SETTINGS,
+  registerSettingsMock,
+} from "@/settings-service-browser-mock";
 import { getScriptingService } from "@/scripting-service";
 
 const mocks = vi.hoisted(() => {
@@ -43,6 +46,7 @@ vi.mock("@/settings-service", () => ({
   getSettingsService: vi.fn(() => ({
     getSettings: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_SETTINGS)),
     registerSettingsGetterForApply: vi.fn(() => Promise.resolve()),
+    registerSettings: vi.fn(registerSettingsMock),
   })),
 }));
 
