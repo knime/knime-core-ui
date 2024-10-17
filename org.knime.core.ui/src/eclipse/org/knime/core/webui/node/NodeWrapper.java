@@ -74,20 +74,35 @@ public interface NodeWrapper {
     NodeContainer get();
 
     /**
-     * @return a id representing the type of the node wrapper (which is independent from the node wrapper-instance).
-     *         E.g. the node type (~'data generator') or the port type (~'table').
-     */
-    String getNodeWrapperTypeId();
-
-    /**
      * Runs an operation within the context 'compatible' with this node wrapper (e.g. {@link NodeContext} or
      * {@link PortContext})
+     *
      * @param <T>
      *
      * @param supplier the operation to run
      * @return the object the supplier returns
      */
     <T> T getWithContext(Supplier<T> supplier);
+
+    /**
+     * @return a type id uniquely identifying the type of the node wrapper. It is used to enable reusing resources for
+     *         the same type of node wrapper whenever possible (e.g. in case of a static page).
+     */
+    default String getNodeWrapperTypeId() {
+        final var nc = get();
+        if (nc instanceof NativeNodeContainer nnc) {
+            var factory = nnc.getNode().getFactory();
+            if (factory instanceof CustomNodeWrapperTypeIdProvider p) {
+                return p.getNodeWrapperTypeId(nnc);
+            } else {
+                return factory.getClass().getName();
+            }
+        } else if (nc instanceof SubNodeContainer snc) {
+            return snc.getClass().getName();
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
 
     /**
      * Convenience method to create a {@link NodeWrapper}-instance.
@@ -101,22 +116,6 @@ public interface NodeWrapper {
             @Override
             public NodeContainer get() {
                 return nc;
-            }
-
-            @Override
-            public String getNodeWrapperTypeId() {
-                if (nc instanceof NativeNodeContainer nnc) {
-                    var factory = nnc.getNode().getFactory();
-                    if (factory instanceof CustomNodeWrapperTypeIdProvider p) {
-                        return p.getNodeWrapperTypeId(nnc);
-                    } else {
-                        return factory.getClass().getName();
-                    }
-                } else if (nc instanceof SubNodeContainer snc) {
-                    return snc.getClass().getName();
-                } else {
-                    throw new UnsupportedOperationException();
-                }
             }
 
             @Override
