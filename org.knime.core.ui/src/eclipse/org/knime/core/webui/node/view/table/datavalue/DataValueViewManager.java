@@ -119,6 +119,15 @@ public final class DataValueViewManager {
     }
 
     /**
+     * For testing purposes
+     *
+     * @param dataValueClass
+     */
+    public static void removeDataValueViewFactory(final Class<?> dataValueClass) {
+        getInstance().m_dataValueViewFactories.remove(dataValueClass);
+    }
+
+    /**
      * @param wrapper identifying a data value
      * @return the {@link DataValueView} for the given {@link DataValueWrapper}
      * @throws NoSuchElementException if no data value can be created
