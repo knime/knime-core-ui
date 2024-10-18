@@ -1,24 +1,31 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
 import DialogComponentWrapper from "../DialogComponentWrapper.vue";
+import { ref } from "vue";
+import { injectionKey as injectionKeyShowAdvancedSettings } from "@/nodeDialog/composables/components/showAdvancedSettings";
 
-const defaultProps = {
-  control: {
-    uischema: {
-      options: {
-        isAdvanced: false,
+let props, showAdvancedSettings;
+
+beforeEach(() => {
+  props = {
+    control: {
+      uischema: {
+        options: {
+          isAdvanced: false,
+        },
       },
+      visible: true,
     },
-    visible: true,
-    rootSchema: {
-      showAdvancedSettings: true,
-    },
-  },
-};
+  };
+  showAdvancedSettings = ref(true);
+});
 
 const mountComponent = () =>
   mount(DialogComponentWrapper, {
-    props: defaultProps,
+    props,
+    provide: {
+      [injectionKeyShowAdvancedSettings]: showAdvancedSettings,
+    },
   });
 
 describe("DialogComponentWrapper.vue", () => {
@@ -28,8 +35,8 @@ describe("DialogComponentWrapper.vue", () => {
   });
 
   it("is invisible if it is an advanced setting and advanced settings are not to be shown", () => {
-    defaultProps.control.uischema.options.isAdvanced = true;
-    defaultProps.control.rootSchema.showAdvancedSettings = false;
+    props.control.uischema.options.isAdvanced = true;
+    showAdvancedSettings.value = false;
     const wrapper = mountComponent();
     expect(wrapper.getComponent(DialogComponentWrapper).isVisible()).toBe(
       false,
@@ -37,8 +44,8 @@ describe("DialogComponentWrapper.vue", () => {
   });
 
   it("checks that it is rendered if it is an advanced setting and advanced settings are shown", () => {
-    defaultProps.control.uischema.options.isAdvanced = true;
-    defaultProps.control.rootSchema.showAdvancedSettings = true;
+    props.control.uischema.options.isAdvanced = true;
+    showAdvancedSettings.value = true;
     const wrapper = mountComponent();
     expect(wrapper.getComponent(DialogComponentWrapper).isVisible()).toBe(true);
   });
