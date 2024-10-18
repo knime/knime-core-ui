@@ -48,6 +48,8 @@
  */
 package org.knime.testing.node.dialog;
 
+import java.util.Optional;
+
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -144,9 +146,8 @@ class DefaultNodeSettingsWithAllWidgets implements DefaultNodeSettings {
 
         @Override
         public ConfigsDeprecation[] getConfigsDeprecations() {
-            return new ConfigsDeprecation[]{
-                new ConfigsDeprecation.Builder().forNewConfigPath("customConfigKeyForNestedSettings")
-                    .forDeprecatedConfigPath("deprecatedConfigKey").build()
+            return new ConfigsDeprecation[]{new ConfigsDeprecation.Builder().forNewAndDeprecatedConfigPaths(
+                Optional.of("customConfigKeyForNestedSettings"), Optional.of("deprecatedConfigKey")).build()
 
             };
         }

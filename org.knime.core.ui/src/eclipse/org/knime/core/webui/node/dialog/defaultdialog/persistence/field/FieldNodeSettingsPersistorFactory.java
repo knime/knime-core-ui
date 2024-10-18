@@ -238,8 +238,8 @@ final class FieldNodeSettingsPersistorFactory {
         @Override
         public ConfigMappings getConfigMappings(final S obj) {
 
-            final var defaultMapping =
-                new ConfigMappings(new ConfigsDeprecation.Builder().forNewConfigPath(m_configKey).build(), uprev -> {
+            final var defaultMapping = new ConfigMappings(new ConfigsDeprecation.Builder()
+                .forNewAndDeprecatedConfigPaths(Optional.of(m_configKey), Optional.empty()).build(), uprev -> {
                     final var mapped = new NodeSettings("mappedSettings");
                     save(m_default, mapped);
                     return mapped;

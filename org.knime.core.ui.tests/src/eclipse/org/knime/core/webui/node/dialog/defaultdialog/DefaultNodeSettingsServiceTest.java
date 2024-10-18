@@ -52,6 +52,7 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.knime.core.webui.node.dialog.NodeDialogTest.createNodeAndVariableSettingsRO;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -240,8 +241,9 @@ class DefaultNodeSettingsServiceTest {
 
             @Override
             public ConfigsDeprecation[] getConfigsDeprecations() {
-                return new ConfigsDeprecation[]{new ConfigsDeprecation.Builder().forDeprecatedConfigPath("valueLegacy1")
-                    .forDeprecatedConfigPath("valueLegacy2").forNewConfigPath(getConfigKey()).build()};
+                return new ConfigsDeprecation[]{
+                    new ConfigsDeprecation.Builder().forNewAndDeprecatedConfigPaths(List.of(List.of(getConfigKey())),
+                        List.of(List.of("valueLegacy1"), List.of("valueLegacy2"))).build()};
             }
 
         }

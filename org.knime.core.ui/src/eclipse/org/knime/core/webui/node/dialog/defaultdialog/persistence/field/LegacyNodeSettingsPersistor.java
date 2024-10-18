@@ -78,8 +78,8 @@ public interface LegacyNodeSettingsPersistor<T> extends FieldNodeSettingsPersist
     }
 
     /**
-     * Sepcify the layer in the settings from which to load the settings when using the default persistor. Uses the root
-     * of the settings as default;
+     * Specify the layer in the settings from which to load the settings when using the load method of the default
+     * persistor. Uses the root of the settings as default;
      *
      * @param settings the root of the settings
      * @return the settings layer from which to load the settings

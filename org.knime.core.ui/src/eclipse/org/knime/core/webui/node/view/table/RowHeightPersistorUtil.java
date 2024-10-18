@@ -49,7 +49,6 @@
 package org.knime.core.webui.node.view.table;
 
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -189,21 +188,19 @@ public final class RowHeightPersistorUtil {
 
     static final <T> ConfigsDeprecation[] createDefaultConfigsDeprecations(final String configKey,
         final LegacyLoadResultExtractor<T> legacyLoadResultExtractor) {
-        Supplier<Builder> getBuilder = () -> new Builder().forNewConfigPath(configKey);
 
         return new ConfigsDeprecation[]{ //
-            getBuilder.get() //
+            new Builder() //
+                .forNewAndDeprecatedConfigPaths(Optional.of(configKey), Optional.empty())
                 .withMatcher(getFirstTableVersionMatcher())
                 .withLoader(settings -> legacyLoadResultExtractor.apply(LEGACY_DEFAULT, settings)).build(), // accounting for a time where none of the settings existed
-            getBuilder.get() //
-                .forDeprecatedConfigPath(COMPACT_MODE_LEGACY_CONFIG_KEY) //
-                .withMatcher((settings) -> settings.containsKey(COMPACT_MODE_LEGACY_CONFIG_KEY))
+            new Builder() //
+                .forNewAndDeprecatedConfigPaths(Optional.of(configKey), Optional.of(COMPACT_MODE_LEGACY_CONFIG_KEY))
                 .withLoader(
                     settings -> legacyLoadResultExtractor.apply(getLoadResultFromLegacyCompactMode(settings), settings))
                 .build(),
-            getBuilder.get() //
-                .forDeprecatedConfigPath(ROW_HEIGHT_MODE_LEGACY_CONFIG_KEY)
-                .withMatcher(settings -> settings.containsKey(ROW_HEIGHT_MODE_LEGACY_CONFIG_KEY))
+            new Builder() //
+                .forNewAndDeprecatedConfigPaths(Optional.of(configKey), Optional.of(ROW_HEIGHT_MODE_LEGACY_CONFIG_KEY))
                 .withLoader(settings -> legacyLoadResultExtractor.apply(getLoadResultFromLegacyRowHeightMode(settings),
                     settings))
                 .build()};

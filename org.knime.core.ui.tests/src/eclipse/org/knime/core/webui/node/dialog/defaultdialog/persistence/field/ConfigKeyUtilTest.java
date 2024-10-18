@@ -52,6 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Collection;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -93,8 +94,8 @@ class ConfigKeyUtilTest {
 
         @Override
         public ConfigsDeprecation[] getConfigsDeprecations() {
-            return new ConfigsDeprecation[]{
-                new Builder().forNewConfigPath("custom_key0").forDeprecatedConfigPath("old_config_key").build()};
+            return new ConfigsDeprecation[]{new Builder()
+                .forNewAndDeprecatedConfigPaths(Optional.of("custom_key0"), Optional.of("old_config_key")).build()};
         }
 
     }
@@ -182,10 +183,15 @@ class ConfigKeyUtilTest {
     @Test
     void testDeprecatedConfigKeysFromCustomPersistor() throws NoSuchFieldException {
         final var deprecatedConfigKeys = deprecatedConfigKeysFor("setting5");
-        assertArrayEquals(new String[]{"custom_key0"}, getFirstPathAsArray(deprecatedConfigKeys[0].getNewConfigPaths()),
+        assertArrayEquals(new String[]{"custom_key0"},
+            getFirstPathAsArray(deprecatedConfigKeys[0].getNewAndDeprecatedConfigPaths().stream()
+                .flatMap(newAndDeprecatedConfigPaths -> newAndDeprecatedConfigPaths.newConfigPaths().stream())
+                .toList()),
             "newConfigPaths of deprecatedConfigs should be set from custom persistor");
         assertArrayEquals(new String[]{"old_config_key"},
-            getFirstPathAsArray(deprecatedConfigKeys[0].getDeprecatedConfigPaths()),
+            getFirstPathAsArray(deprecatedConfigKeys[0].getNewAndDeprecatedConfigPaths().stream()
+                .flatMap(newAndDeprecatedConfigPaths -> newAndDeprecatedConfigPaths.deprecatedConfigPaths().stream())
+                .toList()),
             "deprecatedConfigPaths of deprecatedConfigs should be set from custom persistor");
     }
 

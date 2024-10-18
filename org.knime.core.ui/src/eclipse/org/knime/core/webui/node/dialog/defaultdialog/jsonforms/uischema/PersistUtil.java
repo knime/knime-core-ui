@@ -177,11 +177,13 @@ public final class PersistUtil {
 
     private static void putDeprecatedConfig(final ArrayNode deprecatedConfigsNode,
         final ConfigsDeprecation configsDeprecation) {
-        final var nextDeprecatedConfigs = deprecatedConfigsNode.addObject();
-        add2DStingArray(nextDeprecatedConfigs, "new",
-            configsDeprecation.getNewConfigPaths().stream().map(ConfigPath::path).toList());
-        add2DStingArray(nextDeprecatedConfigs, "deprecated",
-            configsDeprecation.getDeprecatedConfigPaths().stream().map(ConfigPath::path).toList());
+        configsDeprecation.getNewAndDeprecatedConfigPaths().stream().forEach(newAndDeprecatedConfigPaths -> {
+            final var nextDeprecatedConfigs = deprecatedConfigsNode.addObject();
+            add2DStingArray(nextDeprecatedConfigs, "new",
+                newAndDeprecatedConfigPaths.newConfigPaths().stream().map(ConfigPath::path).toList());
+            add2DStingArray(nextDeprecatedConfigs, "deprecated",
+                newAndDeprecatedConfigPaths.deprecatedConfigPaths().stream().map(ConfigPath::path).toList());
+        });
     }
 
     private static void add2DStingArray(final ObjectNode node, final String key,

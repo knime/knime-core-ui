@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -248,15 +249,11 @@ class PersistUtilTest {
         public ConfigsDeprecation[] getConfigsDeprecations() {
             return new ConfigsDeprecation[]{//
                 new Builder()//
-                    .forDeprecatedConfigPath("A", "B")//
-                    .forDeprecatedConfigPath("C")//
-                    .forNewConfigPath("D", "E")//
-                    .forNewConfigPath("F")//
+                    .forNewAndDeprecatedConfigPaths(List.of(List.of("D", "E"), List.of("F")),
+                        List.of(List.of("A", "B"), List.of("C")))
                     .build(), //
                 new Builder()//
-                    .forNewConfigPath("I", "J")//
-                    .forDeprecatedConfigPath("G", "H")//
-                    .build()//
+                    .forNewAndDeprecatedConfigPaths(List.of(List.of("I", "J")), List.of(List.of("G", "H"))).build()//
             };
         }
 

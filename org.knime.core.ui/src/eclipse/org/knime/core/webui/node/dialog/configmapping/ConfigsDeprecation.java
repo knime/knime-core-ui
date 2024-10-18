@@ -49,9 +49,10 @@
 package org.knime.core.webui.node.dialog.configmapping;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -60,14 +61,16 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 
 /**
  * This class provides a connection from an array of config paths relative to the base config of the field to another
- * one.
+ * one and specifies how old configs should be loaded.
  * <ul>
  * <li>Deprecated config paths: Configs which are respected during {@link FieldNodeSettingsPersistor#load load} but are
  * not written to when saving the loaded data back during {@link FieldNodeSettingsPersistor#save save}.</li>
  * <li>New config paths: Those configs that are affected by the deprecated config paths. I.e. on
- * {@link FieldNodeSettingsPersistor#save save} their values might differ depending on the values of any of the legacy
- * config paths during {@link FieldNodeSettingsPersistor#load load}</li>
+ * {@link FieldNodeSettingsPersistor#save save} their values might differ depending on the values of any of the
+ * deprecated config paths during {@link FieldNodeSettingsPersistor#load load}</li>
  * </ul>
+ * The matcher determines whether the settings contain deprecated configs and should be loaded in a different way by the
+ * loader. Matcher and loader cannot be specified at all, but in case matcher is specified, a loader must be specified.
  *
  * @author Paul Bärnreuther
  */
@@ -80,26 +83,35 @@ public final class ConfigsDeprecation {
     @FunctionalInterface
     public interface DeprecationLoader<T> {
         /**
-         * @param settings the settings containing deprecated config to load
+         * @param settings the settings containing the deprecated config to load
          * @return T the type of the new config
          * @throws InvalidSettingsException
          */
         T apply(NodeSettingsRO settings) throws InvalidSettingsException;
     }
 
+    /**
+     *
+     */
     @FunctionalInterface
     public interface DeprecationMatcher {
         /**
-         * @param settings the settings containing deprecated config to load
+         * @param settings the settings on which to search a deprecated config
          * @return whether a deprecated config was found
          * @throws InvalidSettingsException
          */
         boolean test(NodeSettingsRO settings) throws InvalidSettingsException;
     }
 
-    private Collection<ConfigPath> m_newConfigPaths;
+    /**
+     *
+     * @param newConfigPaths (see {@link ConfigsDeprecation})
+     * @param deprecatedConfigPaths (see {@link ConfigsDeprecation})
+     */
+    public record NewAndDeprecatedConfigPaths(List<ConfigPath> newConfigPaths, List<ConfigPath> deprecatedConfigPaths) {
+    }
 
-    private Collection<ConfigPath> m_deprecatedConfigPaths;
+    private Collection<NewAndDeprecatedConfigPaths> m_newAndDeprecatedConfigPaths;
 
     private DeprecationMatcher m_matcher;
 
@@ -107,42 +119,31 @@ public final class ConfigsDeprecation {
 
     /**
      * Private. Use the {@link Builder} instead.
-     *
-     * @param newConfigPaths
-     * @param deprecatedConfigPaths
      */
-    private ConfigsDeprecation(final Collection<ConfigPath> newConfigPaths,
-        final Collection<ConfigPath> deprecatedConfigPaths, final DeprecationMatcher matcher,
-        final DeprecationLoader<?> loader) {
-        this.m_newConfigPaths = newConfigPaths;
-        this.m_deprecatedConfigPaths = deprecatedConfigPaths;
+    private ConfigsDeprecation(final Collection<NewAndDeprecatedConfigPaths> newAndDeprecatedConfigPaths,
+        final DeprecationMatcher matcher, final DeprecationLoader<?> loader) {
+        this.m_newAndDeprecatedConfigPaths = newAndDeprecatedConfigPaths;
         this.m_matcher = matcher;
         this.m_loader = loader;
     }
 
     /**
-     * @return the newConfigPaths relative to the base config path of the annotated setting
+     * @return the newConfigPaths and the deprecatedConfigPaths relative to the base config path of the annotated
+     *         setting
      */
-    public Collection<ConfigPath> getNewConfigPaths() {
-        return m_newConfigPaths;
+    public Collection<NewAndDeprecatedConfigPaths> getNewAndDeprecatedConfigPaths() {
+        return m_newAndDeprecatedConfigPaths;
     }
 
     /**
-     * @return the deprecatedConfigPaths relative to the base config path of the annotated setting
-     */
-    public Collection<ConfigPath> getDeprecatedConfigPaths() {
-        return m_deprecatedConfigPaths;
-    }
-
-    /**
-     * @return the loader, which converts the old setting into the new one during load
+     * @return the loader, which converts the old config into the new one during load
      */
     public DeprecationLoader<?> getLoader() {
         return m_loader;
     }
 
     /**
-     * @return the matchers, which determines when the loader should be used
+     * @return the matchers, which determines when to use the loader
      */
     public DeprecationMatcher getMatcher() {
         return m_matcher;
@@ -155,9 +156,7 @@ public final class ConfigsDeprecation {
      */
     public static final class Builder {
 
-        private final List<ConfigPath> m_newConfigPaths = new ArrayList<>(0);
-
-        private final List<ConfigPath> m_deprecatedConfigPaths = new ArrayList<>(0);
+        private final List<NewAndDeprecatedConfigPaths> m_newAndDeprecatedConfigPaths = new ArrayList<>(0);
 
         private DeprecationMatcher m_matcher = null;
 
@@ -171,51 +170,75 @@ public final class ConfigsDeprecation {
         }
 
         /**
-         * Enter a path to a config set during {@link FieldNodeSettingsPersistor#save} affected by the values of all of
-         * the config paths set with {@link #forDeprecatedConfigPath}. This method can called multiple times.
+         * Both parameters represent configKeys forming a path from the base config of the
+         * {@link Persist#customPersistor} to a desired subconfig. This method can called multiple times.
          *
-         * @param configKeys the configKeys forming a path from the base config of the {@link Persist#customPersistor}
-         *            to a desired subconfig.
+         * @param newConfigKeys the configKeys set during {@link FieldNodeSettingsPersistor#save} affected by the values
+         *            of all of the config paths set with {@code deprecatedConfigKeys}.
+         * @param deprecatedConfigKeys the configKeys used during {@link FieldNodeSettingsPersistor#load} which are not
+         *            written to in {@link FieldNodeSettingsPersistor#save} but instead affect the values of the configs
+         *            specified with {@code newConfigKeys}.
          * @return the builder
          */
-        public Builder forNewConfigPath(final String... configKeys) {
-            m_newConfigPaths.add(new ConfigPath(Arrays.stream(configKeys).toList()));
+        public Builder forNewAndDeprecatedConfigPaths(final List<List<String>> newConfigKeys,
+            final List<List<String>> deprecatedConfigKeys) {
+            m_newAndDeprecatedConfigPaths.add(new NewAndDeprecatedConfigPaths(mapToListOfConfigPaths(newConfigKeys),
+                mapToListOfConfigPaths(deprecatedConfigKeys)));
+            return this;
+        }
+
+        private static final List<ConfigPath> mapToListOfConfigPaths(final List<List<String>> values) {
+            return values.stream().map(ConfigPath::new).toList();
+        }
+
+        private static final List<ConfigPath> mapToListOfConfigPaths(final Optional<String> value) {
+            return List.of(new ConfigPath(value.map(v -> List.of(v)).orElse(Collections.emptyList())));
+        }
+
+        /**
+         * Both parameters represent a configKey that is part of the base config of the {@link Persist#customPersistor}.
+         * This method can called multiple times.
+         *
+         * @param newConfigKey the configKey set during {@link FieldNodeSettingsPersistor#save} affected by the value of
+         *            the config key set with {@code deprecatedConfigKeys}.
+         * @param deprecatedConfigKey the configKey used during {@link FieldNodeSettingsPersistor#load} which is not
+         *            written to in {@link FieldNodeSettingsPersistor#save} but instead affects the value of the config
+         *            specified with {@code newConfigKey}.
+         * @return the builder
+         */
+        public Builder forNewAndDeprecatedConfigPaths(final Optional<String> newConfigKey,
+            final Optional<String> deprecatedConfigKey) {
+            m_newAndDeprecatedConfigPaths.add(new NewAndDeprecatedConfigPaths(mapToListOfConfigPaths(newConfigKey),
+                mapToListOfConfigPaths(deprecatedConfigKey)));
             return this;
         }
 
         /**
-         * Enter a path to a config used during {@link FieldNodeSettingsPersistor#load} which is not written to in
-         * {@link FieldNodeSettingsPersistor#save} but instead affects the values of the configs specified with
-         * {@link #forNewConfigPath}. This method can called multiple times.
-         *
-         * @param configKeys the configKeys forming a path from the base config of the {@link Persist#customPersistor}
-         *            to a desired subconfig.
-         * @return the builder
-         */
-        public Builder forDeprecatedConfigPath(final String... configKeys) {
-            m_deprecatedConfigPaths.add(new ConfigPath(Arrays.stream(configKeys).toList()));
-            return this;
-        }
-
-        /**
-         * Specify a predicate, which determines based on the {@link NodeSettingsRO} whether a legacy config exists
+         * Specify a predicate, which determines based on the {@link NodeSettingsRO} whether a deprecated config exists
          * which should be loaded in a different way by a {@link #withLoader(DeprecationLoader) loader}. This method can
-         * be called once.
+         * be called once. If it is not called and a {@link #withLoader loader} is specified, a matcher will be created
+         * based on the deprecatedConfigKeys given with {@link #forNewAndDeprecatedConfigPaths(List, List)}. In case all
+         * deprecated config keys are contained in the settings the matcher will return {@code true}. It cannot be used
+         * without specifying a {@link #withLoader loader}.
          *
-         * @param predicate the predicate used to determine whether settings need to be loaded in a different way
+         * @param matcher the matcher used to determine whether settings are deprecated and should be loaded in a
+         *            different way
          * @return the builder
          */
-        public Builder withMatcher(final DeprecationMatcher predicate) {
-            m_matcher = predicate;
+        public Builder withMatcher(final DeprecationMatcher matcher) {
+            m_matcher = matcher;
             return this;
         }
 
+        private void setMatcher(final DeprecationMatcher matcher) {
+            this.m_matcher = matcher;
+        }
+
         /**
-         * Specify a loader which loads legacy configs in the {@link NodeSettingsRO} into the new config. This method
-         * can be called once. Specifying a loader requires the specification of a corresponding {@link #withMatcher
-         * matcher}.
+         * Specify a loader which loads deprecated configs in the {@link NodeSettingsRO} into the new configs. This
+         * method can be called once.
          *
-         * @param loader the loader which uses the legacy config to load the settings based on the new config
+         * @param loader the loader which uses the deprecated config to load the settings based on the new config
          * @return the builder
          */
         public Builder withLoader(final DeprecationLoader<?> loader) {
@@ -230,12 +253,34 @@ public final class ConfigsDeprecation {
         public ConfigsDeprecation build() {
             final var matcherIsNull = m_matcher == null;
             final var loaderIsNull = m_loader == null;
-            if (matcherIsNull && !loaderIsNull || !matcherIsNull && loaderIsNull) {
+            if (!matcherIsNull && loaderIsNull) {
                 throw new NullPointerException(
-                    "Either both, a matcher and a loader must be specified or none of them.");
+                    "A ConfigsDeprecation loader must be specified when specifying a matcher.");
             }
-            return new ConfigsDeprecation(m_newConfigPaths, m_deprecatedConfigPaths, m_matcher, m_loader);
+            if (matcherIsNull && !loaderIsNull) {
+                createMatcherByDeprecatedConfigPaths();
+            }
+            return new ConfigsDeprecation(m_newAndDeprecatedConfigPaths, m_matcher, m_loader);
         }
 
+        private void createMatcherByDeprecatedConfigPaths() {
+            final List<ConfigPath> deprecatedConfigPaths = m_newAndDeprecatedConfigPaths.stream()
+                .flatMap(newAndDeprecatedConfigPaths -> newAndDeprecatedConfigPaths.deprecatedConfigPaths().stream())
+                .toList();
+            if (deprecatedConfigPaths.isEmpty()) {
+                throw new NullPointerException("Cannot create a matcher, because no DeprecatedConfigPath exists.");
+            }
+
+            this.setMatcher(settings -> deprecatedConfigPaths.stream()
+                .allMatch(configPath -> traversedSettingsContainConfigPath(settings, configPath.path(), 0)));
+        }
+
+        private boolean traversedSettingsContainConfigPath(final NodeSettingsRO settings, final List<String> configPath,
+            final int index) {
+            if (index == configPath.size() - 1) {
+                return settings.containsKey(configPath.get(index));
+            }
+            return traversedSettingsContainConfigPath(settings, configPath, index + 1);
+        }
     }
 }

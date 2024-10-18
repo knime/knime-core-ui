@@ -55,9 +55,12 @@ import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
 
 /**
- * A wrapper for custom persistors that loads settings as specified by the matcher and loader given by
- * {@link ConfigsDeprecation}. In case a matcher matches, the corresponding loader is used to load the settings. Else,
- * the default persistor is used during load which is always used during save.
+ * A wrapper for custom persistors that loads settings as specified by the loader given by {@link ConfigsDeprecation}.
+ * In case a
+ * {@link org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder#withMatcher(org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.DeprecationMatcher)
+ * matcher} matches, the given loader is used to load the settings. Else, the default persistor is used during load
+ * which is always used during save. In case of multiple {@link ConfigsDeprecation ConfigsDeprecations}, the loader is
+ * determined by the order of the {@link ConfigsDeprecation ConfigsDeprecations}.
  *
  * @author Robin Gerling
  * @param <T> the type of object loaded by the persistor
@@ -69,7 +72,7 @@ public final class LegacyNodeSettingsPersistorWrapper<T> implements LegacyNodeSe
     final NodeSettingsPersistor<T> m_defaultPersistor;
 
     /**
-     * @param legacyNodeSettingsPersistor the custom persistor of the node settings field handling legacy configs
+     * @param legacyNodeSettingsPersistor the custom persistor of the node settings field handling deprecated configs
      * @param defaultPersistor the default persistor of the node settings field
      *
      */

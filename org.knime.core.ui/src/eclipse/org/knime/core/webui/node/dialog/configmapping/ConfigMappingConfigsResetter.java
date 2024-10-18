@@ -117,8 +117,9 @@ class ConfigMappingConfigsResetter implements ConfigsResetter {
     @Override
     public void resetAtPath(final ConfigPath path) {
         final var relativeToBasePath = path.relativize(m_basePath);
-        final var isOldPath =
-            m_configsDeprecation.getDeprecatedConfigPaths().stream().anyMatch(relativeToBasePath::startsWith);
+        final var isOldPath = m_configsDeprecation.getNewAndDeprecatedConfigPaths().stream()
+            .flatMap(newAndDeprecatedConfigPaths -> newAndDeprecatedConfigPaths.deprecatedConfigPaths().stream())
+            .anyMatch(relativeToBasePath::startsWith);
 
         if (isOldPath) {
             getNewAndOldPaths().forEach(subPath -> {
@@ -132,8 +133,9 @@ class ConfigMappingConfigsResetter implements ConfigsResetter {
     }
 
     private Stream<ConfigPath> getNewAndOldPaths() {
-        return Stream.concat(m_configsDeprecation.getDeprecatedConfigPaths().stream(),
-            m_configsDeprecation.getNewConfigPaths().stream());
+        return m_configsDeprecation.getNewAndDeprecatedConfigPaths().stream()
+            .flatMap(newAndDeprecatedConfigPaths -> Stream.concat(newAndDeprecatedConfigPaths.newConfigPaths().stream(),
+                newAndDeprecatedConfigPaths.deprecatedConfigPaths().stream()));
     }
 
 }
