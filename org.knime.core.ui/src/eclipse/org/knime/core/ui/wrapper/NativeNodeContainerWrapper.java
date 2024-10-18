@@ -49,6 +49,8 @@ package org.knime.core.ui.wrapper;
 import java.util.Optional;
 
 import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.context.ModifiableNodeCreationConfiguration;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.ui.node.workflow.NativeNodeContainerUI;
@@ -84,6 +86,22 @@ public final class NativeNodeContainerWrapper extends SingleNodeContainerWrapper
     @Override
     public String getNodeFactoryClassName() {
         return unwrap().getNode().getFactory().getClass().getName();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeFactory<? extends NodeModel> getNodeFactoryInstance() {
+        return unwrap().getNode().getFactory();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public NodeModel getNodeModelInstance() {
+        return unwrap().getNode().getNodeModel();
     }
 
     /**

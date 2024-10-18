@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.context.ModifiableNodeCreationConfiguration;
 import org.knime.core.node.dialog.ExternalNodeData;
 import org.knime.core.node.port.MetaPortInfo;
@@ -649,6 +650,16 @@ public final class WorkflowManagerWrapper extends NodeContainerWrapper<WorkflowM
     @Override
     public boolean isInWizardExecution() {
         return unwrap().isInWizardExecution();
+    }
+
+    @Override
+    public void loadNodeSettings(final NodeID nodeID, final NodeSettings nodeSettings) throws InvalidSettingsException {
+        unwrap().loadNodeSettings(nodeID, nodeSettings);
+    }
+
+    @Override
+    public void loadNodeViewSettings(final NodeID nodeID, final NodeSettings nodeSettings) throws InvalidSettingsException {
+        unwrap().loadNodeViewSettings(nodeID, nodeSettings);
     }
 
 }

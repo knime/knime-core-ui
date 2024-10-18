@@ -55,6 +55,8 @@ import org.knime.core.node.workflow.NodeStateEvent;
 import org.knime.core.node.workflow.WorkflowEvent;
 import org.knime.core.node.workflow.WorkflowListener;
 import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.core.ui.node.workflow.NodeContainerUI;
+import org.knime.core.ui.wrapper.NodeContainerWrapper;
 
 /**
  * Helper to clean-up after a node removal, workflow disposal or (optionally) node state change. Once a clean-up has
@@ -67,7 +69,7 @@ public final class NodeCleanUpCallback implements WorkflowListener, NodeStateCha
 
     private Runnable m_onCleanUp;
 
-    private NodeContainer m_nc;
+    private NodeContainerUI m_nc;
 
     private final boolean m_cleanUpOnNodeStateChange;
 
@@ -106,11 +108,12 @@ public final class NodeCleanUpCallback implements WorkflowListener, NodeStateCha
             return;
         }
         if (e.getType() == WorkflowEvent.Type.NODE_REMOVED) {
-            if (e.getOldValue() instanceof WorkflowManager && ((WorkflowManager)e.getOldValue()).getID()
-                .getIndex() == m_nc.getParent().getProjectWFM().getID().getIndex()) {
-                // workflow has been closed
-                deactivateAndRunCleanUp();
-            }
+            // TODO fix
+//            if (e.getOldValue() instanceof WorkflowManager && ((WorkflowManager)e.getOldValue()).getID()
+//                .getIndex() == m_nc.getParent().getProjectWFM().getID().getIndex()) {
+//                // workflow has been closed
+//                deactivateAndRunCleanUp();
+//            }
             if (e.getOldValue() instanceof NativeNodeContainer
                 && ((NativeNodeContainer)e.getOldValue()).getID().equals(m_nc.getID())) {
                 // node removed
@@ -124,8 +127,17 @@ public final class NodeCleanUpCallback implements WorkflowListener, NodeStateCha
      * @param onCleanUp the callback to call when the node is being disposed.
      * @return a new builder instance
      */
-    public static Builder builder(final NodeContainer nc, final Runnable onCleanUp) {
+    public static Builder builder(final NodeContainerUI nc, final Runnable onCleanUp) {
         return new Builder(nc, onCleanUp);
+    }
+
+    /**
+     * @param nc the node to watch
+     * @param onCleanUp the callback to call when the node is being disposed.
+     * @return a new builder instance
+     */
+    public static Builder builder(final NodeContainer nc, final Runnable onCleanUp) {
+        return new Builder(NodeContainerWrapper.wrap(nc), onCleanUp);
     }
 
     @Override
@@ -146,7 +158,7 @@ public final class NodeCleanUpCallback implements WorkflowListener, NodeStateCha
     @SuppressWarnings("javadoc")
     public static final class Builder {
 
-        private final NodeContainer m_nc;
+        private final NodeContainerUI m_nc;
 
         private final Runnable m_onCleanUp;
 
@@ -154,8 +166,7 @@ public final class NodeCleanUpCallback implements WorkflowListener, NodeStateCha
 
         private boolean m_deactivateOnNodeStateChange = true;
 
-
-        private Builder(final NodeContainer nc, final Runnable onCleanUp) {
+        private Builder(final NodeContainerUI nc, final Runnable onCleanUp) {
             m_nc = nc;
             m_onCleanUp = onCleanUp;
         }

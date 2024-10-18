@@ -62,7 +62,7 @@ import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.FlowObjectStack;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.NodeID;
-import org.knime.core.node.workflow.SingleNodeContainer;
+import org.knime.core.ui.node.workflow.SingleNodeContainerUI;
 import org.knime.core.webui.UIExtension;
 import org.knime.core.webui.data.ApplyDataService;
 import org.knime.core.webui.data.DataServiceProvider;
@@ -82,7 +82,7 @@ import org.knime.core.webui.page.Page;
  */
 final class NodeDialogAdapter implements UIExtension, DataServiceProvider {
 
-    private final SingleNodeContainer m_snc;
+    private final SingleNodeContainerUI m_snc;
 
     private final NodeDialog m_dialog;
 
@@ -92,7 +92,7 @@ final class NodeDialogAdapter implements UIExtension, DataServiceProvider {
 
     private final NodeSettingsService m_nodeSettingsService;
 
-    NodeDialogAdapter(final SingleNodeContainer snc, final NodeDialog dialog) {
+    NodeDialogAdapter(final SingleNodeContainerUI snc, final NodeDialog dialog) {
         m_dialog = dialog;
         m_settingsTypes = dialog.getSettingsTypes();
         CheckUtils.checkState(!m_settingsTypes.isEmpty(), "At least one settings type must be provided");

@@ -60,7 +60,9 @@ import org.knime.core.node.workflow.ConnectionContainer.ConnectionType;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.node.workflow.NodeOutPort;
+import org.knime.core.ui.node.workflow.NativeNodeContainerUI;
+import org.knime.core.ui.node.workflow.NodeContainerUI;
+import org.knime.core.ui.node.workflow.NodeOutPortUI;
 import org.knime.core.webui.node.DataServiceManager;
 import org.knime.core.webui.node.NodeWrapper;
 import org.knime.core.webui.node.PagePathSegments;
@@ -82,13 +84,13 @@ public final class NodeViewManager {
 
     private static NodeViewManager instance;
 
-    private final Map<NodeContainer, NodeView> m_nodeViewMap = new WeakHashMap<>();
+    private final Map<NodeContainerUI, NodeView> m_nodeViewMap = new WeakHashMap<>();
 
     private final PageResourceManager<NodeWrapper> m_pageResourceManager = new PageResourceManager<>(PageType.VIEW,
-        nw -> getNodeView(nw.get()).getPage(), this::getPagePathSegments, this::decomposePagePath, false);
+        nw -> getNodeView(nw.getNCUI()).getPage(), this::getPagePathSegments, this::decomposePagePath, false);
 
     private final DataServiceManager<NodeWrapper> m_dataServiceManager =
-        new DataServiceManager<>(nw -> getNodeView(nw.get()));
+        new DataServiceManager<>(nw -> getNodeView(nw.getNCUI()));
 
     private final TableViewManager<NodeWrapper> m_tableViewManager = new TableViewManager<>(this::getTableView);
 
@@ -112,9 +114,9 @@ public final class NodeViewManager {
      * @param nc the node container to check
      * @return whether the node container provides a {@link NodeView}
      */
-    public static boolean hasNodeView(final NodeContainer nc) {
-        if (nc instanceof NativeNodeContainer nnc) {
-            var nodeFactory = nnc.getNode().getFactory();
+    public static boolean hasNodeView(final NodeContainerUI nc) {
+        if (nc instanceof NativeNodeContainerUI nnc) {
+            var nodeFactory = nnc.getNodeFactoryInstance();
             return nodeFactory instanceof NodeViewFactory nodeViewFactory && nodeViewFactory.hasNodeView();
         } else {
             return false;
@@ -128,11 +130,11 @@ public final class NodeViewManager {
      * @return a new node view instance
      * @throws IllegalArgumentException if the passed node container does not provide a node view
      */
-    NodeView getNodeView(final NodeContainer nc) {
+    NodeView getNodeView(final NodeContainerUI nc) {
         if (!hasNodeView(nc)) {
             throw new IllegalArgumentException("The node " + nc.getNameWithID() + " doesn't provide a node view");
         }
-        var nnc = (NativeNodeContainer)nc;
+        var nnc = (NativeNodeContainerUI)nc;
         var nodeView = m_nodeViewMap.get(nnc);
         if (nodeView != null) {
             return nodeView;
@@ -141,7 +143,7 @@ public final class NodeViewManager {
     }
 
     private TableView getTableView(final NodeWrapper n) {
-        var nc = n.get();
+        var nc = n.getNCUI();
         if (!hasNodeView(nc)) {
             return null;
         }
@@ -167,7 +169,7 @@ public final class NodeViewManager {
      * @throws InvalidSettingsException if settings couldn't be updated
      * @throws IllegalArgumentException if the passed node container does not provide a node view
      */
-    public void updateNodeViewSettings(final NativeNodeContainer nnc) throws InvalidSettingsException {
+    public void updateNodeViewSettings(final NativeNodeContainerUI nnc) throws InvalidSettingsException {
         var nodeView = getNodeView(nnc);
         var viewSettings = nnc.getViewSettingsUsingFlowObjectStack();
         if (viewSettings.isPresent()) {
@@ -180,12 +182,12 @@ public final class NodeViewManager {
         }
     }
 
-    private NodeView createAndRegisterNodeView(final NativeNodeContainer nnc) {
+    private NodeView createAndRegisterNodeView(final NativeNodeContainerUI nnc) {
         @SuppressWarnings("unchecked")
-        NodeViewFactory<NodeModel> fac = (NodeViewFactory<NodeModel>)nnc.getNode().getFactory();
+        NodeViewFactory<NodeModel> fac = (NodeViewFactory<NodeModel>)nnc.getNodeFactoryInstance();
         NodeContext.pushContext(nnc);
         try {
-            var nodeView = fac.createNodeView(nnc.getNodeModel());
+            var nodeView = fac.createNodeView(nnc.getNodeModelInstance());
             registerNodeView(nnc, nodeView);
             return nodeView;
         } finally {
@@ -193,7 +195,7 @@ public final class NodeViewManager {
         }
     }
 
-    private void registerNodeView(final NativeNodeContainer nnc, final NodeView nodeView) {
+    private void registerNodeView(final NativeNodeContainerUI nnc, final NodeView nodeView) {
         if (m_nodeViewMap.putIfAbsent(nnc, nodeView) == null) {
             NodeCleanUpCallback.builder(nnc, () -> m_nodeViewMap.remove(nnc)).build();
         }
@@ -280,7 +282,7 @@ public final class NodeViewManager {
      * @param nnc
      * @return see {@link NodeView#canBeUsedInReport()}
      */
-    public boolean canBeUsedInReport(final NativeNodeContainer nnc) {
+    public boolean canBeUsedInReport(final NativeNodeContainerUI nnc) {
         return getNodeView(nnc).canBeUsedInReport();
     }
 
@@ -288,7 +290,7 @@ public final class NodeViewManager {
      * @param nc
      * @return the {@link DataTableSpec} if the node view is also a {@link TableView} otherwise an empty optional
      */
-    public Optional<DataTableSpec> getInputDataTableSpecIfTableView(final NodeContainer nc) {
+    public Optional<DataTableSpec> getInputDataTableSpecIfTableView(final NodeContainerUI nc) {
         var nodeView = getNodeView(nc);
         if (nodeView instanceof NodeTableView tnv) {
             var wfm = nc.getParent();
@@ -302,7 +304,7 @@ public final class NodeViewManager {
                         return wfm.getNodeContainer(conn.getSource()).getOutPort(conn.getSourcePort());
                     }
                 }) // output port
-                .map(NodeOutPort::getPortObjectSpec) // port object spec
+                .map(NodeOutPortUI::getPortObjectSpec) // port object spec
                 .map(spec -> spec instanceof DataTableSpec tableSpec ? tableSpec : null); // table spec
         } else {
             return Optional.empty();
@@ -317,7 +319,7 @@ public final class NodeViewManager {
      * @param viewSettings
      * @throws InvalidSettingsException
      */
-    public void validateSettings(final NodeContainer nc, final NodeSettings viewSettings)
+    public void validateSettings(final NodeContainerUI nc, final NodeSettings viewSettings)
         throws InvalidSettingsException {
         getNodeView(nc).validateSettings(viewSettings);
     }
@@ -326,7 +328,7 @@ public final class NodeViewManager {
      * @param nc
      * @return see {@link NodeView#getDefaultPageFormat()}
      */
-    public PageFormat getDefaultPageFormat(final NodeContainer nc) {
+    public PageFormat getDefaultPageFormat(final NodeContainerUI nc) {
         return getNodeView(nc).getDefaultPageFormat();
     }
 

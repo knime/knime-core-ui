@@ -51,10 +51,13 @@ package org.knime.core.webui.node;
 import java.util.function.Supplier;
 
 import org.knime.core.node.NodeFactory;
-import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.SubNodeContainer;
+import org.knime.core.ui.node.workflow.NativeNodeContainerUI;
+import org.knime.core.ui.node.workflow.NodeContainerUI;
+import org.knime.core.ui.wrapper.NodeContainerWrapper;
+import org.knime.core.ui.wrapper.Wrapper;
 import org.knime.core.webui.node.port.PortContext;
 
 /**
@@ -72,6 +75,15 @@ public interface NodeWrapper {
      * @return the wrapped node
      */
     NodeContainer get();
+
+    /**
+     * TODO
+     *
+     * @return
+     */
+    default NodeContainerUI getNCUI() {
+        return NodeContainerWrapper.wrap(get());
+    }
 
     /**
      * @return a id representing the type of the node wrapper (which is independent from the node wrapper-instance).
@@ -96,24 +108,43 @@ public interface NodeWrapper {
      * @return a new instance
      */
     static NodeWrapper of(final NodeContainer nc) {
+        return of(NodeContainerWrapper.wrap(nc));
+    }
+
+    /**
+     * Convenience method to create a {@link NodeWrapper}-instance.
+     *
+     * @param nc
+     * @return a new instance
+     */
+    static NodeWrapper of(final NodeContainerUI nc) {
         return new NodeWrapper() { // NOSONAR
 
             @Override
             public NodeContainer get() {
+                if (Wrapper.wraps(nc, NativeNodeContainerUI.class)) {
+                    return Wrapper.unwrapNC(nc);
+                } else {
+                    throw new UnsupportedOperationException();
+                }
+            }
+
+            @Override
+            public NodeContainerUI getNCUI() {
                 return nc;
             }
 
             @Override
             public String getNodeWrapperTypeId() {
-                if (nc instanceof NativeNodeContainer nnc) {
-                    var factory = nnc.getNode().getFactory();
+                if (nc instanceof NativeNodeContainerUI nnc) {
+                    var factory = nnc.getNodeFactoryInstance();
                     if (factory instanceof CustomNodeWrapperTypeIdProvider p) {
                         return p.getNodeWrapperTypeId(nnc);
                     } else {
                         return factory.getClass().getName();
                     }
-                } else if (nc instanceof SubNodeContainer snc) {
-                    return snc.getClass().getName();
+                } else if (Wrapper.wraps(nc, SubNodeContainer.class)) {
+                    return SubNodeContainer.class.getName();
                 } else {
                     throw new UnsupportedOperationException();
                 }
@@ -158,6 +189,6 @@ public interface NodeWrapper {
      * {@link NodeWrapper#getNodeWrapperTypeId()}. Usually only necessary for testing purposes.
      */
     interface CustomNodeWrapperTypeIdProvider {
-        String getNodeWrapperTypeId(NativeNodeContainer nnc);
+        String getNodeWrapperTypeId(NativeNodeContainerUI nnc);
     }
 }

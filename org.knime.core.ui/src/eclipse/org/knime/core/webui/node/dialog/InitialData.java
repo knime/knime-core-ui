@@ -59,8 +59,8 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NativeNodeContainer;
-import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.ui.node.workflow.NodeContainerUI;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
 import org.knime.core.webui.node.dialog.internal.VariableSettings;
 
@@ -74,13 +74,13 @@ final class InitialData {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(InitialData.class);
 
-    private final NodeContainer m_nc;
+    private final NodeContainerUI m_nc;
 
     private final Set<SettingsType> m_settingsTypes;
 
     private final NodeSettingsService m_nodeSettingsService;
 
-    protected InitialData(final NodeContainer nc, final Set<SettingsType> settingsTypes,
+    protected InitialData(final NodeContainerUI nc, final Set<SettingsType> settingsTypes,
         final NodeSettingsService nodeSettingsService) {
         m_nc = nc;
         m_settingsTypes = settingsTypes;

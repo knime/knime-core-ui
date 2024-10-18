@@ -52,8 +52,8 @@ import java.util.Arrays;
 
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
-import org.knime.core.node.workflow.NodeContainer;
-import org.knime.core.node.workflow.NodeOutPort;
+import org.knime.core.ui.node.workflow.NodeContainerUI;
+import org.knime.core.ui.node.workflow.NodeOutPortUI;
 
 /**
  * Utilities around a nodes input {@link PortObjectSpec}s.
@@ -73,18 +73,18 @@ public final class InputSpecUtil {
      * @return the associated array of input {@link PortObjectSpec PortObjectSpecs} excluding the flow variables port.
      *         NOTE: array of specs can contain {@code null} values, e.g., if input port is not connected or inactive!
      */
-    public static PortObjectSpec[] getInputSpecsExcludingVariablePort(final NodeContainer nc) {
+    public static PortObjectSpec[] getInputSpecsExcludingVariablePort(final NodeContainerUI nc) {
         final var allSpecs = getInputSpecsIncludingVariablePort(nc);
         // copy input port object specs, ignoring the 0-variable port:
         return Arrays.copyOfRange(allSpecs, 1, allSpecs.length);
     }
 
-    public static PortObjectSpec[] getInputSpecsIncludingVariablePort(final NodeContainer nc) {
+    public static PortObjectSpec[] getInputSpecsIncludingVariablePort(final NodeContainerUI nc) {
         final var rawSpecs = new PortObjectSpec[nc.getNrInPorts()];
         final var wfm = nc.getParent();
         for (var cc : wfm.getIncomingConnectionsFor(nc.getID())) {
             var sourceId = cc.getSource();
-            NodeOutPort outPort;
+            NodeOutPortUI outPort;
             if (sourceId.equals(wfm.getID())) {
                 outPort = wfm.getWorkflowIncomingPort(cc.getSourcePort());
             } else {

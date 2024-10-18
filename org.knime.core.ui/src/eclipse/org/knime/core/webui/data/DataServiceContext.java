@@ -54,8 +54,8 @@ import java.util.List;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.SingleNodeContainer;
+import org.knime.core.ui.node.workflow.NodeContainerUI;
 import org.knime.core.webui.data.util.InputSpecUtil;
 
 /**
@@ -88,7 +88,7 @@ public final class DataServiceContext {
         }
     }
 
-    static void init(final NodeContainer nc) {
+    static void init(final NodeContainerUI nc) {
         if (nc instanceof SingleNodeContainer snc) {
             final var inputSpecsSupplier =
                 new CachingSupplier<>(() -> InputSpecUtil.getInputSpecsExcludingVariablePort(nc));

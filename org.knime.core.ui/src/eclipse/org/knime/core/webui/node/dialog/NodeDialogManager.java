@@ -52,11 +52,13 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.workflow.NativeNodeContainer;
-import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.node.workflow.SingleNodeContainer;
 import org.knime.core.node.workflow.SubNodeContainer;
+import org.knime.core.ui.node.workflow.NativeNodeContainerUI;
+import org.knime.core.ui.node.workflow.NodeContainerUI;
+import org.knime.core.ui.node.workflow.SingleNodeContainerUI;
+import org.knime.core.ui.wrapper.SubNodeContainerWrapper;
+import org.knime.core.ui.wrapper.Wrapper;
 import org.knime.core.webui.node.DataServiceManager;
 import org.knime.core.webui.node.NodeWrapper;
 import org.knime.core.webui.node.PageResourceManager;
@@ -74,13 +76,13 @@ public final class NodeDialogManager {
 
     private static NodeDialogManager instance;
 
-    private final Map<NodeContainer, NodeDialogAdapter> m_nodeDialogAdapterMap = new WeakHashMap<>();
+    private final Map<NodeContainerUI, NodeDialogAdapter> m_nodeDialogAdapterMap = new WeakHashMap<>();
 
     private final PageResourceManager<NodeWrapper> m_pageResourceManager =
-        new PageResourceManager<>(PageType.DIALOG, nw -> getNodeDialog(nw.get()).getPage());
+        new PageResourceManager<>(PageType.DIALOG, nw -> getNodeDialog(nw.getNCUI()).getPage());
 
     private final DataServiceManager<NodeWrapper> m_dataServiceManager =
-        new DataServiceManager<>(nw -> getNodeDialog(nw.get()));
+        new DataServiceManager<>(nw -> getNodeDialog(nw.getNCUI()));
 
     /**
      * Returns the singleton instance for this class.
@@ -102,12 +104,12 @@ public final class NodeDialogManager {
      * @param nc the node to check
      * @return whether the node provides a {@link NodeDialogAdapter}
      */
-    public static boolean hasNodeDialog(final NodeContainer nc) {
-        if (nc instanceof NativeNodeContainer nnc) {
-            var nodeFactory = nnc.getNode().getFactory();
+    public static boolean hasNodeDialog(final NodeContainerUI nc) {
+        if (nc instanceof NativeNodeContainerUI nnc) {
+            var nodeFactory = nnc.getNodeFactoryInstance();
             return nodeFactory instanceof NodeDialogFactory nodeDialogFactory && nodeDialogFactory.hasNodeDialog();
-        } else if (nc instanceof SubNodeContainer snc) {
-            return new SubNodeContainerDialogFactory(snc).hasNodeDialog();
+        } else if (Wrapper.wraps(nc, SubNodeContainer.class)) {
+            return new SubNodeContainerDialogFactory(Wrapper.unwrap(nc, SubNodeContainer.class)).hasNodeDialog();
         } else {
             return false;
         }
@@ -120,32 +122,32 @@ public final class NodeDialogManager {
      * @return a node dialog instance
      * @throws IllegalArgumentException if the passed node does not provide a node dialog
      */
-    NodeDialogAdapter getNodeDialog(final NodeContainer nc) {
+    NodeDialogAdapter getNodeDialog(final NodeContainerUI nc) {
         if (!hasNodeDialog(nc)) {
             throw new IllegalArgumentException("The node " + nc.getNameWithID() + " doesn't provide a node dialog");
         }
 
-        if (nc instanceof NativeNodeContainer nnc) {
+        if (nc instanceof NativeNodeContainerUI nnc) {
             return m_nodeDialogAdapterMap.computeIfAbsent(nc, id -> {
                 NodeCleanUpCallback.builder(nnc, () -> removeNodeDialogAdapter(nnc)).build();
                 return createNativeNodeDialog(nnc);
             });
-        } else if (nc instanceof SubNodeContainer snc) {
+        } else if (Wrapper.wraps(nc, SubNodeContainer.class)) {
             return m_nodeDialogAdapterMap.computeIfAbsent(nc, id -> {
                 NodeCleanUpCallback.builder(nc, () -> removeNodeDialogAdapter(nc)).build();
-                return createSubNodeContainerDialog(snc);
+                return createSubNodeContainerDialog(Wrapper.unwrap(nc, SubNodeContainer.class));
             });
         } else {
             throw new IllegalArgumentException("The node " + nc.getNameWithID() + " is no supported node container");
         }
     }
 
-    private void removeNodeDialogAdapter(final NodeContainer nnc) {
+    private void removeNodeDialogAdapter(final NodeContainerUI nnc) {
         m_nodeDialogAdapterMap.remove(nnc);
     }
 
-    private static NodeDialogAdapter createNativeNodeDialog(final NativeNodeContainer nnc) {
-        NodeDialogFactory fac = (NodeDialogFactory)nnc.getNode().getFactory();
+    private static NodeDialogAdapter createNativeNodeDialog(final NativeNodeContainerUI nnc) {
+        NodeDialogFactory fac = (NodeDialogFactory)nnc.getNodeFactoryInstance();
         NodeContext.pushContext(nnc);
         try {
             return new NodeDialogAdapter(nnc, fac.createNodeDialog());
@@ -157,7 +159,8 @@ public final class NodeDialogManager {
     private static NodeDialogAdapter createSubNodeContainerDialog(final SubNodeContainer snc) {
         NodeContext.pushContext(snc);
         try {
-            return new NodeDialogAdapter(snc, new SubNodeContainerDialogFactory(snc).createNodeDialog());
+            return new NodeDialogAdapter(SubNodeContainerWrapper.wrap(snc),
+                new SubNodeContainerDialogFactory(snc).createNodeDialog());
         } finally {
             NodeContext.removeLastContext();
         }
@@ -191,15 +194,16 @@ public final class NodeDialogManager {
      * @return a legacy flow variable node dialog
      */
     public static NodeDialogPane createLegacyFlowVariableNodeDialog(final NodeDialog dialog) {
-        return new NodeDialogAdapter((SingleNodeContainer)NodeContext.getContext().getNodeContainer(), dialog)
-            .createLegacyFlowVariableNodeDialog();
+        return new NodeDialogAdapter(
+            NodeContext.getContext().getContextObjectForClass(SingleNodeContainerUI.class).orElseThrow(), dialog)
+                .createLegacyFlowVariableNodeDialog();
     }
 
     /**
      * @param snc
      * @return see {@link NodeDialog#canBeEnlarged()}
      */
-    public boolean canBeEnlarged(final NodeContainer snc) {
+    public boolean canBeEnlarged(final NodeContainerUI snc) {
         return getNodeDialog(snc).getNodeDialog().canBeEnlarged();
     }
 }

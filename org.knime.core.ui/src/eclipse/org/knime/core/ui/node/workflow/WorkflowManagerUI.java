@@ -58,6 +58,7 @@ import java.util.concurrent.TimeUnit;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.context.ModifiableNodeCreationConfiguration;
 import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.dialog.DialogNode;
@@ -1496,4 +1497,18 @@ public interface WorkflowManagerUI extends NodeContainerUI, UI {
      * @since 2.10
      */
     void notifyTemplateConnectionChangedListener();
+
+    /**
+     * @param nodeID
+     * @param nodeSettings
+     * @throws InvalidSettingsException
+     */
+    void loadNodeSettings(NodeID nodeID, NodeSettings nodeSettings) throws InvalidSettingsException;
+
+    /**
+     * @param nodeID
+     * @param nodeSettings
+     * @throws InvalidSettingsException
+     */
+    void loadNodeViewSettings(NodeID nodeID, NodeSettings nodeSettings) throws InvalidSettingsException;
 }

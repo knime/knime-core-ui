@@ -52,8 +52,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.ui.node.workflow.NodeContainerUI;
 import org.knime.core.webui.data.rpc.RpcServer;
 import org.knime.core.webui.data.rpc.RpcServerManager;
 import org.knime.core.webui.data.rpc.json.impl.JsonRpcServer;
@@ -74,7 +74,7 @@ public final class RpcDataService extends AbstractDataService {
 
     private final RpcServer m_rpcServer;
 
-    private final NodeContainer m_nc;
+    private final NodeContainerUI m_nc;
 
     private RpcDataService(final RpcDataServiceBuilder builder) {
         super(builder);

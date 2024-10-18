@@ -52,6 +52,8 @@ import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.NodeOutPort;
 import org.knime.core.node.workflow.NodePort;
+import org.knime.core.ui.node.workflow.NodeContainerUI;
+import org.knime.core.ui.wrapper.NodeContainerWrapper;
 import org.knime.core.webui.node.port.PortContext;
 
 /**
@@ -70,11 +72,11 @@ final class DataServiceUtil {
      *
      * @return the node or {@code null} if there is no context given
      */
-    static NodeContainer getNodeContainerFromContext() {
+    static NodeContainerUI getNodeContainerFromContext() {
         if (NodeContext.getContext() != null) {
-            return NodeContext.getContext().getNodeContainer();
+            return NodeContext.getContext().getContextObjectForClass(NodeContainerUI.class).orElseThrow();
         } else if (PortContext.getContext() != null) {
-            return getNodeContainerFromPort(PortContext.getContext().getNodePort());
+            return NodeContainerWrapper.wrap(getNodeContainerFromPort(PortContext.getContext().getNodePort()));
         } else {
             return null;
         }

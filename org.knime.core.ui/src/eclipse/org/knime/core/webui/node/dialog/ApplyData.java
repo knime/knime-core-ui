@@ -61,7 +61,9 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeID;
-import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.core.ui.node.workflow.NodeContainerUI;
+import org.knime.core.ui.node.workflow.WorkflowManagerUI;
+import org.knime.core.ui.wrapper.Wrapper;
 import org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier;
 import org.knime.core.webui.node.dialog.SettingsTreeTraversalUtil.VariableSettingsTree;
 import org.knime.core.webui.node.dialog.SettingsTreeTraversalUtil.VariableSettingsTreeNode;
@@ -78,7 +80,7 @@ import com.google.common.base.Objects;
 @SuppressWarnings("java:S3553") // accept Optionals as parameters as it is much more readable this way
 final class ApplyData {
 
-    private final NodeContainer m_nc;
+    private final NodeContainerUI m_nc;
 
     private final Set<SettingsType> m_settingsTypes;
 
@@ -86,7 +88,7 @@ final class ApplyData {
 
     private final OnApplyNodeModiferWrapper m_onApplyModifierWrapper;
 
-    ApplyData(final NodeContainer nc, final Set<SettingsType> settingsTypes,
+    ApplyData(final NodeContainerUI nc, final Set<SettingsType> settingsTypes,
         final NodeSettingsService nodeSettingsService, final OnApplyNodeModifier onApplyModifier) {
         m_nc = nc;
         m_settingsTypes = settingsTypes;
@@ -133,9 +135,8 @@ final class ApplyData {
         callOnChangeModifyer(modelApplyDataSettings, viewApplyDataSettings);
     }
 
-    private NodeSettings getExistingNodeSettings(final WorkflowManager wfm, final NodeID nodeID) {
-        var nodeSettings = new NodeSettings("node_settings");
-        wfm.saveNodeSettings(nodeID, nodeSettings);
+    private NodeSettings getExistingNodeSettings(final WorkflowManagerUI wfm, final NodeID nodeID) {
+        var nodeSettings = (NodeSettings /* TODO */)wfm.getNodeContainer(nodeID).getNodeSettings();
         if (!m_settingsTypes.contains(SettingsType.MODEL)) {
             nodeSettings.addNodeSettings(SettingsType.MODEL.getConfigKey());
         }
@@ -185,7 +186,7 @@ final class ApplyData {
             ? Optional.of(new ApplyDataSettings(nodeSettings, previousNodeSettings, type)) : Optional.empty();
     }
 
-    private void applyChange(final WorkflowManager wfm, final NodeID nodeID, final NodeSettings nodeSettings,
+    private void applyChange(final WorkflowManagerUI wfm, final NodeID nodeID, final NodeSettings nodeSettings,
         final Optional<ApplyDataSettings> changedModelSettings, final Optional<ApplyDataSettings> changedViewSettings)
         throws InvalidSettingsException {
 
@@ -204,10 +205,14 @@ final class ApplyData {
     }
 
     private void validateViewSettings(final ApplyDataSettings changedView) throws InvalidSettingsException {
-        NodeViewManager.getInstance().validateSettings(m_nc, changedView.getSettings());
+        if (Wrapper.wraps(m_nc, NodeContainer.class)) {
+            NodeViewManager.getInstance().validateSettings(Wrapper.unwrapNC(m_nc), changedView.getSettings());
+        } else {
+            // TODO
+        }
     }
 
-    private void loadViewSettingsIntoNode(final WorkflowManager wfm, final NodeID nodeID, final ApplyDataSettings view,
+    private void loadViewSettingsIntoNode(final WorkflowManagerUI wfm, final NodeID nodeID, final ApplyDataSettings view,
         final NodeSettings nodeSettings) throws InvalidSettingsException {
         /**
          * We reset the node and trigger configure when

@@ -52,7 +52,7 @@ import java.io.IOException;
 import java.util.function.Supplier;
 
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.workflow.NodeContainer;
+import org.knime.core.ui.node.workflow.NodeContainerUI;
 import org.knime.core.webui.data.rpc.json.impl.ObjectMapperUtil;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -75,7 +75,7 @@ public final class InitialDataService<D> extends AbstractDataService {
 
     private Serializer<D> m_serializer;
 
-    private final NodeContainer m_nc;
+    private final NodeContainerUI m_nc;
 
     /**
      * @param dataSupplier
