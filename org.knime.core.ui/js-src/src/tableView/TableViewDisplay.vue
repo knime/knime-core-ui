@@ -7,6 +7,7 @@ import {
 } from "@knime/knime-ui-table";
 import ImageRenderer from "./renderers/ImageRenderer.vue";
 import HtmlRenderer from "./renderers/HtmlRenderer.vue";
+import JSONRenderer from "./renderers/JSONRenderer.vue";
 import MultiLineTextRenderer from "./renderers/MultiLineTextRenderer.vue";
 import getDataConfig from "./utils/getDataConfig";
 import getTableConfig from "./utils/getTableConfig";
@@ -340,6 +341,10 @@ const onCopySelection = ({
           v-else-if="getContentType(index) === 'multi_line_txt'"
           :text="cell"
           :padding-top-bottom="paddingTopBottom"
+        />
+        <JSONRenderer
+          v-else-if="getContentType(index) === 'json'"
+          :content="cell"
         />
       </template>
     </TableUIWithAutoSizeCalculation>

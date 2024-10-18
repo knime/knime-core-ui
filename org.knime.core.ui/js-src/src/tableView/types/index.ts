@@ -45,7 +45,13 @@ export interface TableViewDisplayProps {
   header: {
     displayedColumns: string[];
     columnFiltersMap?: Map<string | symbol, FilterConfig>;
-    columnContentTypes: ("txt" | "multi_line_txt" | "img_path" | "html")[];
+    columnContentTypes: (
+      | "txt"
+      | "multi_line_txt"
+      | "img_path"
+      | "html"
+      | "json"
+    )[];
     dataTypes: Record<string, DataType>;
     columnDataTypeIds: string[];
     colNameSelectedRendererId?: Record<string, string>;

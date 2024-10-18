@@ -22,6 +22,7 @@ const COMPONENTS = [
   "TextView",
   "FlowVariableView",
   "ImageView",
+  "JSONView",
 ] as const;
 
 type ComponentLibraries = (typeof COMPONENTS)[number];
@@ -30,7 +31,10 @@ const getComponentLibraryOptions = (
   name: ComponentLibraries,
 ): LibraryOptions => ({
   entry: fileURLToPath(
-    new URL(`./src/${camelCase(name)}/${name}App.ts`, import.meta.url),
+    new URL(
+      `./src/${camelCase(name.replace("JSON", "Json"))}/${name}App.ts`,
+      import.meta.url,
+    ),
   ),
   fileName: name,
   formats: ["es"],
@@ -43,6 +47,7 @@ const libraries: Record<ComponentLibraries, LibraryOptions> = {
   TextView: getComponentLibraryOptions("TextView"),
   FlowVariableView: getComponentLibraryOptions("FlowVariableView"),
   ImageView: getComponentLibraryOptions("ImageView"),
+  JSONView: getComponentLibraryOptions("JSONView"),
 };
 
 const getCurrentLibrary = (mode: ComponentLibraries) => {

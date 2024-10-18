@@ -20,8 +20,9 @@
     "build:TextView": "vite build --mode TextView",
     "build:FlowVariableView": "vite build --mode FlowVariableView",
     "build:ImageView": "vite build --mode ImageView",
+    "build:JSONView": "vite build --mode JSONView",
     "build:html": "run-p build:html:*",
-    "build:html:placeholder": "",
+    "build:html:JSONView": "vite build --mode html:JSONView",
     "type-check": "vue-tsc -p tsconfig.vitest.json",
     "format": "prettier --cache --write .",
     "format:check": "prettier --cache --check .",
@@ -59,7 +60,9 @@
     "focus-trap-vue": "4.0.2",
     "lodash-es": "4.17.21",
     "tabbable": "6.2.0",
-    "uuid": "9.0.1"
+    "uuid": "9.0.1",
+    "monaco-editor": "0.51.0",
+    "highlight.js": "11.10.0"
   },
   "devDependencies": {
     "@cyclonedx/cyclonedx-npm": "1.16.1",
@@ -89,6 +92,7 @@
     "type-fest": "4.3.1",
     "typescript": "5.3.3",
     "vite": "5.1.1",
+    "vite-plugin-monaco-editor": "1.1.0",
     "vite-svg-loader": "5.1.0",
     "vitest": "2.0.5",
     "vue": "3.4.21",

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>KNIME JSONView</title>
+  </head>
+  <body>
+    <div id="editor-container">
+      <div id="editor" />
+    </div>
+    <script type="module">
+      import { JSONView } from "./src/html-renderers/jsonView";
+
+      const editor = new JSONView(document.getElementById("editor"));
+      editor.init();
+    </script>
+  </body>
+</html>
