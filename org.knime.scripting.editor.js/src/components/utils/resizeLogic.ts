@@ -32,13 +32,13 @@ export const useResizeLogic = ({
     bottom: initialPaneSizes.bottom,
   });
 
-  const collapseAllPanes = computed(
+  const shouldCollapseAllPanes = computed(
     () => rootSplitPaneRef.width.value <= MIN_WIDTH_FOR_DISPLAYING_PANES,
   );
-  const collapseLeftPane = computed(
+  const shouldCollapseLeftPane = computed(
     () => rootSplitPaneRef.width.value <= MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
   );
-  const showButtonText = computed(
+  const shouldShowButtonText = computed(
     () => editorSplitPaneRef.width.value > MIN_WIDTH_FOR_SHOWING_BUTTON_TEXT,
   );
   const minRatioOfRightPaneInPercent = computed(
@@ -50,13 +50,13 @@ export const useResizeLogic = ({
   );
 
   const currentPaneSizes = computed(() => {
-    if (collapseAllPanes.value) {
+    if (shouldCollapseAllPanes.value) {
       return {
         left: 0,
         right: 0,
         bottom: 0,
       };
-    } else if (collapseLeftPane.value) {
+    } else if (shouldCollapseLeftPane.value) {
       return {
         left: 0,
         right: largeModePaneSizes.right,
@@ -87,13 +87,13 @@ export const useResizeLogic = ({
   const isBottomPaneCollapsed = computed(
     () => currentPaneSizes.value.bottom === 0,
   );
-  const updatePreviousPaneSize = (pane: keyof PaneSizes) => {
+  const doUpdatePreviousPaneSize = (pane: keyof PaneSizes) => {
     if (currentPaneSizes.value[pane] <= 0) {
       return;
     }
     previousLargeModePaneSizes[pane] = largeModePaneSizes[pane];
   };
-  const resizePane = (
+  const doResizePane = (
     size: number,
     pane: keyof PaneSizes,
     shouldUpdatePreviousPaneSize: boolean = true,
@@ -101,10 +101,10 @@ export const useResizeLogic = ({
     largeModePaneSizes[pane] = size;
 
     if (shouldUpdatePreviousPaneSize) {
-      updatePreviousPaneSize(pane);
+      doUpdatePreviousPaneSize(pane);
     }
   };
-  const updateRightPane = (size: number) => {
+  const doUpdateRightPane = (size: number) => {
     if (rightPaneLayout !== "fixed" || currentPaneSizes.value.right <= 0) {
       return;
     }
@@ -119,21 +119,21 @@ export const useResizeLogic = ({
       (absoluteRightPaneSize / newMainPaneSize) * 100,
     );
 
-    resizePane(newRightPaneSize, "right", false);
+    doResizePane(newRightPaneSize, "right", false);
   };
-  const collapsePane = (pane: keyof PaneSizes) => {
+  const doToggleCollapsePane = (pane: keyof PaneSizes) => {
     const newSize =
       currentPaneSizes.value[pane] === 0 ? previousLargeModePaneSizes[pane] : 0;
     if (pane === "left") {
-      updateRightPane(newSize);
+      doUpdateRightPane(newSize);
     }
-    resizePane(newSize, pane);
+    doResizePane(newSize, pane);
   };
 
   return {
-    collapseAllPanes,
-    collapseLeftPane,
-    showButtonText,
+    shouldCollapseAllPanes,
+    shouldCollapseLeftPane,
+    shouldShowButtonText,
     minRatioOfRightPaneInPercent,
     currentPaneSizes,
     usedMainPaneSize,
@@ -142,9 +142,9 @@ export const useResizeLogic = ({
     isLeftPaneCollapsed,
     isRightPaneCollapsed,
     isBottomPaneCollapsed,
-    updatePreviousPaneSize,
-    resizePane,
-    updateRightPane,
-    collapsePane,
+    doUpdatePreviousPaneSize,
+    doResizePane,
+    doUpdateRightPane,
+    doToggleCollapsePane,
   };
 };
