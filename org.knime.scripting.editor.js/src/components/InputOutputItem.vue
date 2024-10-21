@@ -99,7 +99,7 @@ const inputOutputSelectionStore = useInputOutputSelectionStore();
 watch(
   () => inputOutputSelectionStore.selectedItem,
   (newItem) => {
-    if (newItem !== props.inputOutputItem) {
+    if (newItem?.name !== props.inputOutputItem.name) {
       multiSelection.resetSelection();
     }
   },
