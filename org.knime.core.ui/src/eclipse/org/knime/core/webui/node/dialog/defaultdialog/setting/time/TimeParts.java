@@ -52,6 +52,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.VerticalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.time.TimeParts.HoursMinutesAndSeconds.Hours;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.time.TimeParts.HoursMinutesAndSeconds.Minutes;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.time.TimeParts.HoursMinutesAndSeconds.Seconds;
@@ -72,16 +73,19 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
 public class TimeParts implements DefaultNodeSettings {
 
     @HorizontalLayout
-    interface HoursMinutesAndSeconds {
-        interface Hours {
+    public interface HoursMinutesAndSeconds {
 
+        @VerticalLayout
+        interface Hours {
         }
 
         @After(Hours.class)
+        @VerticalLayout
         interface Minutes {
         }
 
         @After(Minutes.class)
+        @VerticalLayout
         interface Seconds {
         }
     }
@@ -133,15 +137,18 @@ public class TimeParts implements DefaultNodeSettings {
 
     @After(HoursMinutesAndSeconds.class)
     @HorizontalLayout()
-    interface MilliMicroAndNanoSeconds {
+    public interface MilliMicroAndNanoSeconds {
+        @VerticalLayout
         interface Milli {
         }
 
         @After(Milli.class)
+        @VerticalLayout
         interface Micro {
         }
 
         @After(Micro.class)
+        @VerticalLayout
         interface Nano {
 
         }

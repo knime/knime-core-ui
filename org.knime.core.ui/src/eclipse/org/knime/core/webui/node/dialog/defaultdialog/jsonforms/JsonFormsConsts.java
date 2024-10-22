@@ -376,5 +376,10 @@ public final class JsonFormsConsts {
          * The type of a horizontal layout part
          */
         public static final String TYPE_HORIZONTAL_LAYOUT = "HorizontalLayout";
+
+        /**
+         * The type of a vertical layout part
+         */
+        public static final String TYPE_VERTICAL_LAYOUT = "VerticalLayout";
     }
 }
