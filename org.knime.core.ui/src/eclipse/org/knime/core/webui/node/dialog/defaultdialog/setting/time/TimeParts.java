@@ -49,6 +49,7 @@
 package org.knime.core.webui.node.dialog.defaultdialog.setting.time;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.time.TimeParts.HoursMinutesAndSeconds.Hours;
@@ -59,6 +60,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.time.TimeParts.Mil
 import org.knime.core.webui.node.dialog.defaultdialog.setting.time.TimeParts.MilliMicroAndNanoSeconds.Nano;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  *
@@ -68,79 +73,123 @@ public class TimeParts implements DefaultNodeSettings {
 
     @HorizontalLayout
     interface HoursMinutesAndSeconds {
-        interface Hours {}
-        interface Minutes {}
-        interface Seconds {}
+        interface Hours {
+
+        }
+
+        @After(Hours.class)
+        interface Minutes {
+        }
+
+        @After(Minutes.class)
+        interface Seconds {
+        }
+    }
+
+    static final class UseHours implements BooleanReference {
+
     }
 
     @Layout(Hours.class)
-    @Widget(title = "Use hour",description = "")
+    @Widget(title = "Use hour", description = "")
+    @ValueReference(UseHours.class)
     boolean m_useHour;
 
     @Layout(Hours.class)
-    @Widget(title = "Hours",description = "")
+    @Widget(title = "Hours", description = "")
     @NumberInputWidget(min = 0, max = 23)
+    @Effect(predicate = UseHours.class, type = EffectType.ENABLE)
     int m_hour = 0;
 
+    static final class UseMinutes implements BooleanReference {
+
+    }
 
     @Layout(Minutes.class)
-    @Widget(title = "Use minute",description = "")
+    @Widget(title = "Use minute", description = "")
+    @ValueReference(UseMinutes.class)
     boolean m_useMinute;
 
-
     @Layout(Minutes.class)
-    @Widget(title = "Minutes",description = "")
+    @Widget(title = "Minutes", description = "")
     @NumberInputWidget(min = 0, max = 59)
+    @Effect(predicate = UseMinutes.class, type = EffectType.ENABLE)
     int m_minute = 0;
 
+    static final class UseSeconds implements BooleanReference {
+
+    }
 
     @Layout(Seconds.class)
-    @Widget(title = "Use second",description = "")
+    @Widget(title = "Use second", description = "")
+    @ValueReference(UseSeconds.class)
     boolean m_useSecond;
 
     @Layout(Seconds.class)
-    @Widget(title = "Seconds",description = "")
+    @Widget(title = "Seconds", description = "")
     @NumberInputWidget(min = 0, max = 59)
+    @Effect(predicate = UseSeconds.class, type = EffectType.ENABLE)
     int m_second = 0;
 
-
+    @After(HoursMinutesAndSeconds.class)
+    @HorizontalLayout()
     interface MilliMicroAndNanoSeconds {
         interface Milli {
         }
 
+        @After(Milli.class)
         interface Micro {
         }
 
+        @After(Micro.class)
         interface Nano {
 
         }
     }
 
+    static final class UseMilli implements BooleanReference {
+
+    }
+
     @Layout(Milli.class)
-    @Widget(title = "Use millisecond",description = "")
+    @Widget(title = "Use millisecond", description = "", advanced = true)
+    @ValueReference(UseMilli.class)
     boolean m_useMillisecond;
 
     @Layout(Milli.class)
-    @Widget(title = "Milliseconds",description = "")
+    @Widget(title = "Milliseconds", description = "",advanced = true)
     @NumberInputWidget(min = 0, max = 999)
+    @Effect(predicate = UseMilli.class, type=EffectType.ENABLE)
     int m_millisecond = 0;
 
+    static final class UseMicro implements BooleanReference {
+
+    }
+
     @Layout(Micro.class)
-    @Widget(title = "Use microsecond",description = "")
+    @Widget(title = "Use microsecond", description = "", advanced = true)
+    @ValueReference(UseMicro.class)
     boolean m_useMicrosecond;
 
     @Layout(Micro.class)
-    @Widget(title = "Microseconds",description = "")
+    @Widget(title = "Microseconds", description = "", advanced = true)
     @NumberInputWidget(min = 0, max = 999)
+    @Effect(predicate = UseMicro.class, type = EffectType.ENABLE)
     int m_microsecond = 0;
 
+    static final class UseNano implements BooleanReference {
+
+    }
+
     @Layout(Nano.class)
-    @Widget(title = "Use nanosecond",description = "")
+    @Widget(title = "Use nanosecond", description = "", advanced = true)
+    @ValueReference(UseNano.class)
     boolean m_useNanosecond;
 
     @Layout(Nano.class)
-    @Widget(title = "Nanoseconds",description = "")
+    @Widget(title = "Nanoseconds", description = "", advanced = true)
     @NumberInputWidget(min = 0, max = 999)
+    @Effect(predicate = UseNano.class, type = EffectType.ENABLE)
     int m_nanosecond = 0;
 
 }
