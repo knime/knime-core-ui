@@ -48,11 +48,19 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.time;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.VerticalLayout;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.time.TimeParts.HoursMinutesAndSeconds.Hours;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.time.TimeParts.HoursMinutesAndSeconds.Minutes;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.time.TimeParts.HoursMinutesAndSeconds.Seconds;
@@ -70,6 +78,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  *
  * @author Tobias Kampmann
  */
+@Persistor(TimeParts.TimePartsPersistor.class)
 public class TimeParts implements DefaultNodeSettings {
 
     @HorizontalLayout
@@ -164,9 +173,9 @@ public class TimeParts implements DefaultNodeSettings {
     boolean m_useMillisecond;
 
     @Layout(Milli.class)
-    @Widget(title = "Milliseconds", description = "",advanced = true)
+    @Widget(title = "Milliseconds", description = "", advanced = true)
     @NumberInputWidget(min = 0, max = 999)
-    @Effect(predicate = UseMilli.class, type=EffectType.ENABLE)
+    @Effect(predicate = UseMilli.class, type = EffectType.ENABLE)
     int m_millisecond = 0;
 
     static final class UseMicro implements BooleanReference {
@@ -198,5 +207,43 @@ public class TimeParts implements DefaultNodeSettings {
     @NumberInputWidget(min = 0, max = 999)
     @Effect(predicate = UseNano.class, type = EffectType.ENABLE)
     int m_nanosecond = 0;
+
+    final static class TimePartsPersistor implements FieldNodeSettingsPersistor<TimeParts> {
+
+        @Override
+        public TimeParts load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            TimeParts loaded = new TimeParts();
+
+            String horribleOldSettings = settings.getString("time");
+
+            var parsedTime = LocalTime.parse(horribleOldSettings);
+
+            loaded.m_hour = parsedTime.getHour();
+            loaded.m_minute = parsedTime.getMinute();
+            loaded.m_second = parsedTime.getSecond();
+
+            loaded.m_millisecond = parsedTime.getNano() / 1000000;
+            loaded.m_microsecond = (parsedTime.getNano() % 1000) / 1000;
+            loaded.m_nanosecond = parsedTime.getNano() % 1000000;
+
+            return loaded;
+        }
+
+        @Override
+        public void save(final TimeParts obj, final NodeSettingsWO settings) {
+            settings.addString("time",
+                LocalTime
+                    .of(obj.m_hour, obj.m_minute, obj.m_second,
+                        obj.m_nanosecond + 1000 * obj.m_microsecond + 1000000 * obj.m_millisecond)
+                    .format(DateTimeFormatter.ISO_LOCAL_TIME));
+
+        }
+
+        @Override
+        public String[] getConfigKeys() {
+            return new String[]{"time"};
+        }
+
+    }
 
 }
