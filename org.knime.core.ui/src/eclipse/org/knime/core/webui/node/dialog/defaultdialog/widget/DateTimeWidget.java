@@ -80,6 +80,11 @@ public @interface DateTimeWidget {
     boolean showMilliseconds() default false;
 
     /**
+     * @return whether to show the date
+     */
+    boolean showDate() default true;
+
+    /**
      * @return whether to use a specific timezone, e.g. "America/Dawson_Creek"
      */
     String timezone() default "";

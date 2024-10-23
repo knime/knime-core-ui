@@ -259,7 +259,7 @@ final class UiSchemaOptionsGenerator {
             final var dateTimeWidget = m_node.getAnnotation(DateTimeWidget.class).orElseThrow();
             options.put(TAG_FORMAT, Format.DATE_TIME);
             selectTimeFields(options, dateTimeWidget.showTime(), dateTimeWidget.showSeconds(),
-                dateTimeWidget.showMilliseconds());
+                dateTimeWidget.showMilliseconds(),dateTimeWidget.showDate());
             if (!dateTimeWidget.timezone().isEmpty()) {
                 options.put("timezone", dateTimeWidget.timezone());
             }
@@ -648,14 +648,15 @@ final class UiSchemaOptionsGenerator {
     }
 
     private static void disableTimeFields(final ObjectNode options) {
-        selectTimeFields(options, false, false, false);
+        selectTimeFields(options, false, false, false,true);
     }
 
     private static void selectTimeFields(final ObjectNode options, final boolean showTime, final boolean showSeconds,
-        final boolean showMilliseconds) {
+        final boolean showMilliseconds,final boolean showDate) {
         options.put("showTime", showTime);
         options.put("showSeconds", showSeconds);
         options.put("showMilliseconds", showMilliseconds);
+        options.put("showDate", showDate);
     }
 
     private static void setMinAndMaxDate(final ObjectNode options, final String minDate, final String maxDate) {

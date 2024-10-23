@@ -52,6 +52,7 @@ import static java.util.stream.Collectors.toMap;
 
 import java.lang.reflect.Array;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -255,7 +256,9 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
             BOOLEAN_ARRAY(boolean[].class, ConfigBaseRO::getBooleanArray, (v, s, k) -> s.addBooleanArray(k, v)),
             FLOAT_ARRAY(float[].class, ConfigBaseRO::getFloatArray, (v, s, k) -> s.addFloatArray(k, v)),
             CHAR_ARRAY(char[].class, ConfigBaseRO::getCharArray, (v, s, k) -> s.addCharArray(k, v)),
-            BYTE_ARRAY(byte[].class, ConfigBaseRO::getByteArray, (v, s, k) -> s.addByteArray(k, v));
+            BYTE_ARRAY(byte[].class, ConfigBaseRO::getByteArray, (v, s, k) -> s.addByteArray(k, v)),
+            LOCAL_TIME(LocalTime.class, DefaultFieldNodeSettingsPersistorFactory::loadLocalTime,
+                DefaultFieldNodeSettingsPersistorFactory::saveLocalTime);
 
         private final Class<?> m_type;
 
@@ -274,6 +277,19 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
             return m_fieldPersistor;
         }
 
+    }
+
+    static LocalTime loadLocalTime(final NodeSettingsRO settings, final String configKey)
+        throws InvalidSettingsException {
+        try {
+            return LocalTime.parse(settings.getString(configKey));
+        } catch (DateTimeParseException ex) {
+            throw new InvalidSettingsException(ex);
+        }
+    }
+
+    static void saveLocalTime(final LocalTime time, final NodeSettingsWO settings, final String configKey) {
+        settings.addString(configKey, time.toString());
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

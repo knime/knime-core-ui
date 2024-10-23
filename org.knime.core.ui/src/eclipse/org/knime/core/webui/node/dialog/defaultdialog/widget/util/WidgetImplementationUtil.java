@@ -50,6 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.util;
 
 import java.lang.annotation.Annotation;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -121,7 +122,7 @@ public final class WidgetImplementationUtil {
      */
     @SuppressWarnings("javadoc")
     public enum DefaultWidgetType {
-            CHECKBOX, COLUMN_FILTER, NAME_FILTER, COLUMN_SELECTION, LOCAL_DATE, STRING_ARRAY, CREDENTIALS,
+            CHECKBOX, COLUMN_FILTER, NAME_FILTER, COLUMN_SELECTION, LOCAL_DATE, LOCAL_TIME, STRING_ARRAY, CREDENTIALS,
             LEGACY_CREDENTIALS, FILE_CHOOSER, DYNAMIC_VALUE
     }
 
@@ -175,7 +176,8 @@ public final class WidgetImplementationUtil {
         new DefaultWidget(List.of(Credentials.class), DefaultWidgetType.CREDENTIALS), //
         new DefaultWidget(List.of(LegacyCredentials.class), DefaultWidgetType.LEGACY_CREDENTIALS), //
         new DefaultWidget(List.of(FileSelection.class), DefaultWidgetType.FILE_CHOOSER), //
-        new DefaultWidget(List.of(DynamicValuesInput.class), DefaultWidgetType.DYNAMIC_VALUE)//
+        new DefaultWidget(List.of(DynamicValuesInput.class), DefaultWidgetType.DYNAMIC_VALUE),//
+        new DefaultWidget(List.of(LocalTime.class), DefaultWidgetType.LOCAL_DATE)//
     };
 
     /**
