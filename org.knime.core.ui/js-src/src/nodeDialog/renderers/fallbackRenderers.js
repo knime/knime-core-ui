@@ -1,6 +1,7 @@
 import {
   rankWith,
   isNumberControl,
+  isDateTimeControl,
   isBooleanControl,
   isIntegerControl,
   isStringControl,
@@ -16,6 +17,7 @@ import { textRenderer } from "./textRenderer";
 import { verticalLayoutRenderer } from "./verticalLayoutRenderer";
 
 import { defineAsyncComponent } from "vue";
+import DateTimeControl from "../uiComponents/DateTimeControl.vue";
 
 const OneOfDropdown = defineAsyncComponent(() =>
   import("../uiComponents/OneOfDropdown.vue"),
@@ -56,4 +58,9 @@ export const fallbackRenderers = [
     // eslint-disable-next-line no-undefined
     tester: rankWith(priorityRanks.fallback, uiTypeIs(undefined)),
   },
+  {
+    name: "DateTimeControl",
+    renderer: DateTimeControl,
+    tester: rankWith(priorityRanks.fallback, isDateTimeControl),
+  }
 ];

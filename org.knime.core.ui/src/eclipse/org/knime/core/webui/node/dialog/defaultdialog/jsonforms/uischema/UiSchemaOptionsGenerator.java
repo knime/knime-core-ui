@@ -200,6 +200,8 @@ final class UiSchemaOptionsGenerator {
         }
         final var options = control.putObject(TAG_OPTIONS);
 
+        System.out.println("DEFAULT WIDGETS APPLICABLE FOR " + m_fieldClass + " ARE " + defaultWidgets);
+
         for (var defaultWidget : defaultWidgets) {
             switch (defaultWidget.type()) {
                 case CHECKBOX:
@@ -215,8 +217,11 @@ final class UiSchemaOptionsGenerator {
                     options.put(TAG_FORMAT, Format.COLUMN_SELECTION);
                     break;
                 case LOCAL_DATE:
-                    options.put(TAG_FORMAT, Format.DATE_TIME);
+                    options.put(TAG_FORMAT, Format.LOCAL_DATE);
                     disableTimeFields(options);
+                    break;
+                case LOCAL_TIME:
+                    options.put(TAG_FORMAT, Format.LOCAL_TIME);
                     break;
                 case STRING_ARRAY:
                     options.put(TAG_FORMAT, Format.COMBO_BOX);
@@ -256,10 +261,12 @@ final class UiSchemaOptionsGenerator {
         }
 
         if (annotatedWidgets.contains(DateTimeWidget.class)) {
+            System.out.println("hi from the datetimewidget branch");
+
             final var dateTimeWidget = m_node.getAnnotation(DateTimeWidget.class).orElseThrow();
-            options.put(TAG_FORMAT, Format.DATE_TIME);
+            options.put(TAG_FORMAT, Format.LOCAL_DATE);
             selectTimeFields(options, dateTimeWidget.showTime(), dateTimeWidget.showSeconds(),
-                dateTimeWidget.showMilliseconds(),dateTimeWidget.showDate());
+                dateTimeWidget.showMilliseconds(), dateTimeWidget.showDate());
             if (!dateTimeWidget.timezone().isEmpty()) {
                 options.put("timezone", dateTimeWidget.timezone());
             }
@@ -648,11 +655,11 @@ final class UiSchemaOptionsGenerator {
     }
 
     private static void disableTimeFields(final ObjectNode options) {
-        selectTimeFields(options, false, false, false,true);
+        selectTimeFields(options, false, false, false, true);
     }
 
     private static void selectTimeFields(final ObjectNode options, final boolean showTime, final boolean showSeconds,
-        final boolean showMilliseconds,final boolean showDate) {
+        final boolean showMilliseconds, final boolean showDate) {
         options.put("showTime", showTime);
         options.put("showSeconds", showSeconds);
         options.put("showMilliseconds", showMilliseconds);

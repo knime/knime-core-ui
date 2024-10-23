@@ -101,6 +101,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
@@ -183,7 +184,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <tr>
  * <td>LocalTime</td>
  * <td>Time Picker</td>
- * <td>{@link DateWidget}</td>
+ * <td>{@link TimeWidget}</td>
  * </tr>
  * <td>String[]</td>
  * <td></td>

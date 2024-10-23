@@ -77,6 +77,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
@@ -148,6 +149,7 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(ButtonWidget.class), //
         new WidgetAnnotation(List.of(String.class), DateTimeWidget.class), //
         new WidgetAnnotation(List.of(LocalDate.class), DateWidget.class), //
+        new WidgetAnnotation(List.of(LocalTime.class), TimeWidget.class), //
         new WidgetAnnotation(List.of(String.class), RichTextInputWidget.class), //
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), CredentialsWidget.class), //
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), PasswordWidget.class), //
@@ -158,8 +160,7 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(String.class), LocalFileWriterWidget.class), //
         new WidgetAnnotation(List.of(String.class), TextInputWidget.class), //
         new WidgetAnnotation(List.of(Void.class), SimpleButtonWidget.class), //
-        new WidgetAnnotation(List.of(Void.class), TextMessage.class)
-    };
+        new WidgetAnnotation(List.of(Void.class), TextMessage.class)};
 
     /**
      *
@@ -171,13 +172,13 @@ public final class WidgetImplementationUtil {
         new DefaultWidget(List.of(ColumnFilter.class), DefaultWidgetType.COLUMN_FILTER), //
         new DefaultWidget(List.of(NameFilter.class), DefaultWidgetType.NAME_FILTER), //
         new DefaultWidget(List.of(ColumnSelection.class), DefaultWidgetType.COLUMN_SELECTION), //
+        new DefaultWidget(List.of(LocalTime.class), DefaultWidgetType.LOCAL_TIME), //
         new DefaultWidget(List.of(LocalDate.class), DefaultWidgetType.LOCAL_DATE), //
         new DefaultWidget(List.of(String[].class), DefaultWidgetType.STRING_ARRAY), //
         new DefaultWidget(List.of(Credentials.class), DefaultWidgetType.CREDENTIALS), //
         new DefaultWidget(List.of(LegacyCredentials.class), DefaultWidgetType.LEGACY_CREDENTIALS), //
         new DefaultWidget(List.of(FileSelection.class), DefaultWidgetType.FILE_CHOOSER), //
-        new DefaultWidget(List.of(DynamicValuesInput.class), DefaultWidgetType.DYNAMIC_VALUE),//
-        new DefaultWidget(List.of(LocalTime.class), DefaultWidgetType.LOCAL_DATE)//
+        new DefaultWidget(List.of(DynamicValuesInput.class), DefaultWidgetType.DYNAMIC_VALUE) //
     };
 
     /**

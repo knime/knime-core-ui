@@ -237,6 +237,9 @@ export default {
     schema.showAdvancedSettings = false;
     this.schema = schema;
     this.uischema = initialSettings.ui_schema;
+
+    console.log(initialSettings);
+
     this.setCurrentData(initialSettings.data);
     this.setRegisterSettingsMethod(
       this.dialogService.registerSettings.bind(this.dialogService),

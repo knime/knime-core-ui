@@ -240,7 +240,9 @@ public final class JsonFormsConsts {
 
             public static final String SIMPLE_BUTTON = "simpleButton";
 
-            public static final String DATE_TIME = "date-time";
+            public static final String LOCAL_DATE = "localDate";
+
+            public static final String LOCAL_TIME = "localTime";
 
             public static final String RICH_TEXT_INPUT = "richTextInput";
 
