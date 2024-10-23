@@ -14,6 +14,8 @@ const minimum = computed(() =>
 const maximum = computed(() =>
   options.value?.maximum ? new Date(options.value.maximum) : null,
 );
+
+console.log("controlData ",control.value.data)
 </script>
 
 <template>
