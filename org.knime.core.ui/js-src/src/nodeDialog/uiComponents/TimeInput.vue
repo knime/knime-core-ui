@@ -1,15 +1,17 @@
 <script lang="ts">
-type OnlyLocalTime = {
+
+export type OnlyLocalTime = {
   hours: number;
   minutes: number;
   seconds: number;
   milliseconds: number;
 };
 
-const onlyLocalTimeToString = (time: OnlyLocalTime) =>
+export const onlyLocalTimeToString = (time: OnlyLocalTime) =>
   `${time.hours}:${time.minutes}:${time.seconds}.${time.milliseconds}`;
 
-const onlyLocalTimeFromString = (time: string): OnlyLocalTime | null => {
+export const onlyLocalTimeFromString = (time: string): OnlyLocalTime => {
+  console.log("time ",time)
   const regex = /^(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,9}))?)?$/;
 
   const matches = regex.exec(time);
@@ -29,204 +31,49 @@ const onlyLocalTimeFromString = (time: string): OnlyLocalTime | null => {
       milliseconds: Math.floor(nanoSeconds / 1e6),
     };
   } else {
-    return null;
+    throw new Error(`Invalid time format: ${time}`);
   }
 };
+</script>
 
-import {
-  isValid,
-  parse,
-  setHours,
-  setMilliseconds,
-  setMinutes,
-  setSeconds,
-} from "date-fns";
-import { format, utcToZonedTime, zonedTimeToUtc } from "date-fns-tz";
-import { map } from "lodash-es";
-import { DatePicker } from "v-calendar";
+<script setup lang="ts">
 
-import {
-  getLocalTimeZone,
-  isAfterMaxDate,
-  isBeforeMinDate,
-  updateDate,
-} from "@knime/utils";
+import { TimePartInput }
+  from "@knime/components";
+import {computed} from "vue";
 
-import { resolveClientOnlyComponent } from "../../nuxtComponentResolver";
-import Dropdown from "../Dropdown/Dropdown.vue";
-import TimePartInput from "../TimePartInput/TimePartInput.vue";
-import "../variables.css";
 
-/**
- * DateTime component shows input field with a button and a popover calendar to choose the date. Time is represented
- * with multiple TimePartInputs for hour, minute etc.
- * Uses DatePicker from v-calendar. See: https://vcalendar.io/
- */
-export default {
-  name: "DateTimeInput",
-  components: {
-    Dropdown,
-    TimePartInput,
-    DatePicker,
-  },
-  props: {
-    /**
-     * @type Date - date time in UTC.
-     */
-    modelValue: {
-      type: Date,
-      required: true,
+const localTimeModel = defineModel<OnlyLocalTime>( {
+  required: true,
+});
+
+const localTime = computed(
+  {
+    get: () => localTimeModel.value,
+    set: (value: OnlyLocalTime) => {
+      console.log("set ",value)
+      localTimeModel.value = value;
+
     },
-    /**
-     * @type String - id of the <input> element; can be used with Label component.
-     */
-    id: {
-      type: String,
-      default: null,
-    },
-    /**
-     * Validity controlled by the parent component to be flexible.
-     */
-    isValid: {
-      default: true,
-      type: Boolean,
-    },
-    required: {
-      default: false,
-      type: Boolean,
-    },
-    disabled: {
-      default: false,
-      type: Boolean,
-    },
-    compact: {
-      default: false,
-      type: Boolean,
-    },
-  },
-  emits: ["update:modelValue"],
-  data() {
-    return {
-      popoverIsVisible: false,
-      isInvalid: false,
-      // last invalid entered value (for error message)
-      invalidValue: null,
-      // internal value guarded by watcher to prevent invalid values (min/max, null etc.)
-      // time in the given timezone (default: browser local) for correct display
-      localValue: {
-        hours: 0,
-        minutes: 0,
-        seconds: 0,
-        milliseconds: 0,
-      },
-    };
-  },
-  computed: {
-    clientOnlyComponent() {
-      return resolveClientOnlyComponent();
-    },
-    dateTimeHours() {
-      return this.localValue.hours;
-    },
-    dateTimeMinutes() {
-      return this.localValue.minutes;
-    },
-    dateTimeSeconds() {
-      return this.localValue.seconds;
-    },
-    dateTimeMilliseconds() {
-      return this.localValue.milliseconds;
-    },
-  },
-  watch: {
-    modelValue: {
-      // validates against min/max and sets appropriate state
-      handler(newValue) {
-        this.localValue = newValue;
-      },
-      immediate: true,
-    },
-    timezone: {
-      handler(newValue) {
-        this.selectedTimezone = newValue;
-      },
-    },
-  },
-  methods: {
-    formatDate(date) {
-      return format(date, this.timeFormat);
-    },
-    emitInput(value) {
-      // check min/max
-      const utcValue = zonedTimeToUtc(value, this.selectedTimezone);
-      this.checkMinMax(utcValue);
-      this.$emit("update:modelValue", utcValue);
-    },
-    onTimeMinutesBounds(bounds) {
-      if (["min", "max"].includes(bounds.type)) {
-        this.emitInput(setMinutes(new Date(this.localValue), bounds.value));
-      } else {
-        this.emitInput(this.localValue);
-      }
-    },
-    onTimeSecondsBounds(bounds) {
-      if (["min", "max"].includes(bounds.type)) {
-        this.emitInput(setSeconds(new Date(this.localValue), bounds.value));
-      } else {
-        this.emitInput(this.localValue);
-      }
-    },
-    onTimeMillisecondsBounds(bounds) {
-      if (["min", "max"].includes(bounds.type)) {
-        this.emitInput(
-          setMilliseconds(new Date(this.localValue), bounds.value),
-        );
-      } else {
-        this.emitInput(this.localValue);
-      }
-    },
-    onTimeHoursChange(hours) {
-      let date = new Date(this.localValue);
-      if (Number.isSafeInteger(hours)) {
-        date = setHours(date, hours);
-      }
-      this.emitInput(date);
-    },
-    onTimeMinutesChange(minutes: number) {
-      let date = new Date(this.localValue);
-      if (Number.isSafeInteger(minutes)) {
-        date = setMinutes(date, minutes);
-      }
-      this.emitInput(date);
-    },
-    onTimeSecondsChange(seconds) {
-      let date = new Date(this.localValue);
-      if (Number.isSafeInteger(seconds)) {
-        date = setSeconds(date, seconds);
-      }
-      this.emitInput(date);
-    },
-    onTimeMillisecondsChange(milliseconds) {
-      let date = new Date(this.localValue);
-      if (Number.isSafeInteger(milliseconds)) {
-        date = setMilliseconds(date, milliseconds);
-      }
-      this.emitInput(date);
-    },
-    validate() {
-      let isValid = true;
-      let errorMessage;
-      if (this.required && this.isInvalid) {
-        isValid = false;
-        errorMessage = "Please input a valid date";
-      }
-      return {
-        isValid,
-        errorMessage,
-      };
-    },
-  },
-};
+  }
+);
+
+type TimeProps = {
+  id?: string | null;
+  isValid?: boolean;
+  required?: boolean;
+  disabled?: boolean;
+  compact?: boolean;
+}
+
+withDefaults(defineProps<TimeProps>(), {
+  id: null,
+  isValid: true,
+  required: false,
+  disabled: false,
+  compact: false,
+});
+
 </script>
 
 <template>
@@ -240,10 +87,8 @@ export default {
         :min="0"
         :max="23"
         :min-digits="2"
-        :model-value="dateTimeHours"
+        v-model="localTime.hours"
         :disabled="disabled"
-        @bounds="onTimeHoursBounds"
-        @update:model-value="onTimeHoursChange"
       />
       <span class="time-colon">:</span>
       <TimePartInput
@@ -254,14 +99,11 @@ export default {
         :min="0"
         :max="59"
         :min-digits="2"
-        :model-value="dateTimeMinutes"
+        v-model="localTime.minutes"
         :disabled="disabled"
-        @bounds="onTimeMinutesBounds"
-        @update:model-value="onTimeMinutesChange"
       />
-      <span v-if="showSeconds" class="time-colon">:</span>
+      <span class="time-colon">:</span>
       <TimePartInput
-        v-if="showSeconds"
         ref="seconds"
         class="time-part"
         type="integer"
@@ -269,10 +111,8 @@ export default {
         :min="0"
         :max="59"
         :min-digits="2"
-        :model-value="dateTimeSeconds"
+        v-model="localTime.seconds"
         :disabled="disabled"
-        @bounds="onTimeSecondsBounds"
-        @update:model-value="onTimeSecondsChange"
       />
       <span class="time-colon">.</span>
       <TimePartInput
@@ -283,10 +123,8 @@ export default {
         :min="0"
         :max="999"
         :min-digits="3"
-        :model-value="dateTimeMilliseconds"
+        v-model="localTime.milliseconds"
         :disabled="disabled"
-        @bounds="onTimeMillisecondsBounds"
-        @update:model-value="onTimeMillisecondsChange"
       />
     </div>
   </div>
