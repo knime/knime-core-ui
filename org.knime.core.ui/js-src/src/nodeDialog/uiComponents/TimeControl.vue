@@ -22,7 +22,7 @@ const theDate =  Date.parse(control.value.data)
 console.log("theDate ",theDate)
 
 
-const safelyParseTimeWithIncreasingResolutionUntilItFits = (timeString: string) => {
+const safelyParseTimeWithIncreasingResolutionUntilItFits = (timeString: string): Date => {
   const timeFormats = [
     'HH:mm:ss.SSSSSSSSS',
     'HH:mm:ss.SSSSSSSS',
@@ -34,20 +34,33 @@ const safelyParseTimeWithIncreasingResolutionUntilItFits = (timeString: string) 
     'HH:mm:ss.SS',
     'HH:mm:ss.S',
     'HH:mm:ss',
-    'HH:mm',
+    'HH:mm'
   ];
 
+  // Check if the time string looks like an ISO date and convert if necessary
+  if (new Date(timeString).toString() !== 'Invalid Date') {
+    return new Date(timeString); // Return ISO-like string directly
+  }
+
   for (const timeFormat of timeFormats) {
-    const parsedTime = parse(timeString, timeFormat, new Date());
-    if (!isNaN(parsedTime.getTime())) {
-      return parsedTime;
+    try {
+      const parsedTime = parse(timeString, timeFormat, new Date());
+      if (!isNaN(parsedTime.getTime())) {
+        return parsedTime;
+      }
+    } catch (error) {
+      // Catch parsing errors and skip to the next format
+      continue;
     }
   }
-  return new Date().toLocaleTimeString();
+  console.error("ERROR: Could not parse time string", timeString);
+  return new Date(); // Return current date as fallback
 };
 
-const parsedTime = ref(safelyParseTimeWithIncreasingResolutionUntilItFits(control.value.data));
-console.log("parsedDate",parsedTime)
+const parsedTime = computed(() => {
+  return safelyParseTimeWithIncreasingResolutionUntilItFits(control.value.data);
+});
+console.log("parsedssDate",parsedTime)
 
 </script>
 
@@ -61,7 +74,7 @@ console.log("parsedDate",parsedTime)
     <DateTimeInput
       :id="labelForId"
       two-lines
-      :model-value="control.data"
+      :model-value="safelyParseTimeWithIncreasingResolutionUntilItFits(control.data)"
       class="date-time"
       :required="true"
       :show-time="true"
