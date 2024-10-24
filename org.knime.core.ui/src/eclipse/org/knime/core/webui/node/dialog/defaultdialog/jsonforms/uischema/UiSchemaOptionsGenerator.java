@@ -466,6 +466,8 @@ final class UiSchemaOptionsGenerator {
                 String format = getChoicesComponentFormat();
                 options.put(TAG_FORMAT, format);
             }
+
+            options.put("hideOnNull", choicesWidget.optional());
             options.put("showNoneColumn", choicesWidget.showNoneColumn());
             options.put("showRowKeys", choicesWidget.showRowKeysColumn());
             if (choicesWidget.showRowNumbersColumn()) {

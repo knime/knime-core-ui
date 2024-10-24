@@ -245,6 +245,8 @@ export default {
     this.registerGlobalUpdates(this.uischema?.globalUpdates ?? []);
     this.dialogService.setApplyListener(this.applySettings.bind(this));
     this.ready = true;
+
+    console.log("uischema", this.uischema);
   },
   methods: {
     setSubPanelExpanded({ isExpanded }: { isExpanded: boolean }) {
