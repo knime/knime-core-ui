@@ -62,9 +62,9 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.DeprecationLoader;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -255,14 +255,16 @@ class PersistUtilTest {
                 new Builder<Integer>(dummyLoader)//
                     .withDeprecatedConfigPath("A", "B")//
                     .withDeprecatedConfigPath("C")//
-                    .withNewConfigPath("D", "E")//
-                    .withNewConfigPath("F")//
+                    .forNewConfigPath("D", "E")//
+                    .forNewConfigPath("F")//
                     .build(), //
                 new Builder<Integer>(dummyLoader)//
                     .withDeprecatedConfigPath("G", "H")//
-                    .withNewConfigPath("I", "J")//
-                    .build() //
-            );
+                    .forNewConfigPath("I", "J")//
+                    .build(), //
+                new Builder<Integer>(dummyLoader)//
+                    .withDeprecatedConfigPath("K", "L")//
+                    .build());
         }
 
     }
@@ -286,5 +288,9 @@ class PersistUtilTest {
             .isEqualTo(new String[][]{{"G", "H"}});
         assertThatJson(result).inPath("$.properties.model.properties.test.deprecatedConfigKeys[1].new").isArray()
             .isEqualTo(new String[][]{{"I", "J"}});
+        assertThatJson(result).inPath("$.properties.model.properties.test.deprecatedConfigKeys[2].deprecated").isArray()
+            .isEqualTo(new String[][]{{"K", "L"}});
+        assertThatJson(result).inPath("$.properties.model.properties.test.deprecatedConfigKeys[1].new").isArray()
+            .isEqualTo(new String[][]{{}});
     }
 }
