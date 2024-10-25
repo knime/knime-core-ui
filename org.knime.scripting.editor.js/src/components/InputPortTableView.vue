@@ -73,6 +73,8 @@ const apiLayer: UIExtensionAPILayer = {
   },
   setControlsVisibility: noop,
   setReportingContent: noop,
+  showDataValueView: noop,
+  closeDataValueView: noop,
 };
 
 onMounted(async () => {
