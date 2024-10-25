@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
+
 import { createDragGhost, removeDragGhost } from "../dragGhost";
 
 describe("draghGhost", () => {

@@ -1,10 +1,10 @@
-import { describe, afterEach, it, vi, expect, beforeEach } from "vitest";
-import CodeEditorControlBar from "../CodeEditorControlBar.vue";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
-import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
 
-import type { PaneSizes } from "../utils/paneSizes";
+import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
+import CodeEditorControlBar from "../CodeEditorControlBar.vue";
 import AiButton from "../ai-assistant/AiButton.vue";
+import type { PaneSizes } from "../utils/paneSizes";
 
 vi.mock("@/scripting-service");
 vi.mock("@/initial-data-service", () => ({

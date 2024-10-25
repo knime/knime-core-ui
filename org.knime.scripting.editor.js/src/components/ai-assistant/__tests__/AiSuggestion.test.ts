@@ -1,14 +1,16 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { nextTick, ref } from "vue";
+import { mount } from "@vue/test-utils";
+
+import { Button } from "@knime/components";
+
 import { diffEditorState } from "@/__mocks__/editor";
 import { useDiffEditor } from "@/editor";
 import {
   setActiveEditorStoreForAi,
   usePromptResponseStore,
 } from "@/store/ai-bar";
-import { mount } from "@vue/test-utils";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ref, nextTick } from "vue";
 import AiSuggestion from "../AiSuggestion.vue";
-import { Button } from "@knime/components";
 
 vi.mock("@/editor");
 

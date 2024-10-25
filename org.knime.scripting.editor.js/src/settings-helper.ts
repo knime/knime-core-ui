@@ -3,6 +3,7 @@ import {
   JsonDataService,
   type SettingState,
 } from "@knime/ui-extension-service";
+
 import type { GenericInitialData } from "./initial-data-service";
 import type { GenericNodeSettings } from "./settings-service";
 

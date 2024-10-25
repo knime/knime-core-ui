@@ -1,22 +1,23 @@
-import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ref } from "vue";
+import { flushPromises, mount } from "@vue/test-utils";
+
+import InfinityLoadingBar from "@/components/InfinityLoadingBar.vue";
+import AiPopupContent from "@/components/ai-assistant/AiPopupContent.vue";
+import AiSuggestion from "@/components/ai-assistant/AiSuggestion.vue";
+import { getInitialDataService } from "@/initial-data-service";
+import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
 import { getScriptingService } from "@/scripting-service";
+import { getSettingsService } from "@/settings-service";
+import {
+  DEFAULT_INITIAL_SETTINGS,
+  registerSettingsMock,
+} from "@/settings-service-browser-mock";
 import {
   clearPromptResponseStore,
   setActiveEditorStoreForAi,
   usePromptResponseStore,
 } from "@/store/ai-bar";
-import AiPopupContent from "@/components/ai-assistant/AiPopupContent.vue";
-import AiSuggestion from "@/components/ai-assistant/AiSuggestion.vue";
-import { getInitialDataService } from "@/initial-data-service";
-import { ref } from "vue";
-import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
-import {
-  DEFAULT_INITIAL_SETTINGS,
-  registerSettingsMock,
-} from "@/settings-service-browser-mock";
-import { getSettingsService } from "@/settings-service";
-import InfinityLoadingBar from "@/components/InfinityLoadingBar.vue";
 
 vi.mock("@/scripting-service");
 vi.mock("@/editor");

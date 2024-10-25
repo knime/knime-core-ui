@@ -1,13 +1,14 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { flushPromises, mount } from "@vue/test-utils";
+import { onKeyStroke } from "@vueuse/core";
+
+import { useMainCodeEditor } from "@/editor";
 import { type GenericNodeSettings } from "@/settings-service";
 import {
   DEFAULT_INITIAL_SETTINGS,
   registerSettingsMock,
 } from "@/settings-service-browser-mock";
-import { flushPromises, mount } from "@vue/test-utils";
-import { describe, it, vi, expect, afterEach, beforeEach } from "vitest";
 import MainEditorPane from "../MainEditorPane.vue";
-import { onKeyStroke } from "@vueuse/core";
-import { useMainCodeEditor } from "@/editor";
 
 vi.mock("@vueuse/core", async (importOriginal) => {
   const original = await importOriginal<typeof import("@vueuse/core")>();

@@ -1,12 +1,12 @@
 import { Position, editor, languages } from "monaco-editor";
 import {
   ParameterInformation,
-  SignatureHelpTriggerKind,
-  SignatureInformation,
   type SignatureHelp,
   type SignatureHelpClientCapabilities,
   type SignatureHelpContext,
   type SignatureHelpParams,
+  SignatureHelpTriggerKind,
+  SignatureInformation,
 } from "vscode-languageserver-protocol";
 
 import { getTextDocPositionParms, mapMarkupToMonaco } from "./mapping-utils";

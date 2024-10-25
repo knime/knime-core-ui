@@ -1,10 +1,11 @@
-import { MarkerSeverity, MarkerTag } from "monaco-editor";
 import { describe, expect, it } from "vitest";
+import { MarkerSeverity, MarkerTag } from "monaco-editor";
 import {
   DiagnosticSeverity,
   DiagnosticTag,
   type Range,
 } from "vscode-languageserver-protocol";
+
 import { mapDiagnosticToMarkerData } from "../diagnostics";
 
 describe("diagnostics", () => {

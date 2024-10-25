@@ -1,12 +1,14 @@
-import { useInputOutputSelectionStore } from "@/store/io-selection";
-import { mount } from "@vue/test-utils";
-import Handlebars from "handlebars";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick, ref } from "vue";
+import { mount } from "@vue/test-utils";
+import Handlebars from "handlebars";
+
 import { Collapser, useMultiSelection } from "@knime/components";
+
+import { useInputOutputSelectionStore } from "@/store/io-selection";
 import InputOutputItem, {
-  INPUT_OUTPUT_DRAG_EVENT_ID,
   COLUMN_INSERTION_EVENT,
+  INPUT_OUTPUT_DRAG_EVENT_ID,
   type InputOutputModel,
 } from "../InputOutputItem.vue";
 import { createDragGhost, removeDragGhost } from "../utils/dragGhost";

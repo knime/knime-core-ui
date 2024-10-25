@@ -1,18 +1,19 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { nextTick } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
-import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
-import InputOutputPane from "../InputOutputPane.vue";
+
+import { useMainCodeEditorStore } from "@/editor";
+import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
+import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
+import {
+  type InputOutputSelectionStore,
+  useInputOutputSelectionStore,
+} from "@/store/io-selection";
 import InputOutputItem, {
   INPUT_OUTPUT_DRAG_EVENT_ID,
   type InputOutputModel,
 } from "../InputOutputItem.vue";
-import {
-  useInputOutputSelectionStore,
-  type InputOutputSelectionStore,
-} from "@/store/io-selection";
-import { useMainCodeEditorStore } from "@/editor";
-import { nextTick } from "vue";
-import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
-import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
+import InputOutputPane from "../InputOutputPane.vue";
 
 vi.mock("monaco-editor");
 vi.mock("@/scripting-service");

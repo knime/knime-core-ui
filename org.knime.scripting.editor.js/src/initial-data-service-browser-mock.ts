@@ -1,12 +1,11 @@
+import type { InputOutputModel } from "@/components/InputOutputItem.vue";
 import {
   type GenericInitialData,
   type InitialDataServiceType,
-  type PortConfigs,
   type InputConnectionInfo,
+  type PortConfigs,
 } from "@/initial-data-service";
-
 import { log } from "@/log";
-import type { InputOutputModel } from "@/components/InputOutputItem.vue";
 
 export const DEFAULT_INPUT_OBJECTS: InputOutputModel[] = [
   {

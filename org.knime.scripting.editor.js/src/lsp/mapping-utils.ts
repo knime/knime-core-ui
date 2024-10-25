@@ -1,8 +1,8 @@
 import {
-  Position,
-  editor,
   type IMarkdownString,
   type IRange,
+  Position,
+  editor,
 } from "monaco-editor";
 import {
   Position as LSPPosition,

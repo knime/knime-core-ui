@@ -1,23 +1,23 @@
 import { editor, languages } from "monaco-editor";
 import {
+  type CompletionOptions,
   CompletionRequest,
   CompletionResolveRequest,
   DidChangeConfigurationNotification,
   DidChangeTextDocumentNotification,
   DidOpenTextDocumentNotification,
   HoverRequest,
+  type InitializeParams,
   InitializeRequest,
   InitializedNotification,
+  type LSPAny,
+  type MessageConnection,
   MessageReader,
   MessageWriter,
   PublishDiagnosticsNotification,
+  type SignatureHelpOptions,
   SignatureHelpRequest,
   createMessageConnection,
-  type CompletionOptions,
-  type InitializeParams,
-  type LSPAny,
-  type MessageConnection,
-  type SignatureHelpOptions,
 } from "vscode-languageserver-protocol";
 
 import {

@@ -1,9 +1,11 @@
+import type { SettingState } from "@knime/ui-extension-service";
+
+import { log } from "@/log";
+
 import type {
   GenericNodeSettings,
   SettingsServiceType,
 } from "./settings-service";
-import { log } from "@/log";
-import type { SettingState } from "@knime/ui-extension-service";
 
 export const DEFAULT_INITIAL_SETTINGS: GenericNodeSettings = {
   settingsAreOverriddenByFlowVariable: false,

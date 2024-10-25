@@ -1,14 +1,14 @@
 import "./editor.css";
-import * as monaco from "monaco-editor";
 import {
+  type Ref,
   computed,
   onMounted,
   onUnmounted,
   readonly,
   ref,
   shallowRef,
-  type Ref,
 } from "vue";
+import * as monaco from "monaco-editor";
 
 // Force monaco to remeasure fonts after they are loaded
 document.fonts?.ready.then(() => {

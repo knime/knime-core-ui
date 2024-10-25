@@ -1,5 +1,6 @@
-import { getScriptingService } from "@/scripting-service";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { getScriptingService } from "@/scripting-service";
 import { KnimeMessageReader, KnimeMessageWriter } from "../knime-io";
 
 vi.mock("@/scripting-service");

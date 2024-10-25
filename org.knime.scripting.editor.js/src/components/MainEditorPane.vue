@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import { useMainCodeEditor } from "@/editor";
 import { onKeyStroke } from "@vueuse/core";
-import {
-  getSettingsService,
-  type GenericNodeSettings,
-} from "@/settings-service";
-import { insertionEventHelper } from "@/components/utils/insertionEventHelper";
+
 import { COLUMN_INSERTION_EVENT } from "@/components/InputOutputItem.vue";
+import { insertionEventHelper } from "@/components/utils/insertionEventHelper";
+import { useMainCodeEditor } from "@/editor";
+import {
+  type GenericNodeSettings,
+  getSettingsService,
+} from "@/settings-service";
 import { useReadonlyStore } from "@/store/readOnly";
 
 interface Props {

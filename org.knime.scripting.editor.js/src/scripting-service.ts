@@ -1,9 +1,11 @@
 import { JsonDataService } from "@knime/ui-extension-service";
+
+import { consoleHandler } from "@/consoleHandler";
+
 import { useMainCodeEditorStore } from "./editor";
+import type { PortConfig } from "./initial-data-service";
 import { MonacoLSPConnection } from "./lsp/connection";
 import { KnimeMessageReader, KnimeMessageWriter } from "./lsp/knime-io";
-import { consoleHandler } from "@/consoleHandler";
-import type { PortConfig } from "./initial-data-service";
 
 type LanugageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
 

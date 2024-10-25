@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
-import HeaderBar from "../HeaderBar.vue";
+
 import { SubMenu } from "@knime/components";
 import MenuIcon from "@knime/styles/img/icons/menu-options.svg";
+
+import HeaderBar from "../HeaderBar.vue";
 
 describe("HeaderBar", () => {
   const defaultProps = {

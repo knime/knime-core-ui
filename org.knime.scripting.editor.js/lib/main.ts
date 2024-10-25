@@ -1,22 +1,27 @@
 import CompactTabBar from "@/components/CompactTabBar.vue";
+import {
+  COLUMN_INSERTION_EVENT,
+  type InputOutputModel,
+  type SubItem,
+} from "@/components/InputOutputItem.vue";
+import InputOutputPane from "@/components/InputOutputPane.vue";
 import OutputConsole, {
   type ConsoleHandler,
   type ConsoleText,
 } from "@/components/OutputConsole.vue";
+import OutputTablePreview from "@/components/OutputTablePreview.vue";
 import ScriptingEditor from "@/components/ScriptingEditor.vue";
-import { setConsoleHandler, consoleHandler } from "@/consoleHandler";
 import { type SettingsMenuItem } from "@/components/SettingsPage.vue";
-import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
 import {
-  MIN_WIDTH_FOR_DISPLAYING_PANES,
+  type InsertionEvent,
+  insertionEventHelper,
+} from "@/components/utils/insertionEventHelper";
+import {
   MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
+  MIN_WIDTH_FOR_DISPLAYING_PANES,
 } from "@/components/utils/paneSizes";
-import {
-  type InputOutputModel,
-  type SubItem,
-  COLUMN_INSERTION_EVENT,
-} from "@/components/InputOutputItem.vue";
-import InputOutputPane from "@/components/InputOutputPane.vue";
+import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
+import { consoleHandler, setConsoleHandler } from "@/consoleHandler";
 import type {
   UseCodeEditorParams,
   UseCodeEditorReturn,
@@ -24,30 +29,25 @@ import type {
   UseDiffEditorReturn,
 } from "@/editor";
 import editor from "@/editor";
-import { useReadonlyStore } from "@/store/readOnly";
 import {
-  getScriptingService,
-  initConsoleEventHandler,
-  type ScriptingServiceType,
-} from "@/scripting-service";
-import { setActiveEditorStoreForAi } from "@/store/ai-bar";
-import {
-  insertionEventHelper,
-  type InsertionEvent,
-} from "@/components/utils/insertionEventHelper";
-import OutputTablePreview from "@/components/OutputTablePreview.vue";
-import {
-  getInitialDataService,
-  type InitialDataServiceType,
   type GenericInitialData,
+  type InitialDataServiceType,
+  type InputConnectionInfo,
   type KAIConfig,
   type PortConfigs,
-  type InputConnectionInfo,
+  getInitialDataService,
 } from "@/initial-data-service";
+import {
+  type ScriptingServiceType,
+  getScriptingService,
+  initConsoleEventHandler,
+} from "@/scripting-service";
 import {
   type GenericNodeSettings,
   getSettingsService,
 } from "@/settings-service";
+import { setActiveEditorStoreForAi } from "@/store/ai-bar";
+import { useReadonlyStore } from "@/store/readOnly";
 
 export {
   COLUMN_INSERTION_EVENT,

@@ -1,8 +1,9 @@
 import { computed, reactive } from "vue";
 import type { UseElementBoundingReturn } from "@vueuse/core";
+
 import {
-  MIN_WIDTH_FOR_DISPLAYING_PANES,
   MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
+  MIN_WIDTH_FOR_DISPLAYING_PANES,
   MIN_WIDTH_FOR_SHOWING_BUTTON_TEXT,
   type PaneSizes,
 } from "@/components/utils/paneSizes";

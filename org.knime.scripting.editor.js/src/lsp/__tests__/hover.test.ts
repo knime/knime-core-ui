@@ -1,5 +1,6 @@
-import { Position, editor } from "monaco-editor";
 import { describe, expect, it } from "vitest";
+import { Position, editor } from "monaco-editor";
+
 import { getHoverParams, mapHoverResult } from "../hover";
 
 describe("hover", () => {

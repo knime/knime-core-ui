@@ -1,27 +1,27 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { nextTick } from "vue";
 import {
+  type CancellationToken,
   Position,
   editor,
   languages,
-  type CancellationToken,
 } from "monaco-editor";
-import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  MessageReader,
-  MessageWriter,
   type DataCallback,
   type InitializeResult,
+  MessageReader,
+  MessageWriter,
   type PublishDiagnosticsParams,
 } from "vscode-languageserver-protocol";
+
 import { sleep } from "@knime/utils";
 
-import { MonacoLSPConnection } from "../connection";
-
 import * as completion from "../completion";
+import { MonacoLSPConnection } from "../connection";
 import * as diagnostics from "../diagnostics";
 import * as docSync from "../doc-sync";
 import * as hover from "../hover";
 import * as signatureHelp from "../signature-help";
-import { nextTick } from "vue";
 
 // Install spies on monaco APIs
 vi.spyOn(languages, "registerHoverProvider");

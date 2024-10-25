@@ -1,15 +1,15 @@
-import { Position, editor, languages, type IRange } from "monaco-editor";
+import { type IRange, Position, editor, languages } from "monaco-editor";
 import {
+  type CompletionClientCapabilities,
+  type CompletionContext,
   CompletionItem,
   CompletionItemKind,
   CompletionItemTag,
   CompletionList,
+  type CompletionParams,
   CompletionTriggerKind,
   InsertTextFormat,
   InsertTextMode,
-  type CompletionClientCapabilities,
-  type CompletionContext,
-  type CompletionParams,
 } from "vscode-languageserver-protocol";
 
 import { getTextDocPositionParms, mapMarkupToMonaco } from "./mapping-utils";

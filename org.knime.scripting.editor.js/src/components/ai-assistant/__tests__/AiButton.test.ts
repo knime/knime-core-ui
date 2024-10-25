@@ -1,12 +1,13 @@
-import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
-import { it, vi, expect, describe, afterEach } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
+
 import AiButton from "@/components/ai-assistant/AiButton.vue";
-import {
-  getInitialDataService,
-  type InputConnectionInfo,
-} from "@/initial-data-service";
 import type { PaneSizes } from "@/components/utils/paneSizes";
+import {
+  type InputConnectionInfo,
+  getInitialDataService,
+} from "@/initial-data-service";
+import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
 
 vi.mock("@/scripting-service");
 vi.mock("@/initial-data-service", () => ({

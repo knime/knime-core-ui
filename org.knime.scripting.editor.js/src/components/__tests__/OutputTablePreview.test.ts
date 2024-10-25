@@ -1,7 +1,8 @@
-import { flushPromises, mount } from "@vue/test-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import OutputTablePreview from "../OutputTablePreview.vue";
+import { flushPromises, mount } from "@vue/test-utils";
+
 import { getScriptingService } from "../../__mocks__/scripting-service";
+import OutputTablePreview from "../OutputTablePreview.vue";
 
 const mocks = vi.hoisted(() => {
   const dummyPath = "something/something/";

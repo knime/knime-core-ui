@@ -1,7 +1,8 @@
 import { sleep } from "@knime/utils";
-import type { ScriptingServiceType } from "./scripting-service";
 
 import { log } from "@/log";
+
+import type { ScriptingServiceType } from "./scripting-service";
 
 const SLEEP_TIME_ANY_CALL = 100;
 const SLEEP_TIME_AI_SUGGESTION = 2000;

@@ -7,30 +7,33 @@ export default {};
 </script>
 
 <script setup lang="ts">
-import { useTextareaAutosize } from "@vueuse/core";
 import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
+import { useTextareaAutosize } from "@vueuse/core";
+
+import { Button, FunctionButton } from "@knime/components";
 import AbortIcon from "@knime/styles/img/icons/cancel-execution.svg";
+import WarningIcon from "@knime/styles/img/icons/circle-warning.svg";
 import LinkIcon from "@knime/styles/img/icons/link.svg";
 import SendIcon from "@knime/styles/img/icons/paper-flier.svg";
-import { Button, FunctionButton } from "@knime/components";
+
 import InfinityLoadingBar from "@/components/InfinityLoadingBar.vue";
-import WarningIcon from "@knime/styles/img/icons/circle-warning.svg";
-import { getScriptingService } from "@/scripting-service";
 import {
-  getInitialDataService,
   type GenericInitialData,
+  getInitialDataService,
 } from "@/initial-data-service";
+import { getScriptingService } from "@/scripting-service";
 import { getSettingsService } from "@/settings-service";
 import {
+  type Message,
+  type PromptResponseStore,
   activeEditorStore,
   clearPromptResponseStore,
   showDisclaimer,
   usePromptResponseStore,
-  type Message,
-  type PromptResponseStore,
 } from "@/store/ai-bar";
-import AiSuggestion from "./AiSuggestion.vue";
+
 import AiDisclaimer from "./AiDisclaimer.vue";
+import AiSuggestion from "./AiSuggestion.vue";
 
 type Status =
   | "idle"

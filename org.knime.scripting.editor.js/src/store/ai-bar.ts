@@ -1,5 +1,6 @@
-import { type UseCodeEditorReturn, useMainCodeEditorStore } from "@/editor";
 import { reactive, ref, shallowRef, watch } from "vue";
+
+import { type UseCodeEditorReturn, useMainCodeEditorStore } from "@/editor";
 
 export interface Message {
   role: "reply" | "request";

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import AiDisclaimer from "@/components/ai-assistant/AiDisclaimer.vue";
 import { flushPromises, mount } from "@vue/test-utils";
+
+import AiDisclaimer from "@/components/ai-assistant/AiDisclaimer.vue";
 
 const doMount = async () => {
   const wrapper = mount(AiDisclaimer);
