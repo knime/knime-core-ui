@@ -82,6 +82,8 @@ const apiLayer: UIExtensionAPILayer = {
   },
   setControlsVisibility: noop,
   setReportingContent: noop,
+  showDataValueView: noop,
+  closeDataValueView: noop,
 };
 const updateExtensionConfig = async (config: ExtensionConfig) => {
   // @ts-ignore
