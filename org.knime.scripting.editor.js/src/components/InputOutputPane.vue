@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { type Directive, ref } from "vue";
+import * as monaco from "monaco-editor";
+
+import { useMainCodeEditorStore } from "@/editor";
+import { useInputOutputSelectionStore } from "@/store/io-selection";
+
 import InputOutputItem, {
   INPUT_OUTPUT_DRAG_EVENT_ID,
   type InputOutputModel,
 } from "./InputOutputItem.vue";
-import { useInputOutputSelectionStore } from "@/store/io-selection";
-import { useMainCodeEditorStore } from "@/editor";
 import useShouldFocusBePainted from "./utils/shouldFocusBePainted";
-import * as monaco from "monaco-editor";
 
 const emit = defineEmits<{
   "drop-event-handler-created": [

@@ -1,11 +1,11 @@
 import {
   AbstractMessageReader,
   AbstractMessageWriter,
+  type DataCallback,
   Disposable,
   Message,
   MessageReader,
   MessageWriter,
-  type DataCallback,
 } from "vscode-languageserver-protocol";
 
 import { getScriptingService } from "../scripting-service";

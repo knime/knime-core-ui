@@ -1,16 +1,16 @@
 import {
+  type IMarkdownString,
+  type IRange,
   Position,
   editor,
   languages,
-  type IMarkdownString,
-  type IRange,
 } from "monaco-editor";
 import {
   Hover,
-  MarkedString,
-  MarkupContent,
   type HoverClientCapabilities,
   type HoverParams,
+  MarkedString,
+  MarkupContent,
 } from "vscode-languageserver-protocol";
 
 import {

@@ -1,11 +1,12 @@
-import { Position, editor, languages } from "monaco-editor";
 import { describe, expect, it } from "vitest";
+import { Position, editor, languages } from "monaco-editor";
 import {
   CompletionItemKind,
   CompletionItemTag,
   CompletionTriggerKind,
   InsertTextMode,
 } from "vscode-languageserver-protocol";
+
 import {
   getCompletionParams,
   getCompletionResolveParams,

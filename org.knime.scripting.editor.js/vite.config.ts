@@ -1,12 +1,13 @@
 // eslint-disable-next-line spaced-comment
 /// <reference types="vitest" />
-import { fileURLToPath, URL } from "node:url";
+import { URL, fileURLToPath } from "node:url";
 
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-import dts from "vite-plugin-dts";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
+import dts from "vite-plugin-dts";
 import svgLoader from "vite-svg-loader";
+
 // @ts-ignore
 import { svgoConfig } from "@knime/styles/config/svgo.config";
 

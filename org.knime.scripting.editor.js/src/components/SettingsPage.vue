@@ -1,14 +1,11 @@
-<script lang="ts">
+<script setup lang="ts">
+import { Button } from "@knime/components";
 import type { MenuItem } from "@knime/components";
+import ArrowLeft from "@knime/styles/img/icons/arrow-left.svg";
 
 export interface SettingsMenuItem extends MenuItem {
   showSettingsPage?: boolean;
 }
-</script>
-
-<script setup lang="ts">
-import { Button } from "@knime/components";
-import ArrowLeft from "@knime/styles/img/icons/arrow-left.svg";
 
 const emit = defineEmits<{
   (e: "close-settings-page"): void; // NOSONAR

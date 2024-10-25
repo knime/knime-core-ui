@@ -1,6 +1,7 @@
-import { Position, editor, languages } from "monaco-editor";
 import { describe, expect, it } from "vitest";
+import { Position, editor, languages } from "monaco-editor";
 import { SignatureHelpTriggerKind } from "vscode-languageserver-protocol";
+
 import {
   getSignatureHelpParams,
   mapSignatureHelpResult,

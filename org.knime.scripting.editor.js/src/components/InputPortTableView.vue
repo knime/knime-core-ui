@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted, ref, watchEffect } from "vue";
+
 import {
   type ExtensionConfig,
   UIExtension,
   type UIExtensionAPILayer,
 } from "@knime/ui-extension-renderer";
-import { onMounted, onUnmounted, ref, watchEffect } from "vue";
 import {
   AlertingService,
   JsonDataService,

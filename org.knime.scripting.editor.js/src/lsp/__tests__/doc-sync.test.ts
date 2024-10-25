@@ -1,6 +1,7 @@
-import { editor } from "monaco-editor";
 import { describe, expect, it } from "vitest";
+import { editor } from "monaco-editor";
 import type { Range } from "vscode-languageserver-protocol";
+
 import { getDidChangeParams, getDidOpenParams } from "../doc-sync";
 
 describe("doc-sync", () => {

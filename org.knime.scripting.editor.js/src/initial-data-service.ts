@@ -1,5 +1,5 @@
-import { getSettingsHelper } from "@/settings-helper";
 import type { InputOutputModel } from "@/components/InputOutputItem.vue";
+import { getSettingsHelper } from "@/settings-helper";
 
 export type PortViewConfig = {
   label: string;

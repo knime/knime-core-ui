@@ -1,5 +1,21 @@
 <script lang="ts">
+export const INPUT_OUTPUT_DRAG_EVENT_ID = "input_output_drag_event";
+export const COLUMN_INSERTION_EVENT = "columnInsertion";
+</script>
+
+<script setup lang="ts">
+import { ref, watch } from "vue";
 import type { Component } from "vue";
+import Handlebars from "handlebars";
+
+import { Collapser, PortIcon, useMultiSelection } from "@knime/components";
+import EyeIcon from "@knime/styles/img/icons/eye.svg";
+
+import { insertionEventHelper } from "@/components/utils/insertionEventHelper";
+import { useInputOutputSelectionStore } from "@/store/io-selection";
+import { useReadonlyStore } from "@/store/readOnly";
+
+import { createDragGhost, removeDragGhost } from "./utils/dragGhost";
 
 export type SubItem<PropType extends Record<string, any>> = {
   name: string;
@@ -59,20 +75,6 @@ export type InputOutputModel = {
    */
   subItems?: SubItem<Record<string, any>>[];
 };
-
-export const INPUT_OUTPUT_DRAG_EVENT_ID = "input_output_drag_event";
-export const COLUMN_INSERTION_EVENT = "columnInsertion";
-</script>
-
-<script setup lang="ts">
-import { useInputOutputSelectionStore } from "@/store/io-selection";
-import Handlebars from "handlebars";
-import { ref, watch } from "vue";
-import { Collapser, PortIcon, useMultiSelection } from "@knime/components";
-import { createDragGhost, removeDragGhost } from "./utils/dragGhost";
-import { insertionEventHelper } from "@/components/utils/insertionEventHelper";
-import EyeIcon from "@knime/styles/img/icons/eye.svg";
-import { useReadonlyStore } from "@/store/readOnly";
 
 const INITIALLY_EXPANDED_MAX_SUBITEMS = 15;
 

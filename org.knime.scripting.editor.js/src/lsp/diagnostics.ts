@@ -1,8 +1,8 @@
 import { MarkerSeverity, MarkerTag, editor } from "monaco-editor";
 import {
+  type Diagnostic,
   DiagnosticSeverity,
   DiagnosticTag,
-  type Diagnostic,
   type PublishDiagnosticsClientCapabilities,
 } from "vscode-languageserver-protocol";
 

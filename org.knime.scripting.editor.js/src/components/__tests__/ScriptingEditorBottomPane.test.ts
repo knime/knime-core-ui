@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { nextTick } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
+
 import { type ConsoleHandler } from "../OutputConsole.vue";
 import ScriptingEditorBottomPane from "../ScriptingEditorBottomPane.vue";
-import { nextTick } from "vue";
 
 describe("ScriptingEditorBottomPane", () => {
   const { consoleHandler } = vi.hoisted(() => ({

@@ -1,4 +1,5 @@
 import { ref } from "vue";
+
 import { getSettingsHelper } from "@/settings-helper";
 
 export type GenericNodeSettings = {

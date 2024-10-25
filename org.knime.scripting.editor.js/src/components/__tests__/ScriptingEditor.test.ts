@@ -1,28 +1,28 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { nextTick, ref } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import { useElementBounding } from "@vueuse/core";
 import { Pane, type PaneProps, Splitpanes } from "splitpanes";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { defaultPortConfig } from "@/__mocks__/scripting-service";
-import CodeEditorControlBar from "../CodeEditorControlBar.vue";
-import InputOutputPane from "../InputOutputPane.vue";
-import ScriptingEditor from "../ScriptingEditor.vue";
-import SettingsPage from "../SettingsPage.vue";
-import { nextTick, ref } from "vue";
-import {
-  MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
-  MIN_WIDTH_FOR_DISPLAYING_PANES,
-} from "../utils/paneSizes";
-import MainEditorPane from "../MainEditorPane.vue";
-import ScriptingEditorBottomPane, {
-  type BottomPaneTabSlotName,
-} from "../ScriptingEditorBottomPane.vue";
 
+import { defaultPortConfig } from "@/__mocks__/scripting-service";
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
+import { getScriptingService } from "@/scripting-service";
 import {
   DEFAULT_INITIAL_SETTINGS,
   registerSettingsMock,
 } from "@/settings-service-browser-mock";
-import { getScriptingService } from "@/scripting-service";
+import CodeEditorControlBar from "../CodeEditorControlBar.vue";
+import InputOutputPane from "../InputOutputPane.vue";
+import MainEditorPane from "../MainEditorPane.vue";
+import ScriptingEditor from "../ScriptingEditor.vue";
+import ScriptingEditorBottomPane, {
+  type BottomPaneTabSlotName,
+} from "../ScriptingEditorBottomPane.vue";
+import SettingsPage from "../SettingsPage.vue";
+import {
+  MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
+  MIN_WIDTH_FOR_DISPLAYING_PANES,
+} from "../utils/paneSizes";
 
 const mocks = vi.hoisted(() => {
   return {

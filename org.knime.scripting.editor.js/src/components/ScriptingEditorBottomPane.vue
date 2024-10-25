@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { computed, type Ref } from "vue";
+import { type Ref, computed } from "vue";
 import { computedAsync } from "@vueuse/core";
+
 import CompactTabBar from "@/components/CompactTabBar.vue";
 import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
-import { getScriptingService } from "@/scripting-service";
-import InputPortTables from "./InputPortTables.vue";
 import {
-  getInitialDataService,
   type PortConfig,
   type PortConfigs,
+  getInitialDataService,
 } from "@/initial-data-service";
+import { getScriptingService } from "@/scripting-service";
+
+import InputPortTables from "./InputPortTables.vue";
 
 const paintFocus = useShouldFocusBePainted();
 

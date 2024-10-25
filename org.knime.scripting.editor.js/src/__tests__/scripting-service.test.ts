@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { sleep } from "@knime/utils";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DialogService, JsonDataService } from "@knime/ui-extension-service";
+import { sleep } from "@knime/utils";
 
 vi.mock("monaco-editor");
 

@@ -6,13 +6,16 @@ export default {};
 </script>
 
 <script setup lang="ts">
-import AiCodeIcon from "@knime/styles/img/icons/ai-general.svg";
-import AiPopupContent from "./AiPopupContent.vue";
+import { type Ref, computed, defineProps, onMounted, ref } from "vue";
+import { type MaybeElement, computedAsync, onClickOutside } from "@vueuse/core";
+
 import { Button } from "@knime/components";
-import { ref, defineProps, type Ref, onMounted, computed } from "vue";
+import AiCodeIcon from "@knime/styles/img/icons/ai-general.svg";
+
 import type { PaneSizes } from "@/components/utils/paneSizes";
 import { getInitialDataService } from "@/initial-data-service";
-import { computedAsync, onClickOutside, type MaybeElement } from "@vueuse/core";
+
+import AiPopupContent from "./AiPopupContent.vue";
 
 const showAiPopup = ref(false);
 

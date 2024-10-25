@@ -1,5 +1,6 @@
-import type { ScriptingServiceType } from "@/scripting-service";
 import { vi } from "vitest";
+
+import type { ScriptingServiceType } from "@/scripting-service";
 
 export const defaultPortConfig = {
   inputPorts: [

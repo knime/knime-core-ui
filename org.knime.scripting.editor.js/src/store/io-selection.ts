@@ -1,5 +1,6 @@
-import type { InputOutputModel } from "@/components/InputOutputItem.vue";
 import { reactive } from "vue";
+
+import type { InputOutputModel } from "@/components/InputOutputItem.vue";
 
 /**
  * Stores the current selection of input/output items

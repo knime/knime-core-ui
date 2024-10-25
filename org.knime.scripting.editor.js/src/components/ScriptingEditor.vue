@@ -1,25 +1,28 @@
 <script setup lang="ts">
-import { computedAsync, useElementBounding } from "@vueuse/core";
 import { computed, ref, useSlots } from "vue";
+import { computedAsync, useElementBounding } from "@vueuse/core";
 import { Pane, Splitpanes } from "splitpanes";
+
 import "splitpanes/dist/splitpanes.css";
 import type { MenuItem } from "@knime/components";
+
+import type { InputOutputModel } from "@/components/InputOutputItem.vue";
+import { type PaneSizes } from "@/components/utils/paneSizes";
+import { useResizeLogic } from "@/components/utils/resizeLogic";
+import { getInitialDataService } from "@/initial-data-service";
+import { type GenericNodeSettings } from "@/settings-service";
+
+import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 import HeaderBar from "./HeaderBar.vue";
 import InputOutputPane from "./InputOutputPane.vue";
+import MainEditorPane from "./MainEditorPane.vue";
+import ScriptingEditorBottomPane, {
+  type BottomPaneTabControlsSlotName,
+  type BottomPaneTabSlotName,
+  type SlottedTab,
+} from "./ScriptingEditorBottomPane.vue";
 import type { SettingsMenuItem } from "./SettingsPage.vue";
 import SettingsPage from "./SettingsPage.vue";
-import MainEditorPane from "./MainEditorPane.vue";
-import { type PaneSizes } from "@/components/utils/paneSizes";
-import CodeEditorControlBar from "./CodeEditorControlBar.vue";
-import { useResizeLogic } from "@/components/utils/resizeLogic";
-import ScriptingEditorBottomPane, {
-  type SlottedTab,
-  type BottomPaneTabSlotName,
-  type BottomPaneTabControlsSlotName,
-} from "./ScriptingEditorBottomPane.vue";
-import { type GenericNodeSettings } from "@/settings-service";
-import { getInitialDataService } from "@/initial-data-service";
-import type { InputOutputModel } from "@/components/InputOutputItem.vue";
 
 const commonMenuItems: MenuItem[] = [
   // TODO: add actual common menu items

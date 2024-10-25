@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { useDebounceFn, useResizeObserver } from "@vueuse/core";
-import type { XOR } from "ts-xor";
 import { onMounted, onUnmounted, ref } from "vue";
-import * as knimeColors from "@knime/styles/colors/knimeColors";
+import { useDebounceFn, useResizeObserver } from "@vueuse/core";
+import { FitAddon } from "@xterm/addon-fit";
+import { Unicode11Addon } from "@xterm/addon-unicode11";
 import type {
   ITerminalInitOnlyOptions,
   ITerminalOptions,
   ITheme,
 } from "@xterm/xterm";
 import { Terminal } from "@xterm/xterm";
-import { FitAddon } from "@xterm/addon-fit";
-import { Unicode11Addon } from "@xterm/addon-unicode11";
+import type { XOR } from "ts-xor";
+
+import * as knimeColors from "@knime/styles/colors/knimeColors";
+
 import useShouldFocusBePainted from "./utils/shouldFocusBePainted";
 
 export type ConsoleText = XOR<
