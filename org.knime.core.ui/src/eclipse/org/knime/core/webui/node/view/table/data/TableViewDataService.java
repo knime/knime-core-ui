@@ -100,6 +100,9 @@ public interface TableViewDataService {
         String[] rendererIds, boolean updateDisplayedColumns, boolean updateTotalSelected,
         boolean forceClearImageDataCache, boolean trimColumns, boolean showOnlySelectedRows);
 
+
+    void clickOnButton(String projectId);
+
     public record HTMLAndCSV(String html, String csv) {
     }
 

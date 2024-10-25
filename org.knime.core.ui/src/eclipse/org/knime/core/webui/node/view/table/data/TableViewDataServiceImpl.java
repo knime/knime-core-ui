@@ -58,6 +58,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -85,6 +86,7 @@ import org.knime.core.webui.node.view.table.data.render.DataCellContentType;
 import org.knime.core.webui.node.view.table.data.render.DataValueImageRenderer.ImageDimension;
 import org.knime.core.webui.node.view.table.data.render.DataValueImageRendererRegistry;
 import org.knime.core.webui.node.view.table.data.render.DataValueRendererFactory;
+import org.knime.core.webui.node.view.table.data.render.SwingBasedRendererFactory;
 import org.knime.core.webui.node.view.table.data.render.internal.RowRenderer;
 import org.knime.core.webui.node.view.table.data.render.internal.RowRendererWithIndicesCounter;
 import org.knime.core.webui.node.view.table.data.render.internal.RowRendererWithIndicesFromColumn;
@@ -122,6 +124,8 @@ public class TableViewDataServiceImpl implements TableViewDataService {
     // Execution context reference is being kept until the data service is deactivated (view not visible anymore)
     // or disposed (workflow closed, node removed). It is cleared via 'clearCache'.
     private ExecutionContext m_executionContext;
+
+    private Consumer<String> m_projectIdConsumer;
 
     /**
      * @param tableSupplier supplier for the table from which to obtain data
@@ -165,12 +169,40 @@ public class TableViewDataServiceImpl implements TableViewDataService {
         m_rendererRegistry = rendererRegistry;
     }
 
+    /**
+     * @param tableSupplier
+     * @param selectionSupplier
+     * @param tableId
+     * @param swingBasedRendererFactory
+     * @param rendererRegistry
+     * @param projectIdConsumer
+     */
+    public TableViewDataServiceImpl(final Supplier<BufferedDataTable> tableSupplier, final Supplier<Set<RowKey>> selectionSupplier,
+        final String tableId, final SwingBasedRendererFactory rendererFactory, final DataValueImageRendererRegistry rendererRegistry,
+        final Consumer<String> projectIdConsumer) {
+        m_selectionSupplier = selectionSupplier;
+        Objects.requireNonNull(tableSupplier, () -> "Table supplier must not be null.");
+        m_tableSupplier = tableSupplier;
+        m_tableWithIndicesSupplier = new TableWithIndicesSupplier(tableSupplier);
+        m_tableId = tableId;
+        m_rendererFactory = rendererFactory;
+        m_rendererRegistry = rendererRegistry;
+        m_projectIdConsumer = projectIdConsumer;
+    }
+
     @Override
     public Table getTable(final String[] columns, final long fromIndex, final int numRows, final String[] rendererIds,
         final boolean updateDisplayedColumns, final boolean forceClearImageDataCache, final boolean trimColumns,
         final boolean showOnlySelectedRows) {
         return getFilteredAndSortedTable(columns, fromIndex, numRows, null, false, null, null, false, rendererIds,
             updateDisplayedColumns, false, forceClearImageDataCache, trimColumns, showOnlySelectedRows);
+    }
+
+    @Override
+    public void clickOnButton(final String projectId) {
+        if (m_projectIdConsumer != null) {
+            m_projectIdConsumer.accept(projectId);
+        }
     }
 
     @Override
@@ -332,9 +364,8 @@ public class TableViewDataServiceImpl implements TableViewDataService {
             rc.thenComparingRowKey(rk -> rk.withAlphanumericComparison().withDescendingSortOrder(!sortAscending));
         } else {
             final var colType = dts.getColumnSpec(sortColIndex).getType();
-            rc.thenComparingColumn(sortColIndex,
-                col -> col.withAlphanumericComparison(StringCell.TYPE.equals(colType))
-                    .withDescendingSortOrder(!sortAscending));
+            rc.thenComparingColumn(sortColIndex, col -> col.withAlphanumericComparison(StringCell.TYPE.equals(colType))
+                .withDescendingSortOrder(!sortAscending));
         }
         final Comparator<DataRow> comp = rc.build();
         try {

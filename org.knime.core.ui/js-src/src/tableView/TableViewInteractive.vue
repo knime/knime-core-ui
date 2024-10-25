@@ -240,6 +240,8 @@ export default {
   async mounted() {
     this.jsonDataService = new JsonDataService(this.knimeService);
     this.dataValueViewService = new DataValueViewService(this.knimeService);
+    this.projectId = await (this.jsonDataService as any).baseService.getConfig()
+      .projectId;
     this.sharedDataService = new SharedDataService(this.knimeService);
     this.sharedDataService.addSharedDataListener(
       this.onViewSettingsChange.bind(this),
@@ -1217,6 +1219,15 @@ export default {
 </script>
 
 <template>
+  {{ { projectId } }}
+  <button
+    @click="
+      () =>
+        jsonDataService?.data({ method: 'clickOnButton', options: [projectId] })
+    "
+  >
+    Click me!!
+  </button>
   <TableViewDisplay
     ref="tableViewDisplay"
     class="table-view-display"
