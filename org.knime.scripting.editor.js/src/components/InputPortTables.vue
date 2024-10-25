@@ -29,8 +29,11 @@ const selectedViewIndex = computed(
 <template>
   <div style="height: 100%; width: 100%">
     <div class="view-value-switch">
+      <!-- NB: The name is used as the radio-button name attribute and must
+           be different to the one used by other radio button groups -->
       <ValueSwitch
         v-model="selectedView"
+        :name="`port-view-config-selector-${props.portIdx}`"
         compact
         :possible-values="valueSwitchPossibleValues"
       />
