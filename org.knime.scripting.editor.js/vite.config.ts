@@ -48,7 +48,12 @@ export default defineConfig({
       formats: ["es"],
     },
     rollupOptions: {
-      external: ["vue", "monaco-editor", "@knime/ui-extension-service"],
+      external: [
+        "vue",
+        "monaco-editor",
+        "@knime/ui-extension-service",
+        "@knime/components",
+      ],
       treeshake: {
         // NB: This prevents bundling dependencies of dependencies that are not really used but imported
         // we never rely on side effects of dependencies, so this is safe

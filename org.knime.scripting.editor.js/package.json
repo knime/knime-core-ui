@@ -25,7 +25,6 @@
     "postinstall": "license-check -c"
   },
   "dependencies": {
-    "@knime/components": "^1.4.5",
     "@knime/styles": "^1.1.0",
     "@knime/ui-extension-renderer": "^1.1.28",
     "@knime/utils": "^1.0.17",
@@ -70,6 +69,7 @@
     "vue-tsc": "2.1.6"
   },
   "peerDependencies": {
+    "@knime/components": "^1.4.5",
     "@knime/ui-extension-service": "0.39.0",
     "monaco-editor": "0.45.x",
     "vue": "3.4.27"
