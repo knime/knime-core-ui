@@ -56,6 +56,8 @@ vi.mock("@/initial-data-service", () => ({
   })),
 }));
 
+vi.mock("@/display-mode", () => ({ displayMode: ref("large") }));
+
 describe("ScriptingEditor", () => {
   beforeEach(() => {
     vi.mocked(useElementBounding).mockReturnValue({

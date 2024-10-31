@@ -7,6 +7,7 @@ import {
   MIN_WIDTH_FOR_SHOWING_BUTTON_TEXT,
   type PaneSizes,
 } from "@/components/utils/paneSizes";
+import { displayMode } from "@/display-mode";
 
 export const useResizeLogic = ({
   initialPaneSizes,
@@ -33,13 +34,19 @@ export const useResizeLogic = ({
   });
 
   const shouldCollapseAllPanes = computed(
-    () => rootSplitPaneRef.width.value <= MIN_WIDTH_FOR_DISPLAYING_PANES,
+    () =>
+      displayMode.value === "small" ||
+      rootSplitPaneRef.width.value <= MIN_WIDTH_FOR_DISPLAYING_PANES,
   );
   const shouldCollapseLeftPane = computed(
-    () => rootSplitPaneRef.width.value <= MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
+    () =>
+      displayMode.value === "small" ||
+      rootSplitPaneRef.width.value <= MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
   );
   const shouldShowButtonText = computed(
-    () => editorSplitPaneRef.width.value > MIN_WIDTH_FOR_SHOWING_BUTTON_TEXT,
+    () =>
+      displayMode.value === "small" ||
+      editorSplitPaneRef.width.value > MIN_WIDTH_FOR_SHOWING_BUTTON_TEXT,
   );
   const minRatioOfRightPaneInPercent = computed(
     () =>
