@@ -22,6 +22,7 @@ import {
 } from "@/components/utils/paneSizes";
 import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
 import { consoleHandler, setConsoleHandler } from "@/consoleHandler";
+import { displayMode } from "@/display-mode";
 import type {
   UseCodeEditorParams,
   UseCodeEditorReturn,
@@ -53,6 +54,7 @@ export {
   COLUMN_INSERTION_EVENT,
   CompactTabBar,
   consoleHandler,
+  displayMode,
   editor,
   initConsoleEventHandler,
   getInitialDataService,
