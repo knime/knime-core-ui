@@ -340,6 +340,13 @@ public abstract class ScriptingService {
         }
 
         /**
+         * @return get the disclaimer text from the AI assistant
+         */
+        public String getAiDisclaimer() {
+            return HubConnection.INSTANCE.getDisclaimer();
+        }
+
+        /**
          * Get a collection of all supported flow variables supported by this scripting node.
          *
          * @return a collection of all supported flow variables
