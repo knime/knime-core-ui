@@ -77,20 +77,6 @@ export type UseCodeEditorReturn = {
     textToInsert: string,
     requiredImport?: string,
   ) => void;
-
-  /**
-   * Inserts the specified function reference at the current cursor position in the editor.
-   * Uses snippets to give really nice insertion behavior for function arguments. If the
-   * arguments are null, the function will be inserted without arguments OR brackets.
-   * If the arguments are an empty list, the function will be inserted with empty brackets.
-   *
-   * @param functionName
-   * @param functionArgs the arguments to the function.
-   */
-  insertFunctionReference: (
-    functionName: string,
-    functionArgs: string[] | null,
-  ) => void;
 };
 
 export type UseDiffEditorParams = ContainerParams & {
@@ -283,28 +269,6 @@ const createInsertTextFunction = (
   };
 };
 
-const createInsertFunctionReferenceFunction = (
-  editor: Ref<monaco.editor.IStandaloneCodeEditor | undefined>,
-) => {
-  return (functionName: string, args: string[] | null) => {
-    if (editor.value?.getOption(monaco.editor.EditorOption.readOnly)) {
-      return;
-    }
-
-    const snippetController = editor.value?.getContribution(
-      "snippetController2",
-    ) as any; // The Monaco API doesn't expose the type for us :(
-
-    if (args === null) {
-      snippetController?.insert(functionName);
-    } else {
-      snippetController?.insert(
-        `${functionName}(${args.map((arg, i) => `$\{${i + 1}:${arg}}`).join(", ")})`,
-      );
-    }
-  };
-};
-
 // ====== COMPOSABLES ======
 
 export const useCodeEditor = (
@@ -346,7 +310,6 @@ export const useCodeEditor = (
     selection: readonly(selection),
     selectedLines: readonly(selectedLines),
     insertColumnReference: createInsertColumnReferenceFunction(editor),
-    insertFunctionReference: createInsertFunctionReferenceFunction(editor),
     insertText: createInsertTextFunction(editor),
     ...syncWithModel(editorModel),
   };
