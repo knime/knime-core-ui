@@ -95,6 +95,13 @@ export const createScriptingServiceMock = (
       return Promise.reject(new Error("No language server in mock"));
     },
 
+    getAiDisclaimer() {
+      log("Called scriptingService.getAiDisclaimer");
+      return Promise.resolve(
+        "This is a fake AI disclaimer. Enjoy the AI. It does nothing!",
+      );
+    },
+
     // Console handling
     eventHandlers,
   };

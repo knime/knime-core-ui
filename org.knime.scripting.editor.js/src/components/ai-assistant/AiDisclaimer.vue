@@ -6,41 +6,44 @@
 </script>
 
 <script setup lang="ts">
+import { onMounted, ref } from "vue";
+
 import { Button } from "@knime/components";
+
+import { getScriptingService } from "@/scripting-service";
+import InfinityLoadingBar from "../InfinityLoadingBar.vue";
+
+const disclaimerText = ref<string>();
+
+onMounted(async () => {
+  disclaimerText.value = await getScriptingService().getAiDisclaimer();
+});
 
 const emit = defineEmits(["accept-disclaimer"]);
 </script>
 
 <template>
   <div class="disclaimer-container">
-    <div class="disclaimer-text">
-      <p style="font-weight: bold">Disclaimer</p>
-      <p>
-        By using this coding assistant, you acknowledge and agree the following:
-        Any information you enter into the prompt, as well as the current code
-        (being edited) and table headers, may be shared with OpenAI and KNIME in
-        order to provide and improve this service.
-      </p>
-
-      <p>
-        KNIME is not responsible for any content, input or output, or actions
-        triggered by the generated code, and is not liable for any damages
-        arising from or related to your use of the coding assistant.
-      </p>
-
-      <p>This is an experimental service, USE AT YOUR OWN RISK.</p>
-    </div>
-    <div class="disclaimer-button-container">
-      <Button
-        compact
-        primary
-        class="notification-button"
-        data-testid="ai-disclaimer-accept-button"
-        @click="emit('accept-disclaimer')"
-      >
-        Accept and close
-      </Button>
-    </div>
+    <template v-if="disclaimerText">
+      <div class="disclaimer-box">
+        <p style="font-weight: bold">Disclaimer</p>
+        <p class="content">
+          {{ disclaimerText }}
+        </p>
+      </div>
+      <div class="disclaimer-button-container">
+        <Button
+          compact
+          primary
+          class="notification-button"
+          data-testid="ai-disclaimer-accept-button"
+          @click="emit('accept-disclaimer')"
+        >
+          Accept and close
+        </Button>
+      </div>
+    </template>
+    <div v-else><InfinityLoadingBar /></div>
   </div>
 </template>
 
@@ -49,12 +52,17 @@ const emit = defineEmits(["accept-disclaimer"]);
   display: flex;
   flex-direction: column;
 
-  & .disclaimer-text {
+  & .disclaimer-box {
     margin: var(--space-8);
     line-height: 20px;
     padding: var(--space-4);
     background-color: var(--knime-white);
     border-radius: var(--ai-bar-corner-radius);
+
+    & .content {
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
+    }
   }
 
   & .disclaimer-button-container {
