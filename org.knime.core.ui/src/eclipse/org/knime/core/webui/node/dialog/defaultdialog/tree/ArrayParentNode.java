@@ -51,10 +51,14 @@ package org.knime.core.webui.node.dialog.defaultdialog.tree;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.Array;
 
 /**
  * An instance of this class corresponds to an array widget, i.e. a widget whose subwidgets are repeated n times.
@@ -88,6 +92,32 @@ public final class ArrayParentNode<S> extends TreeNode<S> {
      */
     public Tree<S> getElementTree() {
         return m_elementTree;
+    }
+
+    /**
+     * @return whether the underlying field allows for dynamic array content depending on a table (see {@link Array}).
+     */
+    public boolean isDynamicArray() {
+        return getType().isAssignableFrom(Array.class);
+    }
+
+    @Override
+    public List<String> getPath() {
+        final var path = super.getPath();
+        if (isDynamicArray()) {
+            /**
+             * In case of dynamic arrays, we want to treat this node as if it was non-dynamic in situations where the
+             * path is used.
+             */
+            return Stream.concat(path.stream(), Stream.of("values")).toList();
+        }
+        return path;
+    }
+
+    @Override
+    public Optional<String> getName() {
+        final var path = super.getPath();
+        return path.isEmpty() ? Optional.empty() : Optional.of(path.get(path.size() - 1));
     }
 
 }

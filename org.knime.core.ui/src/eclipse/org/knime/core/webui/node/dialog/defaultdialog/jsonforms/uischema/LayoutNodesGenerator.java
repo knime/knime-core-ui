@@ -60,8 +60,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.Defaul
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil.LayoutSkeleton;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.util.DynamicArrayUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesAdder;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 
@@ -123,6 +125,16 @@ final class LayoutNodesGenerator {
         if (UiSchemaOptionsGenerator.hasElementCheckboxWidgetAnnotation(node)) {
             return;
         }
+        if (node instanceof ArrayParentNode<WidgetGroup> apn && apn.isDynamicArray()
+            && m_defaultNodeSettingsContext != null) {
+            final var associatedSpec = DynamicArrayUtil.getAssociatedSpec(apn, m_defaultNodeSettingsContext);
+            if (associatedSpec.isPresent()) {
+                final var control =
+                    DynamicArrayUiSchemaUtil.addDynamicArrayControlElement(root, apn, associatedSpec.get());
+                addRule(node, control);
+                return;
+            }
+        }
         final var scope = getScope(node);
         final var control = root.addObject().put(TAG_TYPE, TYPE_CONTROL).put(TAG_SCOPE, scope);
         addOptions(node, control);
@@ -152,4 +164,5 @@ final class LayoutNodesGenerator {
                 ex);
         }
     }
+
 }

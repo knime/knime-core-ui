@@ -61,6 +61,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.Array;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -234,6 +235,9 @@ public abstract class TreeFactory<S> {
         } else if (isArrayField(type)) {
             final var elementTreeType = type.getContentType();
             childBuilder.buildArray(type, createTree(elementTreeType));
+        } else if (isDynamicArrayField(type)) {
+            final var elementTreeType = type.containedType(0);
+            childBuilder.buildArray(type, createTree(elementTreeType));
         } else {
             Class<?> contentType = null;
             if (type.isArrayType()) {
@@ -247,13 +251,17 @@ public abstract class TreeFactory<S> {
      * @param javaType the type of the field
      * @return whether the uischema generation should interpret this field as an array layout
      */
-    public boolean isArrayField(final ResolvedType javaType) {
+    private boolean isArrayField(final ResolvedType javaType) {
         return (javaType.isArrayType() || javaType.isCollectionLikeType())
             && isTreeSettingsType(javaType.getContentType());
     }
 
     private boolean isTreeSettingsType(final ResolvedType contentType) {
         return !contentType.isEnumType() && getTreeSettingsClass().isAssignableFrom(contentType.getRawClass());
+    }
+
+    private static boolean isDynamicArrayField(final ResolvedType javaType) {
+        return Array.class.isAssignableFrom(javaType.getRawClass());
     }
 
     /**

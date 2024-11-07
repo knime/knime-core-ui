@@ -62,6 +62,7 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -73,9 +74,11 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.config.base.ConfigBaseRO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMappings;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.DynamicArrayPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
@@ -103,6 +106,9 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
     static FieldNodeSettingsPersistorWithInferredConfigs<?>
         createDefaultPersistor(final TreeNode<PersistableSettings> node, final String configKey) {
         if (node instanceof ArrayParentNode<PersistableSettings> array) {
+            if (array.isDynamicArray()) {
+                return createDynamicArrayPersistor(array.getElementTree(), configKey);
+            }
             return createDefaultArrayPersistor(array.getElementTree(), configKey);
         } else if (node instanceof Tree<PersistableSettings> tree) {
             return createNestedFieldBasedPersistor(configKey, tree);
@@ -111,9 +117,15 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
         }
     }
 
-    private static <S extends PersistableSettings> ArrayFieldPersistor<S>
+    private static <S extends PersistableSettings> NestedPersistor<S[]>
         createDefaultArrayPersistor(final Tree<PersistableSettings> elementTree, final String configKey) {
-        return new ArrayFieldPersistor<>(elementTree, configKey);
+        return new NestedPersistor<>(configKey, new ArrayPersistor<>(elementTree));
+    }
+
+    private static <S extends DefaultNodeSettings>
+        NestedPersistor<org.knime.core.webui.node.dialog.defaultdialog.setting.array.Array<S>>
+        createDynamicArrayPersistor(final Tree<PersistableSettings> elementTree, final String configKey) {
+        return new NestedPersistor<>(configKey, new DynamicArrayPersistor<>(elementTree));
     }
 
     private static NestedPersistor<?> createNestedFieldBasedPersistor(final String configKey,
@@ -121,8 +133,7 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
         return new NestedPersistor<>(configKey, NodeSettingsPersistorFactory.createPersistor(tree));
     }
 
-    static final class NestedPersistor<S extends PersistableSettings>
-        implements FieldNodeSettingsPersistorWithInferredConfigs<S> {
+    static final class NestedPersistor<S> implements FieldNodeSettingsPersistorWithInferredConfigs<S> {
 
         private final String m_configKey;
 
@@ -155,10 +166,10 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
 
     }
 
-    static final class ArrayFieldPersistor<S extends PersistableSettings>
-        implements FieldNodeSettingsPersistorWithInferredConfigs<S[]> {
-
-        private final String m_configKey;
+    /**
+     * public for {@link DynamicArrayPersistor} only
+     */
+    public static final class ArrayPersistor<S extends PersistableSettings> implements NodeSettingsPersistor<S[]> {
 
         private final Tree<PersistableSettings> m_elementTree;
 
@@ -166,20 +177,24 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
 
         private static final Pattern IS_DIGIT = Pattern.compile("^\\d+$");
 
-        ArrayFieldPersistor(final Tree<PersistableSettings> elementTree, final String configKey) {
-            m_configKey = configKey;
+        /**
+         * Creates a new persistor for an array of elements.
+         *
+         * @param elementTree
+         */
+        public ArrayPersistor(final Tree<PersistableSettings> elementTree) {
             m_elementTree = elementTree;
+
         }
 
         @Override
         public S[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            var arraySettings = settings.getNodeSettings(m_configKey);
-            int size = (int)arraySettings.keySet().stream().filter(s -> IS_DIGIT.matcher(s).matches()).count();
+            int size = (int)settings.keySet().stream().filter(s -> IS_DIGIT.matcher(s).matches()).count();
             ensureEnoughPersistors(size);
             @SuppressWarnings("unchecked")
             var values = (S[])Array.newInstance(m_elementTree.getType(), size);
             for (int i = 0; i < size; i++) {//NOSONAR
-                values[i] = m_persistors.get(i).load(arraySettings);
+                values[i] = m_persistors.get(i).load(settings);
             }
             return values;
         }
@@ -194,22 +209,24 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
         @Override
         public void save(final S[] array, final NodeSettingsWO settings) {
             ensureEnoughPersistors(array.length);
-            var arraySettings = settings.addNodeSettings(m_configKey);
             for (int i = 0; i < array.length; i++) {//NOSONAR
-                m_persistors.get(i).save(array[i], arraySettings);
+                m_persistors.get(i).save(array[i], settings);
             }
         }
 
         @Override
         public ConfigMappings getConfigMappings(final S[] array) {
-            ensureEnoughPersistors(array.length);
-            return new ConfigMappings(m_configKey, IntStream.range(0, array.length)
-                .mapToObj(i -> m_persistors.get(i).getConfigMappings(array[i])).toList());
+            return getConfigMappings(Arrays.asList(array));
         }
 
-        @Override
-        public String getConfigKey() {
-            return m_configKey;
+        /**
+         * @param array
+         * @return the config mappings derived from the elements of the array
+         */
+        public ConfigMappings getConfigMappings(final List<S> array) {
+            ensureEnoughPersistors(array.size());
+            return new ConfigMappings(IntStream.range(0, array.size())
+                .mapToObj(i -> m_persistors.get(i).getConfigMappings(array.get(i))).toList());
         }
 
     }
@@ -316,7 +333,6 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
             return LocalTime.parse(s);
         } catch (DateTimeParseException ignored) { // NOSONAR
         }
-
 
         throw new InvalidSettingsException("String '" + s + "' could not be parsed as a temporal.");
     }

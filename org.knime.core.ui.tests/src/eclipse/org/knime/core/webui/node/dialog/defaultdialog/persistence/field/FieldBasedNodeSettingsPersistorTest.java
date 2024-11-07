@@ -52,6 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Map;
 import java.util.Objects;
 
 import org.apache.commons.lang3.NotImplementedException;
@@ -63,6 +64,8 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.Array;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.ArrayTestUtils;
 
 /**
  * Tests for the {@link FieldBasedNodeSettingsPersistor}.
@@ -182,6 +185,27 @@ class FieldBasedNodeSettingsPersistorTest {
             arraySettings.m_bar[i] = element;
         }
         testSaveLoad(arraySettings);
+    }
+
+    @Test
+    void testDynamicArraySettings() throws InvalidSettingsException {
+        var dynamicArraySettings = new DynamicArraySettings();
+        ArrayTestUtils.setValues(dynamicArraySettings.m_bar, new ElementSettings("first"),
+            new ElementSettings("second"));
+        ArrayTestUtils.setColumns(dynamicArraySettings.m_bar, Map.of("foo", "some column"));
+
+        var persistor = new FieldBasedNodeSettingsPersistor<>(DynamicArraySettings.class);
+        var expectedSaved = new NodeSettings(ROOT_KEY);
+        final var arraySavedConfig = expectedSaved.addNodeSettings("bar");
+        arraySavedConfig.addNodeSettings("columns").addString("foo", "some column");
+        arraySavedConfig.addNodeSettings("0").addString("foo", "first");
+        arraySavedConfig.addNodeSettings("1").addString("foo", "second");
+        var loaded = persistor.load(expectedSaved);
+        var saved = new NodeSettings(ROOT_KEY);
+        persistor.save(dynamicArraySettings, saved);
+        assertEquals(loaded.m_bar, dynamicArraySettings.m_bar);
+        assertEquals(saved, expectedSaved);
+
     }
 
     @Test
@@ -630,6 +654,14 @@ class FieldBasedNodeSettingsPersistorTest {
 
     private static final class ElementSettings extends AbstractTestNodeSettings<ElementSettings> {
 
+        ElementSettings() {
+
+        }
+
+        ElementSettings(final String foo) {
+            m_foo = foo;
+        }
+
         String m_foo;
 
         @Override
@@ -670,6 +702,12 @@ class FieldBasedNodeSettingsPersistorTest {
         protected boolean equalSettings(final ArraySettings settings) {
             return Objects.deepEquals(m_bar, settings.m_bar);
         }
+
+    }
+
+    private static final class DynamicArraySettings implements DefaultNodeSettings {
+
+        Array<ElementSettings> m_bar = new Array<>();
 
     }
 
