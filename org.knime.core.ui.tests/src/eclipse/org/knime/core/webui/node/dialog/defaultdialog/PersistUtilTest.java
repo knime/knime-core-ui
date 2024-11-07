@@ -67,6 +67,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNod
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.Array;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.TestElement;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -92,6 +94,20 @@ class PersistUtilTest {
         default void save(final S obj, final NodeSettingsWO settings) {
             throw new UnsupportedOperationException("should not be called by this test");
         }
+    }
+
+    @Test
+    void testDynamicArray() {
+
+        class SettingsWithDynamicArray implements PersistableSettings {
+            @SuppressWarnings("unused")
+            Array<TestElement> m_array;
+        }
+
+        final var result = getPersistSchema(SettingsWithDynamicArray.class);
+        assertThatJson(result).inPath("$.properties.model.properties.array.type").isString().isEqualTo("array");
+        assertThatJson(result).inPath("$.properties.model.properties.array.items.properties.columnSelection")
+            .isObject();
     }
 
     private static class CustomPersistor implements TestPersistor<Integer> {

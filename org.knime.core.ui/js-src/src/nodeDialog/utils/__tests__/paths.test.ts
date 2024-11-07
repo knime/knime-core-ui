@@ -482,4 +482,50 @@ describe("paths", () => {
       expect(prefix).toBe("model.mySetting.one.");
     });
   });
+
+  /**
+   * For an array persist schema, there can occur two special cases in case dynamic arrays are used.
+   *  * 'values' should be ignored when traversing the persist schema.
+   *  * 'columns' should not consider the items schema.
+   */
+  it("handles 'columns' and 'values' segment within an array persist schema", () => {
+    const persistSchema: PersistSchema = {
+      type: "object",
+      properties: {
+        model: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              mySetting: {
+                configKey: "myKey",
+              },
+            },
+          },
+        },
+      },
+    };
+    const withValues = getConfigAndDataPaths({
+      path: "model.values.3.mySetting",
+      persistSchema,
+    });
+    expect(withValues).toStrictEqual([
+      {
+        configPath: "model.3.myKey",
+        dataPath: "model.values.3.mySetting",
+        deprecatedConfigPaths: [],
+      },
+    ]);
+    const withColumns = getConfigAndDataPaths({
+      path: "model.columns.mySetting",
+      persistSchema,
+    });
+    expect(withColumns).toStrictEqual([
+      {
+        configPath: "model.columns.mySetting",
+        dataPath: "model.columns.mySetting",
+        deprecatedConfigPaths: [],
+      },
+    ]);
+  });
 });

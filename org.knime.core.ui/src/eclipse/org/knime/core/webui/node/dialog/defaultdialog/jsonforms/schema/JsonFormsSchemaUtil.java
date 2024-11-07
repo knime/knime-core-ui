@@ -52,6 +52,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.Schema.TAG_PROPERTIES;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.Schema.TAG_TYPE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.Schema.TYPE_OBJECT;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.DynamicArraySchemaUtil.buildDynamicArraySchema;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -170,11 +171,10 @@ public final class JsonFormsSchemaUtil {
         return buildSchema(settingsClass, widgetTree, context, mapper);
     }
 
-    private static ObjectNode buildSchema(final Type settingsClass, final Tree<WidgetGroup> widgetTree,
+    static ObjectNode buildSchema(final Type settingsClass, final Tree<WidgetGroup> widgetTree,
         final DefaultNodeSettingsContext context, final ObjectMapper mapper) {
         final var builder = new SchemaGeneratorConfigBuilder(mapper, VERSION, new OptionPreset(//
             Option.ADDITIONAL_FIXED_TYPES, //
-            Option.EXTRA_OPEN_API_FORMAT_VALUES, //
             Option.FLATTENED_ENUMS, //
             Option.EXTRA_OPEN_API_FORMAT_VALUES, //
             Option.PUBLIC_NONSTATIC_FIELDS, //
@@ -191,11 +191,8 @@ public final class JsonFormsSchemaUtil {
             if (widgetTree == null) {
                 return null;
             }
-            Function<Tree<WidgetGroup>, CustomPropertyDefinition> useWidgetTreeForNestedFields =
-                wt -> new CustomPropertyDefinition(buildSchema(fieldScope.getType(), wt, context, mapper));
-
-            final var fieldNode = widgetTree.getChildByName(fieldScope.getName());
-            return getPropertyDefinition(fieldNode, fieldScope, generationContext, useWidgetTreeForNestedFields);
+            return constructCustomDefinitionProviderUsingWidgetTree(widgetTree, context, mapper, fieldScope,
+                generationContext);
         });
 
         builder.forFields()
@@ -238,6 +235,21 @@ public final class JsonFormsSchemaUtil {
         return new SchemaGenerator(builder.build()).generateSchema(settingsClass);
     }
 
+    private static CustomPropertyDefinition constructCustomDefinitionProviderUsingWidgetTree(
+        final Tree<WidgetGroup> widgetTree, final DefaultNodeSettingsContext context, final ObjectMapper mapper,
+        final FieldScope fieldScope, final SchemaGenerationContext generationContext) {
+
+        final var fieldNode = widgetTree.getChildByName(fieldScope.getName());
+        if (fieldNode instanceof ArrayParentNode<WidgetGroup> array && array.isDynamicArray()) {
+            return new CustomPropertyDefinition(buildDynamicArraySchema(array, context, mapper));
+        }
+        Function<Tree<WidgetGroup>, CustomPropertyDefinition> useWidgetTreeForNestedFields =
+            wt -> new CustomPropertyDefinition(buildSchema(fieldScope.getType(), wt, context, mapper));
+        return getPropertyDefinition(fieldNode, fieldScope, generationContext, useWidgetTreeForNestedFields);
+    }
+
+
+
     private static CustomPropertyDefinition getPropertyDefinition(final TreeNode<WidgetGroup> fieldNode,
         final FieldScope fieldScope, final SchemaGenerationContext generationContext,
         final Function<Tree<WidgetGroup>, CustomPropertyDefinition> useWidgetTreeForNestedFields) {
@@ -246,11 +258,11 @@ public final class JsonFormsSchemaUtil {
              * If the node is another widgetTree, we use it for the traversal of the nested fields.
              */
             return useWidgetTreeForNestedFields.apply(wt);
-        } else if (fieldNode instanceof ArrayParentNode<WidgetGroup> awn) {
+        } else if (fieldNode instanceof ArrayParentNode<WidgetGroup> array) {
             /**
              * If the node is an array widget node, the next fields are those if the element widget tree.
              */
-            return useWidgetTreeForNestedFields.apply(awn.getElementTree());
+            return useWidgetTreeForNestedFields.apply(array.getElementTree());
         } else {
             final var enumDefinition =
                 new EnumDefinitionProvider().provideCustomSchemaDefinition(fieldScope, generationContext);

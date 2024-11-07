@@ -59,6 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.Array;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -966,6 +967,57 @@ class JsonFormsUiSchemaUtilRuleTest {
             @Widget(title = "", description = "")
             @ValueReference(ArrayReference.class)
             Element[] m_array;
+
+            static final class ContainsProvider implements PredicateProvider {
+
+                static final String FOO = "Foo";
+
+                @Override
+                public Predicate init(final PredicateInitializer i) {
+                    return i.getArray(ArrayReference.class).containsElementSatisfying(
+                        element -> element.getString(Element.ElementValueReference.class).isEqualTo(FOO));
+                }
+
+            }
+
+            @Widget(title = "", description = "")
+            @Effect(predicate = ContainsProvider.class, type = EffectType.SHOW)
+            boolean effectSetting;
+        }
+        final var response = buildTestUiSchema(ArrayContainsConditionTestSettings.class);
+        assertThatJson(response).inPath("$.elements").isArray().hasSize(2);
+        assertThatJson(response).inPath("$.elements[0].type").isString().isEqualTo("Control");
+        assertThatJson(response).inPath("$.elements[1].type").isString().isEqualTo("Control");
+        assertThatJson(response).inPath("$.elements[1].rule.effect").isString().isEqualTo("SHOW");
+        assertThatJson(response).inPath("$.elements[1].rule.condition.scope").isString()
+            .isEqualTo(response.get("elements").get(0).get("scope").asText());
+        assertThatJson(response).inPath("$.elements[1].rule.condition.schema.contains.properties.value.const")
+            .isString().isEqualTo(ArrayContainsConditionTestSettings.ContainsProvider.FOO);
+    }
+
+    @Test
+    void testDynamicArrayContainsCondition() {
+        /**
+         * Same settings as above, but with a dynamic array.
+         *
+         */
+        final class ArrayContainsConditionTestSettings implements DefaultNodeSettings {
+
+            static class Element implements DefaultNodeSettings {
+                static final class ElementValueReference implements Reference<String> {
+                }
+
+                @ValueReference(ElementValueReference.class)
+                String m_value = "myValue";
+
+            }
+
+            static final class ArrayReference implements Reference<Element[]> {
+            }
+
+            @Widget(title = "", description = "")
+            @ValueReference(ArrayReference.class)
+            Array<Element> m_array;
 
             static final class ContainsProvider implements PredicateProvider {
 

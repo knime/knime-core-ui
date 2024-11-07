@@ -69,6 +69,7 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.Array;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
@@ -947,35 +948,41 @@ public class UpdatesUtilTest {
         }
 
         @Test
-        void testInitialTriggerWithDependencyInsideArray() {
+        void testUpdatesWithDependenciesInsideDynamicArrayElements() {
 
+            /**
+             * Same settings as above but with dynamic array.
+             */
             class TestSettings implements DefaultNodeSettings {
+                static final class DependencyOutsideArray implements Reference<String> {
+                }
 
                 static final class ElementSettings implements DefaultNodeSettings {
                     static final class DependencyInsideArray implements Reference<String> {
                     }
 
-                    ElementSettings(final String dependency) {
-                        m_dependencyInsideArray = dependency;
-                    }
-
                     @ValueReference(DependencyInsideArray.class)
                     String m_dependencyInsideArray;
 
-                    static final class MyProvider implements StateProvider<String> {
+                    static final class TriggerReference implements ButtonReference {
+                    }
 
-                        private Supplier<String> m_valueSupplier;
+                    @SimpleButtonWidget(ref = TriggerReference.class)
+                    Void m_trigger;
+
+                    static final class MyProvider implements StateProvider<String> {
 
                         @Override
                         public void init(final StateProviderInitializer initializer) {
-                            initializer.computeBeforeOpenDialog();
-                            m_valueSupplier = initializer.getValueSupplier(DependencyInsideArray.class);
+                            initializer.computeOnButtonClick(TriggerReference.class);
+                            initializer.getValueSupplier(DependencyInsideArray.class);
+                            initializer.getValueSupplier(DependencyOutsideArray.class);
 
                         }
 
                         @Override
                         public String computeState(final DefaultNodeSettingsContext context) {
-                            return m_valueSupplier.get();
+                            throw new IllegalStateException("Should not be called in this test");
                         }
 
                     }
@@ -985,23 +992,83 @@ public class UpdatesUtilTest {
 
                 }
 
+                @ValueReference(DependencyOutsideArray.class)
+                String m_dependencyOutsideArray;
+
                 @SuppressWarnings("unused")
-                ElementSettings[] m_array =
-                    new ElementSettings[]{new ElementSettings("foo"), new ElementSettings("bar")};
+                Array<ElementSettings> m_array;
 
             }
 
             final var settings = new TestSettings();
             final var response = buildUpdates(settings);
-            assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
-            assertThatJson(response).inPath("$.initialUpdates[0].values").isArray().hasSize(2);
-            assertThatJson(response).inPath("$.initialUpdates[0].values[0].indices[0]").isNumber().isZero();
-            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isString().isEqualTo("foo");
-            assertThatJson(response).inPath("$.initialUpdates[0].values[1].indices[0]").isNumber()
-                .isEqualTo(new BigDecimal(1));
-            assertThatJson(response).inPath("$.initialUpdates[0].values[1].value").isString().isEqualTo("bar");
+            assertThatJson(response).inPath("$.globalUpdates[0].trigger.id").isString()
+                .isEqualTo(TestSettings.ElementSettings.TriggerReference.class.getName());
+            assertThatJson(response).inPath("$.globalUpdates[0].dependencies").isArray().hasSize(2);
+            assertThatJson(response).inPath("$.globalUpdates[0].dependencies[0].id").isString()
+                .isEqualTo(TestSettings.DependencyOutsideArray.class.getName());
+            assertThatJson(response).inPath("$.globalUpdates[0].dependencies[0].scopes").isArray()
+                .isEqualTo(List.of("#/properties/model/properties/dependencyOutsideArray"));
+            assertThatJson(response).inPath("$.globalUpdates[0].dependencies[1].id").isString()
+                .isEqualTo(TestSettings.ElementSettings.DependencyInsideArray.class.getName());
+            assertThatJson(response).inPath("$.globalUpdates[0].dependencies[1].scopes").isArray().isEqualTo(
+                List.of("#/properties/model/properties/array/properties/values", "#/properties/dependencyInsideArray"));
+        }
+    }
+
+    @Test
+    void testInitialTriggerWithDependencyInsideArray() {
+
+        class TestSettings implements DefaultNodeSettings {
+
+            static final class ElementSettings implements DefaultNodeSettings {
+                static final class DependencyInsideArray implements Reference<String> {
+                }
+
+                ElementSettings(final String dependency) {
+                    m_dependencyInsideArray = dependency;
+                }
+
+                @ValueReference(DependencyInsideArray.class)
+                String m_dependencyInsideArray;
+
+                static final class MyProvider implements StateProvider<String> {
+
+                    private Supplier<String> m_valueSupplier;
+
+                    @Override
+                    public void init(final StateProviderInitializer initializer) {
+                        initializer.computeBeforeOpenDialog();
+                        m_valueSupplier = initializer.getValueSupplier(DependencyInsideArray.class);
+
+                    }
+
+                    @Override
+                    public String computeState(final DefaultNodeSettingsContext context) {
+                        return m_valueSupplier.get();
+                    }
+
+                }
+
+                @ValueProvider(MyProvider.class)
+                String m_effectField;
+
+            }
+
+            @SuppressWarnings("unused")
+            ElementSettings[] m_array = new ElementSettings[]{new ElementSettings("foo"), new ElementSettings("bar")};
 
         }
+
+        final var settings = new TestSettings();
+        final var response = buildUpdates(settings);
+        assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
+        assertThatJson(response).inPath("$.initialUpdates[0].values").isArray().hasSize(2);
+        assertThatJson(response).inPath("$.initialUpdates[0].values[0].indices[0]").isNumber().isZero();
+        assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isString().isEqualTo("foo");
+        assertThatJson(response).inPath("$.initialUpdates[0].values[1].indices[0]").isNumber()
+            .isEqualTo(new BigDecimal(1));
+        assertThatJson(response).inPath("$.initialUpdates[0].values[1].value").isString().isEqualTo("bar");
 
     }
 

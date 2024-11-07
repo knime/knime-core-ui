@@ -57,6 +57,7 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.PortIndex;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeFactory;
@@ -116,9 +117,10 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
             TextInputWidget.class, Effect.class, ValueReference.class, ValueProvider.class,
             InternalArrayWidget.ElementCheckboxWidget.class, Modification.WidgetReference.class, TextMessage.class);
 
-    private static final Collection<Class<? extends Annotation>> POSSIBLE_ARRAY_ANNOTATIONS = List.of(
-        LatentWidget.class, Widget.class, ArrayWidget.class, InternalArrayWidget.class, Layout.class, Effect.class,
-        ValueReference.class, ValueProvider.class, Modification.class, Modification.WidgetReference.class);
+    private static final Collection<Class<? extends Annotation>> POSSIBLE_ARRAY_ANNOTATIONS =
+        List.of(LatentWidget.class, Widget.class, ArrayWidget.class, InternalArrayWidget.class, PortIndex.class,
+            Layout.class, Effect.class, ValueReference.class, ValueProvider.class, Modification.class,
+            Modification.WidgetReference.class);
 
     /**
      * Create a new factory. This factory is non-static since it implements an abstract factory, but it does not hold

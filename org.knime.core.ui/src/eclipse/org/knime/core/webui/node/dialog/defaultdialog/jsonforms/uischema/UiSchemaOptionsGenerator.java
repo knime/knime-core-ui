@@ -70,6 +70,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_IS_WRITER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_LABEL;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_OPTIONS;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_POSSIBLE_VALUES;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_USE_FLOW_VAR_TEMPLATES;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.getApplicableDefaults;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.partitionWidgetAnnotationsByApplicability;
@@ -470,7 +471,7 @@ final class UiSchemaOptionsGenerator {
                 } else {
                     final var possibleValues = generatePossibleValues(choicesProviderClass);
                     if (possibleValues.length < ASYNC_CHOICES_THRESHOLD) {
-                        options.set("possibleValues", JsonFormsUiSchemaUtil.getMapper().valueToTree(possibleValues));
+                        options.set(TAG_POSSIBLE_VALUES, JsonFormsUiSchemaUtil.getMapper().valueToTree(possibleValues));
                     } else {
                         prepareAsyncChoices(options, choicesProviderClass, () -> possibleValues);
                     }

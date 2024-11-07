@@ -116,7 +116,15 @@ export const getConfigPaths = ({
       return [];
     }
     if (schema.type === "array") {
+      if (segment === "values") {
+        // ignoring this segment
+        continue;
+      }
       configPaths = configPaths.map((p) => composePaths(p, segment));
+      if (segment === "columns") {
+        schema = {};
+        continue;
+      }
       schema = schema.items;
     } else if (schema.type === "object") {
       schema = schema.properties[segment] ?? {};

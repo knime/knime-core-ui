@@ -49,11 +49,29 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_DETAIL;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.buildTestUiSchema;
 
+import java.util.Arrays;
 import java.util.Collection;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.knime.core.data.BooleanValue;
+import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
+import org.knime.core.data.DoubleValue;
+import org.knime.core.data.IntValue;
+import org.knime.core.data.LongValue;
+import org.knime.core.data.StringValue;
+import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
+import org.knime.core.data.def.DoubleCell.DoubleCellFactory;
+import org.knime.core.data.def.IntCell.IntCellFactory;
+import org.knime.core.data.def.LongCell.LongCellFactory;
+import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.Array;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.ArrayTestUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.PortIndex;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.TestElement;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -323,5 +341,86 @@ class JsonFormsUiSchemaUtilArrayTest {
         assertThatJson(response).inPath("$.elements[0].options.elementCheckboxScope").isString()
             .isEqualTo("#/properties/innerSetting");
 
+    }
+
+    @Nested
+    final class DynamicArrayTest {
+
+        static final int PORT_INDEX = 0;
+
+        static final class DynamicArrayTestSettings implements DefaultNodeSettings {
+
+            @Widget(title = "", description = "")
+            @ArrayWidget(addButtonText = "Add", elementTitle = "Element")
+            @PortIndex(PORT_INDEX)
+            Array<TestElement> m_arraySetting;
+
+        }
+
+        @Test
+        void testAddsArrayLayoutInCaseNoTableIsConnected() {
+            final var response = buildTestUiSchema(DynamicArrayTestSettings.class,
+                ArrayTestUtils.createContextWithoutNthTableSpec(PORT_INDEX));
+
+            assertThatJson(response).inPath("$.elements").isArray().hasSize(1);
+            assertThatJson(response).inPath("$.elements[0].type").isString().isEqualTo("Control");
+            assertThatJson(response).inPath("$.elements[0].scope").isString()
+                .isEqualTo("#/properties/model/properties/arraySetting/properties/values");
+            assertThatJson(response).inPath("$.elements[0].options").isObject()
+                .containsEntry("arrayElementTitle", "Element").containsEntry("addButtonText", "Add");
+
+        }
+
+        @Test
+        void testAddsDynamicArrayLayoutInCaseTableIsConnected() {
+
+            final var columnTypes = new DataType[]{StringCellFactory.TYPE, DoubleCellFactory.TYPE, IntCellFactory.TYPE,
+                BooleanCellFactory.TYPE, LongCellFactory.TYPE};
+            final var response = buildTestUiSchema(DynamicArrayTestSettings.class,
+                ArrayTestUtils.createContextWithNthTableSpec(PORT_INDEX, columnTypes));
+
+            final var numStringCols = getNumberOfCompatibleColumns(columnTypes, StringValue.class);
+            final var numDoubleCols = getNumberOfCompatibleColumns(columnTypes, DoubleValue.class);
+            final var numIntegerCols = getNumberOfCompatibleColumns(columnTypes, IntValue.class);
+            final var numBooleanCols = getNumberOfCompatibleColumns(columnTypes, BooleanValue.class);
+            final var numLongCols = getNumberOfCompatibleColumns(columnTypes, LongValue.class);
+
+            assertThatJson(response).inPath("$.elements").isArray().hasSize(1);
+            assertThatJson(response).inPath("$.elements[0].type").isString().isEqualTo("VerticalLayout");
+            assertThatJson(response).inPath("$.elements[0].elements").isArray().hasSize(8);
+            assertThatJson(response).inPath("$.elements[0].elements[0].type").isString().isEqualTo("Control");
+            assertThatJson(response).inPath("$.elements[0].elements[0].scope").isString()
+                .isEqualTo("#/properties/model/properties/arraySetting/properties/columns/properties/columnSelection");
+            assertThatJson(response).inPath("$.elements[0].elements[0].options.format").isString()
+                .isEqualTo("dropDown");
+            assertThatJson(response).inPath("$.elements[0].elements[0].options.possibleValues").isArray()
+                .hasSize(numStringCols);
+            assertThatJson(response).inPath("$.elements[0].elements[1].scope").isString().contains("enum");
+            assertThatJson(response).inPath("$.elements[0].elements[1].options.possibleValues").isArray()
+                .hasSize(numStringCols);
+            assertThatJson(response).inPath("$.elements[0].elements[2].scope").isString().contains("string");
+            assertThatJson(response).inPath("$.elements[0].elements[2].options.possibleValues").isArray()
+                .hasSize(numStringCols);
+            assertThatJson(response).inPath("$.elements[0].elements[3].scope").isString().contains("int");
+            assertThatJson(response).inPath("$.elements[0].elements[3].options.possibleValues").isArray()
+                .hasSize(numIntegerCols);
+            assertThatJson(response).inPath("$.elements[0].elements[4].scope").isString().contains("bool");
+            assertThatJson(response).inPath("$.elements[0].elements[4].options.possibleValues").isArray()
+                .hasSize(numBooleanCols);
+            assertThatJson(response).inPath("$.elements[0].elements[5].scope").isString().contains("double");
+            assertThatJson(response).inPath("$.elements[0].elements[5].options.possibleValues").isArray()
+                .hasSize(numDoubleCols);
+            assertThatJson(response).inPath("$.elements[0].elements[6].scope").isString().contains("long");
+            assertThatJson(response).inPath("$.elements[0].elements[6].options.possibleValues").isArray()
+                .hasSize(numLongCols);
+            assertThatJson(response).inPath("$.elements[0].elements[7].scope").isString().isEqualTo(
+                "#/properties/model/properties/arraySetting/properties/columns/properties/nestedSettings#innerSetting");
+
+        }
+
+        private static int getNumberOfCompatibleColumns(final DataType[] columnTypes,
+            final Class<? extends DataValue> dataValueClass) {
+            return (int)Arrays.stream(columnTypes).filter(type -> type.isCompatible(dataValueClass)).count();
+        }
     }
 }

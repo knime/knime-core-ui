@@ -50,6 +50,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.DynamicArraySchemaUtil.toDropdownDescription;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.DynamicArraySchemaUtil.toDropdownTitle;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -67,6 +69,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
@@ -75,6 +78,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.WidgetGroupModifier;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.Array;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.ArrayTestUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.array.PortIndex;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -86,6 +92,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -545,9 +552,134 @@ class JsonFormsSchemaUtilTest {
         testSettingsWithoutContext(SettingWithJavaTime.class);
     }
 
+    @Nested
+    final class DynamicArrayTest {
+
+        static final int PORT_INDEX = 2;
+
+        static final DefaultNodeSettingsContext CONTEXT_STATIC =
+            ArrayTestUtils.createContextWithoutNthTableSpec(PORT_INDEX);
+
+        static final DefaultNodeSettingsContext CONTEXT_DYNAMIC =
+            ArrayTestUtils.createContextWithNthTableSpec(PORT_INDEX);
+
+        private abstract static class DynamicArraySettings implements WidgetGroup {
+
+            static final class WidgetGroupSettings implements DefaultNodeSettings {
+
+                @Widget(title = "first title", description = "first description")
+                int setting1;
+
+                NestedSettings setting2;
+
+                static final class NestedSettings implements DefaultNodeSettings {
+
+                    @Widget(title = "second title", description = "second description")
+                    String nestedSetting = "default";
+                }
+            }
+
+            @PortIndex(PORT_INDEX)
+            Array<WidgetGroupSettings> m_dynamicArray;
+
+        }
+
+        private static class DynamicArraySettingsWithoutConnectedTable extends DynamicArraySettings {
+            private static String SNAPSHOT =
+                "{\"dynamicArray\":{\"type\":\"object\",\"properties\":{\"values\":{\"type\":\"array\",\"items\":" //
+                    + "{\"type\":\"object\",\"properties\":{" //
+                    + "\"setting1\":{\"type\":\"integer\",\"format\":\"int32\",\"default\":0,\"title\":\"first title\",\"description\":\"first description\"}," //
+                    + "\"setting2\":{\"type\":\"object\",\"properties\":{" //"
+                    + "\"nestedSetting\": { \"type\":\"string\",\"default\":\"default\",\"title\":\"second title\",\"description\":\"second description\"}" //
+                    + "}}}}}}}}";
+        }
+
+        @Test
+        void testDynamicArraySettingsWithoutConnectedTable() throws JsonProcessingException {
+            testSettings(DynamicArraySettingsWithoutConnectedTable.class, CONTEXT_STATIC);
+        }
+
+        private static class DynamicArraySettingsWithConnectedTable extends DynamicArraySettings {
+            private static String SNAPSHOT = "{\"dynamicArray\":{\"type\":\"object\",\"properties\":{" //
+                + "\"columns\":{\"type\":\"object\",\"properties\":{" //
+                + "\"setting1\":{\"type\":\"string\",\"title\":\""
+                + toDropdownTitle("first title").replace("\"", "\\\"") + "\",\"description\":\""
+                + toDropdownDescription("first description") + "\"}," //
+                + "\"setting2#nestedSetting\":{\"type\":\"string\",\"title\":\""
+                + toDropdownTitle("second title").replace("\"", "\\\"") + "\",\"description\":\""
+                + toDropdownDescription("second description") + "\"}" //
+                + "}}}}}";
+        }
+
+        @Test
+        void testDynamicArraySettingsWithConnectedTable() throws JsonProcessingException {
+            testSettings(DynamicArraySettingsWithConnectedTable.class, CONTEXT_DYNAMIC);
+        }
+
+        private abstract static class ModifiedDescriptionWithinDynamicArraySettings implements WidgetGroup {
+
+            static final class FieldReference implements Reference<String> {
+
+            }
+
+            static final class WidgetGroupSettings implements DefaultNodeSettings {
+
+                @Widget(title = "", description = "some description")
+                @Modification.WidgetReference(ChangeDescription.FieldReference.class)
+                int test;
+
+            }
+
+            @Modification(ChangeDescription.class)
+            @PortIndex(PORT_INDEX)
+            Array<WidgetGroupSettings> m_dynamicArray;
+
+        }
+
+        private static class ModifiedDescriptionWithinDynamicArraySettingsWithoutConnectedTable
+            extends ModifiedDescriptionWithinDynamicArraySettings {
+            /**
+             * containing the modified description from {@link ChangeDescription}.
+             */
+            private static String SNAPSHOT =
+                "{\"dynamicArray\":{\"type\":\"object\",\"properties\":{\"values\":{\"type\":\"array\",\"items\":{" //
+                    + "\"type\":\"object\",\"properties\":{" //
+                    + "\"test\":{\"type\":\"integer\",\"format\":\"int32\",\"default\":0,\"description\":\"modified description\"}" //
+                    + "}}}}}}";
+        }
+
+        @Test
+        void testModifiedDescriptionWithinDynamicArraySettingsWithoutConnectedTable() throws JsonProcessingException {
+            testSettings(ModifiedDescriptionWithinDynamicArraySettingsWithoutConnectedTable.class, CONTEXT_STATIC);
+        }
+
+        private static class ModifiedDescriptionWithinDynamicArraySettingsWithConnectedTable
+            extends ModifiedDescriptionWithinDynamicArraySettings {
+            /**
+             * containing the modified description from {@link ChangeDescription}.
+             */
+            private static String SNAPSHOT = "{\"dynamicArray\":{\"type\":\"object\",\"properties\":{" //
+                + "\"columns\":{\"type\":\"object\",\"properties\":{" //
+                + "\"test\":{\"type\":\"string\",\"description\":\"" + toDropdownDescription("modified description")
+                + "\"}" //
+                + "}}}}}";
+        }
+
+        @Test
+        void testModifiedDescriptionWithinDynamicArraySettingsWithConnectedTable() throws JsonProcessingException {
+            testSettings(ModifiedDescriptionWithinDynamicArraySettingsWithConnectedTable.class, CONTEXT_DYNAMIC);
+        }
+
+    }
+
     private static void testSettings(final Class<? extends WidgetGroup> settingsClass, final PortObjectSpec... specs)
         throws JsonMappingException, JsonProcessingException {
-        assertJSONAgainstSnapshot(getProperties(settingsClass, specs), settingsClass);
+        assertJSONAgainstSnapshot(getProperties(buildSchema(settingsClass, specs)), settingsClass);
+    }
+
+    private static void testSettings(final Class<? extends WidgetGroup> settingsClass,
+        final DefaultNodeSettingsContext context) throws JsonMappingException, JsonProcessingException {
+        assertJSONAgainstSnapshot(getProperties(buildSchema(settingsClass, context)), settingsClass);
     }
 
     private static void testSettingsWithoutContext(final Class<? extends WidgetGroup> settingsClass)
@@ -572,9 +704,18 @@ class JsonFormsSchemaUtilTest {
         }
     }
 
-    private static JsonNode getProperties(final Class<? extends WidgetGroup> clazz, final PortObjectSpec... specs) {
+    private static ObjectNode buildSchema(final Class<? extends WidgetGroup> clazz, final PortObjectSpec... specs) {
         return JsonFormsSchemaUtil.buildSchema(clazz, DefaultNodeSettings.createDefaultNodeSettingsContext(specs),
-            JsonFormsDataUtil.getMapper()).get("properties");
+            JsonFormsDataUtil.getMapper());
+    }
+
+    private static ObjectNode buildSchema(final Class<? extends WidgetGroup> clazz,
+        final DefaultNodeSettingsContext context) {
+        return JsonFormsSchemaUtil.buildSchema(clazz, context, JsonFormsDataUtil.getMapper());
+    }
+
+    private static JsonNode getProperties(final ObjectNode objectNode) {
+        return objectNode.get("properties");
     }
 
     private static JsonNode getPropertiesWithoutContext(final Class<? extends WidgetGroup> clazz) {

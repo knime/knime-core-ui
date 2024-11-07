@@ -127,6 +127,8 @@ public final class JsonFormsConsts {
 
         public static final String TAG_TITLE = SchemaKeyword.TAG_TITLE.forVersion(VERSION);
 
+        public static final String TAG_DESCRIPTION = SchemaKeyword.TAG_DESCRIPTION.forVersion(VERSION);
+
         public static final String TAG_CONST = SchemaKeyword.TAG_CONST.forVersion(VERSION);
 
         public static final String TAG_PATTERN = SchemaKeyword.TAG_PATTERN.forVersion(VERSION);
@@ -262,6 +264,11 @@ public final class JsonFormsConsts {
 
             public static final String TEXT_MESSAGE = "textMessage";
         }
+
+        /**
+         * Used for defining static possible values for single- and multiple- selection widgets.
+         */
+        public static final String TAG_POSSIBLE_VALUES = "possibleValues";
 
         /**
          * The option tag for the detail sub ui schema of an array layout

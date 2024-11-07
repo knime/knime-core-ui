@@ -44,37 +44,82 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 20, 2023 (Paul Bärnreuther): created
+ *   Nov 10, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.util;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.array;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-
-import com.fasterxml.jackson.core.type.ResolvedType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
- * A utility class for working with array layouts.
- *
- * @author Paul Bärnreuther
+ * Test element settings to be used in various tests regarding {@ink Array}.
  */
-public final class ArrayLayoutUtil {
+public class TestElement implements DefaultNodeSettings {
 
-    private ArrayLayoutUtil() {
-        // utility
+    /**
+     * The value of the selected column should come from a string column
+     */
+    @Widget(description = "", title = "")
+    public ColumnSelection m_columnSelection;
+
+    /**
+     * The value of the enum should come from a string column
+     */
+    @Widget(description = "", title = "")
+    public TestEnum m_enum;
+
+    /**
+     * The value of the string should come from a string column
+     */
+    @Widget(description = "", title = "")
+    String m_string;
+
+    /**
+     * The value of the int should come from an integer column
+     */
+    @Widget(description = "", title = "")
+    int m_int;
+
+    /**
+     * The value of the bool should come from a boolean column
+     */
+    @Widget(description = "", title = "")
+    boolean m_bool;
+
+    /**
+     * The value of the double should come from a double column
+     */
+    @Widget(description = "", title = "")
+    double m_double;
+
+    /**
+     * The value of the long should come from a long column
+     */
+    @Widget(description = "", title = "")
+    long m_long;
+
+    /**
+     * The value of the nested settings should come from a string column
+     */
+    public NestedSettings m_nestedSettings = new NestedSettings();
+
+    @SuppressWarnings("javadoc")
+    public enum TestEnum {
+            FIRST, SECOND, THIRD;
     }
 
     /**
-     * @param javaType the type of the field
-     * @return whether the uischema generation should interpret this field as an array layout
+     * Nested settings for testing that the nested fields are also controlled dynamically
      */
-    public static boolean isArrayLayoutField(final ResolvedType javaType) {
-        return (javaType.isArrayType() || javaType.isCollectionLikeType()) && isWidgetGroup(javaType.getContentType());
+    public static final class NestedSettings implements DefaultNodeSettings {
+
+        /**
+         * The value of the nested string should come from a string column
+         */
+        @Widget(description = "", title = "")
+        public String m_innerSetting;
+
     }
-
-    private static boolean isWidgetGroup(final ResolvedType contentType) {
-        return !contentType.isEnumType() && WidgetGroup.class.isAssignableFrom(contentType.getRawClass());
-    }
-
-
 
 }

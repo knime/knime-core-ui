@@ -44,37 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 20, 2023 (Paul Bärnreuther): created
+ *   Nov 10, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.util;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.array;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import com.fasterxml.jackson.core.type.ResolvedType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 /**
- * A utility class for working with array layouts.
+ * Add this annotation to a field of type {@link Array} to set the index of the associated port.
  *
  * @author Paul Bärnreuther
  */
-public final class ArrayLayoutUtil {
+@Retention(RUNTIME)
+@Target(FIELD)
+public @interface PortIndex {
 
-    private ArrayLayoutUtil() {
-        // utility
-    }
-
-    /**
-     * @param javaType the type of the field
-     * @return whether the uischema generation should interpret this field as an array layout
-     */
-    public static boolean isArrayLayoutField(final ResolvedType javaType) {
-        return (javaType.isArrayType() || javaType.isCollectionLikeType()) && isWidgetGroup(javaType.getContentType());
-    }
-
-    private static boolean isWidgetGroup(final ResolvedType contentType) {
-        return !contentType.isEnumType() && WidgetGroup.class.isAssignableFrom(contentType.getRawClass());
-    }
-
-
-
+    @SuppressWarnings("javadoc")
+    int value();
 }
