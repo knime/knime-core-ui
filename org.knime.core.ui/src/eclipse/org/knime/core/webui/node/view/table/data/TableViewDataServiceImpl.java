@@ -58,7 +58,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -82,6 +82,9 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.webui.data.DataServiceContext;
 import org.knime.core.webui.data.DataServiceException;
+import org.knime.core.webui.node.view.table.actions.ActionParameters;
+import org.knime.core.webui.node.view.table.actions.ActionType;
+import org.knime.core.webui.node.view.table.actions.SortActionParameters;
 import org.knime.core.webui.node.view.table.data.render.DataCellContentType;
 import org.knime.core.webui.node.view.table.data.render.DataValueImageRenderer.ImageDimension;
 import org.knime.core.webui.node.view.table.data.render.DataValueImageRendererRegistry;
@@ -125,7 +128,7 @@ public class TableViewDataServiceImpl implements TableViewDataService {
     // or disposed (workflow closed, node removed). It is cleared via 'clearCache'.
     private ExecutionContext m_executionContext;
 
-    private Consumer<String> m_projectIdConsumer;
+    private BiConsumer<String, Map<ActionType, ActionParameters>> m_projectIdConsumer;
 
     /**
      * @param tableSupplier supplier for the table from which to obtain data
@@ -179,7 +182,7 @@ public class TableViewDataServiceImpl implements TableViewDataService {
      */
     public TableViewDataServiceImpl(final Supplier<BufferedDataTable> tableSupplier, final Supplier<Set<RowKey>> selectionSupplier,
         final String tableId, final SwingBasedRendererFactory rendererFactory, final DataValueImageRendererRegistry rendererRegistry,
-        final Consumer<String> projectIdConsumer) {
+        final BiConsumer<String, Map<ActionType, ActionParameters>> projectIdConsumer) {
         m_selectionSupplier = selectionSupplier;
         Objects.requireNonNull(tableSupplier, () -> "Table supplier must not be null.");
         m_tableSupplier = tableSupplier;
@@ -201,7 +204,7 @@ public class TableViewDataServiceImpl implements TableViewDataService {
     @Override
     public void clickOnButton(final String projectId) {
         if (m_projectIdConsumer != null) {
-            m_projectIdConsumer.accept(projectId);
+            m_projectIdConsumer.accept(projectId, Map.of(ActionType.SORT, new SortActionParameters("some column", true)));
         }
     }
 

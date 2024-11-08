@@ -50,8 +50,9 @@ package org.knime.core.webui.node.view.table;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -62,6 +63,8 @@ import org.knime.core.util.Pair;
 import org.knime.core.webui.data.InitialDataService;
 import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsSerializer;
+import org.knime.core.webui.node.view.table.actions.ActionParameters;
+import org.knime.core.webui.node.view.table.actions.ActionType;
 import org.knime.core.webui.node.view.table.data.TableViewDataService;
 import org.knime.core.webui.node.view.table.data.TableViewDataServiceImpl;
 import org.knime.core.webui.node.view.table.data.TableViewInitialData;
@@ -148,7 +151,6 @@ public final class TableViewUtil {
             RENDERER_REGISTRY);
     }
 
-
     /**
      * @param tableSupplier supplying the input table
      * @param selectionSupplier supplying the currently selected row keys (for update of totalSelected when filtering);
@@ -157,7 +159,8 @@ public final class TableViewUtil {
      * @return the {@link TableViewDataService} associated to the node
      */
     public static TableViewDataService createTableViewDataService(final Supplier<BufferedDataTable> tableSupplier,
-        final Supplier<Set<RowKey>> selectionSupplier, final String tableId, final Consumer<String> projectIdConsumer) {
+        final Supplier<Set<RowKey>> selectionSupplier, final String tableId,
+        final BiConsumer<String, Map<ActionType, ActionParameters>> projectIdConsumer) {
         return new TableViewDataServiceImpl(tableSupplier, selectionSupplier, tableId, new SwingBasedRendererFactory(),
             RENDERER_REGISTRY, projectIdConsumer);
     }
