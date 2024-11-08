@@ -141,7 +141,7 @@ public final class DynamicValuesInput implements PersistableSettings {
      * @param useStringCaseMatchingSetting {@code true} to show the case matching setting for strings,
      *            {@code false} to disable the setting regardless of data type
      */
-    DynamicValuesInput(final DataType dataType, final DataCell initialValue,
+    public DynamicValuesInput(final DataType dataType, final DataCell initialValue,
         final boolean useStringCaseMatchingSetting) {
         this(new DynamicValue[]{new DynamicValue(dataType, initialValue, useStringCaseMatchingSetting)},
             InputKind.SINGLE);
