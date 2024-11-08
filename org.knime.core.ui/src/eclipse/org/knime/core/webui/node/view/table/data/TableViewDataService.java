@@ -100,9 +100,6 @@ public interface TableViewDataService {
         String[] rendererIds, boolean updateDisplayedColumns, boolean updateTotalSelected,
         boolean forceClearImageDataCache, boolean trimColumns, boolean showOnlySelectedRows);
 
-
-    void clickOnButton(String projectId);
-
     public record HTMLAndCSV(String html, String csv) {
     }
 
@@ -145,5 +142,16 @@ public interface TableViewDataService {
      * Clears everything the data services caches.
      */
     void clearCache();
+
+    /**
+     * @param projectId
+     * @param columns
+     * @param sortColumn
+     * @param sortAscending
+     * @param columnFilterValues
+     * @param showOnlySelectedRows
+     */
+    void clickOnButton(String projectId, String[] columns, String sortColumn, boolean sortAscending,
+        String[][] columnFilterValues, boolean showOnlySelectedRows);
 
 }

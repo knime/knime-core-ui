@@ -125,6 +125,7 @@ export default {
       lastUpdateHash: 0,
       link: "",
       showOnlySelectedRows: false,
+      projectId: "",
     };
   },
   computed: {
@@ -1214,20 +1215,38 @@ export default {
     getTableViewDisplay(): typeof TableViewDisplay {
       return this.$refs.tableViewDisplay as typeof TableViewDisplay;
     },
+    clickOnButton() {
+      this.jsonDataService?.data({
+        method: "clickOnButton",
+        options: this.getButtonParameters(),
+      });
+    },
+    // return typr comes from     void clickOnButton(String projectId, String[] columns, String sortColumn, boolean sortAscending,
+    //    String[][] columnFilterValues, boolean showOnlySelectedRows);
+    getButtonParameters(): [
+      projectId: string,
+      columns: string[],
+      sortColumn: string | null,
+      sortAscending: boolean,
+      columnFilterValues: string[][] | null,
+      showOnlySelectedRows: boolean,
+    ] {
+      return [
+        this.projectId as string,
+        this.displayedColumns,
+        this.columnSortColumnName,
+        this.columnSortDirection === 1,
+        // @ts-expect-error
+        this.getColumnFilterValues(this.displayedColumns),
+        this.showOnlySelectedRows,
+      ];
+    },
   },
 };
 </script>
 
 <template>
-  {{ { projectId } }}
-  <button
-    @click="
-      () =>
-        jsonDataService?.data({ method: 'clickOnButton', options: [projectId] })
-    "
-  >
-    Click me!!
-  </button>
+  <button @click="clickOnButton">Click me!!</button>
   <TableViewDisplay
     ref="tableViewDisplay"
     class="table-view-display"

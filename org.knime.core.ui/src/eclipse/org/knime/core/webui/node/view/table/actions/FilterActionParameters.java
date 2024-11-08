@@ -48,24 +48,24 @@
  */
 package org.knime.core.webui.node.view.table.actions;
 
+import java.util.Optional;
+
 /**
  *
  * @author Paul Bärnreuther
  */
 public non-sealed interface FilterActionParameters extends ActionParameters {
 
+    ColumnFilterParameters[] getColumnFilters();
 
-    ColumnFilterParameters[] getFilters();
+    Optional<String> getRowKeySearchTerm();
 
     interface ColumnFilterParameters {
 
         String getColumnName();
 
-        String getFilter();
+        String[] getFilterValues();
 
     }
-
-    String getGlobalSearch();
-
 
 }

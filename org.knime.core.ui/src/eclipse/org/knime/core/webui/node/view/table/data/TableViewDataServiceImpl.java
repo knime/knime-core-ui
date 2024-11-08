@@ -84,6 +84,9 @@ import org.knime.core.webui.data.DataServiceContext;
 import org.knime.core.webui.data.DataServiceException;
 import org.knime.core.webui.node.view.table.actions.ActionParameters;
 import org.knime.core.webui.node.view.table.actions.ActionType;
+import org.knime.core.webui.node.view.table.actions.FilterActionParameters;
+import org.knime.core.webui.node.view.table.actions.FilterActionParameters.ColumnFilterParameters;
+import org.knime.core.webui.node.view.table.actions.SelectedRowsActionParameters;
 import org.knime.core.webui.node.view.table.actions.SortActionParameters;
 import org.knime.core.webui.node.view.table.data.render.DataCellContentType;
 import org.knime.core.webui.node.view.table.data.render.DataValueImageRenderer.ImageDimension;
@@ -180,8 +183,9 @@ public class TableViewDataServiceImpl implements TableViewDataService {
      * @param rendererRegistry
      * @param projectIdConsumer
      */
-    public TableViewDataServiceImpl(final Supplier<BufferedDataTable> tableSupplier, final Supplier<Set<RowKey>> selectionSupplier,
-        final String tableId, final SwingBasedRendererFactory rendererFactory, final DataValueImageRendererRegistry rendererRegistry,
+    public TableViewDataServiceImpl(final Supplier<BufferedDataTable> tableSupplier,
+        final Supplier<Set<RowKey>> selectionSupplier, final String tableId,
+        final SwingBasedRendererFactory rendererFactory, final DataValueImageRendererRegistry rendererRegistry,
         final BiConsumer<String, Map<ActionType, ActionParameters>> projectIdConsumer) {
         m_selectionSupplier = selectionSupplier;
         Objects.requireNonNull(tableSupplier, () -> "Table supplier must not be null.");
@@ -201,11 +205,104 @@ public class TableViewDataServiceImpl implements TableViewDataService {
             updateDisplayedColumns, false, forceClearImageDataCache, trimColumns, showOnlySelectedRows);
     }
 
+    /**
+     * filterRowKeys is not used here since we assume it to be true whenever this button is used.
+     *
+     * @param projectId
+     * @param columns
+     * @param sortColumn
+     * @param sortAscending
+     * @param columnFilterValues
+     */
     @Override
-    public void clickOnButton(final String projectId) {
+    public void clickOnButton(final String projectId, final String[] columns, final String sortColumn,
+        final boolean sortAscending, final String[][] columnFilterValues, final boolean showOnlySelectedRows) {
         if (m_projectIdConsumer != null) {
-            m_projectIdConsumer.accept(projectId, Map.of(ActionType.SORT, new SortActionParameters("some column", true)));
+
+            final var actionMap =
+                createActionMap(columns, sortColumn, sortAscending, columnFilterValues, showOnlySelectedRows);
+
+            m_projectIdConsumer.accept(projectId, actionMap);
         }
+    }
+
+    /**
+     * @param columns
+     * @param sortColumn
+     * @param sortAscending
+     * @param columnFilterValues
+     * @param showOnlySelectedRows
+     * @return
+     */
+    private static Map<ActionType, ActionParameters> createActionMap(final String[] columns, final String sortColumn,
+        final boolean sortAscending, final String[][] columnFilterValues, final boolean showOnlySelectedRows) {
+        final var actionMap = new HashMap<ActionType, ActionParameters>();
+        if (sortColumn != null) {
+            final var sortParameters = createSortParameters(sortColumn, sortAscending, columns);
+            actionMap.put(ActionType.SORT, sortParameters);
+        }
+        if (showOnlySelectedRows) {
+            actionMap.put(ActionType.SELECTED_ROWS, new SelectedRowsActionParameters());
+        }
+        if (!allColumnFiltersEmpty(columnFilterValues)) {
+            actionMap.put(ActionType.FILTER, createColumnFilterParameters(columns, columnFilterValues));
+        }
+        return actionMap;
+    }
+
+    /**
+     * @param columns
+     * @param columnFilterValues
+     * @return
+     */
+    private static FilterActionParameters createColumnFilterParameters(final String[] columns,
+        final String[][] columnFilterValues) {
+        return new FilterActionParameters() {
+
+            @Override
+            public ColumnFilterParameters[] getColumnFilters() {
+                return IntStream.range(1, columnFilterValues.length)
+                    .filter(i -> !columnFiltersEmpty(columnFilterValues[i]))
+                    .mapToObj(i -> createColumnFilterParameters(columns[i - 1], columnFilterValues[i]))
+                    .toArray(ColumnFilterParameters[]::new);
+            }
+
+            @Override
+            public Optional<String> getRowKeySearchTerm() {
+                final var rowKeyFilterValue = columnFilterValues[0];
+                if (columnFiltersEmpty(rowKeyFilterValue)) {
+                    return Optional.empty();
+                }
+                return Optional.ofNullable(rowKeyFilterValue[0]);
+            }
+
+        };
+
+    }
+
+    private static ColumnFilterParameters createColumnFilterParameters(final String column,
+        final String[] columnFilterValues) {
+        return new ColumnFilterParameters() {
+
+            @Override
+            public String[] getFilterValues() {
+                return columnFilterValues;
+            }
+
+            @Override
+            public String getColumnName() {
+                return column;
+            }
+        };
+    }
+
+    private static SortActionParameters createSortParameters(final String sortColumn, final boolean sortAscending,
+        final String[] columns) {
+        final var isColumn = Arrays.asList(columns).contains(sortColumn);
+        if (isColumn) {
+            return new SortActionParameters(sortColumn, sortAscending);
+        }
+        return SortActionParameters.sortRowId(sortAscending);
     }
 
     @Override
@@ -476,7 +573,8 @@ public class TableViewDataServiceImpl implements TableViewDataService {
     }
 
     private static boolean allColumnFiltersEmpty(final String[][] columnFilters) {
-        return columnFilters == null || columnFilters.length == 0;
+        return columnFilters == null
+            || Arrays.stream(columnFilters).allMatch(TableViewDataServiceImpl::columnFiltersEmpty);
     }
 
     private static boolean columnFiltersEmpty(final String[] columnFilter) {
