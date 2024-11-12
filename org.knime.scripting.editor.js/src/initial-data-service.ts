@@ -36,9 +36,8 @@ export type InputConnectionInfo = {
 };
 
 export type KAIConfig = {
-  codeAssistantEnabled: boolean;
-  codeAssistantInstalled: boolean;
   hubId: string;
+  isKaiEnabled: boolean;
 };
 
 export type GenericInitialData = {

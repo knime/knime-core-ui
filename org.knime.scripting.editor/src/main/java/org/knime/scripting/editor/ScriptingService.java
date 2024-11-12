@@ -333,6 +333,13 @@ public abstract class ScriptingService {
         }
 
         /**
+         * @return whether all K-AI-related features are enabled
+         */
+        public boolean isKaiEnabled() {
+            return HubConnection.INSTANCE.isKaiEnabled();
+        }
+
+        /**
          * @return true iff the user is logged in to the currently selected Hub end point
          */
         public boolean isLoggedIntoHub() {

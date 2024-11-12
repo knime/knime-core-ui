@@ -39,7 +39,7 @@ const emit = defineEmits(["accept-disclaimer"]);
           data-testid="ai-disclaimer-accept-button"
           @click="emit('accept-disclaimer')"
         >
-          Accept and close
+          Accept and continue
         </Button>
       </div>
     </template>

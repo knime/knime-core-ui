@@ -20,9 +20,10 @@ import AiPopupContent from "./AiPopupContent.vue";
 const showAiPopup = ref(false);
 
 const showAiButton = computedAsync<boolean>(
-  async () =>
+  async () => 
     (await getInitialDataService().getInitialData()).kAiConfig
-      .codeAssistantEnabled,
+      .isKaiEnabled
+  ,
   false,
 );
 const enableAiButton = computedAsync<boolean>(
