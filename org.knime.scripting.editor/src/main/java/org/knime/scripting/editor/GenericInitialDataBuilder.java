@@ -100,7 +100,7 @@ public final class GenericInitialDataBuilder {
 
     /**
      * Create a default initial data service for a scripting editor. Includes: settings, input port configs,
-     * isCodeAssistantEnabled, isCodeAssistantInstalled, hubId, isLoggedIntoHub
+     * and K-AI-related configuration: hubId, isLoggedIntoHub, isKaiEnabled.
      *
      * @param context the node context, used for getting the port configs
      * @return a new initial data service, which can be extended to include additional data suppliers
@@ -142,11 +142,6 @@ public final class GenericInitialDataBuilder {
         return () -> new PortConfigs(context.getNodeContainer());
     }
 
-    private static final String AI_ASSISTANT_FEATURE_FLAG = "org.knime.ui.feature.ai_assistant";
-
-    private static final boolean AI_ASSISTANT_FEATURE_ENABLED =
-        System.getProperty(AI_ASSISTANT_FEATURE_FLAG) == null || Boolean.getBoolean(AI_ASSISTANT_FEATURE_FLAG);
-
     /**
      * Create a {@link DataSupplier} that provides the KAI configuration.
      *
@@ -156,10 +151,9 @@ public final class GenericInitialDataBuilder {
         return () -> {
             Map<String, Object> result = new HashMap<>();
 
-            result.put("codeAssistantEnabled", AI_ASSISTANT_FEATURE_ENABLED);
-            result.put("codeAssistantInstalled", AI_ASSISTANT_FEATURE_ENABLED && HubConnection.INSTANCE.isAvailable());
             result.put("hubId", HubConnection.INSTANCE.isAvailable() ? HubConnection.INSTANCE.getHubId() : null);
             result.put("loggedIntoHub", HubConnection.INSTANCE.isAvailable() && HubConnection.INSTANCE.isLoggedIn());
+            result.put("isKaiEnabled", HubConnection.INSTANCE.isAvailable() && HubConnection.INSTANCE.isKaiEnabled());
 
             return result;
         };

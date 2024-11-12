@@ -138,6 +138,10 @@ const scriptingService = {
     return RPCHelper.getInstance().isCallKnimeUiApiAvailable(portToTestFor);
   },
 
+  isKaiEnabled(): Promise<boolean> {
+    return this.sendToService("isKaiEnabled");
+  },
+
   isLoggedIntoHub(): Promise<boolean> {
     return this.sendToService("isLoggedIntoHub");
   },

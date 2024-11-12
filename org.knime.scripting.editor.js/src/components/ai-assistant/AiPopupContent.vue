@@ -13,7 +13,6 @@ import { useTextareaAutosize } from "@vueuse/core";
 import { Button, FunctionButton } from "@knime/components";
 import AbortIcon from "@knime/styles/img/icons/cancel-execution.svg";
 import WarningIcon from "@knime/styles/img/icons/circle-warning.svg";
-import LinkIcon from "@knime/styles/img/icons/link.svg";
 import SendIcon from "@knime/styles/img/icons/paper-flier.svg";
 
 import InfinityLoadingBar from "@/components/InfinityLoadingBar.vue";
@@ -39,7 +38,8 @@ type Status =
   | "idle"
   | "error"
   | "waiting"
-  | "uninstalled"
+  | "disabledOrUninstalled" // K-AI-related UI elements shouldn't be rendered for both of these cases: K-AI is uninstalled / K-AI is disabled
+  | "newlyDisabled"
   | "unauthorized"
   | "readonly";
 
@@ -126,13 +126,18 @@ const acceptSuggestion = (acceptedCode: string) => {
 };
 
 onMounted(async () => {
-  const [settings, initialData] = await Promise.all([
+  const [settings, initialData, currentIsKaiEnabledStatus] = await Promise.all([
     getSettingsService().getSettings(),
     getInitialDataService().getInitialData(),
+    getScriptingService().isKaiEnabled()
   ]);
 
-  if (!initialData.kAiConfig.codeAssistantInstalled) {
-    status.value = "uninstalled";
+  if (!initialData.kAiConfig.isKaiEnabled) {
+    // K-AI is disabled on launch of the scripting editor
+    status.value = "disabledOrUninstalled";
+  } else if (!currentIsKaiEnabledStatus) {
+    // K-AI is enabled on launch, but got disabled while the scripting editor was open
+    status.value = "newlyDisabled"
   } else if (settings.settingsAreOverriddenByFlowVariable) {
     status.value = "readonly";
   } else if (!(await getScriptingService().isLoggedIntoHub())) {
@@ -161,7 +166,7 @@ const tryLogin = () => {
 // used to add a divider between notification bar / chat controls and above
 const hasTopContent = computed(() => {
   return (
-    status.value === "uninstalled" ||
+    status.value === "disabledOrUninstalled" ||
     status.value === "unauthorized" ||
     showDisclaimer.value ||
     promptResponseStore.promptResponse
@@ -183,20 +188,14 @@ getInitialDataService()
 
 <template>
   <div class="popup-content">
-    <div v-show="status === 'uninstalled'" class="notification-bar">
+
+    <!-- Edge case: If K-AI gets disabled while a scripting editor is open, the "Ask K-AI" button will still be rendered and clickable. -->
+    <div v-show="status === 'newlyDisabled'" class="notification-bar">
       <span class="notification">
-        To start generating code with our AI assistant, install the
-        <i>KNIME AI Assistant</i> extension
+        K-AI has been disabled.
       </span>
-      <Button
-        compact
-        primary
-        :to="'https://hub.knime.com/knime/extensions/org.knime.features.ai.assistant/latest'"
-        class="notification-button"
-      >
-        <LinkIcon />Download from KNIME Hub
-      </Button>
     </div>
+
     <div v-show="status === 'unauthorized'" class="notification-bar">
       <span class="notification">
         To start generating code with our AI assistant, please log into your
@@ -213,7 +212,8 @@ getInitialDataService()
     </div>
     <div
       v-show="
-        status !== 'uninstalled' &&
+        status !== 'disabledOrUninstalled' &&
+        status !== 'newlyDisabled' &&
         status !== 'unauthorized' &&
         status !== 'readonly'
       "
