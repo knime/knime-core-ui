@@ -5,7 +5,6 @@ import { flushPromises, mount } from "@vue/test-utils";
 import InfinityLoadingBar from "@/components/InfinityLoadingBar.vue";
 import AiPopupContent from "@/components/ai-assistant/AiPopupContent.vue";
 import AiSuggestion from "@/components/ai-assistant/AiSuggestion.vue";
-import { getInitialDataService } from "@/initial-data-service";
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
 import { getScriptingService } from "@/scripting-service";
 import { getSettingsService } from "@/settings-service";
@@ -37,6 +36,7 @@ vi.mock("@/settings-service", () => ({
 const doMount = async () => {
   const wrapper = mount(AiPopupContent);
   await flushPromises();
+
   return wrapper;
 };
 
@@ -106,8 +106,8 @@ describe("AiPopup", () => {
   it("test aiBar abort request", async () => {
     const bar = await doMount();
     await flushPromises();
-    const scriptingService = getScriptingService();
 
+    const scriptingService = getScriptingService();
     vi.mocked(scriptingService.sendToService).mockClear();
     vi.mocked(scriptingService.sendToService).mockReturnValueOnce(
       Promise.resolve({
@@ -168,12 +168,12 @@ describe("AiPopup", () => {
     const bar = await doMount();
     await flushPromises();
 
-    const downloadNotification = bar.findAll(".notification-bar").at(0);
+    const disabledNotification = bar.findAll(".notification-bar").at(0);
     const loginNotification = bar.findAll(".notification-bar").at(1);
 
-    expect(downloadNotification?.exists()).toBeTruthy();
+    expect(disabledNotification?.exists()).toBeTruthy();
     expect(loginNotification?.exists()).toBeTruthy();
-    expect(downloadNotification?.isVisible()).toBeFalsy();
+    expect(disabledNotification?.isVisible()).toBeFalsy();
     expect(loginNotification?.isVisible()).toBeTruthy();
 
     const loginButton = loginNotification?.find(".notification-button");
@@ -184,34 +184,21 @@ describe("AiPopup", () => {
     );
   });
 
-  it("show install button if not available", async () => {
-    vi.mocked(getInitialDataService).mockReturnValue({
-      getInitialData: vi.fn(() =>
-        Promise.resolve({
-          ...DEFAULT_INITIAL_DATA,
-          kAiConfig: {
-            ...DEFAULT_INITIAL_DATA.kAiConfig,
-            codeAssistantInstalled: false,
-          },
-        }),
-      ),
-    });
+  it("shows a 'K-AI is disabled' message if K-AI is disabled", async () => {
+    const scriptingService = getScriptingService();
+    vi.mocked(scriptingService.isKaiEnabled).mockResolvedValue(false);
 
     const bar = await doMount();
+
     await flushPromises();
 
-    const downloadNotification = bar.findAll(".notification-bar").at(0);
+    const disabledNotification = bar.findAll(".notification-bar").at(0);
     const loginNotification = bar.findAll(".notification-bar").at(1);
 
-    expect(downloadNotification?.exists()).toBeTruthy();
+    expect(disabledNotification?.exists()).toBeTruthy();
     expect(loginNotification?.exists()).toBeTruthy();
-    expect(downloadNotification?.isVisible()).toBeTruthy();
+    expect(disabledNotification?.isVisible()).toBeTruthy();
     expect(loginNotification?.isVisible()).toBeFalsy();
-
-    const downloadButton = downloadNotification?.find(".notification-button");
-
-    expect(downloadButton?.exists()).toBeTruthy();
-    expect(downloadButton?.text()).toBe("Download from KNIME Hub");
   });
 
   it("show flow variable message if readonly", async () => {
@@ -230,12 +217,15 @@ describe("AiPopup", () => {
 
     const bar = await doMount();
     await flushPromises();
-    const downloadNotification = bar.findAll(".notification-bar").at(0);
+
+    const disabledNotification = bar.findAll(".notification-bar").at(0);
     const loginNotification = bar.findAll(".notification-bar").at(1);
-    expect(downloadNotification?.isVisible()).toBeFalsy();
+
+    expect(disabledNotification?.isVisible()).toBeFalsy();
     expect(loginNotification?.isVisible()).toBeFalsy();
 
     const readonlyNotification = bar.findAll(".notification-bar").at(2);
+
     expect(readonlyNotification?.exists()).toBeTruthy();
     expect(readonlyNotification?.isVisible()).toBeTruthy();
     expect(readonlyNotification?.text()).toBe(
@@ -243,26 +233,30 @@ describe("AiPopup", () => {
     );
   });
 
-  it("neither install nor login buttons are visible if ai assistant is ready to be used", async () => {
+  it("neither 'KAI is disabled' message nor login buttons are visible if ai assistant is ready to be used", async () => {
     const bar = await doMount();
     await flushPromises();
-    const downloadNotification = bar.findAll(".notification-bar").at(0);
+
+    const disabledNotification = bar.findAll(".notification-bar").at(0);
     const loginNotification = bar.findAll(".notification-bar").at(1);
-    expect(downloadNotification?.exists()).toBeTruthy();
+
+    expect(disabledNotification?.exists()).toBeTruthy();
     expect(loginNotification?.exists()).toBeTruthy();
-    expect(downloadNotification?.isVisible()).toBeFalsy();
+    expect(disabledNotification?.isVisible()).toBeFalsy();
     expect(loginNotification?.isVisible()).toBeFalsy();
   });
 
   it("shows abort button and loading bar in waiting state", async () => {
     const bar = await doMount();
     await flushPromises();
+
     const message = "Do something!";
     // write to textarea
     const textarea = bar.find("textarea");
     textarea.setValue(message);
 
     const scriptingService = getScriptingService();
+    vi.mocked(scriptingService.isKaiEnabled).mockResolvedValue(false);
     // vi mocked gives type support for mocked vi.fn()
     vi.mocked(scriptingService.sendToService).mockClear();
     vi.mocked(scriptingService.sendToService).mockReturnValueOnce(
@@ -285,9 +279,12 @@ describe("AiPopup", () => {
   it("aborts active request if ai bar is dismissed", async () => {
     const bar = await doMount();
     await flushPromises();
+
     (bar.vm as any).status = "waiting";
     bar.unmount();
-    expect(getScriptingService().sendToService).toHaveBeenCalledWith(
+
+    const scriptingService = getScriptingService();
+    expect(scriptingService.sendToService).toHaveBeenCalledWith(
       "abortSuggestCodeRequest",
     );
   });
@@ -295,8 +292,11 @@ describe("AiPopup", () => {
   it("does not abort request if ai bar is dismissed and there is no active request", async () => {
     const bar = await doMount();
     await flushPromises();
+
     bar.unmount();
-    expect(getScriptingService().sendToService).not.toHaveBeenCalledWith(
+
+    const scriptingService = getScriptingService();
+    expect(scriptingService.sendToService).not.toHaveBeenCalledWith(
       "abortSuggestCodeRequest",
     );
   });

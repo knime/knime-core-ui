@@ -78,6 +78,11 @@ export const createScriptingServiceMock = (
       return Promise.resolve(true);
     },
 
+    isKaiEnabled() {
+      log("Called scriptingService.isKaiEnabled");
+      return Promise.resolve(true);
+    },
+
     isLoggedIntoHub() {
       log("Called scriptingService.isLoggedIntoHub");
       return Promise.resolve(true);

@@ -129,7 +129,7 @@ onMounted(async () => {
   const [settings, initialData, currentIsKaiEnabledStatus] = await Promise.all([
     getSettingsService().getSettings(),
     getInitialDataService().getInitialData(),
-    getScriptingService().isKaiEnabled()
+    getScriptingService().isKaiEnabled(),
   ]);
 
   if (!initialData.kAiConfig.isKaiEnabled) {
@@ -137,7 +137,7 @@ onMounted(async () => {
     status.value = "disabledOrUninstalled";
   } else if (!currentIsKaiEnabledStatus) {
     // K-AI is enabled on launch, but got disabled while the scripting editor was open
-    status.value = "newlyDisabled"
+    status.value = "newlyDisabled";
   } else if (settings.settingsAreOverriddenByFlowVariable) {
     status.value = "readonly";
   } else if (!(await getScriptingService().isLoggedIntoHub())) {
@@ -188,12 +188,9 @@ getInitialDataService()
 
 <template>
   <div class="popup-content">
-
     <!-- Edge case: If K-AI gets disabled while a scripting editor is open, the "Ask K-AI" button will still be rendered and clickable. -->
     <div v-show="status === 'newlyDisabled'" class="notification-bar">
-      <span class="notification">
-        K-AI has been disabled.
-      </span>
+      <span class="notification"> K-AI has been disabled. </span>
     </div>
 
     <div v-show="status === 'unauthorized'" class="notification-bar">

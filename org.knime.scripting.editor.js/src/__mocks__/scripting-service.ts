@@ -30,6 +30,7 @@ export const scriptingServiceMock: ScriptingServiceType = {
   sendToService: vi.fn(),
   connectToLanguageServer: vi.fn(),
   isCallKnimeUiApiAvailable: vi.fn(() => Promise.resolve(true)),
+  isKaiEnabled: vi.fn(() => Promise.resolve(true)),
   isLoggedIntoHub: vi.fn(() => Promise.resolve(true)),
   getAiDisclaimer: vi.fn(() => Promise.resolve("AI Disclaimer")),
 };
