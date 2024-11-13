@@ -102,9 +102,8 @@ export const DEFAULT_INITIAL_DATA: GenericInitialData = {
   flowVariables: DEFAULT_FLOW_VARIABLE_INPUTS,
   inputPortConfigs: DEFAULT_PORT_CONFIGS,
   kAiConfig: {
-    codeAssistantEnabled: true,
-    codeAssistantInstalled: true,
     hubId: "My Mocked KNIME Hub",
+    isKaiEnabled: true,
   },
   inputConnectionInfo: DEFAULT_PORT_INFORMATION,
 };

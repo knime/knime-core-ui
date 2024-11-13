@@ -41,14 +41,14 @@ describe("AiButton", () => {
     vi.restoreAllMocks();
   });
 
-  it("hides ai button if ai assistant disabled", async () => {
+  it("hides ai button if K-AI is disabled", async () => {
     vi.mocked(getInitialDataService).mockReturnValue({
       getInitialData: vi.fn(() =>
         Promise.resolve({
           ...DEFAULT_INITIAL_DATA,
           kAiConfig: {
             ...DEFAULT_INITIAL_DATA.kAiConfig,
-            codeAssistantEnabled: false,
+            isKaiEnabled: false,
           },
         }),
       ),
@@ -58,6 +58,13 @@ describe("AiButton", () => {
 
     const button = wrapper.findComponent(".ai-button");
     expect(button.exists()).toBeFalsy();
+  });
+
+  it("renders ai button if K-AI is enabled", async () => {
+    const wrapper = await doMount();
+
+    const button = wrapper.findComponent(".ai-button");
+    expect(button.exists()).toBeTruthy();
   });
 
   it("ai button opens ai bar", async () => {
@@ -128,21 +135,5 @@ describe("AiButton", () => {
     const button = wrapper.findComponent({ ref: "aiButtonRef" });
 
     expect(button.props().disabled).toBeTruthy();
-  });
-
-  it("test aiButton is enabled even if code assistant is not installed", async () => {
-    vi.mocked(getInitialDataService().getInitialData).mockResolvedValue({
-      ...DEFAULT_INITIAL_DATA,
-      kAiConfig: {
-        ...DEFAULT_INITIAL_DATA.kAiConfig,
-        codeAssistantInstalled: false,
-      },
-    });
-
-    const wrapper = await doMount();
-
-    const button = wrapper.findComponent({ ref: "aiButtonRef" });
-
-    expect(button.props().disabled).toBeFalsy();
   });
 });
