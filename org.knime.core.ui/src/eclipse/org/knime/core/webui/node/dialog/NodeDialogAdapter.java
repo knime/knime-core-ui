@@ -143,7 +143,7 @@ final class NodeDialogAdapter implements UIExtension, DataServiceProvider {
     /**
      * @return the original dialog this dialog adapter wraps
      */
-    public NodeDialog getNodeDialog() {
+    NodeDialog getNodeDialog() {
         return m_dialog;
     }
 

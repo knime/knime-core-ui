@@ -49,6 +49,7 @@
 package org.knime.core.webui.node.dialog;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.WeakHashMap;
 
 import org.knime.core.node.NodeDialogPane;
@@ -66,6 +67,7 @@ import org.knime.core.webui.node.PagePathSegments;
 import org.knime.core.webui.node.PageResourceManager;
 import org.knime.core.webui.node.PageResourceManager.CreatedPage;
 import org.knime.core.webui.node.PageResourceManager.PageType;
+import org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier;
 import org.knime.core.webui.node.util.NodeCleanUpCallback;
 
 /**
@@ -234,6 +236,14 @@ public final class NodeDialogManager {
      */
     public boolean canBeEnlarged(final NodeContainer nc) {
         return getNodeDialog(nc).getNodeDialog().canBeEnlarged();
+    }
+
+    public Optional<OnApplyNodeModifier> getOnApplyModifier(final NodeContainer nc) {
+        if (hasNodeDialog(nc)) {
+            return getNodeDialog(nc).getNodeDialog().getOnApplyNodeModifier();
+        } else {
+            return Optional.empty();
+        }
     }
 
 }
