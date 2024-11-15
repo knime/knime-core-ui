@@ -4,6 +4,7 @@ import type {
   PossibleValue,
 } from "@/nodeDialog//types/ChoicesUiSchema";
 import type { TwinlistModelValue } from "@knime/components";
+import { setFlowVariableModel } from "@/nodeDialog/composables/components/useFlowVariableModel";
 export type TwinlistData = {
   mode: string;
   manualFilter: {
@@ -241,6 +242,16 @@ const rightLabel = computed(
   () =>
     control.value.uischema.options?.includedLabel ?? props.twinlistRightLabel,
 );
+
+const mode = computed(() => control.value.data.mode.toLowerCase());
+
+setFlowVariableModel({
+  type: "twinlist",
+  model: {
+    updateMode: onModeChange,
+    mode,
+  },
+});
 </script>
 
 <template>
@@ -259,7 +270,7 @@ const rightLabel = computed(
       :selected-types="control.data.typeFilter?.selectedTypes"
       :additional-possible-types="previouslySelectedTypes"
       :pattern="control.data.patternFilter.pattern"
-      :mode="control.data.mode.toLowerCase()"
+      :mode="mode"
       :case-sensitive-pattern="control.data.patternFilter.isCaseSensitive"
       :empty-state-component="loadingInfo"
       :inverse-pattern="control.data.patternFilter.isInverted"
