@@ -111,29 +111,52 @@ describe("AiButton", () => {
     expect(button.props().disabled).toBeFalsy();
   });
 
-  it("test aiButton is disabled if inputs are not available", async () => {
+  it("test aiButton is enabled if the node has no input ports", async () => {
+    vi.mocked(getInitialDataService).mockReturnValue({
+      getInitialData: vi.fn(() =>
+        Promise.resolve({ ...DEFAULT_INITIAL_DATA, inputConnectionInfo: [] }),
+      ),
+    });
+
+    const wrapper = await doMount();
+    const button = wrapper.findComponent({ ref: "aiButtonRef" });
+    expect(button.props().disabled).toBeFalsy();
+  });
+
+  it("test aiButton is enabled if optional ports are not connected", async () => {
     vi.mocked(getInitialDataService).mockReturnValue({
       getInitialData: vi.fn(() =>
         Promise.resolve({
           ...DEFAULT_INITIAL_DATA,
           inputConnectionInfo: [
-            {
-              status: "OK",
-              isOptional: true,
-            },
-            {
-              status: "MISSING_CONNECTION",
-              isOptional: false,
-            },
+            { status: "MISSING_CONNECTION", isOptional: true },
+            { status: "UNCONFIGURED_CONNECTION", isOptional: true },
+            { status: "OK", isOptional: false },
           ] satisfies InputConnectionInfo[],
         }),
       ),
     });
 
     const wrapper = await doMount();
-
     const button = wrapper.findComponent({ ref: "aiButtonRef" });
+    expect(button.props().disabled).toBeFalsy();
+  });
 
+  it("test aiButton is disabled if inputs are not available", async () => {
+    vi.mocked(getInitialDataService).mockReturnValue({
+      getInitialData: vi.fn(() =>
+        Promise.resolve({
+          ...DEFAULT_INITIAL_DATA,
+          inputConnectionInfo: [
+            { status: "OK", isOptional: true },
+            { status: "MISSING_CONNECTION", isOptional: false },
+          ] satisfies InputConnectionInfo[],
+        }),
+      ),
+    });
+
+    const wrapper = await doMount();
+    const button = wrapper.findComponent({ ref: "aiButtonRef" });
     expect(button.props().disabled).toBeTruthy();
   });
 });
