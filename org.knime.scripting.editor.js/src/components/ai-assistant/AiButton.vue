@@ -24,12 +24,13 @@ const showAiButton = computedAsync<boolean>(
     (await getInitialDataService().getInitialData()).kAiConfig.isKaiEnabled,
   false,
 );
-const enableAiButton = computedAsync<boolean>(
-  async () =>
-    (await getInitialDataService().getInitialData()).inputConnectionInfo[1]
-      .status === "OK",
-  false,
-);
+const enableAiButton = computedAsync<boolean>(async () => {
+  const inputConnectionInfo = (await getInitialDataService().getInitialData())
+    .inputConnectionInfo;
+  return inputConnectionInfo.every(
+    (connection) => connection.isOptional || connection.status === "OK",
+  );
+}, false);
 
 type AiButtonPropType = {
   currentPaneSizes: PaneSizes;
