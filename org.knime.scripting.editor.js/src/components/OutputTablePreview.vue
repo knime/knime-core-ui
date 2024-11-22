@@ -89,7 +89,7 @@ const apiLayer: UIExtensionAPILayer = {
 };
 const updateExtensionConfig = async (config: ExtensionConfig) => {
   // @ts-ignore
-  resourceLocation.value = `${config.resourceInfo.baseUrl}${config.resourceInfo.path.split("/").slice(0, -1).join("/")}/TableView.js`;
+  resourceLocation.value = `${config.resourceInfo.baseUrl}${config.resourceInfo.path.split("/").slice(0, -1).join("/")}/core-ui/TableView.js`;
 
   extensionConfig.value = await makeExtensionConfig(
     config.nodeId,
