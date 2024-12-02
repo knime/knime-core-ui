@@ -111,6 +111,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComboBoxWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
@@ -297,6 +298,13 @@ final class UiSchemaOptionsGenerator {
         if (annotatedWidgets.contains(IntervalWidget.class)) {
             var durationWidget = m_node.getAnnotation(IntervalWidget.class).orElseThrow();
             options.put("intervalTypeProvider", durationWidget.typeProvider().getName());
+        }
+
+        if (annotatedWidgets.contains(DateTimeFormatPickerWidget.class)) {
+            options.put(TAG_FORMAT, Format.DATE_TIME_FORMAT);
+            final var dateTimeFormatPickerWidget = m_node.getAnnotation(DateTimeFormatPickerWidget.class).orElseThrow();
+
+            options.put("formatProvider", dateTimeFormatPickerWidget.formatProvider().getName());
         }
 
         if (annotatedWidgets.contains(RichTextInputWidget.class)) {

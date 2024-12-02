@@ -6,6 +6,7 @@ import { columnFilterRenderer } from "./columnFilterRenderer";
 import { columnSelectRenderer } from "./columnSelectRenderer";
 import { comboBoxRenderer } from "./comboBoxRenderer";
 import { credentialsRenderer } from "./credentialsRenderer";
+import { dateFormatPickerRenderer } from "./dateTimeFormatPickerRenderer";
 import { dateTimeRenderer } from "./dateTimeRenderer";
 import { dropdownRenderer } from "./dropdownRenderer";
 import { dynamicValueRenderer } from "./dynamicValueRenderer";
@@ -53,6 +54,7 @@ export const defaultRenderers = [
   localDateRenderer,
   localTimeRenderer,
   dateTimeRenderer,
+  dateFormatPickerRenderer,
   dropdownRenderer,
   integerRenderer,
   intervalRenderer,

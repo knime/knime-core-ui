@@ -71,6 +71,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComboBoxWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
@@ -156,6 +157,7 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(String.class), DateTimeWidget.class), //
         new WidgetAnnotation(List.of(LocalDate.class), DateWidget.class), //
         new WidgetAnnotation(List.of(Interval.class), IntervalWidget.class), //
+        new WidgetAnnotation(List.of(String.class), DateTimeFormatPickerWidget.class), //
         new WidgetAnnotation(List.of(String.class), RichTextInputWidget.class), //
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), CredentialsWidget.class), //
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), PasswordWidget.class), //

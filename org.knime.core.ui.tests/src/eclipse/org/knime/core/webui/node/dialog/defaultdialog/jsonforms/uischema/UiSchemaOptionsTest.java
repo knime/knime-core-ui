@@ -57,7 +57,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -84,6 +87,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComboBoxWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
@@ -1298,6 +1303,41 @@ class UiSchemaOptionsTest {
             .isEqualTo(fileSystemSpecifier);
         assertThatJson(response).inPath("$.elements[0].options").isObject()
             .doesNotContainKey("fileSystemConnectionMissing");
+    }
+
+    @Test
+    void testDateTimeFormatPickerWidget() {
+
+        class DateTimeFormatProvider extends ComprehensiveDateTimeFormatProvider {
+
+            @SuppressWarnings("unused")
+            DateTimeFormatProvider() {
+                super(List.of("yyyy"));
+            }
+
+            @Override
+            protected ZonedDateTime getTimeForExamples() {
+                return ZonedDateTime.of(2000, 1, 1, 0, 0, 0, 0, ZoneId.of("Africa/Cairo"));
+            }
+
+            @Override
+            protected Locale getLocaleForExamples() {
+                return Locale.ITALIAN;
+            }
+        }
+
+        class DateTimeFormatPickerWidgetTestSettings implements DefaultNodeSettings {
+            @Widget(title = "", description = "")
+            @DateTimeFormatPickerWidget(formatProvider = DateTimeFormatProvider.class)
+            String m_formatPickerField;
+        }
+
+        var response = buildTestUiSchema(DateTimeFormatPickerWidgetTestSettings.class);
+
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("formatPickerField");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dateTimeFormat");
+        assertThatJson(response).inPath("$.elements[0].options.formatProvider").isString()
+            .isEqualTo(DateTimeFormatProvider.class.getName());
     }
 
     static final class TestStringProvider implements StateProvider<String> {
