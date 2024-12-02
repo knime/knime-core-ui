@@ -69,6 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
@@ -171,6 +172,11 @@ final class WidgetTreesToValueRefsAndStateProviders {
                 ChoicesWidget.class, //
                 ChoicesWidget::choicesProvider, //
                 ChoicesStateProvider.class //
+            ), //
+            new UiStateProviderSpec<>( //
+                DateTimeFormatPickerWidget.class, //
+                DateTimeFormatPickerWidget::formatProvider, //
+                null //
             ), //
             new UiStateProviderSpec<>( //
                 TextInputWidget.class, //

@@ -1,0 +1,557 @@
+/*
+ * ------------------------------------------------------------------------
+ *
+ *  Copyright by KNIME AG, Zurich, Switzerland
+ *  Website: http://www.knime.com; Email: contact@knime.com
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License, Version 3, as
+ *  published by the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, see <http://www.gnu.org/licenses>.
+ *
+ *  Additional permission under GNU GPL version 3 section 7:
+ *
+ *  KNIME interoperates with ECLIPSE solely via ECLIPSE's plug-in APIs.
+ *  Hence, KNIME and ECLIPSE are both independent programs and are not
+ *  derived from each other. Should, however, the interpretation of the
+ *  GNU GPL Version 3 ("License") under any applicable laws result in
+ *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  you the additional permission to use and propagate KNIME together with
+ *  ECLIPSE with only the license terms in place for ECLIPSE applying to
+ *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
+ *  license terms of ECLIPSE themselves allow for the respective use and
+ *  propagation of ECLIPSE together with KNIME.
+ *
+ *  Additional permission relating to nodes for KNIME that extend the Node
+ *  Extension (and in particular that are based on subclasses of NodeModel,
+ *  NodeDialog, and NodeView) and that only interoperate with KNIME through
+ *  standard APIs ("Nodes"):
+ *  Nodes are deemed to be separate and independent programs and to not be
+ *  covered works.  Notwithstanding anything to the contrary in the
+ *  License, the License does not apply to Nodes, you are not required to
+ *  license Nodes under the License, and you are granted a license to
+ *  prepare and propagate Nodes, in each case even if such Nodes are
+ *  propagated with or for interoperation with KNIME.  The owner of a Node
+ *  may freely choose the license terms applicable to such Node, including
+ *  when such Node is propagated with or for interoperation with KNIME.
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   Dec 5, 2024 (david): created
+ */
+package org.knime.core.webui.node.dialog.defaultdialog.widget;
+
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory.AMERICAN;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory.EUROPEAN;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory.RECENT;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory.STANDARD;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatTemporalType.DATE;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatTemporalType.DATE_TIME;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatTemporalType.TIME;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatTemporalType.ZONED_DATE_TIME;
+
+import java.time.DateTimeException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.Temporal;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+
+import org.knime.core.node.NodeLogger;
+import org.knime.core.node.util.StringHistory;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatTemporalType;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatWithExample;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+
+/**
+ * <p>
+ * A provider for a list of date/time formats - all the ones that our UX designers decided were in common use. If this
+ * class is used directly as a provider in a {@link DateTimeFormatPickerWidget}, it will provide a list of recently used
+ * formats from the {@link StringHistory} under the key "string_to_date_formats", as well as a list of default formats.
+ * The default time to use in the examples is the current time and the default locale is {@link Locale#ENGLISH}.
+ * </p>
+ * <p>
+ * (Note that the string history in this class is managed by the {@link DateTimeFormatStringHistoryManager}. See that
+ * class to add formats to the history.)
+ * </p>
+ *
+ * To customize the defaults, it is expected that the developer using this class will extend it and provide
+ * <ul>
+ * <li>a {@link Supplier} for the current time and a supplier the desired {@link Locale}, which will be used to generate
+ * an example for each format</li>
+ * <li>a set of recently used formats</li>
+ * </ul>
+ * </p>
+ * <p>
+ * The {@link FormatTemporalType}s will be inferred for each of the recent formats. Most formats will have multiple
+ * types inferred, so e.g. the format 'yyyy' will match all three of {@link FormatTemporalType#DATE},
+ * {@link FormatTemporalType#DATE_TIME}, and {@link FormatTemporalType#ZONED_DATE_TIME}, because any of the three
+ * corresponding java date/time types can be formatted with this pattern.
+ * </p>
+ *
+ * @author David Hickey, TNG Technology Consulting GmbH
+ */
+@SuppressWarnings("squid:S1192") // suppress sonar's "too many literals" warning
+public class ComprehensiveDateTimeFormatProvider implements StateProvider<FormatWithExample[]> {
+
+    private final String[] m_recentFormats;
+
+    /**
+     * Constructor for providing a list of recently used formats. Most probably useful when this class is used as a base
+     * class for a more specific format provider.
+     *
+     * @param recentFormats the formats recently used by the user. It may be empty, but not null.
+     * @throws NullPointerException if recentFormats is null
+     */
+    public ComprehensiveDateTimeFormatProvider(final List<String> recentFormats) {
+        m_recentFormats = Objects.requireNonNull(recentFormats, "recentFormats must not be null") //
+            .toArray(String[]::new);
+    }
+
+    /**
+     * Default constructor for providing a list of recently used formats from the {@link StringHistory}. When this class
+     * is used as provider directly in a {@link DateTimeFormatPickerWidget}, this constructor will be called.
+     */
+    public ComprehensiveDateTimeFormatProvider() {
+        this(DateTimeFormatStringHistoryManager.getRecentFormats());
+    }
+
+    /**
+     * Get the time to use for the examples. Note that this method is called only once per call to
+     * {@link #computeState}. Override this method to provide a custom time.
+     *
+     * @return a ZonedDateTime that will be formatted to produce the examples.
+     */
+    protected ZonedDateTime getTimeForExamples() {
+        // Provide a default value for subclasses to override if needed
+        return ZonedDateTime.now();
+    }
+
+    /**
+     * Get the locale to use for the examples. Note that this method is called only once per call to
+     * {@link #computeState}. Override this method to provide a custom locale.
+     *
+     * @return the locale to use for the examples.
+     */
+    protected Locale getLocaleForExamples() {
+        // Provide a default value for subclasses to override if needed
+        return Locale.ENGLISH;
+    }
+
+    @Override
+    public void init(final StateProviderInitializer initializer) {
+        initializer.computeBeforeOpenDialog();
+    }
+
+    /**
+     * Compute the default formats with examples.
+     *
+     * @param exampleTime
+     * @param exampleLocale
+     * @return the formats with examples.
+     */
+    protected static final FormatWithExample[] computeDefaultFormats(final ZonedDateTime exampleTime,
+        final Locale exampleLocale) {
+        return ALL_FORMATS //
+            .stream() //
+            .map(formatWithoutExample -> new FormatWithExample( //
+                formatWithoutExample.format, //
+                formatWithoutExample.temporalType, //
+                formatWithoutExample.category, //
+                DateTimeFormatter.ofPattern(formatWithoutExample.format, exampleLocale).format(exampleTime) //
+            )) //
+            .toArray(FormatWithExample[]::new);
+    }
+
+    /**
+     * Compute the recently used formats with examples.
+     *
+     * @param exampleTime
+     * @param exampleLocale
+     * @param recentFormats
+     * @return the formats with examples.
+     */
+    protected static final FormatWithExample[] computeRecentFormats(final ZonedDateTime exampleTime,
+        final Locale exampleLocale, final String[] recentFormats) {
+        return Arrays.stream(recentFormats) //
+            .map(format -> { //
+                var compatibleTypes = inferCompatibleTypesFromPattern(format);
+
+                return compatibleTypes.stream() //
+                    .map(type -> new FormatWithExample( //
+                        format, //
+                        type, //
+                        RECENT, //
+                        DateTimeFormatter.ofPattern(format, exampleLocale).format(exampleTime) //
+                ));
+            }).flatMap(Function.identity()).toArray(FormatWithExample[]::new);
+    }
+
+    @Override
+    public FormatWithExample[] computeState(final DefaultNodeSettingsContext context) {
+        var time = getTimeForExamples();
+        var locale = getLocaleForExamples();
+
+        var recentFormats = computeRecentFormats(time, locale, m_recentFormats);
+        var defaultFormats = computeDefaultFormats(time, locale);
+
+        return Stream.concat(Arrays.stream(recentFormats), Arrays.stream(defaultFormats))
+            .toArray(FormatWithExample[]::new);
+    }
+
+    /**
+     * Which {@link TemporalFormatType}s are compatible with a given pattern?
+     *
+     * @param pattern the date-time pattern like 'yyyy-MM-dd'.
+     * @return the compatible types.
+     */
+    private static Collection<FormatTemporalType> inferCompatibleTypesFromPattern(final String pattern) {
+        return Arrays.stream(FormatTemporalType.values()) //
+            .filter(type -> isTypeCompatibleWithPattern(pattern, type)) //
+            .toList();
+    }
+
+    /**
+     * Is a given type compatible with a given pattern?
+     *
+     * @param pattern the pattern like 'yyyy-MM-dd'.
+     * @param type the type with which to check compatibility.
+     * @return true if the type is compatible with the pattern, else false
+     */
+    private static boolean isTypeCompatibleWithPattern(final String pattern, final FormatTemporalType type) {
+        Temporal toFormat = switch (type) {
+            case DATE -> LocalDate.now();
+            case TIME -> LocalTime.now();
+            case DATE_TIME -> LocalDateTime.now();
+            case ZONED_DATE_TIME -> ZonedDateTime.now();
+        };
+
+        try {
+            DateTimeFormatter.ofPattern(pattern).format(toFormat);
+            return true;
+        } catch (DateTimeException ex) { // NOSONAR we are just using this for flow control
+            return false;
+        }
+    }
+
+    /**
+     * A {@link FormatWithExample} without the example.
+     *
+     * @param format
+     * @param temporalType
+     * @param category
+     */
+    public record FormatWithoutExample(String format, FormatTemporalType temporalType, FormatCategory category) {
+    }
+
+    /**
+     * All the date formats.
+     */
+    public static final Collection<FormatWithoutExample> DATE_FORMATS = List.of( //
+        new FormatWithoutExample("yyyy-MM-dd", DATE, STANDARD), //
+        new FormatWithoutExample("yyyy-MM", DATE, STANDARD), //
+        new FormatWithoutExample("yyyyMMdd", DATE, STANDARD), //
+        new FormatWithoutExample("YYYY-MM", DATE, STANDARD), //
+        new FormatWithoutExample("yyyy-M-d", DATE, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-'01'", DATE, STANDARD), //
+        new FormatWithoutExample("yyyy-MMMM-dd", DATE, STANDARD), //
+        new FormatWithoutExample("yyyy-MMM-dd", DATE, STANDARD), //
+        new FormatWithoutExample("yyyy-ww", DATE, STANDARD), //
+        new FormatWithoutExample("yyyy-D", DATE, STANDARD), //
+        new FormatWithoutExample("YYYYwwee", DATE, STANDARD), //
+        new FormatWithoutExample("yyyy-QQ", DATE, STANDARD), //
+        new FormatWithoutExample("yyyy-QQQ", DATE, STANDARD), //
+        new FormatWithoutExample("yyyy-QQ-dd", DATE, STANDARD), //
+        new FormatWithoutExample("yyyy-'W'ww", DATE, STANDARD), //
+        new FormatWithoutExample("yyyy-M[M]-d[d]", DATE, STANDARD), //
+        new FormatWithoutExample("dd/MM/yyyy", DATE, EUROPEAN), //
+        new FormatWithoutExample("dd.MM.yyyy", DATE, EUROPEAN), //
+        new FormatWithoutExample("dd/MM/yy", DATE, EUROPEAN), //
+        new FormatWithoutExample("dd.MM.yy", DATE, EUROPEAN), //
+        new FormatWithoutExample("d. MMMM yyyy", DATE, EUROPEAN), //
+        new FormatWithoutExample("dd MMM yyyy", DATE, EUROPEAN), //
+        new FormatWithoutExample("d. MMMM YYYY", DATE, EUROPEAN), //
+        new FormatWithoutExample("d/M/yyyy", DATE, EUROPEAN), //
+        new FormatWithoutExample("dd MMMM yyyy", DATE, EUROPEAN), //
+        new FormatWithoutExample("yyyy/MM/dd", DATE, EUROPEAN), //
+        new FormatWithoutExample("yyyy.MM.dd", DATE, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MM-dd", DATE, EUROPEAN), //
+        new FormatWithoutExample("MMM yyyy", DATE, EUROPEAN), //
+        new FormatWithoutExample("MMMM yyyy", DATE, EUROPEAN), //
+        new FormatWithoutExample("dd/M/yyyy", DATE, EUROPEAN), //
+        new FormatWithoutExample("MM-yyyy", DATE, EUROPEAN), //
+        new FormatWithoutExample("Q/yyyy", DATE, EUROPEAN), //
+        new FormatWithoutExample("MMM. yyyy", DATE, EUROPEAN), //
+        new FormatWithoutExample("d-MMM-yy", DATE, EUROPEAN), //
+        new FormatWithoutExample("d.M.yyyy", DATE, EUROPEAN), //
+        new FormatWithoutExample("d/MM/yyyy", DATE, EUROPEAN), //
+        new FormatWithoutExample("d. MMM. yyyy", DATE, EUROPEAN), //
+        new FormatWithoutExample("yyyy MMM dd", DATE, EUROPEAN), //
+        new FormatWithoutExample("'Q'Q/yyyy", DATE, EUROPEAN), //
+        new FormatWithoutExample("yyyy/'Q'Q", DATE, EUROPEAN), //
+        new FormatWithoutExample("MM/dd/yyyy", DATE, AMERICAN), //
+        new FormatWithoutExample("MM/dd/yy", DATE, AMERICAN), //
+        new FormatWithoutExample("MMM d, yyyy", DATE, AMERICAN), //
+        new FormatWithoutExample("MMMM yyyy", DATE, AMERICAN), //
+        new FormatWithoutExample("MM/yy", DATE, AMERICAN), //
+        new FormatWithoutExample("MM/dd/YYYY", DATE, AMERICAN), //
+        new FormatWithoutExample("yyyy/MM/dd", DATE, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd", DATE, AMERICAN), //
+        new FormatWithoutExample("yyyyMMdd", DATE, AMERICAN), //
+        new FormatWithoutExample("M/d/yyyy", DATE, AMERICAN), //
+        new FormatWithoutExample("M/d/yy", DATE, AMERICAN), //
+        new FormatWithoutExample("MM-dd-yyyy", DATE, AMERICAN), //
+        new FormatWithoutExample("MMM. yyyy", DATE, AMERICAN), //
+        new FormatWithoutExample("MMM yyyy", DATE, AMERICAN), //
+        new FormatWithoutExample("MM/yyyy", DATE, AMERICAN), //
+        new FormatWithoutExample("MMM dd, yyyy", DATE, AMERICAN), //
+        new FormatWithoutExample("Q/yyyy", DATE, AMERICAN), //
+        new FormatWithoutExample("'Q'Q/yyyy", DATE, AMERICAN) //
+    );
+
+    /**
+     * All the time formats.
+     */
+    public static final Collection<FormatWithoutExample> TIME_FORMATS = List.of( //
+        new FormatWithoutExample("HH:mm", TIME, STANDARD), //
+        new FormatWithoutExample("HH:mm:ss", TIME, STANDARD), //
+        new FormatWithoutExample("H:mm", TIME, STANDARD), //
+        new FormatWithoutExample("H:mm:ss", TIME, STANDARD), //
+        new FormatWithoutExample("HH:mm:ss.SSS", TIME, STANDARD), //
+        new FormatWithoutExample("HH:mm:ss[.SSS]", TIME, STANDARD), //
+        new FormatWithoutExample("HH:mm:ss[.SSS][.SS][.S]", TIME, STANDARD), //
+        new FormatWithoutExample("HH:mm:ss.nnn", TIME, STANDARD), //
+        new FormatWithoutExample("HH:mm:ss[.n]", TIME, STANDARD), //
+        new FormatWithoutExample("HH:mm[:ss[.SSS]]", TIME, STANDARD), //
+        new FormatWithoutExample("HH:mm[:ss[.SSS][.SS][.S]]", TIME, STANDARD), //
+        new FormatWithoutExample("hh:mma", TIME, STANDARD), //
+        new FormatWithoutExample("h:mm a", TIME, STANDARD), //
+        new FormatWithoutExample("h:mm:ss a", TIME, STANDARD), //
+        new FormatWithoutExample("HH:mm", TIME, EUROPEAN), //
+        new FormatWithoutExample("HH:mm:ss", TIME, EUROPEAN), //
+        new FormatWithoutExample("H:mm", TIME, EUROPEAN), //
+        new FormatWithoutExample("H:mm:ss", TIME, EUROPEAN), //
+        new FormatWithoutExample("HH:mm:ss.SSS", TIME, EUROPEAN), //
+        new FormatWithoutExample("HH:mm:ss[.SSS]", TIME, EUROPEAN), //
+        new FormatWithoutExample("HH:mm:ss[.SSS][.SS][.S]", TIME, EUROPEAN), //
+        new FormatWithoutExample("HH:mm:ss.nnn", TIME, EUROPEAN), //
+        new FormatWithoutExample("HH:mm:ss[.n]", TIME, EUROPEAN), //
+        new FormatWithoutExample("HH:mm[:ss[.SSS]]", TIME, EUROPEAN), //
+        new FormatWithoutExample("HH:mm[:ss[.SSS][.SS][.S]]", TIME, EUROPEAN), //
+        new FormatWithoutExample("hh:mma", TIME, EUROPEAN), //
+        new FormatWithoutExample("h:mm a", TIME, EUROPEAN), //
+        new FormatWithoutExample("h:mm:ss a", TIME, EUROPEAN), //
+        new FormatWithoutExample("HH:mm", TIME, AMERICAN), //
+        new FormatWithoutExample("HH:mm:ss", TIME, AMERICAN), //
+        new FormatWithoutExample("H:mm", TIME, AMERICAN), //
+        new FormatWithoutExample("H:mm:ss", TIME, AMERICAN), //
+        new FormatWithoutExample("HH:mm:ss.SSS", TIME, AMERICAN), //
+        new FormatWithoutExample("HH:mm:ss[.SSS]", TIME, AMERICAN), //
+        new FormatWithoutExample("HH:mm:ss[.SSS][.SS][.S]", TIME, AMERICAN), //
+        new FormatWithoutExample("HH:mm:ss.nnn", TIME, AMERICAN), //
+        new FormatWithoutExample("HH:mm:ss[.n]", TIME, AMERICAN), //
+        new FormatWithoutExample("HH:mm[:ss[.SSS]]", TIME, AMERICAN), //
+        new FormatWithoutExample("HH:mm[:ss[.SSS][.SS][.S]]", TIME, AMERICAN), //
+        new FormatWithoutExample("hh:mma", TIME, AMERICAN), //
+        new FormatWithoutExample("h:mm a", TIME, AMERICAN), //
+        new FormatWithoutExample("h:mm:ss a", TIME, AMERICAN) //
+    );
+
+    /**
+     * All the date-time formats.
+     */
+    public static final Collection<FormatWithoutExample> DATE_TIME_FORMATS = List.of( //
+        new FormatWithoutExample("yyyy-MM-dd HH:mm", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd HH:mm:ss", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd;HH:mm", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd HH:mm:ss.S", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd;HH:mm:ss.S", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd;HH:mm:ss", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd HH:mm[:ss[.SSS]]", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd HH:mm[:ss]", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd;HH:mm:ss[.SSS][.SS][.S]", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss[.SSS]", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S]", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSS", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm[:ss[.SSS]]", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm[:ss]", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss[.S[S[S]]]", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd HH:mm", DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MM-dd HH:mm:ss", DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MM-dd HH:mm:ss.SSS", DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("dd/MM/yyyy HH:mm", DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("dd/MM/yyyy HH:mm:ss", DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("dd/MM/yyyy hh:mm a", DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("dd.MM.yyyy HH:mm", DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("dd.MM.yyyy HH:mm:ss", DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("dd.MM.yyyy hh:mm a", DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("dd MMM yyyy HH:mm ", DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("dd MMM yyyy HH:mm:ss", DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss", DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("MM/dd/yyyy HH:mm", DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("MM/dd/yyyy HH:mm:ss", DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("MM/dd/yyyy HH:mm:ss.SSS", DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd HH:mm", DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd HH:mm:ss", DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd HH:mm:ss.SSS", DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("MM/dd/yyyy h:mm a", DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("MM/dd/yyyy h:mm:ss a", DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyyMMdd HH:mm:ss", DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyyMMdd HH:mm", DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("MMM dd, yyyy h:mm a", DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("MMM dd, yyyy HH:mm:ss", DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("MMM dd, yyyy HH:mm", DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss", DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm", DATE_TIME, AMERICAN) //
+    );
+
+    /**
+     * All the zoned date-time formats.
+     */
+    public static final Collection<FormatWithoutExample> ZONED_DATE_TIME_FORMATS = List.of( //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss'Z'", ZONED_DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss", ZONED_DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", ZONED_DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSSVV", ZONED_DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSSZ", ZONED_DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSS[Z]", ZONED_DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ssXXX", ZONED_DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss'['VV']'", ZONED_DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSS[ZZZZ]", ZONED_DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSSVV'['zzzz']'", ZONED_DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ssVV", ZONED_DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd HH:mm:ss VV", ZONED_DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss'Z'", ZONED_DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss", ZONED_DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", ZONED_DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSSVV", ZONED_DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSSZ", ZONED_DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSS[Z]", ZONED_DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ssXXX", ZONED_DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss'['VV']'", ZONED_DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSS[ZZZZ]", ZONED_DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSSVV'['zzzz']'", ZONED_DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ssVV", ZONED_DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ssXXX", ZONED_DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MM-dd HH:mm:ss VV", ZONED_DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss'Z'", ZONED_DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss", ZONED_DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", ZONED_DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSSVV", ZONED_DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSSZ", ZONED_DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSS[Z]", ZONED_DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ssXXX", ZONED_DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss'['VV']'", ZONED_DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSS[ZZZZ]", ZONED_DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSSVV'['zzzz']'", ZONED_DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ssVV", ZONED_DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd HH:mm:ss VV", ZONED_DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSS", ZONED_DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ssXXX", ZONED_DATE_TIME, AMERICAN) //
+    );
+
+    /**
+     * Check a given format and if it has an issue, log it. Useful because some error messages produced by Java's
+     * {@link DateTimeFormatter} don't include the pattern, which makes it very hard to debug them when we have this
+     * many.
+     */
+    private static final Consumer<FormatWithoutExample> CHECK_FORMAT = fmt -> {
+        try {
+            DateTimeFormatter.ofPattern(fmt.format);
+        } catch (IllegalArgumentException ex) {
+            NodeLogger.getLogger(ComprehensiveDateTimeFormatProvider.class) //
+                .error("Invalid date-time format '%s'. Reason was: %s".formatted(fmt.format, ex.getMessage()), ex);
+        }
+    };
+
+    /**
+     * All the formats combined together.
+     *
+     * <p>
+     * (Note to the reader: we don't actually need to use {@link Collections#unmodifiableCollection(Collection)} here,
+     * since {@link Stream#toList()} returns an unmodifiable list. However, if we don't, SonarLint will complain about
+     * it being mutable).
+     * </p>
+     */
+    public static final Collection<FormatWithoutExample> ALL_FORMATS = Collections.unmodifiableCollection( //
+        Stream.of( //
+            DATE_FORMATS, //
+            TIME_FORMATS, //
+            DATE_TIME_FORMATS, //
+            ZONED_DATE_TIME_FORMATS //
+        ) //
+            .flatMap(Collection::stream) //
+            .peek(CHECK_FORMAT) // NOSONAR - gives much better console errors on invalid formats
+            .toList() //
+    );
+
+    /**
+     * Convenient list of allowed format strings in the date/time format picker, intended to be used verbatim in widget
+     * documentation. Based on the format strings allowed by {@link DateTimeFormatter}.
+     */
+    public static final String DATE_FORMAT_LIST_FOR_DOCS = """
+            <ul>
+                <li>G: era</li>
+                <li>u: year</li>
+                <li>y: year of era</li>
+                <li>D: day of year</li>
+                <li>M: month in year (context sensitive)</li>
+                <li>L: month in year (standalone form)</li>
+                <li>d: day of month</li>
+                <li>Q: quarter of year</li>
+                <li>q: quarter of year</li>
+                <li>Y: week based year</li>
+                <li>w: week of week based year</li>
+                <li>W: week of month</li>
+                <li>E: day of week</li>
+                <li>e: localized day of week</li>
+                <li>c: localized day of week</li>
+                <li>F: week of month</li>
+                <li>a: am/pm of day</li>
+                <li>h: clock hour of am/pm (1-12)</li>
+                <li>K: hour of am/pm (0-11)</li>
+                <li>k: clock hour of am/pm (1-24)</li>
+                <li>H: hour of day (0-23)</li>
+                <li>m: minute of hour</li>
+                <li>s: second of minute</li>
+                <li>S: fraction of second</li>
+                <li>A: milli of day</li>
+                <li>n: nano of second</li>
+                <li>N: nano of second</li>
+                <li>V: time zone ID</li>
+                <li>z: time zone name</li>
+                <li>O: localized zone offset</li>
+                <li>X zone offset ('Z' for zero)</li>
+                <li>x: zone offset</li>
+                <li>Z: zone offset</li>
+                <li>p: pad next</li>
+                <li>' : escape for text</li>
+                <li>'': single quote</li>
+                <li>[: optional section start</li>
+                <li>]: optional section end</li>
+            </ul>
+            """;
+}

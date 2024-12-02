@@ -64,6 +64,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComboBoxWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
@@ -107,14 +108,14 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
     private static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_CLASS_ANNOTATIONS =
         List.of(Layout.class, Effect.class, Modification.class);
 
-    private static final Collection<Class<? extends Annotation>> POSSIBLE_LEAF_ANNOTATIONS =
-        List.of(LatentWidget.class, Layout.class, Widget.class, NumberInputWidget.class, RadioButtonsWidget.class,
-            ValueSwitchWidget.class, ChoicesWidget.class, ComboBoxWidget.class, SortListWidget.class,
-            ButtonWidget.class, SimpleButtonWidget.class, DateTimeWidget.class, DateWidget.class, IntervalWidget.class,
-            RichTextInputWidget.class, CredentialsWidget.class, PasswordWidget.class, UsernameWidget.class,
-            FileReaderWidget.class, FileWriterWidget.class, LocalFileReaderWidget.class, LocalFileWriterWidget.class,
-            TextInputWidget.class, Effect.class, ValueReference.class, ValueProvider.class,
-            InternalArrayWidget.ElementCheckboxWidget.class, Modification.WidgetReference.class, TextMessage.class);
+    private static final Collection<Class<? extends Annotation>> POSSIBLE_LEAF_ANNOTATIONS = List.of(LatentWidget.class,
+        Layout.class, Widget.class, NumberInputWidget.class, RadioButtonsWidget.class, ValueSwitchWidget.class,
+        ChoicesWidget.class, ComboBoxWidget.class, SortListWidget.class, ButtonWidget.class, SimpleButtonWidget.class,
+        DateTimeWidget.class, DateWidget.class, DateTimeFormatPickerWidget.class, IntervalWidget.class,
+        RichTextInputWidget.class, CredentialsWidget.class, PasswordWidget.class, UsernameWidget.class,
+        FileReaderWidget.class, FileWriterWidget.class, LocalFileReaderWidget.class, LocalFileWriterWidget.class,
+        TextInputWidget.class, Effect.class, ValueReference.class, ValueProvider.class,
+        InternalArrayWidget.ElementCheckboxWidget.class, Modification.WidgetReference.class, TextMessage.class);
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_ARRAY_ANNOTATIONS = List.of(
         LatentWidget.class, Widget.class, ArrayWidget.class, InternalArrayWidget.class, Layout.class, Effect.class,
