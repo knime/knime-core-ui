@@ -43,6 +43,8 @@ provide("createArrayAtPath", (path: string) =>
 );
 const indexedPath = computed(() => composePaths(props.path, `${props.index}`));
 
+const updateData = inject("updateData");
+
 const sendAlert = inject("sendAlert");
 onMounted(() => {
   if (!props.arrayElementTitle && props.elements.length > 1) {
@@ -53,6 +55,7 @@ onMounted(() => {
       type: AlertType.ERROR,
     });
   }
+  updateData(indexedPath.value);
 });
 
 onUnmounted(() => {

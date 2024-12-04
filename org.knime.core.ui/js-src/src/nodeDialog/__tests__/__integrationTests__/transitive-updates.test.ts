@@ -76,17 +76,23 @@ describe("updates in array layouts", () => {
 
   const getGlobalUpdates = ({
     getScopes,
+    withInitialTrigger,
   }: {
     getScopes: (fieldKey: string) => string[];
+    withInitialTrigger: boolean;
   }): Update[] => [
-    {
-      trigger: {
-        scopes: undefined,
-        id: triggers.Initially,
-        triggerInitially: true as const,
-      },
-      dependencies: [] as ValueReference[],
-    },
+    ...(withInitialTrigger
+      ? [
+          {
+            trigger: {
+              scopes: undefined,
+              id: triggers.Initially,
+              triggerInitially: true as const,
+            },
+            dependencies: [] as ValueReference[],
+          },
+        ]
+      : []),
     {
       trigger: {
         scopes: getScopes("a"),
@@ -178,6 +184,7 @@ describe("updates in array layouts", () => {
         },
         globalUpdates: getGlobalUpdates({
           getScopes,
+          withInitialTrigger: true,
         }),
         initialUpdates: [] as UpdateResult[],
         flowVariableSettings: {},
@@ -252,6 +259,7 @@ describe("updates in array layouts", () => {
         },
         globalUpdates: getGlobalUpdates({
           getScopes,
+          withInitialTrigger: false,
         }),
         initialUpdates: [] as UpdateResult[],
         flowVariableSettings: {},
@@ -262,19 +270,19 @@ describe("updates in array layouts", () => {
     await flushNextPromise();
 
     expect(wrapper.vm.getData().data.values[0]).toMatchObject({
-      a: "Updated",
+      a: "InitialValue",
     });
 
     await flushNextPromise();
 
     expect(wrapper.vm.getData().data.values[0]).toMatchObject({
-      a: "Updated",
+      a: "InitialValue",
       b: "Updated",
     });
     await flushNextPromise();
 
     expect(wrapper.vm.getData().data.values[0]).toMatchObject({
-      a: "Updated",
+      a: "InitialValue",
       b: "Updated",
       c: "Updated",
     });

@@ -2,7 +2,6 @@ import { type Ref, onUnmounted, watch } from "vue";
 
 import type { SettingComparator } from "@knime/ui-extension-service";
 
-import inject from "@/nodeDialog/utils/inject";
 import useDirtySettings from "../nodeDialog/useDirtySettings";
 
 import {
@@ -24,21 +23,20 @@ export const useDirtySetting = <ValueType extends Stringifyable>({
   const valueComparator = valueComparatorProp ?? new JsonSettingsComparator();
   const { constructSettingState, getSettingState } = useDirtySettings();
 
-  const isInsideAnAddedArrayItem = injectIsChildOfAddedArrayLayoutElement();
-  const updateData = inject("updateData");
+  const initialValueShouldBeUndefined =
+    injectIsChildOfAddedArrayLayoutElement();
   const initialValue = value.value;
   const constructNewSettingState = () => {
     const settingState = constructSettingState<ValueType | undefined>(
       dataPath,
       {
         // eslint-disable-next-line no-undefined
-        initialValue: isInsideAnAddedArrayItem ? undefined : initialValue,
+        initialValue: initialValueShouldBeUndefined ? undefined : initialValue,
         valueComparator,
       },
     );
-    if (isInsideAnAddedArrayItem) {
+    if (initialValueShouldBeUndefined) {
       settingState.setValue(initialValue);
-      updateData(dataPath);
     }
     return settingState;
   };
@@ -46,9 +44,6 @@ export const useDirtySetting = <ValueType extends Stringifyable>({
   const getExistingSettingStateAndSetCurrentValue = () => {
     const settingState = getSettingState<ValueType | undefined>(dataPath);
     settingState?.setValue(initialValue);
-    if (isInsideAnAddedArrayItem) {
-      updateData(dataPath);
-    }
     return settingState;
   };
 

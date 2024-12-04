@@ -35,8 +35,7 @@ describe("useDialogControl", () => {
     settingState: {
       setValue: Mock;
     },
-    getSettingState: Mock,
-    updateData: Mock;
+    getSettingState: Mock;
 
   const path = "path";
   const initialValue = "initial value";
@@ -83,7 +82,6 @@ describe("useDialogControl", () => {
     };
     constructSettingState = vi.fn(() => settingState);
     getSettingState = vi.fn(() => settingState);
-    updateData = vi.fn();
   });
 
   const mountTestComponent = (
@@ -106,7 +104,6 @@ describe("useDialogControl", () => {
               exposedFlowVariableName: "second",
             },
           },
-          updateData,
           ...(asChildOfAddedArrayLayoutElement
             ? { [injectionKeyAddedArrayLayoutElements as symbol]: true }
             : {}),
@@ -159,7 +156,6 @@ describe("useDialogControl", () => {
         expect.objectContaining({ initialValue: undefined }),
       );
       expect(settingState.setValue).toHaveBeenCalledWith(initialValue);
-      expect(updateData).toHaveBeenCalled();
     });
 
     it("sets value on change", async () => {

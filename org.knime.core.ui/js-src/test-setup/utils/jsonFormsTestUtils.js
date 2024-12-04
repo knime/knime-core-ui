@@ -1,4 +1,3 @@
-/* eslint-disable complexity */
 /* The methods exported by this test utility file can be used for testing components that are supposed to be used
  * within a JSONForms context.
  * A component can be mounted using composition API and the correct initialization of JSONForms can be verified on a
@@ -46,7 +45,6 @@ export const mountJsonFormsComponent = (
     getPanelsContainerMock,
     getDialogPopoverTeleportDestMock,
     createArrayAtPathMock,
-    arrayControlMocks,
   } = provide;
   const updateData = vi.fn();
   const getData = getDataMock ?? vi.fn();
@@ -80,13 +78,6 @@ export const mountJsonFormsComponent = (
   if (props.control) {
     vi.spyOn(jsonformsVueModule, "useJsonFormsControl").mockReturnValue({
       handleChange,
-      control: ref(props.control),
-    });
-    vi.spyOn(jsonformsVueModule, "useJsonFormsArrayControl").mockReturnValue({
-      addItem: arrayControlMocks?.addItem ?? vi.fn(() => () => {}),
-      moveDown: arrayControlMocks?.moveDown ?? vi.fn(() => () => {}),
-      moveUp: arrayControlMocks?.moveUp ?? vi.fn(() => () => {}),
-      removeItems: arrayControlMocks?.removeItems ?? vi.fn(() => () => {}),
       control: ref(props.control),
     });
     defaultPersistSchema = createPersistSchema({ path: props.control.path });

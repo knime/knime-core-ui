@@ -169,20 +169,20 @@ describe("ArrayLayout.vue", () => {
   };
 
   it("renders an add button", () => {
-    const addItem = vi.fn(() => () => {});
     const { wrapper } = mountJsonFormsComponent(ArrayLayout, {
       props: { control },
-      provide: { arrayControlMocks: { addItem } },
     });
     const addButton = wrapper.find(".array > button");
     expect(addButton.text()).toBe("New");
     addButton.element.click();
 
-    expect(addItem).toHaveBeenCalledWith(control.path, schemaDefaultValue);
+    expect(wrapper.vm.addItem).toHaveBeenCalledWith(
+      control.path,
+      schemaDefaultValue,
+    );
   });
 
   it("uses provided default value if present", () => {
-    const addItem = vi.fn(() => () => {});
     const elementDefaultValueProvider = "myElementDefaultValueProvider";
     control.uischema.options.elementDefaultValueProvider =
       elementDefaultValueProvider;
@@ -193,7 +193,7 @@ describe("ArrayLayout.vue", () => {
     });
     const { wrapper } = mountJsonFormsComponent(ArrayLayout, {
       props: { control },
-      provide: { addStateProviderListenerMock, arrayControlMocks: { addItem } },
+      provide: { addStateProviderListenerMock },
     });
     expect(addStateProviderListenerMock).toHaveBeenCalledWith(
       { id: elementDefaultValueProvider },
@@ -211,13 +211,17 @@ describe("ArrayLayout.vue", () => {
     button.click();
     provideDefault(providedDefault);
     button.click();
-    expect(addItem).toHaveBeenNthCalledWith(
+    expect(wrapper.vm.addItem).toHaveBeenNthCalledWith(
       1,
       control.path,
       schemaDefaultValue,
     );
 
-    expect(addItem).toHaveBeenNthCalledWith(2, control.path, providedDefault);
+    expect(wrapper.vm.addItem).toHaveBeenNthCalledWith(
+      2,
+      control.path,
+      providedDefault,
+    );
   });
 
   it("sets add button text", () => {
@@ -230,82 +234,68 @@ describe("ArrayLayout.vue", () => {
     expect(addButton.text()).toBe(customAddButtonText);
   });
 
-  it("adds default item", async () => {
-    const addItem = vi.fn(() => () => {});
-    const { wrapper, updateData } = mountJsonFormsComponent(ArrayLayout, {
+  it("adds default item", () => {
+    const { wrapper } = mountJsonFormsComponent(ArrayLayout, {
       props: { control },
-      provide: {
-        arrayControlMocks: {
-          addItem,
-        },
-      },
     });
     wrapper.vm.addDefaultItem();
-    expect(addItem).toHaveBeenCalledWith(control.path, {
+    expect(wrapper.vm.addItem).toHaveBeenCalledWith(control.path, {
       borderStyle: "DASHED",
       color: "blue",
       size: 1,
       value: "0",
     });
-    await flushPromises();
-    expect(updateData).toHaveBeenCalledWith(control.path);
+    expect(useJsonFormsControlMock.handleChange).toHaveBeenCalledWith(
+      control.path,
+      control.data.map((d) => expect.objectContaining(d)),
+    );
   });
 
-  it("deletes item", async () => {
-    const removeItems = vi.fn(() => () => {});
-    const { wrapper, updateData } = mountJsonFormsComponent(ArrayLayout, {
+  it("deletes item", () => {
+    const { wrapper } = mountJsonFormsComponent(ArrayLayout, {
       props: { control },
-      provide: {
-        arrayControlMocks: {
-          removeItems,
-        },
-      },
     });
     const index = 1;
     wrapper.vm.deleteItem(index);
-    expect(removeItems).toHaveBeenCalledWith(expect.anything(), [index]);
-    await flushPromises();
-    expect(updateData).toHaveBeenCalledWith(control.path);
+    expect(wrapper.vm.removeItems).toHaveBeenCalledWith(expect.anything(), [
+      index,
+    ]);
+    expect(useJsonFormsControlMock.handleChange).toHaveBeenCalledWith(
+      control.path,
+      control.data.map((d) => expect.objectContaining(d)),
+    );
   });
 
   it("moves item up", async () => {
-    const moveUp = vi.fn(() => () => {});
-    const { wrapper, updateData } = mountJsonFormsComponent(ArrayLayout, {
+    const { wrapper } = mountJsonFormsComponent(ArrayLayout, {
       props: { control },
-      provide: {
-        arrayControlMocks: {
-          moveUp,
-        },
-      },
     });
     const index = 1;
     await wrapper
       .findAllComponents(ArrayLayoutItemControls)
       .at(index)
       .vm.$emit("moveUp");
-    expect(moveUp).toHaveBeenCalledWith(control.path, index);
-    await flushPromises();
-    expect(updateData).toHaveBeenCalledWith(control.path);
+    expect(wrapper.vm.moveUp).toHaveBeenCalledWith(control.path, index);
+    expect(useJsonFormsControlMock.handleChange).toHaveBeenCalledWith(
+      control.path,
+      control.data.map((d) => expect.objectContaining(d)),
+    );
   });
 
   it("moves item down", async () => {
-    const moveDown = vi.fn(() => () => {});
-    const { wrapper, updateData } = mountJsonFormsComponent(ArrayLayout, {
+    const { wrapper } = mountJsonFormsComponent(ArrayLayout, {
       props: { control },
-      provide: {
-        arrayControlMocks: {
-          moveDown,
-        },
-      },
     });
     const index = 1;
     await wrapper
       .findAllComponents(ArrayLayoutItemControls)
       .at(index)
       .vm.$emit("moveDown");
-    expect(moveDown).toHaveBeenCalledWith(control.path, index);
-    await flushPromises();
-    expect(updateData).toHaveBeenCalledWith(control.path);
+    expect(wrapper.vm.moveDown).toHaveBeenCalledWith(control.path, index);
+    expect(useJsonFormsControlMock.handleChange).toHaveBeenCalledWith(
+      control.path,
+      control.data.map((d) => expect.objectContaining(d)),
+    );
   });
 
   it("renders an edit/reset button if configured to do so", () => {
