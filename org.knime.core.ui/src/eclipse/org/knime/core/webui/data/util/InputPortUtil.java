@@ -50,21 +50,22 @@ package org.knime.core.webui.data.util;
 
 import java.util.Arrays;
 
+import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeOutPort;
 
 /**
- * Utilities around a nodes input {@link PortObjectSpec}s.
+ * Utilities around a nodes input {@link PortObjectSpec}s and {@link PortObject}s
  *
  * @noreference
  *
  * @author Paul Bärnreuther
  */
-public final class InputSpecUtil {
+public final class InputPortUtil {
 
-    private InputSpecUtil() {
+    private InputPortUtil() {
         // utility
     }
 
@@ -74,14 +75,40 @@ public final class InputSpecUtil {
      *         NOTE: array of specs can contain {@code null} values, e.g., if input port is not connected or inactive!
      */
     public static PortObjectSpec[] getInputSpecsExcludingVariablePort(final NodeContainer nc) {
-        final var allSpecs = getInputSpecsIncludingVariablePort(nc);
+        final var allSpecs = getInputsIncludingVariablePort(nc).portObjectSpecs();
         // copy input port object specs, ignoring the 0-variable port:
         return Arrays.copyOfRange(allSpecs, 1, allSpecs.length);
     }
 
+    /**
+     * @param nc the node container to extract the input specs from
+     * @return the associated array of input {@link PortObjectSpec PortObjectSpecs} including the flow variables port.
+     */
     public static PortObjectSpec[] getInputSpecsIncludingVariablePort(final NodeContainer nc) {
-        final var rawSpecs = new PortObjectSpec[nc.getNrInPorts()];
+        return getInputsIncludingVariablePort(nc).portObjectSpecs();
+    }
+
+    /**
+     * @param nc node container to extract the input objects from
+     * @return
+     */
+    public static PortObject[] getInputPortObjectsExcludingVariablePort(final NodeContainer nc) {
+        final var allPortObjects = getInputsIncludingVariablePort(nc).portObjects;
+        // copy input port objects, ignoring the 0-variable port:
+        return Arrays.copyOfRange(allPortObjects, 1, allPortObjects.length);
+    }
+
+    /**
+     * @param nc the node container to extract the input specs from
+     * @return the associated array of input {@link PortObjectSpec PortObjectSpecs} including the flow variables port.
+     */
+    private static NodeInput getInputsIncludingVariablePort(final NodeContainer nc) {
+
         final var wfm = nc.getParent();
+
+        final var rawSpecs = new PortObjectSpec[nc.getNrInPorts()];
+        final var rawInputObject = new PortObject[nc.getNrInPorts()];
+
         for (var cc : wfm.getIncomingConnectionsFor(nc.getID())) {
             var sourceId = cc.getSource();
             NodeOutPort outPort;
@@ -90,10 +117,23 @@ public final class InputSpecUtil {
             } else {
                 outPort = wfm.getNodeContainer(sourceId).getOutPort(cc.getSourcePort());
             }
+
+            var portObject = outPort.getPortObject();
             var spec = outPort.getPortObjectSpec();
-            rawSpecs[cc.getDestPort()] = spec instanceof InactiveBranchPortObjectSpec ? null : spec;
+
+            if (spec instanceof InactiveBranchPortObjectSpec) {
+                rawInputObject[cc.getDestPort()] = null;
+                rawSpecs[cc.getDestPort()] = null;
+            } else {
+                rawInputObject[cc.getDestPort()] = portObject;
+                rawSpecs[cc.getDestPort()] = spec;
+            }
         }
-        return rawSpecs;
+        return new NodeInput(rawSpecs, rawInputObject);
+    }
+
+    private record NodeInput(PortObjectSpec[] portObjectSpecs, PortObject[] portObjects) { //NOSONAR
+        // record to store port objects and specs
     }
 
 }

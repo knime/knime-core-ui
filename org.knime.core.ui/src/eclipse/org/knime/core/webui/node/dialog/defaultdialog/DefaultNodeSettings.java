@@ -59,6 +59,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
+import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
@@ -75,6 +76,7 @@ import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.NodeInPort;
 import org.knime.core.node.workflow.VariableType;
+import org.knime.core.webui.data.util.InputPortUtil;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMappings;
 import org.knime.core.webui.node.dialog.configmapping.NodeSettingsCorrectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.examples.ArrayWidgetExample;
@@ -301,12 +303,20 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
 
         private final CredentialsProvider m_credentialsProvider;
 
+        private final PortObject[] m_inputPortObjects;
+
         DefaultNodeSettingsContext(final PortType[] inTypes, final PortObjectSpec[] specs, final FlowObjectStack stack,
-            final CredentialsProvider credentialsProvider) {
+            final CredentialsProvider credentialsProvider, final PortObject[] inputPortObjects) {
             m_inTypes = inTypes;
             m_specs = specs;
             m_stack = stack;
             m_credentialsProvider = credentialsProvider;
+            m_inputPortObjects = inputPortObjects;
+        }
+
+        DefaultNodeSettingsContext(final PortType[] inTypes, final PortObjectSpec[] specs, final FlowObjectStack stack,
+            final CredentialsProvider credentialsProvider) {
+            this(inTypes, specs, stack, credentialsProvider, null);
         }
 
         /**
@@ -315,7 +325,7 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
         @SuppressWarnings("javadoc")
         public static DefaultNodeSettingsContext createDefaultNodeSettingsContext(final PortType[] inPortTypes,
             final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider) {
-            return new DefaultNodeSettingsContext(inPortTypes, specs, stack, credentialsProvider);
+            return new DefaultNodeSettingsContext(inPortTypes, specs, stack, credentialsProvider, null);
         }
 
         /**
@@ -362,6 +372,42 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
          */
         public Optional<DataTableSpec> getDataTableSpec(final int portIndex) {
             return getPortObjectSpec(portIndex).map(DataTableSpec.class::cast);
+        }
+
+        /**
+         * @return the input {@link PortObject}s of the node
+         */
+        public PortObject[] getInputPortObjects() {
+            return m_inputPortObjects;
+        }
+
+        /**
+         * @param portIndex
+         * @return the {@link PortObject} at the given portIndex or {@link Optional#empty()} if it is not available
+         * @throws IndexOutOfBoundsException if the portIndex does not match the ports of the node
+         */
+        public Optional<PortObject> getInputPortObject(final int portIndex) {
+            return Optional.ofNullable(m_inputPortObjects[portIndex]);
+        }
+
+        /**
+         * @return the input {@link DataTable DataTables} of the node; NOTE: array of objects can contain {@code null}
+         *         values, e.g., if input port is not connected or inactive!
+         * @throws ClassCastException if any of the node's input ports does not hold a {@link DataTable}
+         */
+        public DataTable[] getDataTables() {
+            return Arrays.stream(m_inputPortObjects).map(obj -> obj instanceof DataTable dt ? dt : null)
+                .toArray(DataTable[]::new);
+        }
+
+        /**
+         * @param portIndex the port for which to retrieve the object
+         * @return the {@link DataTable} at the given portIndex or {@link Optional#empty()} if it is not available
+         * @throws ClassCastException if the requested port is not a table port
+         * @throws IndexOutOfBoundsException if the portIndex does not match the ports of the node
+         */
+        public Optional<DataTable> getDataTable(final int portIndex) {
+            return getInputPortObject(portIndex).map(DataTable.class::cast);
         }
 
         /**
@@ -530,7 +576,7 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
         final var nodeContext = NodeContext.getContext();
         if (nodeContext == null) {
             // can only happen during tests
-            return new DefaultNodeSettingsContext(fallbackPortTypesFor(specs), specs, null, null);
+            return new DefaultNodeSettingsContext(fallbackPortTypesFor(specs), specs, null, null, null);
         }
         final var nc = nodeContext.getNodeContainer();
         final CredentialsProvider credentialsProvider;
@@ -544,7 +590,13 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
             credentialsProvider = null;
             inPortTypes = fallbackPortTypesFor(specs);
         }
-        return new DefaultNodeSettingsContext(inPortTypes, specs, nc.getFlowObjectStack(), credentialsProvider);
+
+        final var inPortObjects = nc.getParent() == null // This function is used by tests that mock the container
+            ? new PortObject[0] // When mocked the container is not a child of a workflow manager
+            : InputPortUtil.getInputPortObjectsExcludingVariablePort(nc);
+
+        return new DefaultNodeSettingsContext(inPortTypes, specs, nc.getFlowObjectStack(), credentialsProvider,
+            inPortObjects);
     }
 
     private static PortType[] fallbackPortTypesFor(final PortObjectSpec[] specs) {
