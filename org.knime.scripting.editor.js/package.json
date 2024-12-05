@@ -70,7 +70,7 @@
   },
   "peerDependencies": {
     "@knime/components": "^1.4.5",
-    "@knime/ui-extension-service": "1.0.0",
+    "@knime/ui-extension-service": "1.1.0",
     "monaco-editor": "0.45.x",
     "vue": "3.4.27"
   },
