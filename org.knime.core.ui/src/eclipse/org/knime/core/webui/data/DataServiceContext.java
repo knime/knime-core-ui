@@ -56,7 +56,7 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.SingleNodeContainer;
-import org.knime.core.webui.data.util.InputSpecUtil;
+import org.knime.core.webui.data.util.InputPortUtil;
 
 /**
  * A {@link DataServiceContext} allows to report warning messages during a data service invocation or assembly of
@@ -91,7 +91,7 @@ public final class DataServiceContext {
     static void init(final NodeContainer nc) {
         if (nc instanceof SingleNodeContainer snc) {
             final var inputSpecsSupplier =
-                new CachingSupplier<>(() -> InputSpecUtil.getInputSpecsExcludingVariablePort(nc));
+                new CachingSupplier<>(() -> InputPortUtil.getInputSpecsExcludingVariablePort(nc));
             init(new CachingSupplier<>(snc::createExecutionContext), inputSpecsSupplier);
         } else {
             init(null, null);

@@ -52,9 +52,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.testing.util.TableTestUtil;
 
 /**
  * Tests for {@link DefaultNodeSettingsContext}.
@@ -71,4 +75,27 @@ class DefaultNodeSettingsContextTest {
         assertThat(specs).isEqualTo(new PortObjectSpec[]{new DataTableSpec("test"), null});
     }
 
+    @Test
+    void testGetDataTable() {
+        var testTable = createTestTable();
+
+        var context = new DefaultNodeSettingsContext(null, new PortObjectSpec[]{testTable.getDataTableSpec()}, null,
+            null, new PortObject[]{testTable});
+        var specs = context.getDataTableSpecs();
+        assertThat(specs).isEqualTo(new PortObjectSpec[]{testTable.getDataTableSpec()});
+    }
+
+    private static BufferedDataTable createTestTable() {
+
+        var intCell = new IntCell(0);
+        var testSpec = new TableTestUtil.SpecBuilder();
+        testSpec.addColumn("testColumn", intCell.getType());
+
+        final var builder = new TableTestUtil.TableBuilder(testSpec.build());
+
+        var dataCells = new Object[]{intCell};
+        builder.addRow(dataCells);
+
+        return builder.build().get();
+    }
 }

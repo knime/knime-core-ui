@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog;
 
-import static org.knime.core.webui.data.util.InputSpecUtil.getInputSpecsExcludingVariablePort;
+import static org.knime.core.webui.data.util.InputPortUtil.getInputSpecsExcludingVariablePort;
 
 import java.util.EnumMap;
 import java.util.Map;

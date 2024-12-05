@@ -71,11 +71,11 @@ import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
 import org.knime.testing.util.WorkflowManagerUtil;
 
 /**
- * Tests for {@link InputSpecUtil}.
+ * Tests for {@link InputPortUtil}.
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
-class InputSpecUtilTest {
+class InputPortUtilTest {
 
     @Test
     void testGetInputSpecsExcludingVariablePortWithInactiveBranchPortObjectSpecs() throws IOException {
@@ -86,7 +86,7 @@ class InputSpecUtilTest {
             new TestNodeFactory(new PortObjectSpec[]{new DataTableSpec(), new DataTableSpec()}, new PortObjectSpec[0]));
         wfm.addConnection(nc.getID(), 1, nc2.getID(), 1);
         wfm.addConnection(nc.getID(), 2, nc2.getID(), 2);
-        var specs = InputSpecUtil.getInputSpecsExcludingVariablePort(nc2);
+        var specs = InputPortUtil.getInputSpecsExcludingVariablePort(nc2);
         assertThat(specs).isEqualTo(new PortObjectSpec[]{new DataTableSpec("test"), null});
     }
 
