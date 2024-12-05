@@ -70,7 +70,10 @@ const apiLayer: UIExtensionAPILayer = {
   onDirtyStateChange: noop,
   publishData: noop,
   sendAlert(alert) {
-    AlertingService.getInstance().then((service) => service.sendAlert(alert));
+    AlertingService.getInstance().then((service) =>
+      // @ts-expect-error
+      service.baseService.sendAlert(alert),
+    );
   },
   setControlsVisibility: noop,
   setReportingContent: noop,
