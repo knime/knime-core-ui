@@ -82,7 +82,6 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.webui.data.DataServiceContext;
 import org.knime.core.webui.data.DataServiceException;
 import org.knime.core.webui.node.view.table.data.render.DataCellContentType;
-import org.knime.core.webui.node.view.table.data.render.DataValueImageRenderer.ImageDimension;
 import org.knime.core.webui.node.view.table.data.render.DataValueImageRendererRegistry;
 import org.knime.core.webui.node.view.table.data.render.DataValueRendererFactory;
 import org.knime.core.webui.node.view.table.data.render.internal.RowRenderer;
@@ -501,7 +500,7 @@ public class TableViewDataServiceImpl implements TableViewDataService {
     private static String[] adjustColumnRenderers(final String[] columns, final DataTableSpec spec,
         final String[] rendererIds) {
         return IntStream.range(0, columns.length).filter(i -> spec.containsName(columns[i]))
-            .mapToObj(i -> rendererIds[i]).collect(Collectors.toList()).toArray(String[]::new);
+            .mapToObj(i -> rendererIds[i]).toArray(String[]::new);
 
     }
 
@@ -554,26 +553,28 @@ public class TableViewDataServiceImpl implements TableViewDataService {
         final var firstRow = rows.get(0);
 
         final var firstRowImageDimensions = new HashMap<String, ImageDimension>(firstRow.size());
-        IntStream.range(0, contentTypes.length).forEach(index -> {
-            if (!contentTypes[index].equals(DataCellContentType.IMG_PATH.toString())) {
-                return;
-            }
-            final var imageCell = firstRow.get(index + 2);
-            String imageCellContent = null;
-            if (imageCell instanceof String imageCellString) {
-                imageCellContent = imageCellString;
-            } else if (imageCell instanceof Cell cell) {
-                imageCellContent = cell.getValue();
-            }
-            if (imageCellContent == null) {
-                return;
-            }
-            final var originalDims = m_rendererRegistry.getImageDimensions(imageCellContent);
-            if (originalDims != null) {
-                firstRowImageDimensions.put(displayedColumns[index], originalDims);
-            }
-        });
+        IntStream.range(0, contentTypes.length)
+            .filter(index -> contentTypes[index].equals(DataCellContentType.IMG_PATH.toString()))
+            .forEach(index -> putImageDimension(displayedColumns, firstRow, firstRowImageDimensions, index));
         return firstRowImageDimensions;
+    }
+
+    private void putImageDimension(final String[] displayedColumns, final List<Object> firstRow,
+        final HashMap<String, ImageDimension> firstRowImageDimensions, final int index) {
+        final var imageCell = firstRow.get(index + 2);
+        String imageCellContent = null;
+        if (imageCell instanceof String imageCellString) {
+            imageCellContent = imageCellString;
+        } else if (imageCell instanceof Cell cell) {
+            imageCellContent = cell.getValue();
+        }
+        if (imageCellContent == null) {
+            return;
+        }
+        final var originalDims = m_rendererRegistry.getImageDimensions(imageCellContent);
+        if (originalDims != null) {
+            firstRowImageDimensions.put(displayedColumns[index], new ImageDimension(originalDims));
+        }
     }
 
     @Override

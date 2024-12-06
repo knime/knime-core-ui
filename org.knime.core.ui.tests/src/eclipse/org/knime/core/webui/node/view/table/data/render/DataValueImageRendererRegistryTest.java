@@ -65,6 +65,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.knime.core.webui.data.DataServiceContextTest;
+import org.knime.core.webui.node.view.table.data.ImageDimension;
 import org.knime.core.webui.node.view.table.data.TableViewDataServiceImpl;
 import org.knime.testing.util.TableTestUtil;
 
@@ -144,20 +145,19 @@ public class DataValueImageRendererRegistryTest {
         // read dimensions of same image twice
         var table = dataService.getTable(new String[]{"image"}, 0, 5, null, false, false, false, false);
         var imgPath = ((String)table.getRows().get(3).get(2)).replace(pathPrefix, "");
-        var imgDims = imgReg.getImageDimensions(imgPath);
+        var imgDims = new ImageDimension(imgReg.getImageDimensions(imgPath));
         assertThat(imgDims).hasFieldOrPropertyWithValue("heightInPx", 11).hasFieldOrPropertyWithValue("widthInPx", 11);
 
-        imgDims = imgReg.getImageDimensions(imgPath);
+        imgDims = new ImageDimension(imgReg.getImageDimensions(imgPath));
         assertThat(imgDims).hasFieldOrPropertyWithValue("heightInPx", 11).hasFieldOrPropertyWithValue("widthInPx", 11);
 
         // clear image cache and access data from previous and new chunk
         table = dataService.getTable(new String[]{"image"}, 10, 5, null, false, true, false, false);
 
-        imgDims = imgReg.getImageDimensions(imgPath);
-        assertThat(imgDims).isNull();
+        assertThat(imgReg.getImageDimensions(imgPath)).isNull();
 
         imgPath = ((String)table.getRows().get(3).get(2)).replace(pathPrefix, "");
-        imgDims = imgReg.getImageDimensions(imgPath);
+        imgDims = new ImageDimension(imgReg.getImageDimensions(imgPath));
         assertThat(imgDims).hasFieldOrPropertyWithValue("heightInPx", 11).hasFieldOrPropertyWithValue("widthInPx", 11);
 
     }
@@ -301,13 +301,14 @@ public class DataValueImageRendererRegistryTest {
             var res4 = getImageDimensions(imgReg.renderImage(imgPath + "?w=1&h=11"));
             var res5 = getImageDimensions(imgReg.renderImage(imgPath + "?w=100&h=1"));
             var res6 = getImageDimensions(imgReg.renderImage(imgPath + "?w=11&h=1"));
+            var res7 = getImageDimensions(imgReg.renderImage(imgPath + "?w=1"));
             var numCalls = imgReg.getStatsPerTable(tableId).numRenderImageCalls();
             assertThat(res1).as("Requests without width and heigt parameter should yield the"
                 + " same result as with large width and height").isEqualTo(res2);
             assertThat(res3).as("Too large dimensions should be scaled to the preferred one at max.").isEqualTo(res4)
-                .isEqualTo(res5).isEqualTo(res6);
+                .isEqualTo(res5).isEqualTo(res6).isEqualTo(res7);
             // TODO UIEXT-1361 ideally the number of calls would be the same as the number of different results.
-            assertThat(numCalls).as("Correct number of calls in total").isEqualTo(6);
+            assertThat(numCalls).as("Correct number of calls in total").isEqualTo(7);
         }
 
         private Dimension getImageDimensions(final byte[] byteImage) throws IOException {
