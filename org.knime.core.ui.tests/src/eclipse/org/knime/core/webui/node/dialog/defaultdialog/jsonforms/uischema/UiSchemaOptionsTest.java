@@ -120,6 +120,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.Usernam
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DeclaringDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.OverwriteDialogTitle;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
@@ -406,6 +407,7 @@ class UiSchemaOptionsTest {
             @Widget(title = "", description = "")
             @IntervalWidget(typeProvider = SimpleTimeStateProvider.class)
             Interval m_intervalTime;
+
         }
 
         var response = buildTestUiSchema(IntervalSettings.class);
@@ -480,19 +482,41 @@ class UiSchemaOptionsTest {
     }
 
     @Test
-    void testHideTitle() {
+    void testHideControlHeader() {
         class HideTitleSettings implements DefaultNodeSettings {
-            @Widget(title = "foo1", description = "")
-            String m_foo1;
-
-            @Widget(title = "foo2", description = "", hideTitle = true)
+            @Widget(title = "foo2", description = "", hideControlHeader = true)
             String m_foo2;
         }
 
         var response = buildTestUiSchema(HideTitleSettings.class);
+        assertThatJson(response).inPath("$.elements[0].options").isObject().containsKey("hideControlHeader");
+    }
+
+    @Test
+    void overwriteTitle() {
+        final String title = "Overwritten";
+
+        class OverwriteTitleSettings implements DefaultNodeSettings {
+            @Widget(title = "foo1", description = "")
+            String m_foo1;
+
+            @Widget(title = "foo2", description = "")
+            @OverwriteDialogTitle(title)
+            String m_foo2;
+
+            @Widget(title = "foo3", description = "")
+            @OverwriteDialogTitle("")
+            String m_foo3;
+        }
+
+        var response = buildTestUiSchema(OverwriteTitleSettings.class);
         assertThatJson(response).inPath("$.elements[0]").isObject().doesNotContainKey("label");
+
         assertThatJson(response).inPath("$.elements[1]").isObject().containsKey("label");
-        assertThatJson(response).inPath("$.elements[1].label").isString().isEqualTo("");
+        assertThatJson(response).inPath("$.elements[1].label").isString().contains(title);
+
+        assertThatJson(response).inPath("$.elements[2]").isObject().containsKey("label");
+        assertThatJson(response).inPath("$.elements[2].label").isString().contains("");
     }
 
     @Test

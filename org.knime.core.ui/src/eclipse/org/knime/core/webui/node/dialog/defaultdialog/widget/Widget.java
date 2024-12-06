@@ -55,6 +55,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.OverwriteDialogTitle;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
@@ -76,7 +77,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicatePr
 public @interface Widget {
 
     /**
-     * @return the title / label of the field
+     * @return the title / label of the field. If empty, the widgets default name is used.
+     * If the title should be empty in the dialog, use
      */
     String title();
 
@@ -92,9 +94,11 @@ public @interface Widget {
 
     /**
      * @return true if the title should be hidden from the dialog, but should still be available in the node
-     *         description.
+     *         description. NB: The whole title element will be hidden, including the flow variable button and the
+     *         description. If you want to hide only the displayed title string, use {@link OverwriteDialogTitle}
+     *         with an empty string instead.
      */
-    boolean hideTitle() default false;
+    boolean hideControlHeader() default false;
 
     /**
      * Add an effect annotation here as an alternative to putting it on the annotated field directly. if an effect

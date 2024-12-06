@@ -93,6 +93,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.Credent
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.OverwriteDialogTitle;
 
 /**
  * This utility class defines defaults and registers additional annotations used to define the format of an ui element.
@@ -130,8 +131,21 @@ public final class WidgetImplementationUtil {
      */
     @SuppressWarnings("javadoc")
     public enum DefaultWidgetType {
-            CHECKBOX, COLUMN_FILTER, NAME_FILTER, COLUMN_SELECTION, LOCAL_DATE, LOCAL_TIME, ZONE_ID, INTERVAL,
-            DATE_INTERVAL, TIME_INTERVAL, STRING_ARRAY, CREDENTIALS, LEGACY_CREDENTIALS, FILE_CHOOSER, DYNAMIC_VALUE;
+            CHECKBOX, //
+            COLUMN_FILTER, //
+            COLUMN_SELECTION, //
+            CREDENTIALS, //
+            DATE_INTERVAL, //
+            DYNAMIC_VALUE, //
+            FILE_CHOOSER, //
+            INTERVAL, //
+            LEGACY_CREDENTIALS, //
+            LOCAL_DATE, //
+            LOCAL_TIME, //
+            NAME_FILTER, //
+            STRING_ARRAY, //
+            TIME_INTERVAL, //
+            ZONE_ID //
     }
 
     /**
@@ -148,6 +162,7 @@ public final class WidgetImplementationUtil {
      */
     private static WidgetAnnotation[] widgetAnnotations = new WidgetAnnotation[]{//
         new WidgetAnnotation(Widget.class), //
+        new WidgetAnnotation(OverwriteDialogTitle.class), //
         new WidgetAnnotation(List.of(Enum.class), RadioButtonsWidget.class), //
         new WidgetAnnotation(List.of(Enum.class), ValueSwitchWidget.class), //
         new WidgetAnnotation(ChoicesWidget.class), //
