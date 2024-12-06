@@ -117,17 +117,16 @@ public final class SwingBasedRendererFactory implements DataValueRendererFactory
         final org.knime.core.data.renderer.DataValueRendererFactory rendererFactory, final DataColumnSpec colSpec) {
         var renderer = rendererFactory.createRenderer(colSpec);
         var id = rendererFactory.getId();
-        if (renderer instanceof AbstractPainterDataValueRenderer) {
-            return new SwingBasedImageRenderer((AbstractPainterDataValueRenderer)renderer, id);
-        } else if (renderer instanceof DefaultDataValueRenderer) {
-            var defaultRenderer = (DefaultDataValueRenderer)renderer;
+        if (renderer instanceof AbstractPainterDataValueRenderer apdvr) {
+            return new SwingBasedImageRenderer(apdvr, id);
+        } else if (renderer instanceof DefaultDataValueRenderer defaultRenderer) {
             if (defaultRenderer.getIcon() != null) {
                 return new SwingBasedImageRenderer(defaultRenderer, id);
             } else {
                 return new SwingBasedTextRenderer(defaultRenderer);
             }
-        } else if (renderer instanceof ImageValueRenderer) {
-            return new SwingBasedImageRenderer((ImageValueRenderer)renderer, id);
+        } else if (renderer instanceof ImageValueRenderer imageRenderer) {
+            return new SwingBasedImageRenderer(imageRenderer, id);
         } else {
             throw new UnsupportedOperationException(
                 "The renderer of type '" + renderer.getClass().getName() + "' is currently not supported.");
@@ -191,16 +190,39 @@ public final class SwingBasedRendererFactory implements DataValueRendererFactory
         }
 
         @Override
-        public byte[] renderImage(final DataValue value, final int width, final int height) {
-
-            // NOTE: mostly copied from Renderer2ImageNodeModel#createPngCell
+        public byte[] renderImage(final DataValue value, final int viewPortWidth) {
             var comp = getRendererComponent(value, m_renderer);
-            var size = new Dimension(width, height);
+            return renderImage(comp, getViewPortDimensionCandidate(comp, viewPortWidth));
+        }
+
+        /**
+         * This method defined the height of the view port when only the width is given. It does so by keeping the
+         * aspect ratio of the preferred size of the component.
+         *
+         * @param viewPortWidth the width of the view port the image is going to be rendered to.
+         * @return the dimensions of the view port further used to render the image.
+         */
+        private static Dimension getViewPortDimensionCandidate(final Component comp, final int viewPortWidth) {
+            final var preferredSize = comp.getPreferredSize();
+            final double scale = (double)viewPortWidth / preferredSize.width;
+            return new Dimension(viewPortWidth, (int)(preferredSize.height * scale));
+        }
+
+        @Override
+        public byte[] renderImage(final DataValue value, final Dimension viewPortDimension) {
+            var comp = getRendererComponent(value, m_renderer);
+            return renderImage(comp, viewPortDimension);
+
+        }
+
+        private static byte[] renderImage(final Component comp, final Dimension viewDimension) {
+            var imageDimension = viewDimension;
             if (comp instanceof AbstractPainterDataValueRenderer apdvr) {
-                size = apdvr.getPreferredSize(size);
+                imageDimension = apdvr.getPreferredSize(imageDimension);
             }
-            comp.setSize(size);
-            var image = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
+            // NOTE: mostly copied from Renderer2ImageNodeModel#createPngCell
+            comp.setSize(imageDimension);
+            var image = new BufferedImage(imageDimension.width, imageDimension.height, BufferedImage.TYPE_INT_ARGB);
             // create graphics object to paint in
             Graphics2D graphics = image.createGraphics();
             comp.paint(graphics);
@@ -219,9 +241,8 @@ public final class SwingBasedRendererFactory implements DataValueRendererFactory
          * {@inheritDoc}
          */
         @Override
-        public ImageDimension getDimension(final DataValue value) {
-            final var dim = getRendererComponent(value, m_renderer).getPreferredSize();
-            return new ImageDimension((int)dim.getWidth(), (int)dim.getHeight());
+        public Dimension getDimension(final DataValue value) {
+            return getRendererComponent(value, m_renderer).getPreferredSize();
         }
 
         private static Component getRendererComponent(final DataValue val,
