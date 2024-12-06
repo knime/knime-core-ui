@@ -67,6 +67,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSIONS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSION_PROVIDER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FORMAT;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_HIDE_CONTROL_HEADER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_IS_WRITER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_LABEL;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_OPTIONS;
@@ -142,6 +143,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyH
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBooleanProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.OverwriteDialogTitle;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.WidgetAnnotation;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
@@ -264,9 +266,14 @@ final class UiSchemaOptionsGenerator {
             if (widget.advanced()) {
                 options.put(OPTIONS_IS_ADVANCED, true);
             }
-            if (widget.hideTitle()) {
-                control.put(TAG_LABEL, "");
+            if (widget.hideControlHeader()) {
+                options.put(TAG_HIDE_CONTROL_HEADER, true);
             }
+        }
+
+        if (annotatedWidgets.contains(OverwriteDialogTitle.class)) {
+            final var widget = m_node.getAnnotation(OverwriteDialogTitle.class).orElseThrow();
+            control.put(TAG_LABEL, widget.value());
         }
 
         if (annotatedWidgets.contains(TextMessage.class)) {

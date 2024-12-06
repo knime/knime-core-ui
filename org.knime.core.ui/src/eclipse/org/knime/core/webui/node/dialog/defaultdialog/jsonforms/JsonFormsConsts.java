@@ -319,6 +319,12 @@ public final class JsonFormsConsts {
         public static final String TAG_RULE = "rule";
 
         /**
+         * Overwrite the title that is shown in the dialog, even if empty the title field is not removed. node
+         * descriptions are not affected.
+         */
+        public static final String TAG_TITLE_OVERRIDE = "titleOverride";
+
+        /**
          * show/hide/enable/disable
          */
         public static final String TAG_EFFECT = "effect";
@@ -349,6 +355,12 @@ public final class JsonFormsConsts {
         public static final String TAG_LABEL = "label";
 
         /**
+         * Option to hide the control header, i.e., the title label, the flow variable assignment button and the
+         * show-description button
+         */
+        public static final String TAG_HIDE_CONTROL_HEADER = "hideControlHeader";
+
+        /**
          * The description of a section
          */
         public static final String TAG_DESCRIPTION = "description";
@@ -362,11 +374,6 @@ public final class JsonFormsConsts {
          * Whether the setting/layoutPart is advanced
          */
         public static final String OPTIONS_IS_ADVANCED = "isAdvanced";
-
-        /**
-         * Whether the flow variable button for this setting should be hidden
-         */
-        public static final String OPTIONS_HIDE_FLOW_VARIABLE_BUTTON = "hideFlowVariableButton";
 
         /**
          * The type of a control

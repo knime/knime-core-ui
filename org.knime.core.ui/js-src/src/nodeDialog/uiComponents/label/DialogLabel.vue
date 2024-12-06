@@ -41,7 +41,7 @@ onMounted(() => {
 
 <template>
   <div
-    v-if="show && title"
+    v-if="show"
     ref="wrapper"
     class="dialog-label"
     @mouseover="hover = true"
@@ -109,6 +109,7 @@ onMounted(() => {
 
   & :deep(.label-text) {
     display: inline-block;
+    white-space: pre;
   }
 
   & .icons-next-to-label {
