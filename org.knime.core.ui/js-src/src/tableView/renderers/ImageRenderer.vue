@@ -43,15 +43,14 @@ const knimeService = inject<() => UIExtensionService>("getKnimeService")!();
 const resourceService = new ResourceService(knimeService);
 
 const addDimensions = computed(() => (imageUrl: string) => {
-  /**
-   * Use Number.Max_VALUE to automatically get the correct height for the given
-   * width Handled in the backend
-   */
-  return props.width
-    ? `${imageUrl}?w=${Math.floor(props.width)}&h=${Math.floor(
-        typeof props.height === "number" ? props.height : Number.MAX_VALUE,
-      )}`
-    : imageUrl;
+  let url = imageUrl;
+  if (props.width) {
+    url += `?w=${Math.floor(props.width)}`;
+    if (typeof props.height === "number") {
+      url += `&h=${Math.floor(props.height)}`;
+    }
+  }
+  return url;
 });
 
 const imageUrl = ref<string | null>(null);

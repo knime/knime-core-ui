@@ -51,7 +51,6 @@ package org.knime.core.webui.node.view.table.data;
 import java.util.List;
 import java.util.Map;
 
-import org.knime.core.webui.node.view.table.data.render.DataValueImageRenderer.ImageDimension;
 
 /**
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany

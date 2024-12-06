@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.view.table.data.render;
 
+import java.awt.Dimension;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
@@ -65,7 +66,6 @@ import org.knime.core.data.DataValue;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.webui.node.PageResourceManager;
 import org.knime.core.webui.node.view.table.data.TableViewDataService;
-import org.knime.core.webui.node.view.table.data.render.DataValueImageRenderer.ImageDimension;
 
 /**
  * Allows one to (short-term) register {@link DataValueImageRenderer DataValueImageRenderers} together with their
@@ -87,6 +87,14 @@ public final class DataValueImageRendererRegistry {
      */
     public static final String RENDERED_CELL_IMAGES_PATH_PREFIX = "images";
 
+    /**
+     * Used for parsing image width from URL while the height is variable.
+     */
+    private static final Pattern WIDTH_PATTERN = Pattern.compile("w=(\\d+)");
+
+    /**
+     * Used for parsing image width and height from URL provided by the frontend
+     */
     private static final Pattern WIDTH_AND_HEIGHT_PATTERN = Pattern.compile("w=(\\d+)&h=(\\d+)");
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DataValueImageRendererRegistry.class);
@@ -170,18 +178,21 @@ public final class DataValueImageRendererRegistry {
         if (image == null) {
             return new byte[0];
         }
-        final var dimensions = image.getDimensions();
-        int width = dimensions.widthInPx();
-        int height = dimensions.heightInPx();
         if (split.length == 2) {
-            var matcher = WIDTH_AND_HEIGHT_PATTERN.matcher(split[1]);
-            if (matcher.matches()) {
-                width = Integer.valueOf(matcher.group(1));
-                height = Integer.valueOf(matcher.group(2));
+            var widthAndHeightMatcher = WIDTH_AND_HEIGHT_PATTERN.matcher(split[1]);
+            if (widthAndHeightMatcher.matches()) {
+
+                final var width = Integer.valueOf(widthAndHeightMatcher.group(1));
+                final var height = Integer.valueOf(widthAndHeightMatcher.group(2));
+                return image.getData(new Dimension(width, height));
+            }
+            var widthMatcher = WIDTH_PATTERN.matcher(split[1]);
+            if (widthMatcher.matches()) {
+                final var width = Integer.valueOf(widthMatcher.group(1));
+                return image.getDataFromWidth(width);
             }
         }
-
-        return image.getData(width, height);
+        return image.getData(image.getDimensions());
     }
 
     /**
@@ -191,7 +202,7 @@ public final class DataValueImageRendererRegistry {
      *            {@link #addRendererAndGetImgPath(String tableId, DataCell cell, DataValueImageRenderer renderer)})
      * @return the image dimensions or null when the images cannot be accessed anymore
      */
-    public ImageDimension getImageDimensions(final String imgPath) {
+    public Dimension getImageDimensions(final String imgPath) {
         final var image = getImageByImgPath(imgPath);
         if (image == null) {
             return null;
@@ -221,15 +232,15 @@ public final class DataValueImageRendererRegistry {
         var images = m_imagesPerTable.get(tableId);
         if (images != null) {
             var stats = images.getStats();
-            var batchSizes = stats.batchSizes();
             var numImages = stats.numImages();
-            var numRenderedImages = stats.numRenderedImages();
             if (numImages == 0) {
                 return;
             }
             LOGGER.debugWithFormat("  The registry for table '%s' currently contains:", tableId);
+            var batchSizes = stats.batchSizes();
             LOGGER.debugWithFormat("  %d batches of size: %s, (sum: %d)", batchSizes.length,
                 Arrays.toString(batchSizes), Arrays.stream(batchSizes).sum());
+            var numRenderedImages = stats.numRenderedImages();
             LOGGER.debugWithFormat("  %d images in total; %d rendered, %d un-rendered", numImages, numRenderedImages,
                 (numImages - numRenderedImages));
         }
@@ -317,9 +328,7 @@ public final class DataValueImageRendererRegistry {
                 return;
             }
             var imagesToKeep = m_batches.stream() //
-                    .limit(MAX_NUM_ROW_BATCHES_IN_CACHE - 1l)
-                    .flatMap(Set::stream)
-                    .collect(Collectors.toSet());
+                .limit(MAX_NUM_ROW_BATCHES_IN_CACHE - 1l).flatMap(Set::stream).collect(Collectors.toSet());
             while (m_batches.size() >= MAX_NUM_ROW_BATCHES_IN_CACHE) {
                 m_batches.removeLast().forEach(id -> {
                     if (!imagesToKeep.contains(id)) {
@@ -344,7 +353,7 @@ public final class DataValueImageRendererRegistry {
                     @Override
                     public int numRenderedImages() {
                         synchronized (Images.this) {
-                            return (int) m_images.values().stream().filter(Image::isRendered).count();
+                            return (int)m_images.values().stream().filter(Image::isRendered).count();
                         }
                     }
 
@@ -384,13 +393,21 @@ public final class DataValueImageRendererRegistry {
             m_renderer = renderer;
         }
 
-        byte[] getData(final int width, final int height) {
-            String key = width + ":" + height;
+        byte[] getDataFromWidth(final int width) {
+            return getDataAndCache(String.format("[width=%s]", width), () -> m_renderer.renderImage(m_cell, width));
+
+        }
+
+        byte[] getData(final Dimension dimension) {
+            return getDataAndCache(dimension.toString(), () -> m_renderer.renderImage(m_cell, dimension));
+        }
+
+        byte[] getDataAndCache(final String key, final Supplier<byte[]> renderImage) {
             if (m_dataCache.containsKey(key)) {
                 return m_dataCache.get(key);
             }
             m_numRenderCalls++;
-            final var data = m_renderer.renderImage(m_cell, width, height);
+            final var data = renderImage.get();
             m_dataCache.put(key, data);
             return data;
         }
@@ -399,7 +416,7 @@ public final class DataValueImageRendererRegistry {
             return m_cell;
         }
 
-        ImageDimension getDimensions() {
+        Dimension getDimensions() {
             return m_renderer.getDimension(m_cell);
         }
 
