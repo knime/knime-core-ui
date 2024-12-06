@@ -44,50 +44,24 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 14, 2022 (hornm): created
+ *   Dec 6, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.view.table.data.render;
+package org.knime.core.webui.node.view.table.data;
 
 import java.awt.Dimension;
 
-import org.knime.core.data.DataValue;
-import org.knime.core.webui.node.view.table.data.TableViewDataService;
-
 /**
- * An image-based renderer as required by the {@link TableViewDataService}.
- *
- * @author Martin Horn, KNIME GmbH, Konstanz, Germany
+ * @param widthInPx
+ * @param heightInPx
+ * @author Paul Bärnreuther
  */
-public interface DataValueImageRenderer extends DataValueRenderer {
-
-    @Override
-    default DataCellContentType getContentType() {
-        return DataCellContentType.IMG_PATH;
-    }
+public record ImageDimension(int widthInPx, int heightInPx) {
 
     /**
-     * @param value the value to render the image from
-     * @param width
-     * @return the rendered image data of the given width
-     */
-    byte[] renderImage(DataValue value, int width);
-
-    /**
-     * @param value the value to render the image from
      * @param dimension
-     * @return the rendered image data of the given dimension
      */
-    byte[] renderImage(DataValue value, Dimension dimension);
-
-    /**
-     * @return the id of the renderer
-     */
-    String getId();
-
-    /**
-     * @param value the value from which the image is rendered
-     * @return the image dimensions
-     */
-    Dimension getDimension(DataValue value);
+    public ImageDimension(final Dimension dimension) {
+        this(dimension.width, dimension.height);
+    }
 
 }

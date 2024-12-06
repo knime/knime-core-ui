@@ -49,6 +49,15 @@ describe("ImageRenderer.vue", () => {
     );
   });
 
+  it("sets only width if provided", async () => {
+    props.width = 10;
+    const wrapper = mount(ImageRenderer, context);
+    await flushPromises();
+    expect(wrapper.find("img").attributes().src).toBe(
+      `${await getResourceUrl(props.path)}?w=${props.width}`,
+    );
+  });
+
   it("does not update src if desired", async () => {
     props.width = 10;
     props.height = 20;
