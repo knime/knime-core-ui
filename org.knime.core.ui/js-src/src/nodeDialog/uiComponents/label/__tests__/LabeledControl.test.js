@@ -26,7 +26,11 @@ describe("LabeledControl.vue", () => {
         path: "path.to.setting",
         schema: {},
         label: "title",
-        uischema: {},
+        uischema: {
+          options: {
+            hideControlHeader: false,
+          },
+        },
       },
     };
   });
@@ -144,8 +148,8 @@ describe("LabeledControl.vue", () => {
     ]);
   });
 
-  it("does not render the label line if the label is empty", () => {
-    props.control.label = "";
+  it("does not render the label line if the option hideControlHeader is true", () => {
+    props.control.uischema.options.hideControlHeader = true;
     const wrapper = mountLabeledControl();
     expect(wrapper.findComponent(Label).exists()).toBeFalsy();
   });
