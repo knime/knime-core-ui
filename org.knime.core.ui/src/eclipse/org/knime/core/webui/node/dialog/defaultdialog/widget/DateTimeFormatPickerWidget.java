@@ -67,12 +67,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 public @interface DateTimeFormatPickerWidget {
 
     /**
-     * Provider for the formats that will be selectable in the frontend. If it suits your needs, you can create and use
-     * a subclass of {@link ComprehensiveDateTimeFormatProvider}, which does a lot of the work for you.
+     * Provider for the formats that will be selectable in the frontend. {@link ComprehensiveDateTimeFormatProvider}
+     * will be used as default. To customize the list of recent used formats or use a different locale or time for
+     * creating the examples it is recommended to use ComprehensiveDateTimeFormatProvider as base class to extend from.
      *
      * @return the provider
      */
-    Class<? extends StateProvider<FormatWithExample[]>> formatProvider();
+    Class<? extends StateProvider<FormatWithExample[]>> formatProvider() //
+    default ComprehensiveDateTimeFormatProvider.class;
 
     /**
      * The type of temporal that the format represents.

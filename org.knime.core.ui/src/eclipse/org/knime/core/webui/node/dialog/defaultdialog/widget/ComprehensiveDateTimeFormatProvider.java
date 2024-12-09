@@ -76,6 +76,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.util.StringHistory;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatTemporalType;
@@ -85,7 +86,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 /**
  * <p>
  * A provider for a list of date/time formats - all the ones that our UX designers decided were in common use after
- * asking around. It is expected that the developer using this class will extend it and provide
+ * asking around. If this class is used directly as a provider in a {@link DateTimeFormatPickerWidget}, it will provide
+ * a list of recently used formats from the StringHistory, as well as a list of default formats. The default time to use in
+ * the examples is the current time and the default locale is {@link Locale#ENGLISH}.
+ *
+ * To customize the defaults, it is expected that the developer using this class will extend it and provide
  * <ul>
  * <li>a {@link Supplier} for the current time and a supplier the desired {@link Locale}, which will be used to generate
  * an example for each format</li>
@@ -102,36 +107,78 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
  * @author David Hickey, TNG Technology Consulting GmbH
  */
 @SuppressWarnings("squid:S1192") // suppress sonar's "too many literals" warning
-public abstract class ComprehensiveDateTimeFormatProvider implements StateProvider<FormatWithExample[]> {
+public class ComprehensiveDateTimeFormatProvider implements StateProvider<FormatWithExample[]> {
 
-    private final String[] m_recentFormats;
+    final private String[] m_recentFormats;
+
+    static final String FORMAT_HISTORY_KEY = "string_to_date_formats";
 
     /**
-     * @param recentFormats the formats recently used by the user. It may be empty, but not null.
+     * Number of recent formats to store/retrieve in/from the history
      */
-    protected ComprehensiveDateTimeFormatProvider(final String[] recentFormats) {
+    public static final int FORMAT_HISTORY_SIZE = 256;
+
+    /**
+     * Constructor for providing a list of recently used formats. Most probably useful when this class is used as a base
+     * class for a more specific format provider.
+     *
+     * @param recentFormats the formats recently used by the user. It may be empty, but not null.
+     * @throws NullPointerException if recentFormats is null
+     */
+    public ComprehensiveDateTimeFormatProvider(final String[] recentFormats) {
         m_recentFormats = Arrays.copyOf(Objects.requireNonNull(recentFormats), recentFormats.length);
     }
 
     /**
+     * Default constructor for providing a list of recently used formats from the {@link StringHistory}. When this class
+     * is used as provider directly in a {@link DateTimeFormatPickerWidget}, this constructor will be called.
+     */
+    public ComprehensiveDateTimeFormatProvider() {
+        this(getRecentFormats());
+    }
+
+    /**
      * Get the time to use for the examples. Note that this method is called only once per call to
-     * {@link #computeState}.
+     * {@link #computeState}. Override this method to provide a custom time.
      *
      * @return a ZonedDateTime that will be formatted to produce the examples.
      */
-    protected abstract ZonedDateTime getTimeForExamples();
+    protected ZonedDateTime getTimeForExamples() {
+        // Provide a default value for subclasses to override if needed
+        return ZonedDateTime.now();
+    }
 
     /**
      * Get the locale to use for the examples. Note that this method is called only once per call to
-     * {@link #computeState}.
+     * {@link #computeState}. Override this method to provide a custom locale.
      *
      * @return the locale to use for the examples.
      */
-    protected abstract Locale getLocaleForExamples();
+    protected Locale getLocaleForExamples() {
+        // Provide a default value for subclasses to override if needed
+        return Locale.ENGLISH;
+    }
 
     @Override
     public void init(final StateProviderInitializer initializer) {
         initializer.computeBeforeOpenDialog();
+    }
+
+    private static String[] getRecentFormats() {
+        return StringHistory.getInstance(FORMAT_HISTORY_KEY, FORMAT_HISTORY_SIZE).getHistory();
+    }
+
+    /**
+     * Helper function to add a format to the recent formats history if it is not already present.
+     * Only checks the last {@link #FORMAT_HISTORY_SIZE} formats and neglects default formats.
+     *
+     * @param format the format to add
+     */
+    static public void addFormatToStringHistoryIfNotPresent(final String format) {
+        String[] allFormats = getRecentFormats();
+        if (Arrays.stream(allFormats).noneMatch(f -> f.equals(format))) {
+            StringHistory.getInstance(FORMAT_HISTORY_KEY, FORMAT_HISTORY_SIZE).add(format);
+        }
     }
 
     /**

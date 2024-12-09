@@ -60,14 +60,15 @@ describe("DateTimeFormatPickerControl.vue", () => {
     initializesJsonFormsControl(component);
   });
 
-  it("sets labelForId", async () => {
-    await wrapper.vm.$nextTick();
+  it("sets labelForId and correct label", () => {
     const dialogLabel = wrapper.findComponent(DialogLabel);
     expect(wrapper.getComponent(DateTimeFormatInput).attributes().id).toBe(
       dialogLabel.vm.labelForId,
     );
     expect(dialogLabel.vm.labeledElement).toBeDefined();
     expect(dialogLabel.vm.labeledElement).not.toBeNull();
+
+    expect(wrapper.find("label").text()).toBe(defaultProps.control.label);
   });
 
   it("calls handleChange when interval input is changed", () => {
@@ -85,10 +86,6 @@ describe("DateTimeFormatPickerControl.vue", () => {
       defaultProps.control.path,
       changedFormat,
     );
-  });
-
-  it("sets correct label", () => {
-    expect(wrapper.find("label").text()).toBe(defaultProps.control.label);
   });
 
   it("disables input when controlled by a flow variable", () => {
