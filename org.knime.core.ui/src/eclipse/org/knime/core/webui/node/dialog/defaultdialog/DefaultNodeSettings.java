@@ -154,16 +154,19 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <th>Type</th>
  * <th>Default Widget</th>
  * <th>Compatible widget annotations</th>
+ * <th>Published</th>
  * </tr>
  * <tr>
  * <td>boolean</td>
  * <td>Checkbox</td>
  * <td></td>
+ * <td>yes</td>
  * </tr>
  * <tr>
  * <td>byte, int, long, double, float</td>
  * <td>Number Input</td>
  * <td>{@link NumberInputWidget}</td>
+ * <td>yes</td>
  * </tr>
  * <tr>
  * <td>String</td>
@@ -174,16 +177,42 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * {@link LocalFileReaderWidget}<br>
  * {@link LocalFileWriterWidget}<br>
  * {@link RichTextInputWidget}</td>
+ * <td>{@link ChoicesWidget} (UIEXT-1491)<br>
+ * {@link TextInputWidget} (adapt, UIEXT-2352)<br>
+ * {@link DateTimeWidget} (hide completely, UIEXT-2352)<br>
+ * {@link LocalFileReaderWidget} (remove (also internally), UIEXT-2352)<br>
+ * {@link LocalFileWriterWidget} (remove (also internally), UIEXT-2352)<br>
+ * {@link RichTextInputWidget} (hide useFlowVariableTemplate, UIEXT-2352)</td>
  * </tr>
  * <tr>
  * <td>LocalDate</td>
  * <td>Date Picker</td>
  * <td>{@link DateWidget}</td>
+ * <td>Delete DateWidget (UIEXT-2352)</td>
  * </tr>
  * <tr>
  * <td>LocalTime</td>
  * <td>Time Picker</td>
  * <td></td>
+ * <td>yes</td>
+ * <tr>
+ * <td>{@link Interval}</td>
+ * <td>Date or time interval</td>
+ * <td>{@link IntervalWidget} (for switching between date and time)</td>
+ * <td>yes</td>
+ * </tr>
+ * <tr>
+ * <td>{@link TimeInterval}</td>
+ * <td>Time interval</td>
+ * <td></td>
+ * <td>yes</td>
+ * </tr>
+ * <tr>
+ * <td>{@link DateInterval}</td>
+ * <td>Date interval</td>
+ * <td></td>
+ * <td>yes</td>
+ * </tr>
  * </tr>
  * <td>String[]</td>
  * <td></td>
@@ -191,6 +220,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * {@link ComboBoxWidget} <br>
  * {@link SortListWidget} <br>
  * </td>
+ * <td>{@link ChoicesWidget} (rework, UIEXT-1491) <br>
+ * {@link ComboBoxWidget} (yes)<br>
+ * {@link SortListWidget} (yes)</td>
  * </tr>
  * <tr>
  * <td>Enums(*)</td>
@@ -198,27 +230,36 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <td>{@link ValueSwitchWidget}<br>
  * {@link RadioButtonsWidget}<br>
  * {@link ChoicesWidget} (Drop Down; Can be used to set dynamic values. This will be replaced with a different
- * annotation with UIEXT-1681)</td>
+ * annotation with UIEXT-1681)</td> *
+ * <td>{@link ValueSwitchWidget}(yes)<br>
+ * {@link RadioButtonsWidget}(yes, remove horizontal? UIEXT-2352)<br>
+ * {@link ChoicesWidget}(UIEXT-1681)</td>
  * </tr>
  * <tr>
  * <td>Arrays/Collections of objects(**)</td>
  * <td>Array Widget ({@link ArrayWidgetExample example})</td>
  * <td>{@link ArrayWidget}</td>
+ * <td>yes (Make elementTitle default "Option"</td>
  * </tr>
  * <tr>
  * <td>{@link ColumnSelection}</td>
  * <td></td>
  * <td>{@link ChoicesWidget} (drop-down)</td>
+ *
+ * <td>yes</td>
  * </tr>
  * <tr>
  * <td>{@link ColumnFilter}</td>
  * <td></td>
  * <td>{@link ChoicesWidget} (twin-list)</td>
+ *
+ * <td>yes</td>
  * </tr>
  * <tr>
  * <td>{@link NameFilter}</td>
  * <td></td>
  * <td>{@link ChoicesWidget} (twin-list)</td>
+ * <td>yes</td>
  * </tr>
  * <tr>
  * <td>{@link Credentials}</td>
@@ -226,12 +267,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <td>{@link CredentialsWidget} (for customizing username + password)<br>
  * {@link PasswordWidget} (password only)<br>
  * {@link UsernameWidget} (username only)</td>
+ * <td>hide hasUsernameProvider/hasPasswordProvider (UIEXT-2352)</td>
  * </tr>
  * <tr>
  * <td>{@link FileSelection}</td>
  * <td>Path file chooser (currently with options "Local File System" and "Custom/KNIME URL")</td>
  * <td>{@link FileReaderWidget}<br>
  * {@link FileWriterWidget}</td>
+ * <td> hide ? (UIEXT-2352)</td>
  * </tr>
  * <tr>
  * <tr>
@@ -239,6 +282,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <td></td>
  * <td>{@link SimpleButtonWidget} (button with backend-side action handler)<br>
  * {@link TextMessage}</td>
+ * <td>{@link SimpleButtonWidget} (rework (UIEXT-1673))<br>
+ * {@link TextMessage} (remove promotion, UIEXT-2352)</td>
  * </tr>
  * <td>Any type</td>
  * <td></td>
