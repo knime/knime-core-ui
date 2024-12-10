@@ -50,6 +50,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.credentials;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.CredentialsProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
 
 /**
  * Wrapper around {@link Credentials} to help support
@@ -58,14 +60,33 @@ import org.knime.core.node.workflow.CredentialsProvider;
  *
  * @author Paul Bärnreuther
  */
-public final class LegacyCredentials {
+public final class LegacyCredentials implements PersistableSettings {
 
-    private final Credentials m_credentials;
+    Credentials m_credentials;
 
-    private final String m_flowVarName;
+    @Persist(hidden = true)
+    String m_flowVarName;
 
-    LegacyCredentials(final Credentials credentials) {
+    LegacyCredentials() {
+        this(new Credentials(), null);
+    }
+
+    /**
+     * Initialize with a non-legacy {@link Credentials} object.
+     *
+     * @param credentials
+     */
+    public LegacyCredentials(final Credentials credentials) {
         this(credentials, null);
+    }
+
+    /**
+     * Initialize with a legacy flow variable name.
+     *
+     * @param flowVarName
+     */
+    public LegacyCredentials(final String flowVarName) {
+        this(new Credentials(), flowVarName);
     }
 
     LegacyCredentials(final Credentials credentials, final String flowVarName) {
@@ -73,7 +94,13 @@ public final class LegacyCredentials {
         m_flowVarName = flowVarName;
     }
 
-    Credentials toCredentials(final CredentialsProvider provider) {
+    /**
+     * Load credentials from these legacy credentials that are possibly still defined by a flow variable name.
+     *
+     * @param provider to resolve the flow variable name
+     * @return the credentials given by the flow variable or the new credentials
+     */
+    public Credentials toCredentials(final CredentialsProvider provider) {
         if (m_flowVarName != null) {
             final var flowVarValue = provider.get(m_flowVarName);
             final var secondFactor = flowVarValue.getSecondAuthenticationFactor();
@@ -89,4 +116,5 @@ public final class LegacyCredentials {
             () -> "Loading credentials from legacy credentials is only permitted if no flow variable is set.");
         return m_credentials;
     }
+
 }
