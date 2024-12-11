@@ -50,6 +50,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.interval;
 
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+
 final class StringToIntervalUtil {
 
     private StringToIntervalUtil() {
@@ -163,11 +165,16 @@ final class StringToIntervalUtil {
                 tryParseInt(periodMatcher.group(4), 0) //
             );
         } else if (durationMatches) {
+            var millisMatch = durationMatcher.group(4);
+            var milliseconds = millisMatch == null //
+                ? 0 //
+                : Long.parseLong(StringUtils.rightPad(millisMatch, 3, '0'));
+
             return TimeInterval.of( //
                 tryParseLong(durationMatcher.group(1), 0), //
                 tryParseLong(durationMatcher.group(2), 0), //
                 tryParseLong(durationMatcher.group(3), 0), //
-                tryParseLong(durationMatcher.group(4), 0) //
+                milliseconds //
             );
         } else {
             throw new IllegalArgumentException(
@@ -196,12 +203,17 @@ final class StringToIntervalUtil {
                 tryParseInt(periodMatcher.group(5), 0) //
             );
         } else if (durationMatcher.matches()) {
+            var millisMatch = durationMatcher.group(5);
+            var milliseconds = millisMatch == null //
+                ? 0 //
+                : Long.parseLong(StringUtils.rightPad(millisMatch, 3, '0'));
+
             return TimeInterval.of( //
                 "-".equals(durationMatcher.group(1)), //
                 tryParseLong(durationMatcher.group(2), 0), //
                 tryParseLong(durationMatcher.group(3), 0), //
                 tryParseLong(durationMatcher.group(4), 0), //
-                tryParseLong(durationMatcher.group(5), 0) //
+                milliseconds //
             );
         } else {
             throw new IllegalArgumentException("'%s' is neither an ISO duration nor an ISO period".formatted(iso));

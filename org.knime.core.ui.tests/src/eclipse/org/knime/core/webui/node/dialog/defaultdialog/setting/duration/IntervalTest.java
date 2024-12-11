@@ -81,7 +81,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
-public class IntervalTest {
+final class IntervalTest {
 
     private static record ParseTestCase(Interval expected, String iso, String... humanReadable) {
     }
@@ -108,8 +108,12 @@ public class IntervalTest {
         new ParseTestCase(TimeInterval.of(0, 0, 1, 0), "PT1S", "1 second", "1seconds", "1sec", "1s"),
         new ParseTestCase(TimeInterval.of(0, 0, 0, 1), "PT0.001S", "0.001 second"),
         new ParseTestCase(TimeInterval.of(0, 0, 0, 1), "PT0,001S", "0,001 second"),
-        new ParseTestCase(TimeInterval.of(1, 2, 3, 4), "PT1H2M3.004S", "1 hour 2 minutes 3.4 seconds", "1h2m3.004s",
+        new ParseTestCase(TimeInterval.of(1, 2, 3, 4), "PT1H2M3.004S", "1 hour 2 minutes 3.004 seconds", "1h2m3.004s",
             "1h 2m 3.004s", "1 h 2 m 3.004 s", "1H2M3.004S"),
+        new ParseTestCase(TimeInterval.of(0, 0, 3, 400), "PT3.4S", "3.4 seconds", "3.4s", "3.4 sec", "3.4 secs",
+            "3.4s"),
+        new ParseTestCase(TimeInterval.of(0, 0, 0, 400), "PT0.4S", "0.4 seconds", "0.4s", "0.4 sec", "0.4 secs",
+            "0.4s"),
         new ParseTestCase(TimeInterval.of(true, 1, 2, 3, 4), "-PT1H2M3.004S") //
     );
 
