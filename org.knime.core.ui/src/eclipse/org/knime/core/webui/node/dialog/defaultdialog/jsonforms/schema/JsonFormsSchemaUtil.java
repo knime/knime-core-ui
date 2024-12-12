@@ -55,7 +55,6 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.MonthDay;
 import java.time.Period;
@@ -85,9 +84,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.DescriptionUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget.DoubleProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
@@ -215,18 +212,6 @@ public final class JsonFormsSchemaUtil {
         builder.forFields().withDescriptionResolver(field -> resolveDescription(field, widgetTree));
 
         builder.forFields()
-            .withNumberInclusiveMinimumResolver(field -> retrieveAnnotation(field, NumberInputWidget.class, widgetTree)
-                .filter(numberInput -> !field.isFakeContainerItemScope())
-                .map(numberInput -> resolveDouble(context, numberInput.minProvider(), numberInput.min()))//
-                .orElse(null));
-
-        builder.forFields()
-            .withNumberInclusiveMaximumResolver(field -> retrieveAnnotation(field, NumberInputWidget.class, widgetTree)
-                .filter(numberInput -> !field.isFakeContainerItemScope())//
-                .map(numberInput -> resolveDouble(context, numberInput.maxProvider(), numberInput.max()))//
-                .orElse(null));
-
-        builder.forFields()
             .withStringMinLengthResolver(field -> retrieveAnnotation(field, TextInputWidget.class, widgetTree)//
                 .filter(textInput -> !field.isFakeContainerItemScope())//
                 .map(textInput -> textInput.minLength())//
@@ -331,18 +316,6 @@ public final class JsonFormsSchemaUtil {
         var enumClass = (Class<E>)erasedEnumType;
         var constantEntries = EnumDefinitionProvider.getEnumConstantDescription(enumClass);
         return DescriptionUtil.getDescriptionsUlString(constantEntries);
-    }
-
-    private static BigDecimal resolveDouble(final DefaultNodeSettingsContext context,
-        final Class<? extends DoubleProvider> providerClass, final double value) {
-        if (!DoubleProvider.class.equals(providerClass)) {
-            var provider = InstantiationUtil.createInstance(providerClass);
-            return BigDecimal.valueOf(provider.getValue(context));
-        }
-        if (!Double.isNaN(value)) {
-            return BigDecimal.valueOf(value);
-        }
-        return null;
     }
 
     private static List<ResolvedType> overrideClass(final FieldScope field) {

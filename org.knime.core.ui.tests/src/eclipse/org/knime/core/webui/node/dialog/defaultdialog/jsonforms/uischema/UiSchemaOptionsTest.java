@@ -53,6 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.buildTestUiSchema;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.buildUiSchema;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -92,6 +93,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget.Inte
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget.DoubleProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
@@ -901,8 +904,8 @@ class UiSchemaOptionsTest {
         class DateTimeDefaultTestSettings implements DefaultNodeSettings {
 
             @Widget(title = "", description = "")
-            @DateTimeWidget(showSeconds = true, showMilliseconds = true, minDate = "2023-06-12",
-                maxDate = "2023-06-14", timezone = "America/Dawson_Creek")
+            @DateTimeWidget(showSeconds = true, showMilliseconds = true, minDate = "2023-06-12", maxDate = "2023-06-14",
+                timezone = "America/Dawson_Creek")
             String m_dateTime;
         }
 
@@ -1412,4 +1415,58 @@ class UiSchemaOptionsTest {
             .isEqualTo(TestSettings.MyTextMessageProvider.class.getName());
 
     }
+
+    static final class TestProvider implements DoubleProvider {
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            throw new IllegalStateException("This method should never be called");
+
+        }
+
+        @Override
+        public Double computeState(final DefaultNodeSettingsContext context) {
+            throw new IllegalStateException("This method should never be called");
+        }
+
+    }
+
+    @Test
+    void testNumberInputWidget() {
+        class NumberInputWidgetTestSettings implements DefaultNodeSettings {
+
+            @Widget(title = "", description = "")
+            @NumberInputWidget(min = -42)
+            double m_numberInputMin;
+
+            @Widget(title = "", description = "")
+            @NumberInputWidget(max = 42)
+            int m_numberInputMax;
+
+            @Widget(title = "", description = "")
+            @NumberInputWidget(minProvider = TestProvider.class)
+            double m_numberInputMinProvider;
+
+            @Widget(title = "", description = "")
+            @NumberInputWidget(maxProvider = TestProvider.class)
+            int m_numberInputMaxProvider;
+        }
+
+        var response = buildTestUiSchema(NumberInputWidgetTestSettings.class);
+
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("numberInputMin");
+        assertThatJson(response).inPath("$.elements[0].options.min").isNumber().isEqualTo(BigDecimal.valueOf(-42.0));
+
+        assertThatJson(response).inPath("$.elements[1].scope").isString().contains("numberInputMax");
+        assertThatJson(response).inPath("$.elements[1].options.max").isNumber().isEqualTo(BigDecimal.valueOf(42.0));
+
+        assertThatJson(response).inPath("$.elements[2].scope").isString().contains("numberInputMinProvider");
+        assertThatJson(response).inPath("$.elements[2].options.minProvider").isString()
+            .isEqualTo(TestProvider.class.getName());
+
+        assertThatJson(response).inPath("$.elements[3].scope").isString().contains("numberInputMaxProvider");
+        assertThatJson(response).inPath("$.elements[3].options.maxProvider").isString()
+            .isEqualTo(TestProvider.class.getName());
+    }
+
 }

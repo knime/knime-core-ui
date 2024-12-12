@@ -77,6 +77,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
@@ -846,6 +847,33 @@ public class UpdatesUtilTest {
                 .isEqualTo(StringCell.TYPE.getName());
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].compatibleTypes").isArray()
                 .hasSize(3);
+        }
+
+        static final class MyDoubleProvider implements NumberInputWidget.DoubleProvider {
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeAfterOpenDialog();
+            }
+
+            @Override
+            public Double computeState(final DefaultNodeSettingsContext context) {
+                throw new IllegalStateException("Should not be called in this test");
+            }
+
+        }
+
+        @Test
+        void testNumberInputProvider() {
+            class TestSettings implements DefaultNodeSettings {
+
+                @NumberInputWidget(minProvider = MyDoubleProvider.class)
+                double m_numberInput = 5;
+            }
+
+            final var settings = new TestSettings();
+            final var response = buildUpdates(settings);
+            assertThatJson(response).inPath("$.globalUpdates").isArray().hasSize(1);
         }
     }
 

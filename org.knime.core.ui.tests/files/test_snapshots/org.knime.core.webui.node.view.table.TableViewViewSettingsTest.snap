@@ -70,9 +70,7 @@
             "format" : "int32",
             "title" : "Custom row height",
             "description" : "Set the initial height of the rows.",
-            "default" : 80,
-            "minimum" : 24.0,
-            "maximum" : 1000000.0
+            "default" : 80
           },
           "displayedColumns" : {
             "type" : "object",
@@ -246,8 +244,7 @@
             "format" : "int32",
             "title" : "Page size",
             "description" : "Select the amount of rows shown per page",
-            "default" : 10,
-            "minimum" : 1.0
+            "default" : 10
           },
           "rowHeightMode" : {
             "oneOf" : [ {
@@ -426,6 +423,9 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/view/properties/pageSize",
+        "options" : {
+          "min" : 1.0
+        },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
@@ -450,6 +450,10 @@
       }, {
         "type" : "Control",
         "scope" : "#/properties/view/properties/customRowHeight",
+        "options" : {
+          "min" : 24.0,
+          "max" : 1000000.0
+        },
         "rule" : {
           "effect" : "SHOW",
           "condition" : {
