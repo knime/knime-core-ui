@@ -5,6 +5,7 @@ import { rendererProps } from "@jsonforms/vue";
 import { NumberInput } from "@knime/components";
 
 import useDialogControl from "../composables/components/useDialogControl";
+import useProvidedState from "../composables/components/useProvidedState";
 
 import LabeledControl from "./label/LabeledControl.vue";
 
@@ -18,8 +19,22 @@ const props = defineProps({
 });
 const { control, onChange, disabled } = useDialogControl<number>({ props });
 
-const min = computed(() => control.value.schema.minimum);
-const max = computed(() => control.value.schema.maximum);
+const providedMin = useProvidedState<number | null>(
+  control.value.uischema.options?.minProvider,
+  null,
+);
+
+const providedMax = useProvidedState<number | null>(
+  control.value.uischema.options?.maxProvider,
+  null,
+);
+
+const min = computed(
+  () => providedMin.value ?? control.value.uischema.options?.min,
+);
+const max = computed(
+  () => providedMax.value ?? control.value.uischema.options?.max,
+);
 
 const onFocusOut = () => {
   const num = control.value.data;
@@ -43,8 +58,8 @@ const onFocusOut = () => {
       :disabled="disabled"
       :model-value="control.data"
       :type="type"
-      :min="control.schema.minimum"
-      :max="control.schema.maximum"
+      :min="min"
+      :max="max"
       compact
       @update:model-value="onChange"
       @focusout="onFocusOut"

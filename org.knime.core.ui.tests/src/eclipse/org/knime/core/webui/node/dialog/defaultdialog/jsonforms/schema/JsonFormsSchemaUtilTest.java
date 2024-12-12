@@ -70,14 +70,12 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.WidgetGroupModifier;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
@@ -147,7 +145,7 @@ class JsonFormsSchemaUtilTest {
     }
 
     @Modification(ChangeDescription.class)
-    private static class ModifiedDescriptionSettings implements WidgetGroup , PersistableSettings {
+    private static class ModifiedDescriptionSettings implements WidgetGroup, PersistableSettings {
         /**
          * containing the modified description from {@link ChangeDescription}.
          */
@@ -227,8 +225,8 @@ class JsonFormsSchemaUtilTest {
         /**
          * containing the modified description from {@link ChangeDescription}.
          */
-        private static String SNAPSHOT = "{\"widgetGroup\":{\"type\":\"array\","
-            + "\"configKeys\":[\"configKey\"],"
+        private static String SNAPSHOT = "{\"widgetGroup\":{\"type\":\"array\"," //
+            + "\"configKeys\":[\"configKey\"]," //
             + "\"items\":" //
             + "{\"type\":\"object\",\"properties\":" //
             + "{\"test\":{\"type\":\"integer\",\"format\":\"int32\",\"default\":0,\"description\":\"modified description\"}" //
@@ -249,7 +247,6 @@ class JsonFormsSchemaUtilTest {
         WidgetGroupSettings[] m_configKey;
 
     }
-
 
     @Test
     void testArrayWidgetWithConfigKeys() throws JsonProcessingException {
@@ -341,68 +338,6 @@ class JsonFormsSchemaUtilTest {
         }
 
         testSettings(EnumTestSettingDescription.class);
-    }
-
-    private static class MinMaxSetting implements WidgetGroup {
-        private static String SNAPSHOT = "{"//
-            + "\"testMin\":{\"type\":\"integer\",\"format\":\"int32\",\"default\":0,\"minimum\":0.0},"//
-            + "\"testMax\":{\"type\":\"integer\",\"format\":\"int32\",\"default\":0,\"maximum\":100.0},"//
-            + "\"testBoth\":{\"type\":\"integer\",\"format\":\"int32\",\"default\":0,\"minimum\":0.0,\"maximum\":1000.0},"//
-            + "\"testDouble\":{\"type\":\"number\",\"format\":\"double\",\"default\":0.0,\"minimum\":-0.5,\"maximum\":1.5}"//
-            + "}";
-
-        @NumberInputWidget(min = 0)
-        public int testMin;
-
-        @NumberInputWidget(max = 100)
-        public int testMax;
-
-        @NumberInputWidget(min = 0, max = 1000)
-        public int testBoth;
-
-        @NumberInputWidget(min = -0.5, max = 1.5)
-        public double testDouble;
-    }
-
-    @Test
-    void testMinMax() throws JsonProcessingException {
-        testSettings(MinMaxSetting.class);
-    }
-
-    private static final class MinMaxProviderSetting implements WidgetGroup {
-
-        private static final String SNAPSHOT = "{"//
-            + "\"testMin\":{\"type\":\"integer\",\"format\":\"int32\",\"default\":0,\"minimum\":42.0},"//
-            + "\"testMax\":{\"type\":\"integer\",\"format\":\"int32\",\"default\":0,\"maximum\":42.0},"//
-            + "\"testBoth\":{\"type\":\"integer\",\"format\":\"int32\",\"default\":0,\"minimum\":42.0,\"maximum\":42.0},"//
-            + "\"testDouble\":{\"type\":\"number\",\"format\":\"double\",\"default\":0.0,\"minimum\":42.0,\"maximum\":42.0}"//
-            + "}";
-
-        @NumberInputWidget(minProvider = TestProvider.class)
-        int testMin;
-
-        @NumberInputWidget(maxProvider = TestProvider.class)
-        int testMax;
-
-        @NumberInputWidget(min = 0, minProvider = TestProvider.class, max = 1000, maxProvider = TestProvider.class)
-        int testBoth;
-
-        @NumberInputWidget(minProvider = TestProvider.class, maxProvider = TestProvider.class)
-        double testDouble;
-
-        private static final class TestProvider implements NumberInputWidget.DoubleProvider {
-
-            @Override
-            public double getValue(final DefaultNodeSettingsContext context) {
-                return 42;
-            }
-
-        }
-    }
-
-    @Test
-    void testMinMaxProviders() throws JsonProcessingException {
-        testSettings(MinMaxProviderSetting.class);
     }
 
     private static class ValidatedStringSetting implements WidgetGroup {
@@ -511,8 +446,6 @@ class JsonFormsSchemaUtilTest {
     void testIgnore() throws JsonProcessingException {
         testSettings(IgnoreSetting.class);
     }
-
-
 
     private record MyStringWrapper(String m_test) {
 

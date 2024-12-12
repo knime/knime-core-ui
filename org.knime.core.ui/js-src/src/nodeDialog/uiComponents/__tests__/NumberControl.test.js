@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { flushPromises } from "@vue/test-utils";
 
 import { NumberInput } from "@knime/components";
 
@@ -101,7 +102,7 @@ describe("NumberInput.vue", () => {
 
   it("rounds to minimum on focusout", () => {
     const minimum = 100;
-    props.control.schema.minimum = minimum;
+    props.control.uischema.options.min = minimum;
     props.control.data = minimum - 1;
     const component = mountJsonFormsComponent(NumberControl, { props });
     const wrapper = component.wrapper;
@@ -114,7 +115,7 @@ describe("NumberInput.vue", () => {
 
   it("rounds to maximum on focusout", () => {
     const maximum = 100;
-    props.control.schema.maximum = maximum;
+    props.control.uischema.options.max = maximum;
     props.control.data = maximum + 1;
     const component = mountJsonFormsComponent(NumberControl, { props });
     const wrapper = component.wrapper;
@@ -124,4 +125,33 @@ describe("NumberInput.vue", () => {
       maximum,
     );
   });
+
+  it.each([
+    ["min", 73, 37, "minProvider"],
+    ["max", 24, 42, "maxProvider"],
+  ])(
+    "overwrites the %s in case a new one is provided",
+    async (key, initialValue, providedValue, providerKey) => {
+      props.control.uischema.options[providerKey] = "someMinProviderID";
+      props.control.uischema.options[key] = initialValue;
+
+      let provideMin;
+      const addStateProviderListenerMock = vi.fn((_id, callback) => {
+        provideMin = callback;
+      });
+
+      const { wrapper } = mountJsonFormsComponent(NumberControlBase, {
+        props,
+        provide: { addStateProviderListenerMock },
+      });
+      expect(wrapper.findComponent(NumberInput).props()[key]).toBe(
+        initialValue,
+      );
+      provideMin(providedValue);
+      await flushPromises();
+      expect(wrapper.findComponent(NumberInput).props()[key]).toBe(
+        providedValue,
+      );
+    },
+  );
 });

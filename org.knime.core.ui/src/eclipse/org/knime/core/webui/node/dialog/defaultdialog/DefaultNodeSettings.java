@@ -50,6 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog;
 
 import static org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorFactory.getPersistor;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Arrays;
@@ -167,7 +168,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <td></td>
  * </tr>
  * <tr>
- * <td>byte, int, long, double, float</td>
+ * <td>byte, int, long, double, float, {@link Duration}</td>
  * <td>Number Input</td>
  * <td>{@link NumberInputWidget}</td>
  * </tr>

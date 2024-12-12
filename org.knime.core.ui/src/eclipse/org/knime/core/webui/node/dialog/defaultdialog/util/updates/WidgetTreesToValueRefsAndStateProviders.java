@@ -72,6 +72,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget.DoubleProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
@@ -194,6 +196,16 @@ final class WidgetTreesToValueRefsAndStateProviders {
                 ArrayWidget.class, //
                 ArrayWidget::elementDefaultValueProvider, //
                 StateProvider.class //
+            ), //
+            new UiStateProviderSpec<>( //
+                NumberInputWidget.class, //
+                NumberInputWidget::minProvider, //
+                DoubleProvider.class //
+            ), //
+            new UiStateProviderSpec<>( //
+                NumberInputWidget.class, //
+                NumberInputWidget::maxProvider, //
+                DoubleProvider.class //
             ));
 
     private void addUiStateProviderForNode(final TreeNode<WidgetGroup> node) {

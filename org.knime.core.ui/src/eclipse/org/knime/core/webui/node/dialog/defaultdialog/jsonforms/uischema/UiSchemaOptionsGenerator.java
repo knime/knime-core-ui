@@ -75,6 +75,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetI
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.partitionWidgetAnnotationsByApplicability;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collection;
@@ -118,6 +119,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget.DoubleProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
@@ -524,6 +527,14 @@ final class UiSchemaOptionsGenerator {
             }
         }
 
+        if (annotatedWidgets.contains(NumberInputWidget.class)) {
+            final var numberInputWidget = m_node.getAnnotation(NumberInputWidget.class).orElseThrow();
+            addDoubleOption(options, numberInputWidget.min(), "min");
+            addDoubleOption(options, numberInputWidget.max(), "max");
+            addDoubleProviderOption(options, numberInputWidget.minProvider(), "minProvider");
+            addDoubleProviderOption(options, numberInputWidget.maxProvider(), "maxProvider");
+        }
+
         if (m_node instanceof ArrayParentNode<WidgetGroup> arrayWidgetNode) {
             applyArrayLayoutOptions(options, arrayWidgetNode.getElementTree());
         }
@@ -737,6 +748,19 @@ final class UiSchemaOptionsGenerator {
         }
 
         return partitionedWidgetAnnotations.get(true).stream().map(WidgetAnnotation::widgetAnnotation).toList();
+    }
+
+    private static void addDoubleOption(final ObjectNode options, final double value, final String key) {
+        if (!Double.isNaN(value)) {
+            options.put(key, BigDecimal.valueOf(value));
+        }
+    }
+
+    private static void addDoubleProviderOption(final ObjectNode options,
+        final Class<? extends DoubleProvider> doubleProvider, final String key) {
+        if (!doubleProvider.equals(DoubleProvider.class)) {
+            options.put(key, doubleProvider.getName());
+        }
     }
 
     private void applyArrayLayoutOptions(final ObjectNode options, final Tree<WidgetGroup> elementTree) {

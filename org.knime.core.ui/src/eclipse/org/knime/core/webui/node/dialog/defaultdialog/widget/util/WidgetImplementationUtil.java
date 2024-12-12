@@ -49,6 +49,7 @@
 package org.knime.core.webui.node.dialog.defaultdialog.widget.util;
 
 import java.lang.annotation.Annotation;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -77,6 +78,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
@@ -164,7 +166,9 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(String.class), LocalFileWriterWidget.class), //
         new WidgetAnnotation(List.of(String.class), TextInputWidget.class), //
         new WidgetAnnotation(List.of(Void.class), SimpleButtonWidget.class), //
-        new WidgetAnnotation(List.of(Void.class), TextMessage.class) //
+        new WidgetAnnotation(List.of(Void.class), TextMessage.class), //
+        new WidgetAnnotation(List.of(byte.class, double.class, float.class, int.class, long.class, Duration.class),
+            NumberInputWidget.class) //
     };
 
     /**
