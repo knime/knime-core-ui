@@ -103,9 +103,11 @@ public class NodeDialogTest {
     @Test
     void testInitialSettingsForUnconnectedNode() throws Exception {
         var wfm = WorkflowManagerUtil.createEmptyWorkflow();
-        var nnc = WorkflowManagerUtil.createAndAddNode(wfm, new NodeDialogNodeFactory(
-            () -> createNodeDialog(Page.builder(() -> "test", "test.html").build(), createNodeSettingsService(), null),
-            1));
+        var nnc = WorkflowManagerUtil.createAndAddNode(wfm,
+            new NodeDialogNodeFactory(
+                () -> createNodeDialog(Page.create().fromString(() -> "test").relativePath("test.html"),
+                    createNodeSettingsService(), null),
+                1));
         var nncWrapper = NodeWrapper.of(nnc);
         var dataServiceManager = NodeDialogManager.getInstance().getDataServiceManager();
 
@@ -134,9 +136,11 @@ public class NodeDialogTest {
     @Test
     void testApplyChangedSettings() throws Exception {
         var wfm = WorkflowManagerUtil.createEmptyWorkflow();
-        var nnc = WorkflowManagerUtil.createAndAddNode(wfm,
-            new NodeDialogNodeFactory(() -> createNodeDialog(Page.builder(() -> "test", "test.html").build(),
-                createNodeSettingsService(), null)));
+        var nnc =
+            WorkflowManagerUtil.createAndAddNode(wfm,
+                new NodeDialogNodeFactory(
+                    () -> createNodeDialog(Page.create().fromString(() -> "test").relativePath("test.html"),
+                        createNodeSettingsService(), null)));
         var nncWrapper = NodeWrapper.of(nnc);
 
         var modelSettings = new NodeSettings("model");
@@ -235,8 +239,9 @@ public class NodeDialogTest {
         var onApplyModifier = new TestOnApplyNodeModifer();
         var wfm = WorkflowManagerUtil.createEmptyWorkflow();
         var nnc = WorkflowManagerUtil.createAndAddNode(wfm,
-            new NodeDialogNodeFactory(() -> createNodeDialog(Page.builder(() -> "test", "test.html").build(),
-                createNodeSettingsService(), null, onApplyModifier)));
+            new NodeDialogNodeFactory(
+                () -> createNodeDialog(Page.create().fromString(() -> "test").relativePath("test.html"),
+                    createNodeSettingsService(), null, onApplyModifier)));
         var nncWrapper = NodeWrapper.of(nnc);
 
         var initialModelSettings = new NodeSettings("model");
@@ -277,8 +282,9 @@ public class NodeDialogTest {
         var onApplyModifier = new TestOnApplyNodeModifer();
         var wfm = WorkflowManagerUtil.createEmptyWorkflow();
         var nnc = WorkflowManagerUtil.createAndAddNode(wfm,
-            new NodeDialogNodeFactory(() -> createNodeDialog(Page.builder(() -> "test", "test.html").build(),
-                createNodeSettingsService(), null, onApplyModifier)));
+            new NodeDialogNodeFactory(
+                () -> createNodeDialog(Page.create().fromString(() -> "test").relativePath("test.html"),
+                    createNodeSettingsService(), null, onApplyModifier)));
         var nncWrapper = NodeWrapper.of(nnc);
 
         var initialModelSettings = new NodeSettings("model");
@@ -323,9 +329,11 @@ public class NodeDialogTest {
     @Test
     void testGetInitialSettingsControlledByFlowVariables() throws IOException, InvalidSettingsException {
         var wfm = WorkflowManagerUtil.createEmptyWorkflow();
-        var nnc = WorkflowManagerUtil.createAndAddNode(wfm,
-            new NodeDialogNodeFactory(() -> createNodeDialog(Page.builder(() -> "test", "test.html").build(),
-                createNodeSettingsService(), null)));
+        var nnc =
+            WorkflowManagerUtil.createAndAddNode(wfm,
+                new NodeDialogNodeFactory(
+                    () -> createNodeDialog(Page.create().fromString(() -> "test").relativePath("test.html"),
+                        createNodeSettingsService(), null)));
         var nncWrapper = NodeWrapper.of(nnc);
 
         var modelSettings = new NodeSettings("model");
@@ -406,8 +414,9 @@ public class NodeDialogTest {
         var nodeDialogManager = NodeDialogManager.getInstance();
         var wfm = WorkflowManagerUtil.createEmptyWorkflow();
         var nnc = WorkflowManagerUtil.createAndAddNode(wfm,
-            new NodeDialogNodeFactory(() -> createNodeDialog(Page.builder(() -> "test", "test.html").build(),
-                createNodeSettingsService(varSettingsWriter), null)));
+            new NodeDialogNodeFactory(
+                () -> createNodeDialog(Page.create().fromString(() -> "test").relativePath("test.html"),
+                    createNodeSettingsService(varSettingsWriter), null)));
         var nncWrapper = NodeWrapper.of(nnc);
 
         var modelSettings = new NodeSettings("model");
@@ -499,8 +508,9 @@ public class NodeDialogTest {
         var dataServiceManager = NodeDialogManager.getInstance().getDataServiceManager();
         var wfm = WorkflowManagerUtil.createEmptyWorkflow();
         var nnc = WorkflowManagerUtil.createAndAddNode(wfm,
-            new NodeDialogNodeFactory(() -> createNodeDialog(Page.builder(() -> "test", "test.html").build(),
-                createNodeSettingsService(varSettingsWriter), null)));
+            new NodeDialogNodeFactory(
+                () -> createNodeDialog(Page.create().fromString(() -> "test").relativePath("test.html"),
+                    createNodeSettingsService(varSettingsWriter), null)));
         var nncWrapper = NodeWrapper.of(nnc);
 
         var modelSettings = new NodeSettings("model");
@@ -547,9 +557,11 @@ public class NodeDialogTest {
     @Test
     void testCreateLegacyFlowVariableNodeDialog() throws IOException, NotConfigurableException {
         var wfm = WorkflowManagerUtil.createEmptyWorkflow();
-        var nnc = WorkflowManagerUtil.createAndAddNode(wfm,
-            new NodeDialogNodeFactory(() -> createNodeDialog(Page.builder(() -> "test", "test.html").build(),
-                createNodeSettingsService(), null)));
+        var nnc =
+            WorkflowManagerUtil.createAndAddNode(wfm,
+                new NodeDialogNodeFactory(
+                    () -> createNodeDialog(Page.create().fromString(() -> "test").relativePath("test.html"),
+                        createNodeSettingsService(), null)));
 
         openLegacyFlowVariableDialogAndCheckViewSettings(nnc, "a default view setting value");
 
@@ -608,9 +620,11 @@ public class NodeDialogTest {
     void testLegacyFlowVariableDialogModelSettingsOnClose()
         throws IOException, InvalidSettingsException, NotConfigurableException {
         var wfm = WorkflowManagerUtil.createEmptyWorkflow();
-        var nc = WorkflowManagerUtil.createAndAddNode(wfm,
-            new NodeDialogNodeFactory(() -> createNodeDialog(Page.builder(() -> "test", "test.html").build(),
-                createNodeSettingsService(), null)));
+        var nc =
+            WorkflowManagerUtil.createAndAddNode(wfm,
+                new NodeDialogNodeFactory(
+                    () -> createNodeDialog(Page.create().fromString(() -> "test").relativePath("test.html"),
+                        createNodeSettingsService(), null)));
 
         LegacyFlowVariableNodeDialog legacyNodeDialog = initLegacyFlowVariableDialog(nc);
 

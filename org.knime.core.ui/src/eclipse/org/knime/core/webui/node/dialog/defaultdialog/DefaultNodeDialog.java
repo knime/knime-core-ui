@@ -62,6 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDa
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesHolder;
 import org.knime.core.webui.page.Page;
+import org.knime.core.webui.page.ReusablePage;
 
 /**
  * Default node dialog implementation where all the dialog widgets are defined through a
@@ -75,8 +76,9 @@ public final class DefaultNodeDialog implements NodeDialog {
     /**
      * The page representing the default node dialog.
      */
-    public static final Page PAGE = Page.builder(DefaultNodeDialog.class, "js-src", "dist/NodeDialog.js")
-        .addResourceDirectory("dist").markAsReusable("defaultdialog").build();
+    public static final ReusablePage PAGE =
+        Page.create().fromFile().bundleClass(DefaultNodeDialog.class).basePath("js-src")
+            .relativeFilePath("dist/NodeDialog.js").addResourceDirectory("dist").getReusablePage("defaultdialog");
 
     private final DefaultNodeSettingsService m_settingsDataService;
 

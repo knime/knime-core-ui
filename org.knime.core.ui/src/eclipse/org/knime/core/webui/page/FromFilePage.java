@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 2, 2021 (hornm): created
+ *   Dec 13, 2024 (hornm): created
  */
 package org.knime.core.webui.page;
 
@@ -56,7 +56,9 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.eclipse.core.runtime.FileLocator;
@@ -66,37 +68,43 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
 /**
- * Adds additional methods to the {@link PageBuilder} which allows one to define the page content and associated
- * resources by referencing files.
+ * TODO final?
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
- *
- * @since 4.5
  */
-public final class FromFilePageBuilder extends PageBuilder {
+public class FromFilePage extends Page {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(FromFilePageBuilder.class);
+    private static NodeLogger LOGGER = NodeLogger.getLogger(FromFilePage.class);
 
-    private final Class<?> m_clazz;
+    private Class<?> m_clazz;
 
-    private final String m_bundleID;
+    private String m_bundleID;
 
-    private final String m_basePath;
+    private String m_basePath;
 
-    private String m_pageName;
-
-    FromFilePageBuilder(final Class<?> clazz, final String basePath, final String relativeFilePath) {
-        super(createFileResource(clazz, null, basePath, relativeFilePath));
+    FromFilePage(final Class<?> clazz, final String basePath, final String relativeFilePath) {
+        super(createFileResource(clazz, null, basePath, relativeFilePath), true);
         m_clazz = clazz;
         m_bundleID = null;
         m_basePath = basePath;
     }
 
-    FromFilePageBuilder(final String bundleID, final String basePath, final String relativeFilePath) {
-        super(createFileResource(null, bundleID, basePath, relativeFilePath));
+    FromFilePage(final String bundleID, final String basePath, final String relativeFilePath) {
+        super(createFileResource(null, bundleID, basePath, relativeFilePath), true);
         m_clazz = null;
         m_bundleID = bundleID;
         m_basePath = basePath;
+    }
+
+    /**
+     * Shallow copy constructor.
+     * @param p
+     */
+    protected FromFilePage(final FromFilePage p) {
+        super(p);
+        m_clazz = p.m_clazz;
+        m_bundleID = p.m_bundleID;
+        m_basePath = p.m_basePath;
     }
 
     /**
@@ -107,8 +115,9 @@ public final class FromFilePageBuilder extends PageBuilder {
      * @param relativeFilePath the relative path to the file
      * @return this page builder instance
      */
-    public FromFilePageBuilder addResourceFile(final String relativeFilePath) {
-        m_resources.add(createFileResource(m_clazz, m_bundleID, m_basePath, relativeFilePath));
+    public FromFilePage addResourceFile(final String relativeFilePath) {
+        var resource = createFileResource(m_clazz, m_bundleID, m_basePath, relativeFilePath);
+        m_resources.put(resource.getRelativePath(), resource);
         return this;
     }
 
@@ -121,28 +130,9 @@ public final class FromFilePageBuilder extends PageBuilder {
      * @param relativeDirPath the relative path to the directory
      * @return this page builder instance
      */
-    public FromFilePageBuilder addResourceDirectory(final String relativeDirPath) {
+    public FromFilePage addResourceDirectory(final String relativeDirPath) {
         var root = getAbsoluteBasePath(m_clazz, m_bundleID, m_basePath);
         createResourcesFromDir(root, root.resolve(relativeDirPath), m_resources);
-        return this;
-    }
-
-    /**
-     * Marks this page as being re-usable by different nodes (e.g., as node dialog and/or view) and/or port (as port
-     * view). A benefit of re-using pages is that the resources associated with the page only need to be requested once
-     * for different nodes/ports.
-     *
-     * Note that page re-use is only possible if the page itself and all associated resources are static (see
-     * {@link Resource#isStatic()}).
-     *
-     * And also note that in order for a page to be truly re-used, the very same instance of the page, created with this
-     * page builder, must be used by the different nodes/ports.
-     *
-     * @param pageName a name for the re-usable page; must not be {@code null}, otherwise it's not marked as re-usable
-     * @return this page builder instance
-     */
-    public FromFilePageBuilder markAsReusable(final String pageName) {
-        m_pageName = pageName;
         return this;
     }
 
@@ -170,7 +160,7 @@ public final class FromFilePageBuilder extends PageBuilder {
             // must not use url.toURI() -- FileLocator leaves spaces in the URL (see eclipse bug 145096)
             // -- taken from TableauHyperActivator.java line 158
             var url = FileLocator.toFileURL(bundleUrl);
-            return  Paths.get(new URI(url.getProtocol(), url.getFile(), null)).resolve(baseDir).normalize();
+            return Paths.get(new URI(url.getProtocol(), url.getFile(), null)).resolve(baseDir).normalize();
         } catch (IOException | URISyntaxException ex) {
             throw new IllegalStateException("Failed to resolve the directory " + baseDir, ex);
         }
@@ -184,13 +174,14 @@ public final class FromFilePageBuilder extends PageBuilder {
         return new FileResource(file, relativeFilePath);
     }
 
-    private static void createResourcesFromDir(final Path root, final Path dir, final List<Resource> res) {
+    private static void createResourcesFromDir(final Path root, final Path dir, final Map<String, Resource> res) {
         try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(dir)) {
             dirStream.forEach(f -> {
                 if (Files.isDirectory(f)) {
                     createResourcesFromDir(root, f, res);
                 } else {
-                    res.add(createResourceFromFile(root.relativize(f).normalize(), f));
+                    var resource = createResourceFromFile(root.relativize(f).normalize(), f);
+                    res.put(resource.getRelativePath(), resource);
                 }
             });
         } catch (IOException ex) {
@@ -198,27 +189,53 @@ public final class FromFilePageBuilder extends PageBuilder {
         }
     }
 
-    @Override
-    public Page build() {
-        return new Page(m_pageResource, m_resources, m_dynamicResources, m_dynamicResourcesAreStatic, m_pageName);
+    /**
+     * Creates a page that can be re-used by different nodes (e.g., as node dialog and/or view) and/or port (as port
+     * view). A benefit of re-using pages is that the resources associated with the page only need to be requested once
+     * for different nodes/ports.
+     *
+     * Note that page re-use is only possible if the page itself and all associated resources are static (see
+     * {@link Resource#isStatic()}).
+     *
+     * And also note that in order for a page to be truly re-used, the very same instance of the page must be used by
+     * the different nodes/ports.
+     *
+     * @param pageName a name for the re-usable page; must not be {@code null}
+     * @return this page builder instance
+     */
+    public ReusablePage getReusablePage(final String pageName) {
+        Objects.requireNonNull(pageName);
+        return new ReusablePage(this, pageName);
     }
 
     /*
      * -------------------------------------------------------------------------------------------------
-     * Methods overwritten from the parent class in order to narrow down the returned page builder type.
+     * Methods overwritten from the parent class in order to mark the page is _not_ completely static anymore.
      * -------------------------------------------------------------------------------------------------
      */
 
     @Override
-    public FromFilePageBuilder addResource(final Supplier<InputStream> content, final String relativePath) {
+    public FromFilePage addResource(final Supplier<InputStream> content, final String relativePath) {
+        m_isCompletelyStatic = false;
         super.addResource(content, relativePath);
         return this;
 
     }
 
     @Override
-    public FromFilePageBuilder addResourceFromString(final Supplier<String> content, final String relativePath) {
+    public FromFilePage addResourceFromString(final Supplier<String> content, final String relativePath) {
+        m_isCompletelyStatic = false;
         super.addResourceFromString(content, relativePath);
+        return this;
+    }
+
+    @Override
+    public FromFilePage addResources(final Function<String, InputStream> supplier, final String relativePathPrefix,
+        final boolean areStatic) {
+        if (!areStatic) {
+            m_isCompletelyStatic = false;
+        }
+        super.addResources(supplier, relativePathPrefix, areStatic);
         return this;
     }
 

@@ -56,6 +56,7 @@ import org.knime.core.webui.node.PageResourceManager.CreatedPage;
 import org.knime.core.webui.node.PageResourceManager.PageType;
 import org.knime.core.webui.node.util.NodeCleanUpCallback;
 import org.knime.core.webui.page.Page;
+import org.knime.core.webui.page.ReusablePage;
 
 /**
  * Takes care of caching {@link Page Pages} for particular {@link NodeWrapper NodeWrappers}.
@@ -155,7 +156,7 @@ final class PageCache<N extends NodeWrapper> {
         final boolean cleanUpPageOnNodeStateChange) {
         var createdPage = pageCreator.apply(nodeWrapper);
         var page = createdPage.page();
-        var reusablePageId = page.getPageIdForReusablePage().orElse(null);
+        var reusablePageId = page instanceof ReusablePage rp ? rp.getPageId() : null;
         var isStatic = page.isCompletelyStatic();
         final PageIdType pageIdType;
         if (reusablePageId != null) {

@@ -60,6 +60,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsSeriali
 import org.knime.core.webui.node.view.image.data.ImageViewInitialData;
 import org.knime.core.webui.node.view.image.data.ImageViewInitialDataImpl;
 import org.knime.core.webui.page.Page;
+import org.knime.core.webui.page.ReusablePage;
 
 /**
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
@@ -85,10 +86,10 @@ public final class ImageViewUtil {
     /**
      * The page representing the image view.
      */
-    public static final Page PAGE = Page.builder(ImageViewUtil.class, "js-src/dist", "ImageView.js") //
-        .markAsReusable(IMAGE_VIEW_PAGE_ID) //
+    public static final ReusablePage PAGE = Page.create().fromFile().bundleClass(ImageViewUtil.class)
+        .basePath("js-src/dist").relativeFilePath("ImageView.js") //
         .addResources(imageId -> new ByteArrayInputStream(IMAGE_DATA_MAP.remove(imageId)), "img", true) //
-        .build();
+        .getReusablePage(IMAGE_VIEW_PAGE_ID);
 
     /**
      * @param imageValueSupplier the supplier of the {@link ImageValue}

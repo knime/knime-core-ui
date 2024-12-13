@@ -81,8 +81,8 @@ public class StringCellView implements DataValueView {
 
     @Override
     public Page getPage() {
-        return Page.builder(TableView.class, "js-src/dist", "StringCellView.html").addResourceDirectory("assets")
-            .build();
+        return Page.create().fromFile().bundleClass(TableView.class).basePath("js-src/dist")
+            .relativeFilePath("StringCellView.html").addResourceDirectory("assets");
     }
 
     @SuppressWarnings("unchecked")
