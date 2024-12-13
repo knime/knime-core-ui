@@ -68,6 +68,7 @@ import org.knime.core.webui.node.view.table.data.TableViewInitialDataImpl;
 import org.knime.core.webui.node.view.table.data.render.DataValueImageRendererRegistry;
 import org.knime.core.webui.node.view.table.data.render.SwingBasedRendererFactory;
 import org.knime.core.webui.page.Page;
+import org.knime.core.webui.page.ReusablePage;
 
 /**
  * @author Konrad Amtenbrink, KNIME GmbH, Berlin, Germany
@@ -86,11 +87,11 @@ public final class TableViewUtil {
     /**
      * The page representing the table view.
      */
-    public static final Page PAGE = Page.builder(TableViewUtil.class, "js-src/dist", "TableView.js") //
-        .markAsReusable(TABLEVIEW_PAGE_ID)
+    public static final ReusablePage PAGE = Page.create().fromFile().bundleClass(TableViewUtil.class)
+        .basePath("js-src/dist").relativeFilePath("TableView.js") //
         .addResources(createTableCellImageResourceSupplier(),
             DataValueImageRendererRegistry.RENDERED_CELL_IMAGES_PATH_PREFIX, true) //
-        .build();
+        .getReusablePage(TABLEVIEW_PAGE_ID);
 
     // This is workaround/hack for the lack of proper random-access functionality for a (BufferedData)Table.
     // For more details see the class' javadoc.

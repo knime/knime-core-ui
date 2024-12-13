@@ -42,29 +42,48 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Dec 13, 2024 (hornm): created
  */
-package org.knime.core.webui.node.view.text;
-
-import org.knime.core.webui.page.Page;
-import org.knime.core.webui.page.ReusablePage;
+package org.knime.core.webui.page;
 
 /**
- * @author Paul Bärnreuther
+ * See {@link Page#getReusablePage(String)}.
+ *
+ * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
-public final class TextViewUtil {
+public final class ReusablePage extends FromFilePage {
 
-    private TextViewUtil() {
-        // Utility class
+    private final String m_pageName;
+
+    ReusablePage(final FromFilePage p, final String pageName) {
+        super(p);
+        m_pageName = pageName;
     }
 
-    // Note on the 'static' page id: the entire TextView-page can be considered 'completely static'
-    // because the page, represented by a vue component, is just a file (won't change at runtime)
-    private static final String TEXT_VIEW_PAGE_ID = "textview";
-
     /**
-     * The page representing the table view.
+     * Creates the page id for a re-usuable and completely static page (see {@link FromFilePage#getResource(String)}).
+     *
+     * @return the page-id
+     * @throws IllegalStateException if the page is marked as re-usable but not completely static (see
+     *             {@link Page#isCompletelyStatic()}); or if 're-usability' is not supported for the page's
+     *             {@link ContentType}.
      */
-    public static final ReusablePage PAGE = Page.create().fromFile().bundleClass(TextViewUtil.class)
-        .basePath("js-src/dist").relativeFilePath("TextView.js").getReusablePage(TEXT_VIEW_PAGE_ID);
+    public String getPageId() {
+        if (!isCompletelyStatic()) {
+            throw new IllegalStateException("Page is marked as 're-usable' but not completely static.");
+        }
+
+        switch (getContentType()) {
+            case SHADOW_APP:
+                return m_pageName;
+            case HTML:
+                // combine page-name with identity hash code of this object in order to guarantee global uniqueness
+                return m_pageName + ":" + Integer.toString(System.identityHashCode(this));
+            default:
+                throw new IllegalStateException("Page with content type " + getContentType() + " can't be re-used.");
+        }
+    }
 
 }

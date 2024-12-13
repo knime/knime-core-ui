@@ -77,13 +77,12 @@ public class PageTest {
      */
     @Test
     void testIsCompletelyStaticPage() {
-        var page = Page.builder(BUNDLE_ID, "files", "page.html")
-            .addResourceFromString(() -> "resource content", "resource.html").build();
+        var page = Page.create().fromFile().bundleID(BUNDLE_ID).basePath("files").relativeFilePath("page.html")
+            .addResourceFromString(() -> "resource content", "resource.html");
         assertThat(page.isCompletelyStatic()).isFalse();
-        assertThat(page.getPageIdForReusablePage()).isEmpty();
-        page = Page.builder(BUNDLE_ID, "files", "page.html").addResourceFile("resource.html").build();
+        page = Page.create().fromFile().bundleID(BUNDLE_ID).basePath("files").relativeFilePath("page.html")
+            .addResourceFile("resource.html");
         assertThat(page.isCompletelyStatic()).isTrue();
-        assertThat(page.getPageIdForReusablePage()).isEmpty();
     }
 
     /**
@@ -91,13 +90,13 @@ public class PageTest {
      */
     @Test
     void testIsComponent() {
-        var page = Page.builder(BUNDLE_ID, "files", "page.html").build();
+        var page = Page.create().fromFile().bundleID(BUNDLE_ID).basePath("files").relativeFilePath("page.html");
         assertThat(page.getContentType()).isEqualTo(ContentType.HTML);
 
-        page = Page.builder(BUNDLE_ID, "files", "component.js").build();
+        page = Page.create().fromFile().bundleID(BUNDLE_ID).basePath("files").relativeFilePath("component.js");
         assertThat(page.getContentType()).isEqualTo(ContentType.SHADOW_APP);
 
-        var page2 = Page.builder(() -> "content", "component.blub").build();
+        var page2 = Page.create().fromString(() -> "content").relativePath("component.blub");
         Assertions.assertThatThrownBy(page2::getContentType).isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -106,7 +105,8 @@ public class PageTest {
      */
     @Test
     void testCreateResourcesFromDir() {
-        var page = Page.builder(BUNDLE_ID, "files", "page.html").addResourceDirectory("dir").build();
+        var page = Page.create().fromFile().bundleID(BUNDLE_ID).basePath("files").relativeFilePath("page.html")
+            .addResourceDirectory("dir");
         assertThat(page.getResource("dir/subdir/res.html")).isPresent();
         assertThat(page.getResource("dir/res2.js")).isPresent();
         assertThat(page.getResource("dir/res1.html")).isPresent();
@@ -132,10 +132,9 @@ public class PageTest {
         Function<String, InputStream> resourceSupplier2 =
             relativePath -> stringToInputStream("resource supplier 2 - " + relativePath);
 
-        var page = Page.builder(BUNDLE_ID, "files", "page.html") //
-            .addResources(resourceSupplier, "path/prefix", true) //
-            .addResources(resourceSupplier2, "path/prefix/2", false) //
-            .build();
+        var page = Page.create().fromFile().bundleID(BUNDLE_ID).basePath("files").relativeFilePath("page.html")
+            .addResources(resourceSupplier, "path/prefix", true)
+            .addResources(resourceSupplier2, "path/prefix/2", false);
         assertThat(page.isCompletelyStatic()).isFalse();
 
         assertThat(page.getResource("path/prefix/null")).isEmpty();
@@ -165,9 +164,8 @@ public class PageTest {
                 return stringToInputStream("resource supplier - another path");
             }
         };
-        var page = Page.builder(BUNDLE_ID, "files", "page.html") //
-            .addResources(resourceSupplier, "", true) //
-            .build();
+        var page = Page.create().fromFile().bundleID(BUNDLE_ID).basePath("files").relativeFilePath("page.html")
+            .addResources(resourceSupplier, "", true);
         assertThat(resourceToString(page.getResource("resource").get())).isEqualTo("resource supplier - known path");
     }
 
@@ -175,21 +173,23 @@ public class PageTest {
      * Tests {@link FromFilePageBuilder#markAsReusable(String)} and the impact on the resulting {@link Page}.
      */
     @Test
-    void testMarkAsResuable() {
+    void testGetReusablePage() {
         final var pageName = "page-name";
-        var page = Page.builder(BUNDLE_ID, "files", "page.html").markAsReusable(pageName).build();
-        assertThat(page.getPageIdForReusablePage().orElse(null))
-            .isEqualTo(pageName + ":" + System.identityHashCode(page));
+        var page = Page.create().fromFile().bundleID(BUNDLE_ID).basePath("files").relativeFilePath("page.html")
+            .getReusablePage(pageName);
+        assertThat(page.getPageId()).isEqualTo(pageName + ":" + System.identityHashCode(page));
 
-        page = Page.builder(BUNDLE_ID, "files", "page.html").markAsReusable(null).build();
-        assertThat(page.getPageIdForReusablePage()).isEmpty();
+        page = Page.create().fromFile().bundleID(BUNDLE_ID).basePath("files").relativeFilePath("page.html")
+            .getReusablePage(null);
+        assertThat(page.getPageId()).isEmpty();
 
-        page = Page.builder(BUNDLE_ID, "files", "page.js").markAsReusable(pageName).build();
-        assertThat(page.getPageIdForReusablePage().orElse(null)).isEqualTo(pageName);
+        page = Page.create().fromFile().bundleID(BUNDLE_ID).basePath("files").relativeFilePath("page.js")
+            .getReusablePage(pageName);
+        assertThat(page.getPageId()).isEqualTo(pageName);
 
-        var illegalStatePage = Page.builder(BUNDLE_ID, "files", "page.html").addResource(() -> null, "resource.html")
-            .markAsReusable(pageName).build();
-        Assertions.assertThatThrownBy(() -> illegalStatePage.getPageIdForReusablePage().orElse(null)) // NOSONAR
+        var illegalStatePage = Page.create().fromFile().bundleID(BUNDLE_ID).basePath("files")
+            .relativeFilePath("page.html").addResource(() -> null, "resource.html").getReusablePage(pageName);
+        Assertions.assertThatThrownBy(() -> illegalStatePage.getPageId()) // NOSONAR
             .withFailMessage("test").isInstanceOf(IllegalStateException.class);
     }
 

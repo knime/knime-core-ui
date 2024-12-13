@@ -86,8 +86,8 @@ public interface CodeValueView extends DataValueView {
 
     @Override
     default Page getPage() {
-        return Page.builder(TableView.class, "js-src/dist", "CodeValueView.html").addResourceDirectory("assets")
-            .build();
+        return Page.create().fromFile().bundleClass(TableView.class).basePath("js-src/dist")
+            .relativeFilePath("CodeValueView.html").addResourceDirectory("assets");
     }
 
     /**

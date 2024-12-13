@@ -66,8 +66,8 @@ public interface ImageValueView extends DataValueView {
 
     @Override
     default Page getPage() {
-        return Page.builder(TableView.class, "js-src/dist", "ImageValueView.html").addResourceDirectory("assets")
-            .build();
+        return Page.create().fromFile().bundleClass(TableView.class).basePath("js-src/dist")
+            .relativeFilePath("ImageValueView.html").addResourceDirectory("assets");
     }
 
     @Override

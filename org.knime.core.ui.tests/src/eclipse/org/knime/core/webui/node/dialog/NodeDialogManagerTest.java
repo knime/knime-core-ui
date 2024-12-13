@@ -143,7 +143,7 @@ public class NodeDialogManagerTest {
      */
     @Test
     void testSimpleNodeDialogNode() {
-        var page = Page.builder(() -> "test page content", "index.html").build();
+        var page = Page.create().fromString(() -> "test page content").relativePath("index.html");
         var hasDialog = new AtomicBoolean(true);
         NativeNodeContainer nc = createNodeWithNodeDialog(m_wfm, () -> createNodeDialog(page), hasDialog::get);
 
@@ -166,7 +166,7 @@ public class NodeDialogManagerTest {
     @Test
     void deactivatesNodeSettingsServiceOnDataServiceDeactivate() {
         final var nodeSettingsService = mock(NodeSettingsService.class);
-        var page = Page.builder(() -> "test page content", "index.html").build();
+        var page = Page.create().fromString(() -> "test page content").relativePath("index.html");
         NativeNodeContainer nc =
             createNodeWithNodeDialog(m_wfm, () -> createNodeDialog(page, nodeSettingsService, null));
         final var nodeDialogManager = NodeDialogManager.getInstance();
@@ -330,9 +330,10 @@ public class NodeDialogManagerTest {
      */
     @Test
     void testGetNodeDialogPagePath() {
-        var staticPage = Page.builder(BUNDLE_ID, "files", "page.html").addResourceFile("resource.html").build();
-        var dynamicPage = Page.builder(() -> "page content", "page.html")
-            .addResourceFromString(() -> "resource content", "resource.html").build();
+        var staticPage = Page.create().fromFile().bundleID(BUNDLE_ID).basePath("files").relativeFilePath("page.html")
+            .addResourceFile("resource.html");
+        var dynamicPage = Page.create().fromString(() -> "page content").relativePath("page.html")
+            .addResourceFromString(() -> "resource content", "resource.html");
         var nnc = NodeWrapper.of(createNodeWithNodeDialog(m_wfm, () -> createNodeDialog(staticPage)));
         var nnc2 = NodeWrapper.of(createNodeWithNodeDialog(m_wfm, () -> createNodeDialog(staticPage)));
         var nnc3 = NodeWrapper.of(createNodeWithNodeDialog(m_wfm, () -> createNodeDialog(dynamicPage)));
@@ -373,7 +374,7 @@ public class NodeDialogManagerTest {
      */
     @Test
     void testCallDataServices() throws IOException, InvalidSettingsException {
-        var page = Page.builder(() -> "test page content", "index.html").build();
+        var page = Page.create().fromString(() -> "test page content").relativePath("index.html");
         Supplier<NodeDialog> nodeDialogSupplier = () -> createNodeDialog(page, new NodeSettingsService() { // NOSONAR
 
             @Override
@@ -447,7 +448,7 @@ public class NodeDialogManagerTest {
         var metanode = m_wfm.createAndAddSubWorkflow(new PortType[]{BufferedDataTable.TYPE},
             new PortType[]{BufferedDataTable.TYPE}, "Metanode");
         var nnc = createAndAddNode(metanode, new NodeDialogNodeFactory(
-            () -> createNodeDialog(Page.builder(() -> "page content", "index.html").build()), 1));
+            () -> createNodeDialog(Page.create().fromString(() -> "page content").relativePath("index.html")), 1));
         metanode.addConnection(metanode.getID(), 0, nnc.getID(), 1);
 
         assertThat(NodeDialogManager.getInstance().getDataServiceManager().callInitialDataService(NodeWrapper.of(nnc)))

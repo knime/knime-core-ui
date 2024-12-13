@@ -82,13 +82,22 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
  * @author Paul Bärnreuther
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
-final class OptionsAdder {
+// TODO move it somewhere else?
+public final class OptionsAdder {
 
     private OptionsAdder() {
         // utility
     }
 
-    static void addOptionsToTab(final Element tab, final Class<? extends DefaultNodeSettings> modelSettingsClass,
+    /**
+     * TODO
+     *
+     * @param tab
+     * @param modelSettingsClass
+     * @param viewSettingsClass
+     * @param optionCreator
+     */
+    public static void addOptionsToTab(final Element tab, final Class<? extends DefaultNodeSettings> modelSettingsClass,
         final Class<? extends DefaultNodeSettings> viewSettingsClass,
         final BiFunction<String, String, Element> optionCreator) {
         addOptions(modelSettingsClass, viewSettingsClass, field -> createOption(field, tab, optionCreator));

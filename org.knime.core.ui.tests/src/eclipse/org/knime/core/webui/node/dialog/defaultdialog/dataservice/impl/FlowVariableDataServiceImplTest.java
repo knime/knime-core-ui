@@ -131,7 +131,7 @@ class FlowVariableDataServiceImplTest {
     void initNodeContextWithFlowStack() throws IOException {
         m_wfm = WorkflowManagerUtil.createEmptyWorkflow();
         Supplier<NodeDialog> nodeDialogCreator =
-            () -> createNodeDialog(Page.builder(() -> "page content", "page.html").build());
+            () -> createNodeDialog(Page.create().fromString(() -> "page content").relativePath("page.html"));
         NativeNodeContainer nnc = NodeDialogManagerTest.createNodeWithNodeDialog(m_wfm, nodeDialogCreator);
         nnc.getNode().setFlowObjectStack(getContextWithFlowVariables(), null);
         NodeContext.pushContext(nnc);

@@ -136,7 +136,8 @@ public class NodeViewNodeFactory extends NodeFactory<NodeViewNodeModel>
         m_numOutputs = numOutputs;
         m_nodeViewCreator = m -> { // NOSONAR
             return createNodeView(m,
-                Page.builder(() -> "foo", "index.html").addResourceFromString(() -> "bar", "resource.html").build(),
+                Page.create().fromString(() -> "foo").relativePath("index.html").addResourceFromString(() -> "bar",
+                    "resource.html"),
                 InitialDataService.builder(() -> m_initialData).build(),
                 RpcDataService.builder(new RpcServiceHandler()).build(), createApplyDataService());
         };
@@ -154,14 +155,13 @@ public class NodeViewNodeFactory extends NodeFactory<NodeViewNodeModel>
     }
 
     private ApplyDataService<String> createApplyDataService() {
-        return ApplyDataService.builder((Applier<String>)data -> m_initialData = data)
-            .validator(data -> {
-                if (data.startsWith("ERROR")) {
-                    return data;
-                } else {
-                    return null;
-                }
-            }).build();
+        return ApplyDataService.builder((Applier<String>)data -> m_initialData = data).validator(data -> {
+            if (data.startsWith("ERROR")) {
+                return data;
+            } else {
+                return null;
+            }
+        }).build();
     }
 
     /**

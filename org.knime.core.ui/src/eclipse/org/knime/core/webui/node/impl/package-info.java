@@ -53,4 +53,5 @@
  * @see {@link org.knime.core.webui.node.impl.WebUINodeFactory}
  * @author Paul Bärnreuther
  */
+// TODO remove (almost) all classes in this package
 package org.knime.core.webui.node.impl;
