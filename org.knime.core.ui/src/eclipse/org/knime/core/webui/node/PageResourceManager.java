@@ -62,6 +62,7 @@ import org.knime.core.webui.node.PageCache.PageIdType;
 import org.knime.core.webui.node.view.NodeViewManager;
 import org.knime.core.webui.page.Page;
 import org.knime.core.webui.page.Resource;
+import org.knime.core.webui.page.ReusablePage;
 
 /**
  * Gives access to the pages and page resources for nodes (i.e. pages that represent, e.g., node dialogs and views) and
@@ -78,7 +79,7 @@ public final class PageResourceManager<N extends NodeWrapper> {
      * {@link #getPageId(NodeWrapper)}) only need to be unique within a page type.
      *
      * @param type the page type to get the prefix for. Can be {@code null} in case of a re-usable page (see
-     *            {@link Page#getPageIdForReusablePage()}) - in that case the same page-path is supposed to be valid for
+     *            {@link Page#getPageId()}) - in that case the same page-path is supposed to be valid for
      *            all the different page-types
      *
      * @return the path prefix
@@ -315,7 +316,7 @@ public final class PageResourceManager<N extends NodeWrapper> {
     private PagePathSegments getPagePathSegments(final N nodeWrapper) {
         var pageId = getPageId(nodeWrapper);
         var page = m_pageCache.getPage(pageId);
-        var pagePathPrefix = page.getPageIdForReusablePage().isPresent() ? PageResourceManager.getPagePathPrefix(null)
+        var pagePathPrefix = page instanceof ReusablePage ? PageResourceManager.getPagePathPrefix(null)
             : PageResourceManager.getPagePathPrefix(m_pageType);
         var segments = new PagePathSegments(pagePathPrefix, pageId, null, page.getRelativePath());
         if (m_modifyPagePathSegments != null) {

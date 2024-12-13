@@ -122,7 +122,7 @@ public class DataServiceContextTest {
         var rpcDataServiceHandler = new RpcDataServiceHandler();
         var rpcDataService = RpcDataService.builder(rpcDataServiceHandler).build();
         var nodeView = mock(NodeView.class);
-        var page = Page.builder(() -> "content", "page.html").build();
+        var page = Page.create().fromString(() -> "content").relativePath("page.html");
         when(nodeView.getPage()).thenReturn(page);
         when(nodeView.createInitialDataService()).thenReturn(Optional.of(initialDataService));
         when(nodeView.createRpcDataService()).thenReturn(Optional.of(rpcDataService));

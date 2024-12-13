@@ -137,7 +137,7 @@ public class NodeViewManagerTest {
      */
     @Test
     void testSimpleNodeViewNode() {
-        var page = Page.builder(() -> "test page content", "index.html").build();
+        var page = Page.create().fromString(() -> "test page content").relativePath("index.html");
         var hasView = new AtomicBoolean(true);
         NativeNodeContainer nc = createNodeWithNodeView(m_wfm, m -> createNodeView(page), hasView::get);
         m_wfm.executeAllAndWaitUntilDone();
@@ -164,7 +164,7 @@ public class NodeViewManagerTest {
      */
     @Test
     void testLoadViewSettingsOnViewCreation() throws InvalidSettingsException {
-        var page = Page.builder(() -> "test page content", "index.html").build();
+        var page = Page.create().fromString(() -> "test page content").relativePath("index.html");
         AtomicReference<NodeSettingsRO> loadedNodeSettings = new AtomicReference<>();
         NativeNodeContainer nc = createNodeWithNodeView(m_wfm, m -> new NodeView() { // NOSONAR
 
@@ -220,9 +220,10 @@ public class NodeViewManagerTest {
      */
     @Test
     void testGetNodeViewPagePath() {
-        var staticPage = Page.builder(BUNDLE_ID, "files", "page.html").addResourceFile("resource.html").build();
-        var dynamicPage = Page.builder(() -> "page content", "page.html")
-            .addResourceFromString(() -> "resource content", "resource.html").build();
+        var staticPage = Page.create().fromFile().bundleID(BUNDLE_ID).basePath("files").relativeFilePath("page.html")
+            .addResourceFile("resource.html");
+        var dynamicPage = Page.create().fromString(() -> "page content").relativePath("page.html")
+            .addResourceFromString(() -> "resource content", "resource.html");
         var nnc = NodeWrapper.of(createNodeWithNodeView(m_wfm, m -> createNodeView(staticPage)));
         var nnc2 = NodeWrapper.of(createNodeWithNodeView(m_wfm, m -> createNodeView(staticPage)));
         var nnc3 = NodeWrapper.of(createNodeWithNodeView(m_wfm, m -> createNodeView(dynamicPage)));
@@ -249,9 +250,10 @@ public class NodeViewManagerTest {
      */
     @Test
     void testGetNodeViewPageResource() {
-        var staticPage = Page.builder(BUNDLE_ID, "files", "page.html").addResourceFile("resource.html").build();
-        var dynamicPage = Page.builder(() -> "page content", "page.html")
-            .addResourceFromString(() -> "resource content", "resource.html").build();
+        var staticPage = Page.create().fromFile().bundleID(BUNDLE_ID).basePath("files").relativeFilePath("page.html")
+            .addResourceFile("resource.html");
+        var dynamicPage = Page.create().fromString(() -> "page content").relativePath("page.html")
+            .addResourceFromString(() -> "resource content", "resource.html");
         var nnc = createNodeWithNodeView(m_wfm, m -> createNodeView(staticPage));
         var nnc2 = createNodeWithNodeView(m_wfm, m -> createNodeView(dynamicPage));
         m_wfm.executeAllAndWaitUntilDone();
@@ -309,7 +311,7 @@ public class NodeViewManagerTest {
      */
     @Test
     void testNodeCleanUpDynamicPage() throws URISyntaxException {
-        var page = Page.builder(() -> "test page content", "index.html").build();
+        var page = Page.create().fromString(() -> "test page content").relativePath("index.html");
         var nc = NodeWrapper.of(createNodeWithNodeView(m_wfm, m -> createNodeView(page)));
         var nodeViewManager = NodeViewManager.getInstance();
 
@@ -339,7 +341,7 @@ public class NodeViewManagerTest {
      */
     @Test
     void testNodeCleanUpStaticPage() {
-        var staticPage = Page.builder(BUNDLE_ID, "files", "page.html").build();
+        var staticPage = Page.create().fromFile().bundleID(BUNDLE_ID).basePath("files").relativeFilePath("page.html");
         var nc = NodeWrapper.of(createNodeWithNodeView(m_wfm, m -> createNodeView(staticPage)));
         var pageResourceManager = NodeViewManager.getInstance().getPageResourceManager();
 
@@ -373,7 +375,7 @@ public class NodeViewManagerTest {
         @BeforeEach
         @SuppressWarnings({"unchecked", "rawtypes"})
         void constructNodeWrapperWithDataServices() {
-            var page = Page.builder(() -> "test page content", "index.html").build();
+            var page = Page.create().fromString(() -> "test page content").relativePath("index.html");
             Function<NodeViewNodeModel, NodeView> nodeViewCreator =
                 m -> createNodeView(page, InitialDataService.builder(() -> "init service").build(),
                     () -> RpcDataService.builder(new TestService()).build(),
@@ -418,7 +420,7 @@ public class NodeViewManagerTest {
      */
     @Test
     void testCallSelectionTranslationService() {
-        var page = Page.builder(() -> "test page content", "index.html").build();
+        var page = Page.create().fromString(() -> "test page content").relativePath("index.html");
         var nodeView = NodeViewTestUtil.createTableView(page, null, null, null, new SelectionTranslationService() {
             @Override
             public Set<RowKey> toRowKeys(final List<String> selection) throws IOException {
@@ -449,7 +451,7 @@ public class NodeViewManagerTest {
      */
     @Test
     void testCallSelectionTranslationServiceThrowsIfNotATableView() {
-        var page = Page.builder(() -> "test page content", "index.html").build();
+        var page = Page.create().fromString(() -> "test page content").relativePath("index.html");
         var nodeView = createNodeView(page);
         var nc = NodeViewManagerTest.createNodeWithNodeView(m_wfm, m -> nodeView);
 

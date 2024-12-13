@@ -106,12 +106,12 @@ class PageCacheTest {
 
         /* non-static page checks */
 
-        var nonStaticPage = Page.builder(() -> "test", "page.html").build();
+        var nonStaticPage = Page.create().fromString(() -> "test").relativePath("page.html");
         var nonStaticPageId =
             pageCache.getOrCreatePageAndReturnPageId(nodeWrapperMock, nw -> createPage(nonStaticPage), true);
         assertThat(pageCache.getPage(nonStaticPageId)).isSameAs(nonStaticPage);
         pageCache.getOrCreatePageAndReturnPageId(nodeWrapperMock,
-            nw -> createPage(Page.builder(() -> "test2", "page2.html").build()), true);
+            nw -> createPage(Page.create().fromString(() -> "test2").relativePath("page2.html")), true);
         assertThat(pageCache.getPage(nonStaticPageId)).as("original non-static page is still in cache")
             .isSameAs(nonStaticPage);
         assertThat(nonStaticPageId).isEqualTo(m_nnc.getID().toString().replace(":", "_"));
@@ -123,13 +123,13 @@ class PageCacheTest {
         /* static page checks */
 
         pageCache.clear();
-        var staticPageBuilder = Page.builder(PageTest.BUNDLE_ID, "files", "component.js");
-        var staticPage = staticPageBuilder.build();
+        var staticPage =
+            Page.create().fromFile().bundleID(PageTest.BUNDLE_ID).basePath("files").relativeFilePath("component.js");
         var staticPageId =
             pageCache.getOrCreatePageAndReturnPageId(nodeWrapperMock, nw -> createPage(staticPage), true);
         assertThat(staticPageId).isEqualTo("static_page_id");
         assertThat(pageCache.getPage(staticPageId)).isSameAs(staticPage);
-        pageCache.getOrCreatePageAndReturnPageId(nodeWrapperMock, nw -> createPage(staticPageBuilder.build()), true);
+        pageCache.getOrCreatePageAndReturnPageId(nodeWrapperMock, nw -> createPage(staticPage), true);
         assertThat(pageCache.getPage(staticPageId)).as("original static page is still in cache").isSameAs(staticPage);
         m_wfm.executeAllAndWaitUntilDone();
         m_wfm.resetAndConfigureAll();
@@ -139,13 +139,13 @@ class PageCacheTest {
         /* reusable static page checks */
 
         pageCache.clear();
-        var reusableStaticPage = staticPageBuilder.markAsReusable("reusable_page_id").build();
+        var reusableStaticPage = staticPage.getReusablePage("reusable_page_id");
         var reusableStaticPageId =
             pageCache.getOrCreatePageAndReturnPageId(nodeWrapperMock, nw -> createPage(reusableStaticPage), true);
         assertThat(reusableStaticPageId).isEqualTo("reusable_page_id");
         assertThat(pageCache.getPage(reusableStaticPageId)).isSameAs(reusableStaticPage);
         pageCache.getOrCreatePageAndReturnPageId(nodeWrapperMock,
-            nw -> createPage(staticPageBuilder.markAsReusable("reusable_page_id").build()), true);
+            nw -> createPage(staticPage.getReusablePage("reusable_page_id")), true);
         assertThat(pageCache.getPage(reusableStaticPageId)).as("original reusable static page is still in cache")
             .isSameAs(reusableStaticPage);
         m_wfm.executeAllAndWaitUntilDone();

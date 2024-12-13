@@ -73,7 +73,7 @@ class ReexecuteApplyDataServiceTest {
     @Test
     void testReexecuteApplyDataService() throws IOException {
         var wfm = WorkflowManagerUtil.createEmptyWorkflow();
-        var page = Page.builder(() -> "content", "index.html").build();
+        var page = Page.create().fromString(() -> "content").relativePath("index.html");
         NativeNodeContainer nnc =
             NodeViewManagerTest.createNodeWithNodeView(wfm, m -> NodeViewTestUtil.createNodeView(page, m));
         wfm.executeAllAndWaitUntilDone();

@@ -50,6 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog;
 
 import org.knime.core.webui.UIExtension;
 import org.knime.core.webui.page.Page;
+import org.knime.core.webui.page.ReusablePage;
 
 /**
  * The default node dialog UI extension. Currently based on jsonforms renderers.
@@ -57,11 +58,13 @@ import org.knime.core.webui.page.Page;
  * @author Paul Bärnreuther
  */
 public interface DefaultNodeDialogUIExtension extends UIExtension {
+
     /**
      * The page representing the default node dialog.
      */
-    Page PAGE = Page.builder(DefaultNodeDialogUIExtension.class, "js-src", "dist/NodeDialog.js")
-        .addResourceDirectory("dist").markAsReusable("defaultdialog").build();
+    public static final ReusablePage PAGE =
+        Page.create().fromFile().bundleClass(DefaultNodeDialog.class).basePath("js-src")
+            .relativeFilePath("dist/NodeDialog.js").addResourceDirectory("dist").getReusablePage("defaultdialog");
 
     @Override
     default Page getPage() {

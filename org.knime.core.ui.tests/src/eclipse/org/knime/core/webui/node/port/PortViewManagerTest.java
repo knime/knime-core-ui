@@ -103,7 +103,7 @@ class PortViewManagerTest {
             .thenAnswer(i -> createPortView());
         var portViewFactory3 = mock(PortViewFactory.class); // port view with non-static page
         Mockito.when(portViewFactory3.createPortView(nnc.getOutPort(1).getPortObject()))
-            .thenAnswer(i -> createPortView(Page.builder(() -> "blub", "index.html").build()));
+            .thenAnswer(i -> createPortView(Page.create().fromString(() -> "blub").relativePath("index.html")));
         var portSpecViewFactory1 = mock(PortSpecViewFactory.class);
         Mockito.when(portSpecViewFactory1.createPortView(nnc.getOutPort(1).getPortObjectSpec()))
             .thenAnswer(i -> createPortView());
@@ -167,8 +167,8 @@ class PortViewManagerTest {
     }
 
     private static PortView createPortView() {
-        return createPortView(
-            Page.builder(PortViewManagerTest.class, "blub", "page.js").markAsReusable("port_view_page_name").build());
+        return createPortView(Page.create().fromFile().bundleClass(PortViewManagerTest.class).basePath("blub")
+            .relativeFilePath("page.js").getReusablePage("port_view_page_name"));
     }
 
     private static PortView createPortView(final Page p) {

@@ -122,7 +122,7 @@ public class ToolValueView implements DataValueView {
 
     @Override
     public Page getPage() {
-        return Page.builder(() -> getToolValueHTML(m_value), "index.html").build();
+        return Page.create().fromString(() -> getToolValueHTML(m_value)).relativePath("index.html");
     }
 
     @Override

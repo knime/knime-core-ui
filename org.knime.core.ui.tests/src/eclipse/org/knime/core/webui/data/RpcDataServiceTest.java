@@ -248,7 +248,7 @@ class RpcDataServiceTest {
     }
 
     private NativeNodeContainer createNodeWithRPCDataService(final Supplier<RpcDataService> rpcDataServiceSupplier) {
-        var page = Page.builder(() -> "content", "index.html").build();
+        var page = Page.create().fromString(() -> "content").relativePath("index.html");
         NativeNodeContainer nnc = NodeViewManagerTest.createNodeWithNodeView(m_wfm,
             m -> NodeViewTestUtil.createNodeView(page, null, rpcDataServiceSupplier, null));
         m_wfm.executeAllAndWaitUntilDone();

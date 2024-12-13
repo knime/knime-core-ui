@@ -53,55 +53,260 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
+
+import org.knime.core.node.FluentNodeAPI;
 
 /**
  * A (html) page of an ui-extension, e.g. a node view, port view or node dialog.
+ *
+ *
+ * @noimplement This interface is not intended to be implemented by clients. TODO make it a sealed class to only
+ *              implement FromFilePage
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  *
  * @since 4.5
  */
-public final class Page implements Resource {
+public class Page implements Resource, FluentNodeAPI {
+
+    /**
+     * Entry point to the fluent API in order to create a page.
+     *
+     * @return the first stage to create a page
+     */
+    public static RequireFromFileOrString create() {
+        return new RequireFromFileOrString() {
+
+            @Override
+            public RequireBundle fromFile() {
+                return new RequireBundle() {
+
+                    @Override
+                    public RequireBasePath bundleClass(final Class<?> clazz) {
+                        return basePath -> relativeFilePath -> new FromFilePage(clazz, basePath, relativeFilePath);
+                    }
+
+                    @Override
+                    public RequireBasePath bundleID(final String bundleID) {
+                        return basePath -> relativeFilePath -> new FromFilePage(bundleID, basePath, relativeFilePath);
+                    }
+                };
+            }
+
+            @Override
+            public RequireRelativPath fromString(final InputStreamSupplier content, final Charset charset) {
+                return relativePath -> new Page(createResource(content, relativePath, false, charset), false);
+            }
+
+            @Override
+            public RequireRelativPath fromString(final StringSupplier content, final Charset charset) {
+                return relativePath -> new Page(
+                    createResource(() -> new ByteArrayInputStream(content.get().getBytes(charset)), relativePath, false,
+                        charset),
+                    false);
+            }
+        };
+    }
 
     private final Resource m_pageResource;
 
-    private final Map<String, Resource> m_resources;
+    protected final Map<String, Resource> m_resources;
 
     private final Map<String, Function<String, Resource>> m_dynamicResources;
 
-    private Boolean m_isCompletelyStatic;
+    protected boolean m_isCompletelyStatic;
 
-    private final String m_pageNameForReusablePage;
-
-    Page(final Resource pageResource, final List<Resource> resources,
-        final Map<String, Function<String, Resource>> dynamicResources, final boolean dynamicResourcesAreStatic,
-        final String pageNameForReusablePage) {
+    @SuppressWarnings("javadoc")
+    protected Page(final Resource pageResource, final boolean isCompleteStatic) {
         m_pageResource = pageResource;
-        m_resources = resources == null ? Collections.emptyMap()
-            : resources.stream().collect(Collectors.toMap(Resource::getRelativePath, r -> r));
-        if (dynamicResources != null) {
-            // using this custom comparator, we make sure that the longest pathPrefix always comes first
-            m_dynamicResources = new TreeMap<>(Comparator.comparingInt(String::length).reversed());
-            m_dynamicResources.putAll(dynamicResources);
-            if (!dynamicResourcesAreStatic) {
-                // page can't be completely static if some dynamic resources aren't static
-                m_isCompletelyStatic = false;
-            }
-        } else {
-            m_dynamicResources = Collections.emptyMap();
-        }
-        m_pageNameForReusablePage = pageNameForReusablePage;
+        m_resources = new HashMap<>();
+        // using this custom comparator, we make sure that the longest pathPrefix always comes first
+        m_dynamicResources = new TreeMap<>(Comparator.comparingInt(String::length).reversed());
+        m_isCompletelyStatic = isCompleteStatic;
     }
+
+    /**
+     * Shallow copy constructor.
+     *
+     * @param p
+     */
+    protected Page(final Page p) {
+        m_pageResource = p.m_pageResource;
+        m_resources = p.m_resources;
+        m_dynamicResources = p.m_dynamicResources;
+        m_isCompletelyStatic = p.m_isCompletelyStatic;
+    }
+
+    /* REQUIRED PROPERTIES */
+
+    @SuppressWarnings("javadoc")
+    public interface RequireFromFileOrString {
+
+        /**
+         * Creates a {@link PageBuilder}-instance to create a (static) page (and associated resources) from files.
+         *
+         * @return the next step to create the page
+         */
+        RequireBundle fromFile();
+
+        /**
+         * @param content the page content supplier for lazy initialization
+         * @return the next step to create the page
+         */
+        default RequireRelativPath fromString(final InputStreamSupplier content) {
+            return fromString(content, null);
+        }
+
+        /**
+         * @param content the page content supplier for lazy initialization
+         * @return the next step to create the page
+         */
+        default RequireRelativPath fromString(final StringSupplier content) {
+            return fromString(content, StandardCharsets.UTF_8);
+        }
+
+        /**
+         * @param content the page content supplier for lazy initialization
+         * @param charset the charset to use for the content
+         * @return the next step to create the page
+         */
+        RequireRelativPath fromString(InputStreamSupplier content, Charset charset);
+
+        /**
+         * @param content the page content supplier for lazy initialization
+         * @param charset the charset to use for the content
+         * @return the next step to create the page
+         */
+        RequireRelativPath fromString(StringSupplier content, Charset charset);
+
+    }
+
+    @SuppressWarnings("javadoc")
+    public interface RequireBundle {
+
+        /**
+         * @param clazz a class which is part of the bundle where the references files are located
+         */
+        RequireBasePath bundleClass(Class<?> clazz);
+
+        /**
+         * @param bundleID the id of the bundle where the references files are located
+         */
+        RequireBasePath bundleID(String bundleID);
+
+    }
+
+    @SuppressWarnings("javadoc")
+    public interface RequireBasePath {
+        /**
+         * @param basePath the base part (beneath the bundle root)
+         * @return the next step to create the page
+         */
+        RequireRelativeFilePath basePath(String basePath);
+
+    }
+
+    @SuppressWarnings("javadoc")
+    public interface RequireRelativeFilePath {
+
+        /**
+         * @param relativeFilePath the file to get the page content from
+         * @return the next step to create the page
+         */
+        FromFilePage relativeFilePath(String relativeFilePath);
+
+    }
+
+    @SuppressWarnings("javadoc")
+    public interface RequireRelativPath {
+
+        /**
+         * @param relativePath the relative path of the page (including the page resource name itself)
+         * @return the next step to create the page
+         */
+        Page relativePath(String relativePath);
+    }
+
+    /* OPTIONAL PROPERTIES */
+
+    /**
+     * Adds another resource to the 'context' of a page (such js-resource).
+     *
+     * @param content the actual content of the resource
+     * @param relativePath the relative path to the resource (including the resource name itself)
+     * @return this page builder instance
+     */
+    public Page addResource(final Supplier<InputStream> content, final String relativePath) {
+        return addResource(content, relativePath, null);
+    }
+
+    private Page addResource(final Supplier<InputStream> content, final String relativePath, final Charset charset) {
+        var resource = createResource(content, relativePath, false, charset);
+        m_resources.put(resource.getRelativePath(), resource);
+        return this;
+    }
+
+    /**
+     * Allows one to add multiple resources at once with a single function which dynamically maps paths to resources.
+     * I.e. no need to define the exact path upfront (apart from a path-prefix).
+     *
+     * @param supplier the mapping function from relative path to resource content
+     * @param relativePathPrefix the path prefix; if there are resources registered with 'overlapping' path prefixes,
+     *            the resources with the 'longest' match are being used
+     * @param areStatic whether the returned resources can be considered static or not - see {@link Resource#isStatic()}
+     * @return this page builder instance
+     */
+    public Page addResources(final Function<String, InputStream> supplier, final String relativePathPrefix,
+        final boolean areStatic) {
+        return addResources(supplier, relativePathPrefix, areStatic, null);
+    }
+
+    /**
+     * Allows one to add multiple resources at once with a single function which dynamically maps paths to resources.
+     * I.e. no need to define the exact path upfront (apart from a path-prefix).
+     *
+     * @param supplier the mapping function from relative path to resource content
+     * @param relativePathPrefix the path prefix; if there are resources registered with 'overlapping' path prefixes,
+     *            the resources with the 'longest' match are being used
+     * @param areStatic whether the returned resources can be considered static or not - see {@link Resource#isStatic()}
+     * @param charset the encoding of the content of all the resources
+     * @return this page builder instance
+     */
+    public Page addResources(final Function<String, InputStream> supplier, final String relativePathPrefix,
+        final boolean areStatic, final Charset charset) {
+        assert !isCompletelyStatic();
+        m_dynamicResources.put(relativePathPrefix, relativePath -> { // NOSONAR
+            var inputStream = supplier.apply(relativePath);
+            if (inputStream == null) {
+                return null;
+            }
+            return createResource(() -> inputStream, relativePath, areStatic, charset);
+        });
+        return this;
+    }
+
+    /**
+     * Adds another resource to the 'context' of a page (such js-resource).
+     *
+     * @param content the actual content of the resource
+     * @param relativePath the relative path to the resource (including the resource name itself)
+     * @return this page builder instance
+     */
+    public Page addResourceFromString(final Supplier<String> content, final String relativePath) {
+        addResource(() -> new ByteArrayInputStream(content.get().getBytes(StandardCharsets.UTF_8)), relativePath,
+            StandardCharsets.UTF_8);
+        return this;
+    }
+
+    /* GETTERS */
 
     /**
      * Additional resources required by the page.
@@ -164,40 +369,7 @@ public final class Page implements Resource {
      * @return <code>true</code> if the page itself and all the associated resources are static (i.e. invariable)
      */
     public boolean isCompletelyStatic() {
-        if (m_isCompletelyStatic == null) {
-            m_isCompletelyStatic = isStatic() && m_resources.values().stream().allMatch(Resource::isStatic);
-        }
         return m_isCompletelyStatic;
-    }
-
-    /**
-     * Creates the page id for a re-usuable and completely static page.
-     *
-     * Will only return a page-id if the page is marked as re-usable (see
-     * {@link FromFilePageBuilder#markAsReusable(String)}).
-     *
-     * @return the page-id or an empty optional if the page is not marked as re-usable
-     * @throws IllegalStateException if the page is marked as re-usable but not completely static (see
-     *             {@link Page#isCompletelyStatic()}); or if 're-usability' is not supported for the page's
-     *             {@link ContentType}.
-     */
-    public Optional<String> getPageIdForReusablePage() {
-        if (m_pageNameForReusablePage == null) {
-            return Optional.empty();
-        } else if (!isCompletelyStatic()) {
-            throw new IllegalStateException("Page is marked as 're-usable' but not completely static.");
-        }
-
-        switch (getContentType()) {
-            case SHADOW_APP:
-                return Optional.of(m_pageNameForReusablePage);
-            case HTML:
-                // combine page-name with identity hash code of this object in order to guarantee global uniqueness
-                return Optional.of(m_pageNameForReusablePage)
-                    .map(id -> id + ":" + Integer.toString(System.identityHashCode(this)));
-            default:
-                throw new IllegalStateException("Page with content type " + getContentType() + " can't be re-used.");
-        }
     }
 
     /**
@@ -217,71 +389,6 @@ public final class Page implements Resource {
     }
 
     /**
-     * Creates a {@link PageBuilder}-instance to create a (static) page (and associated resources) from files.
-     *
-     * @param clazz a class which is part of the bundle where the references files are located
-     * @param basePath the base part (beneath the bundle root)
-     * @param relativeFilePath the file to get the page content from
-     * @return a new {@link PageBuilder}-instance
-     */
-    public static FromFilePageBuilder builder(final Class<?> clazz, final String basePath,
-        final String relativeFilePath) {
-        return new FromFilePageBuilder(clazz, basePath, relativeFilePath);
-    }
-
-    /**
-     * Creates a {@link PageBuilder}-instance to create a (static) page (and associated resources) from files.
-     *
-     * @param bundleID the id of the bundle where the references files are located
-     * @param basePath the base part (beneath the bundle root)
-     * @param relativeFilePath the file to get the page content from
-     * @return a new {@link PageBuilder}-instance
-     */
-    public static FromFilePageBuilder builder(final String bundleID, final String basePath,
-        final String relativeFilePath) {
-        return new FromFilePageBuilder(bundleID, basePath, relativeFilePath);
-    }
-
-    /**
-     * Creates a {@link PageBuilder}-instance to create a (dynamic) page (and associated resources) from an
-     * {@link InputStream}.
-     *
-     * @param content the page content supplier for lazy initialization
-     * @param relativePath the relative path of the page (including the page resource name itself)
-     * @return a new {@link PageBuilder}-instance
-     */
-    public static PageBuilder builder(final InputStreamSupplier content, final String relativePath) {
-        return new PageBuilder(content, relativePath, null);
-    }
-
-    /**
-     * Creates a {@link PageBuilder}-instance to create a (dynamic) page (and associated resources) from an
-     * {@link InputStream}.
-     *
-     * @param content the page content supplier for lazy initialization
-     * @param relativePath the relative path of the page (including the page resource name itself)
-     * @param charset the encoding of the content
-     * @return a new {@link PageBuilder}-instance
-     */
-    public static PageBuilder builder(final InputStreamSupplier content, final String relativePath,
-        final Charset charset) {
-        return new PageBuilder(content, relativePath, charset);
-    }
-
-    /**
-     * Creates a {@link PageBuilder}-instance to create a (dynamic) page (and associated resources) from an
-     * {@link InputStream}.
-     *
-     * @param content the page content supplier for lazy initialization
-     * @param relativePath the relative path of the page (including the page resource name itself)
-     * @return a new {@link PageBuilder}-instance
-     */
-    public static PageBuilder builder(final StringSupplier content, final String relativePath) {
-        return new PageBuilder(() -> new ByteArrayInputStream(content.get().getBytes(StandardCharsets.UTF_8)),
-            relativePath, StandardCharsets.UTF_8);
-    }
-
-    /**
      * {@link Supplier} of a {@link String}.
      */
     @FunctionalInterface
@@ -295,6 +402,38 @@ public final class Page implements Resource {
     @FunctionalInterface
     public interface InputStreamSupplier extends Supplier<InputStream> {
         //
+    }
+
+    private static Resource createResource(final Supplier<InputStream> content, final String relativePath,
+        final boolean isStatic, final Charset charset) {
+        return new Resource() { // NOSONAR
+
+            @Override
+            public String getRelativePath() {
+                return relativePath;
+            }
+
+            @Override
+            public InputStream getInputStream() throws IOException {
+                return content.get();
+            }
+
+            @Override
+            public boolean isStatic() {
+                return isStatic;
+            }
+
+            @Override
+            public ContentType getContentType() {
+                return ContentType.determineType(relativePath);
+            }
+
+            @Override
+            public Optional<Charset> getCharset() {
+                return Charset.defaultCharset().equals(charset) ? Optional.<Charset> empty()
+                    : Optional.ofNullable(charset);
+            }
+        };
     }
 
 }
