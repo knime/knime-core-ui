@@ -59,8 +59,8 @@ import java.util.function.Predicate;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 
 /**
  * This class can be used to deprecate a state of the config representation of a setting in favor of a new state in a
@@ -71,11 +71,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
  * For keeping track of flow variables, it is important to define a connection from an array of config paths relative to
  * the base config of the field to another one.
  * <ul>
- * <li>Deprecated config paths: Configs which are respected during {@link FieldNodeSettingsPersistor#load load} but are
- * not written to when saving the loaded data back during {@link FieldNodeSettingsPersistor#save save}.</li>
+ * <li>Deprecated config paths: Configs which are respected during {@link NodeSettingsPersistor#load load} but are
+ * not written to when saving the loaded data back during {@link NodeSettingsPersistor#save save}.</li>
  * <li>New config paths: Those configs that are affected by the deprecated config paths. I.e. on
- * {@link FieldNodeSettingsPersistor#save save} their values might differ depending on the values of any of the
- * deprecated config paths during {@link FieldNodeSettingsPersistor#load load}</li>
+ * {@link NodeSettingsPersistor#save save} their values might differ depending on the values of any of the
+ * deprecated config paths during {@link NodeSettingsPersistor#load load}</li>
  * </ul>
  *
  * If no matcher is specified, a default one checking for the existence of the given deprecated configs is inferred.
@@ -179,7 +179,7 @@ public final class ConfigsDeprecation<T> implements NewAndDeprecatedConfigPaths 
         }
 
         /**
-         * Enter a path to a config set during {@link FieldNodeSettingsPersistor#save} affected by the values of all of
+         * Enter a path to a config set during {@link NodeSettingsPersistor#save} affected by the values of all of
          * the config paths set with {@link #withDeprecatedConfigPath}. For nested configs, it suffices to enter the
          * path to the config for which all child configs are affected.
          *
@@ -203,7 +203,7 @@ public final class ConfigsDeprecation<T> implements NewAndDeprecatedConfigPaths 
 
         /**
          * Enter a path to a config used within the loader which is not saved back again in
-         * {@link FieldNodeSettingsPersistor#save}. This method can called multiple times.
+         * {@link NodeSettingsPersistor#save}. This method can called multiple times.
          *
          * @param configKeys the configKeys forming a path from the base config of the {@link Persist#customPersistor}
          *            to a desired subconfig.
@@ -237,7 +237,7 @@ public final class ConfigsDeprecation<T> implements NewAndDeprecatedConfigPaths 
 
         /**
          * @return a new {@link ConfigsDeprecation} to be used in
-         *         {@link FieldNodeSettingsPersistor#getConfigsDeprecations()}
+         *         {@link NodeSettingsPersistor#getConfigsDeprecations()}
          */
         public ConfigsDeprecation<T> build() {
             if (m_matcher == null) {

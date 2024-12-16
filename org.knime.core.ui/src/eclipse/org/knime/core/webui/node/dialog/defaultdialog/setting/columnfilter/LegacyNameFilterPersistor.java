@@ -55,8 +55,8 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.filter.NameFilterConfiguration;
 import org.knime.core.node.util.filter.PatternFilterConfiguration;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.PatternFilter.PatternMode;
 
 /**
@@ -65,7 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.Patte
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class LegacyNameFilterPersistor extends NodeSettingsPersistorWithConfigKey<NameFilter> {
+public final class LegacyNameFilterPersistor implements NodeSettingsPersistor<NameFilter> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(LegacyNameFilterPersistor.class);
 
@@ -78,6 +78,12 @@ public final class LegacyNameFilterPersistor extends NodeSettingsPersistorWithCo
      * See NameFilterConfiguration.TYPE.
      */
     private static final String KEY_FILTER_TYPE_MANUAL = "STANDARD";
+
+    private final String m_configKey;
+
+    LegacyNameFilterPersistor(final NodeSettingsPersistorContext<NameFilter> context) {
+        m_configKey = context.getConfigKey();
+    }
 
     @SuppressWarnings("javadoc")
     public static NameFilter load(final NodeSettingsRO nodeSettings, final String configKey)
@@ -143,17 +149,17 @@ public final class LegacyNameFilterPersistor extends NodeSettingsPersistorWithCo
 
     @Override
     public NameFilter load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return load(settings, getConfigKey());
+        return load(settings, m_configKey);
     }
 
     @Override
     public void save(final NameFilter obj, final NodeSettingsWO settings) {
-        save(obj, settings, getConfigKey());
+        save(obj, settings, m_configKey);
     }
 
     @Override
     public String[][] getConfigPaths() {
-        return getConfigPaths(getConfigKey());
+        return getConfigPaths(m_configKey);
     }
 
     private static String[][] getConfigPaths(final String configKey) {

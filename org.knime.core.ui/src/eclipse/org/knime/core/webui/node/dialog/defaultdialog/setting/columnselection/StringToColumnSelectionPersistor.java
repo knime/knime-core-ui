@@ -48,8 +48,9 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldBasedNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.FieldBasedNodeSettingsPersistor;
 
 /**
  * The data structure of a ColumnSelection dropdown changed from a strings to a more complex representation by a
@@ -58,27 +59,29 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSett
  *
  * @author Paul Bärnreuther
  */
-public final class StringToColumnSelectionPersistor extends NodeSettingsPersistorWithConfigKey<ColumnSelection> {
+public final class StringToColumnSelectionPersistor implements NodeSettingsPersistor<ColumnSelection> {
+
+    private final String m_configKey;
 
     private final FieldBasedNodeSettingsPersistor<ColumnSelection> m_persistor;
 
-    @SuppressWarnings("javadoc")
-    public StringToColumnSelectionPersistor(final Class<ColumnSelection> settingsClass) {
-        m_persistor = new FieldBasedNodeSettingsPersistor<>(settingsClass);
+    StringToColumnSelectionPersistor(final NodeSettingsPersistorContext<ColumnSelection> context) {
+        m_configKey = context.getConfigKey();
+        m_persistor = new FieldBasedNodeSettingsPersistor<>(context.getPersistedObjectClass());
     }
 
     @Override
     public ColumnSelection load(final NodeSettingsRO settings) throws InvalidSettingsException {
         try {
-            final var fieldSettingsString = settings.getString(getConfigKey());
+            final var fieldSettingsString = settings.getString(m_configKey);
             return new ColumnSelection(fieldSettingsString, null);
         } catch (InvalidSettingsException ex) {
-            return m_persistor.load(settings.getNodeSettings(getConfigKey()));
+            return m_persistor.load(settings.getNodeSettings(m_configKey));
         }
     }
 
     @Override
     public void save(final ColumnSelection obj, final NodeSettingsWO settings) {
-        m_persistor.save(obj, settings.addNodeSettings(getConfigKey()));
+        m_persistor.save(obj, settings.addNodeSettings(m_configKey));
     }
 }

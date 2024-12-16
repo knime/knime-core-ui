@@ -62,9 +62,9 @@ import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -128,7 +128,7 @@ class TypeFilter implements PersistableSettings {
         return type.getPreferredValueClass().getName();
     }
 
-    private static final class ColumnTypeDisplaysPersistor implements FieldNodeSettingsPersistor<ColumnTypeDisplay[]> {
+    private static final class ColumnTypeDisplaysPersistor implements NodeSettingsPersistor<ColumnTypeDisplay[]> {
 
         @Override
         public ColumnTypeDisplay[] load(final NodeSettingsRO settings) throws InvalidSettingsException {

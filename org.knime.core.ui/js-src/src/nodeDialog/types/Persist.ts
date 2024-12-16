@@ -12,6 +12,8 @@ export interface ConfigInfo {
 
 export interface PersistTreeSchema {
   type: "object";
+  propertiesConfigPaths?: string[][];
+  propertiesDeprecatedConfigKeys?: DeprecatedConfigs[];
   properties: {
     [key: string]: PersistSchema;
   };

@@ -89,10 +89,10 @@ import org.knime.core.node.config.base.JSONConfig.WriterConfig;
 import org.knime.core.node.message.Message;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.NodeSettingsPersistorFactory;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -138,8 +138,8 @@ public final class DynamicValuesInput implements PersistableSettings {
      *
      * @param dataType target data type
      * @param initialValue data type and initial value
-     * @param useStringCaseMatchingSetting {@code true} to show the case matching setting for strings,
-     *            {@code false} to disable the setting regardless of data type
+     * @param useStringCaseMatchingSetting {@code true} to show the case matching setting for strings, {@code false} to
+     *            disable the setting regardless of data type
      */
     DynamicValuesInput(final DataType dataType, final DataCell initialValue,
         final boolean useStringCaseMatchingSetting) {
@@ -201,8 +201,8 @@ public final class DynamicValuesInput implements PersistableSettings {
     }
 
     /**
-     * @param dataType data type to offer widget for Row number comparisons,
-     *                 must be {@link StringCell#TYPE} or {@link LongCell#TYPE}
+     * @param dataType data type to offer widget for Row number comparisons, must be {@link StringCell#TYPE} or
+     *            {@link LongCell#TYPE}
      * @return a dynamic values input for a single value of Row Number.
      */
     public static DynamicValuesInput forRowNumber(final DataType dataType) {
@@ -332,8 +332,8 @@ public final class DynamicValuesInput implements PersistableSettings {
          *
          * @param columnType type of the content
          * @param initialValue initial value or {@link DataType#getMissingCell()} if it should be supplied by dialog
-         * @param useStringCaseMatchingSetting {@code true} to show the case matching setting for strings,
-         *            {@code false} to disable the setting regardless of data type
+         * @param useStringCaseMatchingSetting {@code true} to show the case matching setting for strings, {@code false}
+         *            to disable the setting regardless of data type
          */
         private DynamicValue(final DataType columnType, final DataCell initialValue,
             final boolean useStringCaseMatchingSetting) {
@@ -415,11 +415,9 @@ public final class DynamicValuesInput implements PersistableSettings {
             // all OK if the "runtime" input column type is more specific than the type at configuration time
             if (!m_type.isASuperTypeOf(referenceType)) {
                 throw Message.builder()
-                    .withSummary(
-                        "Type of input \"%s\" is not compatible with reference value".formatted(name))
-                    .addTextIssue(
-                        "Input \"%s\" has type \"%s\", but reference value is of incompatible type \"%s\""
-                            .formatted(name, referenceType.toPrettyString(), m_type.toPrettyString()))
+                    .withSummary("Type of input \"%s\" is not compatible with reference value".formatted(name))
+                    .addTextIssue("Input \"%s\" has type \"%s\", but reference value is of incompatible type \"%s\""
+                        .formatted(name, referenceType.toPrettyString(), m_type.toPrettyString()))
                     .addResolutions("Reconfigure the node to supply a reference value of type \"%s\"."
                         .formatted(referenceType.toPrettyString())) //
                     .addResolutions("Change the input (column) type to \"%s\".".formatted(m_type.toPrettyString())) //
