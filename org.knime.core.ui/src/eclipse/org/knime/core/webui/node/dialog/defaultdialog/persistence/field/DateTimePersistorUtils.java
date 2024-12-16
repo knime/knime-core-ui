@@ -69,7 +69,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
 
 /**
- * @author Tobias Kampmann
+ * Helpful persistors and utilities for saving date and time related objects (temporals, intervals, timezones, etc.).
+ *
+ * @author Tobias Kampmann, TNG Technology Consulting GmbH
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
 final class DateTimePersistorUtils {
 
@@ -85,13 +88,14 @@ final class DateTimePersistorUtils {
         public LocalDate load(final NodeSettingsRO settings) throws InvalidSettingsException {
             final var value = settings.getString(getConfigKey());
 
-            var temporal = parseDateTemporal(value);
-            return LocalDate.from(temporal);
+            return value == null //
+                ? null //
+                : parseDateTemporal(value).query(LocalDate::from);
         }
 
         @Override
         public void save(final LocalDate date, final NodeSettingsWO settings) {
-            settings.addString(getConfigKey(), date.format(DATE_FMT));
+            settings.addString(getConfigKey(), date == null ? null : date.format(DATE_FMT));
         }
 
         private static Temporal parseDateTemporal(final String s) throws InvalidSettingsException {
@@ -102,9 +106,14 @@ final class DateTimePersistorUtils {
 
     static final class LocalTimePersistor extends NodeSettingsPersistorWithConfigKey<LocalTime> {
 
+        static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ISO_LOCAL_TIME;
+
         @Override
         public LocalTime load(final NodeSettingsRO settings) throws InvalidSettingsException {
             var value = settings.getString(getConfigKey());
+            if (value == null) {
+                return null;
+            }
 
             var temporal = parseTimeTemporal(value);
 
@@ -122,8 +131,7 @@ final class DateTimePersistorUtils {
 
         @Override
         public void save(final LocalTime obj, final NodeSettingsWO settings) {
-            var timeToSave = obj.format(DateTimeFormatter.ISO_LOCAL_TIME);
-            settings.addString(getConfigKey(), timeToSave);
+            settings.addString(getConfigKey(), obj == null ? null : obj.format(TIME_FMT));
         }
 
         private static Temporal parseTimeTemporal(final String s) throws InvalidSettingsException {
@@ -145,20 +153,17 @@ final class DateTimePersistorUtils {
 
         @Override
         public ZoneId load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            if (settings.getString(getConfigKey()) == null) {
+            var value = settings.getString(getConfigKey());
+            if (value == null) {
                 return null;
-            } else {
-                return TimeZonePersistor.extractFromString(settings.getString(getConfigKey()));
             }
+
+            return TimeZonePersistor.extractFromString(value);
         }
 
         @Override
         public void save(final ZoneId obj, final NodeSettingsWO settings) {
-            if (obj != null) {
-                settings.addString(getConfigKey(), obj.getId());
-            } else {
-                settings.addString(getConfigKey(), null);
-            }
+            settings.addString(getConfigKey(), obj == null ? null : obj.getId());
         }
     }
 
