@@ -56,32 +56,6 @@ const getCurrentLibrary = (mode: ComponentLibraries) => {
   return false;
 };
 
-const getIncludedTestFiles = (mode: "integration" | "unit") => {
-  if (mode === "unit") {
-    return ["src/**/__tests__/**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"];
-  } else {
-    return [
-      "src/**/__integrationTests__/**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
-    ];
-  }
-};
-
-const getExcludedTestFiles = (mode: "integration" | "unit") => {
-  if (mode === "unit") {
-    return getIncludedTestFiles("integration");
-  } else {
-    return [];
-  }
-};
-
-const getTestSetupFile = (mode: "integration" | "unit") => {
-  if (mode === "unit") {
-    return "test-setup/vitest.setup.js";
-  } else {
-    return "test-setup/vitest.setup.integration.js";
-  }
-};
-
 const htmlModePrefix = "html:";
 const getHtmlViewRollupOptions = (mode: string) => ({
   input: fileURLToPath(
@@ -92,7 +66,6 @@ const getHtmlViewRollupOptions = (mode: string) => ({
 // https://vitest.dev/config/
 export default defineConfig(({ mode }) => {
   const env = { ...process.env, ...loadEnv(mode, process.cwd()) };
-  const testMode = mode === "integration" ? "integration" : "unit";
 
   const conditionalRollupOptions = { external: [], output: {} };
 
@@ -164,13 +137,12 @@ export default defineConfig(({ mode }) => {
           },
     },
     test: {
-      include: getIncludedTestFiles(testMode),
-      exclude: getExcludedTestFiles(testMode),
+      include: ["src/**/__tests__/**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
       environment: "jsdom",
       reporters: ["default", "junit"],
       deps: { inline: ["consola", "@knime/knime-ui-table"] },
       setupFiles: [
-        fileURLToPath(new URL(getTestSetupFile(testMode), import.meta.url)),
+        fileURLToPath(new URL("test-setup/vitest.setup.js", import.meta.url)),
       ],
       alias: {
         "monaco-editor/esm/vs/editor/editor.worker?worker": path.resolve(
@@ -202,7 +174,7 @@ export default defineConfig(({ mode }) => {
           "**/dev/**",
         ],
         reporter: ["html", "text", "lcov"],
-        reportsDirectory: `coverage/${testMode}`,
+        reportsDirectory: "coverage",
       },
       outputFile: {
         junit: "test-results/junit.xml", // needed for Bitbucket Pipeline, see https://support.atlassian.com/bitbucket-cloud/docs/test-reporting-in-pipelines/
