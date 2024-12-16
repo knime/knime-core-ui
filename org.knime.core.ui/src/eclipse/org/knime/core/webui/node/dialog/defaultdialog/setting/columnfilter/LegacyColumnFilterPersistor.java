@@ -59,8 +59,8 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.filter.PatternFilterConfiguration;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.PatternFilter.PatternMode;
 
 /**
@@ -69,7 +69,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.Patte
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class LegacyColumnFilterPersistor extends NodeSettingsPersistorWithConfigKey<ColumnFilter> {
+public final class LegacyColumnFilterPersistor implements NodeSettingsPersistor<ColumnFilter> {
+
+    private final String m_configKey;
+
+    LegacyColumnFilterPersistor(final NodeSettingsPersistorContext<ColumnFilter> context) {
+        m_configKey = context.getConfigKey();
+
+    }
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(LegacyColumnFilterPersistor.class);
 
@@ -206,17 +213,17 @@ public final class LegacyColumnFilterPersistor extends NodeSettingsPersistorWith
 
     @Override
     public ColumnFilter load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return load(settings, getConfigKey());
+        return load(settings, m_configKey);
     }
 
     @Override
     public void save(final ColumnFilter obj, final NodeSettingsWO settings) {
-        save(obj, settings, getConfigKey());
+        save(obj, settings, m_configKey);
     }
 
     @Override
     public String[][] getConfigPaths() {
-        return getConfigPaths(getConfigKey());
+        return getConfigPaths(m_configKey);
     }
 
     private static String[][] getConfigPaths(final String configKey) {

@@ -50,9 +50,10 @@ package org.knime.core.webui.node.dialog.defaultdialog;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.webui.node.dialog.SettingsType;
@@ -60,10 +61,12 @@ import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.configmapping.NewAndDeprecatedConfigPaths;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.ConfigKeyUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigKeyUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.NodeSettingsPersistorFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
@@ -119,6 +122,7 @@ public final class PersistUtil {
         if (!persistTree.isRoot()) {
             addConfigKeys(objectNode, persistTree);
         }
+        addDeprecatedPropertyConfigKeys(objectNode, persistTree);
         final var properties = getObjectProperties(objectNode);
         persistTree.getChildrenByName().forEach((name, child) -> addPersist(properties, name, child));
     }
@@ -156,29 +160,60 @@ public final class PersistUtil {
 
     private static void addConfigKeys(final ObjectNode node, final TreeNode<PersistableSettings> field) {
         final var persistor = ConfigKeyUtil.extractFieldNodeSettingsPersistor(field);
-        final var persist = field.getAnnotation(Persist.class);
-        final var configRename = persist.map(Persist::configKey).filter(key -> !key.isEmpty());
-        final var configPaths = persistor.map(FieldNodeSettingsPersistor::getConfigPaths);
-        final boolean isHidden = persist.map(Persist::hidden).orElse(false);
+        persistor.ifPresent(addNodeSettingsPersistorFields(node, "configPaths", "deprecatedConfigKeys"));
+        final var persistAnnotation = field.getAnnotation(Persist.class);
+        resolvePersistAnnotation(node, persistAnnotation);
 
-        if (configPaths.isPresent()) {
-            final var filteredValidatedConfigPaths = Arrays.stream(configPaths.get()).map(
-                path -> Arrays.stream(path).filter(PersistUtil::isNonInternal).map(PersistUtil::validateKey).toList())
-                .filter(path -> !path.isEmpty()).toList();
-            add2DStingArray(node, "configPaths", filteredValidatedConfigPaths);
-        } else if (isHidden) {
+    }
+
+    private static void resolvePersistAnnotation(final ObjectNode node, final Optional<Persist> persistAnnotation) {
+        final var configRename = persistAnnotation.map(Persist::configKey).filter(key -> !key.isEmpty());
+        final boolean isHidden = persistAnnotation.map(Persist::hidden).orElse(false);
+        if (isHidden) {
             node.putArray("configPaths");
         } else if (configRename.isPresent()) {
             node.put("configKey", configRename.get());
         }
-        var configsDeprecationList =
-            persistor.map(FieldNodeSettingsPersistor::getConfigsDeprecations).orElse(Collections.emptyList());
-        if (!configsDeprecationList.isEmpty()) {
-            final var deprecatedConfigsNode = node.putArray("deprecatedConfigKeys");
-            configsDeprecationList.stream()
-                .forEach(configsDeprecation -> putDeprecatedConfig(deprecatedConfigsNode, configsDeprecation));
-        }
+    }
 
+    private static Consumer<NodeSettingsPersistor<?>> addNodeSettingsPersistorFields(final ObjectNode node,
+        final String configPathsTag, final String deprecatedConfigKeysTag) {
+        return addConfigPaths(node, configPathsTag).andThen(addDeprecatedConfigKeys(node, deprecatedConfigKeysTag));
+    }
+
+    private static Consumer<NodeSettingsPersistor<?>> addConfigPaths(final ObjectNode node,
+        final String configPathsTag) {
+        return persistor -> {
+            final var configPaths = persistor.getConfigPaths();
+            if (configPaths == null) {
+                return;
+            }
+            final var filteredValidatedConfigPaths = Arrays.stream(configPaths).map(
+                path -> Arrays.stream(path).filter(PersistUtil::isNonInternal).map(PersistUtil::validateKey).toList())
+                .filter(path -> !path.isEmpty()).toList();
+            add2DStingArray(node, configPathsTag, filteredValidatedConfigPaths);
+        };
+    }
+
+    private static Consumer<NodeSettingsPersistor<?>> addDeprecatedConfigKeys(final ObjectNode node,
+        final String deprecatedConfigKeysTag) {
+        return persistor -> {
+            var configsDeprecationList = persistor.getConfigsDeprecations();
+            if (!configsDeprecationList.isEmpty()) {
+                final var deprecatedConfigsNode = node.putArray(deprecatedConfigKeysTag);
+                configsDeprecationList.stream()
+                    .forEach(configsDeprecation -> putDeprecatedConfig(deprecatedConfigsNode, configsDeprecation));
+            }
+        };
+    }
+
+    private static void addDeprecatedPropertyConfigKeys(final ObjectNode node, final Tree<PersistableSettings> tree) {
+        if (tree.getAnnotation(Persistor.class).isEmpty()) {
+            return;
+        }
+        final var persistor = NodeSettingsPersistorFactory.createPersistor(tree);
+        addNodeSettingsPersistorFields(node, "propertiesConfigPaths", "propertiesDeprecatedConfigKeys")
+            .accept(persistor);
     }
 
     private static boolean isNonInternal(final String key) {
