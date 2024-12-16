@@ -75,8 +75,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonNodeSettings
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultPersistorWithDeprecations;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 
@@ -234,7 +237,13 @@ class DefaultNodeSettingsServiceTest {
 
     static class MigratedSettings implements DefaultNodeSettings {
 
-        static class MyLegacyPersistor extends NodeSettingsPersistorWithConfigKey<String> {
+        static class MyLegacyPersistor implements NodeSettingsPersistor<String> {
+
+            private final String m_configKey;
+
+            public MyLegacyPersistor(final NodeSettingsPersistorContext<String> context) {
+                m_configKey = context.getConfigKey();
+            }
 
             @Override
             public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -243,13 +252,13 @@ class DefaultNodeSettingsServiceTest {
 
             @Override
             public void save(final String obj, final NodeSettingsWO settings) {
-                settings.addString(getConfigKey(), obj);
+                settings.addString(m_configKey, obj);
 
             }
 
             @Override
             public List<ConfigsDeprecation<String>> getConfigsDeprecations() {
-                return createConfigsDeprecationsForMyLegacyPersistor(getConfigKey(), settings -> {
+                return createConfigsDeprecationsForMyLegacyPersistor(m_configKey, settings -> {
                     throw new IllegalStateException("Should not be called within this test");
                 });
             }
@@ -302,9 +311,16 @@ class DefaultNodeSettingsServiceTest {
 
         static class MyLegacyPersistorWithLoad extends MigratedSettings.MyLegacyPersistor {
 
+            private final String m_configKey;
+
+            MyLegacyPersistorWithLoad(final NodeSettingsPersistorContext<String> context) {
+                super(context);
+                m_configKey = context.getConfigKey();
+            }
+
             @Override
             public List<ConfigsDeprecation<String>> getConfigsDeprecations() {
-                return createConfigsDeprecationsForMyLegacyPersistor(getConfigKey(),
+                return createConfigsDeprecationsForMyLegacyPersistor(m_configKey,
                     settings -> settings.getString("valueLegacy1") + settings.getString("valueLegacy2"));
             }
 
@@ -354,9 +370,16 @@ class DefaultNodeSettingsServiceTest {
 
         static class MyLegacyPersistorWithFailingLoad extends MigratedSettings.MyLegacyPersistor {
 
+            private final String m_configKey;
+
+            MyLegacyPersistorWithFailingLoad(final NodeSettingsPersistorContext<String> context) {
+                super(context);
+                m_configKey = context.getConfigKey();
+            }
+
             @Override
             public List<ConfigsDeprecation<String>> getConfigsDeprecations() {
-                return createConfigsDeprecationsForMyLegacyPersistor(getConfigKey(), settings -> {
+                return createConfigsDeprecationsForMyLegacyPersistor(m_configKey, settings -> {
                     throw new InvalidSettingsException("Old configs");
                 });
             }
@@ -426,6 +449,107 @@ class DefaultNodeSettingsServiceTest {
             Map.of(SettingsType.VIEW, nodeAndVariableSettingsWO));
 
         assertThat(nodeSettings.getString("value")).isEqualTo("new");
+    }
+
+    static final class RootSettingsDeprecationsPersistor
+        implements DefaultPersistorWithDeprecations<RootSettingsWithDeprecations> {
+
+        @Override
+        public List<ConfigsDeprecation<RootSettingsWithDeprecations>> getConfigsDeprecations() {
+            return List.of(ConfigsDeprecation.builder(settings -> new RootSettingsWithDeprecations())
+                .withDeprecatedConfigPath("valueLegacy1").withDeprecatedConfigPath("valueLegacy2").build());
+
+        }
+    }
+
+    @Persistor(RootSettingsDeprecationsPersistor.class)
+    static class RootSettingsWithDeprecations implements DefaultNodeSettings {
+
+        String m_value = "the default";
+    }
+
+    @Test
+    void testInferrsConfigKeysFromFieldBasedDefaultPersistor() {
+        final var previousNodeSettings = new NodeSettings("previousSettings");
+        DefaultNodeSettings.saveSettings(LegacySettings.class, new LegacySettings("old1", "old2"),
+            previousNodeSettings);
+        final var nodeSettings = new NodeSettings("newSettings");
+        final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
+        final var settingsService = new DefaultNodeSettingsService(
+            Map.of(SettingsType.VIEW, RootSettingsWithDeprecations.class), new AsyncChoicesHolder());
+        final var textSettings = """
+                    {
+                    "data": {"view": {"value": "new"}},
+                    "flowVariableSettings": {
+                        "view.valueLegacy1": {
+                            "controllingFlowVariableName": "flowVar"
+                        }
+                    }
+                }""";
+        settingsService.toNodeSettings(textSettings,
+            Map.of(SettingsType.VIEW, createNodeAndVariableSettingsRO(previousNodeSettings)),
+            Map.of(SettingsType.VIEW, nodeAndVariableSettingsWO));
+
+        assertThat(nodeSettings.getString("valueLegacy1", "notPresent")).isEqualTo("old1");
+        assertThat(nodeSettings.getString("valueLegacy2", "notPresent")).isEqualTo("old2");
+        assertThat(nodeSettings.getString("value", "notPresent")).isEqualTo("notPresent");
+    }
+
+    @Test
+    void testInferrsConfigKeysFromFieldBasedDefaultPersistorWhenANewVariableIsSet() {
+        final var previousNodeSettings = new NodeSettings("previousSettings");
+        DefaultNodeSettings.saveSettings(LegacySettings.class, new LegacySettings("old1", "old2"),
+            previousNodeSettings);
+        final var nodeSettings = new NodeSettings("newSettings");
+        final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
+        final var settingsService = new DefaultNodeSettingsService(
+            Map.of(SettingsType.VIEW, RootSettingsWithDeprecations.class), new AsyncChoicesHolder());
+        final var textSettings = """
+                    {
+                    "data": {"view": {"value": "new"}},
+                    "flowVariableSettings": {
+                        "view.value": {
+                            "controllingFlowVariableName": "flowVar"
+                        }
+                    }
+                }""";
+        settingsService.toNodeSettings(textSettings,
+            Map.of(SettingsType.VIEW, createNodeAndVariableSettingsRO(previousNodeSettings)),
+            Map.of(SettingsType.VIEW, nodeAndVariableSettingsWO));
+
+        assertThat(nodeSettings.getString("valueLegacy1", "notPresent")).isEqualTo("notPresent");
+        assertThat(nodeSettings.getString("valueLegacy2", "notPresent")).isEqualTo("notPresent");
+        assertThat(nodeSettings.getString("value", "notPresent")).isEqualTo("the default");
+    }
+
+    static class SettingsWithOptionalSetting implements DefaultNodeSettings {
+
+        @Persist(optional = true)
+        String m_value = "the default";
+    }
+
+    @Test
+    void testAddsConfigForOptionalPersistor() {
+        final var previousNodeSettings = new NodeSettings("previousSettings");
+        final var nodeSettings = new NodeSettings("newSettings");
+        final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
+        final var settingsService = new DefaultNodeSettingsService(
+            Map.of(SettingsType.VIEW, SettingsWithOptionalSetting.class), new AsyncChoicesHolder());
+        final var textSettings = """
+                    {
+                    "data": {"view": {"value": "new"}},
+                    "flowVariableSettings": {
+                        "view.value": {
+                            "controllingFlowVariableName": "flowVar"
+                        }
+                    }
+                }""";
+        settingsService.toNodeSettings(textSettings,
+            Map.of(SettingsType.VIEW, createNodeAndVariableSettingsRO(previousNodeSettings)),
+            Map.of(SettingsType.VIEW, nodeAndVariableSettingsWO));
+
+        assertThat(nodeSettings.getString("value", "notPresent")).isEqualTo("the default");
+
     }
 
 }

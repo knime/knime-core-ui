@@ -68,8 +68,11 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.ICredentials;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldBasedNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.CreateNodeSettingsPersistorUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.CustomPersistorUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.AuthenticationType;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyAuthenticationSettings.AuthTypeCredentialsToPasswordPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyAuthenticationSettings.AuthTypeCredentialsToUsernameAndPasswordPersistor;
@@ -167,13 +170,13 @@ class LegacyAuthenticationSettingsTest {
         @ParameterizedTest
         @MethodSource("persistorsWithTypes")
         void testLoadWithLegacyCredentialsType(
-            final Class<? extends FieldNodeSettingsPersistor<LegacyAuthenticationSettings>> persistorClass,
+            final Class<? extends NodeSettingsPersistor<LegacyAuthenticationSettings>> persistorClass,
             final AuthenticationType expectedType) throws InvalidSettingsException {
             final var model = new SettingsModelAuthentication(CFG_KEY,
                 SettingsModelAuthentication.AuthenticationType.CREDENTIALS, null, null, FLOW_VAR_NAME);
             final var nodeSettings = createLegacyNodeSettings(model);
             final var persistor = createPersistor(persistorClass);
-            final var loadedSettings = FieldBasedNodeSettingsPersistor.loadFromFieldPersistor(persistor, nodeSettings);
+            final var loadedSettings = persistor.load(nodeSettings);
             final var expected = new AuthenticationSettings(expectedType, CREDENTIALS);
             assertEquals(expected, loadedSettings.toAuthenticationSettings(m_credentialsProvider));
         }
@@ -181,13 +184,13 @@ class LegacyAuthenticationSettingsTest {
         @ParameterizedTest
         @MethodSource("persistors")
         void testLoadWithNonCredentialsLegacyType(
-            final Class<? extends FieldNodeSettingsPersistor<LegacyAuthenticationSettings>> persistorClass)
+            final Class<? extends NodeSettingsPersistor<LegacyAuthenticationSettings>> persistorClass)
             throws InvalidSettingsException {
             final var model = new SettingsModelAuthentication(CFG_KEY,
                 SettingsModelAuthentication.AuthenticationType.USER_PWD, USERNAME, PASSWORD, null);
             final var nodeSettings = createLegacyNodeSettings(model);
             final var persistor = createPersistor(persistorClass);
-            final var loadedSettings = FieldBasedNodeSettingsPersistor.loadFromFieldPersistor(persistor, nodeSettings);
+            final var loadedSettings = persistor.load(nodeSettings);
             final var expected =
                 new AuthenticationSettings(AuthenticationType.USER_PWD, new Credentials(USERNAME, PASSWORD));
             assertEquals(expected, loadedSettings.toAuthenticationSettings(m_credentialsProvider));
@@ -195,8 +198,7 @@ class LegacyAuthenticationSettingsTest {
 
         @ParameterizedTest
         @MethodSource("persistors")
-        void testSaveLoad(
-            final Class<? extends FieldNodeSettingsPersistor<LegacyAuthenticationSettings>> persistorClass)
+        void testSaveLoad(final Class<? extends NodeSettingsPersistor<LegacyAuthenticationSettings>> persistorClass)
             throws InvalidSettingsException {
             final var authenticationSettings =
                 new AuthenticationSettings(AuthenticationType.USER_PWD, new Credentials(USERNAME, PASSWORD));
@@ -211,15 +213,20 @@ class LegacyAuthenticationSettingsTest {
         @ParameterizedTest
         @MethodSource("persistors")
         void testDeprecatedConfigs(
-            final Class<? extends FieldNodeSettingsPersistor<LegacyAuthenticationSettings>> persistorClass) {
+            final Class<? extends NodeSettingsPersistor<LegacyAuthenticationSettings>> persistorClass) {
             final var persistor = createPersistor(persistorClass);
             assertThat(persistor.getConfigsDeprecations()).hasSize(1);
         }
 
-        private static FieldNodeSettingsPersistor<LegacyAuthenticationSettings> createPersistor(
-            final Class<? extends FieldNodeSettingsPersistor<LegacyAuthenticationSettings>> persistorClass) {
-            final var persistor =
-                FieldNodeSettingsPersistor.createInstance(persistorClass, LegacyAuthenticationSettings.class, CFG_KEY);
+        private static NodeSettingsPersistor<LegacyAuthenticationSettings>
+            createPersistor(final Class<? extends NodeSettingsPersistor<LegacyAuthenticationSettings>> persistorClass) {
+            @SuppressWarnings("unchecked")
+            final var persistor = CustomPersistorUtil.prepareCustomPersistor(
+                CreateNodeSettingsPersistorUtil.createInstance(persistorClass, LegacyAuthenticationSettings.class,
+                    CFG_KEY),
+                () -> (NodeSettingsPersistor<LegacyAuthenticationSettings>)DefaultFieldNodeSettingsPersistorFactory
+                    .createDefaultPersistor(new PersistTreeFactory().createTree(LegacyAuthenticationSettings.class),
+                        CFG_KEY));
             return persistor;
         }
 

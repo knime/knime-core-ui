@@ -71,7 +71,10 @@ final class NodeSettingsAtPathUtil {
      * @return true if the full path exists in the given settings. Hereby the last key does not have to give rise to
      *         {@link NodeSettings} but could index e.g. a string value instead.
      */
-    static boolean hasPath(final NodeSettingsRO settings, final ConfigPath path) {
+    public static boolean hasPath(final NodeSettingsRO settings, final ConfigPath path) {
+        if (path.size() == 0) {
+            return true;
+        }
         return getNodeSettingsROAtPath(settings, path.withoutLastKey())
             .map(ns -> getSettingsChildByKey(ns, path.lastKey())).orElse(null) != null;
     }
@@ -92,6 +95,10 @@ final class NodeSettingsAtPathUtil {
      *            </p>
      */
     static void replaceAtPathIfPresent(final NodeSettings settings, final ConfigPath path, final NodeSettingsRO other) {
+        if (path.size() == 0) {
+            other.copyTo(settings);
+            return;
+        }
         var subSettings = settings;
         var subSettingsOther = other;
         for (var key : path.withoutLastKey().path()) {
@@ -125,6 +132,10 @@ final class NodeSettingsAtPathUtil {
      * @param path
      */
     static void deletePath(final NodeSettings settings, final ConfigPath path) {
+        if (path.size() == 0) {
+            settings.iterator().forEachRemaining(settings::removeConfig);
+            return;
+        }
         getNodeSettingsAtPath(settings, path.withoutLastKey()).ifPresent(atPath -> atPath.removeConfig(path.lastKey()));
     }
 
@@ -135,7 +146,7 @@ final class NodeSettingsAtPathUtil {
         return Optional.empty();
     }
 
-    public static Optional<NodeSettings> getNodeSettingsAtPath(final NodeSettings nodeSettings, final ConfigPath path) {
+    static Optional<NodeSettings> getNodeSettingsAtPath(final NodeSettings nodeSettings, final ConfigPath path) {
         var result = Optional.of(nodeSettings);
         for (var key : path.path()) {
             result = result.flatMap(s -> getNodeSettingsAtKey(s, key));
@@ -151,8 +162,7 @@ final class NodeSettingsAtPathUtil {
         return Optional.empty();
     }
 
-    public static Optional<NodeSettingsRO> getNodeSettingsROAtPath(final NodeSettingsRO nodeSettings,
-        final ConfigPath path) {
+    static Optional<NodeSettingsRO> getNodeSettingsROAtPath(final NodeSettingsRO nodeSettings, final ConfigPath path) {
         var result = Optional.of(nodeSettings);
         for (var key : path.path()) {
             result = result.flatMap(s -> getNodeSettingsROAtKey(s, key));

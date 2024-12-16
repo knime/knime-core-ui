@@ -57,9 +57,9 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultPersistorWithDeprecations;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.StringArrayToColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.selection.SelectionCheckboxesToSelectionModePersistor;
@@ -88,6 +88,7 @@ import org.knime.core.webui.node.view.table.TableViewViewSettings.VerticalPaddin
  * @author Christian Albrecht, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("java:S103") // we accept too long lines
+
 public class TableViewViewSettings implements DefaultNodeSettings {
 
     private static final class AllColumns implements ColumnChoicesProvider {
@@ -227,12 +228,18 @@ public class TableViewViewSettings implements DefaultNodeSettings {
         }
 
         static final class CompactModeAndLegacyRowHeightModePersistor
-            extends NodeSettingsPersistorWithConfigKey<RowHeightMode>
             implements DefaultPersistorWithDeprecations<RowHeightMode> {
+
+            private final String m_configKey;
+
+            public CompactModeAndLegacyRowHeightModePersistor(
+                final NodeSettingsPersistorContext<RowHeightMode> context) {
+                m_configKey = context.getConfigKey();
+            }
 
             @Override
             public List<ConfigsDeprecation<RowHeightMode>> getConfigsDeprecations() {
-                return createDefaultConfigsDeprecations(getConfigKey(),
+                return createDefaultConfigsDeprecations(m_configKey,
                     (loadResult, settings) -> loadResult.getRowHeightMode());
             }
         }
@@ -253,17 +260,22 @@ public class TableViewViewSettings implements DefaultNodeSettings {
 
     static final int DEFAULT_CUSTOM_ROW_HEIGHT = 80;
 
-    static final class CustomRowHeightPersistor extends NodeSettingsPersistorWithConfigKey<Integer>
-        implements DefaultPersistorWithDeprecations<Integer> {
+    static final class CustomRowHeightPersistor implements DefaultPersistorWithDeprecations<Integer> {
+
+        private final String m_configKey;
+
+        CustomRowHeightPersistor(final NodeSettingsPersistorContext<Integer> context) {
+            m_configKey = context.getConfigKey();
+        }
 
         @Override
         public List<ConfigsDeprecation<Integer>> getConfigsDeprecations() {
-            return createDefaultConfigsDeprecations(getConfigKey(), (loadResult, settings) -> {
+            return createDefaultConfigsDeprecations(m_configKey, (loadResult, settings) -> {
                 final var customRowHeight = loadResult.getCustomRowHeight();
                 if (customRowHeight.isPresent()) {
                     return customRowHeight.get();
                 }
-                return settings.getInt(getConfigKey());
+                return settings.getInt(m_configKey);
             });
         }
     }
@@ -288,12 +300,17 @@ public class TableViewViewSettings implements DefaultNodeSettings {
                     + " as possible in given space.")
             COMPACT;
 
-        static final class VerticalPaddingModePersistor extends NodeSettingsPersistorWithConfigKey<VerticalPaddingMode>
+        static final class VerticalPaddingModePersistor
             implements DefaultPersistorWithDeprecations<VerticalPaddingMode> {
+            private final String m_configKey;
+
+            VerticalPaddingModePersistor(final NodeSettingsPersistorContext<VerticalPaddingMode> context) {
+                m_configKey = context.getConfigKey();
+            }
 
             @Override
             public List<ConfigsDeprecation<VerticalPaddingMode>> getConfigsDeprecations() {
-                return createDefaultConfigsDeprecations(getConfigKey(),
+                return createDefaultConfigsDeprecations(m_configKey,
                     (loadResult, settings) -> loadResult.getVerticalPaddingMode());
             }
         }

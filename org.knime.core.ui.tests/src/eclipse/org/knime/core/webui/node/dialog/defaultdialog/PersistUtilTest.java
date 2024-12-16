@@ -62,10 +62,9 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.DeprecationLoader;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
@@ -82,7 +81,7 @@ class PersistUtilTest {
         return (ObjectNode)uischema.get("persist");
     }
 
-    private interface TestPersistor<S> extends FieldNodeSettingsPersistor<S> {
+    private interface TestPersistor<S> extends NodeSettingsPersistor<S> {
         @Override
         default S load(final NodeSettingsRO settings) throws InvalidSettingsException {
             throw new UnsupportedOperationException("should not be called by this test");
@@ -203,8 +202,7 @@ class PersistUtilTest {
 
         }
 
-        static final class CustomPersistorWithoutConfigKeys extends NodeSettingsPersistorWithConfigKey<String>
-            implements TestPersistor<String> {
+        static final class CustomPersistorWithoutConfigKeys implements TestPersistor<String> {
 
         }
 
@@ -230,8 +228,8 @@ class PersistUtilTest {
         assertThatJson(result).inPath("$.properties.model.properties.test.configKey").isString().isEqualTo("bar");
         assertThatJson(result).inPath("$.properties.model.properties.withCustomPersistor.configPaths").isArray()
             .isEqualTo(new String[][]{{"config_key_from_persistor_1"}, {"config_key_from_persistor_2"}});
-        assertThatJson(result).inPath("$.properties.model.properties.withCustomPersistor").isObject()
-            .doesNotContainKey("configKey");
+        assertThatJson(result).inPath("$.properties.model.properties.withCustomPersistor.configKey").isString()
+            .isEqualTo("baz");
         assertThatJson(result).inPath("$.properties.model.properties.withCustomPersistorWithoutConfigKeys.configKey")
             .isString().isEqualTo("qux");
         assertThatJson(result).inPath("$.properties.model.properties.withCustomPersistorWithoutConfigKeys").isObject()

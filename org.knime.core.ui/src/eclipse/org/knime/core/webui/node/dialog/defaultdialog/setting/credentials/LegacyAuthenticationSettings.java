@@ -63,11 +63,12 @@ import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldBasedNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.AuthenticationType;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.AuthenticationTypeRef;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.RequiresPasswordProvider;
@@ -92,7 +93,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  *
  * @author Paul Bärnreuther
  */
-public final class LegacyAuthenticationSettings implements WidgetGroup {
+public final class LegacyAuthenticationSettings implements WidgetGroup, PersistableSettings {
 
     @Widget(title = "Authentication type", description = "The type of the used authentication.")
     @ValueReference(AuthenticationTypeRef.class)
@@ -138,7 +139,7 @@ public final class LegacyAuthenticationSettings implements WidgetGroup {
     }
 
     private abstract static class SettingsModelAuthenticationPersistor
-        extends NodeSettingsPersistorWithConfigKey<LegacyAuthenticationSettings> {
+        implements NodeSettingsPersistor<LegacyAuthenticationSettings> {
 
         /**
          * The name of a field in {@link LegacyAuthenticationSettings}
@@ -154,6 +155,8 @@ public final class LegacyAuthenticationSettings implements WidgetGroup {
 
         private AuthenticationSettings.SettingsModelAuthenticationPersistor m_settingsModelAuthenticationPersistor;
 
+        private final String m_configKey;
+
         /**
          * @return the an authentication type with true {@link AuthenticationType#requiresCredentials()} here to set
          *         this as the new selected option whenever
@@ -161,14 +164,16 @@ public final class LegacyAuthenticationSettings implements WidgetGroup {
          */
         abstract AuthenticationType getAuthenticationTypeForCredentials();
 
-        @Override
-        public void setConfigKey(final String configKey) {
-            super.setConfigKey(configKey);
-            m_authenticationSettingsPersistor = new FieldBasedNodeSettingsPersistor<>(AuthenticationSettings.class);
-            m_settingsModelAuthenticationPersistor = FieldNodeSettingsPersistor.createInstance(
-                AuthenticationSettings.SettingsModelAuthenticationPersistor.class, AuthenticationSettings.class,
-                configKey);
-            m_settingsModelAuthenticationPersistor.setConfigKey(configKey);
+        @SuppressWarnings("unchecked")
+        SettingsModelAuthenticationPersistor(final NodeSettingsPersistorContext<AuthenticationSettings> context) {
+            m_configKey = context.getConfigKey();
+            m_authenticationSettingsPersistor =
+                (NodeSettingsPersistor<AuthenticationSettings>)DefaultFieldNodeSettingsPersistorFactory
+                    .createDefaultPersistor(new PersistTreeFactory().createTree(AuthenticationSettings.class),
+                        m_configKey);
+            m_settingsModelAuthenticationPersistor =
+                new AuthenticationSettings.SettingsModelAuthenticationPersistor(m_configKey);
+
         }
 
         @Override
@@ -184,12 +189,11 @@ public final class LegacyAuthenticationSettings implements WidgetGroup {
         @Override
         public List<ConfigsDeprecation<LegacyAuthenticationSettings>> getConfigsDeprecations() {
             return List.of(new Builder<LegacyAuthenticationSettings>(this::loadFromSettingsModelSettings)//
-                .withDeprecatedConfigPath(getConfigKey(), KEY_LEGACY_CREDENTIALS)
-                .forNewConfigPath(getConfigKey(), SETTINGS_MODEL_KEY_CREDENTIAL)
-                .forNewConfigPath(getConfigKey(), SETTINGS_MODEL_KEY_PASSWORD)
-                .forNewConfigPath(getConfigKey(), SETTINGS_MODEL_KEY_USERNAME)//
-                .withDeprecatedConfigPath(getConfigKey(), KEY_TYPE)
-                .forNewConfigPath(getConfigKey(), SETTINGS_MODEL_KEY_TYPE)//
+                .withDeprecatedConfigPath(m_configKey, KEY_LEGACY_CREDENTIALS)
+                .forNewConfigPath(m_configKey, SETTINGS_MODEL_KEY_CREDENTIAL)
+                .forNewConfigPath(m_configKey, SETTINGS_MODEL_KEY_PASSWORD)
+                .forNewConfigPath(m_configKey, SETTINGS_MODEL_KEY_USERNAME)//
+                .withDeprecatedConfigPath(m_configKey, KEY_TYPE).forNewConfigPath(m_configKey, SETTINGS_MODEL_KEY_TYPE)//
                 .withMatcher(settings -> !m_settingsModelAuthenticationPersistor.isSavedWithNewConfigKeys(settings))
                 .build());
         }
@@ -220,6 +224,10 @@ public final class LegacyAuthenticationSettings implements WidgetGroup {
      */
     public static final class AuthTypeCredentialsToPasswordPersistor extends SettingsModelAuthenticationPersistor {
 
+        AuthTypeCredentialsToPasswordPersistor(final NodeSettingsPersistorContext<AuthenticationSettings> context) {
+            super(context);
+        }
+
         @Override
         AuthenticationType getAuthenticationTypeForCredentials() {
             return AuthenticationType.PWD;
@@ -234,6 +242,10 @@ public final class LegacyAuthenticationSettings implements WidgetGroup {
      * controlling flow variable for the associated username input.
      */
     public static final class AuthTypeCredentialsToUsernamePersistor extends SettingsModelAuthenticationPersistor {
+
+        AuthTypeCredentialsToUsernamePersistor(final NodeSettingsPersistorContext<AuthenticationSettings> context) {
+            super(context);
+        }
 
         @Override
         AuthenticationType getAuthenticationTypeForCredentials() {
@@ -250,6 +262,11 @@ public final class LegacyAuthenticationSettings implements WidgetGroup {
      */
     public static final class AuthTypeCredentialsToUsernameAndPasswordPersistor
         extends SettingsModelAuthenticationPersistor {
+
+        AuthTypeCredentialsToUsernameAndPasswordPersistor(
+            final NodeSettingsPersistorContext<AuthenticationSettings> context) {
+            super(context);
+        }
 
         @Override
         AuthenticationType getAuthenticationTypeForCredentials() {

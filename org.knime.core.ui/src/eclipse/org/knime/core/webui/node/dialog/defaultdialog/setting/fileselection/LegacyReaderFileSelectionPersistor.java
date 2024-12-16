@@ -53,8 +53,8 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 import org.knime.filehandling.core.data.location.FSLocationSerializationUtils;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 
@@ -64,7 +64,13 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.Settin
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
-public final class LegacyReaderFileSelectionPersistor extends NodeSettingsPersistorWithConfigKey<FileSelection> {
+public final class LegacyReaderFileSelectionPersistor implements NodeSettingsPersistor<FileSelection> {
+
+    private String m_configKey;
+
+    LegacyReaderFileSelectionPersistor(final NodeSettingsPersistorContext<FileSelection> context) {
+        m_configKey = context.getConfigKey();
+    }
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(LegacyReaderFileSelectionPersistor.class);
 
@@ -76,7 +82,6 @@ public final class LegacyReaderFileSelectionPersistor extends NodeSettingsPersis
         fileChooser.m_path = FSLocationSerializationUtils.loadFSLocation(fileChooserSettings.getConfig("path"));
         return fileChooser;
     }
-
 
     @SuppressWarnings("javadoc")
     public static void save(FileSelection fileChooser, final NodeSettingsWO settings, final String configKey) {
@@ -137,11 +142,11 @@ public final class LegacyReaderFileSelectionPersistor extends NodeSettingsPersis
 
     @Override
     public FileSelection load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return load(settings, getConfigKey());
+        return load(settings, m_configKey);
     }
 
     @Override
     public void save(final FileSelection obj, final NodeSettingsWO settings) {
-        save(obj, settings, getConfigKey());
+        save(obj, settings, m_configKey);
     }
 }

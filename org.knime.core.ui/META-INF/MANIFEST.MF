@@ -9,7 +9,7 @@ Bundle-ClassPath: knime-core-ui.jar,
  lib/slf4j-api-1.7.32.jar,
  lib/j2html-1.6.0.jar
 Bundle-Activator: org.knime.core.ui.CoreUIPlugin
-Bundle-Vendor: KNIME AG, Zurich, Switzerland
+Bundle-Vendor: KNIME AG
 Eclipse-BundleShape: dir
 Export-Package: org.knime.core.ui;x-internal:=true,
  org.knime.core.ui.component;x-internal:=true,
@@ -34,9 +34,8 @@ Export-Package: org.knime.core.ui;x-internal:=true,
  org.knime.core.webui.node.dialog.defaultdialog.history,
  org.knime.core.webui.node.dialog.defaultdialog.jsonforms;x-internal=true,
  org.knime.core.webui.node.dialog.defaultdialog.layout;x-internal:=true,
- org.knime.core.webui.node.dialog.defaultdialog.persistence;x-internal:=true,
- org.knime.core.webui.node.dialog.defaultdialog.persistence.field;x-internal:=true,
- org.knime.core.webui.node.dialog.defaultdialog.persistence.field.settingsmodel;x-internal:=true,
+ org.knime.core.webui.node.dialog.defaultdialog.persistence.api;x-internal:=true,
+ org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel;x-internal:=true,
  org.knime.core.webui.node.dialog.defaultdialog.setting;x-internal:=true,
  org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;x-internal:=true,
  org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection;x-internal:=true,

@@ -64,7 +64,7 @@ public final class ConfigPath {
 
     private final List<String> m_path;
 
-    private int size() {
+    int size() {
         return m_path.size();
     }
 

@@ -57,8 +57,8 @@ import org.junit.jupiter.api.Test;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.FieldNodeSettingsPersistorWithInferredConfigs;
 
 @SuppressWarnings("java:S2698") // we accept assertions without messages
 class ConfigMappingsTest {
@@ -68,7 +68,7 @@ class ConfigMappingsTest {
 
     @Test
     void testInferredConfigsFromConfigPaths() {
-        final var persistor = new FieldNodeSettingsPersistor<Integer>() {
+        final var persistor = new NodeSettingsPersistor<Integer>() {
             @Override
             public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
                 throw new UnsupportedOperationException("not used by tests");
@@ -99,7 +99,7 @@ class ConfigMappingsTest {
     @Test
     void testInferredConfigsFromConfigKey() {
         final var configKey = "configKey";
-        final var persistor = new NodeSettingsPersistorWithConfigKey<Integer>() {
+        final var persistor = new FieldNodeSettingsPersistorWithInferredConfigs<Integer>() {
 
             @Override
             public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -116,9 +116,12 @@ class ConfigMappingsTest {
                 return DEPRECATIONS;
             }
 
-        };
+            @Override
+            public String getConfigKey() {
+                return configKey;
+            }
 
-        persistor.setConfigKey(configKey);
+        };
 
         final var configMappings = persistor.getConfigMappings(0);
         assertThat(configMappings.m_children).hasSize(1);
@@ -129,7 +132,7 @@ class ConfigMappingsTest {
 
     @Test
     void throwsIfNewConfigPathsCannotBeInferred() {
-        final var persistor = new FieldNodeSettingsPersistor<Integer>() {
+        final var persistor = new NodeSettingsPersistor<Integer>() {
 
             @Override
             public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {

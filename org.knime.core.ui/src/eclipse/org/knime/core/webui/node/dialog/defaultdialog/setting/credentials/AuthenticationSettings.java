@@ -59,10 +59,10 @@ import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DefaultPersistorWithDeprecations;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultPersistorWithDeprecations;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -192,8 +192,17 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
      * @author Paul Bärnreuther
      */
     public static final class SettingsModelAuthenticationPersistor
-        extends NodeSettingsPersistorWithConfigKey<AuthenticationSettings>
         implements DefaultPersistorWithDeprecations<AuthenticationSettings> {
+
+        private final String m_configKey;
+
+        SettingsModelAuthenticationPersistor(final NodeSettingsPersistorContext<AuthenticationSettings> context) {
+            this(context.getConfigKey());
+        }
+
+        SettingsModelAuthenticationPersistor(final String configKey) {
+            m_configKey = configKey;
+        }
 
         /**
          * The name of a field in {@link AuthenticationSettings}
@@ -236,7 +245,7 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
 
         boolean isSavedWithNewConfigKeys(final NodeSettingsRO settings) {
             try {
-                return settings.getNodeSettings(getConfigKey()).containsKey(KEY_TYPE);
+                return settings.getNodeSettings(m_configKey).containsKey(KEY_TYPE);
             } catch (InvalidSettingsException ex) { // NOSONAR
                 return false;
             }
@@ -245,7 +254,7 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
         SettingsModelAuthentication loadModelFromSettings(final NodeSettingsRO settings)
             throws InvalidSettingsException {
             final var model =
-                new SettingsModelAuthentication(getConfigKey(), SettingsModelAuthentication.AuthenticationType.NONE);
+                new SettingsModelAuthentication(m_configKey, SettingsModelAuthentication.AuthenticationType.NONE);
             model.loadSettingsFrom(settings);
             return model;
         }
@@ -264,12 +273,12 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
         public List<ConfigsDeprecation<AuthenticationSettings>> getConfigsDeprecations() {
             return List
                 .of(new Builder<AuthenticationSettings>(settings -> loadFromModel(loadModelFromSettings(settings)))
-                    .withDeprecatedConfigPath(getConfigKey(), KEY_CREDENTIALS)
-                    .forNewConfigPath(getConfigKey(), SETTINGS_MODEL_KEY_CREDENTIAL)
-                    .forNewConfigPath(getConfigKey(), SETTINGS_MODEL_KEY_PASSWORD)
-                    .forNewConfigPath(getConfigKey(), SETTINGS_MODEL_KEY_USERNAME)
-                    .withDeprecatedConfigPath(getConfigKey(), KEY_TYPE)
-                    .forNewConfigPath(getConfigKey(), SETTINGS_MODEL_KEY_TYPE)//
+                    .withDeprecatedConfigPath(m_configKey, KEY_CREDENTIALS)
+                    .forNewConfigPath(m_configKey, SETTINGS_MODEL_KEY_CREDENTIAL)
+                    .forNewConfigPath(m_configKey, SETTINGS_MODEL_KEY_PASSWORD)
+                    .forNewConfigPath(m_configKey, SETTINGS_MODEL_KEY_USERNAME)
+                    .withDeprecatedConfigPath(m_configKey, KEY_TYPE)
+                    .forNewConfigPath(m_configKey, SETTINGS_MODEL_KEY_TYPE)//
                     .withMatcher(settings -> !isSavedWithNewConfigKeys(settings)).build());
         }
 

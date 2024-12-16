@@ -55,8 +55,8 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.FieldNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
@@ -127,7 +127,7 @@ class DefaultNodeSettingsWithAllWidgets implements DefaultNodeSettings {
     @Persist(configKey = "myNestedSettings")
     NestedSettings m_nestedSettingsRenamed = new NestedSettings();
 
-    static final class CustomPersistor implements FieldNodeSettingsPersistor<NestedSettings> {
+    static final class CustomPersistor implements NodeSettingsPersistor<NestedSettings> {
 
         @Override
         public NestedSettings load(final NodeSettingsRO settings) throws InvalidSettingsException {

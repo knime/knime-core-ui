@@ -44,6 +44,9 @@ const getSubConfigKeysRecursive = (
   if (schema.type === "array") {
     return getSubConfigKeysRecursive(schema.items, prefix);
   } else if (schema.type === "object") {
+    if (schema.propertiesConfigPaths) {
+      return schema.propertiesConfigPaths;
+    }
     const subConfigKeys: string[][] = [];
     Object.entries(schema.properties).forEach(([key, subschema]) => {
       const { configPaths, continueTraversal } = getNextConfigPathSegments({
@@ -119,6 +122,24 @@ export const getConfigPaths = ({
       configPaths = configPaths.map((p) => composePaths(p, segment));
       schema = schema.items;
     } else if (schema.type === "object") {
+      (schema.propertiesDeprecatedConfigKeys ?? []).forEach((part) =>
+        deprecatedConfigPathsCandidates.push(
+          createNewCandidate(part, configPaths),
+        ),
+      );
+
+      if (schema.propertiesConfigPaths) {
+        traversalIsAborted = true;
+        const propertiesConfigPaths =
+          schema.propertiesConfigPaths.map(composeMultiplePaths);
+        configPaths = configPaths.flatMap((parent) =>
+          propertiesConfigPaths.map((newSegment) =>
+            composePaths(parent, newSegment),
+          ),
+        );
+        continue;
+      }
+
       schema = schema.properties[segment] ?? {};
 
       (schema.deprecatedConfigKeys ?? []).forEach((part) =>

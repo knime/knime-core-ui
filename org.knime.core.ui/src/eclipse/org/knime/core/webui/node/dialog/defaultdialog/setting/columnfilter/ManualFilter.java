@@ -55,7 +55,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 
 /**
  * The sub-settings of the column filter which hold the information for filtering manually.

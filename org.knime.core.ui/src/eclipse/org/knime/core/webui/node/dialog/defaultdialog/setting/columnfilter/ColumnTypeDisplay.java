@@ -56,7 +56,7 @@ import java.util.Optional;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataTypeRegistry;
 import org.knime.core.data.ExtensibleUtilityFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 
 /**
  *

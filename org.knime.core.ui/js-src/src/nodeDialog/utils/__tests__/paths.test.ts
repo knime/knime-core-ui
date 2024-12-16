@@ -428,6 +428,73 @@ describe("paths", () => {
         },
       ]);
     });
+
+    it("detects propertiesDeprecatedConfigKeys", () => {
+      const persistSchema: PersistSchema = {
+        type: "object",
+        properties: {
+          model: {
+            type: "object",
+            propertiesDeprecatedConfigKeys: [
+              {
+                deprecated: [["deprecated"]],
+                new: [["mySetting_1"], ["myOtherSetting"]],
+              },
+            ],
+            properties: {
+              mySetting: {
+                configPaths: [["mySetting_1"], ["mySetting_2"]],
+              },
+              myOtherSetting: {},
+            },
+          },
+        },
+      };
+      expect(getConfigPaths("model.mySetting", persistSchema)).toStrictEqual([
+        {
+          configPath: "model.mySetting_1",
+          deprecatedConfigPaths: ["model.deprecated"],
+        },
+        {
+          configPath: "model.mySetting_2",
+          deprecatedConfigPaths: [],
+        },
+      ]);
+      expect(
+        getConfigPaths("model.myOtherSetting", persistSchema),
+      ).toStrictEqual([
+        {
+          configPath: "model.myOtherSetting",
+          deprecatedConfigPaths: ["model.deprecated"],
+        },
+      ]);
+    });
+
+    it("detects propertiesConfigPaths", () => {
+      const persistSchema: PersistSchema = {
+        type: "object",
+        properties: {
+          model: {
+            type: "object",
+            propertiesConfigPaths: [["mySetting_1"], ["mySetting_2"]],
+            properties: {
+              mySetting: {},
+              myOtherSetting: {},
+            },
+          },
+        },
+      };
+      expect(getConfigPaths("model.mySetting", persistSchema)).toStrictEqual([
+        {
+          configPath: "model.mySetting_1",
+          deprecatedConfigPaths: [],
+        },
+        {
+          configPath: "model.mySetting_2",
+          deprecatedConfigPaths: [],
+        },
+      ]);
+    });
   });
 
   describe("longest common prefixes", () => {

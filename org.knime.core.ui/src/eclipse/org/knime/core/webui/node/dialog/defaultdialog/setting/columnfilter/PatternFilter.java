@@ -56,7 +56,7 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 

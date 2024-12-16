@@ -51,26 +51,29 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.selection;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.EnumFieldPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.NodeSettingsPersistorWithConfigKey;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.EnumFieldPersistor;
 
 /**
  *
  * @author Paul Bärnreuther
  */
-public class SelectionCheckboxesToSelectionModePersistor extends NodeSettingsPersistorWithConfigKey<SelectionMode> {
+public class SelectionCheckboxesToSelectionModePersistor implements NodeSettingsPersistor<SelectionMode> {
+
+    private final String m_configKey;
+
+    SelectionCheckboxesToSelectionModePersistor(final NodeSettingsPersistorContext<SelectionMode> context) {
+        m_configKey = context.getConfigKey();
+        persistor = new EnumFieldPersistor<>(m_configKey, SelectionMode.class);
+
+    }
 
     private EnumFieldPersistor<SelectionMode> persistor;
 
     @Override
-    public void setConfigKey(final String configKey) {
-        super.setConfigKey(configKey);
-        persistor = new EnumFieldPersistor<>(configKey, SelectionMode.class);
-    }
-
-    @Override
     public SelectionMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        if (settings.containsKey(getConfigKey())) {
+        if (settings.containsKey(m_configKey)) {
             return persistor.load(settings);
         }
         if (settings.containsKey("publishSelection") && settings.containsKey("subscribeToSelection")) {

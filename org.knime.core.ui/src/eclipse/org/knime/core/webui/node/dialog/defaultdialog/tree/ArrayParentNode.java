@@ -54,7 +54,7 @@ import java.util.Collection;
 import java.util.function.Function;
 
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 
 /**
  * An instance of this class corresponds to an array widget, i.e. a widget whose subwidgets are repeated n times.

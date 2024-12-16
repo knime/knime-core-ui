@@ -50,7 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection;
 
 import java.util.Objects;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 
