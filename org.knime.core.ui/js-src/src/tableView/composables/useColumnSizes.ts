@@ -1,4 +1,4 @@
-import { type Ref, computed, reactive, ref, watch } from "vue";
+import { type Ref, computed, reactive, ref } from "vue";
 
 import type { ColumnSizes, TableViewDisplayProps } from "../types";
 import specialColumns from "../utils/specialColumns";
@@ -72,14 +72,6 @@ export default ({
   const defaultColumnSizeOverride: Ref<number | null> = ref(null);
   const availableWidth: Ref<number> = ref(0);
 
-  watch(autoColumnSizes, () => {
-    Reflect.ownKeys(autoColumnSizes.value).forEach((columnId) => {
-      if (!columnSizeOverrides[columnId]) {
-        columnSizeOverrides[columnId] = autoColumnSizes.value[columnId];
-      }
-    });
-  });
-
   const onColumnResize = (
     columnName: string | symbol,
     newColumnSize: number,
@@ -141,16 +133,34 @@ export default ({
       initialRemainingSkippedColumnSize.value,
   );
 
+  const columnSizeOverridesOrAutoSizes = computed(() =>
+    [
+      INDEX.id,
+      ROW_ID.id,
+      ...header.value.displayedColumns,
+      SKIPPED_REMAINING_COLUMNS_COLUMN.id,
+    ].reduce((acc, columnName) => {
+      acc[columnName] =
+        columnSizeOverrides[columnName] || autoColumnSizes.value[columnName];
+      return acc;
+    }, {} as ColumnSizes),
+  );
+
   const indexColumnSize = computed(
-    () => columnSizeOverrides[INDEX.id] || initialIndexColumnSize.value,
+    () =>
+      columnSizeOverridesOrAutoSizes.value[INDEX.id] ||
+      initialIndexColumnSize.value,
   );
   const rowKeyColumnSize = computed(
-    () => columnSizeOverrides[ROW_ID.id] || initialRowKeyColumnSize.value,
+    () =>
+      columnSizeOverridesOrAutoSizes.value[ROW_ID.id] ||
+      initialRowKeyColumnSize.value,
   );
   const remainingSkippedColumnSize = computed(
     () =>
-      columnSizeOverrides[SKIPPED_REMAINING_COLUMNS_COLUMN.id] ||
-      initialRemainingSkippedColumnSize.value,
+      columnSizeOverridesOrAutoSizes.value[
+        SKIPPED_REMAINING_COLUMNS_COLUMN.id
+      ] || initialRemainingSkippedColumnSize.value,
   );
 
   const columnSizes = computed(() => {
@@ -159,7 +169,7 @@ export default ({
         getDataColumnSizes({
           availableSpace: initialTableColumnsSizeTotal.value,
           displayedColumns: header.value.displayedColumns,
-          columnSizeOverrides,
+          columnSizeOverrides: columnSizeOverridesOrAutoSizes.value,
           defaultColumnSizeOverride: defaultColumnSizeOverride.value,
         }),
       )

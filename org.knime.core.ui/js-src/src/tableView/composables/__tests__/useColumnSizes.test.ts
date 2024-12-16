@@ -367,6 +367,22 @@ describe("useColumnSizes", () => {
       expect(columnSizes.value).toStrictEqual([0, 0, 200, 60, 340]);
     });
 
+    it("updates auto sizes when updated again", () => {
+      const { columnSizes, onUpdateAvailableWidth } =
+        useColumnSizes(initialDataMock);
+
+      const initialAvailableWidth = 600;
+      onUpdateAvailableWidth(initialAvailableWidth);
+
+      initialDataMock.autoColumnSizes.value = { col1: 55, col2: 55, col3: 55 };
+      onUpdateAvailableWidth(initialAvailableWidth);
+      expect(columnSizes.value).toStrictEqual([0, 0, 55, 55, 490]);
+
+      initialDataMock.autoColumnSizes.value = { col1: 75, col2: 75, col3: 75 };
+      onUpdateAvailableWidth(initialAvailableWidth);
+      expect(columnSizes.value).toStrictEqual([0, 0, 75, 75, 450]);
+    });
+
     it("does not use the ratio of the initial/new available width to update overrides when auto sizes active", async () => {
       const { columnSizes, onUpdateAvailableWidth } =
         useColumnSizes(initialDataMock);
