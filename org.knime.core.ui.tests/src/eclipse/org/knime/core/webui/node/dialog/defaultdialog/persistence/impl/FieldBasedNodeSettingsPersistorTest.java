@@ -719,7 +719,7 @@ class FieldBasedNodeSettingsPersistorTest {
 
     private static final class DefaultProviderSettings extends AbstractTestNodeSettings<DefaultProviderSettings> {
 
-        @Persist(defaultProvider = FooDefaultProvider.class, optional = true)
+        @Persistor(FooDefaultProvider.class)
         int m_foo = 42;
 
         private static final class FooDefaultProvider implements DefaultProvider<Integer> {

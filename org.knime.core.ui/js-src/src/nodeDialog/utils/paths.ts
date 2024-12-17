@@ -5,7 +5,6 @@ import {
   type DeprecatedConfigPathsCandidate,
   createNewCandidate,
   toConfigPathsWithDeprecatedConfigPaths,
-  updateCandidates,
 } from "./deprecatedPathsUtil";
 
 export const composePaths = (path1: string, path2: string) => {
@@ -113,7 +112,7 @@ export const getConfigPaths = ({
   let schema = persistSchema;
 
   let traversalIsAborted = false;
-  let deprecatedConfigPathsCandidates: DeprecatedConfigPathsCandidate[] = [];
+  const deprecatedConfigPathsCandidates: DeprecatedConfigPathsCandidate[] = [];
   for (const segment of segments) {
     if (traversalIsAborted) {
       return [];
@@ -159,17 +158,8 @@ export const getConfigPaths = ({
           composePaths(parent, newSegment),
         ),
       );
-
-      deprecatedConfigPathsCandidates = updateCandidates(
-        deprecatedConfigPathsCandidates,
-        new Set(nextComposedPathSegments),
-      );
     } else {
       configPaths = configPaths.map((parent) => composePaths(parent, segment));
-      deprecatedConfigPathsCandidates = updateCandidates(
-        deprecatedConfigPathsCandidates,
-        new Set([segment]),
-      );
     }
   }
 

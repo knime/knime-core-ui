@@ -48,11 +48,6 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.credentials;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.SettingsModelAuthenticationPersistor.SETTINGS_MODEL_KEY_CREDENTIAL;
-import static org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.SettingsModelAuthenticationPersistor.SETTINGS_MODEL_KEY_PASSWORD;
-import static org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.SettingsModelAuthenticationPersistor.SETTINGS_MODEL_KEY_TYPE;
-import static org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.SettingsModelAuthenticationPersistor.SETTINGS_MODEL_KEY_USERNAME;
-
 import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -189,11 +184,8 @@ public final class LegacyAuthenticationSettings implements WidgetGroup, Persista
         @Override
         public List<ConfigsDeprecation<LegacyAuthenticationSettings>> getConfigsDeprecations() {
             return List.of(new Builder<LegacyAuthenticationSettings>(this::loadFromSettingsModelSettings)//
-                .withDeprecatedConfigPath(m_configKey, KEY_LEGACY_CREDENTIALS)
-                .forNewConfigPath(m_configKey, SETTINGS_MODEL_KEY_CREDENTIAL)
-                .forNewConfigPath(m_configKey, SETTINGS_MODEL_KEY_PASSWORD)
-                .forNewConfigPath(m_configKey, SETTINGS_MODEL_KEY_USERNAME)//
-                .withDeprecatedConfigPath(m_configKey, KEY_TYPE).forNewConfigPath(m_configKey, SETTINGS_MODEL_KEY_TYPE)//
+                .withDeprecatedConfigPath(m_configKey, KEY_LEGACY_CREDENTIALS) //
+                .withDeprecatedConfigPath(m_configKey, KEY_TYPE) //
                 .withMatcher(settings -> !m_settingsModelAuthenticationPersistor.isSavedWithNewConfigKeys(settings))
                 .build());
         }

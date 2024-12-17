@@ -44,31 +44,28 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 2, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Dec 17, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
+package org.knime.core.webui.node.dialog.defaultdialog.persistence.internal;
 
-import java.util.List;
+import java.util.function.Predicate;
 
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.node.NodeSettingsRO;
 
 /**
- * Provides the default for a field.
+ * Used to resolve
+ * {@link org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder#withNewConfigsMissingMatcher()
+ * withNewConfigsMissingMatcher()}
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @param <T> the type of the field
+ * Instead of calling the test method, the framework checks whether the inferred new config keys (see
+ * {@link NodeSettingsPersistorWithInferredConfigs}) are present in the settings and returns true if they are not.
+ *
+ * @author Paul Bärnreuther
  */
-@FunctionalInterface
-public interface DefaultProvider<T> extends DefaultPersistorWithDeprecations<T> {
-
-    /**
-     * @return the default during loading
-     */
-    T getDefault();
+public final class NewSettingsMissingMatcher implements Predicate<NodeSettingsRO> {
 
     @Override
-    default List<ConfigsDeprecation<T>> getConfigsDeprecations() {
-        return List.of(ConfigsDeprecation.builder(settings -> getDefault()).build());
+    public boolean test(final NodeSettingsRO settings) {
+        throw new IllegalStateException("This should never be called");
     }
-
 }
