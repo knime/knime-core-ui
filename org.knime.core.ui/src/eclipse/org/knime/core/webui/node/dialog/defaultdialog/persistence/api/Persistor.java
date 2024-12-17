@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
 
+import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -68,7 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.FieldBase
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @Retention(RUNTIME)
-@Target({TYPE})
+@Target({TYPE, FIELD})
 public @interface Persistor {
 
     /**

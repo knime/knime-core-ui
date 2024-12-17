@@ -68,7 +68,7 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.PossibleColumnValue;
@@ -100,6 +100,13 @@ class CompatibleColumnChoicesStateProviderTest {
     void testChoicesFromCompatibleDataValueClassesSupplier() {
 
         class TestSettings implements DefaultNodeSettings {
+
+            static final class ColSelectPersistor extends LegacyColumnFilterPersistor {
+                public ColSelectPersistor() {
+                    super("col_select");
+                }
+            }
+
             @Widget(title = "The setting that determines what columns are applicable", description = "")
             @ValueSwitchWidget
             @ValueReference(ReferenceForSetting.class)
@@ -107,7 +114,7 @@ class CompatibleColumnChoicesStateProviderTest {
                 SettingsEnumThatDeterminesCompatibleColumnDataValues.BOTH;
 
             @Widget(title = "Test colum choices with only compatible column data types", description = "")
-            @Persist(configKey = "col_select", customPersistor = LegacyColumnFilterPersistor.class)
+            @Persistor(ColSelectPersistor.class)
             @ChoicesWidget(choicesProvider = ColumnProvider.class)
             ColumnFilter m_columnFilter = new ColumnFilter();
         }

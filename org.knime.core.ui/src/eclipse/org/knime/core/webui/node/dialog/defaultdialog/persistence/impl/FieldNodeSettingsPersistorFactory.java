@@ -63,6 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultPro
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NodeSettingsPersistorWithInferredConfigs;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
@@ -126,14 +127,12 @@ final class FieldNodeSettingsPersistorFactory {
         }
 
         var configKey = ConfigKeyUtil.getConfigKey(node);
-        var persist = node.getAnnotation(Persist.class);
-        if (persist.isPresent()) {
-            final var customPersistorClass = persist.get().customPersistor();
-            if (!customPersistorClass.equals(NodeSettingsPersistor.class)) {
-                final var customPersistor = createCustomPersistor(customPersistorClass, node.getType(), configKey);
-                return CustomPersistorUtil.prepareCustomPersistor(customPersistor,
-                    () -> createDefaultPersistor(node, configKey));
-            }
+        var persistor = node.getAnnotation(Persistor.class);
+        if (persistor.isPresent()) {
+            final var customPersistorClass = persistor.get().value();
+            final var customPersistor = createCustomPersistor(customPersistorClass, node.getType(), configKey);
+            return CustomPersistorUtil.prepareCustomPersistor(customPersistor,
+                () -> createDefaultPersistor(node, configKey));
         }
         return createDefaultPersistor(node, configKey);
 

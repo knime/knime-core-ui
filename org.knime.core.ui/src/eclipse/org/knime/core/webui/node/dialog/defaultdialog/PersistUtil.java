@@ -120,9 +120,9 @@ public final class PersistUtil {
 
     private static void addPersist(final ObjectNode objectNode, final Tree<PersistableSettings> persistTree) {
         if (!persistTree.isRoot()) {
-            addConfigKeys(objectNode, persistTree);
+            addFieldPersistFields(objectNode, persistTree);
         }
-        addDeprecatedPropertyConfigKeys(objectNode, persistTree);
+        setTypePersistorFields(objectNode, persistTree);
         final var properties = getObjectProperties(objectNode);
         persistTree.getChildrenByName().forEach((name, child) -> addPersist(properties, name, child));
     }
@@ -142,13 +142,13 @@ public final class PersistUtil {
     }
 
     private static void addPersist(final ObjectNode objectNode, final LeafNode<PersistableSettings> leafNode) {
-        addConfigKeys(objectNode, leafNode);
+        addFieldPersistFields(objectNode, leafNode);
     }
 
     private static void addPersist(final ObjectNode objectNode,
         final ArrayParentNode<PersistableSettings> arrayParentNode) {
         objectNode.put("type", "array");
-        addConfigKeys(objectNode, arrayParentNode);
+        addFieldPersistFields(objectNode, arrayParentNode);
         final var items = objectNode.putObject("items");
         addPersist(items, arrayParentNode.getElementTree());
     }
@@ -158,12 +158,10 @@ public final class PersistUtil {
         return objectNode.putObject("properties");
     }
 
-    private static void addConfigKeys(final ObjectNode node, final TreeNode<PersistableSettings> field) {
+    private static void addFieldPersistFields(final ObjectNode node, final TreeNode<PersistableSettings> field) {
         final var persistor = ConfigKeyUtil.extractFieldNodeSettingsPersistor(field);
         persistor.ifPresent(addNodeSettingsPersistorFields(node, "configPaths", "deprecatedConfigKeys"));
-        final var persistAnnotation = field.getAnnotation(Persist.class);
-        resolvePersistAnnotation(node, persistAnnotation);
-
+        resolvePersistAnnotation(node, field.getAnnotation(Persist.class));
     }
 
     private static void resolvePersistAnnotation(final ObjectNode node, final Optional<Persist> persistAnnotation) {
@@ -207,7 +205,7 @@ public final class PersistUtil {
         };
     }
 
-    private static void addDeprecatedPropertyConfigKeys(final ObjectNode node, final Tree<PersistableSettings> tree) {
+    private static void setTypePersistorFields(final ObjectNode node, final Tree<PersistableSettings> tree) {
         if (tree.getTypeAnnotation(Persistor.class).isEmpty()) {
             return;
         }

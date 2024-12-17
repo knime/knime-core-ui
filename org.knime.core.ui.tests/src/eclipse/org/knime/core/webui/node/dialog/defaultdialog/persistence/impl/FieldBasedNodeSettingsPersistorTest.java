@@ -61,12 +61,10 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.FieldBasedNodeSettingsPersistor;
 
 /**
  * Tests for the {@link FieldBasedNodeSettingsPersistor}.
@@ -337,7 +335,7 @@ class FieldBasedNodeSettingsPersistorTest {
     private static final class SettingsWithCustomFieldPersistor
         extends AbstractTestNodeSettings<SettingsWithCustomFieldPersistor> {
 
-        @Persist(customPersistor = CustomFieldPersistor.class)
+        @Persistor(CustomFieldPersistor.class)
         String m_foo;
 
         @Override
@@ -397,7 +395,7 @@ class FieldBasedNodeSettingsPersistorTest {
     }
 
     private static final class NoEmptyConstuctorFieldPersistorSetings implements DefaultNodeSettings {
-        @Persist(customPersistor = NoEmptyConstructorFieldPersistor.class)
+        @Persistor(NoEmptyConstructorFieldPersistor.class)
         String m_foo;
     }
 
@@ -424,7 +422,7 @@ class FieldBasedNodeSettingsPersistorTest {
     }
 
     private static final class FailingConstructorFieldPersistorSettings implements DefaultNodeSettings {
-        @Persist(customPersistor = FailingConstructorFieldPersistor.class)
+        @Persistor(FailingConstructorFieldPersistor.class)
         String m_foo;
     }
 
@@ -433,7 +431,7 @@ class FieldBasedNodeSettingsPersistorTest {
     }
 
     private static final class AbstractCustomFieldPersistorSettings implements DefaultNodeSettings {
-        @Persist(customPersistor = AbstractCustomFieldPersistor.class)
+        @Persistor(AbstractCustomFieldPersistor.class)
         String m_foo;
     }
 
@@ -460,7 +458,7 @@ class FieldBasedNodeSettingsPersistorTest {
 
     private static final class PrivateConstructorPersistorSettings
         extends AbstractTestNodeSettings<PrivateConstructorPersistorSettings> {
-        @Persist(customPersistor = PrivateConstructorPersistor.class)
+        @Persistor(PrivateConstructorPersistor.class)
         String m_foo;
 
         @Override

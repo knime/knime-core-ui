@@ -79,12 +79,7 @@ public final class ConfigKeyUtil {
          * There might not exist a persistor in some cases where the persistence is defined on a parent level class or
          * field.
          */
-        return FieldNodeSettingsPersistorFactory.getCustomOrDefaultPersistorIfPresent(node).flatMap(persistor -> {
-            if (persistor instanceof NodeSettingsPersistor<?> fieldNodeSettingsPersistor) {
-                return Optional.of(fieldNodeSettingsPersistor);
-            }
-            return Optional.empty();
-        });
+        return FieldNodeSettingsPersistorFactory.getCustomOrDefaultPersistorIfPresent(node);
 
     }
 

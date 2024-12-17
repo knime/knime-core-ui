@@ -53,7 +53,7 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.FieldBasedNodeSettingsPersistor;
 
 /**
@@ -67,7 +67,7 @@ class StringToColumnSelectionPersistorTest {
 
     private static final class StringToColumnSelectionPersistorSettings implements DefaultNodeSettings {
 
-        @Persist(customPersistor = StringToColumnSelectionPersistor.class)
+        @Persistor(StringToColumnSelectionPersistor.class)
         ColumnSelection m_foo;
     }
 
