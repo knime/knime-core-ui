@@ -48,7 +48,9 @@
  */
 package org.knime.core.ui.wrapper;
 
+import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.SingleNodeContainer;
+import org.knime.core.node.workflow.SubNodeContainer;
 import org.knime.core.ui.node.workflow.SingleNodeContainerUI;
 import org.w3c.dom.Element;
 
@@ -56,8 +58,10 @@ import org.w3c.dom.Element;
  * UI-interface implementation that wraps a {@link SingleNodeContainer}.
  *
  * @author Martin Horn, University of Konstanz
+ * @param <W> the type of the wrapped node container
  */
-public class SingleNodeContainerWrapper<W extends SingleNodeContainer> extends NodeContainerWrapper<W> implements SingleNodeContainerUI {
+public abstract class SingleNodeContainerWrapper<W extends SingleNodeContainer> extends NodeContainerWrapper<W>
+    implements SingleNodeContainerUI {
 
     /**
      * @param delegate the single node container to be wrapped
@@ -72,8 +76,14 @@ public class SingleNodeContainerWrapper<W extends SingleNodeContainer> extends N
      * @param snc the object to be wrapped
      * @return a new wrapper or a already existing one
      */
-    public static final SingleNodeContainerWrapper wrap(final SingleNodeContainer snc) {
-        return (SingleNodeContainerWrapper)Wrapper.wrapOrGet(snc, o -> new SingleNodeContainerWrapper(o));
+    public static final SingleNodeContainerWrapper<? extends SingleNodeContainer> wrap(final SingleNodeContainer snc) {
+        if (snc instanceof NativeNodeContainer nnc) {
+            return NativeNodeContainerWrapper.wrap(nnc);
+        } else if (snc instanceof SubNodeContainer component) {
+            return SubNodeContainerWrapper.wrap(component);
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 
     @Override
