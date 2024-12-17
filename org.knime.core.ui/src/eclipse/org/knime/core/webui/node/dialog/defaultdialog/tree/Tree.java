@@ -52,6 +52,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -82,12 +83,17 @@ public final class Tree<S> extends TreeNode<S> {
 
     private final BiMap<TreeNode<S>, String> m_childNames = HashBiMap.create();
 
+    private final Map<Class<? extends Annotation>, Annotation> m_treeClassAnnotations;
+
     private final Class<? extends S> m_treeClass;
 
     Tree(final Tree<S> parent, final SettingsType settingsType, final Class<? extends S> treeClass,
         final Function<Class<? extends Annotation>, Annotation> annotations,
-        final Collection<Class<? extends Annotation>> possibleAnnotations, final Field underlyingField) {
+        final Collection<Class<? extends Annotation>> possibleAnnotations,
+        final Function<Class<? extends Annotation>, Annotation> treeClassAnnotations,
+        final Collection<Class<? extends Annotation>> possibleTreeClassAnnotations, final Field underlyingField) {
         super(parent, settingsType, treeClass, annotations, possibleAnnotations, underlyingField);
+        m_treeClassAnnotations = toMap(treeClassAnnotations, possibleTreeClassAnnotations);
         m_treeClass = treeClass;
     }
 
@@ -174,6 +180,18 @@ public final class Tree<S> extends TreeNode<S> {
             return Stream.concat(Stream.of(node), treeNode.getWidgetAndWidgetTreeNodes());
         }
         return Stream.of(node);
+    }
+
+    /**
+     * This method is to be used instead of {@link #getAnnotation} if the annotation targets the class of the tree.
+     *
+     * @param <T> the type of the annotation
+     * @param annotationClass the class of the annotation
+     * @return the annotation associated to the type of this node
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Annotation> Optional<T> getTypeAnnotation(final Class<T> annotationClass) {
+        return Optional.ofNullable((T)this.m_treeClassAnnotations.get(annotationClass));
     }
 
 }

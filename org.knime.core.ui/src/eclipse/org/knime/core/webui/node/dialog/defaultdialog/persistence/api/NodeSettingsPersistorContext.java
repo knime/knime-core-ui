@@ -51,7 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
 /**
  * A context that is available in {@link NodeSettingsPersistor}s providing additional information. It can be
  * accessed by adding a constructor with this type as a single parameter.
- *
+ * TODO: Rename to PersistorContext
  * @param <T> the type of the persisted object
  * @author Paul Bärnreuther
  */
