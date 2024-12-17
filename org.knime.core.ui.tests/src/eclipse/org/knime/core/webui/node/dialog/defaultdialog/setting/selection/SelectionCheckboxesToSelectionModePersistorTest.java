@@ -56,7 +56,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.FieldBasedNodeSettingsPersistor;
 
 /**
@@ -70,7 +70,7 @@ class SelectionCheckboxesToSelectionModePersistorTest {
 
     private static final class TestSettings implements DefaultNodeSettings {
 
-        @Persist(customPersistor = SelectionCheckboxesToSelectionModePersistor.class)
+        @Persistor(SelectionCheckboxesToSelectionModePersistor.class)
         SelectionMode m_selectionMode;
     }
 

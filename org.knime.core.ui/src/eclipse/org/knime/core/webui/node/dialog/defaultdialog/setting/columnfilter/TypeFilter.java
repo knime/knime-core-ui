@@ -63,8 +63,8 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -84,7 +84,7 @@ class TypeFilter implements PersistableSettings {
      * Additional information necessary to display the types in the dialog. This has to be persisted in order to display
      * previously selected types stored in {@link #m_selectedTypes} which are not present in the table anymore.
      */
-    @Persist(customPersistor = ColumnTypeDisplaysPersistor.class)
+    @Persistor(ColumnTypeDisplaysPersistor.class)
     ColumnTypeDisplay[] m_typeDisplays = new ColumnTypeDisplay[0]; //NOSONAR
 
     /**

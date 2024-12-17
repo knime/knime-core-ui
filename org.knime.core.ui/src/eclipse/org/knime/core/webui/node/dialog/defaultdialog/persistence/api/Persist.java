@@ -73,16 +73,6 @@ public @interface Persist {
     String configKey() default "";
 
     /**
-     * Optional argument that allows to specify a custom persistor for a field. For accessing the {@link #configKey()}
-     * within this persistor use a subclass of {@link NodeSettingsPersistorWithConfigKey}. Otherwise the
-     * {@link #configKey()} is ignored whenever a customPersistor is defined.
-     *
-     * @return the class of the customPersistor
-     */
-    @SuppressWarnings("rawtypes") // annotations and generics don't mix well
-    Class<? extends NodeSettingsPersistor> customPersistor() default NodeSettingsPersistor.class;
-
-    /**
      * Optional argument that allows to hide a setting in the flow variable tab.
      *
      * @return true if the setting should be hidden in the flow variable tab.

@@ -51,7 +51,7 @@ import org.junit.jupiter.api.Test;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.FieldBasedNodeSettingsPersistor;
 
 /**
@@ -65,7 +65,7 @@ class StringArrayToColumnFilterPersistorTest {
 
     private static final class StringArrayToColumnFilterPersistorSettings implements DefaultNodeSettings {
 
-        @Persist(customPersistor = StringArrayToColumnFilterPersistor.class)
+        @Persistor(StringArrayToColumnFilterPersistor.class)
         ColumnFilter m_foo;
     }
 

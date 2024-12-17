@@ -77,7 +77,7 @@ public final class PersistTreeFactory extends TreeFactory<PersistableSettings> {
             false));
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_LEAF_ANNOTATIONS =
-        List.of(Persist.class, LatentWidget.class);
+        List.of(Persist.class, Persistor.class, LatentWidget.class);
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_ARRAY_ANNOTATIONS = POSSIBLE_LEAF_ANNOTATIONS;
 

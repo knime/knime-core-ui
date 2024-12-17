@@ -65,6 +65,7 @@ import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Depreca
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
@@ -105,7 +106,7 @@ class PersistUtilTest {
 
     private static class SettingWithCustomPersistor implements PersistableSettings {
 
-        @Persist(customPersistor = CustomPersistor.class)
+        @Persistor(CustomPersistor.class)
         public int test;
     }
 
@@ -129,7 +130,7 @@ class PersistUtilTest {
 
     private static class SettingWithCustomPersistorWithPaths implements PersistableSettings {
 
-        @Persist(customPersistor = CustomPersistorWithPaths.class)
+        @Persistor(CustomPersistorWithPaths.class)
         public int test;
     }
 
@@ -153,7 +154,7 @@ class PersistUtilTest {
 
     private static class SettingWithCustomPersistorWithKeysContainingDots implements PersistableSettings {
 
-        @Persist(customPersistor = CustomPersistorWithKeysContainingDots.class)
+        @Persistor(CustomPersistorWithKeysContainingDots.class)
         public int test;
     }
 
@@ -193,30 +194,12 @@ class PersistUtilTest {
             public int nested;
         }
 
-        static final class CustomPersistorWithConfigKeys implements TestPersistor<String> {
-
-            @Override
-            public String[] getConfigKeys() {
-                return new String[]{"config_key_from_persistor_1", "config_key_from_persistor_2"};
-            }
-
-        }
-
-        static final class CustomPersistorWithoutConfigKeys implements TestPersistor<String> {
-
-        }
-
         @Persist(configKey = "foo")
         public NestedSettings nestedSettings;
 
         @Persist(configKey = "bar")
         public int test;
 
-        @Persist(configKey = "baz", customPersistor = CustomPersistorWithConfigKeys.class)
-        public String withCustomPersistor;
-
-        @Persist(configKey = "qux", customPersistor = CustomPersistorWithoutConfigKeys.class)
-        public String withCustomPersistorWithoutConfigKeys;
     }
 
     @Test
@@ -226,15 +209,6 @@ class PersistUtilTest {
         assertThatJson(result).inPath("$.properties.model.properties.nestedSettings.configKey").isString()
             .isEqualTo("foo");
         assertThatJson(result).inPath("$.properties.model.properties.test.configKey").isString().isEqualTo("bar");
-        assertThatJson(result).inPath("$.properties.model.properties.withCustomPersistor.configPaths").isArray()
-            .isEqualTo(new String[][]{{"config_key_from_persistor_1"}, {"config_key_from_persistor_2"}});
-        assertThatJson(result).inPath("$.properties.model.properties.withCustomPersistor.configKey").isString()
-            .isEqualTo("baz");
-        assertThatJson(result).inPath("$.properties.model.properties.withCustomPersistorWithoutConfigKeys.configKey")
-            .isString().isEqualTo("qux");
-        assertThatJson(result).inPath("$.properties.model.properties.withCustomPersistorWithoutConfigKeys").isObject()
-            .doesNotContainKey("configPaths");
-
     }
 
     private static class CustomPersistorWithDeprecatedConfigs implements TestPersistor<Integer> {
@@ -246,37 +220,21 @@ class PersistUtilTest {
 
         @Override
         public List<ConfigsDeprecation<Integer>> getConfigsDeprecations() {
-            DeprecationLoader<Integer> dummyLoader = settings -> {
-                throw new IllegalStateException("Should not be called within this test");
-            };
-            return List.of(//
-                new Builder<Integer>(dummyLoader)//
-                    .withDeprecatedConfigPath("A", "B")//
-                    .withDeprecatedConfigPath("C")//
-                    .forNewConfigPath("D", "E")//
-                    .forNewConfigPath("F")//
-                    .build(), //
-                new Builder<Integer>(dummyLoader)//
-                    .withDeprecatedConfigPath("G", "H")//
-                    .forNewConfigPath("I", "J")//
-                    .build(), //
-                new Builder<Integer>(dummyLoader)//
-                    .withDeprecatedConfigPath("K", "L")//
-                    .build());
+            return getDummyConfigsDeprecations();
         }
 
     }
 
-    private static class SettingWithCustomPersistorWithDeprecatedConfigs implements PersistableSettings {
+    private static class SettingWithCustomFieldPersistorWithDeprecatedConfigs implements PersistableSettings {
 
-        @Persist(customPersistor = CustomPersistorWithDeprecatedConfigs.class)
+        @Persistor(CustomPersistorWithDeprecatedConfigs.class)
         @Widget(title = "my_title", description = "")
         public int test;
     }
 
     @Test
-    void testConfigKeyFromCustomPersistorWithDeprecatedConfigs() throws JsonProcessingException {
-        final var result = getPersistSchema(SettingWithCustomPersistorWithDeprecatedConfigs.class);
+    void testConfigKeyFromCustomFieldPersistorWithDeprecatedConfigs() throws JsonProcessingException {
+        final var result = getPersistSchema(SettingWithCustomFieldPersistorWithDeprecatedConfigs.class);
         assertThatJson(result).inPath("$.properties.model.properties.test.deprecatedConfigKeys").isArray().hasSize(3);
         assertThatJson(result).inPath("$.properties.model.properties.test.deprecatedConfigKeys[0].deprecated").isArray()
             .isEqualTo(new String[][]{{"A", "B"}, {"C"}});
@@ -290,5 +248,89 @@ class PersistUtilTest {
             .isEqualTo(new String[][]{{"K", "L"}});
         assertThatJson(result).inPath("$.properties.model.properties.test.deprecatedConfigKeys[2].new").isArray()
             .isEqualTo(new String[][]{{}});
+    }
+
+    private static class CustomClassPersistorWithDeprecatedConfigs
+        implements TestPersistor<SettingWithCustomClassPersistorWithDeprecatedConfigs> {
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{"X", "Y"}, {"Z"}};
+        }
+
+        @Override
+        public List<ConfigsDeprecation<SettingWithCustomClassPersistorWithDeprecatedConfigs>> getConfigsDeprecations() {
+            return getDummyConfigsDeprecations();
+        }
+
+    }
+
+    @Persistor(CustomClassPersistorWithDeprecatedConfigs.class)
+    private static class SettingWithCustomClassPersistorWithDeprecatedConfigs implements PersistableSettings {
+
+        @Widget(title = "my_title", description = "")
+        public int test;
+    }
+
+    @Test
+    void testConfigKeyFromCustomClassPersistorWithDeprecatedConfigs() throws JsonProcessingException {
+        final var result = getPersistSchema(SettingWithCustomClassPersistorWithDeprecatedConfigs.class);
+        assertThatJson(result).inPath("$.properties.model.propertiesDeprecatedConfigKeys").isArray().hasSize(3);
+        assertThatJson(result).inPath("$.properties.model.propertiesDeprecatedConfigKeys[0].deprecated").isArray()
+            .isEqualTo(new String[][]{{"A", "B"}, {"C"}});
+        assertThatJson(result).inPath("$.properties.model.propertiesDeprecatedConfigKeys[0].new").isArray()
+            .isEqualTo(new String[][]{{"D", "E"}, {"F"}});
+        assertThatJson(result).inPath("$.properties.model.propertiesDeprecatedConfigKeys[1].deprecated").isArray()
+            .isEqualTo(new String[][]{{"G", "H"}});
+        assertThatJson(result).inPath("$.properties.model.propertiesDeprecatedConfigKeys[1].new").isArray()
+            .isEqualTo(new String[][]{{"I", "J"}});
+        assertThatJson(result).inPath("$.properties.model.propertiesDeprecatedConfigKeys[2].deprecated").isArray()
+            .isEqualTo(new String[][]{{"K", "L"}});
+        assertThatJson(result).inPath("$.properties.model.propertiesDeprecatedConfigKeys[2].new").isArray()
+            .isEqualTo(new String[][]{{}});
+
+        assertThatJson(result).inPath("$.properties.model.propertiesConfigPaths").isArray().hasSize(2);
+        assertThatJson(result).inPath("$.properties.model.propertiesConfigPaths[0]").isArray()
+            .isEqualTo(new String[]{"X", "Y"});
+        assertThatJson(result).inPath("$.properties.model.propertiesConfigPaths[1]").isArray()
+            .isEqualTo(new String[]{"Z"});
+    }
+
+    private static class SettingsWithCustomFieldAndClassPersistor implements PersistableSettings {
+        @Persistor(CustomClassPersistorWithDeprecatedConfigs.class)
+        public SettingWithCustomClassPersistorWithDeprecatedConfigs bothPersistors;
+    }
+
+    @Test
+    void testConfigKeyFromCustomFieldAndClassPersistorWithDeprecatedConfigs() throws JsonProcessingException {
+        final var result = getPersistSchema(SettingsWithCustomFieldAndClassPersistor.class);
+        assertThatJson(result).inPath("$.properties.model.properties.bothPersistors.propertiesDeprecatedConfigKeys")
+            .isArray().hasSize(3);
+        assertThatJson(result).inPath("$.properties.model.properties.bothPersistors.propertiesConfigPaths").isArray()
+            .hasSize(2);
+        assertThatJson(result).inPath("$.properties.model.properties.bothPersistors.deprecatedConfigKeys").isArray()
+            .hasSize(3);
+        assertThatJson(result).inPath("$.properties.model.properties.bothPersistors.configPaths").isArray().hasSize(2);
+
+    }
+
+    private static <T> List<ConfigsDeprecation<T>> getDummyConfigsDeprecations() {
+        DeprecationLoader<T> dummyLoader = settings -> {
+            throw new IllegalStateException("Should not be called within this test");
+        };
+        return List.of(//
+            new Builder<T>(dummyLoader)//
+                .withDeprecatedConfigPath("A", "B")//
+                .withDeprecatedConfigPath("C")//
+                .forNewConfigPath("D", "E")//
+                .forNewConfigPath("F")//
+                .build(), //
+            new Builder<T>(dummyLoader)//
+                .withDeprecatedConfigPath("G", "H")//
+                .forNewConfigPath("I", "J")//
+                .build(), //
+            new Builder<T>(dummyLoader)//
+                .withDeprecatedConfigPath("K", "L")//
+                .build());
     }
 }

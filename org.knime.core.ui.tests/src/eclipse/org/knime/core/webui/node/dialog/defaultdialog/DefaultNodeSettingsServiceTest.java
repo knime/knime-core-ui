@@ -265,7 +265,7 @@ class DefaultNodeSettingsServiceTest {
 
         }
 
-        @Persist(customPersistor = MyLegacyPersistor.class)
+        @Persistor(MyLegacyPersistor.class)
         String m_value;
 
         MigratedSettings() {
@@ -326,7 +326,7 @@ class DefaultNodeSettingsServiceTest {
 
         }
 
-        @Persist(customPersistor = MyLegacyPersistorWithLoad.class)
+        @Persistor(MyLegacyPersistorWithLoad.class)
         String m_value;
 
         MigratedSettingsWithLoad() {
@@ -385,7 +385,7 @@ class DefaultNodeSettingsServiceTest {
             }
         }
 
-        @Persist(customPersistor = MyLegacyPersistorWithFailingLoad.class)
+        @Persistor(MyLegacyPersistorWithFailingLoad.class)
         String m_value;
 
         MigratedSettingsWithFailingLoad() {
