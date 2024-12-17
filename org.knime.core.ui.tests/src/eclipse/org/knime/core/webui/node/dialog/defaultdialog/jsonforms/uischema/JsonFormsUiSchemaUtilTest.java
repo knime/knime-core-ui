@@ -469,27 +469,34 @@ class JsonFormsUiSchemaUtilTest {
 
     static class TestFieldWithTwoLayoutAnnotationsSettings implements DefaultNodeSettings {
 
-        @Section
+        @Section(title = "Section1")
         interface Section1 {
         }
 
-        @Section
+        @Section(title = "Section2")
         interface Section2 {
         }
 
-        @Layout(Section1.class)
+        @Layout(Section2.class)
         class TwoAnnotationsFieldClass implements WidgetGroup {
+
+            @Widget(title = "", description = "")
+            String m_setting;
 
         }
 
-        @Layout(Section2.class)
+        @Layout(Section1.class)
         TwoAnnotationsFieldClass m_settingWithTowAnnotations;
     }
 
     @Test
-    void testThrowsIfThereIsAFieldAndAFieldClassAnnotationForAField() {
-        assertThrows(IllegalStateException.class,
-            () -> buildTestUiSchema(TestFieldWithTwoLayoutAnnotationsSettings.class));
+    void testOverwritesClassAnnotationsWithFieldAnnotationsIfBothAreGiven() {
+        final var response = buildTestUiSchema(TestFieldWithTwoLayoutAnnotationsSettings.class);
+
+        assertThatJson(response).inPath("$.elements").isArray().hasSize(1);
+        assertThatJson(response).inPath("$.elements[0].type").isString().isEqualTo("Section");
+        assertThatJson(response).inPath("$.elements[0].label").isString().isEqualTo("Section1");
+        assertThatJson(response).inPath("$.elements[0].elements[0].type").isString().isEqualTo("Control");
     }
 
     @Test

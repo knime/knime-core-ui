@@ -113,7 +113,7 @@ public final class NodeSettingsPersistorFactory {
     @SuppressWarnings({"javadoc", "unchecked"})
     public static <S extends PersistableSettings> NodeSettingsPersistor<S>
         createPersistor(final Tree<PersistableSettings> tree) {
-        return createPersistor((Class<S>)tree.getType(), tree.getAnnotation(Persistor.class), () -> tree);
+        return createPersistor((Class<S>)tree.getType(), tree.getTypeAnnotation(Persistor.class), () -> tree);
     }
 
     /**

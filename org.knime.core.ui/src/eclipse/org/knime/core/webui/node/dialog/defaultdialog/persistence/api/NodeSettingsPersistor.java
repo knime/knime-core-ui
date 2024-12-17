@@ -62,8 +62,8 @@ import org.knime.core.webui.node.dialog.configmapping.ConfigMappings;
 import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.DeprecationLoader;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.FieldNodeSettingsPersistorWithInferredConfigs;
 import org.knime.core.webui.node.dialog.configmapping.NewAndDeprecatedConfigPaths;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.FieldNodeSettingsPersistorWithInferredConfigs;
 
 /**
  * A {@link NodeSettingsPersistor} that persists a single field of a settings object. Implementing classes must

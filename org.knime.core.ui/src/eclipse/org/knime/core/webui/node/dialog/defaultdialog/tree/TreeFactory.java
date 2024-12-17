@@ -50,10 +50,12 @@ package org.knime.core.webui.node.dialog.defaultdialog.tree;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.webui.node.dialog.SettingsType;
@@ -85,11 +87,32 @@ public abstract class TreeFactory<S> {
 
     private final Collection<Class<? extends Annotation>> m_possibleTreeAnnotations;
 
-    private final Collection<Class<? extends Annotation>> m_possibleTreeClassAnnotations;
-
     private final Collection<Class<? extends Annotation>> m_possibleLeafNodeAnnotations;
 
     private final Collection<Class<? extends Annotation>> m_possibleArrayNodeAnnotations;
+
+    private Collection<Class<? extends Annotation>> m_possibleTreeClassAnnotations;
+
+    private Collection<Class<? extends Annotation>> m_possibleTreeClassAnnotationsInterpretedAsFieldAnnotations;
+
+    /**
+     * @param annotationClass
+     * @param canBeInterpretedAsFieldAnnotation whether the annotation would have the same effect if set on the
+     *            containing field instead of on the class. Only annotations where this is false can be accessed via
+     *            {@link Tree#getTypeAnnotation(Class)}.
+     */
+    public record ClassAnnotationSpec(Class<? extends Annotation> annotationClass,
+        boolean canBeInterpretedAsFieldAnnotation) {
+
+        /**
+         * Per default, the annotation can be interpreted as a field annotation.
+         *
+         * @param annotationClass
+         */
+        public ClassAnnotationSpec(final Class<? extends Annotation> annotationClass) {
+            this(annotationClass, true);
+        }
+    }
 
     /**
      * @param possibleTreeAnnotations the annotations that are possible for tree nodes, i.e. either on the field or on
@@ -101,13 +124,26 @@ public abstract class TreeFactory<S> {
      * @param possibleArrayNodeAnnotations the annotations that are possible on fields which are arrays of S
      */
     protected TreeFactory(final Collection<Class<? extends Annotation>> possibleTreeAnnotations,
-        final Collection<Class<? extends Annotation>> possibleTreeClassAnnotations,
+        final Collection<ClassAnnotationSpec> possibleTreeClassAnnotations,
         final Collection<Class<? extends Annotation>> possibleLeafNodeAnnotations,
         final Collection<Class<? extends Annotation>> possibleArrayNodeAnnotations) {
         m_possibleTreeAnnotations = possibleTreeAnnotations;
-        m_possibleTreeClassAnnotations = possibleTreeClassAnnotations;
+
+        m_possibleTreeClassAnnotations = getFilteredCollection(possibleTreeClassAnnotations,
+            classAnnotation -> !classAnnotation.canBeInterpretedAsFieldAnnotation());
+        m_possibleTreeClassAnnotationsInterpretedAsFieldAnnotations =
+            getFilteredCollection(possibleTreeClassAnnotations, ClassAnnotationSpec::canBeInterpretedAsFieldAnnotation);
         m_possibleLeafNodeAnnotations = possibleLeafNodeAnnotations;
         m_possibleArrayNodeAnnotations = possibleArrayNodeAnnotations;
+    }
+
+    private static Collection<Class<? extends Annotation>> getFilteredCollection(
+        final Collection<ClassAnnotationSpec> possibleTreeClassAnnotations,
+        final Predicate<ClassAnnotationSpec> filterPredicate) {
+        final Collection<Class<? extends Annotation>> filteredTreeClassAnnotations = new ArrayList<>();
+        possibleTreeClassAnnotations.stream().filter(filterPredicate).map(ClassAnnotationSpec::annotationClass)
+            .forEach(filteredTreeClassAnnotations::add);
+        return filteredTreeClassAnnotations;
     }
 
     /**
@@ -137,11 +173,18 @@ public abstract class TreeFactory<S> {
     }
 
     private Tree<S> createTree(final JavaType rootType, final SettingsType settingsType) {
+        final Function<Class<? extends Annotation>, Annotation> getAnnotationFromClass =
+            getAnnotationMethodFromType(rootType);
         @SuppressWarnings("unchecked")
-        final var tree = new Tree<S>(null, settingsType, (Class<? extends S>)rootType.getRawClass(),
-            rootType.getRawClass()::getAnnotation, m_possibleTreeAnnotations, null);
+        final var tree =
+            new Tree<S>(null, settingsType, (Class<? extends S>)rootType.getRawClass(), getAnnotationFromClass,
+                m_possibleTreeAnnotations, getAnnotationFromClass, m_possibleTreeClassAnnotations, null);
         populateTree(tree, rootType);
         return tree;
+    }
+
+    private static Function<Class<? extends Annotation>, Annotation> getAnnotationMethodFromType(final JavaType type) {
+        return type.getRawClass()::getAnnotation;
     }
 
     /**
@@ -330,40 +373,31 @@ public abstract class TreeFactory<S> {
         }
 
         Tree<S> buildTree(final JavaType type) {
-            return addedToParent(m_name, createIntermediateTree(m_parent, type,
-                annotationClass -> getAnnotationFromFieldOrClass(type.getRawClass(), annotationClass)));
+            return addedToParent(m_name, createIntermediateTree(m_parent, type));
         }
 
-        private Tree<S> createIntermediateTree(final Tree<S> parent, final JavaType treeType,
-            final Function<Class<? extends Annotation>, Annotation> annotations) {
+        private Tree<S> createIntermediateTree(final Tree<S> parent, final JavaType treeType) {
+            final var getAnnotationFromClass = getAnnotationMethodFromType(treeType);
             @SuppressWarnings("unchecked")
-            final var tree = new Tree<>(parent, parent.getSettingsType(), (Class<? extends S>)treeType.getRawClass(),
-                annotations, m_possibleTreeAnnotations, m_underlyingField);
+            final var tree = new Tree<S>(parent, parent.getSettingsType(), (Class<? extends S>)treeType.getRawClass(),
+                getAnnotationFromFieldOrClass(getAnnotationFromClass), m_possibleTreeAnnotations,
+                treeType.getRawClass()::getAnnotation, m_possibleTreeClassAnnotations, m_underlyingField);
             populateTree(tree, treeType);
             return tree;
         }
 
-        private Annotation getAnnotationFromFieldOrClass(final Class<?> type,
-            final Class<? extends Annotation> annotationClass) {
-            final var fieldAnnotation = m_fieldAnnotations.apply(annotationClass);
-            if (m_possibleTreeClassAnnotations.contains(annotationClass)) {
-                final var typeAnnotation = type.getAnnotation(annotationClass);
-                validateAnnotations(type, annotationClass, fieldAnnotation, typeAnnotation);
-                if (typeAnnotation != null) {
-                    return typeAnnotation;
+        private Function<Class<? extends Annotation>, Annotation> getAnnotationFromFieldOrClass(
+            final Function<Class<? extends Annotation>, Annotation> getAnnotationFromClass) {
+            return annotationClass -> {
+                final var fieldAnnotation = m_fieldAnnotations.apply(annotationClass);
+                if (fieldAnnotation != null) {
+                    return fieldAnnotation;
                 }
-            }
-            return fieldAnnotation;
-        }
-
-        private void validateAnnotations(final Class<?> type, final Class<? extends Annotation> annotationClass,
-            final Annotation fieldAnnotation, final Annotation typeAnnotation) {
-            if (typeAnnotation != null && fieldAnnotation != null) {
-                throw new IllegalStateException(String.format(
-                    "The annotation %s for field %s collides with the an annotation of the field type class %s.",
-                    annotationClass.getSimpleName(), m_name, type.getSimpleName()));
-
-            }
+                if (m_possibleTreeClassAnnotationsInterpretedAsFieldAnnotations.contains(annotationClass)) {
+                    return getAnnotationFromClass.apply(annotationClass);
+                }
+                return null;
+            };
         }
 
         ArrayParentNode<S> buildArray(final JavaType type, final Tree<S> elementWidgetTree) {

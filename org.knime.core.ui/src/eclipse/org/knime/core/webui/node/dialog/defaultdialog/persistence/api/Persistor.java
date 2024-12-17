@@ -73,8 +73,7 @@ public @interface Persistor {
 
     /**
      * The type of persistor to use for storing and loading the annotated object to and from NodeSettings. Either
-     * {@link FieldBasedNodeSettingsPersistor} or your own implementation of {@link NodeSettingsPersistor}. If you want
-     * to use the previous JSON based persistence simply provide no persistence at all.
+     * {@link FieldBasedNodeSettingsPersistor} or your own implementation of {@link NodeSettingsPersistor}.
      *
      * @return the class of the persistor
      */

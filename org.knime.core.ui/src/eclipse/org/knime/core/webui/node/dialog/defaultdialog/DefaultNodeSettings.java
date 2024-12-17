@@ -223,7 +223,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * annotation with UIEXT-1681)</td>
  * </tr>
  * <tr>
- * <td>Arrays/Collections of objects(**)</td>
+ * <td>Arrays/Collections of {@link DefaultNodeSettings} (**)</td>
  * <td>Array Widget ({@link ArrayWidgetExample example})</td>
  * <td>{@link ArrayWidget}</td>
  * </tr>
@@ -272,8 +272,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * Switch), the {@link Label}-annotation can be used.
  * </p>
  * <p>
- * (**) Note on arrays: To be more precise, the elements of an array need to be serialized to an Object, i.e. arrays of
- * Strings or boxed types will not lead to an array layout. Instead these need to be wrapped inside a class.
+ * (**) Note on arrays: Arrays of Strings or boxed types will not lead to an array layout. Instead these need to be
+ * wrapped inside a {@link DefaultNodeSettings} element class.
  * </p>
  *
  * <h4>Nested settings</h4> For nested fields to be transformed to dialog widgets themselves the containing class has to

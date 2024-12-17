@@ -68,7 +68,13 @@ public final class PersistTreeFactory extends TreeFactory<PersistableSettings> {
     private static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_ANNOTATIONS =
         List.of(Persist.class, Persistor.class, LatentWidget.class);
 
-    static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_CLASS_ANNOTATIONS = List.of(Persistor.class);
+    static final Collection<ClassAnnotationSpec> POSSIBLE_TREE_CLASS_ANNOTATIONS =
+        List.of(new ClassAnnotationSpec(Persistor.class,
+            /**
+             * Peristors on classes are interpreted differently than the same annotation on a containing field. The
+             * level of the {@link NodeSettings} that the persistor operates on is different.
+             */
+            false));
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_LEAF_ANNOTATIONS =
         List.of(Persist.class, LatentWidget.class);
