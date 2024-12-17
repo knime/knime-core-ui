@@ -2,7 +2,7 @@
 export type PersistSchema = ConfigInfo &
   (PersistTreeSchema | PersistLeafSchema | PersistArrayParentSchema);
 
-type DeprecatedConfigs = { new: string[][]; deprecated: string[][] };
+type DeprecatedConfigs = { deprecated: string[][] };
 
 export interface ConfigInfo {
   configKey?: string;

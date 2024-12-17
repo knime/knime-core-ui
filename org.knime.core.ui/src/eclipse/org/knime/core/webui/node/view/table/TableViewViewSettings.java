@@ -233,8 +233,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
 
             @Override
             public List<ConfigsDeprecation<RowHeightMode>> getConfigsDeprecations() {
-                return createDefaultConfigsDeprecations(CURRENT_ROW_HEIGHT_MODE_CFG_KEY,
-                    (loadResult, settings) -> loadResult.getRowHeightMode());
+                return createDefaultConfigsDeprecations((loadResult, settings) -> loadResult.getRowHeightMode());
             }
         }
     }
@@ -264,7 +263,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
 
         @Override
         public List<ConfigsDeprecation<Integer>> getConfigsDeprecations() {
-            return createDefaultConfigsDeprecations(m_configKey, (loadResult, settings) -> {
+            return createDefaultConfigsDeprecations((loadResult, settings) -> {
                 final var customRowHeight = loadResult.getCustomRowHeight();
                 if (customRowHeight.isPresent()) {
                     return customRowHeight.get();
@@ -296,16 +295,10 @@ public class TableViewViewSettings implements DefaultNodeSettings {
 
         static final class VerticalPaddingModePersistor
             implements DefaultPersistorWithDeprecations<VerticalPaddingMode> {
-            private final String m_configKey;
-
-            VerticalPaddingModePersistor(final NodeSettingsPersistorContext<VerticalPaddingMode> context) {
-                m_configKey = context.getConfigKey();
-            }
 
             @Override
             public List<ConfigsDeprecation<VerticalPaddingMode>> getConfigsDeprecations() {
-                return createDefaultConfigsDeprecations(m_configKey,
-                    (loadResult, settings) -> loadResult.getVerticalPaddingMode());
+                return createDefaultConfigsDeprecations((loadResult, settings) -> loadResult.getVerticalPaddingMode());
             }
         }
     }

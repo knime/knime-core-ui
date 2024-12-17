@@ -59,7 +59,7 @@ import org.knime.core.node.config.base.AbstractConfigEntry;
  *
  * @author Paul Bärnreuther
  */
-final class NodeSettingsAtPathUtil {
+public final class NodeSettingsAtPathUtil {
 
     private NodeSettingsAtPathUtil() {
         // Utility

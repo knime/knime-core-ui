@@ -274,11 +274,7 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
             return List
                 .of(new Builder<AuthenticationSettings>(settings -> loadFromModel(loadModelFromSettings(settings)))
                     .withDeprecatedConfigPath(m_configKey, KEY_CREDENTIALS)
-                    .forNewConfigPath(m_configKey, SETTINGS_MODEL_KEY_CREDENTIAL)
-                    .forNewConfigPath(m_configKey, SETTINGS_MODEL_KEY_PASSWORD)
-                    .forNewConfigPath(m_configKey, SETTINGS_MODEL_KEY_USERNAME)
                     .withDeprecatedConfigPath(m_configKey, KEY_TYPE)
-                    .forNewConfigPath(m_configKey, SETTINGS_MODEL_KEY_TYPE)//
                     .withMatcher(settings -> !isSavedWithNewConfigKeys(settings)).build());
         }
 

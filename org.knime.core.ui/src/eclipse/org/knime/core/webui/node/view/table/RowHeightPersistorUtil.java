@@ -188,17 +188,17 @@ public final class RowHeightPersistorUtil {
         T apply(LegacyLoadResult legacyLoadResult, NodeSettingsRO settings) throws InvalidSettingsException;
     }
 
-    static <T> List<ConfigsDeprecation<T>> createDefaultConfigsDeprecations(final String configKey,
-        final LegacyLoadResultExtractor<T> legacyLoadResultExtractor) {
+    static <T> List<ConfigsDeprecation<T>>
+        createDefaultConfigsDeprecations(final LegacyLoadResultExtractor<T> legacyLoadResultExtractor) {
 
         return List.of( //
             new Builder<T>(settings -> legacyLoadResultExtractor.apply(LEGACY_DEFAULT, settings))
-                .forNewConfigPath(configKey).withMatcher(getFirstTableVersionMatcher()).build(),
+                .withMatcher(getFirstTableVersionMatcher()).build(),
             new Builder<T>(
                 settings -> legacyLoadResultExtractor.apply(getLoadResultFromLegacyCompactMode(settings), settings))
-                    .forNewConfigPath(configKey).withDeprecatedConfigPath(COMPACT_MODE_LEGACY_CONFIG_KEY).build(),
+                    .withDeprecatedConfigPath(COMPACT_MODE_LEGACY_CONFIG_KEY).build(),
             new Builder<T>(
                 settings -> legacyLoadResultExtractor.apply(getLoadResultFromLegacyRowHeightMode(settings), settings))
-                    .forNewConfigPath(configKey).withDeprecatedConfigPath(ROW_HEIGHT_MODE_LEGACY_CONFIG_KEY).build());
+                    .withDeprecatedConfigPath(ROW_HEIGHT_MODE_LEGACY_CONFIG_KEY).build());
     }
 }
