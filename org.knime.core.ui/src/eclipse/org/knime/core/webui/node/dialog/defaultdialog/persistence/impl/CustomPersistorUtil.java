@@ -48,15 +48,20 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
+import static org.knime.core.webui.node.dialog.configmapping.NodeSettingsAtPathUtil.hasPath;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultPersistorWithDeprecations;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NewSettingsMissingMatcher;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NodeSettingsPersistorWithInferredConfigs;
 
 /**
@@ -102,6 +107,9 @@ public final class CustomPersistorUtil {
         adaptLoadToEnableLegacyLoading(final NodeSettingsPersistor<T> customPersistor) {
         if (customPersistor.getConfigsDeprecations().isEmpty()) {
             return customPersistor;
+        }
+        if (customPersistor instanceof NodeSettingsPersistorWithInferredConfigs<T> withInferredConfigs) {
+            return new LoadFromLegacyDecoratorWithInferredConfigKeys<>(withInferredConfigs);
         }
         return new LoadFromLegacyDecorator<>(customPersistor);
     }
@@ -219,7 +227,7 @@ public final class CustomPersistorUtil {
      * and the settings are loaded according to the loader of the first match. If no match was found the default load of
      * the persistor is used.
      */
-    private static final class LoadFromLegacyDecorator<T> implements NodeSettingsPersistor<T> {
+    private static class LoadFromLegacyDecorator<T> implements NodeSettingsPersistor<T> {
 
         private final NodeSettingsPersistor<T> m_delegate;
 
@@ -235,11 +243,31 @@ public final class CustomPersistorUtil {
                 final var matcher = configDeprecation.getMatcher();
                 final var loader = configDeprecation.getLoader();
 
-                if (matcher.test(settings)) {
+                if (matcher instanceof NewSettingsMissingMatcher) {
+                    final var inferredConfigPaths = getInferredNewConfigs();
+                    if (inferredConfigPaths == null || inferredConfigPaths.length == 0) {
+                        throw new IllegalStateException(
+                            "There exists a custom persistor without or with empty config paths but "
+                                + "a deprecation matcher was set via 'withNewSettingsMissingMatcher' is used."
+                                + "Either supply a custom matcher via 'withMatcher' or define config paths.");
+                    }
+                    if (Arrays.stream(inferredConfigPaths).map(Arrays::asList).map(ConfigPath::new)
+                        .allMatch(configPath -> !hasPath(settings, configPath))) {
+                        return loader.apply(settings);
+                    }
+
+                } else if (matcher.test(settings)) {
                     return loader.apply(settings);
                 }
             }
             return m_delegate.load(settings);
+        }
+
+        private String[][] getInferredNewConfigs() { // TODO deduplicate with NodeSettingsPersistor#inferConfigPaths
+            if (m_delegate instanceof NodeSettingsPersistorWithInferredConfigs<T> inferredConfigsPersistor) {
+                return inferredConfigsPersistor.getNonNullPaths();
+            }
+            return m_delegate.getConfigPaths();
         }
 
         @Override
@@ -255,6 +283,23 @@ public final class CustomPersistorUtil {
         @Override
         public List<ConfigsDeprecation<T>> getConfigsDeprecations() {
             return m_delegate.getConfigsDeprecations();
+        }
+
+    }
+
+    private static final class LoadFromLegacyDecoratorWithInferredConfigKeys<T> extends LoadFromLegacyDecorator<T>
+        implements NodeSettingsPersistorWithInferredConfigs<T> {
+
+        private final NodeSettingsPersistorWithInferredConfigs<T> m_delegate;
+
+        LoadFromLegacyDecoratorWithInferredConfigKeys(final NodeSettingsPersistorWithInferredConfigs<T> delegate) {
+            super(delegate);
+            m_delegate = delegate;
+        }
+
+        @Override
+        public String[][] getNonNullPaths() {
+            return m_delegate.getNonNullPaths();
         }
 
     }

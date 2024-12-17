@@ -229,10 +229,9 @@ class DefaultNodeSettingsServiceTest {
     }
 
     private static final List<ConfigsDeprecation<String>>
-        createConfigsDeprecationsForMyLegacyPersistor(final String configKey, final DeprecationLoader<String> loader) {
-        return List
-            .of(ConfigsDeprecation.builder(loader).forNewConfigPath(configKey).withDeprecatedConfigPath("valueLegacy1")
-                .forNewConfigPath(configKey).withDeprecatedConfigPath("valueLegacy2").build());
+        createConfigsDeprecationsForMyLegacyPersistor(final DeprecationLoader<String> loader) {
+        return List.of(ConfigsDeprecation.builder(loader).withDeprecatedConfigPath("valueLegacy1")
+            .withDeprecatedConfigPath("valueLegacy2").build());
     }
 
     static class MigratedSettings implements DefaultNodeSettings {
@@ -253,12 +252,16 @@ class DefaultNodeSettingsServiceTest {
             @Override
             public void save(final String obj, final NodeSettingsWO settings) {
                 settings.addString(m_configKey, obj);
+            }
 
+            @Override
+            public String[] getConfigKeys() {
+                return new String[]{m_configKey};
             }
 
             @Override
             public List<ConfigsDeprecation<String>> getConfigsDeprecations() {
-                return createConfigsDeprecationsForMyLegacyPersistor(m_configKey, settings -> {
+                return createConfigsDeprecationsForMyLegacyPersistor(settings -> {
                     throw new IllegalStateException("Should not be called within this test");
                 });
             }
@@ -311,16 +314,13 @@ class DefaultNodeSettingsServiceTest {
 
         static class MyLegacyPersistorWithLoad extends MigratedSettings.MyLegacyPersistor {
 
-            private final String m_configKey;
-
             MyLegacyPersistorWithLoad(final NodeSettingsPersistorContext<String> context) {
                 super(context);
-                m_configKey = context.getConfigKey();
             }
 
             @Override
             public List<ConfigsDeprecation<String>> getConfigsDeprecations() {
-                return createConfigsDeprecationsForMyLegacyPersistor(m_configKey,
+                return createConfigsDeprecationsForMyLegacyPersistor(
                     settings -> settings.getString("valueLegacy1") + settings.getString("valueLegacy2"));
             }
 
@@ -370,16 +370,13 @@ class DefaultNodeSettingsServiceTest {
 
         static class MyLegacyPersistorWithFailingLoad extends MigratedSettings.MyLegacyPersistor {
 
-            private final String m_configKey;
-
             MyLegacyPersistorWithFailingLoad(final NodeSettingsPersistorContext<String> context) {
                 super(context);
-                m_configKey = context.getConfigKey();
             }
 
             @Override
             public List<ConfigsDeprecation<String>> getConfigsDeprecations() {
-                return createConfigsDeprecationsForMyLegacyPersistor(m_configKey, settings -> {
+                return createConfigsDeprecationsForMyLegacyPersistor(settings -> {
                     throw new InvalidSettingsException("Old configs");
                 });
             }

@@ -238,16 +238,10 @@ class PersistUtilTest {
         assertThatJson(result).inPath("$.properties.model.properties.test.deprecatedConfigKeys").isArray().hasSize(3);
         assertThatJson(result).inPath("$.properties.model.properties.test.deprecatedConfigKeys[0].deprecated").isArray()
             .isEqualTo(new String[][]{{"A", "B"}, {"C"}});
-        assertThatJson(result).inPath("$.properties.model.properties.test.deprecatedConfigKeys[0].new").isArray()
-            .isEqualTo(new String[][]{{"D", "E"}, {"F"}});
         assertThatJson(result).inPath("$.properties.model.properties.test.deprecatedConfigKeys[1].deprecated").isArray()
             .isEqualTo(new String[][]{{"G", "H"}});
-        assertThatJson(result).inPath("$.properties.model.properties.test.deprecatedConfigKeys[1].new").isArray()
-            .isEqualTo(new String[][]{{"I", "J"}});
         assertThatJson(result).inPath("$.properties.model.properties.test.deprecatedConfigKeys[2].deprecated").isArray()
             .isEqualTo(new String[][]{{"K", "L"}});
-        assertThatJson(result).inPath("$.properties.model.properties.test.deprecatedConfigKeys[2].new").isArray()
-            .isEqualTo(new String[][]{{}});
     }
 
     private static class CustomClassPersistorWithDeprecatedConfigs
@@ -278,16 +272,10 @@ class PersistUtilTest {
         assertThatJson(result).inPath("$.properties.model.propertiesDeprecatedConfigKeys").isArray().hasSize(3);
         assertThatJson(result).inPath("$.properties.model.propertiesDeprecatedConfigKeys[0].deprecated").isArray()
             .isEqualTo(new String[][]{{"A", "B"}, {"C"}});
-        assertThatJson(result).inPath("$.properties.model.propertiesDeprecatedConfigKeys[0].new").isArray()
-            .isEqualTo(new String[][]{{"D", "E"}, {"F"}});
         assertThatJson(result).inPath("$.properties.model.propertiesDeprecatedConfigKeys[1].deprecated").isArray()
             .isEqualTo(new String[][]{{"G", "H"}});
-        assertThatJson(result).inPath("$.properties.model.propertiesDeprecatedConfigKeys[1].new").isArray()
-            .isEqualTo(new String[][]{{"I", "J"}});
         assertThatJson(result).inPath("$.properties.model.propertiesDeprecatedConfigKeys[2].deprecated").isArray()
             .isEqualTo(new String[][]{{"K", "L"}});
-        assertThatJson(result).inPath("$.properties.model.propertiesDeprecatedConfigKeys[2].new").isArray()
-            .isEqualTo(new String[][]{{}});
 
         assertThatJson(result).inPath("$.properties.model.propertiesConfigPaths").isArray().hasSize(2);
         assertThatJson(result).inPath("$.properties.model.propertiesConfigPaths[0]").isArray()
@@ -311,7 +299,6 @@ class PersistUtilTest {
         assertThatJson(result).inPath("$.properties.model.properties.bothPersistors.deprecatedConfigKeys").isArray()
             .hasSize(3);
         assertThatJson(result).inPath("$.properties.model.properties.bothPersistors.configPaths").isArray().hasSize(2);
-
     }
 
     private static <T> List<ConfigsDeprecation<T>> getDummyConfigsDeprecations() {
@@ -322,12 +309,9 @@ class PersistUtilTest {
             new Builder<T>(dummyLoader)//
                 .withDeprecatedConfigPath("A", "B")//
                 .withDeprecatedConfigPath("C")//
-                .forNewConfigPath("D", "E")//
-                .forNewConfigPath("F")//
                 .build(), //
             new Builder<T>(dummyLoader)//
                 .withDeprecatedConfigPath("G", "H")//
-                .forNewConfigPath("I", "J")//
                 .build(), //
             new Builder<T>(dummyLoader)//
                 .withDeprecatedConfigPath("K", "L")//

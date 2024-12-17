@@ -50,7 +50,6 @@ package org.knime.core.webui.node.dialog.configmapping;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
@@ -67,8 +66,7 @@ class ConfigsDeprecationTest {
     private static final Builder<Integer> createBuilder(final Optional<Predicate<NodeSettingsRO>> matcher) {
         final var builder = new ConfigsDeprecation.Builder<Integer>(settings -> {
             throw new IllegalStateException("Should not be called within this test");
-        }).forNewConfigPath("D", "E").withDeprecatedConfigPath("A", "B").forNewConfigPath("F")
-            .withDeprecatedConfigPath("C");
+        }).withDeprecatedConfigPath("A", "B").withDeprecatedConfigPath("C");
 
         if (matcher.isPresent()) {
             builder.withMatcher(matcher.get());
@@ -104,12 +102,4 @@ class ConfigsDeprecationTest {
         assertTrue(builder.getMatcher().test(settings));
     }
 
-    @Test
-    void testBuilderThrowsWithoutMatcherAndDeprecatedConfigs() {
-        final var builder = new ConfigsDeprecation.Builder<Integer>(settings -> {
-            throw new IllegalStateException("Should not be called within this test");
-        }).forNewConfigPath("D", "E").forNewConfigPath("F");
-
-        assertThrows(IllegalStateException.class, () -> builder.build());
-    }
 }

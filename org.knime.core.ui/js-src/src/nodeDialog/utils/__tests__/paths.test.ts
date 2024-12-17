@@ -346,27 +346,7 @@ describe("paths", () => {
       );
     });
 
-    it.each([
-      // Scenario 1: "model" and one of its sub keys are impacted
-      [
-        [
-          ["model"],
-          /**
-           * For checking that config paths that are more specific than the requested path are ignored
-           */
-          ["model", "mySetting", "subSetting"],
-        ],
-      ],
-      // Scenario 2: all sub keys are impacted
-      [
-        [
-          /**
-           * For checking that an empty config path leads to matching any path
-           */
-          [],
-        ],
-      ],
-    ])("detects deprecatedConfigKeys", (newConfigPathsForModelDeprecation) => {
+    it("detects deprecatedConfigKeys", () => {
       const path = "model.mySetting";
       const persistSchema: PersistSchema = {
         type: "object",
@@ -379,14 +359,9 @@ describe("paths", () => {
                   ["deprecated", "1"],
                   ["deprecated", "2"],
                 ],
-                new: newConfigPathsForModelDeprecation,
               },
               {
                 deprecated: [["deprecated", "3"]],
-                new: [
-                  ["model", "mySetting_2"],
-                  ["view", "otherSetting"],
-                ],
               },
             ],
             properties: {
@@ -394,7 +369,6 @@ describe("paths", () => {
                 deprecatedConfigKeys: [
                   {
                     deprecated: [["deprecated", "4"]],
-                    new: [["mySetting_2"]],
                   },
                 ],
                 configPaths: [["mySetting_1"], ["mySetting_2"]],
@@ -412,19 +386,20 @@ describe("paths", () => {
         },
       };
       const configPaths = getConfigPaths(path, persistSchema);
+      const expectedDeprecatedConfigPaths = [
+        "deprecated.1",
+        "deprecated.2",
+        "deprecated.3",
+        "model.deprecated.4",
+      ];
       expect(configPaths).toStrictEqual([
         {
           configPath: "model.mySetting_1",
-          deprecatedConfigPaths: ["deprecated.1", "deprecated.2"],
+          deprecatedConfigPaths: expectedDeprecatedConfigPaths,
         },
         {
           configPath: "model.mySetting_2",
-          deprecatedConfigPaths: [
-            "deprecated.1",
-            "deprecated.2",
-            "deprecated.3",
-            "model.deprecated.4",
-          ],
+          deprecatedConfigPaths: expectedDeprecatedConfigPaths,
         },
       ]);
     });
@@ -438,7 +413,6 @@ describe("paths", () => {
             propertiesDeprecatedConfigKeys: [
               {
                 deprecated: [["deprecated"]],
-                new: [["mySetting_1"], ["myOtherSetting"]],
               },
             ],
             properties: {
@@ -457,7 +431,7 @@ describe("paths", () => {
         },
         {
           configPath: "model.mySetting_2",
-          deprecatedConfigPaths: [],
+          deprecatedConfigPaths: ["model.deprecated"],
         },
       ]);
       expect(

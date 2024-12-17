@@ -16,7 +16,6 @@
             "settingWithDeprecatedFlowVariables": {
               "deprecatedConfigKeys": [
                 {
-                  "new": [["settingWithDeprecatedFlowVariables"]],
                   "deprecated": [
                     ["i", "am", "deprecated"],
                     ["me", "too"],
@@ -35,11 +34,9 @@
               "configPaths": [["one"], ["two"]],
               "deprecatedConfigKeys": [
                 {
-                  "new": [["one"]],
                   "deprecated": [["i", "am", "also", "deprecated"]]
                 },
                 {
-                  "new": [["two"]],
                   "deprecated": [["and", "i", "am", "too"]]
                 }
               ]
@@ -75,7 +72,6 @@
             "settingWithDeprecatedFlowVariables": {
               "deprecatedConfigKeys": [
                 {
-                  "new": [["settingWithDeprecatedFlowVariables"]],
                   "deprecated": [
                     ["i", "am", "deprecated"],
                     ["me", "too"],
@@ -88,11 +84,9 @@
               "configPaths": [["one"], ["two"]],
               "deprecatedConfigKeys": [
                 {
-                  "new": [["one"]],
                   "deprecated": [["i", "am", "also", "deprecated"]]
                 },
                 {
-                  "new": [["two"]],
                   "deprecated": [["and", "i", "am", "too"]]
                 }
               ]

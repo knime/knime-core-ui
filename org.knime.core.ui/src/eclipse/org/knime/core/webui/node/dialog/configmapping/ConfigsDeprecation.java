@@ -60,7 +60,7 @@ import java.util.function.Predicate;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NewSettingsMissingMatcher;
 
 /**
  * This class can be used to deprecate a state of the config representation of a setting in favor of a new state in a
@@ -71,11 +71,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
  * For keeping track of flow variables, it is important to define a connection from an array of config paths relative to
  * the base config of the field to another one.
  * <ul>
- * <li>Deprecated config paths: Configs which are respected during {@link NodeSettingsPersistor#load load} but are
- * not written to when saving the loaded data back during {@link NodeSettingsPersistor#save save}.</li>
+ * <li>Deprecated config paths: Configs which are respected during {@link NodeSettingsPersistor#load load} but are not
+ * written to when saving the loaded data back during {@link NodeSettingsPersistor#save save}.</li>
  * <li>New config paths: Those configs that are affected by the deprecated config paths. I.e. on
- * {@link NodeSettingsPersistor#save save} their values might differ depending on the values of any of the
- * deprecated config paths during {@link NodeSettingsPersistor#load load}</li>
+ * {@link NodeSettingsPersistor#save save} their values might differ depending on the values of any of the deprecated
+ * config paths during {@link NodeSettingsPersistor#load load}</li>
  * </ul>
  *
  * If no matcher is specified, a default one checking for the existence of the given deprecated configs is inferred.
@@ -83,7 +83,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
  * @author Paul Bärnreuther
  * @param <T> the type of the loaded config object
  */
-public final class ConfigsDeprecation<T> implements NewAndDeprecatedConfigPaths {
+public final class ConfigsDeprecation<T> {
 
     /**
      * Loads a deprecated config based on the given settings and can throw an InvalidSettingsException
@@ -104,17 +104,13 @@ public final class ConfigsDeprecation<T> implements NewAndDeprecatedConfigPaths 
 
     private final DeprecationLoader<T> m_loader;
 
-    private final Collection<ConfigPath> m_newConfigPaths;
-
     private final Collection<ConfigPath> m_deprecatedConfigPaths;
 
     /**
      * Private. Use the {@link Builder} or {@link #builder} instead.
      */
-    private ConfigsDeprecation(final Collection<ConfigPath> newConfigPaths,
-        final Collection<ConfigPath> deprecatedConfigPaths, final Predicate<NodeSettingsRO> matcher,
-        final DeprecationLoader<T> loader) {
-        this.m_newConfigPaths = newConfigPaths;
+    private ConfigsDeprecation(final Collection<ConfigPath> deprecatedConfigPaths,
+        final Predicate<NodeSettingsRO> matcher, final DeprecationLoader<T> loader) {
         this.m_deprecatedConfigPaths = deprecatedConfigPaths;
         this.m_matcher = matcher;
         this.m_loader = loader;
@@ -134,12 +130,9 @@ public final class ConfigsDeprecation<T> implements NewAndDeprecatedConfigPaths 
         return m_matcher;
     }
 
-    @Override
-    public Collection<ConfigPath> getNewConfigPaths() {
-        return m_newConfigPaths;
-    }
-
-    @Override
+    /**
+     * @return the config paths that are no longer saved to when saving the loaded data back during save
+     */
     public Collection<ConfigPath> getDeprecatedConfigPaths() {
         return m_deprecatedConfigPaths;
     }
@@ -165,8 +158,6 @@ public final class ConfigsDeprecation<T> implements NewAndDeprecatedConfigPaths 
 
         private DeprecationLoader<T> m_loader;
 
-        private final Collection<ConfigPath> m_newConfigPaths = new ArrayList<>(0);
-
         private final Collection<ConfigPath> m_deprecatedConfigPaths = new ArrayList<>(0);
 
         /**
@@ -179,34 +170,11 @@ public final class ConfigsDeprecation<T> implements NewAndDeprecatedConfigPaths 
         }
 
         /**
-         * Enter a path to a config set during {@link NodeSettingsPersistor#save} affected by the values of all of
-         * the config paths set with {@link #withDeprecatedConfigPath}. For nested configs, it suffices to enter the
-         * path to the config for which all child configs are affected.
-         *
-         * Only call this method if the configs being deprecated do not impact all other configs. I.e. when a pair of
-         * two configs "a" and "b" is changed by renaming "a" to "c" but "b" still stores the same information and is
-         * not affected by this renaming, use forNewConfigPath("c") to exclude "b" from being linked to the deprecated
-         * config path "a".
-         *
-         * I.e. if this method is never called for a builder, all new config paths are affected.
-         *
-         * This method can called multiple times.
-         *
-         * @param configKeys the configKeys forming a path from the base config of the {@link Persist#customPersistor}
-         *            to a desired subconfig.
-         * @return the builder
-         */
-        public Builder<T> forNewConfigPath(final String... configKeys) {
-            m_newConfigPaths.add(new ConfigPath(Arrays.stream(configKeys).toList()));
-            return this;
-        }
-
-        /**
          * Enter a path to a config used within the loader which is not saved back again in
          * {@link NodeSettingsPersistor#save}. This method can called multiple times.
          *
-         * @param configKeys the configKeys forming a path from the base config of the {@link Persist#customPersistor}
-         *            to a desired subconfig.
+         * @param configKeys the configKeys forming a path from the base config of the {@link NodeSettingsPersistor} to
+         *            a desired subconfig.
          * @return the builder
          */
         public Builder<T> withDeprecatedConfigPath(final String... configKeys) {
@@ -236,27 +204,20 @@ public final class ConfigsDeprecation<T> implements NewAndDeprecatedConfigPaths 
         }
 
         /**
-         * @return a new {@link ConfigsDeprecation} to be used in
-         *         {@link NodeSettingsPersistor#getConfigsDeprecations()}
+         * @return a new {@link ConfigsDeprecation} to be used in {@link NodeSettingsPersistor#getConfigsDeprecations()}
          */
         public ConfigsDeprecation<T> build() {
-            if (m_matcher == null) {
-                createMatcherByDeprecatedConfigPaths();
-            }
-
-            return new ConfigsDeprecation<>(m_newConfigPaths, m_deprecatedConfigPaths, m_matcher, m_loader);
+            final var matcher = m_matcher == null ? createMatcherByDeprecatedConfigPaths() : m_matcher;
+            return new ConfigsDeprecation<>(m_deprecatedConfigPaths, matcher, m_loader);
         }
 
-        private void createMatcherByDeprecatedConfigPaths() {
+        private Predicate<NodeSettingsRO> createMatcherByDeprecatedConfigPaths() {
             if (m_deprecatedConfigPaths.isEmpty()) {
-                throw new IllegalStateException("Cannot create a matcher by deprecated config paths, because no "
-                    + "deprecated config paths exist. Either specify a matcher or deprecated config paths.");
+                return new NewSettingsMissingMatcher();
             }
-
             Function<NodeSettingsRO, Predicate<ConfigPath>> settingsContainPath =
                 settings -> configPath -> hasPath(settings, configPath);
-
-            this.setMatcher(settings -> m_deprecatedConfigPaths.stream().allMatch(settingsContainPath.apply(settings)));
+            return settings -> m_deprecatedConfigPaths.stream().allMatch(settingsContainPath.apply(settings));
 
         }
 

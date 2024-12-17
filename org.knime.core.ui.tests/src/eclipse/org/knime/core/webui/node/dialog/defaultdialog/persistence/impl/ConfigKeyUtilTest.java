@@ -62,7 +62,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
-import org.knime.core.webui.node.dialog.configmapping.NewAndDeprecatedConfigPaths;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
@@ -100,7 +99,7 @@ class ConfigKeyUtilTest {
         public List<ConfigsDeprecation<Integer>> getConfigsDeprecations() {
             return List.of(new ConfigsDeprecation.Builder<Integer>(settings -> {
                 throw new IllegalStateException("Should not be called within this test");
-            }).forNewConfigPath("custom_key0").withDeprecatedConfigPath("old_config_key").build());
+            }).withDeprecatedConfigPath("old_config_key").build());
         }
 
     }
@@ -188,13 +187,7 @@ class ConfigKeyUtilTest {
     @Test
     void testDeprecatedConfigKeysFromCustomPersistor() throws NoSuchFieldException {
         final var deprecatedConfigKeys = deprecatedConfigKeysFor("setting5");
-        assertArrayEquals(new String[]{"custom_key0"}, getFirstPathAsArray(deprecatedConfigKeys.stream()
-            .flatMap(newAndDeprecatedConfigPaths -> newAndDeprecatedConfigPaths.getNewConfigPaths().stream()).toList()),
-            "newConfigPaths of deprecatedConfigs should be set from custom persistor");
-        assertArrayEquals(new String[]{"old_config_key"},
-            getFirstPathAsArray(deprecatedConfigKeys.stream()
-                .flatMap(newAndDeprecatedConfigPaths -> newAndDeprecatedConfigPaths.getDeprecatedConfigPaths().stream())
-                .toList()),
+        assertArrayEquals(new String[]{"old_config_key"}, getFirstPathAsArray(deprecatedConfigKeys),
             "deprecatedConfigPaths of deprecatedConfigs should be set from custom persistor");
     }
 
@@ -206,8 +199,7 @@ class ConfigKeyUtilTest {
         return getConfigPathsUsedByField(getField(fieldName));
     }
 
-    private static List<NewAndDeprecatedConfigPaths> deprecatedConfigKeysFor(final String fieldName)
-        throws NoSuchFieldException {
+    private static Collection<ConfigPath> deprecatedConfigKeysFor(final String fieldName) throws NoSuchFieldException {
         return getDeprecatedConfigsUsedByField(getField(fieldName));
     }
 
@@ -232,12 +224,14 @@ class ConfigKeyUtilTest {
      * @param node
      * @return the deprecated configs defined by the {@link Persist#customPersistor} or an empty array none exists.
      */
-    static List<NewAndDeprecatedConfigPaths> getDeprecatedConfigsUsedByField(final TreeNode<PersistableSettings> node) {
+    static Collection<ConfigPath> getDeprecatedConfigsUsedByField(final TreeNode<PersistableSettings> node) {
         if (node.getAnnotation(Persist.class).isEmpty() && node.getAnnotation(Persistor.class).isEmpty()) {
             return Collections.emptyList();
         }
-        return ConfigKeyUtil.extractFieldNodeSettingsPersistor(node).map(persistor -> persistor.getConfigsDeprecations()
-            .stream().map(NewAndDeprecatedConfigPaths.class::cast).toList()).orElse(Collections.emptyList());
+        return ConfigKeyUtil.extractFieldNodeSettingsPersistor(node)
+            .map(persistor -> persistor.getConfigsDeprecations().stream()
+                .map(ConfigsDeprecation::getDeprecatedConfigPaths).flatMap(Collection::stream).toList())
+            .orElse(Collections.emptyList());
 
     }
 

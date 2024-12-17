@@ -51,14 +51,10 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 import static java.util.stream.Collectors.toMap;
 import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.CreateNodeSettingsPersistorUtil.createInstance;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-import org.knime.core.node.NodeLogger;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultPersistorWithDeprecations;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
@@ -76,8 +72,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.LatentWidget;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 final class FieldNodeSettingsPersistorFactory {
-
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(FieldNodeSettingsPersistorFactory.class);
 
     private final Tree<PersistableSettings> m_settingsTree;
 
@@ -153,42 +147,15 @@ final class FieldNodeSettingsPersistorFactory {
     private <F> NodeSettingsPersistor<F> createOptionalPersistor(final TreeNode<PersistableSettings> node,
         final NodeSettingsPersistor<F> delegate) {
         var persist = node.getAnnotation(Persist.class);
-        if (persist.isEmpty() || !isOptional(persist.get(), node)) {
+        if (persist.isEmpty() || !persist.get().optional()) {
             return delegate;
         }
-        var configKey = ConfigKeyUtil.getConfigKey(node);
-        F defaultValue = getDefault(node, persist.get());//NOSONAR
-        return CustomPersistorUtil.prepareCustomPersistor(new OptionalFieldPersistor<F>(defaultValue, configKey),
-            () -> delegate);
-    }
-
-    private boolean isOptional(final Persist persist, final TreeNode<PersistableSettings> node) {
-        boolean isOptional = persist.optional();
-        boolean hasDefaultProvider = !DefaultProvider.class.equals(persist.defaultProvider());
-        if (isOptional && hasDefaultProvider) {
-            LOGGER.codingWithFormat(
-                "The optional parameter of the Persist annotation of field '%s' of PersistableSettings class '%s' "
-                    + "is ignored in favor of the defaultProvider parameter.",
-                node.getName().orElse(null), m_settingsTree.getType());
-        }
-        return isOptional || hasDefaultProvider;
+        DefaultProvider<F> defaultProvider = () -> getDefaultValue(node);
+        return CustomPersistorUtil.prepareCustomPersistor(defaultProvider, () -> delegate);
     }
 
     @SuppressWarnings("unchecked")
-    private <F> F getDefault(final TreeNode<PersistableSettings> node, final Persist persist) {
-        var defaultProviderClass = persist.defaultProvider();
-        if (DefaultProvider.class.equals(persist.defaultProvider())) {
-            return getDefaultFromDefaultSettings(node);
-        } else {
-            var defaultProvider = ReflectionUtil.createInstance(persist.defaultProvider())//
-                .orElseThrow(() -> new IllegalArgumentException(String.format(
-                    "The provided DefaultProvider '%s' does not provide an empty constructor.", defaultProviderClass)));
-            return (F)defaultProvider.getDefault();
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private <F> F getDefaultFromDefaultSettings(final TreeNode<PersistableSettings> node) {
+    private <F> F getDefaultValue(final TreeNode<PersistableSettings> node) {
         try {
 
             return (F)node.getFromParentValue(m_defaultSettings);
@@ -201,21 +168,4 @@ final class FieldNodeSettingsPersistorFactory {
         }
     }
 
-    static final class OptionalFieldPersistor<S> implements DefaultPersistorWithDeprecations<S> {
-
-        private final S m_default;
-
-        private final String m_configKey;
-
-        OptionalFieldPersistor(final S defaultValue, final String configKey) {
-            m_default = defaultValue;
-            m_configKey = configKey;
-        }
-
-        @Override
-        public List<ConfigsDeprecation<S>> getConfigsDeprecations() {
-            return List.of(new ConfigsDeprecation.Builder<S>(settings -> m_default).forNewConfigPath(m_configKey)
-                .withMatcher(settings -> !settings.containsKey(m_configKey)).build());
-        }
-    }
 }
