@@ -66,7 +66,7 @@ import org.knime.core.webui.node.dialog.configmapping.NewAndDeprecatedConfigPath
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigKeyUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
@@ -125,7 +125,7 @@ class ConfigKeyUtilTest {
         @Widget(title = "", description = "")
         int setting4;
 
-        @Persist(customPersistor = CustomPersistor.class)
+        @Persistor(CustomPersistor.class)
         @Widget(title = "", description = "")
         int setting5;
 
@@ -218,13 +218,9 @@ class ConfigKeyUtilTest {
     static String[][] getConfigPathsUsedByField(final TreeNode<PersistableSettings> node) {
         var configKey = ConfigKeyUtil.getConfigKey(node);
         final var singleConfigKeyPath = new String[][]{{configKey}};
-        var persist = node.getAnnotation(Persist.class);
-        if (persist.isPresent()) {
-            var customPersistor = persist.get().customPersistor();
-            if (!customPersistor.equals(NodeSettingsPersistor.class)) {
-                return ConfigKeyUtil.extractFieldNodeSettingsPersistor(node)
-                    .map(NodeSettingsPersistor::getConfigPaths).orElse(singleConfigKeyPath);
-            }
+        if (node.getAnnotation(Persistor.class).isPresent() || node.getAnnotation(Persist.class).isPresent()) {
+            return ConfigKeyUtil.extractFieldNodeSettingsPersistor(node).map(NodeSettingsPersistor::getConfigPaths)
+                .orElse(singleConfigKeyPath);
         }
         return singleConfigKeyPath;
     }
@@ -236,10 +232,8 @@ class ConfigKeyUtilTest {
      * @param node
      * @return the deprecated configs defined by the {@link Persist#customPersistor} or an empty array none exists.
      */
-    @SuppressWarnings("unchecked")
     static List<NewAndDeprecatedConfigPaths> getDeprecatedConfigsUsedByField(final TreeNode<PersistableSettings> node) {
-        var persist = node.getAnnotation(Persist.class);
-        if (persist.isEmpty()) {
+        if (node.getAnnotation(Persist.class).isEmpty() && node.getAnnotation(Persistor.class).isEmpty()) {
             return Collections.emptyList();
         }
         return ConfigKeyUtil.extractFieldNodeSettingsPersistor(node).map(persistor -> persistor.getConfigsDeprecations()

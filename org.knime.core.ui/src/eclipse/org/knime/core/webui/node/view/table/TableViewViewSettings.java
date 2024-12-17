@@ -60,6 +60,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultPersistorWithDeprecations;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.StringArrayToColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.selection.SelectionCheckboxesToSelectionModePersistor;
@@ -108,7 +109,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
      */
     @Widget(title = "Displayed columns", description = "Select the columns that should be displayed in the table")
     @ChoicesWidget(choices = AllColumns.class)
-    @Persist(customPersistor = StringArrayToColumnFilterPersistor.class)
+    @Persistor(StringArrayToColumnFilterPersistor.class)
     @Layout(DataSection.class)
     public ColumnFilter m_displayedColumns;
 
@@ -230,16 +231,9 @@ public class TableViewViewSettings implements DefaultNodeSettings {
         static final class CompactModeAndLegacyRowHeightModePersistor
             implements DefaultPersistorWithDeprecations<RowHeightMode> {
 
-            private final String m_configKey;
-
-            public CompactModeAndLegacyRowHeightModePersistor(
-                final NodeSettingsPersistorContext<RowHeightMode> context) {
-                m_configKey = context.getConfigKey();
-            }
-
             @Override
             public List<ConfigsDeprecation<RowHeightMode>> getConfigsDeprecations() {
-                return createDefaultConfigsDeprecations(m_configKey,
+                return createDefaultConfigsDeprecations(CURRENT_ROW_HEIGHT_MODE_CFG_KEY,
                     (loadResult, settings) -> loadResult.getRowHeightMode());
             }
         }
@@ -253,8 +247,8 @@ public class TableViewViewSettings implements DefaultNodeSettings {
     @Widget(title = "Row height", description = "Set the initial height of the rows.")
     @ValueSwitchWidget
     @Layout(ViewSection.class)
-    @Persist(configKey = CURRENT_ROW_HEIGHT_MODE_CFG_KEY,
-        customPersistor = CompactModeAndLegacyRowHeightModePersistor.class)
+    @Persistor(CompactModeAndLegacyRowHeightModePersistor.class)
+    @Persist(configKey = CURRENT_ROW_HEIGHT_MODE_CFG_KEY)
     @ValueReference(RowHeightMode.Ref.class)
     public RowHeightMode m_rowHeightMode = RowHeightMode.AUTO;
 
@@ -286,7 +280,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
     @Widget(title = "Custom row height", description = "Set the initial height of the rows.")
     @NumberInputWidget(min = 24, max = 1000000)
     @Layout(ViewSection.class)
-    @Persist(customPersistor = CustomRowHeightPersistor.class)
+    @Persistor(CustomRowHeightPersistor.class)
     @Effect(predicate = RowHeightMode.IsCustom.class, type = EffectType.SHOW)
     public int m_customRowHeight = DEFAULT_CUSTOM_ROW_HEIGHT;
 
@@ -322,7 +316,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
     @Widget(title = "Row padding", description = "Set the vertical white space of the rows:")
     @ValueSwitchWidget
     @Layout(ViewSection.class)
-    @Persist(customPersistor = VerticalPaddingModePersistor.class)
+    @Persistor(VerticalPaddingModePersistor.class)
     public VerticalPaddingMode m_verticalPaddingMode = VerticalPaddingMode.DEFAULT;
 
     /**
@@ -352,6 +346,9 @@ public class TableViewViewSettings implements DefaultNodeSettings {
     @Layout(InteractivitySection.class)
     public boolean m_enableSortingByHeader = true;
 
+    /**
+     * If the renderer selection for each column should be enabled
+     */
     @Widget(title = "Enable selection of column renderer",
         description = "Whether to enable the selection of a column renderer in the header or not")
     @Persist(optional = true)
@@ -378,7 +375,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
             + " to other views that show the selection.")
     @ValueSwitchWidget
     @Layout(InteractivitySection.class)
-    @Persist(customPersistor = SelectionCheckboxesToSelectionModePersistor.class)
+    @Persistor(SelectionCheckboxesToSelectionModePersistor.class)
     public SelectionMode m_selectionMode = SelectionMode.EDIT;
 
     /**
