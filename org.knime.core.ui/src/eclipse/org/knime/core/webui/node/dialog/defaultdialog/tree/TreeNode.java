@@ -113,7 +113,7 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
         m_underlyingField = underlyingField;
     }
 
-    private static <K, V> Map<K, V> toMap(final Function<K, V> function, final Collection<K> keys) {
+    static <K, V> Map<K, V> toMap(final Function<K, V> function, final Collection<K> keys) {
         return keys.stream().map(key -> new Pair<>(key, function.apply(key))).filter(pair -> pair.getSecond() != null)
             .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));
     }

@@ -104,8 +104,9 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         List.of(LatentWidget.class, Layout.class, Effect.class, ValueReference.class, ValueProvider.class,
             Modification.class, Modification.WidgetReference.class);
 
-    private static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_CLASS_ANNOTATIONS =
-        List.of(Layout.class, Effect.class, Modification.class);
+    private static final Collection<ClassAnnotationSpec> POSSIBLE_TREE_CLASS_ANNOTATIONS =
+        List.of(new ClassAnnotationSpec(Layout.class), new ClassAnnotationSpec(Effect.class),
+            new ClassAnnotationSpec(Modification.class));
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_LEAF_ANNOTATIONS =
         List.of(LatentWidget.class, Layout.class, Widget.class, NumberInputWidget.class, RadioButtonsWidget.class,

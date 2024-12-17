@@ -208,7 +208,7 @@ public final class PersistUtil {
     }
 
     private static void addDeprecatedPropertyConfigKeys(final ObjectNode node, final Tree<PersistableSettings> tree) {
-        if (tree.getAnnotation(Persistor.class).isEmpty()) {
+        if (tree.getTypeAnnotation(Persistor.class).isEmpty()) {
             return;
         }
         final var persistor = NodeSettingsPersistorFactory.createPersistor(tree);
