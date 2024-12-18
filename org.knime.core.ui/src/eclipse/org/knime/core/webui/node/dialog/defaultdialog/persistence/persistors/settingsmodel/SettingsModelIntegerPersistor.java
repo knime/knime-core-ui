@@ -79,4 +79,9 @@ public class SettingsModelIntegerPersistor implements NodeSettingsPersistor<Inte
         new SettingsModelInteger(m_configKey, obj).saveSettingsTo(settings);
     }
 
+    @Override
+    public String[][] getConfigPaths() {
+        return new String[][]{{m_configKey}};
+    }
+
 }

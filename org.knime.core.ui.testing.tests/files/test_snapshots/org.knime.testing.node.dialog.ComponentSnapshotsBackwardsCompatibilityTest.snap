@@ -376,17 +376,14 @@
               "path" : { }
             }
           },
-          "credentials" : {
-            "configPaths" : [ [ "credentials" ] ]
-          },
+          "credentials" : { },
           "dynamicValuesInput" : {
             "type" : "object",
             "properties" : {
               "values" : {
                 "type" : "array",
                 "items" : {
-                  "type" : "object",
-                  "properties" : { }
+                  "propertiesConfigPaths" : [ ]
                 }
               },
               "inputKind" : { }
@@ -429,15 +426,7 @@
                 "properties" : {
                   "selectedTypes" : { },
                   "typeDisplays" : {
-                    "type" : "array",
-                    "configPaths" : [ ],
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : { },
-                        "text" : { }
-                      }
-                    }
+                    "configPaths" : [ ]
                   }
                 }
               }
@@ -452,22 +441,17 @@
             }
           },
           "nestedSettingsRenamed" : {
-            "configKey" : "myNestedSettings",
             "type" : "object",
             "properties" : {
               "nestedString" : { }
-            }
+            },
+            "configKey" : "myNestedSettings"
           },
           "nestedSettingsWithCustomPersistor" : {
             "configPaths" : [ [ "customConfigKeyForNestedSettings" ] ],
             "deprecatedConfigKeys" : [ {
-              "new" : [ [ "customConfigKeyForNestedSettings" ] ],
               "deprecated" : [ [ "deprecatedConfigKey" ] ]
-            } ],
-            "type" : "object",
-            "properties" : {
-              "nestedString" : { }
-            }
+            } ]
           }
         }
       }

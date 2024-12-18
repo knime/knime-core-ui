@@ -81,4 +81,9 @@ public class SettingsModelBooleanPersistor implements NodeSettingsPersistor<Bool
         new SettingsModelBoolean(m_configKey, obj).saveSettingsTo(settings);
     }
 
+    @Override
+    public String[][] getConfigPaths() {
+        return new String[][]{{m_configKey}};
+    }
+
 }

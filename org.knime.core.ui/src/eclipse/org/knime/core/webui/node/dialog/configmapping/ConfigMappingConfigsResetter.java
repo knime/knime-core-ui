@@ -53,6 +53,7 @@ import static org.knime.core.webui.node.dialog.configmapping.NodeSettingsAtPathU
 import static org.knime.core.webui.node.dialog.configmapping.NodeSettingsAtPathUtil.getNodeSettingsROAtPath;
 import static org.knime.core.webui.node.dialog.configmapping.NodeSettingsAtPathUtil.replaceAtPathIfPresent;
 
+import java.util.Collection;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
@@ -67,17 +68,19 @@ import org.knime.core.node.NodeSettingsRO;
  */
 class ConfigMappingConfigsResetter implements ConfigsResetter {
 
-    private ConfigPath m_basePath;
+    private final ConfigPath m_basePath;
 
-    private NewAndDeprecatedConfigPaths m_newAndDeprecatedConfigPaths;
+    private final Function<NodeSettingsRO, NodeSettingsRO> m_oldSettingsToNewSettings;
 
-    private Function<NodeSettingsRO, NodeSettingsRO> m_oldSettingsToNewSettings;
+    private final NodeSettingsRO m_previousNodeSettings;
 
-    private NodeSettingsRO m_previousNodeSettings;
+    private final NodeSettings m_nodeSettings;
 
-    private NodeSettings m_nodeSettings;
+    private NodeSettingsRO m_mappedPreviousSettings;
 
-    NodeSettingsRO m_mappedPreviousSettings;
+    private final Collection<ConfigPath> m_newConfigPaths;
+
+    private final Collection<ConfigPath> m_deprecatedConfigPaths;
 
     private NodeSettingsRO getMappedPreviousSettings() {
         if (m_mappedPreviousSettings == null) {
@@ -86,14 +89,15 @@ class ConfigMappingConfigsResetter implements ConfigsResetter {
         return m_mappedPreviousSettings;
     }
 
-    record ConfigMapping(ConfigPath basePath, NewAndDeprecatedConfigPaths newAndDeprecatedConfigPaths,
-        UnaryOperator<NodeSettingsRO> oldSettingsToNewSettings) {
+    record ConfigMapping(ConfigPath basePath, Collection<ConfigPath> deprecatedConfigPaths,
+        Collection<ConfigPath> newConfigPaths, UnaryOperator<NodeSettingsRO> oldSettingsToNewSettings) {
     }
 
     ConfigMappingConfigsResetter(final ConfigMapping configMapping, final NodeSettingsRO previousNodeSettings,
         final NodeSettings nodeSettings) {
         m_basePath = configMapping.basePath;
-        m_newAndDeprecatedConfigPaths = configMapping.newAndDeprecatedConfigPaths;
+        m_newConfigPaths = configMapping.newConfigPaths;
+        m_deprecatedConfigPaths = configMapping.deprecatedConfigPaths;
         m_oldSettingsToNewSettings = configMapping.oldSettingsToNewSettings;
         m_previousNodeSettings = getNodeSettingsROAtPath(previousNodeSettings, m_basePath).orElse(null);
         m_nodeSettings = getNodeSettingsAtPath(nodeSettings, m_basePath).orElse(null);
@@ -116,8 +120,7 @@ class ConfigMappingConfigsResetter implements ConfigsResetter {
     @Override
     public void resetAtPath(final ConfigPath path) {
         final var relativeToBasePath = path.relativize(m_basePath);
-        final var isOldPath =
-            m_newAndDeprecatedConfigPaths.getDeprecatedConfigPaths().stream().anyMatch(relativeToBasePath::startsWith);
+        final var isOldPath = m_deprecatedConfigPaths.stream().anyMatch(relativeToBasePath::startsWith);
 
         if (isOldPath) {
             getNewAndOldPaths().forEach(subPath -> {
@@ -131,8 +134,7 @@ class ConfigMappingConfigsResetter implements ConfigsResetter {
     }
 
     private Stream<ConfigPath> getNewAndOldPaths() {
-        return Stream.concat(m_newAndDeprecatedConfigPaths.getNewConfigPaths().stream(),
-            m_newAndDeprecatedConfigPaths.getDeprecatedConfigPaths().stream());
+        return Stream.concat(m_newConfigPaths.stream(), m_deprecatedConfigPaths.stream());
     }
 
 }

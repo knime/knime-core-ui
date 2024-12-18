@@ -44,9 +44,9 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 15, 2024 (Paul Bärnreuther): created
+ *   Dec 23, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget;
+package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -54,24 +54,58 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-
 /**
- * Until it is possible to have custom conditions utilizing backend calls, one can instead use a {@link ValueProvider}
- * together with a {@link ValueReference} referenced within an {@link Effect} on a {@link LatentWidget}.
+ * Defines how a field is migrated from a pervious version of settings.
  *
- * This will lead to the setting not being persisted and not being displayed in the dialog.
+ * <p>
+ * A migration - in contrast to a {@link Persistor} - is needed when the structure of the settings has changed, i.e.
+ * there can exist versions of the node saved with settings that characterize the state of the node to before a certain
+ * point in time when the saved settings structure was changed. Defining a migration is necessary for two reasons:
+ * <ul>
+ * <li>To be able to still load from these old settings.</li>
+ * <li>To not break flow variables set for old configs that are not saved to again.</li>
+ * </ul>
+ * Note that the first point could be accheved by using a {@link Persistor} but the second one cannot.
  *
- * Introduced deliberately with UIEXT-1603 to make such cases more explicit.
  *
- * TODO: UIEXT-1673 remove this annotation again and replace it with new condition mechanism.
+ * <p>
+ * This is it the simple alternative to {@link Migration @Migration} and only one of the two can be used. Use
+ * {@link Migration} instead for more complex migrations or for migrations on class level. Every field of this
+ * annotation can be achieved by using {@link Migration @Migration} as well as described in the individual javadocs.
+ * </p>
  *
  * @author Paul Bärnreuther
  */
 @Retention(RUNTIME)
 @Target(FIELD)
-public @interface LatentWidget {
+public @interface Migrate {
+
+    /**
+     * Use this annotation for a field that has been added to the settings after the initial release of the node.
+     *
+     * If it isn't present, during load, then the default value of this field from the declaring DefaultNodeSettings
+     * class is used.
+     *
+     * <h5>@Migration Alternative:</h5>
+     * <p>
+     * This annotation might not suffice because
+     * <ol>
+     * <li>a different value than the field's default value is needed (in case the default changed with the
+     * migration)</li>
+     * <li>a subsequent migration are required additionally.
+     * </ol>
+     * For 1. one can use a {@link Migration @Migration} with a {@link NodeSettingsMigrator} implementing
+     * {@link DefaultProvider}. For 2. the same effect can be achieved by using a {@link NodeSettingsMigrator} including
+     * the following configs deprecation (usually as the last in the provided list):
+     *
+     * <pre>
+     * {@code
+     * new ConfigsDeprecation.builder(settings -> myDefaultValue).build()
+     * }
+     * </pre>
+     *
+     * @return true if the default value should be used if the field does not exist in the saved settings.
+     */
+    boolean loadDefaultIfAbsent() default false;
 
 }

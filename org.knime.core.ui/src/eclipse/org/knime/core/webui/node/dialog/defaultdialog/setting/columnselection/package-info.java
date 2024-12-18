@@ -50,7 +50,7 @@
  * This package offers the {@link ColumnSelection} class used for settings holding a single selected column. In contrast
  * to a simple string it also holds type information which can be used for interactions with other settings. When
  * upgrading from a simple string to this more capable representation, the custom persistor
- * {@link org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.StringToColumnSelectionPersistor} can
+ * {@link org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.StringToColumnSelectionMigrator} can
  * be used to offer backwards compatibility.
  *
  * @author Paul Bärnreuther

@@ -81,7 +81,9 @@ import org.knime.core.webui.node.dialog.configmapping.NodeSettingsCorrectionUtil
 import org.knime.core.webui.node.dialog.defaultdialog.examples.ArrayWidgetExample;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.NodeSettingsPersistorFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigMappingsFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
@@ -485,7 +487,7 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
      */
     static <S extends DefaultNodeSettings> S loadSettings(final NodeSettingsRO settings, final Class<S> clazz)
         throws InvalidSettingsException {
-        return NodeSettingsPersistorFactory.getPersistor(clazz).load(settings);
+        return SettingsLoaderFactory.loadSettings(clazz, settings);
     }
 
     /**
@@ -525,6 +527,7 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
         return InstantiationUtil.createInstance(clazz);
     }
 
+    @SuppressWarnings("javadoc")
     static void saveSettings(final Class<? extends DefaultNodeSettings> settingsClass,
         final DefaultNodeSettings settingsObject, final NodeSettingsWO settings) {
         castAndSaveSettings(settingsClass, settingsObject, settings);
@@ -535,7 +538,7 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
         final DefaultNodeSettings settingsObject, final NodeSettingsWO settings) {
         CheckUtils.checkArgument(settingsClass.isInstance(settingsObject),
             "The provided settingsObject is not an instance of the provided settingsClass.");
-        getPersistor(settingsClass).save((S)settingsObject, settings);
+        SettingsSaverFactory.saveSettings((S)settingsObject, settings);
 
     }
 
@@ -547,10 +550,10 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
      *         settings and flow variables.
      * @see NodeSettingsCorrectionUtil
      */
-    @SuppressWarnings("unchecked")
-    static <S extends DefaultNodeSettings> ConfigMappings getConfigMappings(final Class<S> settingsClass,
+    static <S extends DefaultNodeSettings> ConfigMappings
+        getConfigMappings(final Class<S> settingsClass,
         final DefaultNodeSettings settingsObject) {
-        return getPersistor(settingsClass).getConfigMappings((S)settingsObject);
+        return ConfigMappingsFactory.getConfigMappings(settingsClass, settingsObject);
     }
 
     /**

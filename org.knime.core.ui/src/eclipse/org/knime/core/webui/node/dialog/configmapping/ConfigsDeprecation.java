@@ -57,9 +57,10 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NewSettingsMissingMatcher;
 
 /**
@@ -85,24 +86,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NewSe
  */
 public final class ConfigsDeprecation<T> {
 
-    /**
-     * Loads a deprecated config based on the given settings and can throw an InvalidSettingsException
-     *
-     * @param <T> the type of the object of the new config
-     */
-    @FunctionalInterface
-    public interface DeprecationLoader<T> {
-        /**
-         * @param settings the settings containing the deprecated config to load
-         * @return T the type of the new config
-         * @throws InvalidSettingsException
-         */
-        T apply(NodeSettingsRO settings) throws InvalidSettingsException;
-    }
-
     private final Predicate<NodeSettingsRO> m_matcher;
 
-    private final DeprecationLoader<T> m_loader;
+    private final SettingsLoader<T> m_loader;
 
     private final Collection<ConfigPath> m_deprecatedConfigPaths;
 
@@ -110,7 +96,7 @@ public final class ConfigsDeprecation<T> {
      * Private. Use the {@link Builder} or {@link #builder} instead.
      */
     private ConfigsDeprecation(final Collection<ConfigPath> deprecatedConfigPaths,
-        final Predicate<NodeSettingsRO> matcher, final DeprecationLoader<T> loader) {
+        final Predicate<NodeSettingsRO> matcher, final SettingsLoader<T> loader) {
         this.m_deprecatedConfigPaths = deprecatedConfigPaths;
         this.m_matcher = matcher;
         this.m_loader = loader;
@@ -119,7 +105,7 @@ public final class ConfigsDeprecation<T> {
     /**
      * @return the loader, which is able to load from the old config keys
      */
-    public DeprecationLoader<T> getLoader() {
+    public SettingsLoader<T> getLoader() {
         return m_loader;
     }
 
@@ -142,7 +128,7 @@ public final class ConfigsDeprecation<T> {
      * @param loader used to load from the deprecated configs
      * @return a builder for {@link ConfigsDeprecation}.
      */
-    public static <T> Builder<T> builder(final DeprecationLoader<T> loader) {
+    public static <T> Builder<T> builder(final SettingsLoader<T> loader) {
         return new Builder<>(loader);
     }
 
@@ -156,7 +142,7 @@ public final class ConfigsDeprecation<T> {
 
         private Predicate<NodeSettingsRO> m_matcher;
 
-        private DeprecationLoader<T> m_loader;
+        private SettingsLoader<T> m_loader;
 
         private final Collection<ConfigPath> m_deprecatedConfigPaths = new ArrayList<>(0);
 
@@ -165,7 +151,7 @@ public final class ConfigsDeprecation<T> {
          *
          * @param loader used to load from the deprecated configs
          */
-        public Builder(final DeprecationLoader<T> loader) {
+        public Builder(final SettingsLoader<T> loader) {
             m_loader = Objects.requireNonNull(loader);
         }
 
@@ -204,7 +190,7 @@ public final class ConfigsDeprecation<T> {
         }
 
         /**
-         * @return a new {@link ConfigsDeprecation} to be used in {@link NodeSettingsPersistor#getConfigsDeprecations()}
+         * @return a new {@link ConfigsDeprecation} to be used in {@link NodeSettingsMigrator#getConfigsDeprecations()}
          */
         public ConfigsDeprecation<T> build() {
             final var matcher = m_matcher == null ? createMatcherByDeprecatedConfigPaths() : m_matcher;

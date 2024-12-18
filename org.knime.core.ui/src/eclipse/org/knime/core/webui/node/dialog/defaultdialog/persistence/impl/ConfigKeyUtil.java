@@ -49,10 +49,8 @@
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
 import java.lang.reflect.Field;
-import java.util.Optional;
 
 import org.knime.core.node.defaultnodesettings.SettingsModel;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
@@ -67,20 +65,6 @@ public final class ConfigKeyUtil {
 
     private ConfigKeyUtil() {
         // static utility
-    }
-
-    /**
-     * @param node
-     * @return the persistor used for this node if inside a {@link FieldBasedNodeSettingsPersistor}.
-     */
-    public static Optional<NodeSettingsPersistor<?>>
-        extractFieldNodeSettingsPersistor(final TreeNode<PersistableSettings> node) {
-        /**
-         * There might not exist a persistor in some cases where the persistence is defined on a parent level class or
-         * field.
-         */
-        return FieldNodeSettingsPersistorFactory.getCustomOrDefaultPersistorIfPresent(node);
-
     }
 
     /**

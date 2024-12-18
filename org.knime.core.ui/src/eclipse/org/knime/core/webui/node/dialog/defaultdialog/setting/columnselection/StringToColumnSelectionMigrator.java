@@ -42,60 +42,54 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Oct 10, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.selection;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection;
+
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory.loadSettings;
+
+import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.EnumFieldPersistor;
+import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 
 /**
+ * The data structure of a ColumnSelection dropdown changed from a strings to a more complex representation by a
+ * {@link ColumnSelection}. For previous workflows to still execute, we transform the stored string to the correct
+ * representation. For that, one config key has to be deprecated and a new one has to be used instead.
  *
  * @author Paul Bärnreuther
  */
-public class SelectionCheckboxesToSelectionModePersistor implements NodeSettingsPersistor<SelectionMode> {
+public abstract class StringToColumnSelectionMigrator implements NodeSettingsMigrator<ColumnSelection> {
 
-    private final String m_configKey;
+    private final String m_legacyConfigKey;
 
-    SelectionCheckboxesToSelectionModePersistor(final NodeSettingsPersistorContext<SelectionMode> context) {
-        m_configKey = context.getConfigKey();
-        persistor = new EnumFieldPersistor<>(m_configKey, SelectionMode.class);
-
+    /**
+     * The config key under which the string has been persisted before has to be deprecated to not break flow variables.
+     * I.e. either rename the field or add a {@link Persist#configKey} annotation on the field where this class is
+     * attached.
+     *
+     * @param legacyConfigKey the config key under which the string has been stored previously.
+     */
+    protected StringToColumnSelectionMigrator(final String legacyConfigKey) {
+        m_legacyConfigKey = legacyConfigKey;
     }
 
-    private EnumFieldPersistor<SelectionMode> persistor;
-
-    @Override
-    public SelectionMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        if (settings.containsKey(m_configKey)) {
-            return persistor.load(settings);
+    private ColumnSelection loadLegacy(final NodeSettingsRO settings) throws InvalidSettingsException {
+        try {
+            final var fieldSettingsString = settings.getString(m_legacyConfigKey);
+            return new ColumnSelection(fieldSettingsString, null);
+        } catch (InvalidSettingsException ex) {
+            return loadSettings(ColumnSelection.class, settings.getNodeSettings(m_legacyConfigKey));
         }
-        if (settings.containsKey("publishSelection") && settings.containsKey("subscribeToSelection")) {
-            final var publish = settings.getBoolean("publishSelection");
-            final var show = settings.getBoolean("subscribeToSelection");
-            /**
-             * There is no option for only publishing since this change to a value switch. I.e. in this case, we now
-             * also subscribe to the selection.
-             */
-            if (publish) {
-                return SelectionMode.EDIT;
-            }
-            if (show) {
-                return SelectionMode.SHOW;
-            }
-            return SelectionMode.OFF;
-        }
-        return SelectionMode.EDIT;
     }
 
     @Override
-    public void save(final SelectionMode obj, final NodeSettingsWO settings) {
-        persistor.save(obj, settings);
+    public final List<ConfigsDeprecation<ColumnSelection>> getConfigsDeprecations() {
+        return List
+            .of(ConfigsDeprecation.builder(this::loadLegacy).withDeprecatedConfigPath(m_legacyConfigKey).build());
     }
+
 }

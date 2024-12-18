@@ -57,6 +57,7 @@ import java.util.stream.Stream;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.VariableSettingsRO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMappingConfigsResetter.ConfigMapping;
 
@@ -168,9 +169,11 @@ public final class NodeSettingsCorrectionUtil {
         // depth first in order to have more specific mappings first
         configMappings.m_children.forEach(child -> toCollection(child, collection, currentPath));
 
-        if (configMappings.m_newAndDeprecatedConfigPaths != null) {
-            collection.add(new ConfigMapping(currentPath, configMappings.m_newAndDeprecatedConfigPaths,
-                configMappings.m_oldSettingsToNewSettings));
+        if (configMappings.m_deprecatedConfigPaths != null) {
+            CheckUtils.checkNotNull(configMappings.m_newConfigPaths,
+                "New config paths should be defined while deprecated ones are.");
+            collection.add(new ConfigMapping(currentPath, configMappings.m_deprecatedConfigPaths,
+                configMappings.m_newConfigPaths, configMappings.m_oldSettingsToNewSettings));
         }
 
     }

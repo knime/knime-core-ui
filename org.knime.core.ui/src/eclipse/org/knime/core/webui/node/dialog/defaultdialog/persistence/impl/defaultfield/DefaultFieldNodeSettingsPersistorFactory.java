@@ -50,55 +50,34 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultf
 
 import static java.util.stream.Collectors.toMap;
 
-import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.config.base.ConfigBaseRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMappings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistorFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DateTimePersistorUtils.DateIntervalPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DateTimePersistorUtils.IntervalPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DateTimePersistorUtils.LocalDatePersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DateTimePersistorUtils.LocalDateTimePersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DateTimePersistorUtils.LocalTimePersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DateTimePersistorUtils.TimeIntervalPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DateTimePersistorUtils.TimeZonePersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DateTimePersistorUtils.ZonedDateTimePersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.CreateNodeSettingsPersistorUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.NodeSettingsPersistorFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsSaver;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.DateIntervalPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.IntervalPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.LocalDatePersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.LocalDateTimePersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.LocalTimePersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.TimeIntervalPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.TimeZonePersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.FieldNodeSettingsPersistorWithInferredConfigs;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NodeSettingsPersistorWithInferredConfigs;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.ZonedDateTimePersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.filehandling.core.connections.FSLocation;
 
 /**
@@ -109,133 +88,23 @@ import org.knime.filehandling.core.connections.FSLocation;
  */
 public final class DefaultFieldNodeSettingsPersistorFactory {
 
-    /**
-     * This method can be used in a {@link Persist#customPersistor()} for additional adaptations of the default
-     * persistors either for arrays or {@link PersistableSettings} or settings that store values directly in
-     * NodeSettings.
-     *
-     * @param node the node associated to the field the created persistor should persist
-     * @param configKey the key to use for storing and retrieving the value to and from the NodeSettings
-     * @return a new persistor
-     * @throws IllegalArgumentException if there is no persistor available for the provided fieldType
-     */
-    public static NodeSettingsPersistorWithInferredConfigs<?>
-        createDefaultPersistor(final TreeNode<PersistableSettings> node, final String configKey) {
-        if (node instanceof ArrayParentNode<PersistableSettings> array) {
-            return createDefaultArrayPersistor(array.getElementTree(), configKey);
-        } else if (node instanceof Tree<PersistableSettings> tree) {
-            return createNestedFieldBasedPersistor(configKey, tree);
-        } else {
-            return createPersistor(node.getType(), configKey);
-        }
-    }
-
-    private static <S extends PersistableSettings> ArrayFieldPersistor<S>
-        createDefaultArrayPersistor(final Tree<PersistableSettings> elementTree, final String configKey) {
-        return new ArrayFieldPersistor<>(elementTree, configKey);
-    }
-
-    private static NestedPersistor<?> createNestedFieldBasedPersistor(final String configKey,
-        final Tree<PersistableSettings> tree) {
-        return new NestedPersistor<>(configKey, NodeSettingsPersistorFactory.createPersistor(tree));
-    }
-
-    static final class NestedPersistor<S extends PersistableSettings>
-        implements FieldNodeSettingsPersistorWithInferredConfigs<S> {
-
-        private final String m_configKey;
-
-        private final NodeSettingsPersistor<S> m_delegate;
-
-        NestedPersistor(final String configKey, final NodeSettingsPersistor<S> delegate) {
-            m_configKey = configKey;
-            m_delegate = delegate;
-        }
-
-        @Override
-        public S load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return m_delegate.load(settings.getNodeSettings(m_configKey));
-        }
-
-        @Override
-        public void save(final S obj, final NodeSettingsWO settings) {
-            m_delegate.save(obj, settings.addNodeSettings(m_configKey));
-        }
-
-        @Override
-        public ConfigMappings getConfigMappings(final S obj) {
-            return new ConfigMappings(m_configKey, List.of(m_delegate.getConfigMappings(obj)));
-        }
-
-        @Override
-        public String getConfigKey() {
-            return m_configKey;
-        }
-
-    }
-
-    static final class ArrayFieldPersistor<S extends PersistableSettings>
-        implements FieldNodeSettingsPersistorWithInferredConfigs<S[]> {
-
-        private final String m_configKey;
-
-        private final Tree<PersistableSettings> m_elementTree;
-
-        private final List<NodeSettingsPersistor<S>> m_persistors = new ArrayList<>();
-
-        private static final Pattern IS_DIGIT = Pattern.compile("^\\d+$");
-
-        ArrayFieldPersistor(final Tree<PersistableSettings> elementTree, final String configKey) {
-            m_configKey = configKey;
-            m_elementTree = elementTree;
-        }
-
-        @Override
-        public S[] load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            var arraySettings = settings.getNodeSettings(m_configKey);
-            int size = (int)arraySettings.keySet().stream().filter(s -> IS_DIGIT.matcher(s).matches()).count();
-            ensureEnoughPersistors(size);
-            @SuppressWarnings("unchecked")
-            var values = (S[])Array.newInstance(m_elementTree.getType(), size);
-            for (int i = 0; i < size; i++) {//NOSONAR
-                values[i] = m_persistors.get(i).load(arraySettings);
-            }
-            return values;
-        }
-
-        @SuppressWarnings("unchecked")
-        private synchronized void ensureEnoughPersistors(final int numPersistors) {
-            for (int i = m_persistors.size(); i < numPersistors; i++) {
-                m_persistors
-                    .add((NodeSettingsPersistor<S>)createNestedFieldBasedPersistor(Integer.toString(i), m_elementTree));
-            }
-        }
-
-        @Override
-        public void save(final S[] array, final NodeSettingsWO settings) {
-            ensureEnoughPersistors(array.length);
-            var arraySettings = settings.addNodeSettings(m_configKey);
-            for (int i = 0; i < array.length; i++) {//NOSONAR
-                m_persistors.get(i).save(array[i], arraySettings);
-            }
-        }
-
-        @Override
-        public ConfigMappings getConfigMappings(final S[] array) {
-            ensureEnoughPersistors(array.length);
-            return new ConfigMappings(m_configKey, IntStream.range(0, array.length)
-                .mapToObj(i -> m_persistors.get(i).getConfigMappings(array[i])).toList());
-        }
-
-        @Override
-        public String getConfigKey() {
-            return m_configKey;
-        }
-
-    }
-
     private static final Map<Class<?>, FieldPersistor<?>> IMPL_MAP = Stream.of(PersistorImpl.values())//
         .collect(toMap(PersistorImpl::getFieldType, PersistorImpl::getFieldPersistor));
+
+    public interface DefaultFieldPersistor<S> extends SettingsSaver<S>, SettingsLoader<S> {
+
+    }
+
+    /**
+     *
+     * @param node
+     * @param configKey
+     * @return how to save and load this node to the config key
+     */
+    public static DefaultFieldPersistor<?> createPersistor(final LeafNode<PersistableSettings> node,
+        final String configKey) {
+        return createPersistor(node.getType(), configKey);
+    }
 
     /**
      * Creates a persistor for the provided type that uses the configKey to store and retrieve the value.
@@ -246,40 +115,39 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
      * @return a new persistor
      * @throws IllegalArgumentException if there is no persistor available for the provided fieldType
      */
-    public static <T> NodeSettingsPersistorWithInferredConfigs<T> createPersistor(final Class<T> fieldType,
-        final String configKey) {
+    public static <T> DefaultFieldPersistor<T> createPersistor(final Class<T> fieldType, final String configKey) {
         @SuppressWarnings("unchecked") // Type-save since IMPL_MAP maps Class<T> to FieldPersistor<T>
         var impl = (FieldPersistor<T>)IMPL_MAP.get(fieldType);
         return createPersistorFromImpl(fieldType, configKey, impl);
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> NodeSettingsPersistorWithInferredConfigs<T> createPersistorFromImpl(final Class<T> fieldType,
+    private static <T> DefaultFieldPersistor<T> createPersistorFromImpl(final Class<T> fieldType,
         final String configKey, final FieldPersistor<T> impl) {
         if (impl != null) {
             return new DefaultFieldNodeSettingsPersistor<>(configKey, impl);
         } else if (fieldType.isEnum()) {
             return createEnumPersistor(configKey, fieldType);
         } else if (fieldType.equals(LocalDate.class)) {
-            return (NodeSettingsPersistorWithInferredConfigs<T>)createLocalDatePersistor(configKey);
+            return (DefaultFieldPersistor<T>)createLocalDatePersistor(configKey);
         } else if (fieldType.equals(LocalTime.class)) {
-            return (NodeSettingsPersistorWithInferredConfigs<T>)createLocalTimePersistor(configKey);
+            return (DefaultFieldPersistor<T>)createLocalTimePersistor(configKey);
         } else if (fieldType.equals(LocalDateTime.class)) {
-            return (FieldNodeSettingsPersistorWithInferredConfigs<T>)createLocalDateTimePersistor(configKey);
+            return (DefaultFieldPersistor<T>)createLocalDateTimePersistor(configKey);
         } else if (fieldType.equals(ZonedDateTime.class)) {
-            return (FieldNodeSettingsPersistorWithInferredConfigs<T>)createZonedDateTimePersistor(configKey);
+            return (DefaultFieldPersistor<T>)createZonedDateTimePersistor(configKey);
         } else if (fieldType.equals(ZoneId.class)) {
-            return (NodeSettingsPersistorWithInferredConfigs<T>)createTimeZonePersistor(configKey);
+            return (DefaultFieldPersistor<T>)createTimeZonePersistor(configKey);
         } else if (fieldType.equals(Interval.class)) {
-            return (NodeSettingsPersistorWithInferredConfigs<T>)createIntervalPersistor(configKey);
+            return (DefaultFieldPersistor<T>)createIntervalPersistor(configKey);
         } else if (fieldType.equals(DateInterval.class)) {
-            return (NodeSettingsPersistorWithInferredConfigs<T>)createDateIntervalPersistor(configKey);
+            return (DefaultFieldPersistor<T>)createDateIntervalPersistor(configKey);
         } else if (fieldType.equals(TimeInterval.class)) {
-            return (NodeSettingsPersistorWithInferredConfigs<T>)createTimeIntervalPersistor(configKey);
+            return (DefaultFieldPersistor<T>)createTimeIntervalPersistor(configKey);
         } else if (fieldType.equals(Credentials.class)) {
-            return (NodeSettingsPersistorWithInferredConfigs<T>)createCredentialsPersistor(configKey);
+            return (DefaultFieldPersistor<T>)createCredentialsPersistor(configKey);
         } else if (fieldType.equals(FSLocation.class)) {
-            return (NodeSettingsPersistorWithInferredConfigs<T>)createFSLocationPersistor(configKey);
+            return (DefaultFieldPersistor<T>)createFSLocationPersistor(configKey);
         } else {
             throw new IllegalArgumentException(
                 String.format("No default persistor available for type '%s'.", fieldType));
@@ -318,7 +186,19 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
 
         <T> PersistorImpl(final Class<T> type, final FieldLoader<T> loader, final FieldSaver<T> saver) {
             m_type = type;
-            m_fieldPersistor = new FieldPersistorLoaderSaverAdapter<>(loader, saver);
+            m_fieldPersistor = new FieldPersistor<T>() {
+
+                @Override
+                public T load(final NodeSettingsRO settings, final String configKey) throws InvalidSettingsException {
+                    return loader.load(settings, configKey);
+                }
+
+                @Override
+                public void save(final T value, final NodeSettingsWO settings, final String configKey) {
+                    saver.save(value, settings, configKey);
+                }
+
+            };
         }
 
         Class<?> getFieldType() {
@@ -331,58 +211,48 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static <T> NodeSettingsPersistorWithInferredConfigs<T> createEnumPersistor(final String configKey,
-        final Class<T> fieldType) {
+    private static <T> DefaultFieldPersistor<T> createEnumPersistor(final String configKey, final Class<T> fieldType) {
         return new EnumFieldPersistor<>(configKey, (Class)fieldType);
     }
 
-    private static NodeSettingsPersistorWithInferredConfigs<LocalDate>
-        createLocalDatePersistor(final String configKey) {
-        return CreateNodeSettingsPersistorUtil.createInstance(LocalDatePersistor.class, LocalDate.class, configKey);
+    private static DefaultFieldPersistor<LocalDate> createLocalDatePersistor(final String configKey) {
+        return new LocalDatePersistor(configKey);
     }
 
-    private static NodeSettingsPersistorWithInferredConfigs<LocalTime>
-        createLocalTimePersistor(final String configKey) {
-        return CreateNodeSettingsPersistorUtil.createInstance(LocalTimePersistor.class, LocalTime.class, configKey);
+    private static DefaultFieldPersistor<LocalTime> createLocalTimePersistor(final String configKey) {
+        return new LocalTimePersistor(configKey);
     }
 
-    private static FieldNodeSettingsPersistor<LocalDateTime> createLocalDateTimePersistor(final String configKey) {
-        return FieldNodeSettingsPersistor.createInstance(LocalDateTimePersistor.class, LocalDateTime.class, configKey);
+    private static DefaultFieldPersistor<LocalDateTime> createLocalDateTimePersistor(final String configKey) {
+        return new LocalDateTimePersistor(configKey);
     }
 
-    private static FieldNodeSettingsPersistor<ZonedDateTime> createZonedDateTimePersistor(final String configKey) {
-        return FieldNodeSettingsPersistor.createInstance(ZonedDateTimePersistor.class, ZonedDateTime.class, configKey);
+    private static DefaultFieldPersistor<ZonedDateTime> createZonedDateTimePersistor(final String configKey) {
+        return new ZonedDateTimePersistor(configKey);
     }
 
-    private static NodeSettingsPersistorWithInferredConfigs<ZoneId> createTimeZonePersistor(final String configKey) {
-        return CreateNodeSettingsPersistorUtil.createInstance(TimeZonePersistor.class, ZoneId.class, configKey);
+    private static DefaultFieldPersistor<ZoneId> createTimeZonePersistor(final String configKey) {
+        return new TimeZonePersistor(configKey);
     }
 
-    private static NodeSettingsPersistorWithInferredConfigs<Interval> createIntervalPersistor(final String configKey) {
-        return CreateNodeSettingsPersistorUtil.createInstance(IntervalPersistor.class, Interval.class, configKey);
+    private static DefaultFieldPersistor<Interval> createIntervalPersistor(final String configKey) {
+        return new IntervalPersistor(configKey);
     }
 
-    private static NodeSettingsPersistorWithInferredConfigs<DateInterval>
-        createDateIntervalPersistor(final String configKey) {
-        return CreateNodeSettingsPersistorUtil.createInstance(DateIntervalPersistor.class, DateInterval.class,
-            configKey);
+    private static DefaultFieldPersistor<DateInterval> createDateIntervalPersistor(final String configKey) {
+        return new DateIntervalPersistor(configKey);
     }
 
-    private static NodeSettingsPersistorWithInferredConfigs<TimeInterval>
-        createTimeIntervalPersistor(final String configKey) {
-        return CreateNodeSettingsPersistorUtil.createInstance(TimeIntervalPersistor.class, TimeInterval.class,
-            configKey);
+    private static DefaultFieldPersistor<TimeInterval> createTimeIntervalPersistor(final String configKey) {
+        return new TimeIntervalPersistor(configKey);
     }
 
-    private static NodeSettingsPersistorWithInferredConfigs<Credentials>
-        createCredentialsPersistor(final String configKey) {
-        return CreateNodeSettingsPersistorUtil.createInstance(Credentials.CredentialsPersistor.class, Credentials.class,
-            configKey);
+    private static DefaultFieldPersistor<Credentials> createCredentialsPersistor(final String configKey) {
+        return new Credentials.CredentialsPersistor(configKey);
     }
 
-    private static NodeSettingsPersistorWithInferredConfigs<FSLocation>
-        createFSLocationPersistor(final String configKey) {
-        return CreateNodeSettingsPersistorUtil.createInstance(FSLocationPersistor.class, FSLocation.class, configKey);
+    private static DefaultFieldPersistor<FSLocation> createFSLocationPersistor(final String configKey) {
+        return new FSLocationPersistor(configKey);
     }
 
     private DefaultFieldNodeSettingsPersistorFactory() {

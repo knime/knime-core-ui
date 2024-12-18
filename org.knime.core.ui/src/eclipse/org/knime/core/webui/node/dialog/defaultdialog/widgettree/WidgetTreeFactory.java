@@ -70,7 +70,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.LatentWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
@@ -103,7 +102,6 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_ANNOTATIONS = List.of( //
-        LatentWidget.class, //
         Layout.class, //
         Effect.class, //
         ValueReference.class, //
@@ -112,54 +110,52 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         Modification.WidgetReference.class //
     );
 
-    private static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_CLASS_ANNOTATIONS = List.of( //
+    private static final Collection<ClassAnnotationSpec> POSSIBLE_TREE_CLASS_ANNOTATIONS = List.of( //
         new ClassAnnotationSpec(Layout.class), //
         new ClassAnnotationSpec(Effect.class), //
         new ClassAnnotationSpec(Modification.class) //
     );
 
-    private static final Collection<Class<? extends Annotation>> POSSIBLE_LEAF_ANNOTATIONS = List.of(
-        ButtonWidget.class, // 
-        ChoicesWidget.class, // 
-        ComboBoxWidget.class, // 
-        CredentialsWidget.class, // 
-        DateTimeFormatPickerWidget.class, // 
-        DateTimeWidget.class, // 
-        DateWidget.class, // 
-        Effect.class, // 
-        FileReaderWidget.class, // 
-        FileWriterWidget.class, // 
-        InternalArrayWidget.ElementCheckboxWidget.class, // 
-        IntervalWidget.class, // 
-        LatentWidget.class, // 
-        Layout.class, // 
-        LocalFileReaderWidget.class, // 
-        LocalFileWriterWidget.class, // 
-        Modification.WidgetReference.class, // 
-        NumberInputWidget.class, // 
+   private static final Collection<Class<? extends Annotation>> POSSIBLE_LEAF_ANNOTATIONS = List.of(
+        ButtonWidget.class, //
+        ChoicesWidget.class, //
+        ComboBoxWidget.class, //
+        CredentialsWidget.class, //
+        DateTimeFormatPickerWidget.class, //
+        DateTimeWidget.class, //
+        DateWidget.class, //
+        Effect.class, //
+        FileReaderWidget.class, //
+        FileWriterWidget.class, //
+        InternalArrayWidget.ElementCheckboxWidget.class, //
+        IntervalWidget.class, //
+        Layout.class, //
+        LocalFileReaderWidget.class, //
+        LocalFileWriterWidget.class, //
+        Modification.WidgetReference.class, //
+        NumberInputWidget.class, //
         OverwriteDialogTitle.class, //
-        PasswordWidget.class, // 
-        RadioButtonsWidget.class, // 
-        RichTextInputWidget.class, // 
-        SimpleButtonWidget.class, // 
-        SortListWidget.class, // 
-        TextInputWidget.class, // 
-        TextMessage.class, // 
-        UsernameWidget.class, // 
-        ValueProvider.class, // 
-        ValueReference.class, // 
-        ValueSwitchWidget.class, // 
-        Widget.class // 
+        PasswordWidget.class, //
+        RadioButtonsWidget.class, //
+        RichTextInputWidget.class, //
+        SimpleButtonWidget.class, //
+        SortListWidget.class, //
+        TextInputWidget.class, //
+        TextMessage.class, //
+        UsernameWidget.class, //
+        ValueProvider.class, //
+        ValueReference.class, //
+        ValueSwitchWidget.class, //
+        Widget.class //
     );
 
-    private static final Collection<Class<? extends Annotation>> POSSIBLE_ARRAY_ANNOTATIONS = List.of( //
+private static final Collection<Class<? extends Annotation>> POSSIBLE_ARRAY_ANNOTATIONS = List.of(
         ArrayWidget.class, //
         Effect.class, //
         InternalArrayWidget.class, //
-        LatentWidget.class, //
         Layout.class, //
-        Modification.WidgetReference.class,
         Modification.class, //
+        Modification.WidgetReference.class, //
         ValueProvider.class, //
         ValueReference.class, //
         Widget.class //

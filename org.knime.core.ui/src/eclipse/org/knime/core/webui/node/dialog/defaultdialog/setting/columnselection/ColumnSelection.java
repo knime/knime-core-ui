@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 
@@ -75,7 +76,8 @@ public final class ColumnSelection implements PersistableSettings {
     /**
      * The collection of the names of all types with respect to which the current selected column is compatible
      */
-    @Persist(hidden = true, optional = true)
+    @Persist(hidden = true)
+    @Migrate(loadDefaultIfAbsent = true)
     public String[] m_compatibleTypes;
 
     /**

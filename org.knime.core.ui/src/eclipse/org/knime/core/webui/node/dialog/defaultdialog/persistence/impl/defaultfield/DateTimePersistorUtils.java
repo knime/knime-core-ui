@@ -64,8 +64,7 @@ import java.util.function.Function;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.FieldNodeSettingsPersistorWithInferredConfigs;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.DefaultFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
@@ -82,12 +81,12 @@ final class DateTimePersistorUtils {
         // utility class
     }
 
-    static final class LocalDatePersistor implements FieldNodeSettingsPersistorWithInferredConfigs<LocalDate> {
+    static final class LocalDatePersistor implements DefaultFieldPersistor<LocalDate> {
 
         private final String m_configKey;
 
-        LocalDatePersistor(final NodeSettingsPersistorContext<LocalDate> context) {
-            m_configKey = context.getConfigKey();
+        LocalDatePersistor(final String configKey) {
+            m_configKey = configKey;
         }
 
         static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ISO_LOCAL_DATE;
@@ -111,18 +110,14 @@ final class DateTimePersistorUtils {
             return parseTemporal(s, List.of(ZonedDateTime::parse, LocalDateTime::parse, LocalDate::parse), "date");
         }
 
-        @Override
-        public String getConfigKey() {
-            return m_configKey;
-        }
     }
 
-    static final class LocalTimePersistor implements FieldNodeSettingsPersistorWithInferredConfigs<LocalTime> {
+    static final class LocalTimePersistor implements DefaultFieldPersistor<LocalTime> {
 
         private final String m_configKey;
 
-        LocalTimePersistor(final NodeSettingsPersistorContext<LocalTime> context) {
-            m_configKey = context.getConfigKey();
+        LocalTimePersistor(final String configKey) {
+            m_configKey = configKey;
         }
 
         static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ISO_LOCAL_TIME;
@@ -158,19 +153,21 @@ final class DateTimePersistorUtils {
             return parseTemporal(s, List.of(ZonedDateTime::parse, LocalDateTime::parse, LocalTime::parse), "time");
         }
 
-        @Override
-        public String getConfigKey() {
-            return m_configKey;
-        }
     }
 
-    static final class LocalDateTimePersistor extends NodeSettingsPersistorWithConfigKey<LocalDateTime> {
+    static final class LocalDateTimePersistor implements DefaultFieldPersistor<LocalDateTime> {
+
+        private final String m_configKey;
+
+        LocalDateTimePersistor(final String configKey) {
+            m_configKey = configKey;
+        }
 
         static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
         @Override
         public LocalDateTime load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            var value = settings.getString(getConfigKey());
+            var value = settings.getString(m_configKey);
             if (value == null) {
                 return null;
             }
@@ -181,17 +178,23 @@ final class DateTimePersistorUtils {
 
         @Override
         public void save(final LocalDateTime obj, final NodeSettingsWO settings) {
-            settings.addString(getConfigKey(), obj == null ? null : obj.format(DATE_TIME_FMT));
+            settings.addString(m_configKey, obj == null ? null : obj.format(DATE_TIME_FMT));
         }
     }
 
-    static final class ZonedDateTimePersistor extends NodeSettingsPersistorWithConfigKey<ZonedDateTime> {
+    static final class ZonedDateTimePersistor implements DefaultFieldPersistor<ZonedDateTime> {
+
+        private final String m_configKey;
+
+        ZonedDateTimePersistor(final String configKey) {
+            m_configKey = configKey;
+        }
 
         static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter.ISO_ZONED_DATE_TIME;
 
         @Override
         public ZonedDateTime load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            var value = settings.getString(getConfigKey());
+            var value = settings.getString(m_configKey);
             if (value == null) {
                 return null;
             }
@@ -202,16 +205,16 @@ final class DateTimePersistorUtils {
 
         @Override
         public void save(final ZonedDateTime obj, final NodeSettingsWO settings) {
-            settings.addString(getConfigKey(), obj == null ? null : obj.format(DATE_TIME_FMT));
+            settings.addString(m_configKey, obj == null ? null : obj.format(DATE_TIME_FMT));
         }
     }
 
-    static final class TimeZonePersistor implements FieldNodeSettingsPersistorWithInferredConfigs<ZoneId> {
+    static final class TimeZonePersistor implements DefaultFieldPersistor<ZoneId> {
 
         private final String m_configKey;
 
-        TimeZonePersistor(final NodeSettingsPersistorContext<ZoneId> context) {
-            m_configKey = context.getConfigKey();
+        TimeZonePersistor(final String configKey) {
+            m_configKey = configKey;
         }
 
         private static ZoneId extractFromString(final String str) throws InvalidSettingsException {
@@ -238,18 +241,14 @@ final class DateTimePersistorUtils {
             settings.addString(m_configKey, obj == null ? null : obj.getId());
         }
 
-        @Override
-        public String getConfigKey() {
-            return m_configKey;
-        }
     }
 
-    static final class IntervalPersistor implements FieldNodeSettingsPersistorWithInferredConfigs<Interval> {
+    static final class IntervalPersistor implements DefaultFieldPersistor<Interval> {
 
         private final String m_configKey;
 
-        IntervalPersistor(final NodeSettingsPersistorContext<ZoneId> context) {
-            m_configKey = context.getConfigKey();
+        IntervalPersistor(final String configKey) {
+            m_configKey = configKey;
         }
 
         @Override
@@ -268,18 +267,14 @@ final class DateTimePersistorUtils {
             settings.addString(m_configKey, interval.toISOString());
         }
 
-        @Override
-        public String getConfigKey() {
-            return m_configKey;
-        }
     }
 
-    static final class DateIntervalPersistor implements FieldNodeSettingsPersistorWithInferredConfigs<DateInterval> {
+    static final class DateIntervalPersistor implements DefaultFieldPersistor<DateInterval> {
 
         private final String m_configKey;
 
-        DateIntervalPersistor(final NodeSettingsPersistorContext<DateInterval> context) {
-            m_configKey = context.getConfigKey();
+        DateIntervalPersistor(final String configKey) {
+            m_configKey = configKey;
         }
 
         @Override
@@ -305,18 +300,14 @@ final class DateTimePersistorUtils {
             settings.addString(m_configKey, interval.toISOString());
         }
 
-        @Override
-        public String getConfigKey() {
-            return m_configKey;
-        }
     }
 
-    static final class TimeIntervalPersistor implements FieldNodeSettingsPersistorWithInferredConfigs<TimeInterval> {
+    static final class TimeIntervalPersistor implements DefaultFieldPersistor<TimeInterval> {
 
         private final String m_configKey;
 
-        TimeIntervalPersistor(final NodeSettingsPersistorContext<TimeInterval> context) {
-            m_configKey = context.getConfigKey();
+        TimeIntervalPersistor(final String configKey) {
+            m_configKey = configKey;
         }
 
         @Override
@@ -342,10 +333,6 @@ final class DateTimePersistorUtils {
             settings.addString(m_configKey, interval.toISOString());
         }
 
-        @Override
-        public String getConfigKey() {
-            return m_configKey;
-        }
     }
 
     private static <T extends Temporal> T parseTemporal(final String s, final List<Function<String, T>> parsers,

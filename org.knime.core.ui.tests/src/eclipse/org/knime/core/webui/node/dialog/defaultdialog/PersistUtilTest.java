@@ -61,11 +61,13 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.DeprecationLoader;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
@@ -73,10 +75,20 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-class PersistUtilTest {
+/**
+ * Tests {@link PersistUtil}. Use {@link #getPersistSchema(Class)} to get the persist schema of a single settings class
+ * in other tests.
+ *
+ * @author Paul Bärnreuther
+ */
+public class PersistUtilTest {
 
-    private static ObjectNode getPersistSchema(final Class<? extends PersistableSettings> settingsClass) {
-        final var persistTree = new PersistTreeFactory().createTree(settingsClass);
+    /**
+     * @param modelSettings
+     * @return a persist schema with the given settings interpreted as model settings
+     */
+    public static ObjectNode getPersistSchema(final Class<? extends PersistableSettings> modelSettings) {
+        final var persistTree = new PersistTreeFactory().createTree(modelSettings);
         final var uischema = new ObjectMapper().createObjectNode();
         PersistUtil.addPersist(uischema, Map.of(SettingsType.MODEL, persistTree));
         return (ObjectNode)uischema.get("persist");
@@ -97,9 +109,9 @@ class PersistUtilTest {
     private static class CustomPersistor implements TestPersistor<Integer> {
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{"config_key_from_persistor_1", "config_key_from_persistor_2",
-                "config_key_from_persistor_3_Internals"};
+        public String[][] getConfigPaths() {
+            return new String[][]{{"config_key_from_persistor_1"},
+                {"config_key_from_persistor_2", "config_key_from_persistor_3_Internals"}};
         }
 
     }
@@ -146,8 +158,8 @@ class PersistUtilTest {
     private static class CustomPersistorWithKeysContainingDots implements TestPersistor<Integer> {
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{"config.key.from.persistor.1", "config.key.from.persistor.2"};
+        public String[][] getConfigPaths() {
+            return new String[][]{{"config.key.from.persistor.1", "config.key.from.persistor.2"}};
         }
 
     }
@@ -211,13 +223,7 @@ class PersistUtilTest {
         assertThatJson(result).inPath("$.properties.model.properties.test.configKey").isString().isEqualTo("bar");
     }
 
-    private static class CustomPersistorWithDeprecatedConfigs implements TestPersistor<Integer> {
-
-        @Override
-        public String[] getConfigKeys() {
-            return new String[0];
-        }
-
+    private static class CustomModifierInteger implements NodeSettingsMigrator<Integer> {
         @Override
         public List<ConfigsDeprecation<Integer>> getConfigsDeprecations() {
             return getDummyConfigsDeprecations();
@@ -227,8 +233,7 @@ class PersistUtilTest {
 
     private static class SettingWithCustomFieldPersistorWithDeprecatedConfigs implements PersistableSettings {
 
-        @Persistor(CustomPersistorWithDeprecatedConfigs.class)
-        @Widget(title = "my_title", description = "")
+        @Migration(CustomModifierInteger.class)
         public int test;
     }
 
@@ -252,6 +257,10 @@ class PersistUtilTest {
             return new String[][]{{"X", "Y"}, {"Z"}};
         }
 
+    }
+
+    private static class CustomModifier
+        implements NodeSettingsMigrator<SettingWithCustomClassPersistorWithDeprecatedConfigs> {
         @Override
         public List<ConfigsDeprecation<SettingWithCustomClassPersistorWithDeprecatedConfigs>> getConfigsDeprecations() {
             return getDummyConfigsDeprecations();
@@ -260,6 +269,7 @@ class PersistUtilTest {
     }
 
     @Persistor(CustomClassPersistorWithDeprecatedConfigs.class)
+    @Migration(CustomModifier.class)
     private static class SettingWithCustomClassPersistorWithDeprecatedConfigs implements PersistableSettings {
 
         @Widget(title = "my_title", description = "")
@@ -284,25 +294,24 @@ class PersistUtilTest {
             .isEqualTo(new String[]{"Z"});
     }
 
-    private static class SettingsWithCustomFieldAndClassPersistor implements PersistableSettings {
-        @Persistor(CustomClassPersistorWithDeprecatedConfigs.class)
+    private static class SettingsWithCustomFieldAndClassModifier implements PersistableSettings {
+        @Migration(CustomModifier.class)
         public SettingWithCustomClassPersistorWithDeprecatedConfigs bothPersistors;
     }
 
     @Test
     void testConfigKeyFromCustomFieldAndClassPersistorWithDeprecatedConfigs() throws JsonProcessingException {
-        final var result = getPersistSchema(SettingsWithCustomFieldAndClassPersistor.class);
+        final var result = getPersistSchema(SettingsWithCustomFieldAndClassModifier.class);
         assertThatJson(result).inPath("$.properties.model.properties.bothPersistors.propertiesDeprecatedConfigKeys")
             .isArray().hasSize(3);
         assertThatJson(result).inPath("$.properties.model.properties.bothPersistors.propertiesConfigPaths").isArray()
             .hasSize(2);
         assertThatJson(result).inPath("$.properties.model.properties.bothPersistors.deprecatedConfigKeys").isArray()
             .hasSize(3);
-        assertThatJson(result).inPath("$.properties.model.properties.bothPersistors.configPaths").isArray().hasSize(2);
     }
 
     private static <T> List<ConfigsDeprecation<T>> getDummyConfigsDeprecations() {
-        DeprecationLoader<T> dummyLoader = settings -> {
+        SettingsLoader<T> dummyLoader = settings -> {
             throw new IllegalStateException("Should not be called within this test");
         };
         return List.of(//

@@ -44,54 +44,28 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   15 Oct 2024 (Robin Gerling): created
+ *   Feb 8, 2023 (Benjamin Wilhelm, KNIME GmbH, Berlin, Germany): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import java.util.List;
+
+import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 
 /**
- * Use this interface when the default persistor should be used but also, for backwards-compatiblity to a previous
- * state, settings need to be loaded from an old state. Implementing classes should not override load and save, but
- * instead define the old state and how to load from it within {@link #getConfigsDeprecations()}.
+ * Interface that has to be implemented to use within the {@link Migration} annotation.
  *
- * @author Robin Gerling
- * @param <T> the type of object loaded by the persistor
+ * @param <T> type of object loaded from deprecated settings, i.e. the type of the associated field or class.
+ * @author Paul Bärnreuther
  */
-public interface DefaultPersistorWithDeprecations<T> extends NodeSettingsPersistor<T> {
+public interface NodeSettingsMigrator<T> {
 
     /**
-     * This method should not be overwritten by implementing classes. Instead, the save method of whatever default would
-     * be used when this persistor was not present will be used.
+     * Each element of this list is associated to a point in time where the settings changed, i.e. are not saved like
+     * before.
      *
-     * {@inheritDoc}
+     * @return a list of how to load backwards-compatible
      */
-    @Override
-    default void save(final T obj, final NodeSettingsWO settings) {
-        throw new IllegalAccessError("This method should never be called");
-    }
+    List<ConfigsDeprecation<T>> getConfigsDeprecations();
 
-    /**
-     * This method should not be overwritten by implementing classes. Instead, the load method of whatever default would
-     * be used when this persistor was not present will be used.
-     *
-     * {@inheritDoc}
-     */
-    @Override
-    default T load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        throw new IllegalAccessError("This method should never be called");
-    }
-
-    /**
-     * This method should not be overwritten by implementing classes. Instead, the getConfigPaths method of whatever
-     * default would be used when this persistor was not present will
-     *
-     * {@inheritDoc}
-     */
-    @Override
-    default String[][] getConfigPaths() {
-        throw new IllegalAccessError("This method should never be called");
-    }
 }

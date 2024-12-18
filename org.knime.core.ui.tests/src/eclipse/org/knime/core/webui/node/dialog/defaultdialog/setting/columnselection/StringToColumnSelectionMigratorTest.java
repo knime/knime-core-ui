@@ -47,64 +47,85 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory.loadSettings;
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory.saveSettings;
 
 import org.junit.jupiter.api.Test;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.FieldBasedNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 
-/**
- * Tests JsonBasedNodeSettingsFieldPersistor.
- *
- * @author Paul Bärnreuther
- */
-class StringToColumnSelectionPersistorTest {
+class StringToColumnSelectionMigratorTest {
 
     private static final String ROOT_KEY = "Test";
 
-    private static final class StringToColumnSelectionPersistorSettings implements DefaultNodeSettings {
+    private static final String LEGACY_CFG_KEY = "foo";
 
-        @Persistor(StringToColumnSelectionPersistor.class)
-        ColumnSelection m_foo;
+    private static final class StringToColumnSelectionMigratorSettings implements DefaultNodeSettings {
+
+        static final class FooMigrator extends StringToColumnSelectionMigrator {
+
+            protected FooMigrator() {
+                super(LEGACY_CFG_KEY);
+            }
+
+        }
+
+        @Migration(FooMigrator.class)
+        ColumnSelection m_fooV2;
     }
 
     @Test
-    void testLoadLegacyString() throws InvalidSettingsException {
+    void testLoadsColumnSelectionFromOldString() throws InvalidSettingsException {
         final var savedString = "bar";
 
         final var savedSettings = new NodeSettings(ROOT_KEY);
-        savedSettings.addString("foo", savedString);
-        final var persistor = new FieldBasedNodeSettingsPersistor<>(StringToColumnSelectionPersistorSettings.class);
-        final var loaded = persistor.load(savedSettings);
+        savedSettings.addString(LEGACY_CFG_KEY, savedString);
+        final var loaded = loadSettings(StringToColumnSelectionMigratorSettings.class, savedSettings);
 
-        final var expected = new StringToColumnSelectionPersistorSettings();
-        expected.m_foo = new ColumnSelection(savedString, null);
+        final var expected = new StringToColumnSelectionMigratorSettings();
+        expected.m_fooV2 = new ColumnSelection(savedString, null);
+        assertResults(expected, loaded);
+    }
+
+    /**
+     * The first iteration of this migrator was a persistor that saved again to the same setting. We changed that but
+     * for the saved settings in the meantime we also have to be able to load from that state.
+     */
+    @Test
+    void testLoadsColumnSelectionFromOldKey() throws InvalidSettingsException {
+        final var savedColumnSelection = new ColumnSelection("test", StringCell.TYPE);
+        final var savedSettings = new NodeSettings(ROOT_KEY);
+        final var oldFooSettings = savedSettings.addNodeSettings(LEGACY_CFG_KEY);
+        saveSettings(savedColumnSelection, oldFooSettings);
+        final var loaded = loadSettings(StringToColumnSelectionMigratorSettings.class, savedSettings);
+
+        final var expected = new StringToColumnSelectionMigratorSettings();
+        expected.m_fooV2 = savedColumnSelection;
         assertResults(expected, loaded);
     }
 
     @Test
     void testSaveAndLoad() throws InvalidSettingsException {
-        final var savedString = "bar";
+        final var savedColumnSelection = new ColumnSelection("test", StringCell.TYPE);
 
-        final var expected = new StringToColumnSelectionPersistorSettings();
-        expected.m_foo = new ColumnSelection(savedString, StringCell.TYPE);
+        final var expected = new StringToColumnSelectionMigratorSettings();
 
-        final var persistor = new FieldBasedNodeSettingsPersistor<>(StringToColumnSelectionPersistorSettings.class);
+        expected.m_fooV2 = savedColumnSelection;
 
         final var savedSettings = new NodeSettings(ROOT_KEY);
-        persistor.save(expected, savedSettings);
-        var loaded = persistor.load(savedSettings);
+        saveSettings(expected, savedSettings);
+        var loaded = loadSettings(StringToColumnSelectionMigratorSettings.class, savedSettings);
         assertResults(expected, loaded);
     }
 
-    private static void assertResults(final StringToColumnSelectionPersistorSettings expected,
-        final StringToColumnSelectionPersistorSettings loaded) {
-        assertEquals(expected.m_foo.m_selected, loaded.m_foo.m_selected,
+    private static void assertResults(final StringToColumnSelectionMigratorSettings expected,
+        final StringToColumnSelectionMigratorSettings loaded) {
+        assertEquals(expected.m_fooV2.m_selected, loaded.m_fooV2.m_selected,
             "The loaded selected value is not as expected");
-        assertArrayEquals(expected.m_foo.m_compatibleTypes, loaded.m_foo.m_compatibleTypes,
+        assertArrayEquals(expected.m_fooV2.m_compatibleTypes, loaded.m_fooV2.m_compatibleTypes,
             "The loaded compatible types are not as expected");
 
     }

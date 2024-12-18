@@ -44,42 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 12, 2024 (Paul Bärnreuther): created
+ *   Dec 18, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.internal;
+package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
 
-import org.knime.core.webui.node.dialog.configmapping.ConfigMappings;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
 
 /**
- * A {@link NodeSettingsPersistor} should extend this interface if the config keys to which it saves can be inferred by
- * the framework. We need to know these config keys for {@link ConfigMappings} to work.
+ * Loads settings from a node settings object.
  *
- * @param <T> the type of the persisted object
- * @author Paul Bärnreuther
+ * @param <T> the loaded setting
  */
-public interface NodeSettingsPersistorWithInferredConfigs<T> extends NodeSettingsPersistor<T> {
-
+@FunctionalInterface
+public interface SettingsLoader<T> {
     /**
-     * With few exceptions, the default field and class persistors return null in {@link #getConfigPaths()}. Setting the
-     * values in {@link #getConfigPaths()} to null is allowed and intended since otherwise all of these paths are
-     * connected to all nested fields.
-     *
-     * This method is called when there exists a {@link ConfigsDeprecation} where the new keys should be automatically
-     * inferred. For {@link ConfigMappings} we need to make the new config paths precise in order to be able to remove
-     * those.
-     *
-     * @return A list of config paths relative to the current level that are saved to on save.
+     * @param settings to load from
+     * @return T the loaded settings
+     * @throws InvalidSettingsException if the settings cannot be loaded because they are invalid.
      */
-    default String[][] getNonNullPaths() {
-        final var configPaths = getConfigPaths();
-        if (configPaths == null) {
-            throw new IllegalStateException(
-                "Every persistor either has to implement NodeSettingsPersistorWithInferredConfigs or"
-                    + " provide a non-null result in getConfigPaths().");
-        }
-        return configPaths;
-    }
+    T load(NodeSettingsRO settings) throws InvalidSettingsException;
 
 }

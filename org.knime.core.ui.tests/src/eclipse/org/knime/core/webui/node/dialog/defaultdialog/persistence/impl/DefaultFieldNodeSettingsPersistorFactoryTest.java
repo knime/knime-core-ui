@@ -63,8 +63,8 @@ import java.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.DefaultFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
@@ -416,7 +416,7 @@ class DefaultFieldNodeSettingsPersistorFactoryTest {
         return loaded;
     }
 
-    private static <T> NodeSettingsPersistor<T> createPersistor(final Class<T> type) {
+    private static <T> DefaultFieldPersistor<T> createPersistor(final Class<T> type) {
         return DefaultFieldNodeSettingsPersistorFactory.createPersistor(type, KEY);
     }
 

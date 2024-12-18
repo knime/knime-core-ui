@@ -80,4 +80,9 @@ public class SettingsModelDoublePersistor implements NodeSettingsPersistor<Doubl
         new SettingsModelDouble(m_configKey, obj).saveSettingsTo(settings);
     }
 
+    @Override
+    public String[][] getConfigPaths() {
+        return new String[][]{{m_configKey}};
+    }
+
 }

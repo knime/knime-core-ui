@@ -1,7 +1,7 @@
 {
   "data" : {
     "view" : {
-      "displayedColumns" : {
+      "displayedColumnsV2" : {
         "selected" : [ "test1", "test2" ],
         "mode" : "MANUAL",
         "patternFilter" : {
@@ -72,7 +72,7 @@
             "description" : "Set the initial height of the rows.",
             "default" : 80
           },
-          "displayedColumns" : {
+          "displayedColumnsV2" : {
             "type" : "object",
             "properties" : {
               "manualFilter" : {
@@ -349,7 +349,7 @@
       "type" : "Section",
       "elements" : [ {
         "type" : "Control",
-        "scope" : "#/properties/view/properties/displayedColumns",
+        "scope" : "#/properties/view/properties/displayedColumnsV2",
         "options" : {
           "format" : "columnFilter",
           "possibleValues" : [ {
@@ -532,7 +532,7 @@
       "view" : {
         "type" : "object",
         "properties" : {
-          "displayedColumns" : {
+          "displayedColumnsV2" : {
             "type" : "object",
             "properties" : {
               "selected" : {
@@ -560,19 +560,14 @@
                 "properties" : {
                   "selectedTypes" : { },
                   "typeDisplays" : {
-                    "type" : "array",
-                    "configPaths" : [ ],
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : { },
-                        "text" : { }
-                      }
-                    }
+                    "configPaths" : [ ]
                   }
                 }
               }
-            }
+            },
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "displayedColumns" ] ]
+            } ]
           },
           "showRowIndices" : { },
           "showRowKeys" : { },
@@ -583,14 +578,14 @@
           "pageSize" : { },
           "autoSizeColumnsToContent" : { },
           "rowHeightMode" : {
+            "configKey" : "rowHeightModeV2",
             "deprecatedConfigKeys" : [ {
               "deprecated" : [ ]
             }, {
               "deprecated" : [ [ "compactMode" ] ]
             }, {
               "deprecated" : [ [ "rowHeightMode" ] ]
-            } ],
-            "configKey" : "rowHeightModeV2"
+            } ]
           },
           "customRowHeight" : {
             "deprecatedConfigKeys" : [ {
@@ -615,7 +610,13 @@
           "enableSortingByHeader" : { },
           "enableRendererSelection" : { },
           "enableCellCopying" : { },
-          "selectionMode" : { },
+          "selectionMode" : {
+            "deprecatedConfigKeys" : [ {
+              "deprecated" : [ [ "subscribeToSelection" ], [ "publishSelection" ] ]
+            }, {
+              "deprecated" : [ ]
+            } ]
+          },
           "showOnlySelectedRows" : { },
           "showOnlySelectedRowsConfigurable" : { },
           "skipRemainingColumns" : {

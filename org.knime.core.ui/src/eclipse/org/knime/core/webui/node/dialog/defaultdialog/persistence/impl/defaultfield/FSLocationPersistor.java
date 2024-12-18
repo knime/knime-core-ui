@@ -51,8 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultf
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.FieldNodeSettingsPersistorWithInferredConfigs;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.DefaultFieldPersistor;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.FSLocationSerializationUtils;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
@@ -63,12 +62,12 @@ import org.knime.filehandling.core.data.location.variable.FSLocationVariableType
  *
  * @author Paul Bärnreuther
  */
-public final class FSLocationPersistor implements FieldNodeSettingsPersistorWithInferredConfigs<FSLocation> {
+final class FSLocationPersistor implements DefaultFieldPersistor<FSLocation> {
 
     private final String m_configKey;
 
-    FSLocationPersistor(final NodeSettingsPersistorContext<FSLocation> context) {
-        m_configKey = context.getConfigKey();
+    FSLocationPersistor(final String configKey) {
+        m_configKey = configKey;
     }
 
     @Override
@@ -79,11 +78,6 @@ public final class FSLocationPersistor implements FieldNodeSettingsPersistorWith
     @Override
     public void save(final FSLocation path, final NodeSettingsWO settings) {
         FSLocationSerializationUtils.saveFSLocation(path, settings.addNodeSettings(m_configKey));
-    }
-
-    @Override
-    public String getConfigKey() {
-        return m_configKey;
     }
 
 }

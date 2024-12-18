@@ -67,7 +67,9 @@ public final class ConfigMappings {
 
     final String m_key;
 
-    final NewAndDeprecatedConfigPaths m_newAndDeprecatedConfigPaths;
+    final Collection<ConfigPath> m_newConfigPaths;
+
+    final Collection<ConfigPath> m_deprecatedConfigPaths;
 
     final UnaryOperator<NodeSettingsRO> m_oldSettingsToNewSettings;
 
@@ -75,10 +77,7 @@ public final class ConfigMappings {
      * @param children
      */
     public ConfigMappings(final Collection<ConfigMappings> children) {
-        m_children = children;
-        this.m_newAndDeprecatedConfigPaths = null;
-        this.m_oldSettingsToNewSettings = null;
-        this.m_key = null;
+        this(null, children);
     }
 
     /**
@@ -87,24 +86,27 @@ public final class ConfigMappings {
      */
     public ConfigMappings(final String key, final Collection<ConfigMappings> children) {
         m_children = children;
-        this.m_newAndDeprecatedConfigPaths = null;
-        this.m_oldSettingsToNewSettings = null;
-        this.m_key = key;
+        m_newConfigPaths = null;
+        m_deprecatedConfigPaths = null;
+        m_oldSettingsToNewSettings = null;
+        m_key = key;
     }
 
     /**
-     * @param newAndDeprecatedConfigPaths the configs that possibly need to be corrected because of mismatches between
-     *            settings and flow variables because of deprecation of config keys
+     * @param deprecatedConfigPaths the configs that possibly need to be corrected because of mismatches between
+     *            settings and flow variables because
+     * @param newConfigPaths the new config paths that are used instead of the deprecated ones
      * @param oldSettingsToNewSettings a method that is able to transform the previous node settings to new node
      *            settings. It is used only when the previous value should be used but overwritten by a new flow
      *            variable, i.e. when the user de-selected a deprecated flow variable and selects a new one before
      *            applying.
      */
-    public ConfigMappings(final NewAndDeprecatedConfigPaths newAndDeprecatedConfigPaths,
-        final UnaryOperator<NodeSettingsRO> oldSettingsToNewSettings) {
-        m_newAndDeprecatedConfigPaths = newAndDeprecatedConfigPaths;
+    public ConfigMappings(final Collection<ConfigPath> deprecatedConfigPaths,
+        final Collection<ConfigPath> newConfigPaths, final UnaryOperator<NodeSettingsRO> oldSettingsToNewSettings) {
+        m_newConfigPaths = newConfigPaths;
+        m_deprecatedConfigPaths = deprecatedConfigPaths;
         m_oldSettingsToNewSettings = oldSettingsToNewSettings;
         m_children = List.of();
-        this.m_key = null;
+        m_key = null;
     }
 }

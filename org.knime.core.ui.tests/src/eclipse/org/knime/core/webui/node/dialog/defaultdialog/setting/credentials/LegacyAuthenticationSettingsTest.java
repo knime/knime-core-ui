@@ -48,35 +48,31 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.credentials;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory.loadSettings;
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory.saveSettings;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.function.Function;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.ICredentials;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.CreateNodeSettingsPersistorUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.CustomPersistorUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.PersistUtilTest;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.AuthenticationType;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyAuthenticationSettings.AuthTypeCredentialsToPasswordPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyAuthenticationSettings.AuthTypeCredentialsToUsernameAndPasswordPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyAuthenticationSettings.AuthTypeCredentialsToUsernamePersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyAuthenticationSettings.SettingsModelAuthenticationBackwardsCompatibleLoader;
 
 /**
  *
@@ -151,89 +147,123 @@ class LegacyAuthenticationSettingsTest {
     @Nested
     class SettingsModelAuthenticationPersistorTest {
 
-        final static String CFG_KEY = "authenticationSettings";
+        final static String CFG_KEY_PWD = "authenticationSettingsPWD";
 
-        static Stream<Arguments> persistorsWithTypes() {
-            return Stream.of( //
-                Arguments.of(AuthTypeCredentialsToPasswordPersistor.class, AuthenticationType.PWD), //
-                Arguments.of(AuthTypeCredentialsToUsernamePersistor.class, AuthenticationType.USER), //
-                Arguments.of(AuthTypeCredentialsToUsernameAndPasswordPersistor.class, AuthenticationType.USER_PWD));
+        final static String CFG_KEY_USER = "authenticationSettingsUSER";
+
+        final static String CFG_KEY_USER_PWD = "authenticationSettingsUSER_PWD";
+
+        static final class TestSettings implements PersistableSettings {
+
+            static final class PWDBackwardsCompatibleLoader
+                extends SettingsModelAuthenticationBackwardsCompatibleLoader {
+
+                public PWDBackwardsCompatibleLoader() {
+                    super(CFG_KEY_PWD, AuthenticationType.PWD);
+                }
+
+            }
+
+            @Migration(PWDBackwardsCompatibleLoader.class)
+            @Persist(configKey = CFG_KEY_PWD)
+            LegacyAuthenticationSettings first;
+
+            static final class USERBackwardsCompatibleLoader
+                extends SettingsModelAuthenticationBackwardsCompatibleLoader {
+
+                public USERBackwardsCompatibleLoader() {
+                    super(CFG_KEY_USER, AuthenticationType.USER);
+                }
+
+            }
+
+            @Migration(USERBackwardsCompatibleLoader.class)
+            @Persist(configKey = CFG_KEY_USER)
+            LegacyAuthenticationSettings second;
+
+            static final class USER_PWDBackwardsCompatibleLoader
+                extends SettingsModelAuthenticationBackwardsCompatibleLoader {
+
+                public USER_PWDBackwardsCompatibleLoader() {
+                    super(CFG_KEY_USER_PWD, AuthenticationType.USER_PWD);
+                }
+
+            }
+
+            @Migration(USER_PWDBackwardsCompatibleLoader.class)
+            @Persist(configKey = CFG_KEY_USER_PWD)
+            LegacyAuthenticationSettings third;
+
         }
 
-        static Stream<Arguments> persistors() {
-            return Stream.of( //
-                Arguments.of(AuthTypeCredentialsToPasswordPersistor.class), //
-                Arguments.of(AuthTypeCredentialsToUsernamePersistor.class), //
-                Arguments.of(AuthTypeCredentialsToUsernameAndPasswordPersistor.class));
+        private static NodeSettings getLegacyNodeSettings(final SettingsModelAuthentication.AuthenticationType type,
+            final String username, final String password, final String flowVarName) {
+
+            final Function<String, SettingsModelAuthentication> createModel =
+                cfgKey -> new SettingsModelAuthentication(cfgKey, type, username, password, flowVarName);
+
+            final var passwordModel = createModel.apply(CFG_KEY_PWD);
+            final var userModel = createModel.apply(CFG_KEY_USER);
+            final var userPwdModel = createModel.apply(CFG_KEY_USER_PWD);
+            final var nodeSettings = new NodeSettings("root");
+            passwordModel.saveSettingsTo(nodeSettings);
+            userModel.saveSettingsTo(nodeSettings);
+            userPwdModel.saveSettingsTo(nodeSettings);
+            return nodeSettings;
         }
 
-        @ParameterizedTest
-        @MethodSource("persistorsWithTypes")
-        void testLoadWithLegacyCredentialsType(
-            final Class<? extends NodeSettingsPersistor<LegacyAuthenticationSettings>> persistorClass,
-            final AuthenticationType expectedType) throws InvalidSettingsException {
-            final var model = new SettingsModelAuthentication(CFG_KEY,
-                SettingsModelAuthentication.AuthenticationType.CREDENTIALS, null, null, FLOW_VAR_NAME);
-            final var nodeSettings = createLegacyNodeSettings(model);
-            final var persistor = createPersistor(persistorClass);
-            final var loadedSettings = persistor.load(nodeSettings);
-            final var expected = new AuthenticationSettings(expectedType, CREDENTIALS);
-            assertEquals(expected, loadedSettings.toAuthenticationSettings(m_credentialsProvider));
+        @Test
+        void testLoadWithLegacyCredentialsType() throws InvalidSettingsException {
+            final var nodeSettings = getLegacyNodeSettings(SettingsModelAuthentication.AuthenticationType.CREDENTIALS,
+                null, null, FLOW_VAR_NAME);
+            final var loadedSettings = loadSettings(TestSettings.class, nodeSettings);
+            assertEquals(new AuthenticationSettings(AuthenticationType.PWD, CREDENTIALS),
+                loadedSettings.first.toAuthenticationSettings(m_credentialsProvider));
+            assertEquals(new AuthenticationSettings(AuthenticationType.USER, CREDENTIALS),
+                loadedSettings.second.toAuthenticationSettings(m_credentialsProvider));
+            assertEquals(new AuthenticationSettings(AuthenticationType.USER_PWD, CREDENTIALS),
+                loadedSettings.third.toAuthenticationSettings(m_credentialsProvider));
         }
 
-        @ParameterizedTest
-        @MethodSource("persistors")
-        void testLoadWithNonCredentialsLegacyType(
-            final Class<? extends NodeSettingsPersistor<LegacyAuthenticationSettings>> persistorClass)
-            throws InvalidSettingsException {
-            final var model = new SettingsModelAuthentication(CFG_KEY,
-                SettingsModelAuthentication.AuthenticationType.USER_PWD, USERNAME, PASSWORD, null);
-            final var nodeSettings = createLegacyNodeSettings(model);
-            final var persistor = createPersistor(persistorClass);
-            final var loadedSettings = persistor.load(nodeSettings);
+        @Test
+        void testLoadWithNonCredentialsLegacyType() throws InvalidSettingsException {
+            final var nodeSettings = getLegacyNodeSettings(SettingsModelAuthentication.AuthenticationType.USER_PWD,
+                USERNAME, PASSWORD, null);
+            final var loadedSettings = loadSettings(TestSettings.class, nodeSettings);
             final var expected =
                 new AuthenticationSettings(AuthenticationType.USER_PWD, new Credentials(USERNAME, PASSWORD));
-            assertEquals(expected, loadedSettings.toAuthenticationSettings(m_credentialsProvider));
+            assertEquals(expected, loadedSettings.first.toAuthenticationSettings(m_credentialsProvider));
+            assertEquals(expected, loadedSettings.second.toAuthenticationSettings(m_credentialsProvider));
+            assertEquals(expected, loadedSettings.third.toAuthenticationSettings(m_credentialsProvider));
         }
 
-        @ParameterizedTest
-        @MethodSource("persistors")
-        void testSaveLoad(final Class<? extends NodeSettingsPersistor<LegacyAuthenticationSettings>> persistorClass)
-            throws InvalidSettingsException {
+        @Test
+        void testSaveLoad() throws InvalidSettingsException {
             final var authenticationSettings =
                 new AuthenticationSettings(AuthenticationType.USER_PWD, new Credentials(USERNAME, PASSWORD));
             final var legacyAuthenticationSettings = new LegacyAuthenticationSettings(authenticationSettings);
-            final var persistor = createPersistor(persistorClass);
+            final var testSettings = new TestSettings();
+            testSettings.first = legacyAuthenticationSettings;
+            testSettings.second = legacyAuthenticationSettings;
+            testSettings.third = legacyAuthenticationSettings;
             final var nodeSettings = new NodeSettings("root");
-            persistor.save(legacyAuthenticationSettings, nodeSettings);
-            final var savedAndLoaded = persistor.load(nodeSettings);
-            assertEquals(authenticationSettings, savedAndLoaded.toAuthenticationSettings(m_credentialsProvider));
+            saveSettings(testSettings, nodeSettings);
+            final var savedAndLoaded = loadSettings(TestSettings.class, nodeSettings);
+            assertEquals(authenticationSettings, savedAndLoaded.first.toAuthenticationSettings(m_credentialsProvider));
+            assertEquals(authenticationSettings, savedAndLoaded.second.toAuthenticationSettings(m_credentialsProvider));
+            assertEquals(authenticationSettings, savedAndLoaded.third.toAuthenticationSettings(m_credentialsProvider));
         }
 
-        @ParameterizedTest
-        @MethodSource("persistors")
-        void testDeprecatedConfigs(
-            final Class<? extends NodeSettingsPersistor<LegacyAuthenticationSettings>> persistorClass) {
-            final var persistor = createPersistor(persistorClass);
-            assertThat(persistor.getConfigsDeprecations()).hasSize(1);
-        }
-
-        private static NodeSettingsPersistor<LegacyAuthenticationSettings>
-            createPersistor(final Class<? extends NodeSettingsPersistor<LegacyAuthenticationSettings>> persistorClass) {
-            @SuppressWarnings("unchecked")
-            final var persistor = CustomPersistorUtil.prepareCustomPersistor(
-                CreateNodeSettingsPersistorUtil.createInstance(persistorClass, LegacyAuthenticationSettings.class,
-                    CFG_KEY),
-                () -> (NodeSettingsPersistor<LegacyAuthenticationSettings>)DefaultFieldNodeSettingsPersistorFactory
-                    .createDefaultPersistor(new PersistTreeFactory().createTree(LegacyAuthenticationSettings.class),
-                        CFG_KEY));
-            return persistor;
-        }
-
-        private static NodeSettings createLegacyNodeSettings(final SettingsModelAuthentication model) {
-            final var nodeSettings = new NodeSettings("root");
-            model.saveSettingsTo(nodeSettings);
-            return nodeSettings;
+        @Test
+        void testPersistSchema() {
+            final var result = PersistUtilTest.getPersistSchema(TestSettings.class);
+            assertThatJson(result).inPath("$.properties.model.properties.first.deprecatedConfigKeys").isArray()
+                .hasSize(1);
+            assertThatJson(result).inPath("$.properties.model.properties.first.deprecatedConfigKeys[0].deprecated")
+                .isArray()
+                .isEqualTo(new String[][]{{"authenticationSettingsPWD", "credentials"},
+                    {"authenticationSettingsPWD", "password"}, {"authenticationSettingsPWD", "username"},
+                    {"authenticationSettingsPWD", "selectedType"}});
         }
 
     }

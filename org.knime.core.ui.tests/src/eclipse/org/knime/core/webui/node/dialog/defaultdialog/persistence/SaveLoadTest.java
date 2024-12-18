@@ -50,7 +50,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory.loadSettings;
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory.saveSettings;
 
 import java.util.Objects;
 
@@ -62,8 +63,6 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.FieldBasedNodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.NodeSettingsPersistorFactory;
 
 /**
  * Contains tests for {@link NodeSettingsPersistorFactory}.
@@ -71,19 +70,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.NodeSetti
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("java:S2698") // we accept assertions without messages
-class NodeSettingsPersistorFactoryTest {
+class SaveLoadTest {
 
     @Test
     void testDefaultPersistance() throws InvalidSettingsException {
         var settings = new DefaultPersistorSettings();
         settings.m_foo = "baz";
         testSaveLoad(settings);
-    }
-
-    @Test
-    void testCaching() throws Exception {
-        assertSame(NodeSettingsPersistorFactory.getPersistor(DefaultPersistorSettings.class),
-            NodeSettingsPersistorFactory.getPersistor(DefaultPersistorSettings.class));
     }
 
     @Test
@@ -101,17 +94,13 @@ class NodeSettingsPersistorFactoryTest {
     }
 
     private static <S extends DefaultNodeSettings> void testSaveLoad(final S settings) throws InvalidSettingsException {
-        @SuppressWarnings("unchecked")
-        var settingsClass = (Class<S>)settings.getClass();
-        var persistor = NodeSettingsPersistorFactory.createPersistor(settingsClass);
         var nodeSettings = new NodeSettings("test");
-        persistor.save(settings, nodeSettings);
-        var loaded = persistor.load(nodeSettings);
+        saveSettings(settings, nodeSettings);
+        final var loaded = loadSettings(settings.getClass(), nodeSettings);
         assertNotSame(loaded, settings);
         assertEquals(settings, loaded);
     }
 
-    @Persistor(FieldBasedNodeSettingsPersistor.class)
     private static final class FieldBasedPersistorSettings extends AbstractTestSettings<FieldBasedPersistorSettings> {
         String m_foo;
 
@@ -153,16 +142,23 @@ class NodeSettingsPersistorFactoryTest {
 
     private static final class CustomPersistor implements NodeSettingsPersistor<CustomPersistorSettings> {
 
+        private static final String CONFIG_KEY = "custom_foo";
+
         @Override
         public void save(final CustomPersistorSettings obj, final NodeSettingsWO settings) {
-            settings.addString("custom_foo", obj.m_foo);
+            settings.addString(CONFIG_KEY, obj.m_foo);
         }
 
         @Override
         public CustomPersistorSettings load(final NodeSettingsRO settings) throws InvalidSettingsException {
             var obj = new CustomPersistorSettings();
-            obj.m_foo = settings.getString("custom_foo");
+            obj.m_foo = settings.getString(CONFIG_KEY);
             return obj;
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{CONFIG_KEY}};
         }
     }
 

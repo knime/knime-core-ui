@@ -48,6 +48,11 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.credentials;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.SettingsModelAuthenticationMigrator.SETTINGS_MODEL_KEY_CREDENTIAL;
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.SettingsModelAuthenticationMigrator.SETTINGS_MODEL_KEY_PASSWORD;
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.SettingsModelAuthenticationMigrator.SETTINGS_MODEL_KEY_TYPE;
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.SettingsModelAuthenticationMigrator.SETTINGS_MODEL_KEY_USERNAME;
+
 import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -58,12 +63,13 @@ import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.AuthenticationType;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.AuthenticationTypeRef;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.RequiresPasswordProvider;
@@ -81,13 +87,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  * "Credentials"} authentication type in legacy dialogs by setting the respective flow variable once the dialog is
  * opened.
  *
- * To use it, one of the three following {@link Persist#customPersistor custom persistors} has to be used:
- * <li>{@link AuthTypeCredentialsToPasswordPersistor}</li>
- * <li>{@link AuthTypeCredentialsToUsernamePersistor}</li>
- * <li>{@link AuthTypeCredentialsToUsernameAndPasswordPersistor}</li>
+ * To use it use the {@link SettingsModelAuthenticationBackwardsCompatibleLoader} as a {@link Migration} for the field.
  *
  * @author Paul Bärnreuther
  */
+@Persistor(LegacyAuthenticationSettings.SettingsModelAuthenticationPersistor.class)
 public final class LegacyAuthenticationSettings implements WidgetGroup, PersistableSettings {
 
     @Widget(title = "Authentication type", description = "The type of the used authentication.")
@@ -133,61 +137,63 @@ public final class LegacyAuthenticationSettings implements WidgetGroup, Persista
         return new AuthenticationSettings(m_type, m_legacyCredentials.toCredentials());
     }
 
-    private abstract static class SettingsModelAuthenticationPersistor
-        implements NodeSettingsPersistor<LegacyAuthenticationSettings> {
-
-        /**
-         * The name of a field in {@link LegacyAuthenticationSettings}
-         */
-        private static final String KEY_TYPE = "type";
-
-        /**
-         * The name of a field in {@link LegacyAuthenticationSettings}
-         */
-        private static final String KEY_LEGACY_CREDENTIALS = "legacyCredentials";
-
-        private NodeSettingsPersistor<AuthenticationSettings> m_authenticationSettingsPersistor;
-
-        private AuthenticationSettings.SettingsModelAuthenticationPersistor m_settingsModelAuthenticationPersistor;
-
-        private final String m_configKey;
-
-        /**
-         * @return the an authentication type with true {@link AuthenticationType#requiresCredentials()} here to set
-         *         this as the new selected option whenever
-         *         {@link SettingsModelAuthentication.AuthenticationType#CREDENTIALS} was selected in the old dialog.
-         */
-        abstract AuthenticationType getAuthenticationTypeForCredentials();
-
-        @SuppressWarnings("unchecked")
-        SettingsModelAuthenticationPersistor(final NodeSettingsPersistorContext<AuthenticationSettings> context) {
-            m_configKey = context.getConfigKey();
-            m_authenticationSettingsPersistor =
-                (NodeSettingsPersistor<AuthenticationSettings>)DefaultFieldNodeSettingsPersistorFactory
-                    .createDefaultPersistor(new PersistTreeFactory().createTree(AuthenticationSettings.class),
-                        m_configKey);
-            m_settingsModelAuthenticationPersistor =
-                new AuthenticationSettings.SettingsModelAuthenticationPersistor(m_configKey);
-
-        }
+    static class SettingsModelAuthenticationPersistor implements NodeSettingsPersistor<LegacyAuthenticationSettings> {
 
         @Override
         public LegacyAuthenticationSettings load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return new LegacyAuthenticationSettings(m_authenticationSettingsPersistor.load(settings));
+            return new LegacyAuthenticationSettings(
+                SettingsLoaderFactory.getSettingsLoader(AuthenticationSettings.class).load(settings));
         }
 
         @Override
         public void save(final LegacyAuthenticationSettings obj, final NodeSettingsWO settings) {
-            m_authenticationSettingsPersistor.save(obj.toAuthenticationSettings(), settings);
+            SettingsSaverFactory.getSettingsSaver(AuthenticationSettings.class).save(obj.toAuthenticationSettings(),
+                settings);
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{new String[]{}};
+        }
+
+    }
+
+    /**
+     * Extend this and use it on a {@link LegacyAuthenticationSettings} field to make it backwards compatible with
+     * respect to {@link SettingsModelAuthentication}.
+     *
+     * @author Paul Bärnreuther
+     */
+    public abstract static class SettingsModelAuthenticationBackwardsCompatibleLoader
+        implements NodeSettingsMigrator<LegacyAuthenticationSettings> {
+
+        private AuthenticationSettings.SettingsModelAuthenticationMigrator m_settingsModelAuthenticationPersistor;
+
+        private final String m_configKey;
+
+        private final AuthenticationType m_authenticationTypeDefaultForCredentials;
+
+        /**
+         * @param configKey the config key used before AND after the migration to load and save the settings.
+         * @param authenticationTypeDefaultForCredentials the an authentication type (either USER_PWD, PWD or USER) to
+         *            set this as the new selected option whenever CREDENTIALS was selected in the old dialog.
+         */
+        protected SettingsModelAuthenticationBackwardsCompatibleLoader(final String configKey,
+            final AuthenticationType authenticationTypeDefaultForCredentials) {
+            m_configKey = configKey;
+            m_authenticationTypeDefaultForCredentials = authenticationTypeDefaultForCredentials;
+            m_settingsModelAuthenticationPersistor =
+                new AuthenticationSettings.SettingsModelAuthenticationMigrator(m_configKey);
         }
 
         @Override
         public List<ConfigsDeprecation<LegacyAuthenticationSettings>> getConfigsDeprecations() {
             return List.of(new Builder<LegacyAuthenticationSettings>(this::loadFromSettingsModelSettings)//
-                .withDeprecatedConfigPath(m_configKey, KEY_LEGACY_CREDENTIALS) //
-                .withDeprecatedConfigPath(m_configKey, KEY_TYPE) //
-                .withMatcher(settings -> !m_settingsModelAuthenticationPersistor.isSavedWithNewConfigKeys(settings))
-                .build());
+                .withDeprecatedConfigPath(m_configKey, SETTINGS_MODEL_KEY_CREDENTIAL) //
+                .withDeprecatedConfigPath(m_configKey, SETTINGS_MODEL_KEY_PASSWORD) //
+                .withDeprecatedConfigPath(m_configKey, SETTINGS_MODEL_KEY_USERNAME) //
+                .withDeprecatedConfigPath(m_configKey, SETTINGS_MODEL_KEY_TYPE) //
+                .withMatcher(m_settingsModelAuthenticationPersistor::isSettingsSavedBySettingsModel).build());
         }
 
         private LegacyAuthenticationSettings loadFromSettingsModelSettings(final NodeSettingsRO settings)
@@ -197,72 +203,14 @@ public final class LegacyAuthenticationSettings implements WidgetGroup, Persista
                 return loadFromCredentialsSettingsModel(model);
             }
             return new LegacyAuthenticationSettings(
-                AuthenticationSettings.SettingsModelAuthenticationPersistor.loadFromModel(model));
+                AuthenticationSettings.SettingsModelAuthenticationMigrator.loadFromModel(model));
         }
 
         private LegacyAuthenticationSettings loadFromCredentialsSettingsModel(final SettingsModelAuthentication model) {
-            final var credentials = AuthenticationSettings.SettingsModelAuthenticationPersistor.toCredentials(model);
+            final var credentials = AuthenticationSettings.SettingsModelAuthenticationMigrator.toCredentials(model);
             final var flowVariableName = model.getCredential();
-            return new LegacyAuthenticationSettings(getAuthenticationTypeForCredentials(),
+            return new LegacyAuthenticationSettings(m_authenticationTypeDefaultForCredentials,
                 new LegacyCredentials(credentials, flowVariableName));
-        }
-    }
-
-    /**
-     * Use as {@link Persist#customPersistor custom persistor} to load the authentication type
-     * {@link org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType#CREDENTIALS
-     * "Credentials"} as {@link AuthenticationType#PWD "Password"} setting the previously selected flow variable as
-     * controlling flow variable for the associated password input.
-     */
-    public static final class AuthTypeCredentialsToPasswordPersistor extends SettingsModelAuthenticationPersistor {
-
-        AuthTypeCredentialsToPasswordPersistor(final NodeSettingsPersistorContext<AuthenticationSettings> context) {
-            super(context);
-        }
-
-        @Override
-        AuthenticationType getAuthenticationTypeForCredentials() {
-            return AuthenticationType.PWD;
-        }
-
-    }
-
-    /**
-     * Use as {@link Persist#customPersistor custom persistor} to load the authentication type
-     * {@link org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType#CREDENTIALS
-     * "Credentials"} as {@link AuthenticationType#USER "Username"} setting the previously selected flow variable as
-     * controlling flow variable for the associated username input.
-     */
-    public static final class AuthTypeCredentialsToUsernamePersistor extends SettingsModelAuthenticationPersistor {
-
-        AuthTypeCredentialsToUsernamePersistor(final NodeSettingsPersistorContext<AuthenticationSettings> context) {
-            super(context);
-        }
-
-        @Override
-        AuthenticationType getAuthenticationTypeForCredentials() {
-            return AuthenticationType.USER;
-        }
-
-    }
-
-    /**
-     * Use as {@link Persist#customPersistor custom persistor} to load the authentication type
-     * {@link org.knime.core.node.defaultnodesettings.SettingsModelAuthentication.AuthenticationType#CREDENTIALS
-     * "Credentials"} as {@link AuthenticationType#USER_PWD "Username & Password"} setting the previously selected flow
-     * variable as controlling flow variable for the associated credentials input.
-     */
-    public static final class AuthTypeCredentialsToUsernameAndPasswordPersistor
-        extends SettingsModelAuthenticationPersistor {
-
-        AuthTypeCredentialsToUsernameAndPasswordPersistor(
-            final NodeSettingsPersistorContext<AuthenticationSettings> context) {
-            super(context);
-        }
-
-        @Override
-        AuthenticationType getAuthenticationTypeForCredentials() {
-            return AuthenticationType.USER_PWD;
         }
 
     }

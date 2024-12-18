@@ -80,4 +80,9 @@ public class SettingsModelStringPersistor implements NodeSettingsPersistor<Strin
         new SettingsModelString(m_configKey, obj).saveSettingsTo(settings);
     }
 
+    @Override
+    public String[][] getConfigPaths() {
+        return new String[][]{{m_configKey}};
+    }
+
 }

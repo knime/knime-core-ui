@@ -51,6 +51,9 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory.loadSettings;
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory.getSettingsSaver;
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory.saveSettings;
 
 import java.util.Objects;
 
@@ -62,6 +65,8 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
@@ -104,41 +109,24 @@ class FieldBasedNodeSettingsPersistorTest {
     }
 
     private static <S extends TestNodeSettings> void testSaveLoad(final S obj) throws InvalidSettingsException {
-        @SuppressWarnings("unchecked")
-        Class<S> objClass = (Class<S>)obj.getClass();
-        var persistor = new FieldBasedNodeSettingsPersistor<>(objClass);
         var expected = new NodeSettings(ROOT_KEY);
         obj.saveExpected(expected);
 
         var actual = new NodeSettings(ROOT_KEY);
-        persistor.save(obj, actual);
+        saveSettings(obj, actual);
 
         assertEquals(expected, actual, "The settings saved by the persistor are not as expected.");
 
-        var loaded = persistor.load(expected);
+        var loaded = loadSettings(obj.getClass(), expected);
 
         assertEquals(obj, loaded, "The loaded settings are not as expected");
     }
 
     @Test
-    void testCustomPersistorWithoutEmptyConstructor() {
-        assertThrows(IllegalArgumentException.class,
-            () -> new FieldBasedNodeSettingsPersistor<>(NoEmptyConstuctorFieldPersistorSetings.class),
-            "Custom persistor without empty constructor was not detected.");
-    }
-
-    @Test
     void testCustomPersistorWithFailingConstructor() {
         assertThrows(IllegalStateException.class,
-            () -> new FieldBasedNodeSettingsPersistor<>(FailingConstructorFieldPersistorSettings.class),
+            () -> loadSettings(FailingConstructorFieldPersistorSettings.class, null),
             "Custom persistor whose constructor fails was not detected.");
-    }
-
-    @Test
-    void testAbstractCustomFieldPersistor() {
-        assertThrows(IllegalStateException.class,
-            () -> new FieldBasedNodeSettingsPersistor<>(AbstractCustomFieldPersistorSettings.class),
-            "Abstract custom persistor was not detected.");
     }
 
     @Test
@@ -188,18 +176,17 @@ class FieldBasedNodeSettingsPersistorTest {
 
     @Test
     void testArraySettingsWithInvalidKeys() throws InvalidSettingsException {
-        var persistor = new FieldBasedNodeSettingsPersistor<>(ArraySettings.class);
         var saved = new NodeSettings(ROOT_KEY);
         saved.addNodeSettings("bar").addBoolean("null_Internal", true);
-        var loaded = persistor.load(saved);
+        var loaded = loadSettings(ArraySettings.class, saved);
         assertArrayEquals(new ElementSettings[0], loaded.m_bar);
     }
 
     @Test
     void testSaveNullArraySettings() throws InvalidSettingsException {
-        var persistor = new FieldBasedNodeSettingsPersistor<>(ArraySettings.class);
+        final var saver = getSettingsSaver(ArraySettings.class);
         var root = new NodeSettings(ROOT_KEY);
-        assertThrows(NullPointerException.class, () -> persistor.save(null, root));
+        assertThrows(NullPointerException.class, () -> saver.save(null, root));
     }
 
     private interface TestNodeSettings extends DefaultNodeSettings {
@@ -367,36 +354,9 @@ class FieldBasedNodeSettingsPersistorTest {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{"foo"};
+        public String[][] getConfigPaths() {
+            return new String[][]{{"foo"}};
         }
-    }
-
-    private static final class NoEmptyConstructorFieldPersistor implements NodeSettingsPersistor<String> {
-        @SuppressWarnings("unused")
-        NoEmptyConstructorFieldPersistor(final String arg) {
-            // the argument is just there to test that the framework reacts appropriately
-        }
-
-        @Override
-        public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            throw new NotImplementedException("This method should not be called.");
-        }
-
-        @Override
-        public void save(final String obj, final NodeSettingsWO settings) {
-            throw new NotImplementedException("This method should not be called.");
-        }
-
-        @Override
-        public String[] getConfigKeys() {
-            return new String[0];
-        }
-    }
-
-    private static final class NoEmptyConstuctorFieldPersistorSetings implements DefaultNodeSettings {
-        @Persistor(NoEmptyConstructorFieldPersistor.class)
-        String m_foo;
     }
 
     private static final class FailingConstructorFieldPersistor implements NodeSettingsPersistor<String> {
@@ -416,8 +376,8 @@ class FieldBasedNodeSettingsPersistorTest {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[0];
+        public String[][] getConfigPaths() {
+            return new String[0][];
         }
     }
 
@@ -426,33 +386,26 @@ class FieldBasedNodeSettingsPersistorTest {
         String m_foo;
     }
 
-    private abstract static class AbstractCustomFieldPersistor implements NodeSettingsPersistor<String> {//NOSONAR
-
-    }
-
-    private static final class AbstractCustomFieldPersistorSettings implements DefaultNodeSettings {
-        @Persistor(AbstractCustomFieldPersistor.class)
-        String m_foo;
-    }
-
     private static final class PrivateConstructorPersistor implements NodeSettingsPersistor<String> {
+        private static final String CONFIG_KEY = "foo";
+
         private PrivateConstructorPersistor() {
             // make private to provoke an access exception
         }
 
         @Override
         public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return settings.getString("foo");
+            return settings.getString(CONFIG_KEY);
         }
 
         @Override
         public void save(final String obj, final NodeSettingsWO settings) {
-            settings.addString("foo", obj);
+            settings.addString(CONFIG_KEY, obj);
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{"foo"};
+        public String[][] getConfigPaths() {
+            return new String[][]{{CONFIG_KEY}};
         }
     }
 
@@ -578,6 +531,11 @@ class FieldBasedNodeSettingsPersistorTest {
                 settings.addString("custom_foo", obj.m_foo);
             }
 
+            @Override
+            public String[][] getConfigPaths() {
+                return new String[0][];
+            }
+
         }
 
     }
@@ -681,15 +639,14 @@ class FieldBasedNodeSettingsPersistorTest {
         optionalSettings.m_foo = 13;
         testSaveLoad(optionalSettings);
 
-        var persistor = new FieldBasedNodeSettingsPersistor<>(OptionalSettings.class);
         var nodeSettings = new NodeSettings(ROOT_KEY);
-        var loadedSettings = persistor.load(nodeSettings);
+        var loadedSettings = loadSettings(OptionalSettings.class, nodeSettings);
         assertEquals(new OptionalSettings(), loadedSettings);
     }
 
     private static final class OptionalSettings extends AbstractTestNodeSettings<OptionalSettings> {
 
-        @Persist(optional = true)
+        @Migrate(loadDefaultIfAbsent = true)
         int m_foo = 42;
 
         @Override
@@ -712,14 +669,13 @@ class FieldBasedNodeSettingsPersistorTest {
     @Test
     void testSettingsWithDefaultProvider() throws InvalidSettingsException {
         var nodeSettings = new NodeSettings(ROOT_KEY);
-        var persistor = new FieldBasedNodeSettingsPersistor<>(DefaultProviderSettings.class);
-        var loaded = persistor.load(nodeSettings);
+        var loaded = loadSettings(DefaultProviderSettings.class, nodeSettings);
         assertEquals(1337, loaded.m_foo);
     }
 
     private static final class DefaultProviderSettings extends AbstractTestNodeSettings<DefaultProviderSettings> {
 
-        @Persistor(FooDefaultProvider.class)
+        @Migration(FooDefaultProvider.class)
         int m_foo = 42;
 
         private static final class FooDefaultProvider implements DefaultProvider<Integer> {

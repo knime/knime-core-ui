@@ -64,8 +64,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.NodeID;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NodeSettingsPersistorWithInferredConfigs;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.DefaultFieldPersistor;
 
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -268,7 +267,7 @@ public final class Credentials {
      *
      * @author Marc Bux, KNIME GmbH, Berlin, Germany
      */
-    public static final class CredentialsPersistor implements NodeSettingsPersistorWithInferredConfigs<Credentials> {
+    public static final class CredentialsPersistor implements DefaultFieldPersistor<Credentials> {
 
         private static final String CFG_PASSWORD = "weaklyEncryptedPassword";
 
@@ -280,8 +279,11 @@ public final class Credentials {
 
         private final String m_configKey;
 
-        CredentialsPersistor(final NodeSettingsPersistorContext<Credentials> credentials) {
-            m_configKey = credentials.getConfigKey();
+        /**
+         * @param configKey
+         */
+        public CredentialsPersistor(final String configKey) {
+            m_configKey = configKey;
         }
 
         @Override
@@ -325,16 +327,6 @@ public final class Credentials {
             if (secondFactor != null && !secondFactor.isEmpty()) {
                 credentialsConfig.addPassword(CFG_SECOND_FACTOR, SECOND_FACTOR_SECRET, secondFactor);
             }
-        }
-
-        /**
-         * It is important to overwride the config here, because otherwise, the framework would infer flow variables for
-         * the nested fields within these credentials (password, username, ...) and instead, it should be overidable by
-         * one variable.
-         */
-        @Override
-        public String[] getConfigKeys() {
-            return new String[]{m_configKey};
         }
 
     }

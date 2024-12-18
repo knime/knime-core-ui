@@ -48,33 +48,24 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMappings;
-import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.DeprecationLoader;
-import org.knime.core.webui.node.dialog.configmapping.NewAndDeprecatedConfigPaths;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NodeSettingsPersistorWithInferredConfigs;
 
 /**
- * A {@link NodeSettingsPersistor} that persists a single field of a settings object. Implementing classes must provide
- * all config keys which are used via the {@link #getConfigKeys()} method.
+ * A persistor that is to be used within an {@link Persistor} annotation to define or refine the way a certain field or
+ * class is persisted to {@link NodeSettings}.
  *
+ * For an implementation to be used by the {@link Persist} annotation, it must have a non-private constructor that
+ * either takes no arguments or a single {@link NodeSettingsPersistorContext} argument.
+ *
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
+ * @author Paul Bärnreuther, KNIME GmbH, Konstanz, Germany
  * @param <T> type of object loaded by the persistor
  */
-public interface NodeSettingsPersistor<T> {
-    @SuppressWarnings("javadoc")
-    NodeLogger LOGGER = NodeLogger.getLogger(NodeSettingsPersistor.class);
+public interface NodeSettingsPersistor<T> extends SettingsSaver<T>, SettingsLoader<T> {
 
     /**
      * Loads the object from the provided settings.
@@ -83,6 +74,7 @@ public interface NodeSettingsPersistor<T> {
      * @return the loaded object
      * @throws InvalidSettingsException if the settings are invalid
      */
+    @Override
     T load(NodeSettingsRO settings) throws InvalidSettingsException;
 
     /**
@@ -91,103 +83,17 @@ public interface NodeSettingsPersistor<T> {
      * @param obj to save
      * @param settings to save into
      */
+    @Override
     void save(T obj, NodeSettingsWO settings);
 
     /**
-     * Allows one to optionally provide config mappings (e.g. old config key(s) to new config key(s)) in case configs
-     * are deprecated. It is required to be able to maintain backwards compatibility.
-     *
-     * @param obj to save, necessary in some persistors, because the used config keys depend on the object (e.g. in
-     *            dynamic arrays)
-     * @return a new {@link ConfigMappings}-instance. It is used to bring settings and flow variables back in sync when
-     *         the tree structure differs after saving (e.g. because of set deprecated flow variables) and to revert
-     *         applied settings to previous settings when overwritten by a flow variable.
-     */
-    default ConfigMappings getConfigMappings(final T obj) {
-        return new ConfigMappings(getConfigsDeprecations().stream().map(configsDeprecation -> new ConfigMappings(
-            inferNewConfigs(configsDeprecation.getDeprecatedConfigPaths()), settings -> {
-                T fromPrevious = loadOrDefault(settings, configsDeprecation.getLoader(), obj);
-                final var newSettings = new NodeSettings("newSettings");
-                save(fromPrevious, newSettings);
-                return newSettings;
-            })).toList());
-    }
-
-    private T loadOrDefault(final NodeSettingsRO settings, final DeprecationLoader<T> deprecationLoader, final T obj) {
-        try {
-            return deprecationLoader.apply(settings);
-        } catch (InvalidSettingsException ex) {
-            LOGGER
-                .warn(String.format("Error when trying to load from previous settings when modifying settings on save. "
-                    + "Using the saved settings instead. Exception: %s", ex));
-            return obj;
-        }
-    }
-
-    /**
-     * @return an array of all config keys that are used to save the setting to the node settings or null if config keys
-     *         should be inferred as if this persistor was not present.
-     */
-    default String[] getConfigKeys() {
-        return null; // NOSONAR
-    }
-
-    /**
-     * Use this method instead of {@link #getConfigKeys()} if the used config keys are nested. Each element in the array
-     * contains a path on how to get to the final nested config from here. E.g. if this persistor saves to the config
-     * named "foo" with sub configs "bar" and "baz", the result here should be [["foo", "bar"], ["foo", baz"]].
+     * Each element in the array contains a path on how to get to the final nested config from here. E.g. if this
+     * persistor saves to the config named "foo" with sub configs "bar" and "baz", the result here should be [["foo",
+     * "bar"], ["foo", baz"]].
      *
      * @return an array of all config paths that are used to save the settings to the node settings or null if those
      *         should be inferred as if this persistor was not present.
      */
-    default String[][] getConfigPaths() {
-        if (getConfigKeys() == null) {
-            return null; // NOSONAR
-        }
-        return Arrays.stream(getConfigKeys()).map(key -> new String[]{key}).toArray(String[][]::new);
-    }
-
-    /**
-     * @return an array of all pairs of collections of deprecated and accociated new configs (see
-     *         {@link ConfigsDeprecation})
-     */
-    default List<ConfigsDeprecation<T>> getConfigsDeprecations() {
-        return Collections.emptyList();
-    }
-
-    /**
-     * As defined by {@link #forNewConfigPath}, we want all new configs to be affected in case none are explicitly set.
-     */
-    private NewAndDeprecatedConfigPaths inferNewConfigs(final Collection<ConfigPath> deprecatedConfigPaths) {
-        final var configPaths = inferConfigPaths();
-        return new NewAndDeprecatedConfigPaths() {
-
-            @Override
-            public Collection<ConfigPath> getNewConfigPaths() {
-                return configPaths;
-            }
-
-            @Override
-            public Collection<ConfigPath> getDeprecatedConfigPaths() {
-                return deprecatedConfigPaths;
-            }
-        };
-
-    }
-
-    private Collection<ConfigPath> inferConfigPaths() {
-        final var configPaths = getConfigPaths();
-        if (configPaths == null) {
-            if (this instanceof NodeSettingsPersistorWithInferredConfigs<?> withInferredConfigs) {
-                return toConfigPaths(withInferredConfigs.getNonNullPaths());
-            }
-            throw new IllegalStateException("for inferred configs, getConfigPaths must be implemented");
-        }
-        return toConfigPaths(configPaths);
-    }
-
-    private static Collection<ConfigPath> toConfigPaths(final String[][] nonNullPaths) {
-        return Arrays.stream(nonNullPaths).map(Arrays::asList).map(ConfigPath::new).toList();
-    }
+    String[][] getConfigPaths();
 
 }

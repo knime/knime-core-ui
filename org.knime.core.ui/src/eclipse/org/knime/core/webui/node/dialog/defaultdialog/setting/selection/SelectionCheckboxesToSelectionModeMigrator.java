@@ -44,36 +44,52 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 15, 2024 (Paul Bärnreuther): created
+ *   Oct 10, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.selection;
+
+import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.LatentWidget;
+import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
 
 /**
- * See {@link LatentWidget}
  *
  * @author Paul Bärnreuther
  */
-final class LatentWidgetPersistor<T> implements NodeSettingsPersistor<T> {
+public class SelectionCheckboxesToSelectionModeMigrator implements NodeSettingsMigrator<SelectionMode> {
 
-    @Override
-    public T load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return null;
+    private static final String PUBLISH_SELECTION = "publishSelection";
+
+    private static final String SUBSCRIBE_TO_SELECTION = "subscribeToSelection";
+
+    private static SelectionMode loadFromBooleans(final NodeSettingsRO settings) throws InvalidSettingsException {
+        final var publish = settings.getBoolean(PUBLISH_SELECTION);
+        final var show = settings.getBoolean(SUBSCRIBE_TO_SELECTION);
+        /**
+         * There is no option for only publishing since this change to a value switch. I.e. in this case, we now also
+         * subscribe to the selection.
+         */
+        if (publish) {
+            return SelectionMode.EDIT;
+        }
+        if (show) {
+            return SelectionMode.SHOW;
+        }
+        return SelectionMode.OFF;
     }
 
     @Override
-    public void save(final T obj, final NodeSettingsWO settings) {
-        // NOOP
-    }
-
-    @Override
-    public String[] getConfigKeys() {
-        return new String[0];
+    public List<ConfigsDeprecation<SelectionMode>> getConfigsDeprecations() {
+        return List.of(
+            ConfigsDeprecation.builder(SelectionCheckboxesToSelectionModeMigrator::loadFromBooleans)
+                .withDeprecatedConfigPath(SUBSCRIBE_TO_SELECTION).withDeprecatedConfigPath(PUBLISH_SELECTION).build(),
+            /**
+             * Accounting for a time where not even the checkbox settings existed.
+             */
+            ConfigsDeprecation.builder(settings -> SelectionMode.EDIT).build());
     }
 
 }
