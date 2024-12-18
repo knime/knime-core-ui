@@ -81,6 +81,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
+@SuppressWarnings({"static-method", "squid:S1144"}) // suppress "unused private method" warning
 final class IntervalTest {
 
     private static record ParseTestCase(Interval expected, String iso, String... humanReadable) {
@@ -250,7 +251,7 @@ final class IntervalTest {
 
     @Test
     void testDateIntervalJacksonSerialisation() throws JsonProcessingException {
-        var interval = DateInterval.of(1, 2, 3, 4);
+        DateInterval interval = DateInterval.of(1, 2, 3, 4);
         var serialised = new ObjectMapper().writeValueAsString(interval);
         assertEquals("\"" + interval.toISOString() + "\"", serialised);
         var deserialised = new ObjectMapper().readValue(serialised, DateInterval.class);
@@ -259,7 +260,7 @@ final class IntervalTest {
 
     @Test
     void testTimeIntervalJacksonSerialisation() throws JsonProcessingException {
-        var interval = TimeInterval.of(1, 2, 3, 4);
+        TimeInterval interval = TimeInterval.of(1, 2, 3, 4);
         var serialised = new ObjectMapper().writeValueAsString(interval);
         assertEquals("\"" + interval.toISOString() + "\"", serialised);
         var deserialised = new ObjectMapper().readValue(serialised, TimeInterval.class);
@@ -268,16 +269,16 @@ final class IntervalTest {
 
     @Test
     void testIntervalJacksonSerialisation() throws JsonProcessingException {
-        var interval = Interval.parseISO("PT1S");
+        Interval interval = Interval.parseISO("PT1S");
         var serialised = new ObjectMapper().writeValueAsString(interval);
         assertEquals("\"" + interval.toISOString() + "\"", serialised);
-        var deserialised = new ObjectMapper().readValue(serialised, TimeInterval.class);
+        var deserialised = new ObjectMapper().readValue(serialised, Interval.class);
         assertEquals(interval, deserialised);
     }
 
     @Test
     void testAttemptingToDeserialiseTimeIntervalAsDateInterval() throws JsonProcessingException {
-        var interval = TimeInterval.of(1, 2, 3, 4);
+        TimeInterval interval = TimeInterval.of(1, 2, 3, 4);
         var serialised = new ObjectMapper().writeValueAsString(interval);
 
         assertThrows(JsonMappingException.class, () -> new ObjectMapper().readValue(serialised, DateInterval.class),
@@ -286,7 +287,7 @@ final class IntervalTest {
 
     @Test
     void testAttemptingToDeserialiseDateIntervalAsTimeInterval() throws JsonProcessingException {
-        var interval = DateInterval.of(1, 2, 3, 4);
+        DateInterval interval = DateInterval.of(1, 2, 3, 4);
         var serialised = new ObjectMapper().writeValueAsString(interval);
 
         assertThrows(JsonMappingException.class, () -> new ObjectMapper().readValue(serialised, TimeInterval.class),

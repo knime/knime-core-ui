@@ -50,7 +50,6 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.interval;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.time.Period;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.Temporal;
 import java.time.temporal.TemporalAmount;
@@ -264,9 +263,8 @@ public final class TimeInterval implements Interval {
     }
 
     /**
-     * A deserializer for {@link Interval}s. It will convert an ISO8601 string representing either a {@link Period} or a
-     * {@link Duration} to an {@link Interval} of the appropriate type (at the time of writing, either a
-     * {@link TimeInterval} or a {@link DateInterval}).
+     * A deserialiser for {@link TimeInterval}s. It will convert an ISO8601 string representing a {@link Duration} to an
+     * {@link TimeInterval}.
      */
     static final class Deserializer extends JsonDeserializer<TimeInterval> {
 
@@ -288,8 +286,8 @@ public final class TimeInterval implements Interval {
     }
 
     /**
-     * A serializer for {@link Interval}s. It will convert an {@link Interval} to an ISO8601 string representing either
-     * a {@link Period} or a {@link Duration}, e.g. P1Y2M3W4D or PT1H2M3.456S.
+     * A serialiser for {@link TimeInterval}s. It will convert a {@link TimeInterval} to an ISO8601 string representing
+     * a {@link Duration}, e.g. PT1H2M3.456S.
      */
     static final class Serializer extends JsonSerializer<TimeInterval> {
 

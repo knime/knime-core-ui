@@ -48,9 +48,19 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.interval;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Period;
 import java.time.temporal.TemporalAmount;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * An abstract class representing some kind of abstract date&time based interval, complete with serialisers for Jackson.
@@ -76,6 +86,8 @@ import java.time.temporal.TemporalAmount;
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
+@JsonSerialize(using = Interval.Serializer.class)
+@JsonDeserialize(using = Interval.Deserializer.class)
 public sealed interface Interval extends TemporalAmount permits TimeInterval, DateInterval {
 
     /**
@@ -134,5 +146,35 @@ public sealed interface Interval extends TemporalAmount permits TimeInterval, Da
      */
     static Interval parseHumanReadable(final String humanReadable) {
         return StringToIntervalUtil.parseHumanReadable(humanReadable);
+    }
+
+    /**
+     * A deserialiser for {@link Interval}s. It will convert an ISO8601 string representing either a {@link Period} or a
+     * {@link Duration} to an {@link Interval} of the appropriate type (at the time of writing, either a
+     * {@link TimeInterval} or a {@link DateInterval}).
+     */
+    final class Deserializer extends JsonDeserializer<Interval> {
+
+        @Override
+        public Interval deserialize(final JsonParser p, final DeserializationContext ctxt) throws IOException {
+            try {
+                return Interval.parseISO(p.getValueAsString());
+            } catch (IllegalArgumentException e) {
+                throw new IOException("Could not parse interval '%s'".formatted(p.getValueAsString()), e);
+            }
+        }
+    }
+
+    /**
+     * A serialiser for {@link Interval}s. It will convert an {@link Interval} to an ISO8601 string representing either
+     * a {@link Period} or a {@link Duration}, e.g. P1Y2M3W4D or PT1H2M3.456S.
+     */
+    final class Serializer extends JsonSerializer<Interval> {
+
+        @Override
+        public void serialize(final Interval value, final JsonGenerator gen, final SerializerProvider serializers)
+            throws IOException {
+            gen.writeString(value.toISOString());
+        }
     }
 }
