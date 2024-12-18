@@ -52,7 +52,6 @@ import static java.util.stream.Collectors.toMap;
 import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.CreateNodeSettingsPersistorUtil.createInstance;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultProvider;
@@ -100,21 +99,10 @@ final class FieldNodeSettingsPersistorFactory {
      *
      * @param node the node for which to create a persistor
      * @return the persistor inherent to the associated field if it is persistable
-     */
-    static Optional<NodeSettingsPersistor<?>>
-        getCustomOrDefaultPersistorIfPresent(final TreeNode<PersistableSettings> node) {
-        try {
-            return Optional.of(getCustomOrDefaultPersistor(node));
-        } catch (IllegalArgumentException ex) { // NOSONAR
-            return Optional.empty();
-        }
-    }
-
-    /**
      * @throws IllegalArgumentException if there is no persistor available for the provided field
      */
     @SuppressWarnings({"unchecked"})
-    private static NodeSettingsPersistor<?> getCustomOrDefaultPersistor(final TreeNode<PersistableSettings> node) {
+    public static NodeSettingsPersistor<?> getCustomOrDefaultPersistor(final TreeNode<PersistableSettings> node) {
         var isLatentWidget = node.getAnnotation(LatentWidget.class).isPresent();
         if (isLatentWidget) {
             return new LatentWidgetPersistor<>();
@@ -124,9 +112,7 @@ final class FieldNodeSettingsPersistorFactory {
         var persistor = node.getAnnotation(Persistor.class);
         if (persistor.isPresent()) {
             final var customPersistorClass = persistor.get().value();
-            final var customPersistor = createCustomPersistor(customPersistorClass, node.getType(), configKey);
-            return CustomPersistorUtil.prepareCustomPersistor(customPersistor,
-                () -> createDefaultPersistor(node, configKey));
+            return createCustomPersistor(customPersistorClass, node.getType(), configKey);
         }
         return createDefaultPersistor(node, configKey);
 

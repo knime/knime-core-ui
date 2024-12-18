@@ -48,65 +48,27 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
 
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 
 /**
- * A {@link NodeSettingsPersistor} that persists a single field of a settings object. Implementing classes must provide
- * all config keys which are used via the {@link #getConfigKeys()} method.
+ * Interface that has to be implemented to use within the {@link BackwardsCompatibleLoader} annotation.
  *
- * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
- * @param <T> type of object loaded by the persistor
+ * @param <T> type of object loaded from deprecated settings, i.e. the type of the associated field or class.
+ * @author Paul Bärnreuther
  */
-public interface NodeSettingsPersistor<T> {
-    @SuppressWarnings("javadoc")
-    NodeLogger LOGGER = NodeLogger.getLogger(NodeSettingsPersistor.class);
+public interface DeprecatedSettingsLoadDefinition<T> {
 
     /**
-     * Loads the object from the provided settings.
+     * Each element of this list is associated to a point in time where the settings changed, i.e. are not saved like
+     * before.
      *
-     * @param settings to load from
-     * @return the loaded object
-     * @throws InvalidSettingsException if the settings are invalid
+     * @return a list of how to load backwards-compatible
      */
-    T load(NodeSettingsRO settings) throws InvalidSettingsException;
-
-    /**
-     * Saves the provided object into the settings.
-     *
-     * @param obj to save
-     * @param settings to save into
-     */
-    void save(T obj, NodeSettingsWO settings);
-
-
-    /**
-     * @return an array of all config keys that are used to save the setting to the node settings or null if config keys
-     *         should be inferred as if this persistor was not present.
-     */
-    default String[] getConfigKeys() {
-        return null; // NOSONAR
+    default List<ConfigsDeprecation<T>> getConfigsDeprecations() {
+        return Collections.emptyList();
     }
-
-    /**
-     * Use this method instead of {@link #getConfigKeys()} if the used config keys are nested. Each element in the array
-     * contains a path on how to get to the final nested config from here. E.g. if this persistor saves to the config
-     * named "foo" with sub configs "bar" and "baz", the result here should be [["foo", "bar"], ["foo", baz"]].
-     *
-     * @return an array of all config paths that are used to save the settings to the node settings or null if those
-     *         should be inferred as if this persistor was not present.
-     */
-    default String[][] getConfigPaths() {
-        if (getConfigKeys() == null) {
-            return null; // NOSONAR
-        }
-        return Arrays.stream(getConfigKeys()).map(key -> new String[]{key}).toArray(String[][]::new);
-    }
-
-
 
 }

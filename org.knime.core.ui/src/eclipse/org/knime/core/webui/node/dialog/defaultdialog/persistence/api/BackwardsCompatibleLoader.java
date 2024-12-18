@@ -44,69 +44,41 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 8, 2023 (Benjamin Wilhelm, KNIME GmbH, Berlin, Germany): created
+ *   Dec 2, 2022 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
 
-import java.util.Arrays;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.FieldBasedNodeSettingsPersistor;
 
 /**
- * A {@link NodeSettingsPersistor} that persists a single field of a settings object. Implementing classes must provide
- * all config keys which are used via the {@link #getConfigKeys()} method.
+ * Annotates a class with a persistor that is used to save and load objects of the class to and from NodeSettings. If no
+ * persistence is provided, we fall back to the {@link FieldBasedNodeSettingsPersistor}. This default performs
+ * persistence of all fields independently and allows further customization on a per field basis via the {@link Persist}
+ * annotation. <br>
+ * <br>
+ * If you find the FieldBasedNodeSettingsPersistor to be insufficient for your needs, you can also implement your own
+ * {@link NodeSettingsPersistor} and provide it here.
  *
- * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
- * @param <T> type of object loaded by the persistor
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public interface NodeSettingsPersistor<T> {
-    @SuppressWarnings("javadoc")
-    NodeLogger LOGGER = NodeLogger.getLogger(NodeSettingsPersistor.class);
+@Retention(RUNTIME)
+@Target({TYPE, FIELD})
+public @interface BackwardsCompatibleLoader {
 
     /**
-     * Loads the object from the provided settings.
+     * The type of persistor to use for storing and loading the annotated object to and from NodeSettings. Either
+     * {@link FieldBasedNodeSettingsPersistor} or your own implementation of {@link NodeSettingsPersistor}.
      *
-     * @param settings to load from
-     * @return the loaded object
-     * @throws InvalidSettingsException if the settings are invalid
+     * @return the class of the persistor
      */
-    T load(NodeSettingsRO settings) throws InvalidSettingsException;
-
-    /**
-     * Saves the provided object into the settings.
-     *
-     * @param obj to save
-     * @param settings to save into
-     */
-    void save(T obj, NodeSettingsWO settings);
-
-
-    /**
-     * @return an array of all config keys that are used to save the setting to the node settings or null if config keys
-     *         should be inferred as if this persistor was not present.
-     */
-    default String[] getConfigKeys() {
-        return null; // NOSONAR
-    }
-
-    /**
-     * Use this method instead of {@link #getConfigKeys()} if the used config keys are nested. Each element in the array
-     * contains a path on how to get to the final nested config from here. E.g. if this persistor saves to the config
-     * named "foo" with sub configs "bar" and "baz", the result here should be [["foo", "bar"], ["foo", baz"]].
-     *
-     * @return an array of all config paths that are used to save the settings to the node settings or null if those
-     *         should be inferred as if this persistor was not present.
-     */
-    default String[][] getConfigPaths() {
-        if (getConfigKeys() == null) {
-            return null; // NOSONAR
-        }
-        return Arrays.stream(getConfigKeys()).map(key -> new String[]{key}).toArray(String[][]::new);
-    }
-
-
+    @SuppressWarnings("rawtypes") // even wildcards prohibit generic persistors from being returned
+    Class<? extends DeprecatedSettingsLoadDefinition> value();
 
 }

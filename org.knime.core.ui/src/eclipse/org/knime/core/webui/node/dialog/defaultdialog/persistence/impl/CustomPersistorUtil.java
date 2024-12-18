@@ -51,15 +51,9 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 import static org.knime.core.webui.node.dialog.configmapping.NodeSettingsAtPathUtil.hasPath;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.function.Supplier;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultPersistorWithDeprecations;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DeprecatedSettingsLoadDefinition;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NewSettingsMissingMatcher;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NodeSettingsPersistorWithInferredConfigs;
@@ -76,175 +70,17 @@ public final class CustomPersistorUtil {
         // utility class
     }
 
-    /**
-     * Public for tests, TODO: Move to testing
-     *
-     * @param <T>
-     * @param customPersistor
-     * @param defaultPersistorSupplier
-     * @return
-     */
-    public static <T> NodeSettingsPersistor<T> prepareCustomPersistor(final NodeSettingsPersistor<T> customPersistor,
-        final Supplier<NodeSettingsPersistor<T>> defaultPersistorSupplier) {
-        return adaptLoadToEnableLegacyLoading(combineWithDefaultIfNecessary(customPersistor, defaultPersistorSupplier));
-    }
+    static <T> SettingsLoader<T> getLoadMethod(final NodeSettingsPersistor<T> customOrDefaultPersistor,
+        final DeprecatedSettingsLoadDefinition<T> deprecatedSettingsLoadDefinition) {
 
-    private static <T> NodeSettingsPersistor<T> combineWithDefaultIfNecessary(
-        final NodeSettingsPersistor<T> customPersistor,
-        final Supplier<NodeSettingsPersistor<T>> defaultPersistorSupplier) {
-        if (customPersistor instanceof DefaultPersistorWithDeprecations<T> withDeprecations) {
-            final var defaultPersistor = defaultPersistorSupplier.get();
-            if (defaultPersistor instanceof NodeSettingsPersistorWithInferredConfigs<T> defaultPersistorWithInferredConfigs) {
-                return new DefaultPersistorWithDeprecationsDecoratorWithInferredConfigs<>(withDeprecations,
-                    defaultPersistorWithInferredConfigs);
-            }
-            return new DefaultPersistorWithDeprecationsDecorator<T>(withDeprecations, defaultPersistor);
-        }
-        return customPersistor;
-    }
-
-    private static <T> NodeSettingsPersistor<T>
-        adaptLoadToEnableLegacyLoading(final NodeSettingsPersistor<T> customPersistor) {
-        if (customPersistor.getConfigsDeprecations().isEmpty()) {
-            return customPersistor;
-        }
-        if (customPersistor instanceof NodeSettingsPersistorWithInferredConfigs<T> withInferredConfigs) {
-            return new LoadFromLegacyDecoratorWithInferredConfigKeys<>(withInferredConfigs);
-        }
-        return new LoadFromLegacyDecorator<>(customPersistor);
-    }
-
-    static <T> String[][] getNonNullConfigPaths(final NodeSettingsPersistor<T> persistor) {
-        if (persistor instanceof NodeSettingsPersistorWithInferredConfigs<T> withInferredConfigs) {
-            return withInferredConfigs.getNonNullPaths();
-        } else {
-            return persistor.getConfigPaths();
-        }
-    }
-
-    /**
-     * A wrapper for persistors which implement {@link DefaultPersistorWithDeprecations} that loads and saves settings
-     * using the default persistor and the custom persistor to get the deprecated configs.
-     *
-     * @author Robin Gerling
-     * @param <T> the type of object loaded by the persistor
-     */
-    private static final class DefaultPersistorWithDeprecationsDecoratorWithInferredConfigs<T>
-        implements NodeSettingsPersistorWithInferredConfigs<T> {
-
-        final DefaultPersistorWithDeprecations<T> m_customPersistor;
-
-        final NodeSettingsPersistorWithInferredConfigs<T> m_defaultPersistor;
-
-        /**
-         * @param customPersistor the custom persistor of the node settings field handling deprecated configs
-         * @param defaultPersistor the default persistor of the node settings field
-         *
-         */
-        public DefaultPersistorWithDeprecationsDecoratorWithInferredConfigs(
-            final DefaultPersistorWithDeprecations<T> customPersistor,
-            final NodeSettingsPersistorWithInferredConfigs<T> defaultPersistor) {
-            m_customPersistor = customPersistor;
-            m_defaultPersistor = defaultPersistor;
-        }
-
-        @Override
-        public void save(final T obj, final NodeSettingsWO settings) {
-            m_defaultPersistor.save(obj, settings);
-        }
-
-        @Override
-        public T load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return m_defaultPersistor.load(settings);
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return m_defaultPersistor.getConfigPaths();
-        }
-
-        @Override
-        public List<ConfigsDeprecation<T>> getConfigsDeprecations() {
-            return m_customPersistor.getConfigsDeprecations();
-        }
-
-        @Override
-        public String[][] getNonNullPaths() {
-            return m_defaultPersistor.getNonNullPaths();
-        }
-    }
-
-    /**
-     * A wrapper for persistors which implement {@link DefaultPersistorWithDeprecations} that loads and saves settings
-     * using the default persistor and the custom persistor to get the deprecated configs.
-     *
-     * @author Robin Gerling
-     * @param <T> the type of object loaded by the persistor
-     */
-    private static final class DefaultPersistorWithDeprecationsDecorator<T> implements NodeSettingsPersistor<T> {
-
-        final DefaultPersistorWithDeprecations<T> m_customPersistor;
-
-        final NodeSettingsPersistor<T> m_defaultPersistor;
-
-        /**
-         * @param customPersistor the custom persistor of the node settings field handling deprecated configs
-         * @param defaultPersistor the default persistor of the node settings field
-         *
-         */
-        public DefaultPersistorWithDeprecationsDecorator(final DefaultPersistorWithDeprecations<T> customPersistor,
-            final NodeSettingsPersistor<T> defaultPersistor) {
-            m_customPersistor = customPersistor;
-            m_defaultPersistor = defaultPersistor;
-        }
-
-        @Override
-        public void save(final T obj, final NodeSettingsWO settings) {
-            m_defaultPersistor.save(obj, settings);
-        }
-
-        @Override
-        public T load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return m_defaultPersistor.load(settings);
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return m_defaultPersistor.getConfigPaths();
-        }
-
-        @Override
-        public List<ConfigsDeprecation<T>> getConfigsDeprecations() {
-            return m_customPersistor.getConfigsDeprecations();
-        }
-
-    }
-
-    /**
-     * Adapt the loading mechanism of the settings of field not settings persistors. In case a persistor specifies
-     * deprecated configs by implementing {@link #FieldNodeSettingsPersistor.getConfigsDeprecations() }, the
-     * corresponding matchers are iterated by their order in the list of {@link ConfigsDeprecation ConfigsDeprecations}
-     * and the settings are loaded according to the loader of the first match. If no match was found the default load of
-     * the persistor is used.
-     */
-    private static class LoadFromLegacyDecorator<T> implements NodeSettingsPersistor<T> {
-
-        private final NodeSettingsPersistor<T> m_delegate;
-
-        LoadFromLegacyDecorator(final NodeSettingsPersistor<T> delegate) {
-            m_delegate = delegate;
-        }
-
-        @Override
-        public T load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            final var configDeprecations = m_delegate.getConfigsDeprecations();
-
+        final var configDeprecations = deprecatedSettingsLoadDefinition.getConfigsDeprecations();
+        return settings -> {
             for (final var configDeprecation : configDeprecations) {
                 final var matcher = configDeprecation.getMatcher();
                 final var loader = configDeprecation.getLoader();
 
                 if (matcher instanceof NewSettingsMissingMatcher) {
-                    final var inferredConfigPaths = getInferredNewConfigs();
+                    final var inferredConfigPaths = getNonNullConfigPaths(customOrDefaultPersistor);
                     if (inferredConfigPaths == null || inferredConfigPaths.length == 0) {
                         throw new IllegalStateException(
                             "There exists a custom persistor without or with empty config paths but "
@@ -260,48 +96,17 @@ public final class CustomPersistorUtil {
                     return loader.apply(settings);
                 }
             }
-            return m_delegate.load(settings);
-        }
-
-        private String[][] getInferredNewConfigs() { // TODO deduplicate with NodeSettingsPersistor#inferConfigPaths
-            if (m_delegate instanceof NodeSettingsPersistorWithInferredConfigs<T> inferredConfigsPersistor) {
-                return inferredConfigsPersistor.getNonNullPaths();
-            }
-            return m_delegate.getConfigPaths();
-        }
-
-        @Override
-        public void save(final T obj, final NodeSettingsWO settings) {
-            m_delegate.save(obj, settings);
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return m_delegate.getConfigPaths();
-        }
-
-        @Override
-        public List<ConfigsDeprecation<T>> getConfigsDeprecations() {
-            return m_delegate.getConfigsDeprecations();
-        }
+            return customOrDefaultPersistor.load(settings);
+        };
 
     }
 
-    private static final class LoadFromLegacyDecoratorWithInferredConfigKeys<T> extends LoadFromLegacyDecorator<T>
-        implements NodeSettingsPersistorWithInferredConfigs<T> {
-
-        private final NodeSettingsPersistorWithInferredConfigs<T> m_delegate;
-
-        LoadFromLegacyDecoratorWithInferredConfigKeys(final NodeSettingsPersistorWithInferredConfigs<T> delegate) {
-            super(delegate);
-            m_delegate = delegate;
+    static <T> String[][] getNonNullConfigPaths(final NodeSettingsPersistor<T> persistor) {
+        if (persistor instanceof NodeSettingsPersistorWithInferredConfigs<T> withInferredConfigs) {
+            return withInferredConfigs.getNonNullPaths();
+        } else {
+            return persistor.getConfigPaths();
         }
-
-        @Override
-        public String[][] getNonNullPaths() {
-            return m_delegate.getNonNullPaths();
-        }
-
     }
 
 }

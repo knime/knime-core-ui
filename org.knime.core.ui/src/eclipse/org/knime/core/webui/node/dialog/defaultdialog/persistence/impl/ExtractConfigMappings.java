@@ -44,69 +44,52 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 8, 2023 (Benjamin Wilhelm, KNIME GmbH, Berlin, Germany): created
+ *   Dec 18, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
+package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMappings;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
+import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 
 /**
- * A {@link NodeSettingsPersistor} that persists a single field of a settings object. Implementing classes must provide
- * all config keys which are used via the {@link #getConfigKeys()} method.
  *
- * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
- * @param <T> type of object loaded by the persistor
+ * @author Paul Bärnreuther
  */
-public interface NodeSettingsPersistor<T> {
-    @SuppressWarnings("javadoc")
-    NodeLogger LOGGER = NodeLogger.getLogger(NodeSettingsPersistor.class);
+public class ExtractConfigMappings {
 
     /**
-     * Loads the object from the provided settings.
-     *
-     * @param settings to load from
-     * @return the loaded object
-     * @throws InvalidSettingsException if the settings are invalid
+     * @param settingsClass
+     * @return the config mappings extracted from the structure of the settings and the persist-relevant annotations.
      */
-    T load(NodeSettingsRO settings) throws InvalidSettingsException;
-
-    /**
-     * Saves the provided object into the settings.
-     *
-     * @param obj to save
-     * @param settings to save into
-     */
-    void save(T obj, NodeSettingsWO settings);
-
-
-    /**
-     * @return an array of all config keys that are used to save the setting to the node settings or null if config keys
-     *         should be inferred as if this persistor was not present.
-     */
-    default String[] getConfigKeys() {
-        return null; // NOSONAR
+    public static <T extends DefaultNodeSettings> ConfigMappings extractConfigMappings(final Class<T> settingsClass,
+        final T settingsValue) {
+        return extractConfigMappingsFromTree(new PersistTreeFactory().createTree(settingsClass), settingsValue);
     }
 
-    /**
-     * Use this method instead of {@link #getConfigKeys()} if the used config keys are nested. Each element in the array
-     * contains a path on how to get to the final nested config from here. E.g. if this persistor saves to the config
-     * named "foo" with sub configs "bar" and "baz", the result here should be [["foo", "bar"], ["foo", baz"]].
-     *
-     * @return an array of all config paths that are used to save the settings to the node settings or null if those
-     *         should be inferred as if this persistor was not present.
-     */
-    default String[][] getConfigPaths() {
-        if (getConfigKeys() == null) {
-            return null; // NOSONAR
-        }
-        return Arrays.stream(getConfigKeys()).map(key -> new String[]{key}).toArray(String[][]::new);
+    private static ConfigMappings extractConfigMappingsFromTree(final Tree<PersistableSettings> tree,
+        final Object settingsValue) {
+        List<ConfigMappings> childMappings = new ArrayList<>();
+        return null;
     }
 
+    private static Optional<NodeSettingsPersistor<?>> getCustomPersistor() {
+        return null;
+    }
 
+    private static ConfigMappings extractConfigMappingsFromTreeNode(final TreeNode<PersistableSettings> treeNode,
+        final Object settingsValue) {
+        FieldNodeSettingsPersistorFactory.getCustomOrDefaultPersistor(treeNode);
+        ConfigKeyUtil.getConfigKey(treeNode);
+        return null;
+    }
 
 }

@@ -490,6 +490,7 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
         return InstantiationUtil.createInstance(clazz);
     }
 
+    @SuppressWarnings("javadoc")
     static void saveSettings(final Class<? extends DefaultNodeSettings> settingsClass,
         final DefaultNodeSettings settingsObject, final NodeSettingsWO settings) {
         castAndSaveSettings(settingsClass, settingsObject, settings);

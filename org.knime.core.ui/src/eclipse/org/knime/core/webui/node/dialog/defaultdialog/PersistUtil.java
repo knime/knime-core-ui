@@ -158,8 +158,8 @@ public final class PersistUtil {
     }
 
     private static void addFieldPersistFields(final ObjectNode node, final TreeNode<PersistableSettings> field) {
-        final var persistor = ConfigKeyUtil.extractFieldNodeSettingsPersistor(field);
-        persistor.ifPresent(addNodeSettingsPersistorFields(node, "configPaths", "deprecatedConfigKeys"));
+        addNodeSettingsPersistorFields(node, "configPaths", "deprecatedConfigKeys")
+            .accept(ConfigKeyUtil.extractFieldNodeSettingsPersistor(field));
         resolvePersistAnnotation(node, field.getAnnotation(Persist.class));
     }
 
