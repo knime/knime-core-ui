@@ -52,6 +52,7 @@ import java.util.Objects;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.PatternFilter.PatternMode;
@@ -73,7 +74,8 @@ public class ColumnFilter implements PersistableSettings {
      * possible values whenever the configuration changes in the dialog. So setting this field has to be repeated (using
      * {@link #getSelected}) when creating these initial view data.
      */
-    @Persist(hidden = true, optional = true)
+    @Persist(hidden = true)
+    @Migrate(loadDefaultIfAbsent = true)
     public String[] m_selected;
 
     /**
@@ -200,6 +202,7 @@ public class ColumnFilter implements PersistableSettings {
 
     /**
      * Get selected columns that appears in the given full spec.
+     *
      * @param spec
      * @return the array of currently selected columns with respect to the mode which are contained in the given array
      */

@@ -48,6 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory.saveSettings;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -92,7 +94,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUti
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.NodeSettingsPersistorFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -695,8 +697,8 @@ public final class DynamicValuesInput implements PersistableSettings {
             }
             final var dataType = settings.getDataType(TYPE_ID_KEY);
 
-            final var caseMatching = settings.containsKey(MATCHING_KEY) ? NodeSettingsPersistorFactory
-                .getPersistor(StringCaseMatchingSettings.class).load(settings.getNodeSettings(MATCHING_KEY)) : null;
+            final var caseMatching = settings.containsKey(MATCHING_KEY) ? SettingsLoaderFactory
+                .loadSettings(StringCaseMatchingSettings.class, settings.getNodeSettings(MATCHING_KEY)) : null;
 
             if (settings.containsKey(VALUE_KEY)) {
                 final var dataCell = DynamicValue.<InvalidSettingsException> readDataCell(dataType, //
@@ -716,9 +718,7 @@ public final class DynamicValuesInput implements PersistableSettings {
             settings.addDataType(TYPE_ID_KEY, obj.m_type);
             final var caseMatching = obj.m_caseMatching;
             if (caseMatching != null) {
-
-                NodeSettingsPersistorFactory.getPersistor(StringCaseMatchingSettings.class).save(caseMatching,
-                    settings.addNodeSettings(MATCHING_KEY));
+                saveSettings(caseMatching, settings.addNodeSettings(MATCHING_KEY));
             }
             final var cell = obj.m_value;
             if (!cell.isMissing()) {
@@ -735,6 +735,11 @@ public final class DynamicValuesInput implements PersistableSettings {
                         e);
                 }
             }
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{new String[]{}}; //all sub paths
         }
     }
 

@@ -49,114 +49,142 @@
 package org.knime.core.webui.node.dialog.configmapping;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigMappingsFactory.getConfigMappings;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.FieldNodeSettingsPersistorWithInferredConfigs;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 
 @SuppressWarnings("java:S2698") // we accept assertions without messages
 class ConfigMappingsTest {
 
-    private static final List<ConfigsDeprecation<Integer>> DEPRECATIONS =
-        List.of(ConfigsDeprecation.builder(settings -> 1).withDeprecatedConfigPath("deprecated").build());
+    static final class Migrator implements NodeSettingsMigrator<Integer> {
+
+        private static final String DEPRECATED = "deprecated";
+
+        @Override
+        public List<ConfigsDeprecation<Integer>> getConfigsDeprecations() {
+            return List.of(ConfigsDeprecation.builder(settings -> 1).withDeprecatedConfigPath(DEPRECATED).build());
+        }
+
+    }
+
+    static final class PeristorWithKeys implements NodeSettingsPersistor<Integer> {
+        @Override
+        public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            throw new UnsupportedOperationException("not used by tests");
+        }
+
+        @Override
+        public void save(final Integer obj, final NodeSettingsWO settings) {
+            throw new UnsupportedOperationException("not used by tests");
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{"key1"}, {"key2"}};
+        }
+
+    }
+
+    static final class InferredConfigsFromConfigPathsTestSettings implements PersistableSettings {
+
+        @Migration(Migrator.class)
+        @Persistor(PeristorWithKeys.class)
+        int m_field;
+
+    }
 
     @Test
     void testInferredConfigsFromConfigPaths() {
-        final var persistor = new NodeSettingsPersistor<Integer>() {
-            @Override
-            public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                throw new UnsupportedOperationException("not used by tests");
-            }
-
-            @Override
-            public void save(final Integer obj, final NodeSettingsWO settings) {
-                throw new UnsupportedOperationException("not used by tests");
-            }
-
-            @Override
-            public String[][] getConfigPaths() {
-                return new String[][]{{"key1"}, {"key2"}};
-            }
-
-            @Override
-            public List<ConfigsDeprecation<Integer>> getConfigsDeprecations() {
-                return DEPRECATIONS;
-            }
-        };
-        final var configMappings = persistor.getConfigMappings(0);
-        assertThat(configMappings.m_children).hasSize(1);
-        final var child = configMappings.m_children.iterator().next();
-        assertThat(child.m_newAndDeprecatedConfigPaths.getNewConfigPaths())
+        final var configMappings = getConfigMappings(InferredConfigsFromConfigPathsTestSettings.class,
+            new InferredConfigsFromConfigPathsTestSettings());
+        ConfigMappings firstNonEmptyConfigMappingsChild = getFirstNonEmptyConfigMappingsChild(configMappings);
+        assertDeprecatedConfigPaths(firstNonEmptyConfigMappingsChild);
+        assertThat(firstNonEmptyConfigMappingsChild.m_newConfigPaths)
             .isEqualTo(List.of(new ConfigPath(List.of("key1")), new ConfigPath(List.of("key2"))));
+    }
+
+    static final class InferredConfigsFromConfigKeyTestSettings implements PersistableSettings {
+
+        private static final String CONFIG_KEY = "configKey";
+
+        @Migration(Migrator.class)
+        @Persist(configKey = CONFIG_KEY)
+        int m_field;
+
     }
 
     @Test
     void testInferredConfigsFromConfigKey() {
-        final var configKey = "configKey";
-        final var persistor = new FieldNodeSettingsPersistorWithInferredConfigs<Integer>() {
+        final var configMappings = getConfigMappings(InferredConfigsFromConfigKeyTestSettings.class,
+            new InferredConfigsFromConfigKeyTestSettings());
+        ConfigMappings firstNonEmptyConfigMappingsChild = getFirstNonEmptyConfigMappingsChild(configMappings);
+        assertDeprecatedConfigPaths(firstNonEmptyConfigMappingsChild);
+        assertThat(firstNonEmptyConfigMappingsChild.m_newConfigPaths)
+            .isEqualTo(List.of(new ConfigPath(List.of(InferredConfigsFromConfigKeyTestSettings.CONFIG_KEY))));
+    }
 
-            @Override
-            public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                throw new UnsupportedOperationException("not used by tests");
-            }
+    static final class InferredConfigsFromFieldNameTestSettings implements PersistableSettings {
 
-            @Override
-            public void save(final Integer obj, final NodeSettingsWO settings) {
-                throw new UnsupportedOperationException("not used by tests");
-            }
+        @Migration(Migrator.class)
+        int m_fieldName;
 
-            @Override
-            public List<ConfigsDeprecation<Integer>> getConfigsDeprecations() {
-                return DEPRECATIONS;
-            }
-
-            @Override
-            public String getConfigKey() {
-                return configKey;
-            }
-
-        };
-
-        final var configMappings = persistor.getConfigMappings(0);
-        assertThat(configMappings.m_children).hasSize(1);
-        final var child = configMappings.m_children.iterator().next();
-        assertThat(child.m_newAndDeprecatedConfigPaths.getNewConfigPaths())
-            .isEqualTo(List.of(new ConfigPath(List.of(configKey))));
     }
 
     @Test
-    void throwsIfNewConfigPathsCannotBeInferred() {
-        final var persistor = new NodeSettingsPersistor<Integer>() {
+    void testInferredConfigsFromFieldName() {
+        final var configMappings = getConfigMappings(InferredConfigsFromFieldNameTestSettings.class,
+            new InferredConfigsFromFieldNameTestSettings());
+        ConfigMappings firstNonEmptyConfigMappingsChild = getFirstNonEmptyConfigMappingsChild(configMappings);
+        assertDeprecatedConfigPaths(firstNonEmptyConfigMappingsChild);
+        assertThat(firstNonEmptyConfigMappingsChild.m_newConfigPaths)
+            .isEqualTo(List.of(new ConfigPath(List.of("fieldName"))));
+    }
 
-            @Override
-            public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
-                throw new UnsupportedOperationException("not used by tests");
-            }
+    private static ConfigMappings getFirstNonEmptyConfigMappingsChild(final ConfigMappings configMappings) {
+        return getNonEmptyConfigMappingsChildren(configMappings).findFirst()
+            .orElseThrow(() -> new IllegalStateException("No config mappings present althoug they should."));
+    }
 
-            @Override
-            public void save(final Integer obj, final NodeSettingsWO settings) {
-                throw new UnsupportedOperationException("not used by tests");
-            }
+    private static void assertDeprecatedConfigPaths(final ConfigMappings configMappings) {
+        assertThat(configMappings.m_deprecatedConfigPaths)
+            .isEqualTo(List.of(new ConfigPath(List.of(Migrator.DEPRECATED))));
+    }
 
-            @Override
-            public String[][] getConfigPaths() {
-                return null; // NOSONAR
+    private static Stream<ConfigMappings> getNonEmptyConfigMappingsChildren(final ConfigMappings configMappings) {
+        if (configMappings.m_newConfigPaths != null) {
+            return Stream.of(configMappings);
+        }
+        return configMappings.m_children.stream().flatMap(ConfigMappingsTest::getNonEmptyConfigMappingsChildren);
 
-            }
+    }
 
-            @Override
-            public List<ConfigsDeprecation<Integer>> getConfigsDeprecations() {
-                return DEPRECATIONS;
-            }
-        };
+    static final class OptionalFieldSettings implements PersistableSettings {
 
-        assertThrows(IllegalStateException.class, () -> persistor.getConfigMappings(0));
+        @Migrate(loadDefaultIfAbsent = true)
+        int m_fieldName;
+
+    }
+
+    @Test
+    void testOptionalField() {
+        final var configMappings = getConfigMappings(OptionalFieldSettings.class, new OptionalFieldSettings());
+        ConfigMappings firstNonEmptyConfigMappingsChild = getFirstNonEmptyConfigMappingsChild(configMappings);
+        assertThat(firstNonEmptyConfigMappingsChild.m_newConfigPaths)
+            .isEqualTo(List.of(new ConfigPath(List.of("fieldName"))));
+        assertThat(firstNonEmptyConfigMappingsChild.m_deprecatedConfigPaths).isEmpty();
     }
 
 }

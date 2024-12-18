@@ -69,7 +69,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.LatentWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
@@ -101,25 +100,25 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_ANNOTATIONS =
-        List.of(LatentWidget.class, Layout.class, Effect.class, ValueReference.class, ValueProvider.class,
-            Modification.class, Modification.WidgetReference.class);
+        List.of(Layout.class, Effect.class, ValueReference.class, ValueProvider.class, Modification.class,
+            Modification.WidgetReference.class);
 
     private static final Collection<ClassAnnotationSpec> POSSIBLE_TREE_CLASS_ANNOTATIONS =
         List.of(new ClassAnnotationSpec(Layout.class), new ClassAnnotationSpec(Effect.class),
             new ClassAnnotationSpec(Modification.class));
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_LEAF_ANNOTATIONS =
-        List.of(LatentWidget.class, Layout.class, Widget.class, NumberInputWidget.class, RadioButtonsWidget.class,
-            ValueSwitchWidget.class, ChoicesWidget.class, ComboBoxWidget.class, SortListWidget.class,
-            ButtonWidget.class, SimpleButtonWidget.class, DateTimeWidget.class, DateWidget.class, IntervalWidget.class,
+        List.of(Layout.class, Widget.class, NumberInputWidget.class, RadioButtonsWidget.class, ValueSwitchWidget.class,
+            ChoicesWidget.class, ComboBoxWidget.class, SortListWidget.class, ButtonWidget.class,
+            SimpleButtonWidget.class, DateTimeWidget.class, DateWidget.class, IntervalWidget.class,
             RichTextInputWidget.class, CredentialsWidget.class, PasswordWidget.class, UsernameWidget.class,
             FileReaderWidget.class, FileWriterWidget.class, LocalFileReaderWidget.class, LocalFileWriterWidget.class,
             TextInputWidget.class, Effect.class, ValueReference.class, ValueProvider.class,
             InternalArrayWidget.ElementCheckboxWidget.class, Modification.WidgetReference.class, TextMessage.class);
 
-    private static final Collection<Class<? extends Annotation>> POSSIBLE_ARRAY_ANNOTATIONS = List.of(
-        LatentWidget.class, Widget.class, ArrayWidget.class, InternalArrayWidget.class, Layout.class, Effect.class,
-        ValueReference.class, ValueProvider.class, Modification.class, Modification.WidgetReference.class);
+    private static final Collection<Class<? extends Annotation>> POSSIBLE_ARRAY_ANNOTATIONS =
+        List.of(Widget.class, ArrayWidget.class, InternalArrayWidget.class, Layout.class, Effect.class,
+            ValueReference.class, ValueProvider.class, Modification.class, Modification.WidgetReference.class);
 
     /**
      * Create a new factory. This factory is non-static since it implements an abstract factory, but it does not hold

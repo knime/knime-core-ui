@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.FieldNodeSettingsPersistorWithInferredConfigs;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.DefaultFieldPersistor;
 
 /**
  * This field persistor transforms {@link String} node settings to enum values and vice versa by matching the enum
@@ -63,7 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.Field
  * @author Paul Bärnreuther
  * @param <E> The enum that should be persisted
  */
-public final class EnumFieldPersistor<E extends Enum<E>> implements FieldNodeSettingsPersistorWithInferredConfigs<E> {
+public final class EnumFieldPersistor<E extends Enum<E>> implements DefaultFieldPersistor<E> {
 
     private final String m_configKey;
 
@@ -94,11 +94,6 @@ public final class EnumFieldPersistor<E extends Enum<E>> implements FieldNodeSet
     @Override
     public void save(final E obj, final NodeSettingsWO settings) {
         settings.addString(m_configKey, obj == null ? null : obj.name());
-    }
-
-    @Override
-    public String getConfigKey() {
-        return m_configKey;
     }
 
 }

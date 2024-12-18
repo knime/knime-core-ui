@@ -44,28 +44,47 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 28, 2024 (Paul Bärnreuther): created
+ *   Dec 2, 2022 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield;
+package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
 
-import java.util.Collections;
-import java.util.List;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 /**
- * Provides the capability to define deprecated config keys (see {@link ConfigsDeprecation}) for a field persistor.
+ * Defines how a field or class is migrated from a pervious version of settings.
+ *
+ * <p>
+ * A migration - in contrast to a {@link Persistor} - is needed when the structure of the settings has changed, i.e.
+ * there can exist versions of the node saved with settings that characterize the state of the node to before a certain
+ * point in time when the saved settings structure was changed. Defining a migration is necessary for two reasons:
+ * <ul>
+ * <li>To be able to still load from these old settings.</li>
+ * <li>To not break flow variables set for old configs that are not saved to again.</li>
+ * </ul>
+ * Note that the first point could be achieved by using a {@link Persistor} but the second one cannot.
+ *
+ *
+ * <p>
+ * In simple cases, using {@link Migrate @Migrate} instead is sufficient.
+ * </p>
  *
  * @author Paul Bärnreuther
  */
-interface DeprecatedConfigsGetter<T> {
+@Retention(RUNTIME)
+@Target({TYPE, FIELD})
+public @interface Migration {
+
     /**
-     * @param configKey the config key used during save and load
-     * @return an array of all pairs of collections of deprecated and accociated new configs (see
-     *         {@link ConfigsDeprecation})
+     * A class that defines the migration strategy for the annotated field or class.
+     *
+     * @return the class of the migrator defining the migration strategy.
      */
-    default List<ConfigsDeprecation<T>> getDeprecatedConfigs(final String configKey) {
-        return Collections.emptyList();
-    }
+    @SuppressWarnings("rawtypes")
+    Class<? extends NodeSettingsMigrator> value();
 
 }

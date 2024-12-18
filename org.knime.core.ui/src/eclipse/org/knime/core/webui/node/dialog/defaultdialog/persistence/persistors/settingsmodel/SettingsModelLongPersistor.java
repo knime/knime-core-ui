@@ -80,4 +80,9 @@ public class SettingsModelLongPersistor implements NodeSettingsPersistor<Long> {
         new SettingsModelLong(m_configKey, obj).saveSettingsTo(settings);
     }
 
+    @Override
+    public String[][] getConfigPaths() {
+        return new String[][]{{m_configKey}};
+    }
+
 }

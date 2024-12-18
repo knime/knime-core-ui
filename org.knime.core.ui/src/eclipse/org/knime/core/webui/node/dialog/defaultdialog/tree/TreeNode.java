@@ -168,14 +168,17 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
      *
      * @param parentValue a value of {@link #getType()} of the parent node.
      * @param value the value to set
-     * @throws IllegalArgumentException
      *
-     * @throws IllegalAccessException
+     * @throws IllegalArgumentException if the parent value is null
      */
-    public void setInParentValue(final Object parentValue, final Object value)
-        throws IllegalArgumentException, IllegalAccessException {
+    public void setInParentValue(final Object parentValue, final Object value) {
         checkParentValue(parentValue);
-        m_underlyingField.set(parentValue, value); // NOSONAR
+        try {
+            m_underlyingField.set(parentValue, value); // NOSONAR
+        } catch (IllegalAccessException ex) {
+            throw new IllegalStateException(String.format("Could not set access value of settings field %s although "
+                + "reflection was used to make it accessible.", getPath()), ex);
+        }
     }
 
     /**
@@ -185,12 +188,25 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
      * @param parentValue a value of {@link #getType()} of the parent node.
      *
      * @return the value of this node given the parent value
-     * @throws IllegalAccessException
-     * @throws NullPointerException if the parent value is null
+     * @throws IllegalArgumentException if the parent value is null
      */
-    public Object getFromParentValue(final Object parentValue) throws IllegalAccessException {
+    public Object getFromParentValue(final Object parentValue) {
         checkParentValue(parentValue);
-        return m_underlyingField.get(parentValue);
+        try {
+            return m_underlyingField.get(parentValue);
+        } catch (IllegalAccessException ex) {
+            throw new IllegalStateException(String.format(
+                "Could not access value of settings field %s although " + "reflection was used to make it accessible.",
+                getPath()), ex);
+        }
+    }
+
+    /**
+     * @param defaultParentValue a constructor of the parent value to extract this nodes value from
+     * @return the default value of this node given the parent value
+     */
+    public Object getDefaultValueFromParent(final Function<Tree<S>, Object> defaultParentValue) {
+        return getFromParentValue(defaultParentValue.apply(getParent()));
     }
 
     private void checkParentValue(final Object parentValue) {

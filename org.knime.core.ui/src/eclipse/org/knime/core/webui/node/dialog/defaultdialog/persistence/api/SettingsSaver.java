@@ -42,47 +42,26 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Dec 23, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
+package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.FieldBasedNodeSettingsPersistor;
 
 /**
- * The data structure of a TwinList changed from an array of strings to a more complex representation by a
- * {@link ColumnFilter}. For previous workflows to still execute (given that the setting is not overwritten by a flow
- * variable), we transform the stored string array to the correct representation.
+ * Saves settings to a node settings object.
  *
  * @author Paul Bärnreuther
+ * @param <T> the type of the settings object
  */
-public final class StringArrayToColumnFilterPersistor implements NodeSettingsPersistor<ColumnFilter> {
+@FunctionalInterface
+public interface SettingsSaver<T> {
 
-    private final String m_configKey;
-
-    public StringArrayToColumnFilterPersistor(final NodeSettingsPersistorContext<ColumnFilter> context) {
-        m_configKey = context.getConfigKey();
-        m_persistor = new FieldBasedNodeSettingsPersistor<>(context.getPersistedObjectClass());
-    }
-
-    private final FieldBasedNodeSettingsPersistor<ColumnFilter> m_persistor;
-
-    @Override
-    public ColumnFilter load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final var fieldSettingsArray = settings.getStringArray(m_configKey);
-        if (fieldSettingsArray != null) {
-            return new ColumnFilter(fieldSettingsArray);
-        } else {
-            return m_persistor.load(settings.getNodeSettings(m_configKey));
-        }
-    }
-
-    @Override
-    public void save(final ColumnFilter obj, final NodeSettingsWO settings) {
-        m_persistor.save(obj, settings.addNodeSettings(m_configKey));
-    }
-
+    /**
+     * @param value the value to save
+     * @param nodeSettings to save to
+     */
+    void save(T value, NodeSettingsWO nodeSettings);
 }

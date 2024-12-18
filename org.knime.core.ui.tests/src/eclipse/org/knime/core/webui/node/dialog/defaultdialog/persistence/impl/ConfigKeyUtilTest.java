@@ -48,24 +48,11 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
@@ -77,32 +64,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
 class ConfigKeyUtilTest {
-
-    private static class CustomPersistor implements NodeSettingsPersistor<Integer> {
-
-        @Override
-        public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            throw new UnsupportedOperationException("not used by the tests");
-        }
-
-        @Override
-        public void save(final Integer obj, final NodeSettingsWO settings) {
-            throw new UnsupportedOperationException("not used by the tests");
-        }
-
-        @Override
-        public String[] getConfigKeys() {
-            return new String[]{"custom_key0", "custom_key1"};
-        }
-
-        @Override
-        public List<ConfigsDeprecation<Integer>> getConfigsDeprecations() {
-            return List.of(new ConfigsDeprecation.Builder<Integer>(settings -> {
-                throw new IllegalStateException("Should not be called within this test");
-            }).withDeprecatedConfigPath("old_config_key").build());
-        }
-
-    }
 
     private static class Settings implements PersistableSettings {
 
@@ -123,10 +84,6 @@ class ConfigKeyUtilTest {
         @Persist(hidden = true)
         @Widget(title = "", description = "")
         int setting4;
-
-        @Persistor(CustomPersistor.class)
-        @Widget(title = "", description = "")
-        int setting5;
 
     }
 
@@ -160,87 +117,7 @@ class ConfigKeyUtilTest {
         return ConfigKeyUtil.getConfigKey(getField(fieldName));
     }
 
-    @Test
-    void testConfigKeysUsedWithoutPersist() throws NoSuchFieldException {
-        assertArrayEquals(new String[][]{{"setting0"}}, usedConfigPathsFor("setting0"),
-            "configKeys should be emtpy for settings without annotation");
-    }
-
-    @Test
-    void testConfigKeysUsedWithOnlyPersist() throws NoSuchFieldException {
-        assertArrayEquals(new String[][]{{"setting2"}}, usedConfigPathsFor("setting2"),
-            "configKeys should be field name for settings without custom key or persistor");
-    }
-
-    @Test
-    void testConfigKeysUsedWithCustomKey() throws NoSuchFieldException {
-        assertArrayEquals(new String[][]{{"foo"}}, usedConfigPathsFor("setting3"),
-            "configKeys should contain the custom key from the annotation");
-    }
-
-    @Test
-    void testConfigKeysUsedWithCustomPersistor() throws NoSuchFieldException {
-        assertArrayEquals(new String[][]{{"custom_key0"}, {"custom_key1"}}, usedConfigPathsFor("setting5"),
-            "configKeys should come from the custom persistor");
-    }
-
-    @Test
-    void testDeprecatedConfigKeysFromCustomPersistor() throws NoSuchFieldException {
-        final var deprecatedConfigKeys = deprecatedConfigKeysFor("setting5");
-        assertArrayEquals(new String[]{"old_config_key"}, getFirstPathAsArray(deprecatedConfigKeys),
-            "deprecatedConfigPaths of deprecatedConfigs should be set from custom persistor");
-    }
-
-    private static String[] getFirstPathAsArray(final Collection<ConfigPath> configPaths) {
-        return configPaths.stream().findFirst().orElseThrow().path().toArray(String[]::new);
-    }
-
-    private static String[][] usedConfigPathsFor(final String fieldName) throws NoSuchFieldException {
-        return getConfigPathsUsedByField(getField(fieldName));
-    }
-
-    private static Collection<ConfigPath> deprecatedConfigKeysFor(final String fieldName) throws NoSuchFieldException {
-        return getDeprecatedConfigsUsedByField(getField(fieldName));
-    }
-
-    /**
-     * @param node
-     * @return the config key used by the persistor or the default key if none is set
-     */
-    static String[][] getConfigPathsUsedByField(final TreeNode<PersistableSettings> node) {
-        var configKey = ConfigKeyUtil.getConfigKey(node);
-        final var singleConfigKeyPath = new String[][]{{configKey}};
-        if (node.getAnnotation(Persistor.class).isPresent() || node.getAnnotation(Persist.class).isPresent()) {
-            return ConfigKeyUtil.extractFieldNodeSettingsPersistor(node).map(NodeSettingsPersistor::getConfigPaths)
-                .orElse(singleConfigKeyPath);
-        }
-        return singleConfigKeyPath;
-    }
-
-    /**
-     * Get the collection of {@link ConfigsDeprecation} that are used by the given field if it is annotated with a
-     * {@link Persist} annotation.
-     *
-     * @param node
-     * @return the deprecated configs defined by the {@link Persist#customPersistor} or an empty array none exists.
-     */
-    static Collection<ConfigPath> getDeprecatedConfigsUsedByField(final TreeNode<PersistableSettings> node) {
-        if (node.getAnnotation(Persist.class).isEmpty() && node.getAnnotation(Persistor.class).isEmpty()) {
-            return Collections.emptyList();
-        }
-        return ConfigKeyUtil.extractFieldNodeSettingsPersistor(node)
-            .map(persistor -> persistor.getConfigsDeprecations().stream()
-                .map(ConfigsDeprecation::getDeprecatedConfigPaths).flatMap(Collection::stream).toList())
-            .orElse(Collections.emptyList());
-
-    }
-
-    private static Tree<PersistableSettings> SETTINGS_TREE;
-
-    @BeforeAll
-    static void createSettingsTree() {
-        SETTINGS_TREE = new PersistTreeFactory().createTree(Settings.class);
-    }
+    private static Tree<PersistableSettings> SETTINGS_TREE = new PersistTreeFactory().createTree(Settings.class);
 
     private static TreeNode<PersistableSettings> getField(final String fieldName) throws NoSuchFieldException {
         return SETTINGS_TREE.getChildByName(fieldName);

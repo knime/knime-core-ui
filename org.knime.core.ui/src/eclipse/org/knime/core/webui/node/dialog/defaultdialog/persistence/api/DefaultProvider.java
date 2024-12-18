@@ -59,7 +59,7 @@ import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
  * @param <T> the type of the field
  */
 @FunctionalInterface
-public interface DefaultProvider<T> extends DefaultPersistorWithDeprecations<T> {
+public interface DefaultProvider<T> extends NodeSettingsMigrator<T> {
 
     /**
      * @return the default during loading

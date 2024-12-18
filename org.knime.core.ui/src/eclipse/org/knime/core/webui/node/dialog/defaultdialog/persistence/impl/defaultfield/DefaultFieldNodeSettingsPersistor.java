@@ -48,20 +48,17 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield;
 
-import java.util.List;
-
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.FieldNodeSettingsPersistorWithInferredConfigs;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.DefaultFieldPersistor;
 
 /**
  * {@link FiledNodeSettingsPersistor} for fields that composes the config key with the implementation of the persistor.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class DefaultFieldNodeSettingsPersistor<T> implements FieldNodeSettingsPersistorWithInferredConfigs<T> {
+final class DefaultFieldNodeSettingsPersistor<T> implements DefaultFieldPersistor<T> {
     private final String m_configKey;
 
     private final FieldPersistor<T> m_impl;
@@ -79,16 +76,6 @@ final class DefaultFieldNodeSettingsPersistor<T> implements FieldNodeSettingsPer
     @Override
     public T load(final NodeSettingsRO settings) throws InvalidSettingsException {
         return m_impl.load(settings, m_configKey);
-    }
-
-    @Override
-    public List<ConfigsDeprecation<T>> getConfigsDeprecations() {
-        return m_impl.getDeprecatedConfigs(m_configKey);
-    }
-
-    @Override
-    public String getConfigKey() {
-        return m_configKey;
     }
 
 }

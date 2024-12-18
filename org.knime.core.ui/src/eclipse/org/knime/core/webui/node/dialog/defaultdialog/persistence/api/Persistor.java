@@ -55,16 +55,17 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.FieldBasedNodeSettingsPersistor;
-
 /**
- * Annotates a class with a persistor that is used to save and load objects of the class to and from NodeSettings. If no
- * persistence is provided, we fall back to the {@link FieldBasedNodeSettingsPersistor}. This default performs
- * persistence of all fields independently and allows further customization on a per field basis via the {@link Persist}
- * annotation. <br>
- * <br>
- * If you find the FieldBasedNodeSettingsPersistor to be insufficient for your needs, you can also implement your own
- * {@link NodeSettingsPersistor} and provide it here.
+ * Annotates a field or class with a persistor that is used to save and load objects of the class to and from
+ * NodeSettings.
+ *
+ * If no persistence is provided
+ * <ul>
+ * <li>for a class, we fall back to persisting each field. This default performs persistence of all fields independently
+ * and allows further customization on a per field basis via additional {@link Persist} or {@link Persistor} annotations
+ * on the fields.</li>
+ * <li>for a field, the field is persisted with the default persistor for the field type.</li>
+ * </ul>
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
@@ -73,12 +74,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.FieldBase
 public @interface Persistor {
 
     /**
-     * The type of persistor to use for storing and loading the annotated object to and from NodeSettings. Either
-     * {@link FieldBasedNodeSettingsPersistor} or your own implementation of {@link NodeSettingsPersistor}.
+     * The type of persistor to use for storing and loading the annotated object to and from NodeSettings.
      *
      * @return the class of the persistor
      */
-    @SuppressWarnings("rawtypes") // even wildcards prohibit generic persistors from being returned
+    @SuppressWarnings("rawtypes")
     Class<? extends NodeSettingsPersistor> value();
 
 }

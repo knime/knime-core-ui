@@ -50,10 +50,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -61,20 +59,20 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NodeSettingsPersistorWithInferredConfigs;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.EnumSettingsModelStringPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelDoublePersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelIntegerPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelLongPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.AuthenticationType;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.SettingsModelAuthenticationPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.SettingsModelAuthenticationMigrator;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 
 /**
@@ -86,40 +84,78 @@ class SettingsModelPersistorTest {
 
     private static final String CFG_KEY = "test";
 
+    private enum TestEnum {
+            A, B, C;
+    }
+
     static final class TestEnumSettingsModelStringPersistor extends EnumSettingsModelStringPersistor<TestEnum> {
 
         TestEnumSettingsModelStringPersistor(final NodeSettingsPersistorContext<TestEnum> context) {
             super(context);
         }
 
-        @Override
-        protected Class<TestEnum> enumType() {
-            return TestEnum.class;
+    }
+
+    static final class EnumSettingsModelStringPersistorTestSettings implements PersistableSettingsWithComparableValue {
+
+        EnumSettingsModelStringPersistorTestSettings() {
+            // empty constructor required by contract
         }
+
+        EnumSettingsModelStringPersistorTestSettings(final TestEnum value) {
+            m_value = value;
+        }
+
+        @Persistor(TestEnumSettingsModelStringPersistor.class)
+        TestEnum m_value;
+
+        @Override
+        public Object getCompareValue() {
+            return m_value;
+        }
+
     }
 
     @Test
     void testEnumSettingsModelString() throws Exception {
-        testSaveLoad(TestEnum.class, TestEnumSettingsModelStringPersistor.class, TestEnum.B);
-        testSaveLoad(TestEnum.class, TestEnumSettingsModelStringPersistor.class, null);
+        testSaveLoad(new EnumSettingsModelStringPersistorTestSettings(TestEnum.B));
+        testSaveLoad(new EnumSettingsModelStringPersistorTestSettings(null));
     }
 
-    @SuppressWarnings("unchecked")
-    private static final NodeSettingsPersistor<AuthenticationSettings> createAuthenticationSettingsPersistor() {
-        return CustomPersistorUtil.prepareCustomPersistor(
-            CreateNodeSettingsPersistorUtil.createInstance(SettingsModelAuthenticationPersistor.class,
-                AuthenticationSettings.class, CFG_KEY),
-            () -> (NodeSettingsPersistorWithInferredConfigs<AuthenticationSettings>)DefaultFieldNodeSettingsPersistorFactory
-                .createDefaultPersistor(new PersistTreeFactory().createTree(AuthenticationSettings.class), CFG_KEY));
+    static final class SettingsModelAuthenticationMigratorTestSettings
+        implements PersistableSettingsWithComparableValue {
+
+        SettingsModelAuthenticationMigratorTestSettings() {
+            // empty constructor required by contract
+        }
+
+        SettingsModelAuthenticationMigratorTestSettings(final AuthenticationSettings settings) {
+            m_value = settings;
+        }
+
+        static final class ValueMigrator extends SettingsModelAuthenticationMigrator {
+
+            ValueMigrator() {
+                super(CFG_KEY);
+            }
+        }
+
+        @Migration(ValueMigrator.class)
+        @Persist(configKey = CFG_KEY)
+        AuthenticationSettings m_value;
+
+        @Override
+        public Object getCompareValue() {
+            return m_value;
+        }
+
     }
 
     @Test
-    void testSettingsModelAuthenticationSaveLoad() throws Exception {
-        final var persistor = createAuthenticationSettingsPersistor();
-
-        testSaveLoad(new AuthenticationSettings(), persistor);
-        testSaveLoad(new AuthenticationSettings(AuthenticationSettings.AuthenticationType.USER_PWD,
-            new Credentials("myUsername", "myPassword")), persistor);
+    void testAuthenticationSettingsSaveLoad() throws Exception {
+        testSaveLoad(new SettingsModelAuthenticationMigratorTestSettings(new AuthenticationSettings()));
+        testSaveLoad(new SettingsModelAuthenticationMigratorTestSettings(new AuthenticationSettings(
+            AuthenticationSettings.AuthenticationType.USER_PWD, new Credentials("myUsername", "myPassword"))));
     }
 
     static Stream<Arguments> settingsModelAuthenticationLoadSource() {
@@ -137,60 +173,152 @@ class SettingsModelPersistorTest {
     void testSettingsModelAuthenticationLoadLegacy(final SettingsModelAuthentication.AuthenticationType oldType,
         final AuthenticationType newType, final String password, final String username)
         throws InvalidSettingsException {
-        final var persistor = createAuthenticationSettingsPersistor();
         final var savedSettings = new NodeSettings("node_settings");
         new SettingsModelAuthentication(CFG_KEY, oldType, username, password, null).saveSettingsTo(savedSettings);
-        final var loaded = persistor.load(savedSettings);
+
+        final var loaded =
+            SettingsLoaderFactory.loadSettings(SettingsModelAuthenticationMigratorTestSettings.class, savedSettings);
+
         final var expected = new AuthenticationSettings(newType, new Credentials(username, password));
-        assertEquals(expected, loaded);
+        assertEquals(expected, loaded.m_value);
+    }
+
+    static final class SettingsModelIntegerPersistorTestSettings implements PersistableSettingsWithComparableValue {
+
+        SettingsModelIntegerPersistorTestSettings() {
+            // empty constructor required by contract
+        }
+
+        SettingsModelIntegerPersistorTestSettings(final int value) {
+            m_value = value;
+        }
+
+        @Persistor(SettingsModelIntegerPersistor.class)
+        int m_value;
+
+        @Override
+        public Object getCompareValue() {
+            return m_value;
+        }
+
     }
 
     @Test
     void testSettingsModelInteger() throws Exception {
-        testSaveLoad(int.class, SettingsModelIntegerPersistor.class, 42);
+        testSaveLoad(new SettingsModelIntegerPersistorTestSettings(42));
+    }
+
+    static final class SettingsModelStringPersistorTestSettings implements PersistableSettingsWithComparableValue {
+
+        SettingsModelStringPersistorTestSettings() {
+            // empty constructor required by contract
+        }
+
+        SettingsModelStringPersistorTestSettings(final String value) {
+            m_value = value;
+        }
+
+        @Persistor(SettingsModelStringPersistor.class)
+        String m_value;
+
+        @Override
+        public Object getCompareValue() {
+            return m_value;
+        }
+
     }
 
     @Test
     void testSettingsModelString() throws InvalidSettingsException {
-        testSaveLoad(String.class, SettingsModelStringPersistor.class, "foobar");
-        testSaveLoad(String.class, SettingsModelStringPersistor.class, null);
+        testSaveLoad(new SettingsModelStringPersistorTestSettings("foobar"));
+        testSaveLoad(new SettingsModelStringPersistorTestSettings(null));
+    }
+
+    static final class SettingsModelLongPersistorTestSettings implements PersistableSettingsWithComparableValue {
+
+        SettingsModelLongPersistorTestSettings() {
+            // empty constructor required by contract
+        }
+
+        SettingsModelLongPersistorTestSettings(final long value) {
+            m_value = value;
+        }
+
+        @Persistor(SettingsModelLongPersistor.class)
+        long m_value;
+
+        @Override
+        public Object getCompareValue() {
+            return m_value;
+        }
+
     }
 
     @Test
     void testSettingsModelLong() throws Exception {
-        testSaveLoad(long.class, SettingsModelLongPersistor.class, Long.MAX_VALUE);
+        testSaveLoad(new SettingsModelLongPersistorTestSettings(Long.MAX_VALUE));
+    }
+
+    static final class SettingsModelDoublePersistorTestSettings implements PersistableSettingsWithComparableValue {
+
+        SettingsModelDoublePersistorTestSettings() {
+            // empty constructor required by contract
+        }
+
+        SettingsModelDoublePersistorTestSettings(final double value) {
+            m_value = value;
+        }
+
+        @Persistor(SettingsModelDoublePersistor.class)
+        double m_value;
+
+        @Override
+        public Object getCompareValue() {
+            return m_value;
+        }
     }
 
     @Test
     void testSettingsModelDouble() throws Exception {
-        testSaveLoad(double.class, SettingsModelDoublePersistor.class, 13.37);
+        testSaveLoad(new SettingsModelDoublePersistorTestSettings(13.37));
+    }
+
+    static final class SettingsModelBooleanPersistorTestSettings implements PersistableSettingsWithComparableValue {
+
+        SettingsModelBooleanPersistorTestSettings() {
+            // empty constructor required by contract
+        }
+
+        SettingsModelBooleanPersistorTestSettings(final boolean value) {
+            m_value = value;
+        }
+
+        @Persistor(SettingsModelBooleanPersistor.class)
+        boolean m_value;
+
+        @Override
+        public Object getCompareValue() {
+            return m_value;
+        }
     }
 
     @Test
     void testSettingsModelBoolean() throws Exception {
-        testSaveLoad(boolean.class, SettingsModelBooleanPersistor.class, true);
-        testSaveLoad(boolean.class, SettingsModelBooleanPersistor.class, false);
+        testSaveLoad(new SettingsModelBooleanPersistorTestSettings(true));
+        testSaveLoad(new SettingsModelBooleanPersistorTestSettings(false));
     }
 
-    private static <T> void testSaveLoad(final Class<T> fieldType,
-        final Class<? extends NodeSettingsPersistor<T>> persistorClass, final T value) throws InvalidSettingsException {
-        final var persistor = CreateNodeSettingsPersistorUtil.createInstance(persistorClass, fieldType, CFG_KEY);
-        testSaveLoad(persistor, value, Assertions::assertEquals);
-    }
-
-    private static <T> void testSaveLoad(final T value, final NodeSettingsPersistor<T> persistor)
+    private static <T extends PersistableSettingsWithComparableValue> void testSaveLoad(final T value)
         throws InvalidSettingsException {
-        testSaveLoad(persistor, value, Assertions::assertEquals);
-    }
-
-    private static <T> void testSaveLoad(final NodeSettingsPersistor<T> persistor, final T value,
-        final BiConsumer<T, T> assertFn) throws InvalidSettingsException {
         var nodeSettings = new NodeSettings(CFG_KEY);
-        persistor.save(value, nodeSettings);
-        assertFn.accept(value, persistor.load(nodeSettings));
+        SettingsSaverFactory.saveSettings((PersistableSettings)value, nodeSettings);
+        var loaded = SettingsLoaderFactory.loadSettings(value.getClass(), nodeSettings);
+        assertEquals(value.getCompareValue(), loaded.getCompareValue(),
+            String.format("Should yield the initial value when saving and loading %s", value.getClass()));
     }
 
-    private enum TestEnum {
-            A, B, C;
+    interface PersistableSettingsWithComparableValue extends PersistableSettings {
+        Object getCompareValue();
     }
+
 }

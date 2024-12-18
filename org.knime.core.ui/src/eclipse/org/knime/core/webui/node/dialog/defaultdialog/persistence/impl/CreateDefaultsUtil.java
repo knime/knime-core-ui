@@ -42,46 +42,30 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.FieldBasedNodeSettingsPersistor;
-
-/**
- * The data structure of a ColumnSelection dropdown changed from a strings to a more complex representation by a
- * {@link ColumnSelection}. For previous workflows to still execute (given that the setting is not overwritten by a flow
- * variable), we transform the stored string to the correct representation.
  *
- * @author Paul Bärnreuther
+ * History
+ *   Dec 20, 2024 (Paul Bärnreuther): created
  */
-public final class StringToColumnSelectionPersistor implements NodeSettingsPersistor<ColumnSelection> {
+package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
-    private final String m_configKey;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
+import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 
-    private final FieldBasedNodeSettingsPersistor<ColumnSelection> m_persistor;
+final class CreateDefaultsUtil {
 
-    StringToColumnSelectionPersistor(final NodeSettingsPersistorContext<ColumnSelection> context) {
-        m_configKey = context.getConfigKey();
-        m_persistor = new FieldBasedNodeSettingsPersistor<>(context.getPersistedObjectClass());
+    private CreateDefaultsUtil() {
+        // Utility class
     }
 
-    @Override
-    public ColumnSelection load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        try {
-            final var fieldSettingsString = settings.getString(m_configKey);
-            return new ColumnSelection(fieldSettingsString, null);
-        } catch (InvalidSettingsException ex) {
-            return m_persistor.load(settings.getNodeSettings(m_configKey));
-        }
+    static Object createDefaultSettings(final Tree<PersistableSettings> tree) {
+        final var settingsClass = tree.getType();
+        return ReflectionUtil.createInstance(settingsClass).orElseThrow(() -> new IllegalArgumentException(
+            String.format("The provided PersistableSettings '%s' don't provide an empty constructor.", settingsClass)));
     }
 
-    @Override
-    public void save(final ColumnSelection obj, final NodeSettingsWO settings) {
-        m_persistor.save(obj, settings.addNodeSettings(m_configKey));
+    static Object createDefaultSettingsFieldValue(final TreeNode<PersistableSettings> node) {
+        return node.getDefaultValueFromParent(CreateDefaultsUtil::createDefaultSettings);
     }
+
 }

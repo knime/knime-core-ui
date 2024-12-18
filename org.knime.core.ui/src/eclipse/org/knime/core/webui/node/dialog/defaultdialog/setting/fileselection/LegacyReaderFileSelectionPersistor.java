@@ -149,4 +149,9 @@ public final class LegacyReaderFileSelectionPersistor implements NodeSettingsPer
     public void save(final FileSelection obj, final NodeSettingsWO settings) {
         save(obj, settings, m_configKey);
     }
+
+    @Override
+    public String[][] getConfigPaths() {
+        return new String[][]{{m_configKey}};
+    }
 }

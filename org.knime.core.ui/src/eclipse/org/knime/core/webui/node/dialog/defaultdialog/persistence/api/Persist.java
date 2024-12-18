@@ -55,7 +55,17 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Allows to define the persistence of individual fields to NodeSettings if field based persistence is used.
+ * Allows to define the persistence of individual fields to NodeSettings if field based persistence is used (i.e. for
+ * fields of a {@link PersistableSettings} class whose persist behavior is not controlled by a {@link Persistor}
+ * annotation).
+ *
+ * <p>
+ * This is it the simple alternative to {@link Persistor @Persistor} and only one of the two can be used. Use
+ * {@link Persistor} instead for more complex save/load mechanisms or for adding a persistor on class level. Every field
+ * of this annotation can be achieved by using {@link Persistor @Persistor} as well as described in the individual
+ * javadocs.
+ * </p>
+ *
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
@@ -68,24 +78,26 @@ public @interface Persist {
      * from the field name by stripping any leading 'm_' prefix if this argument is left empty (the default) or consists
      * only of whitespaces.
      *
+     *
+     * <h5>@Persistor Alternative:</h5>
+     * <p>
+     * Use the key directly within the a {@link NodeSettingsPersistor} implementation.
+     * </p>
+     *
      * @return the key under which to store the field in the NodeSettings.
      */
     String configKey() default "";
 
     /**
-     * Optional argument that allows to hide a setting in the flow variable tab.
+     * Optional argument that allows to: prevent the user settings flow variables for this field
+     *
+     * <h5>@Persistor Alternative:</h5>
+     * <p>
+     * Return an empty array in {@link NodeSettingsPersistor#getConfigPaths()}.
+     * </p>
      *
      * @return true if the setting should be hidden in the flow variable tab.
      */
     boolean hidden() default false;
-
-    /**
-     * Optional argument that allows to make a setting optional. An optional settings is a settings that may be in the
-     * NodeSettings when loading but doesn't have to be. If it isn't present, then the default value from the declaring
-     * DefaultNodeSettings class is used. The typical use-case for this are settings that are added in a later release.
-     *
-     * @return true if the setting is optional
-     */
-    boolean optional() default false;
 
 }

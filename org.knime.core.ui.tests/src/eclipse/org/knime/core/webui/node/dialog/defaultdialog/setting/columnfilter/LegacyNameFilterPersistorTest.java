@@ -57,7 +57,6 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.util.filter.NameFilterConfiguration.EnforceOption;
 import org.knime.core.node.util.filter.PatternFilterConfiguration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.CreateNodeSettingsPersistorUtil;
 
 /**
  * Unit tests for the {@link LegacyColumnFilterPersistor}.
@@ -69,8 +68,7 @@ final class LegacyNameFilterPersistorTest {
     private final LegacyNameFilterPersistor m_persistor = createPersistor();
 
     private static LegacyNameFilterPersistor createPersistor() {
-        return CreateNodeSettingsPersistorUtil.createInstance(LegacyNameFilterPersistor.class, NameFilter.class,
-            "config_key");
+        return new LegacyNameFilterPersistor("config_key");
     }
 
     @Test

@@ -69,17 +69,18 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.NodeDialogTest;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.DeprecationLoader;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonNodeSettingsMapperUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultPersistorWithDeprecations;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 
@@ -229,7 +230,7 @@ class DefaultNodeSettingsServiceTest {
     }
 
     private static final List<ConfigsDeprecation<String>>
-        createConfigsDeprecationsForMyLegacyPersistor(final DeprecationLoader<String> loader) {
+        createConfigsDeprecationsForMyLegacySettings(final SettingsLoader<String> loader) {
         return List.of(ConfigsDeprecation.builder(loader).withDeprecatedConfigPath("valueLegacy1")
             .withDeprecatedConfigPath("valueLegacy2").build());
     }
@@ -255,13 +256,16 @@ class DefaultNodeSettingsServiceTest {
             }
 
             @Override
-            public String[] getConfigKeys() {
-                return new String[]{m_configKey};
+            public String[][] getConfigPaths() {
+                return new String[][]{{m_configKey}};
             }
 
+        }
+
+        static class MyLegacyMigrator implements NodeSettingsMigrator<String> {
             @Override
             public List<ConfigsDeprecation<String>> getConfigsDeprecations() {
-                return createConfigsDeprecationsForMyLegacyPersistor(settings -> {
+                return createConfigsDeprecationsForMyLegacySettings(settings -> {
                     throw new IllegalStateException("Should not be called within this test");
                 });
             }
@@ -269,6 +273,7 @@ class DefaultNodeSettingsServiceTest {
         }
 
         @Persistor(MyLegacyPersistor.class)
+        @Migration(MyLegacyMigrator.class)
         String m_value;
 
         MigratedSettings() {
@@ -312,21 +317,16 @@ class DefaultNodeSettingsServiceTest {
 
     static class MigratedSettingsWithLoad implements DefaultNodeSettings {
 
-        static class MyLegacyPersistorWithLoad extends MigratedSettings.MyLegacyPersistor {
-
-            MyLegacyPersistorWithLoad(final NodeSettingsPersistorContext<String> context) {
-                super(context);
-            }
-
+        static class MyLegacyMigrator implements NodeSettingsMigrator<String> {
             @Override
             public List<ConfigsDeprecation<String>> getConfigsDeprecations() {
-                return createConfigsDeprecationsForMyLegacyPersistor(
+                return createConfigsDeprecationsForMyLegacySettings(
                     settings -> settings.getString("valueLegacy1") + settings.getString("valueLegacy2"));
             }
 
         }
 
-        @Persistor(MyLegacyPersistorWithLoad.class)
+        @Migration(MyLegacyMigrator.class)
         String m_value;
 
         MigratedSettingsWithLoad() {
@@ -368,21 +368,17 @@ class DefaultNodeSettingsServiceTest {
 
     static class MigratedSettingsWithFailingLoad implements DefaultNodeSettings {
 
-        static class MyLegacyPersistorWithFailingLoad extends MigratedSettings.MyLegacyPersistor {
-
-            MyLegacyPersistorWithFailingLoad(final NodeSettingsPersistorContext<String> context) {
-                super(context);
-            }
-
+        static class MyLegacyMigrator implements NodeSettingsMigrator<String> {
             @Override
             public List<ConfigsDeprecation<String>> getConfigsDeprecations() {
-                return createConfigsDeprecationsForMyLegacyPersistor(settings -> {
+                return createConfigsDeprecationsForMyLegacySettings(settings -> {
                     throw new InvalidSettingsException("Old configs");
                 });
             }
+
         }
 
-        @Persistor(MyLegacyPersistorWithFailingLoad.class)
+        @Migration(MyLegacyMigrator.class)
         String m_value;
 
         MigratedSettingsWithFailingLoad() {
@@ -448,8 +444,8 @@ class DefaultNodeSettingsServiceTest {
         assertThat(nodeSettings.getString("value")).isEqualTo("new");
     }
 
-    static final class RootSettingsDeprecationsPersistor
-        implements DefaultPersistorWithDeprecations<RootSettingsWithDeprecations> {
+    static final class RootSettingsDeprecationsDefinition
+        implements NodeSettingsMigrator<RootSettingsWithDeprecations> {
 
         @Override
         public List<ConfigsDeprecation<RootSettingsWithDeprecations>> getConfigsDeprecations() {
@@ -459,7 +455,7 @@ class DefaultNodeSettingsServiceTest {
         }
     }
 
-    @Persistor(RootSettingsDeprecationsPersistor.class)
+    @Migration(RootSettingsDeprecationsDefinition.class)
     static class RootSettingsWithDeprecations implements DefaultNodeSettings {
 
         String m_value = "the default";
@@ -521,7 +517,7 @@ class DefaultNodeSettingsServiceTest {
 
     static class SettingsWithOptionalSetting implements DefaultNodeSettings {
 
-        @Persist(optional = true)
+        @Migrate(loadDefaultIfAbsent = true)
         String m_value = "the default";
     }
 

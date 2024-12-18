@@ -48,18 +48,19 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 
 /**
- * Utility class to create instances of {@link NodeSettingsPersistor} classes. Both for persistors on field and on class
- * level.
+ * Utility class to create instances of {@link NodeSettingsPersistor} and {@link NodeSettingsMigrator} classes.
  *
  * @author Paul Bärnreuther
  */
-public class CreateNodeSettingsPersistorUtil {
+class CreatePersisenceObjectsUtil {
 
-    private CreateNodeSettingsPersistorUtil() {
+    private CreatePersisenceObjectsUtil() {
         // utility class
     }
 
@@ -70,24 +71,18 @@ public class CreateNodeSettingsPersistorUtil {
      * Create an instance of a {@link NodeSettingsPersistor}. We either use the constructor that accepts a
      * {@link NodeSettingsPersistorContext} or the empty constructor.
      *
-     * In case the context is used, it contains the configKey of the field
+     * In case the context is used, it contains the field name of the field
      *
-     * @param <S> the type of object to persist
-     * @param <P> the type of persistor to instantiate
-     * @param persistorClass the class of NodeSettingsPersistor
-     * @param persistedObjectClass
-     * @param configKey the key that should be available in the field persistor.
-     * @return a new instance of the provided class
      * @throws IllegalStateException if the class does not have a suitable constructor, is abstract, or the constructor
      *             raises an exception
      */
-    public static <S, P extends NodeSettingsPersistor<S>> P createInstance(final Class<P> persistorClass,
-        final Class<S> persistedObjectClass, final String configKey) {
+    static <S, P extends NodeSettingsPersistor<S>> P createPersistor(final Class<P> persistorClass,
+        final Class<S> persistedObjectClass, final String fieldName) {
 
-        final var context = new NodeSettingsPersistorContextImpl<>(configKey, persistedObjectClass);
+        final var context = new NodeSettingsPersistorContextImpl<>(fieldName, persistedObjectClass);
         return ReflectionUtil.createInstance(persistorClass, context)
             .orElseGet(() -> ReflectionUtil.createInstance(persistorClass)
-                .orElseThrow(() -> new IllegalArgumentException(String.format(
+                .orElseThrow(() -> new IllegalStateException(String.format(
                     "The provided persistor class '%s' provides neither a constructor "
                         + "accepting a NodeSettingsPesistorContext class nor an empty constructor.",
                     persistorClass.getCanonicalName()))));
@@ -100,41 +95,36 @@ public class CreateNodeSettingsPersistorUtil {
      * Create an instance of a {@link NodeSettingsPersistor}. We either use the constructor that accepts a
      * {@link NodeSettingsPersistorContext} or the empty constructor.
      *
-     * In case the context is used, it does not allow access to a config key, since this is a persistor attached to a
+     * In case the context is used, it does not allow access to a field name, since this is a persistor attached to a
      * whole class.
      *
-     * @param <S> the type of object to persist
-     * @param <P> the type of persistor to instantiate
-     * @param persistorClass the class of NodeSettingsPersistor
-     * @param persistedObjectClass
-     * @return a new instance of the provided class
      * @throws IllegalStateException if the class does not have a suitable constructor, is abstract, or the constructor
      *             raises an exception
      */
-    public static <S, P extends NodeSettingsPersistor<S>> P createInstance(final Class<P> persistorClass,
+    static <S, P extends NodeSettingsPersistor<S>> P createPersistor(final Class<P> persistorClass,
         final Class<S> persistedObjectClass) {
-        return createInstance(persistorClass, persistedObjectClass, null);
+        return createPersistor(persistorClass, persistedObjectClass, null);
     }
 
     private static class NodeSettingsPersistorContextImpl<T> implements NodeSettingsPersistorContext<T> {
 
-        private final String m_configKey;
+        private final String m_fieldName;
 
         private final Class<T> m_persistedObjectClass;
 
         NodeSettingsPersistorContextImpl(final String configKey, final Class<T> persistedObjectClass) {
-            m_configKey = configKey;
+            m_fieldName = configKey;
             m_persistedObjectClass = persistedObjectClass;
 
         }
 
         @Override
         public String getConfigKey() {
-            if (m_configKey == null) {
+            if (m_fieldName == null) {
                 throw new IllegalStateException("There is no config key available for this persistor. "
                     + "It is only available if the persistors is attached to a field.");
             }
-            return m_configKey;
+            return m_fieldName;
 
         }
 
@@ -143,6 +133,15 @@ public class CreateNodeSettingsPersistorUtil {
             return m_persistedObjectClass;
         }
 
+    }
+
+    @SuppressWarnings("rawtypes")
+    static NodeSettingsMigrator createMigrator(final Migration migration) {
+        final var migratorClass = migration.value();
+        return ReflectionUtil.createInstance(migratorClass)
+            .orElseThrow(() -> new IllegalStateException(
+                String.format("The provided migrator class '%s' does not provide an empty constructor.",
+                    migratorClass.getCanonicalName())));
     }
 
 }

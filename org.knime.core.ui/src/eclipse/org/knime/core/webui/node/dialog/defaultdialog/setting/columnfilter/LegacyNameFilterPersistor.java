@@ -65,7 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.Patte
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public final class LegacyNameFilterPersistor implements NodeSettingsPersistor<NameFilter> {
+public class LegacyNameFilterPersistor implements NodeSettingsPersistor<NameFilter> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(LegacyNameFilterPersistor.class);
 
@@ -81,8 +81,16 @@ public final class LegacyNameFilterPersistor implements NodeSettingsPersistor<Na
 
     private final String m_configKey;
 
-    LegacyNameFilterPersistor(final NodeSettingsPersistorContext<NameFilter> context) {
+    LegacyNameFilterPersistor(final NodeSettingsPersistorContext<ColumnFilter> context) {
         m_configKey = context.getConfigKey();
+    }
+
+    /**
+     * @param configKey the root config key to save to and load from. Do not extend this class but use it directly if
+     *            the field name of the {@link NameFilter} field should be used as root config key.
+     */
+    protected LegacyNameFilterPersistor(final String configKey) {
+        m_configKey = configKey;
     }
 
     @SuppressWarnings("javadoc")

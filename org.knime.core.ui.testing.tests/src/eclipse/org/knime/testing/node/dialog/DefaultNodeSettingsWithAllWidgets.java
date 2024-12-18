@@ -55,8 +55,11 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
@@ -140,21 +143,24 @@ class DefaultNodeSettingsWithAllWidgets implements DefaultNodeSettings {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{"customConfigKeyForNestedSettings"};
+        public String[][] getConfigPaths() {
+            return new String[][]{{"customConfigKeyForNestedSettings"}};
         }
 
+    }
+
+    static final class Migrator implements NodeSettingsMigrator<NestedSettings> {
         @Override
         public List<ConfigsDeprecation<NestedSettings>> getConfigsDeprecations() {
             return List.of(ConfigsDeprecation.<NestedSettings> builder(settings -> {
                 throw new IllegalStateException("Should not be called within this test");
-            }).forNewConfigPath("customConfigKeyForNestedSettings").withDeprecatedConfigPath("deprecatedConfigKey")
-                .build());
+            }).withDeprecatedConfigPath("deprecatedConfigKey").build());
 
         }
     }
 
-    @Persist(customPersistor = CustomPersistor.class)
+    @Persistor(CustomPersistor.class)
+    @Migration(Migrator.class)
     NestedSettings m_nestedSettingsWithCustomPersistor;
 
 }
