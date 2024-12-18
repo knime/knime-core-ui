@@ -361,24 +361,36 @@ This is a placeholder for future architectural requirements.
 
 | # | Description | Last Checked | N/A |
 | :---: | :--- | :---: | :---:|
-| **5.3.1** | Verify that output encoding is relevant for the interpreter and context required. For example, use encoders specifically for HTML values, HTML attributes, JavaScript, URL parameters, HTTP headers, SMTP, and others as the context requires, especially from untrusted inputs (e.g. names with Unicode or apostrophes, such as ねこ or O'Hara). ([C4](https://owasp.org/www-project-proactive-controls/#div-numbering)) | [^5.3.1] | |
-| **5.3.2** | Verify that output encoding preserves the user's chosen character set and locale, such that any Unicode character point is valid and safely handled. ([C4](https://owasp.org/www-project-proactive-controls/#div-numbering)) | | |
-| **5.3.3** | Verify that context-aware, preferably automated - or at worst, manual - output escaping protects against reflected, stored, and DOM based XSS. ([C4](https://owasp.org/www-project-proactive-controls/#div-numbering)) | | |
-| **5.3.4** | Verify that data selection or database queries (e.g. SQL, HQL, ORM, NoSQL) use parameterized queries, ORMs, entity frameworks, or are otherwise protected from database injection attacks. ([C3](https://owasp.org/www-project-proactive-controls/#div-numbering)) | [^5.3.4] | |
-| **5.3.5** | Verify that where parameterized or safer mechanisms are not present, context-specific output encoding is used to protect against injection attacks, such as the use of SQL escaping to protect against SQL injection. ([C3, C4](https://owasp.org/www-project-proactive-controls/#div-numbering)) | | |
-| **5.3.6** | Verify that the application protects against JSON injection attacks, JSON eval attacks, and JavaScript expression evaluation. ([C4](https://owasp.org/www-project-proactive-controls/#div-numbering)) | [^5.3.6] | |
-| **5.3.7** | Verify that the application protects against LDAP injection vulnerabilities, or that specific security controls to prevent LDAP injection have been implemented. ([C4](https://owasp.org/www-project-proactive-controls/#div-numbering)) | [^5.3.7] | |
-| **5.3.8** | Verify that the application protects against OS command injection and that operating system calls use parameterized OS queries or use contextual command line output encoding. ([C4](https://owasp.org/www-project-proactive-controls/#div-numbering)) | [^5.3.8] | |
-| **5.3.9** | Verify that the application protects against Local File Inclusion (LFI) or Remote File Inclusion (RFI) attacks. | [^5.3.9] | |
-| **5.3.10** | Verify that the application protects against XPath injection or XML injection attacks. ([C4](https://owasp.org/www-project-proactive-controls/#div-numbering)) | [^5.3.10] | |
+| **5.3.1** | Verify that output encoding is relevant for the interpreter and context required. For example, use encoders specifically for HTML values, HTML attributes, JavaScript, URL parameters, HTTP headers, SMTP, and others as the context requires, especially from untrusted inputs (e.g. names with Unicode or apostrophes, such as ねこ or O'Hara). ([C4](https://owasp.org/www-project-proactive-controls/#div-numbering)) | 2024-12-18 [^5.3.1] | |
+| **5.3.2** | Verify that output encoding preserves the user's chosen character set and locale, such that any Unicode character point is valid and safely handled. ([C4](https://owasp.org/www-project-proactive-controls/#div-numbering)) | 2024-11-05 [^5.3.2] | |
+| **5.3.3** | Verify that context-aware, preferably automated - or at worst, manual - output escaping protects against reflected, stored, and DOM based XSS. ([C4](https://owasp.org/www-project-proactive-controls/#div-numbering)) | 2024-11-05 [^5.3.3] | |
+| **5.3.4** | Verify that data selection or database queries (e.g. SQL, HQL, ORM, NoSQL) use parameterized queries, ORMs, entity frameworks, or are otherwise protected from database injection attacks. ([C3](https://owasp.org/www-project-proactive-controls/#div-numbering)) | 2024-11-05 [^5.3.4] | |
+| **5.3.5** | Verify that where parameterized or safer mechanisms are not present, context-specific output encoding is used to protect against injection attacks, such as the use of SQL escaping to protect against SQL injection. ([C3, C4](https://owasp.org/www-project-proactive-controls/#div-numbering)) | 2024-11-05 [^5.3.5]| |
+| **5.3.6** | Verify that the application protects against JSON injection attacks, JSON eval attacks, and JavaScript expression evaluation. ([C4](https://owasp.org/www-project-proactive-controls/#div-numbering)) | 2024-11-05 [^5.3.6] | |
+| **5.3.7** | Verify that the application protects against LDAP injection vulnerabilities, or that specific security controls to prevent LDAP injection have been implemented. ([C4](https://owasp.org/www-project-proactive-controls/#div-numbering)) | 2024-11-05 [^5.3.7] | |
+| **5.3.8** | Verify that the application protects against OS command injection and that operating system calls use parameterized OS queries or use contextual command line output encoding. ([C4](https://owasp.org/www-project-proactive-controls/#div-numbering)) | 2024-05-11 [^5.3.8] | |
+| **5.3.9** | Verify that the application protects against Local File Inclusion (LFI) or Remote File Inclusion (RFI) attacks. | 2024-11-05 [^5.3.9] | |
+| **5.3.10** | Verify that the application protects against XPath injection or XML injection attacks. ([C4](https://owasp.org/www-project-proactive-controls/#div-numbering)) | 2024-11-05 [^5.3.10] | |
 
-[^5.3.1]: Partially checked by Sonar rule [S5247](https://rules.sonarsource.com/java/RSPEC-5247/) for Java programs.
-[^5.3.4]: Checked by Sonar rules [S3649](https://rules.sonarsource.com/java/RSPEC-3649/) and [S2077](https://rules.sonarsource.com/java/RSPEC-2077/) for Java programs.
-[^5.3.6]: Checked by Sonar rules [S6398](https://rules.sonarsource.com/java/RSPEC-6398/) for Java programs.
-[^5.3.7]: Checked by Sonar rules [2078](https://rules.sonarsource.com/java/RSPEC-2078/) for Java programs.
-[^5.3.8]: Checked by Sonar rules [S2076](https://rules.sonarsource.com/java/RSPEC-2076/), [S5883](https://rules.sonarsource.com/java/RSPEC-5883/), and [S6350](https://rules.sonarsource.com/java/RSPEC-6350/) for Java programs.
-[^5.3.9]: Checked by Sonar rules [2083](https://rules.sonarsource.com/java/RSPEC-2083/) for Java programs.
-[^5.3.10]: Checked by Sonar rules [S6399](https://rules.sonarsource.com/java/RSPEC-6399/), [S2091](https://rules.sonarsource.com/java/RSPEC-2091/),  [S2755](https://rules.sonarsource.com/java/RSPEC-2755/), and [S6374](https://rules.sonarsource.com/java/RSPEC-6374/) for Java programs.
+[^5.3.1]: Partially checked by Sonar rule [S5247](https://rules.sonarsource.com/java/RSPEC-5247/) for Java programs. No violations present. HTML output is sanitized and problematic characters are HTML escaped.
+
+[^5.3.2]: UTF-8 is enforced encoding for files and transfer objects everywhere. Locales are not relevant or en-US is always used.
+
+[^5.3.3]: Reflected and stored XSS is not applicable. For DOM-based XSS HTML output is sanitized and problematic characters are HTML escaped.
+
+[^5.3.4]: Checked by Sonar rules [S3649](https://rules.sonarsource.com/java/RSPEC-3649/) and [S2077](https://rules.sonarsource.com/java/RSPEC-2077/) for Java programs. Not applicable to this repository.
+
+[^5.3.5]: Not applicable here as there are no database or SQL specific components or logic present.
+
+[^5.3.6]: JSON injection checked by Sonar rule [S6398](https://rules.sonarsource.com/java/RSPEC-6398/) for Java programs. Additonally no external scripts are loaded from any component in this repository.
+
+[^5.3.7]: Checked by Sonar rules [2078](https://rules.sonarsource.com/java/RSPEC-2078/) for Java programs. Not applicable for this repository. No LDAP specific components or logic present.
+
+[^5.3.8]: Checked by Sonar rules [S2076](https://rules.sonarsource.com/java/RSPEC-2076/), [S5883](https://rules.sonarsource.com/java/RSPEC-5883/), and [S6350](https://rules.sonarsource.com/java/RSPEC-6350/) for Java programs. Not applicable for this repository. No command line or OS calls used.
+
+[^5.3.9]: Checked by Sonar rule [2083](https://rules.sonarsource.com/java/RSPEC-2083/) for Java programs. No violations present.
+
+[^5.3.10]: Checked by Sonar rules [S6399](https://rules.sonarsource.com/java/RSPEC-6399/), [S2091](https://rules.sonarsource.com/java/RSPEC-2091/),  [S2755](https://rules.sonarsource.com/java/RSPEC-2755/), and [S6374](https://rules.sonarsource.com/java/RSPEC-6374/) for Java programs. No violations in production code present.
 
 ## V5.4 Memory, String, and Unmanaged Code
 _(not applicable to KNIME)_
