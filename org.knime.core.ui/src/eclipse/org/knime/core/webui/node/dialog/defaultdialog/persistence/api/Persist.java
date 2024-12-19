@@ -84,6 +84,11 @@ public @interface Persist {
      * NodeSettings when loading but doesn't have to be. If it isn't present, then the default value from the declaring
      * DefaultNodeSettings class is used. The typical use-case for this are settings that are added in a later release.
      *
+     *
+     * TODO: loadDefaultIfAbsent rename
+     *
+     *
+     *
      * @return true if the setting is optional
      */
     boolean optional() default false;

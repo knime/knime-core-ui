@@ -51,7 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultf
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.OneKeyNodeSettingsPersistor;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.data.location.FSLocationSerializationUtils;
 import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
@@ -62,7 +62,7 @@ import org.knime.filehandling.core.data.location.variable.FSLocationVariableType
  *
  * @author Paul Bärnreuther
  */
-public final class FSLocationPersistor implements NodeSettingsPersistor<FSLocation> {
+public final class FSLocationPersistor implements OneKeyNodeSettingsPersistor<FSLocation> {
 
     private final String m_configKey;
 

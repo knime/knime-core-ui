@@ -64,10 +64,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.AbstractPersistenceFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMapUtil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -85,6 +87,20 @@ public final class PersistUtil {
     }
 
     /**
+     * public and only used for tests
+     *
+     * @param parentNode
+     * @param settings
+     */
+    public static void constructTreesAndAddPersist(final ObjectNode parentNode,
+        final Map<SettingsType, DefaultNodeSettings> settings) {
+        final var persistTreeFactory = new PersistTreeFactory();
+        final var persistTrees =
+            SettingsTypeMapUtil.map(settings, (type, s) -> persistTreeFactory.createTree(s.getClass(), type));
+        addPersist(parentNode, persistTrees);
+    }
+
+    /**
      * Adds the information necessary for the frontend to adapt flow variable handling to custom persisting given by
      * {@link Persist @Persist} annotations and deviations of the {@link PersistableSettings} structure from the
      * {@link WidgetGroup} structure.
@@ -98,7 +114,7 @@ public final class PersistUtil {
         final var properties = addObjectProperties(persist);
         final var persistSchemaFactory = new PersistSchemaFactory();
         persistTrees.entrySet().forEach(entry -> properties.set(entry.getKey().getConfigKey(),
-            persistSchemaFactory.extractFromTree(entry.getValue())));
+            persistSchemaFactory.getPersistSchemaFromTree(entry.getValue())));
     }
 
     private static ObjectNode addObjectProperties(final ObjectNode objectNode) {
@@ -109,7 +125,11 @@ public final class PersistUtil {
     @SuppressWarnings("rawtypes")
     static final class PersistSchemaFactory extends AbstractPersistenceFactory<ObjectNode> {
 
-        static final ObjectMapper MAPPER = new ObjectMapper(); // TODO: Is it possible without Mapper i.e. in reverse?
+        static final ObjectMapper MAPPER = new ObjectMapper();
+
+        ObjectNode getPersistSchemaFromTree(final Tree<PersistableSettings> node) {
+            return super.extractFromTree(node);
+        }
 
         @Override
         protected ObjectNode getDefaultForLeaf(final LeafNode<PersistableSettings> node) {

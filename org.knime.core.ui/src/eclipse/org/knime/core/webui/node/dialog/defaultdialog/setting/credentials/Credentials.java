@@ -334,8 +334,8 @@ public final class Credentials {
          * one variable.
          */
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{m_configKey};
+        public String[][] getConfigPaths() {
+            return new String[][]{{m_configKey}};
         }
 
     }

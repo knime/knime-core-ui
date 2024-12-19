@@ -58,7 +58,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.CreateNodeSettingsPersistorUtil;
 
 /**
  * Contains unit tests for the {@link NodeSettingsPersistor}.
@@ -72,7 +71,7 @@ class FieldNodeSettingsPersistorTest {
         var persistor = CreateNodeSettingsPersistorUtil.createInstance(CustomPersistor.class, Integer.class,
             "config_key_parameter");
         assertInstanceOf(CustomPersistor.class, persistor, "should return an instance of the specified class");
-        assertArrayEquals(new String[]{"config_key_by_method"}, persistor.getConfigKeys(),
+        assertArrayEquals(new String[][]{{"config_key_by_method"}}, persistor.getConfigPaths(),
             "should use configKeys by the overwritten method");
     }
 
@@ -99,8 +98,8 @@ class FieldNodeSettingsPersistorTest {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[]{"config_key_by_method"};
+        public String[][] getConfigPaths() {
+            return new String[][]{{"config_key_by_method"}};
         }
     }
 
@@ -124,6 +123,11 @@ class FieldNodeSettingsPersistorTest {
 
         String getConfigKey() {
             return m_configKey;
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            throw new UnsupportedOperationException("not used by tests");
         }
     }
 

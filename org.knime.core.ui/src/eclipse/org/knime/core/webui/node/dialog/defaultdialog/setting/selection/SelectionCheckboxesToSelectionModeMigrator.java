@@ -42,46 +42,54 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Oct 10, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.selection;
+
+import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.FieldBasedNodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DeprecatedSettingsLoadDefinition;
 
 /**
- * The data structure of a ColumnSelection dropdown changed from a strings to a more complex representation by a
- * {@link ColumnSelection}. For previous workflows to still execute (given that the setting is not overwritten by a flow
- * variable), we transform the stored string to the correct representation.
  *
  * @author Paul Bärnreuther
  */
-public final class StringToColumnSelectionPersistor implements NodeSettingsPersistor<ColumnSelection> {
+public class SelectionCheckboxesToSelectionModeMigrator implements DeprecatedSettingsLoadDefinition<SelectionMode> {
 
-    private final String m_configKey;
+    private static final String PUBLISH_SELECTION = "publishSelection";
 
-    private final FieldBasedNodeSettingsPersistor<ColumnSelection> m_persistor;
+    private static final String SUBSCRIBE_TO_SELECTION = "subscribeToSelection";
 
-    StringToColumnSelectionPersistor(final NodeSettingsPersistorContext<ColumnSelection> context) {
-        m_configKey = context.getConfigKey();
-        m_persistor = new FieldBasedNodeSettingsPersistor<>(context.getPersistedObjectClass());
-    }
-
-    @Override
-    public ColumnSelection load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        try {
-            final var fieldSettingsString = settings.getString(m_configKey);
-            return new ColumnSelection(fieldSettingsString, null);
-        } catch (InvalidSettingsException ex) {
-            return m_persistor.load(settings.getNodeSettings(m_configKey));
+    private static SelectionMode loadFromBooleans(final NodeSettingsRO settings) throws InvalidSettingsException {
+        final var publish = settings.getBoolean(PUBLISH_SELECTION);
+        final var show = settings.getBoolean(SUBSCRIBE_TO_SELECTION);
+        /**
+         * There is no option for only publishing since this change to a value switch. I.e. in this case, we now also
+         * subscribe to the selection.
+         */
+        if (publish) {
+            return SelectionMode.EDIT;
         }
+        if (show) {
+            return SelectionMode.SHOW;
+        }
+        return SelectionMode.OFF;
     }
 
     @Override
-    public void save(final ColumnSelection obj, final NodeSettingsWO settings) {
-        m_persistor.save(obj, settings.addNodeSettings(m_configKey));
+    public List<ConfigsDeprecation<SelectionMode>> getConfigsDeprecations() {
+        return List.of(
+            ConfigsDeprecation.builder(SelectionCheckboxesToSelectionModeMigrator::loadFromBooleans)
+                .withDeprecatedConfigPath(SUBSCRIBE_TO_SELECTION).withDeprecatedConfigPath(PUBLISH_SELECTION).build(),
+            /**
+             * Accounting for a time where not even the checkbox settings existed.
+             */
+            ConfigsDeprecation.builder(settings -> SelectionMode.EDIT).build());
     }
+
 }

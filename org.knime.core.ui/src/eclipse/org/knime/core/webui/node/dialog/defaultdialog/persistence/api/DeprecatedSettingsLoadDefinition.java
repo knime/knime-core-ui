@@ -48,7 +48,6 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
@@ -67,8 +66,6 @@ public interface DeprecatedSettingsLoadDefinition<T> {
      *
      * @return a list of how to load backwards-compatible
      */
-    default List<ConfigsDeprecation<T>> getConfigsDeprecations() {
-        return Collections.emptyList();
-    }
+    List<ConfigsDeprecation<T>> getConfigsDeprecations();
 
 }

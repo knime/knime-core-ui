@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.OneKeyNodeSettingsPersistor;
 
 /**
  * This field persistor transforms {@link String} node settings to enum values and vice versa by matching the enum
@@ -63,7 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
  * @author Paul Bärnreuther
  * @param <E> The enum that should be persisted
  */
-public final class EnumFieldPersistor<E extends Enum<E>> implements NodeSettingsPersistor<E> {
+public final class EnumFieldPersistor<E extends Enum<E>> implements OneKeyNodeSettingsPersistor<E> {
 
     private final String m_configKey;
 

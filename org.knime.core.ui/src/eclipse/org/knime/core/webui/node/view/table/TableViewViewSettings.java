@@ -57,13 +57,13 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultPersistorWithDeprecations;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.BackwardsCompatibleLoader;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DeprecatedSettingsLoadDefinition;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.StringArrayToColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.selection.SelectionCheckboxesToSelectionModePersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.StringArrayToColumnFilterMigrator;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.selection.SelectionCheckboxesToSelectionModeMigrator;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.selection.SelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
@@ -89,7 +89,6 @@ import org.knime.core.webui.node.view.table.TableViewViewSettings.VerticalPaddin
  * @author Christian Albrecht, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("java:S103") // we accept too long lines
-
 public class TableViewViewSettings implements DefaultNodeSettings {
 
     private static final class AllColumns implements ColumnChoicesProvider {
@@ -105,13 +104,24 @@ public class TableViewViewSettings implements DefaultNodeSettings {
     }
 
     /**
+     * Previously, displayedColumnsV2 was called displayedColumns and stored a string array.
+     */
+    static final class DisplayedColumnsMigrator extends StringArrayToColumnFilterMigrator {
+
+        public DisplayedColumnsMigrator() {
+            super("displayedColumns");
+        }
+
+    }
+
+    /**
      * The selected columns to be displayed.
      */
     @Widget(title = "Displayed columns", description = "Select the columns that should be displayed in the table")
     @ChoicesWidget(choices = AllColumns.class)
-    @Persistor(StringArrayToColumnFilterPersistor.class)
+    @BackwardsCompatibleLoader(DisplayedColumnsMigrator.class)
     @Layout(DataSection.class)
-    public ColumnFilter m_displayedColumns;
+    public ColumnFilter m_displayedColumnsV2;
 
     /**
      * If the row numbers should be displayed
@@ -229,7 +239,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
         }
 
         static final class CompactModeAndLegacyRowHeightModePersistor
-            implements DefaultPersistorWithDeprecations<RowHeightMode> {
+            implements DeprecatedSettingsLoadDefinition<RowHeightMode> {
 
             @Override
             public List<ConfigsDeprecation<RowHeightMode>> getConfigsDeprecations() {
@@ -246,14 +256,14 @@ public class TableViewViewSettings implements DefaultNodeSettings {
     @Widget(title = "Row height", description = "Set the initial height of the rows.")
     @ValueSwitchWidget
     @Layout(ViewSection.class)
-    @Persistor(CompactModeAndLegacyRowHeightModePersistor.class)
+    @BackwardsCompatibleLoader(CompactModeAndLegacyRowHeightModePersistor.class)
     @Persist(configKey = CURRENT_ROW_HEIGHT_MODE_CFG_KEY)
     @ValueReference(RowHeightMode.Ref.class)
     public RowHeightMode m_rowHeightMode = RowHeightMode.AUTO;
 
     static final int DEFAULT_CUSTOM_ROW_HEIGHT = 80;
 
-    static final class CustomRowHeightPersistor implements DefaultPersistorWithDeprecations<Integer> {
+    static final class CustomRowHeightPersistor implements DeprecatedSettingsLoadDefinition<Integer> {
 
         private final String m_configKey;
 
@@ -279,7 +289,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
     @Widget(title = "Custom row height", description = "Set the initial height of the rows.")
     @NumberInputWidget(min = 24, max = 1000000)
     @Layout(ViewSection.class)
-    @Persistor(CustomRowHeightPersistor.class)
+    @BackwardsCompatibleLoader(CustomRowHeightPersistor.class)
     @Effect(predicate = RowHeightMode.IsCustom.class, type = EffectType.SHOW)
     public int m_customRowHeight = DEFAULT_CUSTOM_ROW_HEIGHT;
 
@@ -294,7 +304,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
             COMPACT;
 
         static final class VerticalPaddingModePersistor
-            implements DefaultPersistorWithDeprecations<VerticalPaddingMode> {
+            implements DeprecatedSettingsLoadDefinition<VerticalPaddingMode> {
 
             @Override
             public List<ConfigsDeprecation<VerticalPaddingMode>> getConfigsDeprecations() {
@@ -309,7 +319,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
     @Widget(title = "Row padding", description = "Set the vertical white space of the rows:")
     @ValueSwitchWidget
     @Layout(ViewSection.class)
-    @Persistor(VerticalPaddingModePersistor.class)
+    @BackwardsCompatibleLoader(VerticalPaddingModePersistor.class)
     public VerticalPaddingMode m_verticalPaddingMode = VerticalPaddingMode.DEFAULT;
 
     /**
@@ -368,7 +378,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
             + " to other views that show the selection.")
     @ValueSwitchWidget
     @Layout(InteractivitySection.class)
-    @Persistor(SelectionCheckboxesToSelectionModePersistor.class)
+    @BackwardsCompatibleLoader(SelectionCheckboxesToSelectionModeMigrator.class)
     public SelectionMode m_selectionMode = SelectionMode.EDIT;
 
     /**
@@ -433,12 +443,12 @@ public class TableViewViewSettings implements DefaultNodeSettings {
      */
     public TableViewViewSettings(final DataTableSpec spec) {
         final String[] allColumnNames = spec == null ? new String[0] : spec.getColumnNames();
-        m_displayedColumns = new ColumnFilter(allColumnNames);
+        m_displayedColumnsV2 = new ColumnFilter(allColumnNames);
     }
 
     @SuppressWarnings("javadoc")
     public String[] getDisplayedColumns(final DataTableSpec spec) {
         final var choices = spec.getColumnNames();
-        return m_displayedColumns.getSelectedIncludingMissing(choices, spec);
+        return m_displayedColumnsV2.getSelectedIncludingMissing(choices, spec);
     }
 }

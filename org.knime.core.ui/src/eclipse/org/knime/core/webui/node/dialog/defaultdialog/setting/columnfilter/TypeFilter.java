@@ -145,8 +145,8 @@ class TypeFilter implements PersistableSettings {
         }
 
         @Override
-        public String[] getConfigKeys() {
-            return new String[0];
+        public String[][] getConfigPaths() {
+            return new String[0][]; // hidden
         }
 
     }

@@ -51,14 +51,14 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultf
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.OneKeyNodeSettingsPersistor;
 
 /**
  * {@link FiledNodeSettingsPersistor} for fields that composes the config key with the implementation of the persistor.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class DefaultFieldNodeSettingsPersistor<T> implements NodeSettingsPersistor<T> {
+final class DefaultFieldNodeSettingsPersistor<T> implements OneKeyNodeSettingsPersistor<T> {
     private final String m_configKey;
 
     private final FieldPersistor<T> m_impl;

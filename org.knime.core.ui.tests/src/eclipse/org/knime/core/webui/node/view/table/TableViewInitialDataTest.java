@@ -110,7 +110,7 @@ class TableViewInitialDataTest {
     @Test
     void testGetTableWithPagination() {
         final var settings = new TableViewViewSettings(table.getSpec());
-        settings.m_displayedColumns = displayedColumns;
+        settings.m_displayedColumnsV2 = displayedColumns;
         settings.m_enablePagination = true;
         settings.m_pageSize = 8;
         final var initialData = TableViewUtil.createInitialData(settings, table, selectionSupplier, nodeId);
@@ -122,7 +122,7 @@ class TableViewInitialDataTest {
     @Test
     void testGetTableWithoutPagination() {
         final var settings = new TableViewViewSettings(table.getSpec());
-        settings.m_displayedColumns = displayedColumns;
+        settings.m_displayedColumnsV2 = displayedColumns;
         settings.m_enablePagination = false;
         final var initialData = TableViewUtil.createInitialData(settings, table, selectionSupplier, nodeId);
         initialData.getTable();
@@ -133,7 +133,7 @@ class TableViewInitialDataTest {
     @Test
     void testGetTableWithSkipRemainingColumns() {
         final var settings = new TableViewViewSettings(table.getSpec());
-        settings.m_displayedColumns = displayedColumns;
+        settings.m_displayedColumnsV2 = displayedColumns;
         settings.m_skipRemainingColumns = true;
         final var initialData = TableViewUtil.createInitialData(settings, table, selectionSupplier, nodeId);
         initialData.getTable();
@@ -144,7 +144,7 @@ class TableViewInitialDataTest {
     @Test
     void testGetTableWithShowOnlySelectedRows() {
         final var settings = new TableViewViewSettings(table.getSpec());
-        settings.m_displayedColumns = displayedColumns;
+        settings.m_displayedColumnsV2 = displayedColumns;
         settings.m_showOnlySelectedRows = true;
         final var initialData = TableViewUtil.createInitialData(settings, table, selectionSupplier, nodeId);
         initialData.getTable();

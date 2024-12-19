@@ -59,7 +59,7 @@ import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultPersistorWithDeprecations;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DeprecatedSettingsLoadDefinition;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
@@ -192,7 +192,7 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
      * @author Paul Bärnreuther
      */
     public static final class SettingsModelAuthenticationPersistor
-        implements DefaultPersistorWithDeprecations<AuthenticationSettings> {
+        implements DeprecatedSettingsLoadDefinition<AuthenticationSettings> {
 
         private final String m_configKey;
 

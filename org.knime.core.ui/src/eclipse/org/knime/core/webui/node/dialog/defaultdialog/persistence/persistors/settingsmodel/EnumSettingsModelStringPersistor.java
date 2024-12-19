@@ -58,11 +58,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
 /**
  * Persistor for {@link SettingsModelString} that saves and loads the value as an enum.
  *
+ * @param <E> the type of the enum
  * @author Paul Bärnreuther
  */
-public abstract class EnumSettingsModelStringPersistor<E extends Enum<E>> implements NodeSettingsPersistor<E> {
+public class EnumSettingsModelStringPersistor<E extends Enum<E>> implements NodeSettingsPersistor<E> {
 
     private final String m_configKey;
+
+    private Class<E> m_enumClass;
 
     /**
      * Each implementation must call this constructor by using a constructor with the same signature.
@@ -71,12 +74,8 @@ public abstract class EnumSettingsModelStringPersistor<E extends Enum<E>> implem
      */
     public EnumSettingsModelStringPersistor(final NodeSettingsPersistorContext<E> context) {
         m_configKey = context.getConfigKey();
+        m_enumClass = context.getPersistedObjectClass();
     }
-
-    /**
-     * @return e.g. for enum TestEnum, return TestEnum.class.
-     */
-    protected abstract Class<E> enumType();
 
     @Override
     public void save(final E obj, final NodeSettingsWO settings) {
@@ -90,7 +89,12 @@ public abstract class EnumSettingsModelStringPersistor<E extends Enum<E>> implem
         final var model = new SettingsModelString(m_configKey, "");
         model.loadSettingsFrom(settings);
         var name = model.getStringValue();
-        return name != null ? Enum.valueOf(enumType(), name) : null;
+        return name != null ? Enum.valueOf(m_enumClass, name) : null;
+    }
+
+    @Override
+    public String[][] getConfigPaths() {
+        return new String[][]{{m_configKey}};
     }
 
 }

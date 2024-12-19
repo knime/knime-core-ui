@@ -52,10 +52,13 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 
 /**
+ *
+ * TODO public??
+ *
  * @param <T> the loaded setting
  */
 @FunctionalInterface
-interface SettingsLoader<T> {
+public interface SettingsLoader<T> {
     /**
      * @param settings the settings containing the deprecated config to load
      * @return T the type of the new config

@@ -42,37 +42,54 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Feb 2, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory.loadSettings;
 
-import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.NodeSettingsPersistorFactory;
+import java.util.List;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DeprecatedSettingsLoadDefinition;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 
 /**
+ * The data structure of a ColumnSelection dropdown changed from a strings to a more complex representation by a
+ * {@link ColumnSelection}. For previous workflows to still execute, we transform the stored string to the correct
+ * representation. For that, one config key has to be deprecated and a new one has to be used instead.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Paul Bärnreuther
  */
-@SuppressWarnings({"static-method", "java:S2698"}) // we accept assertions without messages
-final class FieldNodeSettingsPersistorFactoryTest {
+public final class StringToColumnSelectionMigrator implements DeprecatedSettingsLoadDefinition<ColumnSelection> {
 
-    @Test
-    void testFailsOnContractViolation() {
-        assertThrows(IllegalArgumentException.class,
-            () -> NodeSettingsPersistorFactory.createPersistor(ContractViolatingSettings.class));
+    private final String m_legacyConfigKey;
+
+    /**
+     * The config key under which the string has been persisted before has to be deprecated to not break flow variables.
+     * I.e. either rename the field or add a {@link Persist#configKey} annotation on the field where this class is
+     * attached.
+     *
+     * @param legacyConfigKey the config key under which the string has been stored previously.
+     */
+    protected StringToColumnSelectionMigrator(final String legacyConfigKey) {
+        m_legacyConfigKey = legacyConfigKey;
     }
 
-    private static final class ContractViolatingSettings implements DefaultNodeSettings {
-
-        @SuppressWarnings("unused") // added to remove the default constructor
-        ContractViolatingSettings(final String foo) {
-
+    private ColumnSelection loadLegacy(final NodeSettingsRO settings) throws InvalidSettingsException {
+        try {
+            final var fieldSettingsString = settings.getString(m_legacyConfigKey);
+            return new ColumnSelection(fieldSettingsString, null);
+        } catch (InvalidSettingsException ex) {
+            return loadSettings(ColumnSelection.class, settings.getNodeSettings(m_legacyConfigKey));
         }
+    }
+
+    @Override
+    public final List<ConfigsDeprecation<ColumnSelection>> getConfigsDeprecations() {
+        return List
+            .of(ConfigsDeprecation.builder(this::loadLegacy).withDeprecatedConfigPath(m_legacyConfigKey).build());
     }
 
 }

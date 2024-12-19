@@ -78,7 +78,16 @@ final class DateTimePersistorUtils {
         // utility class
     }
 
-    static final class LocalDatePersistor implements NodeSettingsPersistor<LocalDate> {
+    interface OneKeyNodeSettingsPersistor<T> extends NodeSettingsPersistor<T> {
+
+        @Override
+        default String[][] getConfigPaths() {
+            throw new IllegalStateException("Should not be called"); // TODO: instead make all of these here used persistor implement a thinner interface instead.
+        }
+
+    }
+
+    static final class LocalDatePersistor implements OneKeyNodeSettingsPersistor<LocalDate> {
 
         private final String m_configKey;
 
@@ -108,7 +117,7 @@ final class DateTimePersistorUtils {
 
     }
 
-    static final class LocalTimePersistor implements NodeSettingsPersistor<LocalTime> {
+    static final class LocalTimePersistor implements OneKeyNodeSettingsPersistor<LocalTime> {
 
         private final String m_configKey;
 
@@ -147,7 +156,7 @@ final class DateTimePersistorUtils {
 
     }
 
-    static final class TimeZonePersistor implements NodeSettingsPersistor<ZoneId> {
+    static final class TimeZonePersistor implements OneKeyNodeSettingsPersistor<ZoneId> {
 
         private final String m_configKey;
 
@@ -184,7 +193,7 @@ final class DateTimePersistorUtils {
 
     }
 
-    static final class IntervalPersistor implements NodeSettingsPersistor<Interval> {
+    static final class IntervalPersistor implements OneKeyNodeSettingsPersistor<Interval> {
 
         private final String m_configKey;
 
@@ -210,7 +219,7 @@ final class DateTimePersistorUtils {
 
     }
 
-    static final class DateIntervalPersistor implements NodeSettingsPersistor<DateInterval> {
+    static final class DateIntervalPersistor implements OneKeyNodeSettingsPersistor<DateInterval> {
 
         private final String m_configKey;
 
@@ -243,7 +252,7 @@ final class DateTimePersistorUtils {
 
     }
 
-    static final class TimeIntervalPersistor implements NodeSettingsPersistor<TimeInterval> {
+    static final class TimeIntervalPersistor implements OneKeyNodeSettingsPersistor<TimeInterval> {
 
         private final String m_configKey;
 

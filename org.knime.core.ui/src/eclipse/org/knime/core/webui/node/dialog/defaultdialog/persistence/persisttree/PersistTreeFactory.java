@@ -52,6 +52,8 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
 
+import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.BackwardsCompatibleLoader;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
@@ -65,18 +67,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeFactory;
 public final class PersistTreeFactory extends TreeFactory<PersistableSettings> {
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_ANNOTATIONS =
-        List.of(Persist.class, Persistor.class);
+        List.of(Persist.class, Persistor.class, BackwardsCompatibleLoader.class);
 
+    /**
+     * Peristors and backwards compatible loaders on classes are interpreted differently than the same annotation on a
+     * containing field. The level of the {@link NodeSettings} that the persistor operates on is different.
+     */
     static final Collection<ClassAnnotationSpec> POSSIBLE_TREE_CLASS_ANNOTATIONS =
-        List.of(new ClassAnnotationSpec(Persistor.class,
-            /**
-             * Peristors on classes are interpreted differently than the same annotation on a containing field. The
-             * level of the {@link NodeSettings} that the persistor operates on is different.
-             */
-            false));
+        List.of(new ClassAnnotationSpec(Persistor.class, false),
+            new ClassAnnotationSpec(BackwardsCompatibleLoader.class, false));
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_LEAF_ANNOTATIONS =
-        List.of(Persist.class, Persistor.class);
+        List.of(Persist.class, Persistor.class, BackwardsCompatibleLoader.class);
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_ARRAY_ANNOTATIONS = POSSIBLE_LEAF_ANNOTATIONS;
 
