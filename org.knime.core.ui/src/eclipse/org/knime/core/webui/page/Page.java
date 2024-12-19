@@ -260,6 +260,20 @@ public final class Page implements Resource {
      *
      * @param content the page content supplier for lazy initialization
      * @param relativePath the relative path of the page (including the page resource name itself)
+     * @param charset the encoding of the content
+     * @return a new {@link PageBuilder}-instance
+     */
+    public static PageBuilder builder(final InputStreamSupplier content, final String relativePath,
+        final Charset charset) {
+        return new PageBuilder(content, relativePath, charset);
+    }
+
+    /**
+     * Creates a {@link PageBuilder}-instance to create a (dynamic) page (and associated resources) from an
+     * {@link InputStream}.
+     *
+     * @param content the page content supplier for lazy initialization
+     * @param relativePath the relative path of the page (including the page resource name itself)
      * @return a new {@link PageBuilder}-instance
      */
     public static PageBuilder builder(final StringSupplier content, final String relativePath) {
