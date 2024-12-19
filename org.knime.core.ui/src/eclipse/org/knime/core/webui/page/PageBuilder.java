@@ -100,7 +100,15 @@ public class PageBuilder {
         return addResource(content, relativePath, null);
     }
 
-    private PageBuilder addResource(final Supplier<InputStream> content, final String relativePath,
+    /**
+     * Adds another resource to the 'context' of a page (such js-resource).
+     *
+     * @param content the actual content of the resource
+     * @param relativePath the relative path to the resource (including the resource name itself)
+     * @param charset the encoding of the content
+     * @return this page builder instance
+     */
+    public PageBuilder addResource(final Supplier<InputStream> content, final String relativePath,
         final Charset charset) {
         m_resources.add(createResource(content, relativePath, false, charset));
         return this;
