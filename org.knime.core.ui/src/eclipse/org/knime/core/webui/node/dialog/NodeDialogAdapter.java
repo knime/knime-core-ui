@@ -48,7 +48,6 @@ package org.knime.core.webui.node.dialog;
 
 import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.Node;
@@ -57,18 +56,13 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.FlowObjectStack;
-import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.NodeID;
 import org.knime.core.node.workflow.SingleNodeContainer;
 import org.knime.core.webui.UIExtension;
-import org.knime.core.webui.data.ApplyDataService;
 import org.knime.core.webui.data.DataServiceProvider;
-import org.knime.core.webui.data.InitialDataService;
 import org.knime.core.webui.data.RpcDataService;
-import org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier;
 import org.knime.core.webui.page.Page;
 
 /**
@@ -80,25 +74,14 @@ import org.knime.core.webui.page.Page;
  *
  * @since 5.2
  */
-final class NodeDialogAdapter implements UIExtension, DataServiceProvider {
-
-    private final SingleNodeContainer m_snc;
+final class NodeDialogAdapter extends AbstractNodeInterfaceAdapter implements UIExtension {
 
     private final NodeDialog m_dialog;
 
-    private final Set<SettingsType> m_settingsTypes;
-
-    private final OnApplyNodeModifier m_onApplyModifier;
-
-    private final NodeSettingsService m_nodeSettingsService;
-
     NodeDialogAdapter(final SingleNodeContainer snc, final NodeDialog dialog) {
+        super(snc, dialog.getSettingsTypes(), dialog.getNodeSettingsService(),
+            dialog.getOnApplyNodeModifier().orElse(null));
         m_dialog = dialog;
-        m_settingsTypes = dialog.getSettingsTypes();
-        CheckUtils.checkState(!m_settingsTypes.isEmpty(), "At least one settings type must be provided");
-        m_snc = snc;
-        m_onApplyModifier = dialog.getOnApplyNodeModifier().orElse(null);
-        m_nodeSettingsService = dialog.getNodeSettingsService();
     }
 
     /**
@@ -108,12 +91,9 @@ final class NodeDialogAdapter implements UIExtension, DataServiceProvider {
      * @param dialog
      */
     NodeDialogAdapter(final NodeDialog dialog) {
+        super(null, dialog.getSettingsTypes(), null, null);
         m_dialog = dialog;
-        m_settingsTypes = dialog.getSettingsTypes();
-        CheckUtils.checkState(!m_settingsTypes.isEmpty(), "At least one settings type must be provided");
-        m_snc = null;
-        m_onApplyModifier = null;
-        m_nodeSettingsService = null;
+
     }
 
     @Override
@@ -121,24 +101,12 @@ final class NodeDialogAdapter implements UIExtension, DataServiceProvider {
         return m_dialog.getPage();
     }
 
-    @Override
-    public Optional<InitialDataService<String>> createInitialDataService() {
-        var initialData = new InitialData(m_snc, m_settingsTypes, m_nodeSettingsService);
-        return Optional.of(InitialDataService.builder(initialData::get).onDeactivate(this::deactivate).build());
-    }
 
     @Override
     public Optional<RpcDataService> createRpcDataService() {
         return m_dialog.createRpcDataService();
     }
 
-    @Override
-    public Optional<ApplyDataService<String>> createApplyDataService() {
-        var applyData = new ApplyData(m_snc, m_settingsTypes, m_nodeSettingsService, m_onApplyModifier);
-        return Optional.of(ApplyDataService.builder(applyData::applyData) //
-            .onDeactivate(applyData::cleanUp) //
-            .build());
-    }
 
     /**
      * @return the original dialog this dialog adapter wraps
@@ -199,15 +167,6 @@ final class NodeDialogAdapter implements UIExtension, DataServiceProvider {
             setSelected(FLOW_VARIABLES_TAB_NAME);
         }
 
-    }
-
-    private void deactivate() {
-        NodeContext.pushContext(m_snc);
-        try {
-            m_nodeSettingsService.deactivate();
-        } finally {
-            NodeContext.removeLastContext();
-        }
     }
 
 }
