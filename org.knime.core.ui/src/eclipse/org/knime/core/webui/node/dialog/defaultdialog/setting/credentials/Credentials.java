@@ -64,8 +64,6 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.NodeID;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NodeSettingsPersistorWithInferredConfigs;
 
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -268,7 +266,7 @@ public final class Credentials {
      *
      * @author Marc Bux, KNIME GmbH, Berlin, Germany
      */
-    public static final class CredentialsPersistor implements NodeSettingsPersistorWithInferredConfigs<Credentials> {
+    public static final class CredentialsPersistor implements NodeSettingsPersistor<Credentials> {
 
         private static final String CFG_PASSWORD = "weaklyEncryptedPassword";
 
@@ -280,8 +278,11 @@ public final class Credentials {
 
         private final String m_configKey;
 
-        CredentialsPersistor(final NodeSettingsPersistorContext<Credentials> credentials) {
-            m_configKey = credentials.getConfigKey();
+        /**
+         * @param configKey
+         */
+        public CredentialsPersistor(final String configKey) {
+            m_configKey = configKey;
         }
 
         @Override

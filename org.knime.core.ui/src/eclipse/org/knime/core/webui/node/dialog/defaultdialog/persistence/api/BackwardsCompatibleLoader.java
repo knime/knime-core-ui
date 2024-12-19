@@ -55,15 +55,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.FieldBasedNodeSettingsPersistor;
-
 /**
  * Annotates a class with a persistor that is used to save and load objects of the class to and from NodeSettings. If no
- * persistence is provided, we fall back to the {@link FieldBasedNodeSettingsPersistor}. This default performs
- * persistence of all fields independently and allows further customization on a per field basis via the {@link Persist}
- * annotation. <br>
+ * persistence is provided, we fall back to persisting each field. This default performs persistence of all fields
+ * independently and allows further customization on a per field basis via the {@link Persist} annotation. <br>
  * <br>
- * If you find the FieldBasedNodeSettingsPersistor to be insufficient for your needs, you can also implement your own
+ * If you find the field based persistor to be insufficient for your needs, you can also implement your own
  * {@link NodeSettingsPersistor} and provide it here.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany

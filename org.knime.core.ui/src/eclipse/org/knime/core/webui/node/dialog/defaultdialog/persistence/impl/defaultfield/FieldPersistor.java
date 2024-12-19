@@ -53,5 +53,5 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultf
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-interface FieldPersistor<T> extends FieldLoader<T>, FieldSaver<T>, DeprecatedConfigsGetter<T> {
+interface FieldPersistor<T> extends FieldLoader<T>, FieldSaver<T> {
 }

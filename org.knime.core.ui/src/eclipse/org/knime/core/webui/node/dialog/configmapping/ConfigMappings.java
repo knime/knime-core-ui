@@ -107,4 +107,31 @@ public final class ConfigMappings {
         m_children = List.of();
         this.m_key = null;
     }
+
+    /**
+     * @param newAndDeprecatedConfigPaths the configs that possibly need to be corrected because of mismatches between
+     *            settings and flow variables because of deprecation of config keys
+     * @param oldSettingsToNewSettings a method that is able to transform the previous node settings to new node
+     *            settings. It is used only when the previous value should be used but overwritten by a new flow
+     *            variable, i.e. when the user de-selected a deprecated flow variable and selects a new one before
+     *            applying.
+     */
+    public ConfigMappings(final Collection<ConfigPath> deprecatedConfigPaths, // TODO! refine this constructor
+        final Collection<ConfigPath> newConfigPaths, final UnaryOperator<NodeSettingsRO> oldSettingsToNewSettings) {
+        m_newAndDeprecatedConfigPaths = new NewAndDeprecatedConfigPaths() {
+
+            @Override
+            public Collection<ConfigPath> getNewConfigPaths() {
+                return newConfigPaths;
+            }
+
+            @Override
+            public Collection<ConfigPath> getDeprecatedConfigPaths() {
+                return deprecatedConfigPaths;
+            }
+        };
+        m_oldSettingsToNewSettings = oldSettingsToNewSettings;
+        m_children = List.of();
+        this.m_key = null;
+    }
 }
