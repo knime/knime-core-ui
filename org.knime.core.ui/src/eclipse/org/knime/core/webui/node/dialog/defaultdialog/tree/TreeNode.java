@@ -239,7 +239,7 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
     /**
      * Used only for resolving {@link Modification}s.
      */
-    void addOrReplaceAnnotation(final Class<? extends Annotation> key, final Annotation value) {
+    public void addOrReplaceAnnotation(final Class<? extends Annotation> key, final Annotation value) {
         m_annotations.put(key, value);
     }
 
