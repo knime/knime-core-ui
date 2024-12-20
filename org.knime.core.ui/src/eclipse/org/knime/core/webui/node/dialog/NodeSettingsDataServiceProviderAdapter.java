@@ -61,12 +61,29 @@ import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier;
 
 /**
+ * Adapts a {@link NodeSettingsService} into a {@link DataServiceProvider}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- * @noextend
- * @noreference
+ * @noextend non-public API not intended for direct use by client code.
+ * @noreference non-public API not intended for direct use by client code.
+ * @since 5.5
  */
-public abstract class AbstractNodeInterfaceAdapter implements DataServiceProvider {
+public final class NodeSettingsDataServiceProviderAdapter implements DataServiceProvider {
+
+    /**
+     * Adapts a {@link NodeSettingsService} to a {@link DataServiceProvider}.
+     *
+     * @param snc the container of the node that the nodeSettingsService belongs to
+     * @param settingsTypes the types of settings the node has
+     * @param nodeSettingsService the settings service of the node
+     * @param onApplyModifier modifier to be applied by the {@link #createApplyDataService()} method
+     * @return a DataServiceProvder that is backed by the given nodeSettingsService
+     */
+    public static DataServiceProvider adaptNodeSettingsService(final SingleNodeContainer snc, final Set<SettingsType> settingsTypes,
+        final NodeSettingsService nodeSettingsService, final OnApplyNodeModifier onApplyModifier) {
+        return new NodeSettingsDataServiceProviderAdapter(snc, settingsTypes, nodeSettingsService, onApplyModifier);
+    }
+
 
     private final SingleNodeContainer m_snc;
 
@@ -85,7 +102,7 @@ public abstract class AbstractNodeInterfaceAdapter implements DataServiceProvide
      * @param nodeSettingsService for extracting and applying settings
      * @param onApplyModifier
      */
-    protected AbstractNodeInterfaceAdapter(final SingleNodeContainer snc, final Set<SettingsType> settingsTypes,
+    private NodeSettingsDataServiceProviderAdapter(final SingleNodeContainer snc, final Set<SettingsType> settingsTypes,
         final NodeSettingsService nodeSettingsService, final OnApplyNodeModifier onApplyModifier) {
         m_snc = snc;
         m_settingsTypes = settingsTypes;
