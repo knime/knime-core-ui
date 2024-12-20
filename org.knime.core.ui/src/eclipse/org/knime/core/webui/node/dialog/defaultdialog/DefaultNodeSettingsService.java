@@ -105,14 +105,27 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
 
     private final Map<SettingsType, Class<? extends DefaultNodeSettings>> m_settingsClasses;
 
+    // TODO refactor to separate Dialog and K-AI logic
+    private final boolean m_isForKai;
+
     /**
      * @param settingsClasses map that associates a {@link DefaultNodeSettings} class-with a {@link SettingsType}
      * @param asyncChoicesHolder used to start asynchronous computations of choices during the ui-schema generation.
      */
     public DefaultNodeSettingsService(final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses,
         final AsyncChoicesHolder asyncChoicesHolder) {
+        this(settingsClasses, asyncChoicesHolder, false);
+    }
+
+    /**
+     * @param settingsClasses map that associates a {@link DefaultNodeSettings} class-with a {@link SettingsType}
+     * @param asyncChoicesHolder used to start asynchronous computations of choices during the ui-schema generation.
+     */
+    DefaultNodeSettingsService(final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses,
+        final AsyncChoicesHolder asyncChoicesHolder, final boolean isForKai) {
         m_settingsClasses = settingsClasses;
         m_asyncChoicesHolder = asyncChoicesHolder;
+        m_isForKai = isForKai;
     }
 
     @Override
@@ -172,9 +185,17 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
         final var widgetTreeFactory = new WidgetTreeFactory();
         final var widgetTrees = map(loadedSettings, (type, s) -> widgetTreeFactory.createTree(s.getClass(), type));
 
+        if (m_isForKai) {
+            widgetTrees.values().forEach(KaiSchemaEnhancer::enhanceForKai);
+        }
+
         final var jsonFormsSettings = new JsonFormsSettingsImpl(loadedSettings, context, widgetTrees);
         final var root = jsonFormsSettingsToJson(jsonFormsSettings, mapper);
-        addAdditionalFieldsToRoot(root, settings, loadedSettings, context, widgetTrees);
+        if (m_isForKai) {
+            root.remove(FIELD_NAME_UI_SCHEMA);
+        } else {
+            addAdditionalFieldsToRoot(root, settings, loadedSettings, context, widgetTrees);
+        }
         return jsonToString(root, mapper);
     }
 
