@@ -61,7 +61,9 @@ import org.knime.core.node.workflow.FlowObjectStack;
 import org.knime.core.node.workflow.NodeID;
 import org.knime.core.node.workflow.SingleNodeContainer;
 import org.knime.core.webui.UIExtension;
+import org.knime.core.webui.data.ApplyDataService;
 import org.knime.core.webui.data.DataServiceProvider;
+import org.knime.core.webui.data.InitialDataService;
 import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.page.Page;
 
@@ -74,14 +76,16 @@ import org.knime.core.webui.page.Page;
  *
  * @since 5.2
  */
-final class NodeDialogAdapter extends AbstractNodeInterfaceAdapter implements UIExtension {
+final class NodeDialogAdapter implements UIExtension, DataServiceProvider {
 
     private final NodeDialog m_dialog;
 
+    private final DataServiceProvider m_dataServiceProvider;
+
     NodeDialogAdapter(final SingleNodeContainer snc, final NodeDialog dialog) {
-        super(snc, dialog.getSettingsTypes(), dialog.getNodeSettingsService(),
-            dialog.getOnApplyNodeModifier().orElse(null));
         m_dialog = dialog;
+        m_dataServiceProvider = NodeSettingsDataServiceProviderAdapter.adaptNodeSettingsService(snc, dialog.getSettingsTypes(),
+            dialog.getNodeSettingsService(), dialog.getOnApplyNodeModifier().orElse(null));
     }
 
     /**
@@ -91,14 +95,24 @@ final class NodeDialogAdapter extends AbstractNodeInterfaceAdapter implements UI
      * @param dialog
      */
     NodeDialogAdapter(final NodeDialog dialog) {
-        super(null, dialog.getSettingsTypes(), null, null);
         m_dialog = dialog;
+        m_dataServiceProvider = NodeSettingsDataServiceProviderAdapter.adaptNodeSettingsService(null, dialog.getSettingsTypes(), null, null);
 
     }
 
     @Override
     public Page getPage() {
         return m_dialog.getPage();
+    }
+
+    @Override
+    public <D> Optional<InitialDataService<D>> createInitialDataService() {
+        return m_dataServiceProvider.createInitialDataService();
+    }
+
+    @Override
+    public <D> Optional<ApplyDataService<D>> createApplyDataService() {
+        return m_dataServiceProvider.createApplyDataService();
     }
 
 
@@ -135,12 +149,12 @@ final class NodeDialogAdapter extends AbstractNodeInterfaceAdapter implements UI
 
         @Override
         protected boolean hasModelSettings() {
-            return m_settingsTypes.contains(SettingsType.MODEL);
+            return m_dialog.getSettingsTypes().contains(SettingsType.MODEL);
         }
 
         @Override
         protected boolean hasViewSettings() {
-            return m_settingsTypes.contains(SettingsType.VIEW);
+            return m_dialog.getSettingsTypes().contains(SettingsType.VIEW);
         }
 
         @Override
