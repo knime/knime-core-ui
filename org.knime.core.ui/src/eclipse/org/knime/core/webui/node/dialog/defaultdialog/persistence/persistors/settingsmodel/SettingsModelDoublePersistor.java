@@ -65,7 +65,7 @@ public class SettingsModelDoublePersistor implements NodeSettingsPersistor<Doubl
     private final String m_configKey;
 
     SettingsModelDoublePersistor(final NodeSettingsPersistorContext<Double> context) {
-        m_configKey = context.getConfigKey();
+        m_configKey = context.getFieldName();
     }
 
     @Override

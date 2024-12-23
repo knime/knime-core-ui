@@ -73,7 +73,7 @@ public class EnumSettingsModelStringPersistor<E extends Enum<E>> implements Node
      * @param context
      */
     public EnumSettingsModelStringPersistor(final NodeSettingsPersistorContext<E> context) {
-        m_configKey = context.getConfigKey();
+        m_configKey = context.getFieldName();
         m_enumClass = context.getPersistedObjectClass();
     }
 

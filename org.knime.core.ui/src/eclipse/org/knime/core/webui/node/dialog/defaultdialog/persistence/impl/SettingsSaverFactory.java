@@ -67,7 +67,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
  * @author Paul Bärnreuther
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class SettingsSaverFactory extends PersistenceFactory<SettingsSaver> {
+public final class SettingsSaverFactory extends PersistenceFactory<SettingsSaver> {
 
     private static final SettingsSaverFactory INSTANCE = new SettingsSaverFactory();
 

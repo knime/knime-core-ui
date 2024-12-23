@@ -69,7 +69,7 @@ public final class LegacyReaderFileSelectionPersistor implements NodeSettingsPer
     private String m_configKey;
 
     LegacyReaderFileSelectionPersistor(final NodeSettingsPersistorContext<FileSelection> context) {
-        m_configKey = context.getConfigKey();
+        m_configKey = context.getFieldName();
     }
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(LegacyReaderFileSelectionPersistor.class);

@@ -61,10 +61,10 @@ public interface NodeSettingsPersistorContext<T> {
      * Only use this method within a persistor attached to a field.
      *
      * @return the config key that would be used by default if this field was not attached to a persistor. I.e. the
-     *         field name or, if present, the {@link Persist#configKey()}.
+     *         field name stripped of the "m_" prefix if it exists.
      * @throws IllegalStateException if the current persistor is not attached to a field but instead to a class.
      */
-    String getConfigKey();
+    String getFieldName();
 
     /**
      * @return the class of the persisted object, i.e., its type is the same as the generic type of the persistor.

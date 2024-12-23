@@ -62,6 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
@@ -239,56 +240,7 @@ public abstract class PersistenceFactory<T> {
      * @return the extracted property.
      */
     protected final T extractFromTree(final Tree<PersistableSettings> node) {
-        final var extractionMethods = new ExtractionMethods<T>() {
-
-            @Override
-            public <A extends Annotation> Optional<A> getAnnotation(final Class<A> annotationClass) {
-                return node.getTypeAnnotation(annotationClass);
-            }
-
-            @SuppressWarnings("unchecked")
-            @Override
-            public NodeSettingsPersistor
-                constructPersistor(final Class<? extends NodeSettingsPersistor> persistorClass) {
-                return createPersistor(persistorClass, node.getType());
-            }
-
-            @Override
-            public T fromPersistor(final NodeSettingsPersistor<?> persistor) {
-                return getFromCustomPersistorForType(persistor, node);
-            }
-
-            /**
-             * Per default, we persist by persisting all fields.
-             */
-            @Override
-            public T getDefault() {
-                return getForTree(node, child -> extractFromTreeNode(child));
-            }
-
-            /**
-             * All sub paths. Note that returning an empty 2d array would result in the opposite, i.e. none of the sub
-             * paths.
-             */
-            @Override
-            public String[][] getDefaultConfigPaths() {
-                return new String[][]{new String[]{}};
-            }
-
-            @Override
-            public T combineWithLoader(final T withoutLoader, final List<ConfigsDeprecation> deprecatedConfigs,
-                final Supplier<String[][]> configPathsSupplier) {
-                return combineWithConfigsDeprecationsForType(withoutLoader, deprecatedConfigs, configPathsSupplier,
-                    node);
-            }
-
-            @Override
-            public T postProcess(final T result, final Supplier<String[][]> configPathsProvider) {
-                return result;
-            }
-
-        };
-        return performExtraction(extractionMethods);
+        return performExtraction(new TreeExtractionMethods(node));
     }
 
     /**
@@ -298,60 +250,51 @@ public abstract class PersistenceFactory<T> {
      * @return the extracted property.
      */
     protected final T extractFromTreeNode(final TreeNode<PersistableSettings> node) {
-        final var extractionMethods = new ExtractionMethods<T>() {
+        validateAnnotationCombinations(node);
+        return performExtraction(new TreeNodeExtractionMethods(node));
 
-            @Override
-            public <A extends Annotation> Optional<A> getAnnotation(final Class<A> annotationClass) {
-                return node.getAnnotation(annotationClass);
-            }
+    }
 
-            @Override
-            @SuppressWarnings("unchecked")
-            public NodeSettingsPersistor
-                constructPersistor(final Class<? extends NodeSettingsPersistor> persistorClass) {
-                return createPersistor(persistorClass, node.getType(), node.getName().orElse(""));
-            }
+    /**
+     * @throws IllegalStateException if the annotations are not valid.
+     */
+    private static void validateAnnotationCombinations(final TreeNode<PersistableSettings> node) {
+        if (node.getAnnotation(Persistor.class).isPresent() && node.getAnnotation(Persist.class).isPresent()) {
+            throw new IllegalStateException(
+                String.format(
+                    "Cannot have both @Persistor and @Persist annotation on the same field %s."
+                        + "Read the documentation of @Persist on how to realize the same via @Persistor.",
+                    node.getPath()));
+        }
+        if (node.getAnnotation(Migration.class).isPresent() && node.getAnnotation(Migrate.class).isPresent()) {
+            throw new IllegalStateException(
+                String.format(
+                    "Cannot have both @Migration and @Migrate annotation on the same field %s. "
+                        + "Read the documentation of @Migrate on how to realize the same via @Migration.",
+                    node.getPath()));
+        }
 
-            @Override
-            public T fromPersistor(final NodeSettingsPersistor<?> persistor) {
-                return getFromCustomPersistor(persistor, node);
-            }
+    }
 
-            @Override
-            public T getDefault() {
-                if (node instanceof Tree<PersistableSettings> tree) {
-                    return getNested(node, extractFromTree(tree));
-                } else if (node instanceof ArrayParentNode<PersistableSettings> arrayNode) {
-                    return getNested(node, getForArray(arrayNode, extractFromTree(arrayNode.getElementTree())));
-                } else if (node instanceof LeafNode<PersistableSettings> leaf) {
-                    return getForLeaf(leaf);
-                }
-                throw new NotImplementedException("Only tree, arrayParent and leaf exist when implementing this.");
-            }
+    private T performExtraction(final ExtractionMethods<T> ex) {
+        final var customPersistor = ex.getAnnotation(Persistor.class).map(Persistor::value).map(ex::constructPersistor);
+        final var withoutLoader = customPersistor.map(ex::fromPersistor).orElseGet(ex::getDefault);
+        final Supplier<String[][]> configPathsSupplier =
+            () -> customPersistor.map(NodeSettingsPersistor::getConfigPaths).orElseGet(ex::getDefaultConfigPaths);
+        final var combinedWithLoaders = performCombineWithDeprecatedConfigs(ex, withoutLoader, configPathsSupplier);
+        return ex.postProcess(combinedWithLoaders, configPathsSupplier);
+    }
 
-            @Override
-            public String[][] getDefaultConfigPaths() {
-                return new String[][]{{ConfigKeyUtil.getConfigKey(node)}};
-            }
-
-            @Override
-            public T combineWithLoader(final T withoutLoader, final List<ConfigsDeprecation> deprecatedConfigs,
-                final Supplier<String[][]> configPathsSupplier) {
-                return combineWithConfigsDeprecations(withoutLoader, deprecatedConfigs, configPathsSupplier, node);
-            }
-
-            @Override
-            public T postProcess(final T result, final Supplier<String[][]> configPathsProvider) {
-                if (node.getAnnotation(Migrate.class).map(Migrate::loadDefaultIfAbsent).orElse(false)) {
-                    return combineWithLoadDefault(result, configPathsProvider, node);
-                }
-                return result;
-            }
-
-        };
-
-        return performExtraction(extractionMethods);
-
+    @SuppressWarnings("unchecked")
+    private T performCombineWithDeprecatedConfigs(final ExtractionMethods<T> ex, final T withoutLoader,
+        final Supplier<String[][]> configPathsSupplier) {
+        final List<ConfigsDeprecation> deprecatedConfigs =
+            ex.getAnnotation(Migration.class).map(CreatePersisenceObjectsUtil::createMigrator)
+                .map(NodeSettingsMigrator::getConfigsDeprecations).orElse(List.of());
+        if (deprecatedConfigs.isEmpty()) {
+            return withoutLoader;
+        }
+        return ex.combineWithLoader(withoutLoader, deprecatedConfigs, configPathsSupplier);
     }
 
     interface ExtractionMethods<T> {
@@ -372,28 +315,111 @@ public abstract class PersistenceFactory<T> {
 
     }
 
-    private T performExtraction(final ExtractionMethods<T> ex) {
-        final var customPersistor = ex.getAnnotation(Persistor.class).map(Persistor::value).map(ex::constructPersistor);
-        final var withoutLoader = customPersistor.map(ex::fromPersistor).orElseGet(ex::getDefault);
-        final Supplier<String[][]> configPathsSupplier =
-            () -> customPersistor.map(NodeSettingsPersistor::getConfigPaths).orElseGet(ex::getDefaultConfigPaths);
-        final var combinedWithLoaders = performCombineWithDeprecatedConfigs(ex, withoutLoader, configPathsSupplier);
-        return ex.postProcess(combinedWithLoaders, configPathsSupplier);
-    }
+    private final class TreeExtractionMethods implements ExtractionMethods<T> {
+        private final Tree<PersistableSettings> m_node;
 
-    private T performCombineWithDeprecatedConfigs(final ExtractionMethods<T> ex, final T withoutLoader,
-        final Supplier<String[][]> configPathsSupplier) {
-        final var deprecatedConfigs = getConfigsDeprecations(ex.getAnnotation(Migration.class));
-        if (deprecatedConfigs.isEmpty()) {
-            return withoutLoader;
+        private TreeExtractionMethods(final Tree<PersistableSettings> node) {
+            m_node = node;
         }
-        return ex.combineWithLoader(withoutLoader, deprecatedConfigs, configPathsSupplier);
+
+        @Override
+        public <A extends Annotation> Optional<A> getAnnotation(final Class<A> annotationClass) {
+            return m_node.getTypeAnnotation(annotationClass);
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public NodeSettingsPersistor constructPersistor(final Class<? extends NodeSettingsPersistor> persistorClass) {
+            return createPersistor(persistorClass, m_node.getType());
+        }
+
+        @Override
+        public T fromPersistor(final NodeSettingsPersistor<?> persistor) {
+            return getFromCustomPersistorForType(persistor, m_node);
+        }
+
+        /**
+         * Per default, we persist by persisting all fields.
+         */
+        @Override
+        public T getDefault() {
+            return getForTree(m_node, child -> extractFromTreeNode(child));
+        }
+
+        /**
+         * All sub paths. Note that returning an empty 2d array would result in the opposite, i.e. none of the sub
+         * paths.
+         */
+        @Override
+        public String[][] getDefaultConfigPaths() {
+            return new String[][]{new String[]{}};
+        }
+
+        @Override
+        public T combineWithLoader(final T withoutLoader, final List<ConfigsDeprecation> deprecatedConfigs,
+            final Supplier<String[][]> configPathsSupplier) {
+            return combineWithConfigsDeprecationsForType(withoutLoader, deprecatedConfigs, configPathsSupplier, m_node);
+        }
+
+        @Override
+        public T postProcess(final T result, final Supplier<String[][]> configPathsProvider) {
+            return result;
+        }
     }
 
-    @SuppressWarnings("unchecked")
-    private static List<ConfigsDeprecation> getConfigsDeprecations(final Optional<Migration> annotation) {
-        return annotation.map(CreatePersisenceObjectsUtil::createMigrator)
-            .map(NodeSettingsMigrator::getConfigsDeprecations).orElse(List.of());
+    private final class TreeNodeExtractionMethods implements ExtractionMethods<T> {
+        private final TreeNode<PersistableSettings> m_node;
+
+        private TreeNodeExtractionMethods(final TreeNode<PersistableSettings> node) {
+            m_node = node;
+        }
+
+        @Override
+        public <A extends Annotation> Optional<A> getAnnotation(final Class<A> annotationClass) {
+            return m_node.getAnnotation(annotationClass);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public NodeSettingsPersistor constructPersistor(final Class<? extends NodeSettingsPersistor> persistorClass) {
+            return createPersistor(persistorClass, m_node.getType(), m_node.getName().orElse(""));
+        }
+
+        @Override
+        public T fromPersistor(final NodeSettingsPersistor<?> persistor) {
+            return getFromCustomPersistor(persistor, m_node);
+        }
+
+        @Override
+        public T getDefault() {
+            if (m_node instanceof Tree<PersistableSettings> tree) {
+                return getNested(m_node, extractFromTree(tree));
+            } else if (m_node instanceof ArrayParentNode<PersistableSettings> arrayNode) {
+                return getNested(m_node, getForArray(arrayNode, extractFromTree(arrayNode.getElementTree())));
+            } else if (m_node instanceof LeafNode<PersistableSettings> leaf) {
+                return getForLeaf(leaf);
+            }
+            throw new NotImplementedException("Only tree, arrayParent and leaf exist when implementing this.");
+        }
+
+        @Override
+        public String[][] getDefaultConfigPaths() {
+            return new String[][]{{ConfigKeyUtil.getConfigKey(m_node)}};
+        }
+
+        @Override
+        public T combineWithLoader(final T withoutLoader, final List<ConfigsDeprecation> deprecatedConfigs,
+            final Supplier<String[][]> configPathsSupplier) {
+            return combineWithConfigsDeprecations(withoutLoader, deprecatedConfigs, configPathsSupplier, m_node);
+        }
+
+        @Override
+        public T postProcess(final T result, final Supplier<String[][]> configPathsProvider) {
+            if (m_node.getAnnotation(Migrate.class).map(Migrate::loadDefaultIfAbsent).orElse(false)) {
+                return combineWithLoadDefault(result, configPathsProvider, m_node);
+            }
+            return result;
+        }
     }
 
 }

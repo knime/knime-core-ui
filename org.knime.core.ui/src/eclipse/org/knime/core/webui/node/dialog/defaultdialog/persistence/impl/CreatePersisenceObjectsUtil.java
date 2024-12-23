@@ -58,7 +58,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
  *
  * @author Paul Bärnreuther
  */
-class CreatePersisenceObjectsUtil {
+final class CreatePersisenceObjectsUtil {
 
     private CreatePersisenceObjectsUtil() {
         // utility class
@@ -119,7 +119,7 @@ class CreatePersisenceObjectsUtil {
         }
 
         @Override
-        public String getConfigKey() {
+        public String getFieldName() {
             if (m_fieldName == null) {
                 throw new IllegalStateException("There is no config key available for this persistor. "
                     + "It is only available if the persistors is attached to a field.");

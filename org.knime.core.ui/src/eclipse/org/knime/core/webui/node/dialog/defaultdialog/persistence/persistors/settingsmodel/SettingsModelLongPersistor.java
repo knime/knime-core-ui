@@ -65,7 +65,7 @@ public class SettingsModelLongPersistor implements NodeSettingsPersistor<Long> {
     private final String m_configKey;
 
     SettingsModelLongPersistor(final NodeSettingsPersistorContext<Long> context) {
-        m_configKey = context.getConfigKey();
+        m_configKey = context.getFieldName();
     }
 
     @Override

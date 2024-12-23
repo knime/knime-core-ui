@@ -131,7 +131,7 @@ public final class SettingsLoaderFactory extends PersistenceFactory<SettingsLoad
         };
     }
 
-    private static final Pattern IS_DIGIT = Pattern.compile("^\\d+$");
+    private static Pattern IS_DIGIT = Pattern.compile("^\\d+$");
 
     @Override
     protected SettingsLoader getForArray(final ArrayParentNode<PersistableSettings> arrayNode,

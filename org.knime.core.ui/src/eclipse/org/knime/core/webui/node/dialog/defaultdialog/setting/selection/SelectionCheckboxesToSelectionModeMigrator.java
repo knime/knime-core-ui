@@ -66,16 +66,14 @@ public class SelectionCheckboxesToSelectionModeMigrator implements NodeSettingsM
     private static final String SUBSCRIBE_TO_SELECTION = "subscribeToSelection";
 
     private static SelectionMode loadFromBooleans(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final var publish = settings.getBoolean(PUBLISH_SELECTION);
-        final var show = settings.getBoolean(SUBSCRIBE_TO_SELECTION);
         /**
          * There is no option for only publishing since this change to a value switch. I.e. in this case, we now also
          * subscribe to the selection.
          */
-        if (publish) {
+        if (settings.getBoolean(PUBLISH_SELECTION)) {
             return SelectionMode.EDIT;
         }
-        if (show) {
+        if (settings.getBoolean(SUBSCRIBE_TO_SELECTION)) {
             return SelectionMode.SHOW;
         }
         return SelectionMode.OFF;

@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -55,6 +56,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.Se
 import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory.getSettingsSaver;
 import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory.saveSettings;
 
+import java.util.List;
 import java.util.Objects;
 
 import org.apache.commons.lang3.NotImplementedException;
@@ -63,10 +65,12 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
@@ -702,6 +706,62 @@ class FieldBasedNodeSettingsPersistorTest {
             return m_foo == settings.m_foo;
         }
 
+    }
+
+    @Test
+    void throwsIfPersistorAndPersistAreUsedAtTheSameTime() {
+        assertThat(assertThrows(IllegalStateException.class,
+            () -> loadSettings(PersistAndPersistorUsedAtTheSameTime.class, null))).hasMessageContaining("Persistor",
+                "Persist", "fieldName");
+    }
+
+    static final class PersistAndPersistorUsedAtTheSameTime implements DefaultNodeSettings {
+
+        static final class PersistorClass implements NodeSettingsPersistor<Integer> {
+
+            @Override
+            public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                throw new IllegalStateException("not used by tests");
+            }
+
+            @Override
+            public void save(final Integer obj, final NodeSettingsWO settings) {
+                throw new IllegalStateException("not used by tests");
+            }
+
+            @Override
+            public String[][] getConfigPaths() {
+                throw new IllegalStateException("not used by tests");
+            }
+        }
+
+        @Persistor(PersistorClass.class)
+        @Persist(configKey = "bar")
+        int m_fieldName;
+    }
+
+    @Test
+    void throwsIfMigrationAndMigrateAreUsedAtTheSameTime() {
+        assertThat(assertThrows(IllegalStateException.class,
+            () -> loadSettings(MigrationAndMigrateUsedAtTheSameTime.class, null))).hasMessageContaining("Migration",
+                "Migrate", "fieldName");
+    }
+
+    static final class MigrationAndMigrateUsedAtTheSameTime implements DefaultNodeSettings {
+
+        static final class MigratorClass implements NodeSettingsMigrator<Integer> {
+
+            @Override
+            public List<ConfigsDeprecation<Integer>> getConfigsDeprecations() {
+                throw new IllegalStateException("not used by tests");
+
+            }
+
+        }
+
+        @Migration(MigratorClass.class)
+        @Migrate(loadDefaultIfAbsent = true)
+        int m_fieldName;
     }
 
 }
