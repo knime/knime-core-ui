@@ -82,7 +82,7 @@ public class LegacyNameFilterPersistor implements NodeSettingsPersistor<NameFilt
     private final String m_configKey;
 
     LegacyNameFilterPersistor(final NodeSettingsPersistorContext<ColumnFilter> context) {
-        m_configKey = context.getConfigKey();
+        m_configKey = context.getFieldName();
     }
 
     /**

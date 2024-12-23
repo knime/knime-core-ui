@@ -81,7 +81,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMappings> {
-    final static NodeLogger LOGGER = NodeLogger.getLogger(ConfigMappingsFactory.class);
+    static final NodeLogger LOGGER = NodeLogger.getLogger(ConfigMappingsFactory.class);
 
     private static final ConfigMappingsFactory INSTANCE = new ConfigMappingsFactory();
 

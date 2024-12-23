@@ -242,7 +242,7 @@ class DefaultNodeSettingsServiceTest {
             private final String m_configKey;
 
             public MyLegacyPersistor(final NodeSettingsPersistorContext<String> context) {
-                m_configKey = context.getConfigKey();
+                m_configKey = context.getFieldName();
             }
 
             @Override

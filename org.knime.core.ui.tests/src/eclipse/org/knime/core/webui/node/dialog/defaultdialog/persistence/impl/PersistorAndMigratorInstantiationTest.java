@@ -138,7 +138,7 @@ class PersistorAndMigratorInstantiationTest {
 
         @Override
         public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return String.format("fieldName: %s, class: %s", m_context.getConfigKey(),
+            return String.format("fieldName: %s, class: %s", m_context.getFieldName(),
                 m_context.getPersistedObjectClass().getSimpleName());
         }
     }

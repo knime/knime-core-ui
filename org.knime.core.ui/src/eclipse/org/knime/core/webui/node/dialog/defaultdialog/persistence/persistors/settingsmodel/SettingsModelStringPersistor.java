@@ -65,7 +65,7 @@ public class SettingsModelStringPersistor implements NodeSettingsPersistor<Strin
     private final String m_configKey;
 
     SettingsModelStringPersistor(final NodeSettingsPersistorContext<String> context) {
-        m_configKey = context.getConfigKey();
+        m_configKey = context.getFieldName();
     }
 
     @Override

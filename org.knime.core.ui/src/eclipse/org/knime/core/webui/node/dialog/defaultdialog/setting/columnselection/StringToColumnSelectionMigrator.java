@@ -81,7 +81,7 @@ public abstract class StringToColumnSelectionMigrator implements NodeSettingsMig
         try {
             final var fieldSettingsString = settings.getString(m_legacyConfigKey);
             return new ColumnSelection(fieldSettingsString, null);
-        } catch (InvalidSettingsException ex) {
+        } catch (InvalidSettingsException ex) { //NOSONAR
             return loadSettings(ColumnSelection.class, settings.getNodeSettings(m_legacyConfigKey));
         }
     }

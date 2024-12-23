@@ -65,7 +65,7 @@ public class SettingsModelBooleanPersistor implements NodeSettingsPersistor<Bool
     private final String m_configKey;
 
     SettingsModelBooleanPersistor(final NodeSettingsPersistorContext<Boolean> context) {
-        m_configKey = context.getConfigKey();
+        m_configKey = context.getFieldName();
 
     }
 

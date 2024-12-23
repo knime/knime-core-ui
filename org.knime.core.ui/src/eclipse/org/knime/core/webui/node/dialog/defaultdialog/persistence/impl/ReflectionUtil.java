@@ -66,23 +66,13 @@ public final class ReflectionUtil {
 
     }
 
-    /**
-     * Creates an instance of the provided class by calling the constructor that has the provided parameters.
-     *
-     * @param <T> type to instantiate
-     * @param clazz class to instantiate
-     * @param parameters the parameters of the constructor to call
-     * @return an Optional of the clazz if there is a constructor with the provided parameters or
-     *         {@link Optional#empty()} if no such constructor exists
-     */
-    public static <T> Optional<T> createInstance(final Class<T> clazz) {
+    static <T> Optional<T> createInstance(final Class<T> clazz) {
         return getConstructor(clazz).map(ReflectionUtil::createInstance);
     }
 
-    public static <S, P extends NodeSettingsPersistor<S>> Optional<P> createInstance(final Class<P> clazz,
+    static <S, P extends NodeSettingsPersistor<S>> Optional<P> createInstance(final Class<P> clazz,
         final NodeSettingsPersistorContext<S> context) {
-        return getConstructor(clazz, new Class<?>[]{NodeSettingsPersistorContext.class})
-            .map(c -> createInstance(c, context));
+        return getConstructor(clazz, NodeSettingsPersistorContext.class).map(c -> createInstance(c, context));
     }
 
     static <T> T createInstance(final Constructor<T> constructor, final Object... initArgs) {

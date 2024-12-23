@@ -74,7 +74,7 @@ public class LegacyColumnFilterPersistor implements NodeSettingsPersistor<Column
     private final String m_configKey;
 
     LegacyColumnFilterPersistor(final NodeSettingsPersistorContext<ColumnFilter> context) {
-        m_configKey = context.getConfigKey();
+        m_configKey = context.getFieldName();
     }
 
     /**
