@@ -56,10 +56,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import org.apache.xmlbeans.XmlException;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.knime.core.data.def.DoubleCell.DoubleCellFactory;
@@ -84,11 +82,9 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.PortTypeRegistry;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.WorkflowManager;
-import org.knime.core.webui.data.InitialDataService;
-import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.DataValueWrapper;
+import org.knime.core.webui.node.view.table.datavalue.views.StringCellView;
 import org.knime.core.webui.node.view.table.datavalue.views.StringCellViewWithFormatter;
-import org.knime.core.webui.page.Page;
 import org.knime.testing.util.TableTestUtil;
 import org.knime.testing.util.TableTestUtil.ObjectColumn;
 import org.knime.testing.util.WorkflowManagerUtil;
@@ -217,40 +213,6 @@ final class DataValueViewTest {
             return new NoDescriptionProxy(this.getClass());
         }
 
-    }
-
-    private static final class TestStringCellView implements DataValueView {
-
-        final StringCell m_value;
-
-        TestStringCellView(final StringCell value) {
-            m_value = value;
-        }
-
-        boolean hasValue(final String string) {
-            return m_value.getStringValue().equals(string);
-        }
-
-        @Override
-        public Page getPage() {
-            return Page.builder(DataValueViewTest.class, "blub", "page.js").build();
-        }
-
-        @Override
-        public <D> Optional<InitialDataService<D>> createInitialDataService() {
-            return Optional.empty();
-        }
-
-        @Override
-        public Optional<RpcDataService> createRpcDataService() {
-            return Optional.empty();
-        }
-
-    }
-
-    @BeforeAll
-    static void registerStringValueViewFactory() {
-        DataValueViewManager.registerDataValueViewFactory(StringCell.class, TestStringCellView::new);
     }
 
     private WorkflowManager m_wfm;
@@ -392,7 +354,7 @@ final class DataValueViewTest {
         final var pageResourceManager = INSTANCE.getPageResourceManager();
         final var pagePath = pageResourceManager.getPagePath(dataValueWrapper);
 
-        assertThat(pagePath).isEqualTo("uiext-data_value/org.knime.core.data.def.StringCell/page.js");
+        assertThat(pagePath).isEqualTo("uiext-data_value/org.knime.core.data.def.StringCell/StringCellView.html");
     }
 
     @Test
@@ -423,7 +385,7 @@ final class DataValueViewTest {
         final String expectedExtractedValue) {
         final var dataValueView = INSTANCE.getDataValueView(dataValueWrapper);
         assertThat(dataValueView.dataValueClass()).isEqualTo(StringCell.class);
-        assertThat(dataValueView.view()).isInstanceOf(TestStringCellView.class);
-        assertThat(((TestStringCellView)(dataValueView.view())).hasValue(expectedExtractedValue)).isTrue();
+        assertThat(dataValueView.view()).isInstanceOf(StringCellView.class);
+        assertThat(((StringCellView)(dataValueView.view())).getInitialData().value()).isEqualTo(expectedExtractedValue);
     }
 }
