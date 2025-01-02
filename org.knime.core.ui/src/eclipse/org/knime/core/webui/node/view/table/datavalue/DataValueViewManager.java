@@ -59,6 +59,7 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.container.filter.TableFilter;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.data.image.png.PNGImageValue;
 import org.knime.core.data.property.ValueFormatHandler;
 import org.knime.core.data.v2.RowCursor;
 import org.knime.core.data.xml.XMLValue;
@@ -72,6 +73,7 @@ import org.knime.core.webui.node.util.NodeCleanUpCallback;
 import org.knime.core.webui.node.view.table.datavalue.views.StringCellView;
 import org.knime.core.webui.node.view.table.datavalue.views.StringCellViewWithFormatter;
 import org.knime.core.webui.node.view.table.datavalue.views.XMLCodeValueView;
+import org.knime.core.webui.node.view.table.datavalue.views.image.PNGImageValueView;
 
 /**
  * Singleton for registering factories for creating (@link DataValueView}s.
@@ -86,6 +88,7 @@ public final class DataValueViewManager {
         m_dataValueViewFactories = DataValueViewExtensionsUtil.getDataValueViewExtensions();
         m_dataValueViewFactories.put(XMLValue.class, cell -> new XMLCodeValueView((XMLValue<?>)cell));
         m_dataValueViewFactories.put(StringCell.class, cell -> new StringCellView((StringCell)cell));
+        m_dataValueViewFactories.put(PNGImageValue.class, cell -> new PNGImageValueView((PNGImageValue)cell));
     }
 
     private static DataValueViewManager instance;
@@ -115,27 +118,6 @@ public final class DataValueViewManager {
             instance = new DataValueViewManager();
         }
         return instance;
-    }
-
-    /**
-     * Register a factory used to create {@link DataValueView}s for a specific {@link DataValue} type.
-     *
-     * @param dataValueClass the data value type
-     * @param factory the factory
-     * @param <V>
-     */
-    public static <V extends DataValue> void registerDataValueViewFactory(final Class<V> dataValueClass,
-        final DataValueViewFactory<V> factory) {
-        getInstance().m_dataValueViewFactories.put(dataValueClass, factory);
-    }
-
-    /**
-     * For testing purposes
-     *
-     * @param dataValueClass
-     */
-    public static void removeDataValueViewFactory(final Class<?> dataValueClass) {
-        getInstance().m_dataValueViewFactories.remove(dataValueClass);
     }
 
     /**
