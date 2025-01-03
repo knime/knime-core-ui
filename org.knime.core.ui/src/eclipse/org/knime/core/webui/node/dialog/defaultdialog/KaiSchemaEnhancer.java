@@ -84,7 +84,7 @@ final class KaiSchemaEnhancer {
 
         if (widget.isPresent()) {
             var descriptionSuffix = getColumnSelectionDescriptionSuffix(leaf);
-            var description = widget.get().description() + descriptionSuffix;
+            var description = widget.get().description() + descriptionSuffix.orElse("");
             leaf.addOrReplaceAnnotation(Widget.class, createProxy(Widget.class, description, widget.get()));
         }
 
