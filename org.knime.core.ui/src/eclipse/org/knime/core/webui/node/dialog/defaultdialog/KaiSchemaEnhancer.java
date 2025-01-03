@@ -55,6 +55,7 @@ import java.lang.reflect.InvocationHandler;
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
@@ -76,6 +77,8 @@ final class KaiSchemaEnhancer {
             tree.getChildren().stream().forEach(KaiSchemaEnhancer::enhanceForKai);
         } else if (treeNode instanceof LeafNode<WidgetGroup> leaf) {
             enhanceForKai(leaf);
+        } else if (treeNode instanceof ArrayParentNode<WidgetGroup> arrayParent) {
+            enhanceForKai(arrayParent.getElementTree());
         }
     }
 
