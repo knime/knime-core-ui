@@ -166,6 +166,22 @@ public final class DynamicValuesInput implements PersistableSettings {
      * @return dynamic widget
      */
     public static DynamicValuesInput singleValueWithCaseMatchingForStringWithDefault(final DataType dataType) {
+        return singleValueWithDefault(dataType, true);
+    }
+
+    /**
+     * Creates a single-value input that offers case-matching settings for String inputs based on the given argument.
+     * Disabling the case-matching setting makes sense if the original domain of the serialized data will not
+     * produce characters with different cases, e.g. row number, int, long, etc.
+     *
+     * @noreference This method is not intended to be referenced by clients.
+     *
+     * @param dataType data type of input value
+     * @param enableStringCaseMatchingSetting enable case matching setting in case of string
+     * @return dynamic widget
+     */
+    public static DynamicValuesInput singleValueWithDefault(final DataType dataType,
+            final boolean enableStringCaseMatchingSetting) {
         final DataCell defaultValue;
         // we need to provide some default value such that correct types show up int the settings XML and the
         // flow variable popup can infer which flow variables to show
@@ -180,7 +196,7 @@ public final class DynamicValuesInput implements PersistableSettings {
         } else {
             defaultValue = DynamicValue.readDataCellFromStringSafe(dataType, "");
         }
-        return new DynamicValuesInput(dataType, defaultValue, true);
+        return new DynamicValuesInput(dataType, defaultValue, enableStringCaseMatchingSetting);
     }
 
     /**
