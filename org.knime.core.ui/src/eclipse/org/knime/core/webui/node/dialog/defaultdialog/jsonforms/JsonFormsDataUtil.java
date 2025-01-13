@@ -119,8 +119,6 @@ public final class JsonFormsDataUtil {
 
         mapper.registerModule(createDialogModule());
         mapper.setSerializationInclusion(Include.NON_NULL);
-        mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
-        mapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         mapper.setVisibility(PropertyAccessor.ALL, Visibility.NON_PRIVATE);
