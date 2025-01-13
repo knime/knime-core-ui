@@ -65,6 +65,9 @@ public interface KaiNodeInterface {
      */
     NodeSettingsService getKaiNodeSettingsService();
 
+    /**
+     * @return the types of the settings supported by this interface
+     */
     Set<SettingsType> getSettingsTypes();
 
 

@@ -49,10 +49,15 @@
 package org.knime.core.webui.node.dialog.kai;
 
 /**
+ * Factory for {@link KaiNodeInterface} instances.
+ * Typically implemented by NodeFactories.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public interface KaiNodeInterfaceFactory {
 
-    KaiNodeInterface createNodeInterface();
+    /**
+     * @return a {@link KaiNodeInterface} that allows K-AI to interact with a node
+     */
+    KaiNodeInterface createKaiNodeInterface();
 }

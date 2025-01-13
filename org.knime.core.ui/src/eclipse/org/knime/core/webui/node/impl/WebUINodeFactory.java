@@ -348,7 +348,7 @@ public abstract class WebUINodeFactory<M extends NodeModel> extends NodeFactory<
     }
 
     @Override
-    public KaiNodeInterface createNodeInterface() {
+    public KaiNodeInterface createKaiNodeInterface() {
         return createNodeDialog();
     }
 
