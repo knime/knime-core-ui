@@ -42,12 +42,17 @@ const inlinedSrc = ref<string | undefined>();
 const knimeService = inject<() => UIExtensionService>("getKnimeService")!();
 const resourceService = new ResourceService(knimeService);
 
+const minimumDevicePixelRatio = 2;
+const currDevicePixelRatio = computed(() =>
+  Math.max(window.devicePixelRatio, minimumDevicePixelRatio),
+);
+
 const addDimensions = computed(() => (imageUrl: string) => {
   let url = imageUrl;
   if (props.width) {
-    url += `?w=${Math.floor(props.width)}`;
+    url += `?w=${Math.floor(props.width) * currDevicePixelRatio.value}`;
     if (typeof props.height === "number") {
-      url += `&h=${Math.floor(props.height)}`;
+      url += `&h=${Math.floor(props.height) * currDevicePixelRatio.value}`;
     }
   }
   return url;
