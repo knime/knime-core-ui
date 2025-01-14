@@ -11,6 +11,7 @@ import * as imagesModule from "../../../utils/images";
 import ImageRenderer from "../ImageRenderer.vue";
 
 describe("ImageRenderer.vue", () => {
+  const minimumDevicePixelRatio = 2;
   let props, context;
 
   const getResourceUrl = vi.fn((path) =>
@@ -28,6 +29,9 @@ describe("ImageRenderer.vue", () => {
     };
 
     context = { props, global: { provide: { getKnimeService: () => ({}) } } };
+    Object.defineProperty(window, "devicePixelRatio", {
+      value: minimumDevicePixelRatio,
+    });
   });
 
   it("sets url", async () => {
@@ -45,7 +49,9 @@ describe("ImageRenderer.vue", () => {
     const wrapper = mount(ImageRenderer, context);
     await flushPromises();
     expect(wrapper.find("img").attributes().src).toBe(
-      `${await getResourceUrl(props.path)}?w=${props.width}&h=${props.height}`,
+      `${await getResourceUrl(props.path)}?w=${
+        props.width * minimumDevicePixelRatio
+      }&h=${props.height * minimumDevicePixelRatio}`,
     );
   });
 
@@ -54,7 +60,9 @@ describe("ImageRenderer.vue", () => {
     const wrapper = mount(ImageRenderer, context);
     await flushPromises();
     expect(wrapper.find("img").attributes().src).toBe(
-      `${await getResourceUrl(props.path)}?w=${props.width}`,
+      `${await getResourceUrl(props.path)}?w=${
+        props.width * minimumDevicePixelRatio
+      }`,
     );
   });
 
@@ -65,8 +73,8 @@ describe("ImageRenderer.vue", () => {
     const wrapper = mount(ImageRenderer, context);
     await flushPromises();
     const initialSrc = `${await getResourceUrl(props.path)}?w=${
-      props.width
-    }&h=${props.height}`;
+      props.width * minimumDevicePixelRatio
+    }&h=${props.height * minimumDevicePixelRatio}`;
     expect(wrapper.find("img").attributes().src).toBe(initialSrc);
 
     const newProps = {
@@ -81,10 +89,43 @@ describe("ImageRenderer.vue", () => {
       update: true,
     });
     expect(wrapper.find("img").attributes().src).toBe(
-      `${await getResourceUrl(props.path)}?w=${newProps.width}&h=${
-        newProps.height
-      }`,
+      `${await getResourceUrl(props.path)}?w=${
+        newProps.width * minimumDevicePixelRatio
+      }&h=${newProps.height * minimumDevicePixelRatio}`,
     );
+  });
+
+  describe("devicePixelRatio", () => {
+    it("uses a the minimum preset devicePixelRatio even though the value might be smaller ", async () => {
+      props.width = 10;
+      props.height = 20;
+      Object.defineProperty(window, "devicePixelRatio", {
+        value: 1,
+      });
+      const wrapper = mount(ImageRenderer, context);
+      await flushPromises();
+      expect(wrapper.find("img").attributes().src).toBe(
+        `${await getResourceUrl(props.path)}?w=${props.width * 2}&h=${
+          props.height * 2
+        }`,
+      );
+    });
+
+    it("uses the given ratio if it is greater than the minimum preset devicePixelRatio", async () => {
+      props.width = 10;
+      props.height = 20;
+      const currentDevicePixelRatio = 3;
+      Object.defineProperty(window, "devicePixelRatio", {
+        value: currentDevicePixelRatio,
+      });
+      const wrapper = mount(ImageRenderer, context);
+      await flushPromises();
+      expect(wrapper.find("img").attributes().src).toBe(
+        `${await getResourceUrl(props.path)}?w=${
+          props.width * currentDevicePixelRatio
+        }&h=${props.height * currentDevicePixelRatio}`,
+      );
+    });
   });
 
   describe("when 'includeDataInHtml' is true", () => {
