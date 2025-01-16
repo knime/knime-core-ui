@@ -6,6 +6,8 @@ import {
   type SettingState,
 } from "@knime/ui-extension-service";
 
+import type { FlowSettings } from "../../api/types";
+
 type ControllingVariable = ReturnType<
   SettingState["addControllingFlowVariable"]
 >;
@@ -36,37 +38,26 @@ export interface FlowVariablesForSettings {
   exposed: FlowVariables<ExposedVariable>;
 }
 
-export interface SettingStateWrapper<T = any> {
-  setValue: SetValue<T>;
-  flowVariables: FlowVariablesForSettings;
-}
-
-const wrapSettingState = <T>(
-  settingState: SettingState<T>,
-): SettingStateWrapper<T> => {
-  return {
-    flowVariables: {
-      controlling: toFlowVariablesForSettings(
-        settingState.addControllingFlowVariable,
-      ),
-      exposed: toFlowVariablesForSettings(settingState.addExposedFlowVariable),
-    },
-    setValue: settingState.setValue,
-  };
-};
-
 /**
  * Exported for testing only
  */
 export const injectionKey: InjectionKey<{
-  getSettingState: <T>(dataPath: string) => SettingStateWrapper<T> | null;
+  getSettingState: <T>(dataPath: string) => SetValue<T> | null;
   constructSettingState: <T>(
     dataPath: string,
     params: {
       initialValue: T;
       valueComparator: SettingComparator<T>;
     },
-  ) => SettingStateWrapper<T>;
+  ) => SetValue<T>;
+  getFlowVariableDirtyState: (
+    dataPath: string,
+  ) => FlowVariablesForSettings | null;
+  constructFlowVariableDirtyState: (
+    dataPath: string,
+    configPaths: string[],
+    flowVariablesMap: Record<string, FlowSettings>,
+  ) => FlowVariablesForSettings;
 }> = Symbol("providedByUseDirtySettings");
 
 export const provideAndGetSetupMethod = () => {
@@ -76,15 +67,54 @@ export const provideAndGetSetupMethod = () => {
   /**
    * Maps data path to setting
    */
-  const settings: Map<string, SettingStateWrapper> = new Map();
+  const settings: Map<string, SettingState> = new Map();
 
   let _registerSettings: typeof DialogService.prototype.registerSettings;
 
-  const getSettingState = <T>(
-    dataPath: string,
-  ): SettingStateWrapper<T> | null => {
-    return settings.get(dataPath) ?? null;
+  const getSettingState = <T>(dataPath: string): SetValue<T> | null => {
+    return settings.get(dataPath)?.setValue ?? null;
   };
+
+  const flowVariableStatesForSettings: Map<string, FlowVariablesForSettings> =
+    new Map();
+
+  const constructFlowVariableDirtyState = (
+    dataPath: string,
+    persistPaths: string[],
+    flowVariablesMap: Record<string, FlowSettings>,
+  ): FlowVariablesForSettings => {
+    const settingState = settings.get(dataPath);
+    if (!settingState) {
+      throw new Error(`Setting state for ${dataPath} not found`);
+    }
+    const flowVariablesForSettings = {
+      controlling: toFlowVariablesForSettings(
+        settingState.addControllingFlowVariable,
+      ),
+      exposed: toFlowVariablesForSettings(settingState.addExposedFlowVariable),
+    };
+    persistPaths?.forEach((persistPath) => {
+      const {
+        controllingFlowVariableName = null,
+        exposedFlowVariableName = null,
+      } = flowVariablesMap[persistPath] ?? {};
+      flowVariablesForSettings.controlling.create(
+        persistPath,
+        controllingFlowVariableName,
+      );
+      flowVariablesForSettings.exposed.create(
+        persistPath,
+        exposedFlowVariableName,
+      );
+    });
+    flowVariableStatesForSettings.set(dataPath, flowVariablesForSettings);
+    return flowVariablesForSettings;
+  };
+
+  const getFlowVariableDirtyState = (
+    dataPath: string,
+  ): FlowVariablesForSettings | null =>
+    flowVariableStatesForSettings.get(dataPath) ?? null;
 
   const constructSettingState = <T>(
     dataPath: string,
@@ -92,11 +122,11 @@ export const provideAndGetSetupMethod = () => {
       initialValue: T;
       valueComparator: SettingComparator<T>;
     },
-  ): SettingStateWrapper<T> => {
+  ): SetValue<T> => {
     const modelOrView = getModelOrView(dataPath);
-    const newSetting = wrapSettingState(_registerSettings(modelOrView)(params));
+    const newSetting = _registerSettings(modelOrView)(params);
     settings.set(dataPath, newSetting);
-    return newSetting;
+    return newSetting.setValue;
   };
 
   const setRegisterSettingsMethod = (
@@ -108,6 +138,8 @@ export const provideAndGetSetupMethod = () => {
   provide(injectionKey, {
     constructSettingState,
     getSettingState,
+    getFlowVariableDirtyState,
+    constructFlowVariableDirtyState,
   });
 
   return { setRegisterSettingsMethod };

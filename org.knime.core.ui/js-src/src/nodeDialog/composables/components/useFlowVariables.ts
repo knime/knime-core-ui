@@ -1,10 +1,10 @@
-import { type InjectionKey, type Ref, computed, inject, provide } from "vue";
+import { type InjectionKey, type Ref, computed, inject } from "vue";
 
-import type { SettingStateWrapper } from "../nodeDialog/useDirtySettings";
+import type { FlowSettings } from "../../api/types";
+import { injectForFlowVariables } from "../../utils/inject";
+import { getConfigPaths } from "../../utils/paths";
+import type { FlowVariablesForSettings } from "../nodeDialog/useDirtySettings";
 
-import type { FlowSettings } from "./../../api/types";
-import { injectForFlowVariables } from "./../../utils/inject";
-import { getConfigPaths } from "./../../utils/paths";
 import { getFlowVariablesMap } from "./useProvidedFlowVariablesMap";
 
 export interface ConfigPath {
@@ -16,7 +16,7 @@ export interface ConfigPath {
 export interface FlowVariableSettingsProvidedByControl {
   flowSettings: Ref<FlowSettings | null>;
   configPaths: Ref<ConfigPath[]>;
-  settingStateFlowVariables: SettingStateWrapper["flowVariables"];
+  getSettingStateFlowVariables: () => FlowVariablesForSettings;
 }
 
 /** Exported only for tests */
@@ -64,36 +64,8 @@ const toFlowSetting = (
   );
 };
 
-const getProvidedSettingStateFlowVariables = (
-  {
-    settingState,
-    isNew,
-  }: { settingState: SettingStateWrapper; isNew: boolean },
-  configPaths: string[],
-  flowVariablesMap: Record<string, FlowSettings>,
-) => {
-  if (isNew) {
-    configPaths?.forEach((persistPath) => {
-      const {
-        controllingFlowVariableName = null,
-        exposedFlowVariableName = null,
-      } = flowVariablesMap[persistPath] ?? {};
-      settingState.flowVariables.controlling.create(
-        persistPath,
-        controllingFlowVariableName,
-      );
-      settingState.flowVariables.exposed.create(
-        persistPath,
-        exposedFlowVariableName,
-      );
-    });
-  }
-  return settingState.flowVariables;
-};
-
 export interface UseFlowSettingsProps {
   path: Ref<string>;
-  settingState: { settingState: SettingStateWrapper; isNew: boolean };
 }
 
 export const useFlowSettings = (
@@ -101,8 +73,9 @@ export const useFlowSettings = (
 ): {
   flowSettings: Ref<FlowSettings | null>;
   disabledByFlowVariables: Ref<boolean>;
+  configPaths: Ref<ConfigPath[]>;
 } => {
-  const { path, settingState } = params;
+  const { path } = params;
   const flowVariablesMap = getFlowVariablesMap();
   const persistSchema = injectForFlowVariables("getPersistSchema")();
   const configPaths = computed(() =>
@@ -110,23 +83,6 @@ export const useFlowSettings = (
   );
   const flowSettings = computed(() => {
     return toFlowSetting(flowVariablesMap, configPaths.value);
-  });
-
-  const allConfigPaths = configPaths.value.flatMap(
-    ({ configPath, deprecatedConfigPaths }) => [
-      configPath,
-      ...deprecatedConfigPaths,
-    ],
-  );
-
-  provide(injectionKey, {
-    flowSettings,
-    configPaths,
-    settingStateFlowVariables: getProvidedSettingStateFlowVariables(
-      settingState,
-      allConfigPaths,
-      flowVariablesMap,
-    ),
   });
 
   const hasDeprecatedVariables = computed(
@@ -144,5 +100,5 @@ export const useFlowSettings = (
       hasDeprecatedVariables.value,
   );
 
-  return { flowSettings, disabledByFlowVariables };
+  return { flowSettings, configPaths, disabledByFlowVariables };
 };

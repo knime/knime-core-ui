@@ -5,14 +5,13 @@ export const ELEMENT_RESET_BUTTON_ID = "ElementResetButton";
 
 <script setup lang="ts">
 import { watch } from "vue";
-import { rendererProps } from "@jsonforms/vue";
+import { rendererProps, useJsonFormsControl } from "@jsonforms/vue";
 
 import { FunctionButton, LoadingIcon } from "@knime/components";
 import EditIcon from "@knime/styles/img/icons/pencil.svg";
 import ResetIcon from "@knime/styles/img/icons/reset-all.svg";
 
-import { useJsonFormsControlWithUpdate } from "./../../composables/components/useJsonFormsControlWithUpdate";
-import inject from "./../../utils/inject";
+import inject from "../../utils/inject";
 
 const props = defineProps({
   ...rendererProps(),
@@ -28,7 +27,7 @@ const props = defineProps({
 
 const trigger = inject("trigger");
 
-const { control, handleChange } = useJsonFormsControlWithUpdate(props);
+const { control, handleChange } = useJsonFormsControl(props as any);
 const setEditing = () => handleChange(control.value.path, true);
 const reset = async () => {
   await handleChange(control.value.path, false);

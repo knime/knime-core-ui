@@ -149,12 +149,19 @@ describe("FlowVariablePopover", () => {
   describe("events", () => {
     it("emits controllingFlowVariableSet", () => {
       const flowVarName = "myFlowVar";
+      const flowVarValue = "myFlowVarValue";
+      const dataPath = "dataPath";
       const wrapper = mountFlowVariablePopover();
       wrapper
         .findComponent(FlowVariableSelector)
-        .vm.$emit("controllingFlowVariableSet", flowVarName);
+        .vm.$emit(
+          "controllingFlowVariableSet",
+          dataPath,
+          flowVarValue,
+          flowVarName,
+        );
       expect(wrapper.emitted().controllingFlowVariableSet).toStrictEqual([
-        [flowVarName],
+        [dataPath, flowVarValue, flowVarName],
       ]);
     });
   });

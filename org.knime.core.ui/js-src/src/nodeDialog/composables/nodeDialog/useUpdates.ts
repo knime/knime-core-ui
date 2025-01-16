@@ -1,6 +1,6 @@
 import { inject, nextTick } from "vue";
 import { composePaths, toDataPath } from "@jsonforms/core";
-import { get, set } from "lodash-es";
+import { get } from "lodash-es";
 
 import {
   type AlertParams,
@@ -10,6 +10,7 @@ import {
   type UIExtensionService,
 } from "@knime/ui-extension-service";
 
+import type { Result } from "../../api/types/Result";
 import type {
   IndexIdsValuePairs,
   Pairs,
@@ -18,7 +19,6 @@ import type {
   ValueReference,
 } from "../../types/Update";
 
-import type { Result } from "./../../api/types/Result";
 import { getIndex } from "./useArrayIds";
 import type {
   IndexedIsActive,
@@ -123,8 +123,8 @@ export default ({
   registerTrigger,
   updateData,
   sendAlert,
-  publishSettings,
   pathIsControlledByFlowVariable,
+  setValueAtPath,
 }: {
   callStateProviderListener: (
     location: { id: string; indexIds?: string[] },
@@ -148,8 +148,8 @@ export default ({
     callback: TriggerCallback,
   ) => void;
   sendAlert: (params: AlertParams) => void;
-  publishSettings: () => void;
   pathIsControlledByFlowVariable: (path: string) => boolean;
+  setValueAtPath: (path: string, value: unknown) => void;
 }) => {
   const baseService = inject<() => UIExtensionService>("getKnimeService")!();
   const jsonDataService = new JsonDataService(baseService);
@@ -166,7 +166,6 @@ export default ({
       if (!indicesAreDefined(indices)) {
         return;
       }
-
       if (scopes) {
         const indicesValuePairs = isIndexIdsAndValuePairs(values)
           ? toIndicesValuePairs(values, getIndex)
@@ -179,15 +178,14 @@ export default ({
             newSettings,
           );
         toBeAdjustedByLastPathSegment.forEach(
-          ({ settings, path, values: [[, value]] }) => {
+          ({ path, values: [[, value]] }) => {
             const fullToBeUpdatedPath = composePaths(path, lastPathSegment);
             if (!pathIsControlledByFlowVariable(fullToBeUpdatedPath)) {
-              set(settings, lastPathSegment, value);
+              setValueAtPath(fullToBeUpdatedPath, value);
               onValueUpdate(fullToBeUpdatedPath);
             }
           },
         );
-        publishSettings();
       } else if (id) {
         if (isIndexIdsAndValuePairs(values)) {
           values.forEach(({ indices: valueIndexIds, value }) =>

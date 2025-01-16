@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, watch } from "vue";
-import { rendererProps } from "@jsonforms/vue";
 
-import useDialogControl from "../../../composables/components/useDialogControl";
-import { type FileChooserOptions } from "../../../types/FileChooserUiSchema";
-import LabeledControl from "../../label/LabeledControl.vue";
+import type { VueControlPropsForLabelContent } from "@knime/jsonforms";
+
+import type { FileChooserOptions } from "@/nodeDialog/types/FileChooserUiSchema";
+import { useFlowSettings } from "../../../composables/components/useFlowVariables";
 import FileBrowserButton from "../FileBrowserButton.vue";
 import { useFileChooserFileSystemsOptions } from "../composables/useFileChooserBrowseOptions";
 import useFileChooserStateChange from "../composables/useFileChooserStateChange";
@@ -14,24 +14,20 @@ import { type FileChooserValue } from "../types/FileChooserProps";
 import FSLocationTextControl from "./FSLocationTextControl.vue";
 import SideDrawerContent from "./SideDrawerContent.vue";
 
-const props = defineProps(rendererProps());
-const {
-  control,
-  onChange: onChangeControl,
-  disabled: disabledByFramework,
-  flowSettings,
-} = useDialogControl<{ path: FileChooserValue }>({
-  props,
-});
+const props = defineProps<
+  VueControlPropsForLabelContent<{
+    path: FileChooserValue;
+  }>
+>();
 
-const disabled = computed(
+const isDisabled = computed(
   () =>
-    disabledByFramework.value ||
-    control.value.uischema.options?.fileSystemConnectionMissing,
+    props.disabled ||
+    props.control.uischema.options?.fileSystemConnectionMissing,
 );
 
 const browseOptions = computed(() => {
-  return control.value.uischema.options as FileChooserOptions;
+  return props.control.uischema.options as FileChooserOptions;
 });
 
 const { validCategories } = useFileChooserFileSystemsOptions(browseOptions);
@@ -41,18 +37,22 @@ const getDefaultData = () => {
     timeout: 10000,
     fsCategory: validCategories.value[0],
     context: {
+      fsToString: "",
       fsSpecifier: browseOptions.value.fileSystemSpecifier,
     },
   };
 };
 
 const data = computed(() => {
-  return control.value.data?.path ?? getDefaultData();
+  return props.control.data?.path ?? getDefaultData();
 });
 
-const onChange = (value: any) => {
-  onChangeControl({ path: value });
-};
+const onChangePath = (value: FileChooserValue) =>
+  props.changeValue({ path: value });
+
+const { flowSettings } = useFlowSettings({
+  path: computed(() => props.control.path),
+});
 
 const isOverwritten = computed(() =>
   Boolean(flowSettings.value?.controllingFlowVariableName),
@@ -65,14 +65,14 @@ watch(
   () => isOverwritten.value,
   (value) => {
     if (!value) {
-      onChange(getDefaultData());
+      onChangePath(getDefaultData());
     }
   },
 );
 
 const { onFsCategoryUpdate } = useFileChooserStateChange(
-  computed(() => control.value.data?.path),
-  onChange,
+  computed(() => props.control.data?.path),
+  onChangePath,
   browseOptions,
 );
 
@@ -84,45 +84,39 @@ const { onFsCategoryUpdate } = useFileChooserStateChange(
 onMounted(() => {
   if (
     !isOverwritten.value &&
-    !validCategories.value.includes(control.value.data?.path.fsCategory)
+    !validCategories.value.includes(props.control.data?.path.fsCategory)
   ) {
     onFsCategoryUpdate(validCategories.value[0]);
   }
 });
 
 const { onApply, sideDrawerValue } = useSideDrawerContent<FileChooserValue>({
-  onChange,
+  onChange: onChangePath,
   initialValue: data,
 });
 </script>
 
 <template>
-  <LabeledControl
-    #default="{ labelForId }"
-    :control="control"
-    @controlling-flow-variable-set="onChange"
-  >
-    <div class="flex-row">
-      <FSLocationTextControl
-        :id="labelForId"
-        class="flex-grow"
-        :model-value="data"
-        :disabled="disabled"
-        :is-local="browseOptions.isLocal"
-        :port-index="browseOptions.portIndex"
-        :file-system-specifier="browseOptions.fileSystemSpecifier"
-        @update:model-value="onChange"
+  <div class="flex-row">
+    <FSLocationTextControl
+      :id="labelForId"
+      class="flex-grow"
+      :model-value="data"
+      :disabled="isDisabled"
+      :is-local="browseOptions.isLocal"
+      :port-index="browseOptions.portIndex"
+      :file-system-specifier="browseOptions.fileSystemSpecifier"
+      @update:model-value="onChangePath"
+    />
+    <FileBrowserButton :disabled="isDisabled" @apply="onApply">
+      <SideDrawerContent
+        :id="labelForId ?? null"
+        v-model="sideDrawerValue"
+        :disabled="isDisabled"
+        :options="browseOptions"
       />
-      <FileBrowserButton :disabled="disabled" @apply="onApply">
-        <SideDrawerContent
-          :id="labelForId"
-          v-model="sideDrawerValue"
-          :disabled="disabled"
-          :options="browseOptions"
-        />
-      </FileBrowserButton>
-    </div>
-  </LabeledControl>
+    </FileBrowserButton>
+  </div>
 </template>
 
 <style lang="postcss" scoped>

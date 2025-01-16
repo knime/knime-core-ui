@@ -21,7 +21,9 @@ const prefixLength = computed(() => {
   ).length;
 });
 
-const emit = defineEmits(["controllingFlowVariableSet"]);
+const emit = defineEmits<{
+  controllingFlowVariableSet: [string, unknown, string];
+}>();
 </script>
 
 <template>
@@ -47,7 +49,8 @@ const emit = defineEmits(["controllingFlowVariableSet"]);
             :data-path="configPath.dataPath"
             :persist-path="configPath.configPath"
             @controlling-flow-variable-set="
-              emit('controllingFlowVariableSet', $event)
+              (path, value, flowVarName) =>
+                emit('controllingFlowVariableSet', path, value, flowVarName)
             "
           />
         </Label>

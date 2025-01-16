@@ -60,8 +60,10 @@ const addField = <
   key: string,
 ) => {
   const created = {} as S;
-  (obj as Record<string, S>)[key] = created;
-  return created;
+  if (typeof obj[key] === "undefined") {
+    (obj as Record<string, S>)[key] = created;
+  }
+  return obj[key];
 };
 
 export const createArrayAtPath = addField<ArrayRecord, IdsRecord>;

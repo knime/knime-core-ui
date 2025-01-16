@@ -12,11 +12,11 @@ import { mount } from "@vue/test-utils";
 import flushPromises from "flush-promises";
 
 import { InputField } from "@knime/components";
+import { ErrorMessage } from "@knime/jsonforms";
 
 import { type FlowSettings } from "../../../../api/types";
 import { injectionKey as providedByComponentKey } from "../../../../composables/components/useFlowVariables";
 import { injectionKey as flowVarMapKey } from "../../../../composables/components/useProvidedFlowVariablesMap";
-import ErrorMessage from "../../../ErrorMessage.vue";
 import type { FlowVariableSelectorProps } from "../../types/FlowVariableExposerProps";
 import FlowVariableExposer from "../FlowVariableExposer.vue";
 
@@ -49,14 +49,14 @@ describe("FlowVariableExposer", () => {
       global: {
         provide: {
           [providedByComponentKey as symbol]: {
-            settingStateFlowVariables: {
+            getSettingStateFlowVariables: () => ({
               exposed: {
                 get: () => ({
                   set: setDirtyState,
                   unset: unsetDirtyState,
                 }),
               },
-            },
+            }),
           },
           [flowVarMapKey as symbol]: flowVariablesMap,
         },
@@ -68,11 +68,13 @@ describe("FlowVariableExposer", () => {
     const wrapper = mountFlowVariableExposer({ props });
     expect(wrapper.findComponent(InputField).exists()).toBeTruthy();
     await flushPromises();
-    expect(
-      wrapper
-        .findComponent(InputField)
-        .element.attributes.getNamedItem("arialabel")?.textContent,
-    ).toBe("outputted-flow-variable-persist.path.to.setting");
+
+    const ariaLabel = wrapper
+      .findComponent(InputField)
+      .element.getAttribute("arialabel");
+
+    expect(ariaLabel).toBe("outputted-flow-variable-persist.path.to.setting");
+
     expect(wrapper.findComponent(InputField).props()).toMatchObject({
       modelValue: "",
     });

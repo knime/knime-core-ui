@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { InputField, Label, NumberInput } from "@knime/components";
-
-import ErrorMessage from "../../../ErrorMessage.vue";
+import { ErrorMessage } from "@knime/jsonforms";
 
 withDefaults(
   defineProps<{

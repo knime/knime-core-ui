@@ -1,18 +1,15 @@
 <script setup lang="ts" generic="SettingValue extends Stringifyable">
 import { computed, onMounted, ref } from "vue";
-import { rendererProps } from "@jsonforms/vue";
 import { v4 as uuidv4 } from "uuid";
 
 import { FunctionButton, LoadingIcon } from "@knime/components";
+import type { VueControlProps } from "@knime/jsonforms";
 
 import type { Result as ResultOfType } from "../api/types/Result";
 import { type Stringifyable } from "../composables/components/JsonSettingsComparator";
-import useDialogControl from "../composables/components/useDialogControl";
 import type { SettingsData } from "../types/SettingsData";
 import getFlattenedSettings from "../utils/getFlattenedSettings";
 import inject from "../utils/inject";
-
-import LabeledControl from "./label/LabeledControl.vue";
 
 type Id = string; // NOSONAR intended type alias
 interface State {
@@ -33,8 +30,8 @@ type Result = ResultOfType<ButtonChange>;
 
 const registerWatcher = inject("registerWatcher");
 const getData = inject("getData");
-const props = defineProps(rendererProps());
-const { control, onChange } = useDialogControl({ props });
+
+const props = defineProps<VueControlProps<any>>();
 
 const errorMessage = ref(null as null | string);
 const clearError = () => {
@@ -48,7 +45,7 @@ const saveCurrentSettings = (newSettings: SettingsData) => {
 
 const currentState = ref({} as State);
 const states = computed(
-  () => (control.value.uischema.options?.states as State[]) ?? [],
+  () => (props.control.uischema.options?.states as State[]) ?? [],
 );
 
 const setButtonState = (newButtonStateId: Id) => {
@@ -58,7 +55,7 @@ const setButtonState = (newButtonStateId: Id) => {
 
 const saveResult = (newVal: SettingValue) => {
   // without setTimeout, the value is not updated when triggered via onUpdate
-  setTimeout(() => onChange(newVal));
+  setTimeout(() => props.changeValue(newVal));
 };
 
 const setNextState = (dataServiceResult: ButtonChange) => {
@@ -82,7 +79,7 @@ const handleDataServiceResult = (
     return;
   }
   if (state === "FAIL") {
-    errorMessage.value = receivedData.message[0];
+    errorMessage.value = receivedData.message?.[0];
   }
   resetCallback();
 };
@@ -117,8 +114,8 @@ const initialize = async (newSettings: SettingsData) => {
   saveCurrentSettings(newSettings);
   await performRequest({
     method: "settings.initializeButton",
-    options: [control.value.data],
-    handler: control.value.uischema.options!.actionHandler,
+    options: [props.control.data],
+    handler: props.control.uischema.options!.actionHandler,
   });
 };
 
@@ -126,7 +123,7 @@ const onUpdate = (dependencySettings: SettingsData) => {
   performRequest({
     method: "settings.update",
     options: [getFlattenedSettings(dependencySettings)],
-    handler: control.value.uischema.options!.updateOptions.updateHandler,
+    handler: props.control.uischema.options!.updateOptions.updateHandler,
   });
 };
 
@@ -145,7 +142,7 @@ const onClick = async () => {
     {
       method: "settings.invokeButtonAction",
       options: [id, currentSettings.value],
-      handler: control.value.uischema.options!.actionHandler,
+      handler: props.control.uischema.options!.actionHandler,
     },
     resetCallback,
   );
@@ -155,9 +152,9 @@ onMounted(() => {
   registerWatcher({
     init: initialize,
     transformSettings: saveCurrentSettings,
-    dependencies: control.value.uischema.options?.dependencies || [],
+    dependencies: props.control.uischema.options?.dependencies || [],
   });
-  const updateOptions = control.value.uischema?.options?.updateOptions;
+  const updateOptions = props.control.uischema?.options?.updateOptions;
   if (typeof updateOptions !== "undefined") {
     registerWatcher({
       transformSettings: onUpdate,
@@ -167,36 +164,26 @@ onMounted(() => {
 });
 
 const displayErrorMessage = computed(
-  () => control.value.uischema.options?.displayErrorMessage ?? true,
-);
-const showTitleAndDescription = computed(
-  () => control.value.uischema.options?.showTitleAndDescription ?? true,
+  () => props.control.uischema.options?.displayErrorMessage ?? true,
 );
 </script>
 
 <template>
-  <LabeledControl
-    #default="{ labelForId }"
-    :control="control"
-    :show="showTitleAndDescription"
-  >
-    <div class="button-wrapper">
-      <FunctionButton
-        :id="labelForId"
-        :disabled="currentState.disabled"
-        class="button-input"
-        :primary="currentState.primary"
-        compact
-        @click="onClick"
-      >
-        <div class="button-input-text">{{ currentState.text }}</div>
-      </FunctionButton>
-      <LoadingIcon v-if="numPendingRequests > 0" />
-      <span v-if="errorMessage && displayErrorMessage" class="error-message">
-        Error: {{ errorMessage }}
-      </span>
-    </div>
-  </LabeledControl>
+  <div class="button-wrapper">
+    <FunctionButton
+      :disabled="currentState.disabled"
+      class="button-input"
+      :primary="currentState.primary"
+      compact
+      @click="onClick"
+    >
+      <div class="button-input-text">{{ currentState.text }}</div>
+    </FunctionButton>
+    <LoadingIcon v-if="numPendingRequests > 0" />
+    <span v-if="errorMessage && displayErrorMessage" class="error-message">
+      Error: {{ errorMessage }}
+    </span>
+  </div>
 </template>
 
 <style scoped>

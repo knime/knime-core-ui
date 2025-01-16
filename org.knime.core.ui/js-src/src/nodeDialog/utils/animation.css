@@ -1,7 +1,12 @@
-.fadeContainer {
+@define-mixin fadeIn {
   animation: fadeIn 0.4s;
   animation-timing-function: ease-out;
 }
+
+.fadeContainer {
+  @mixin fadeIn;
+}
+
 @keyframes fadeIn {
   0% {
     opacity: 0;

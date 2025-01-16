@@ -5,11 +5,8 @@ import {
 } from "../useFlowVariables";
 
 const props = defineProps<UseFlowSettingsProps>();
-const flowSettings = useFlowSettings(props).flowSettings;
 
-defineExpose({
-  flowSettings,
-});
+defineExpose(useFlowSettings(props));
 </script>
 
 <template>

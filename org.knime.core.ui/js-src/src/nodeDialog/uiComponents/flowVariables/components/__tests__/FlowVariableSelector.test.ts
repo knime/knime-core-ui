@@ -58,14 +58,14 @@ describe("FlowVariableSelector.vue", () => {
       global: {
         provide: {
           [providedByComponentKey as symbol]: {
-            settingStateFlowVariables: {
+            getSettingStateFlowVariables: () => ({
               controlling: {
                 get: () => ({
                   set: setDirtyState,
                   unset: unsetDirtyState,
                 }),
               },
-            },
+            }),
           },
           [flowVarMapKey as symbol]: flowVariablesMap,
           flowVariablesApi: {
@@ -202,9 +202,11 @@ describe("FlowVariableSelector.vue", () => {
       props.persistPath,
       props.dataPath,
     );
-    expect(wrapper.emitted("controllingFlowVariableSet")?.[0]?.[0]).toBe(
+    expect(wrapper.emitted("controllingFlowVariableSet")?.[0]).toStrictEqual([
+      props.dataPath,
       flowVarValue,
-    );
+      flowVar2.name,
+    ]);
     expect(setDirtyState).toHaveBeenCalledWith(flowVar2.name);
   });
 

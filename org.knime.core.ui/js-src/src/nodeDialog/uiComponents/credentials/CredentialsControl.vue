@@ -1,14 +1,18 @@
 <script setup lang="ts">
-import { rendererProps } from "@jsonforms/vue";
+import { computed } from "vue";
 
-import useDialogControl from "../../composables/components/useDialogControl";
+import type { VueControlPropsForLabelContent } from "@knime/jsonforms";
+
+import { useFlowSettings } from "../../composables/components/useFlowVariables";
 
 import CredentialsControlBase from "./CredentialsControlBase.vue";
 import type { Credentials } from "./types/Credentials";
 
-const props = defineProps(rendererProps());
-const { control, onChange, disabled, flowSettings } =
-  useDialogControl<Credentials>({ props });
+const props = defineProps<VueControlPropsForLabelContent<Credentials>>();
+
+const { flowSettings } = useFlowSettings({
+  path: computed(() => props.control.path),
+});
 </script>
 
 <template>
@@ -17,6 +21,7 @@ const { control, onChange, disabled, flowSettings } =
     :data="control.data"
     :flow-settings="flowSettings"
     :disabled="disabled"
-    @change="onChange"
+    :label-for-id="labelForId"
+    @change="changeValue"
   />
 </template>

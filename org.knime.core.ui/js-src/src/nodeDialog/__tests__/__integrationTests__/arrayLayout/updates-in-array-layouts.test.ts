@@ -1,3 +1,4 @@
+/* eslint-disable vitest/no-focused-tests */
 /* eslint-disable vitest/max-nested-describe */
 /* eslint-disable max-lines */
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -7,19 +8,17 @@ import flushPromises from "flush-promises";
 import { cloneDeep } from "lodash-es";
 
 import { Button, Checkbox, Dropdown } from "@knime/components";
+import { SimpleButtonControl, TextControl } from "@knime/jsonforms";
 import { JsonDataService } from "@knime/ui-extension-service";
 
-import { mockRegisterSettings } from "@@/test-setup/utils/integration/dirtySettingState";
-
-import NodeDialog from "./../../../NodeDialog.vue";
-import { getOptions } from "./../../../__tests__/utils";
+import NodeDialog from "../../../NodeDialog.vue";
 import type {
   Update,
   UpdateResult,
   ValueReference,
-} from "./../../../types/Update";
-import SimpleButtonControl from "./../../../uiComponents/SimpleButtonControl.vue";
-import TextControl from "./../../../uiComponents/TextControl.vue";
+} from "../../../types/Update";
+import { getOptions } from "../../utils";
+import { mockRegisterSettings } from "../utils/dirtySettingState";
 
 describe("updates in array layouts", () => {
   type Wrapper = VueWrapper<any> & {
@@ -757,7 +756,6 @@ describe("updates in array layouts", () => {
         it("allows initial ui state updates triggered outside array with different updates within array", async () => {
           const { wrapper, initialUpdateChoices, getNthDropdownChoices } =
             await prepareInitialDropdownChoicesUpdatesForEachArrayElement();
-
           arrayIndices.forEach((index) =>
             expect(getNthDropdownChoices(wrapper, index)).toStrictEqual(
               initialUpdateChoices[index],

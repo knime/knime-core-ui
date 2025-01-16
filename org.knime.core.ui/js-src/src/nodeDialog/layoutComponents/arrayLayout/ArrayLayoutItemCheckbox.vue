@@ -1,13 +1,8 @@
 <script setup lang="ts">
-import { rendererProps } from "@jsonforms/vue";
-
 import { Checkbox } from "@knime/components";
+import type { VueControlProps } from "@knime/jsonforms";
 
-import useDialogControl from "./../../composables/components/useDialogControl";
-
-const props = defineProps(rendererProps());
-
-const { control, onChange } = useDialogControl({ props });
+defineProps<VueControlProps<boolean>>();
 </script>
 
 <template>
@@ -15,7 +10,7 @@ const { control, onChange } = useDialogControl({ props });
     :model-value="control.data"
     :title="control.label"
     class="checkbox"
-    @update:model-value="onChange"
+    @update:model-value="changeValue"
   />
 </template>
 

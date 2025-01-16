@@ -6,10 +6,9 @@ import { cloneDeep } from "lodash-es";
 import { Checkbox } from "@knime/components";
 import { JsonDataService } from "@knime/ui-extension-service";
 
-import { mockRegisterSettings } from "@@/test-setup/utils/integration/dirtySettingState";
-
-import NodeDialog from "./../../../NodeDialog.vue";
-import { getOptions } from "./../../../__tests__/utils";
+import NodeDialog from "../../../NodeDialog.vue";
+import { getOptions } from "../../utils";
+import { mockRegisterSettings } from "../utils/dirtySettingState";
 
 describe("edit/reset button in array layouts", () => {
   type Wrapper = VueWrapper<any> & {

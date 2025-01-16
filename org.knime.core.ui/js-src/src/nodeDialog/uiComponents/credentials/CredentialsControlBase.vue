@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from "vue";
+import { computed, ref, watch } from "vue";
 
 import { InputField } from "@knime/components";
 
@@ -7,7 +7,6 @@ import { type FlowSettings } from "../../api/types";
 import useProvidedState from "../../composables/components/useProvidedState";
 import type { Control } from "../../types/Control";
 import { mergeDeep } from "../../utils";
-import LabeledControl from "../label/LabeledControl.vue";
 
 import type { Credentials } from "./types/Credentials";
 
@@ -26,6 +25,7 @@ const props = defineProps<{
    */
   flowSettings: FlowSettings | null;
   disabled: boolean;
+  labelForId?: string;
 }>();
 
 const emit = defineEmits<{
@@ -103,57 +103,47 @@ const controllingFlowVariableName = computed(
 );
 watch(
   () => controllingFlowVariableName.value,
-  (flowVariableName) => {
-    if (flowVariableName) {
-      emit("change", mergeDeep(data.value, { flowVariableName }));
-    } else {
-      emit("change", getDefaultData());
-    }
-  },
+  (flowVariableName) => flowVariableName || emit("change", getDefaultData()),
 );
-const onControllingFlowVariableSet = (value: Credentials) => {
-  emit("change", mergeDeep<Credentials>(data.value, value));
-};
+const controlElement = ref<null | HTMLElement>(null);
 </script>
 
 <template>
-  <LabeledControl
-    #default="{ labelForId }"
-    :control="control"
-    @controlling-flow-variable-set="onControllingFlowVariableSet"
+  <div
+    :id="labelForId ?? undefined"
+    ref="controlElement"
+    class="credentials-input-wrapper"
   >
-    <div :id="labelForId ?? undefined" class="credentials-input-wrapper">
-      <InputField
-        v-if="showUsername"
-        :placeholder="usernameLabel"
-        :model-value="data.username"
-        :disabled="disabled"
-        compact
-        type="text"
-        @update:model-value="onChangeUsername"
-      />
-      <InputField
-        v-if="showPassword"
-        :class="{ margin: showUsername }"
-        :placeholder="passwordLabel"
-        :model-value="displayedPassword"
-        :disabled="disabled"
-        compact
-        type="password"
-        @update:model-value="onChangePassword"
-      />
-      <InputField
-        v-if="showSecondFactor"
-        :class="{ margin: showUsername || showPassword }"
-        :placeholder="secondFactorLabel"
-        :model-value="displayedSecondFactor"
-        :disabled="disabled"
-        compact
-        type="password"
-        @update:model-value="onChangeSecondFactor"
-      />
-    </div>
-  </LabeledControl>
+    <InputField
+      v-if="showUsername"
+      :placeholder="usernameLabel"
+      :model-value="data.username"
+      :disabled="disabled"
+      compact
+      type="text"
+      @update:model-value="onChangeUsername"
+    />
+    <InputField
+      v-if="showPassword"
+      :class="{ margin: showUsername }"
+      :placeholder="passwordLabel"
+      :model-value="displayedPassword"
+      :disabled="disabled"
+      compact
+      type="password"
+      @update:model-value="onChangePassword"
+    />
+    <InputField
+      v-if="showSecondFactor"
+      :class="{ margin: showUsername || showPassword }"
+      :placeholder="secondFactorLabel"
+      :model-value="displayedSecondFactor"
+      :disabled="disabled"
+      compact
+      type="password"
+      @update:model-value="onChangeSecondFactor"
+    />
+  </div>
 </template>
 
 <style lang="postcss" scoped>

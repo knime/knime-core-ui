@@ -1,9 +1,10 @@
-import Form from "./../layoutComponents/Form.vue";
+import { vi } from "vitest";
 
 export const getOptions = ({
-  stubButtonsBySlot,
+  dispatch,
 }: {
   stubButtonsBySlot?: true;
+  dispatch?: (path: string, value: any) => void;
 } = {}) => {
   return {
     global: {
@@ -11,14 +12,18 @@ export const getOptions = ({
         getKnimeService: () => ({}),
       },
       stubs: {
-        Form,
-        Suspense: false,
-        ...(stubButtonsBySlot && {
-          Button: {
-            inheritAttrs: false,
-            template: "<slot/>",
-          },
-        }),
+        ...(dispatch
+          ? {
+              JsonFormsDialog: {
+                props: ["data", "schema", "uischema", "renderers"],
+                emits: ["change"],
+                template: '<slot :name="bottom"/>',
+                methods: {
+                  updateData: dispatch || vi.fn(),
+                },
+              },
+            }
+          : {}),
       },
     },
     props: {

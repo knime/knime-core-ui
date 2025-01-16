@@ -2,7 +2,9 @@
 /* eslint-disable no-undefined */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
+import { mount } from "@vue/test-utils";
 import { DispatchRenderer } from "@jsonforms/vue";
+import * as jsonformsVueModule from "@jsonforms/vue";
 import flushPromises from "flush-promises";
 
 import { FunctionButton } from "@knime/components";
@@ -10,143 +12,174 @@ import ArrowDownIcon from "@knime/styles/img/icons/arrow-down.svg";
 import ArrowUpIcon from "@knime/styles/img/icons/arrow-up.svg";
 import TrashIcon from "@knime/styles/img/icons/trash.svg";
 
-import {
-  initializesJsonFormsArrayControl,
-  mountJsonFormsComponent,
-} from "@@/test-setup/utils/jsonFormsTestUtils";
+import { injectionKey as dirtySettingsInjectionKey } from "../../../composables/nodeDialog/useDirtySettings";
+import { editResetButtonFormat } from "../../../renderers/editResetButtonRenderer";
+import { elementCheckboxFormat } from "../../../renderers/elementCheckboxRenderer";
 import ArrayLayout from "../ArrayLayout.vue";
 import ArrayLayoutItem from "../ArrayLayoutItem.vue";
 import ArrayLayoutItemControls from "../ArrayLayoutItemControls.vue";
 
-import { editResetButtonFormat } from "./../../../renderers/editResetButtonRenderer";
-import { elementCheckboxFormat } from "./../../../renderers/elementCheckboxRenderer";
+let control;
 
-const control = {
-  visible: true,
-  cells: [],
-  data: [
-    {
-      borderStyle: "DASHED",
-      color: "blue",
-      label: undefined,
-      size: 1,
-      value: "0",
-    },
-    {
-      borderStyle: "DOTTED",
-      color: "red",
-      label: undefined,
-      size: 1,
-      value: "1",
-    },
-    {
-      borderStyle: "SOLID",
-      color: "green",
-      label: undefined,
-      size: 1,
-      value: "2",
-    },
-  ],
-  path: "view/referenceLines",
-  schema: {
-    type: "object",
-    properties: {
-      borderStyle: {
-        oneOf: [
-          {
-            const: "DASHED",
-            title: "Dashed",
-          },
-          {
-            const: "DOTTED",
-            title: "Dotted",
-          },
-          {
-            const: "SOLID",
-            title: "Solid",
-          },
-        ],
-        title: "Borderstyle",
-        default: "DASHED",
+const controlDataLength = 3;
+
+beforeEach(() => {
+  control = ref({
+    visible: true,
+    cells: [],
+    data: [
+      {
+        borderStyle: "DASHED",
+        color: "blue",
+        label: undefined,
+        size: 1,
+        value: "0",
       },
-      color: {
-        type: "string",
-        title: "Color",
-        default: "blue",
+      {
+        borderStyle: "DOTTED",
+        color: "red",
+        label: undefined,
+        size: 1,
+        value: "1",
       },
-      label: {
-        type: "string",
-        title: "Label",
+      {
+        borderStyle: "SOLID",
+        color: "green",
+        label: undefined,
+        size: 1,
+        value: "2",
       },
-      size: {
-        type: "integer",
-        format: "int32",
-        title: "Size",
-        default: 1,
-        minimum: 0,
-        maximum: 10,
-      },
-      value: {
-        type: "string",
-        title: "Value",
-        default: "0",
-      },
-    },
-  },
-  uischema: {
-    type: "Control",
-    scope: "#/properties/view/properties/referenceLines",
-    options: {
-      arrayElementTitle: "ElementTitle",
-      detail: {
-        value: {
-          type: "Control",
-          scope: "#/properties/value",
+    ],
+    path: "view/referenceLines",
+    schema: {
+      type: "object",
+      properties: {
+        borderStyle: {
+          oneOf: [
+            {
+              const: "DASHED",
+              title: "Dashed",
+            },
+            {
+              const: "DOTTED",
+              title: "Dotted",
+            },
+            {
+              const: "SOLID",
+              title: "Solid",
+            },
+          ],
+          title: "Borderstyle",
+          default: "DASHED",
+        },
+        color: {
+          type: "string",
+          title: "Color",
+          default: "blue",
         },
         label: {
-          type: "Control",
-          scope: "#/properties/label",
+          type: "string",
+          title: "Label",
         },
-        borderStyle: {
-          type: "Control",
-          scope: "#/properties/borderStyle",
-          options: {
-            format: "radio",
-            radioLayout: "horizontal",
-          },
+        size: {
+          type: "integer",
+          format: "int32",
+          title: "Size",
+          default: 1,
+          minimum: 0,
+          maximum: 10,
         },
-        horizontalLayout: {
-          type: "HorizontalLayout",
-          elements: [
-            { type: "Control", scope: "#/properties/size" },
-            { type: "Control", scope: "#/properties/color" },
-          ],
+        value: {
+          type: "string",
+          title: "Value",
+          default: "0",
         },
       },
     },
-  },
-};
+    uischema: {
+      type: "Control",
+      scope: "#/properties/view/properties/referenceLines",
+      options: {
+        arrayElementTitle: "ElementTitle",
+        detail: {
+          value: {
+            type: "Control",
+            scope: "#/properties/value",
+          },
+          label: {
+            type: "Control",
+            scope: "#/properties/label",
+          },
+          borderStyle: {
+            type: "Control",
+            scope: "#/properties/borderStyle",
+            options: {
+              format: "radio",
+              radioLayout: "horizontal",
+            },
+          },
+          horizontalLayout: {
+            type: "HorizontalLayout",
+            elements: [
+              { type: "Control", scope: "#/properties/size" },
+              { type: "Control", scope: "#/properties/color" },
+            ],
+          },
+        },
+      },
+    },
+  });
+});
 
-const useJsonFormsControlMock = {
-  handleChange: vi.fn(),
-  control: ref(control),
-};
+const mountArrayLayout = ({ props, provide }) => {
+  const { arrayControlMocks } = provide || {};
+  vi.spyOn(jsonformsVueModule, "useJsonFormsArrayControl").mockReturnValue({
+    addItem: arrayControlMocks?.addItem ?? vi.fn(() => () => {}),
+    moveDown: arrayControlMocks?.moveDown ?? vi.fn(() => () => {}),
+    moveUp: arrayControlMocks?.moveUp ?? vi.fn(() => () => {}),
+    removeItems: arrayControlMocks?.removeItems ?? vi.fn(() => () => {}),
+    control: props.control,
+  });
 
-vi.mock(
-  "@/nodeDialog/composables/components/useJsonFormsControlWithUpdate",
-  () => ({
-    useJsonFormsControlWithUpdate: () => useJsonFormsControlMock,
-  }),
-);
+  const handleChange = vi.fn();
+
+  vi.spyOn(jsonformsVueModule, "useJsonFormsControl").mockReturnValue({
+    handleChange,
+    control: props.control,
+  });
+  return {
+    wrapper: mount(ArrayLayout, {
+      props,
+      global: {
+        provide: {
+          [dirtySettingsInjectionKey]: {
+            getSettingState: () => vi.fn(),
+            constructSettingState: () => vi.fn(),
+          },
+          updateData: vi.fn(),
+          isTriggerActive: vi.fn(),
+          sendAlert: vi.fn(),
+          createArrayAtPath: vi.fn(() => ({})),
+          ...provide,
+        },
+        stubs: {
+          DispatchRenderer: true,
+        },
+      },
+    }),
+    handleChange,
+  };
+};
 
 describe("ArrayLayout.vue", () => {
-  let wrapper;
+  let wrapper, handleChange;
 
   beforeEach(async () => {
-    const component = await mountJsonFormsComponent(ArrayLayout, {
+    const component = await mountArrayLayout({
       props: { control },
     });
     wrapper = component.wrapper;
+    handleChange = component.handleChange;
   });
 
   afterEach(() => {
@@ -157,21 +190,18 @@ describe("ArrayLayout.vue", () => {
     expect(wrapper.getComponent(ArrayLayout).exists()).toBe(true);
   });
 
-  it("initializes jsonforms", () => {
-    initializesJsonFormsArrayControl(wrapper);
-  });
-
   const schemaDefaultValue = {
     borderStyle: "DASHED",
     color: "blue",
     label: undefined,
     size: 1,
     value: "0",
+    _id: expect.any(String),
   };
 
   it("renders an add button", () => {
     const addItem = vi.fn(() => () => {});
-    const { wrapper } = mountJsonFormsComponent(ArrayLayout, {
+    const { wrapper } = mountArrayLayout({
       props: { control },
       provide: { arrayControlMocks: { addItem } },
     });
@@ -179,24 +209,27 @@ describe("ArrayLayout.vue", () => {
     expect(addButton.text()).toBe("New");
     addButton.element.click();
 
-    expect(addItem).toHaveBeenCalledWith(control.path, schemaDefaultValue);
+    expect(addItem).toHaveBeenCalledWith(
+      control.value.path,
+      schemaDefaultValue,
+    );
   });
 
   it("uses provided default value if present", () => {
     const addItem = vi.fn(() => () => {});
     const elementDefaultValueProvider = "myElementDefaultValueProvider";
-    control.uischema.options.elementDefaultValueProvider =
+    control.value.uischema.options.elementDefaultValueProvider =
       elementDefaultValueProvider;
 
     let provideDefault;
-    const addStateProviderListenerMock = vi.fn((_id, callback) => {
+    const addStateProviderListener = vi.fn((_id, callback) => {
       provideDefault = callback;
     });
-    const { wrapper } = mountJsonFormsComponent(ArrayLayout, {
+    const { wrapper } = mountArrayLayout({
       props: { control },
-      provide: { addStateProviderListenerMock, arrayControlMocks: { addItem } },
+      provide: { addStateProviderListener, arrayControlMocks: { addItem } },
     });
-    expect(addStateProviderListenerMock).toHaveBeenCalledWith(
+    expect(addStateProviderListener).toHaveBeenCalledWith(
       { id: elementDefaultValueProvider },
       expect.anything(),
     );
@@ -206,6 +239,7 @@ describe("ArrayLayout.vue", () => {
       label: "My default Label",
       size: 1,
       value: "0",
+      _id: expect.any(String),
     };
     const button = wrapper.find(".array > button").element;
 
@@ -214,17 +248,21 @@ describe("ArrayLayout.vue", () => {
     button.click();
     expect(addItem).toHaveBeenNthCalledWith(
       1,
-      control.path,
+      control.value.path,
       schemaDefaultValue,
     );
 
-    expect(addItem).toHaveBeenNthCalledWith(2, control.path, providedDefault);
+    expect(addItem).toHaveBeenNthCalledWith(
+      2,
+      control.value.path,
+      providedDefault,
+    );
   });
 
   it("sets add button text", () => {
     const customAddButtonText = "My add button text";
-    control.uischema.options.addButtonText = customAddButtonText;
-    const { wrapper } = mountJsonFormsComponent(ArrayLayout, {
+    control.value.uischema.options.addButtonText = customAddButtonText;
+    const { wrapper } = mountArrayLayout({
       props: { control },
     });
     const addButton = wrapper.find(".array > button");
@@ -233,7 +271,7 @@ describe("ArrayLayout.vue", () => {
 
   it("adds default item", async () => {
     const addItem = vi.fn(() => () => {});
-    const { wrapper, updateData } = mountJsonFormsComponent(ArrayLayout, {
+    const { wrapper } = mountArrayLayout({
       props: { control },
       provide: {
         arrayControlMocks: {
@@ -242,19 +280,19 @@ describe("ArrayLayout.vue", () => {
       },
     });
     wrapper.vm.addDefaultItem();
-    expect(addItem).toHaveBeenCalledWith(control.path, {
+    expect(addItem).toHaveBeenCalledWith(control.value.path, {
       borderStyle: "DASHED",
       color: "blue",
       size: 1,
       value: "0",
+      _id: expect.any(String),
     });
     await flushPromises();
-    expect(updateData).toHaveBeenCalledWith(control.path);
   });
 
   it("deletes item", async () => {
     const removeItems = vi.fn(() => () => {});
-    const { wrapper, updateData } = mountJsonFormsComponent(ArrayLayout, {
+    const { wrapper } = mountArrayLayout({
       props: { control },
       provide: {
         arrayControlMocks: {
@@ -266,12 +304,11 @@ describe("ArrayLayout.vue", () => {
     wrapper.vm.deleteItem(index);
     expect(removeItems).toHaveBeenCalledWith(expect.anything(), [index]);
     await flushPromises();
-    expect(updateData).toHaveBeenCalledWith(control.path);
   });
 
   it("moves item up", async () => {
     const moveUp = vi.fn(() => () => {});
-    const { wrapper, updateData } = mountJsonFormsComponent(ArrayLayout, {
+    const { wrapper } = mountArrayLayout({
       props: { control },
       provide: {
         arrayControlMocks: {
@@ -284,14 +321,13 @@ describe("ArrayLayout.vue", () => {
       .findAllComponents(ArrayLayoutItemControls)
       .at(index)
       .vm.$emit("moveUp");
-    expect(moveUp).toHaveBeenCalledWith(control.path, index);
+    expect(moveUp).toHaveBeenCalledWith(control.value.path, index);
     await flushPromises();
-    expect(updateData).toHaveBeenCalledWith(control.path);
   });
 
   it("moves item down", async () => {
     const moveDown = vi.fn(() => () => {});
-    const { wrapper, updateData } = mountJsonFormsComponent(ArrayLayout, {
+    const { wrapper } = mountArrayLayout({
       props: { control },
       provide: {
         arrayControlMocks: {
@@ -304,14 +340,13 @@ describe("ArrayLayout.vue", () => {
       .findAllComponents(ArrayLayoutItemControls)
       .at(index)
       .vm.$emit("moveDown");
-    expect(moveDown).toHaveBeenCalledWith(control.path, index);
+    expect(moveDown).toHaveBeenCalledWith(control.value.path, index);
     await flushPromises();
-    expect(updateData).toHaveBeenCalledWith(control.path);
   });
 
   it("renders an edit/reset button if configured to do so", () => {
-    control.uischema.options.withEditAndReset = true;
-    const { wrapper } = mountJsonFormsComponent(ArrayLayout, {
+    control.value.uischema.options.withEditAndReset = true;
+    const { wrapper } = mountArrayLayout({
       props: { control },
     });
     const itemControls = wrapper.findAllComponents(ArrayLayoutItemControls);
@@ -329,8 +364,8 @@ describe("ArrayLayout.vue", () => {
 
   it("renders a checkbox next to the header when given an elementCheckboxScope", () => {
     const elementCheckboxScope = "#/properties/booleanInput";
-    control.uischema.options.elementCheckboxScope = elementCheckboxScope;
-    const { wrapper } = mountJsonFormsComponent(ArrayLayout, {
+    control.value.uischema.options.elementCheckboxScope = elementCheckboxScope;
+    const { wrapper } = mountArrayLayout({
       props: { control },
     });
     const firstDispatchedProps = wrapper
@@ -345,10 +380,10 @@ describe("ArrayLayout.vue", () => {
   });
 
   it("does not render sort buttons when showSortButtons is not present or false", () => {
-    const { wrapper } = mountJsonFormsComponent(ArrayLayout, {
+    const { wrapper } = mountArrayLayout({
       props: { control },
     });
-    const numberDataItems = control.data.length;
+    const numberDataItems = control.value.data.length;
     const itemControls = wrapper.findAllComponents(ArrayLayoutItemControls);
 
     expect(itemControls).toHaveLength(numberDataItems);
@@ -364,7 +399,7 @@ describe("ArrayLayout.vue", () => {
   });
 
   it("renders headers and uses card styled items", () => {
-    const { wrapper } = mountJsonFormsComponent(ArrayLayout, {
+    const { wrapper } = mountArrayLayout({
       props: { control },
     });
     expect(wrapper.find(".item-header").exists()).toBeTruthy();
@@ -373,12 +408,12 @@ describe("ArrayLayout.vue", () => {
   });
 
   it("does not render headers and items as card but renders controls if arrayElementTitle is missing", () => {
-    delete control.uischema.options.arrayElementTitle;
-    const { wrapper } = mountJsonFormsComponent(ArrayLayout, {
+    delete control.value.uischema.options.arrayElementTitle;
+    const { wrapper } = mountArrayLayout({
       props: { control },
     });
     expect(wrapper.find(".item-header").exists()).toBeFalsy();
-    const numberDataItems = control.data.length;
+    const numberDataItems = control.value.data.length;
     const itemControls = wrapper.findAllComponents(ArrayLayoutItemControls);
     expect(itemControls).toHaveLength(numberDataItems);
     expect(wrapper.vm.useCardLayout).toBeFalsy();
@@ -409,8 +444,8 @@ describe("ArrayLayout.vue", () => {
   ])(
     "disables $button for $position item when showSortButtons is true",
     ({ itemNum, moveUpDisabled, moveDownDisabled }) => {
-      control.uischema.options.showSortButtons = true;
-      const { wrapper } = mountJsonFormsComponent(ArrayLayout, {
+      control.value.uischema.options.showSortButtons = true;
+      const { wrapper } = mountArrayLayout({
         props: { control },
       });
       const itemControls = wrapper.findAll(".item-controls");
@@ -433,24 +468,24 @@ describe("ArrayLayout.vue", () => {
       render: "render",
       condition: "false",
       value: false,
-      numberIcons: control.data.length,
+      numberIcons: controlDataLength,
     },
     {
       render: "render",
       condition: "not present",
       value: null,
-      numberIcons: control.data.length,
+      numberIcons: controlDataLength,
     },
   ])(
     "does $render add and delete buttons when hasFixedSize is $condition",
     ({ value, numberIcons }) => {
       if (value === null) {
-        delete control.uischema.options.hasFixedSize;
+        delete control.value.uischema.options.hasFixedSize;
       } else {
-        control.uischema.options.hasFixedSize = value;
+        control.value.uischema.options.hasFixedSize = value;
       }
 
-      const { wrapper } = mountJsonFormsComponent(ArrayLayout, {
+      const { wrapper } = mountArrayLayout({
         props: { control },
       });
 
@@ -466,22 +501,22 @@ describe("ArrayLayout.vue", () => {
   it("displays provided title and subtitle", async () => {
     const titleProvider = "myTitleProvider";
     const subTitleProvider = "mySubTitleProvider";
-    control.uischema.options.elementTitleProvider = titleProvider;
-    control.uischema.options.elementSubTitleProvider = subTitleProvider;
+    control.value.uischema.options.elementTitleProvider = titleProvider;
+    control.value.uischema.options.elementSubTitleProvider = subTitleProvider;
 
     const provideState = [];
-    const addStateProviderListenerMock = vi.fn((_id, callback) => {
+    const addStateProviderListener = vi.fn((_id, callback) => {
       provideState.push(callback);
     });
-    const { wrapper } = mountJsonFormsComponent(ArrayLayout, {
+    const { wrapper } = mountArrayLayout({
       props: { control },
-      provide: { addStateProviderListenerMock },
+      provide: { addStateProviderListener },
     });
-    expect(addStateProviderListenerMock).toHaveBeenCalledWith(
+    expect(addStateProviderListener).toHaveBeenCalledWith(
       { id: titleProvider, indexIds: expect.anything(), indices: [0] },
       expect.anything(),
     );
-    expect(addStateProviderListenerMock).toHaveBeenCalledWith(
+    expect(addStateProviderListener).toHaveBeenCalledWith(
       { id: subTitleProvider, indexIds: expect.anything(), indices: [0] },
       expect.anything(),
     );
@@ -493,25 +528,20 @@ describe("ArrayLayout.vue", () => {
     );
   });
 
+  it("sets initia ids", () => {
+    expect(handleChange).toHaveBeenCalledTimes(controlDataLength);
+  });
+
   describe("edit/reset buttons initial state", () => {
     let resolveIsActivePromise = () => {};
 
     beforeEach(() => {
       vi.useFakeTimers();
-      const newControl = {
-        ...control,
-        uischema: {
-          ...control.uischema,
-          options: {
-            ...control.uischema.options,
-            withEditAndReset: true,
-          },
-        },
-      };
-      const component = mountJsonFormsComponent(ArrayLayout, {
-        props: { control: newControl },
+      control.value.uischema.options.withEditAndReset = true;
+      const component = mountArrayLayout({
+        props: { control },
         provide: {
-          isTriggerActiveMock: vi.fn().mockReturnValue(
+          isTriggerActive: vi.fn().mockReturnValue(
             new Promise((resolve) => {
               resolveIsActivePromise = resolve;
             }),
@@ -526,29 +556,44 @@ describe("ArrayLayout.vue", () => {
       vi.useRealTimers();
     });
 
-    it("shows loading icon while loading", async () => {
-      const ids = wrapper.vm.signedData.map(({ _id }) => _id);
-      const editResetButtons = wrapper
+    const getEditResetButtons = () =>
+      wrapper
         .findAllComponents(DispatchRenderer)
         .filter((c) => c.props("schema").properties?._edit?.type === "boolean");
+
+    it("shows loading icon while loading", async () => {
+      const editResetButtons = getEditResetButtons();
       expect(editResetButtons.length).toBe(3);
       expect(editResetButtons[0].attributes("is-loading")).toBeUndefined();
       vi.runAllTimers();
       await wrapper.vm.$nextTick();
       expect(editResetButtons[0].attributes("is-loading")).toBe("");
+      // simulate setting ids
+      control.value = {
+        ...control.value,
+        data: control.value.data.map((data, index) => ({
+          ...data,
+          _id: `id-${index}`,
+        })),
+      };
+      await wrapper.vm.$nextTick();
       resolveIsActivePromise({
         state: "SUCCESS",
-        result: ids.map((id, index) => ({
-          indices: [id],
+        result: control.value.data.map((_, index) => ({
+          indices: [`id-${index}`],
           isActive: index === 0,
         })),
       });
       await flushPromises();
-      await wrapper.vm.$nextTick();
-      expect(editResetButtons[0].attributes("is-loading")).toBeUndefined();
-      expect(editResetButtons[0].attributes("initial-is-edited")).toBe("");
+      const editResetButtonsAfterResolve = getEditResetButtons();
       expect(
-        editResetButtons[1].attributes("initial-is-edited"),
+        editResetButtonsAfterResolve[0].attributes("is-loading"),
+      ).toBeUndefined();
+      expect(
+        editResetButtonsAfterResolve[0].attributes("initial-is-edited"),
+      ).toBe("");
+      expect(
+        editResetButtonsAfterResolve[1].attributes("initial-is-edited"),
       ).toBeUndefined();
     });
   });

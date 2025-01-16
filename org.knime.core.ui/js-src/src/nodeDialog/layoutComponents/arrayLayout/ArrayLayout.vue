@@ -1,5 +1,5 @@
 <script lang="ts">
-import { type Ref, computed, defineComponent, nextTick, ref, watch } from "vue";
+import { type Ref, computed, defineComponent, ref, watch } from "vue";
 import { type JsonSchema, composePaths, toDataPath } from "@jsonforms/core";
 import {
   DispatchRenderer,
@@ -11,21 +11,22 @@ import {
 import { Button } from "@knime/components";
 import PlusIcon from "@knime/styles/img/icons/plus.svg";
 
-import { useDirtySetting } from "./../../composables/components/useDirtySetting";
-import useProvidedState from "./../../composables/components/useProvidedState";
+import { useDirtySetting } from "../../composables/components/useDirtySetting";
+import useProvidedState from "../../composables/components/useProvidedState";
 import {
   createNewId,
   deleteId,
+  getIndex,
   setIndex,
-} from "./../../composables/nodeDialog/useArrayIds";
-import { editResetButtonFormat } from "./../../renderers/editResetButtonRenderer";
-import DialogComponentWrapper from "./../../uiComponents/DialogComponentWrapper.vue";
-import inject from "./../../utils/inject";
+} from "../../composables/nodeDialog/useArrayIds";
+import { editResetButtonFormat } from "../../renderers/editResetButtonRenderer";
+import inject from "../../utils/inject";
+
 import ArrayLayoutItem from "./ArrayLayoutItem.vue";
 import ArrayLayoutItemControls from "./ArrayLayoutItemControls.vue";
 import useIsEdited from "./composables/useIsEdited";
 
-interface ArrayLayoutControl {
+export interface ArrayLayoutControl {
   data: {
     _id?: string;
   }[];
@@ -45,6 +46,7 @@ interface ArrayLayoutControl {
       detail?: Record<string, JsonSchema>;
     };
   };
+  visible: boolean;
   schema: { properties: Record<string, JsonSchema> };
 }
 
@@ -54,7 +56,6 @@ const ArrayLayout = defineComponent({
     DispatchRenderer,
     Button,
     PlusIcon,
-    DialogComponentWrapper,
     ArrayLayoutItemControls,
     ArrayLayoutItem,
   },
@@ -75,7 +76,7 @@ const ArrayLayout = defineComponent({
       null,
     );
     useDirtySetting({
-      dataPath: control.value.path,
+      dataPath: computed(() => control.value.path),
       value: numElements,
       valueComparator: {
         setSettings: (length) => {
@@ -85,24 +86,31 @@ const ArrayLayout = defineComponent({
       },
     });
 
-    /**
-     * We need to ids in the data for setting correct keys in the template and for handling updates correctly.
-     */
-    const dataWithId = computed(() =>
-      control.value.data.map((item) =>
-        item._id
-          ? (item as { _id: string })
-          : {
-              ...item,
-              _id: createNewId(),
-            },
-      ),
-    );
     const idsRecord = inject("createArrayAtPath")(
       toDataPath(control.value.uischema.scope),
     );
-    const ids = computed(() => dataWithId.value.map(({ _id }) => _id));
-    const hash = (ids: string[]) => ids.reduce((x, y) => x + y, "");
+    const getExistingId = (index: number) =>
+      Object.keys(idsRecord).find((id) => getIndex(id) === index);
+    const getOrCreateId = (index: number) =>
+      getExistingId(index) ?? createNewId();
+
+    watch(
+      () => control.value.data,
+      (data) => {
+        data.forEach((item, index) => {
+          if (!item._id) {
+            handleChange(
+              composePaths(composePaths(control.value.path, `${index}`), "_id"),
+              getOrCreateId(index),
+            );
+          }
+        });
+      },
+      { immediate: true },
+    );
+    const ids = computed(() => control.value.data.map(({ _id }) => _id));
+    const hash = (ids: (string | undefined)[]) =>
+      ids.reduce((x, y) => (x ?? "<noId>") + (y ?? "<noId>"), "");
 
     watch(
       () => ids.value,
@@ -110,10 +118,10 @@ const ArrayLayout = defineComponent({
         if (oldIds && hash(newIds) === hash(oldIds)) {
           return;
         }
-        newIds.forEach((id, index) => setIndex(id, index));
+        newIds.forEach((id, index) => id && setIndex(id, index));
         oldIds
-          ?.filter((id) => !newIds.includes(id))
-          .forEach((id) => deleteId(id));
+          ?.filter((id) => id && !newIds.includes(id))
+          .forEach((id) => deleteId(id!));
       },
       { immediate: true },
     );
@@ -121,12 +129,6 @@ const ArrayLayout = defineComponent({
     const { isEdited, isEditedIsLoading } = useIsEdited(
       control.value.uischema.options.withEditAndReset,
       ids,
-    );
-
-    watch(
-      () => hash(ids.value),
-      () => handleChange(control.value.path, dataWithId.value),
-      { immediate: true },
     );
 
     const {
@@ -137,24 +139,14 @@ const ArrayLayout = defineComponent({
       control: arrayControl,
     } = useJsonFormsArrayControl(props as any);
 
-    const updateData = inject("updateData");
-    const andUpdate =
-      <T extends (...params: any[]) => () => void>(fn: T) =>
-      async (...params: Parameters<T>) => {
-        fn(...params)();
-        await nextTick();
-        updateData(control.value.path);
-      };
-
     return {
-      addItem: andUpdate(addItem),
-      moveDown: andUpdate(moveDown!),
-      moveUp: andUpdate(moveUp!),
-      removeItems: andUpdate(removeItems!),
+      addItem,
+      moveDown,
+      moveUp,
+      removeItems,
       control: arrayControl as unknown as Ref<ArrayLayoutControl>,
       numElements,
       cleanArrayLength,
-      signedData: dataWithId,
       idsRecord,
       providedElementDefaultValue,
       isEdited,
@@ -226,21 +218,21 @@ const ArrayLayout = defineComponent({
     },
     addDefaultItem() {
       this.elementCountBeforeAddingOne = this.numElements;
-      this.addItem(
-        this.control.path,
-        this.createDefaultValue(
+      this.addItem(this.control.path, {
+        ...this.createDefaultValue(
           this.control.schema as { properties: Record<string, JsonSchema> },
         ),
-      );
+        _id: createNewId(),
+      })();
     },
     moveItemUp(index: number) {
-      this.moveUp(this.control.path, index);
+      this.moveUp?.(this.control.path, index)();
     },
     moveItemDown(index: number) {
-      this.moveDown(this.control.path, index);
+      this.moveDown?.(this.control.path, index)();
     },
     deleteItem(index: number) {
-      this.removeItems(composePaths(this.control.path, ""), [index]);
+      this.removeItems?.(composePaths(this.control.path, ""), [index])();
     },
   },
 });
@@ -248,80 +240,78 @@ export default ArrayLayout;
 </script>
 
 <template>
-  <DialogComponentWrapper :control="control">
-    <div class="array">
-      <div
-        v-for="(obj, objIndex) in signedData"
-        :key="`${control.path}-${obj._id}`"
-        :class="['item', { card: useCardLayout }]"
+  <div v-if="control.visible" class="array">
+    <div
+      v-for="(obj, objIndex) in control.data"
+      :key="`${control.path}-${obj._id}`"
+      :class="['item', { card: useCardLayout }]"
+    >
+      <ArrayLayoutItem
+        :id="obj._id"
+        :ids-record="idsRecord"
+        :elements="elements"
+        :array-element-title="arrayElementTitle"
+        :sub-title-provider="subTitleProvider"
+        :path="control.path"
+        :index="objIndex"
+        :has-been-added="objIndex === elementCountBeforeAddingOne"
+        :element-checkbox-scope="elementCheckboxScope"
       >
-        <ArrayLayoutItem
-          :id="obj._id"
-          :ids-record="idsRecord"
-          :elements="elements"
-          :array-element-title="arrayElementTitle"
-          :sub-title-provider="subTitleProvider"
-          :path="control.path"
-          :index="objIndex"
-          :has-been-added="objIndex === elementCountBeforeAddingOne"
-          :element-checkbox-scope="elementCheckboxScope"
-        >
-          <template #renderer="{ element, path }">
-            <DispatchRenderer
-              v-bind="control"
-              :uischema="element"
-              :path="path"
-            />
-          </template>
-          <template #controls>
-            <ArrayLayoutItemControls
-              :is-first="objIndex === 0"
-              :is-last="objIndex === control.data.length - 1"
-              :show-sort-controls="showSortControls"
-              :show-delete-button="showAddAndDeleteButtons"
-              @move-up="moveItemUp(objIndex)"
-              @move-down="moveItemDown(objIndex)"
-              @delete="deleteItem(objIndex)"
-            >
-              <template #before>
-                <DispatchRenderer
-                  v-if="showEditAndResetControls"
-                  v-bind="control"
-                  :schema="{
-                    type: 'object',
-                    properties: {
-                      _edit: {
-                        type: 'boolean',
-                      },
+        <template #renderer="{ element, path }">
+          <DispatchRenderer
+            :schema="control.schema"
+            :uischema="element"
+            :path="path"
+          />
+        </template>
+        <template #controls>
+          <ArrayLayoutItemControls
+            :is-first="objIndex === 0"
+            :is-last="objIndex === control.data.length - 1"
+            :show-sort-controls="showSortControls"
+            :show-delete-button="showAddAndDeleteButtons"
+            @move-up="moveItemUp(objIndex)"
+            @move-down="moveItemDown(objIndex)"
+            @delete="deleteItem(objIndex)"
+          >
+            <template #before>
+              <DispatchRenderer
+                v-if="showEditAndResetControls"
+                v-bind="control"
+                :schema="{
+                  type: 'object',
+                  properties: {
+                    _edit: {
+                      type: 'boolean',
                     },
-                  }"
-                  :uischema="{
-                    scope: '#/properties/_edit',
-                    options: {
-                      format: editResetButtonFormat,
-                    },
-                  }"
-                  :path="`${control.path}.${objIndex}`"
-                  :initial-is-edited="isEdited.get(obj._id) ? '' : undefined"
-                  :is-loading="isEditedIsLoading ? '' : undefined"
-                />
-              </template>
-            </ArrayLayoutItemControls>
-          </template>
-        </ArrayLayoutItem>
-      </div>
-      <Button
-        v-if="showAddAndDeleteButtons"
-        class="add-item-button"
-        with-border
-        compact
-        @click="addDefaultItem"
-      >
-        <PlusIcon />
-        {{ control.uischema.options.addButtonText || "New" }}
-      </Button>
+                  },
+                }"
+                :uischema="{
+                  scope: '#/properties/_edit',
+                  options: {
+                    format: editResetButtonFormat,
+                  },
+                }"
+                :path="`${control.path}.${objIndex}`"
+                :initial-is-edited="isEdited.get(obj._id) ? '' : undefined"
+                :is-loading="isEditedIsLoading ? '' : undefined"
+              />
+            </template>
+          </ArrayLayoutItemControls>
+        </template>
+      </ArrayLayoutItem>
     </div>
-  </DialogComponentWrapper>
+    <Button
+      v-if="showAddAndDeleteButtons"
+      class="add-item-button"
+      with-border
+      compact
+      @click="addDefaultItem"
+    >
+      <PlusIcon />
+      {{ control.uischema.options.addButtonText || "New" }}
+    </Button>
+  </div>
 </template>
 
 <style lang="postcss" scoped>

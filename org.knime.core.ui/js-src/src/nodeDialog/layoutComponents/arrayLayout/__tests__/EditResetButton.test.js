@@ -1,48 +1,55 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ref } from "vue";
+import { mount } from "@vue/test-utils";
+import * as jsonformsVueModule from "@jsonforms/vue";
 import flushPromises from "flush-promises";
 
 import { FunctionButton, LoadingIcon } from "@knime/components";
+import { getControlBase } from "@knime/jsonforms/testing";
 import EditIcon from "@knime/styles/img/icons/pencil.svg";
 import ResetIcon from "@knime/styles/img/icons/reset-all.svg";
 
-import {
-  getControlBase,
-  initializesJsonFormsControl,
-  mountJsonFormsComponent,
-} from "@@/test-setup/utils/jsonFormsTestUtils";
 import EditResetButton from "../EditResetButton.vue";
 
 describe("EditResetButton.vue", () => {
-  let defaultProps, wrapper, component;
+  let props, wrapper, handleChange;
 
   beforeEach(() => {
-    defaultProps = {
-      control: {
-        ...getControlBase("_edit"),
-        data: false,
-        schema: {
-          properties: {
-            xAxisLabel: {
-              type: "string",
-              title: "X Axis Label",
-            },
+    const control = ref({
+      ...getControlBase("_edit"),
+      data: false,
+      schema: {
+        properties: {
+          xAxisLabel: {
+            type: "string",
+            title: "X Axis Label",
           },
-          default: "default value",
         },
-        uischema: {
-          type: "Control",
-          scope: "#/properties/view/properties/xAxisLabel",
-          options: {
-            isAdvanced: false,
-          },
+        default: "default value",
+      },
+      uischema: {
+        type: "Control",
+        scope: "#/properties/view/properties/xAxisLabel",
+        options: {
+          isAdvanced: false,
         },
       },
-    };
-
-    component = mountJsonFormsComponent(EditResetButton, {
-      props: defaultProps,
     });
-    wrapper = component.wrapper;
+    handleChange = vi.fn();
+
+    vi.spyOn(jsonformsVueModule, "useJsonFormsControl").mockReturnValue({
+      handleChange,
+      control,
+    });
+
+    wrapper = mount(EditResetButton, {
+      props,
+      global: {
+        provide: {
+          trigger: vi.fn(),
+        },
+      },
+    });
   });
 
   afterEach(() => {
@@ -55,16 +62,9 @@ describe("EditResetButton.vue", () => {
     expect(wrapper.findComponent(ResetIcon).exists()).toBe(false);
   });
 
-  it("initializes jsonforms", () => {
-    initializesJsonFormsControl(component);
-  });
-
   it("calls handleChange when edit button is clicked", () => {
-    const { wrapper, handleChange } = mountJsonFormsComponent(EditResetButton, {
-      props: defaultProps,
-    });
     wrapper.findComponent(FunctionButton).vm.$emit("click");
-    expect(handleChange).toHaveBeenCalledWith(defaultProps.control.path, true);
+    expect(handleChange).toHaveBeenCalledWith("_edit", true);
   });
 
   describe("initially active reset button", () => {
@@ -77,10 +77,7 @@ describe("EditResetButton.vue", () => {
     it("shows reset button initially if desired", async () => {
       await wrapper.setProps({ initialIsEdited: true });
       await flushPromises();
-      expect(component.handleChange).toHaveBeenCalledWith(
-        defaultProps.control.path,
-        true,
-      );
+      expect(handleChange).toHaveBeenCalledWith("_edit", true);
     });
   });
 });

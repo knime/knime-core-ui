@@ -9,7 +9,8 @@ import {
   type UIExtensionService,
 } from "@knime/ui-extension-service";
 
-import NodeDialog from "./../NodeDialog.vue";
+import NodeDialog from "../NodeDialog.vue";
+
 import dataServiceMock from "./dataServiceMock";
 
 export default {
@@ -35,7 +36,7 @@ export default {
   },
   computed: {
     dialogMocks() {
-      // eslint-disable-next-line no-undef
+      // @ts-ignore
       const mocks: Record<string, { result: object }> = import.meta.glob(
         "@@/mocks/*.json",
         { eager: true },

@@ -1,4 +1,3 @@
-import type { JsonSchema4, JsonSchema7 } from "@jsonforms/core";
 import type { PartialDeep } from "type-fest";
 
 import type { Control } from "../types/Control";
@@ -6,11 +5,6 @@ import type { Control } from "../types/Control";
 import getPossibleValuesFromUiSchema from "./getPossibleValuesFromUiSchema";
 
 export { getPossibleValuesFromUiSchema };
-
-export const optionsMapper = ({
-  const: id,
-  title: text,
-}: JsonSchema4 | JsonSchema7) => ({ id: id as string, text: text! });
 
 const isObject = (item: any) =>
   item && typeof item === "object" && !Array.isArray(item);
@@ -88,28 +82,3 @@ export const hasAdvancedOptions = (uischema: object) =>
     keyName: "isAdvanced",
     value: true,
   });
-
-export const getValuesNotInSet = <T>(arr: T[], valueSet: Set<T>) => {
-  return arr.filter((item) => !valueSet.has(item));
-};
-
-export const getValuesInSet = <T>(arr: T[], valueSet: Set<T>) => {
-  return arr.filter((item) => valueSet.has(item));
-};
-
-export const partitionBy = <T, Keys extends string | number | symbol>(
-  arr: T[],
-  fn: (item: T) => Keys,
-): Record<Keys, T[] | undefined> => {
-  return arr.reduce(
-    (acc, val) => {
-      const key = fn(val);
-      if (typeof acc[key] === "undefined") {
-        acc[key] = [];
-      }
-      acc[key]!.push(val);
-      return acc;
-    },
-    {} as Record<Keys, T[] | undefined>,
-  );
-};

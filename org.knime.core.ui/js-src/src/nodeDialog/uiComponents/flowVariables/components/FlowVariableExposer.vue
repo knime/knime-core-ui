@@ -2,8 +2,8 @@
 import { computed, ref, watchEffect } from "vue";
 
 import { InputField } from "@knime/components";
+import { ErrorMessage } from "@knime/jsonforms";
 
-import ErrorMessage from "../../ErrorMessage.vue";
 import useExposedFlowVariable from "../composables/useExposedFlowVariable";
 import { type FlowVariableSelectorProps } from "../types/FlowVariableExposerProps";
 

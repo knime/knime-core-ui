@@ -12,19 +12,19 @@ import flushPromises from "flush-promises";
 import { Dropdown, InputField } from "@knime/components";
 import { JsonDataService } from "@knime/ui-extension-service";
 
+import NodeDialog from "../../NodeDialog.vue";
+import type { FlowSettings, PossibleFlowVariable } from "../../api/types";
+import type { PersistSchema } from "../../types/Persist";
+import type { UpdateResult } from "../../types/Update";
+import FlowVariableButton from "../../uiComponents/flowVariables/components/FlowVariableButton.vue";
+import { getOptions } from "../utils";
+
 import {
   controllingFlowVariableState,
   exposedFlowVariableState,
   mockRegisterSettings,
   registeredSettingState,
-} from "@@/test-setup/utils/integration/dirtySettingState";
-import NodeDialog from "../../NodeDialog.vue";
-import { getOptions } from "../utils";
-
-import type { FlowSettings, PossibleFlowVariable } from "./../../api/types";
-import type { PersistSchema } from "./../../types/Persist";
-import type { UpdateResult } from "./../../types/Update";
-import FlowVariableButton from "./../../uiComponents/flowVariables/components/FlowVariableButton.vue";
+} from "./utils/dirtySettingState";
 
 describe("flow variables", () => {
   const flowVar1 = {
@@ -60,6 +60,7 @@ describe("flow variables", () => {
     flowVariablesMap: FlowVariablesMap,
     flowVarButton: VueWrapper<any>,
     dropdownButton: DOMWrapper<HTMLButtonElement>,
+    listBox: DOMWrapper<HTMLLIElement>,
     listItems: DOMWrapper<HTMLLIElement>[],
     exposedVariableInput: DOMWrapper<HTMLInputElement>;
 
@@ -67,7 +68,7 @@ describe("flow variables", () => {
     wrapper = mount(NodeDialog as any, getOptions()) as Wrapper;
     await flushPromises();
     await vi.dynamicImportSettled();
-    flowVariablesMap = wrapper.vm.providedFlowVariablesMap;
+    flowVariablesMap = wrapper.vm.flowVariablesMap;
   };
 
   const expandFlowVariablesPopover = async () => {
@@ -79,7 +80,8 @@ describe("flow variables", () => {
       .findComponent(InputField)
       .find("input");
     dropdownButton = dropdown.find("[role=button]");
-    listItems = dropdown.findAll("li");
+    listBox = dropdown.find("[role=listbox]");
+    listItems = listBox.findAll("li");
   };
 
   beforeEach(async () => {
@@ -157,11 +159,11 @@ describe("flow variables", () => {
 
     expect(dropdownButton.text()).toBe("No flow variable selected");
     expect(flowVariablesMap).toStrictEqual({});
-    listItems.forEach((li) => expect(li.isVisible()).toBeFalsy());
+    expect(listBox.attributes("style")).toContain("display: none");
 
     await dropdownButton.trigger("click");
 
-    listItems.forEach((li) => expect(li.isVisible()).toBeTruthy());
+    expect(listBox.attributes("style")).not.toContain("display: none");
     expect(listItems.map((li) => li.text())).toStrictEqual([
       "None",
       flowVar1.name,
@@ -199,7 +201,7 @@ describe("flow variables", () => {
         controllingFlowVariableAvailable: true,
       },
     });
-    expect(wrapper.vm.getData().data.model.value).toBe(
+    expect(wrapper.vm.getCurrentData().model.value).toBe(
       fetchedFlowVariableValue,
     );
   });
@@ -233,7 +235,7 @@ describe("flow variables", () => {
     expect(dropdownButton.text()).toBe("No flow variable selected");
 
     // We keep the last value to keep a valid state
-    expect(wrapper.vm.getData().data.model.value).toBe(
+    expect(wrapper.vm.getCurrentData().model.value).toBe(
       fetchedFlowVariableValue,
     );
   });
@@ -312,10 +314,10 @@ describe("flow variables", () => {
 
     it("sets flow variable name in data when controlling flow variable is set", async () => {
       // Click on "flowVar1"
-      listItems.at(1)?.trigger("click");
+      listItems.at(1)!.trigger("click");
       await flushPromises();
 
-      expect(wrapper.vm.getData().data.model.value).toStrictEqual({
+      expect(wrapper.vm.getCurrentData().model.value).toStrictEqual({
         flowVariableName: flowVar1.name,
         isHiddenPassword: true,
         username: "flowVarUsername",
@@ -329,7 +331,7 @@ describe("flow variables", () => {
       listItems.at(0)?.trigger("click");
       await flushPromises();
 
-      expect(wrapper.vm.getData().data.model.value).toStrictEqual({
+      expect(wrapper.vm.getCurrentData().model.value).toStrictEqual({
         username: "",
         secondFactor: "",
         password: "",
@@ -405,6 +407,6 @@ describe("flow variables", () => {
 
     await mountNodeDialog();
 
-    expect(wrapper.vm.getData().data.model.value).toBe(initialValue);
+    expect(wrapper.vm.getCurrentData().model.value).toBe(initialValue);
   });
 });

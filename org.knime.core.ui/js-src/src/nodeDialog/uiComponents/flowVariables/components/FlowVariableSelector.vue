@@ -65,7 +65,13 @@ onMounted(async () => {
   availableVariablesLoaded.value = true;
 });
 
-const emit = defineEmits(["controllingFlowVariableSet"]);
+const emit = defineEmits<{
+  controllingFlowVariableSet: [
+    path: string,
+    value: unknown,
+    flowVarName: string,
+  ];
+}>();
 
 const selectValue = async (selectedId: string | number) => {
   if (selectedId === noFlowVariableOption.id) {
@@ -87,7 +93,7 @@ const selectValue = async (selectedId: string | number) => {
   if (isFlawed) {
     invalidateSetFlowVariable(setVariableProps);
   } else {
-    emit("controllingFlowVariableSet", value);
+    emit("controllingFlowVariableSet", props.dataPath, value, flowVar.name);
   }
 };
 

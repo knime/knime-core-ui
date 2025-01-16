@@ -1,33 +1,37 @@
 <script setup lang="ts">
-import { rendererProps } from "@jsonforms/vue";
+import { computed } from "vue";
 
-import useDialogControl from "../../composables/components/useDialogControl";
+import type { VueControlPropsForLabelContent } from "@knime/jsonforms";
+
+import { useFlowSettings } from "../../composables/components/useFlowVariables";
 
 import CredentialsControlBase from "./CredentialsControlBase.vue";
 import LegacyFlowVariableHandler from "./LegacyFlowVariableHandler.vue";
 import type { Credentials } from "./types/Credentials";
 
-interface LegacyCredentials {
+export interface LegacyCredentials {
   credentials: Credentials;
-  flowVarName: string | null | undefined;
+  flowVarName?: string | null;
 }
 
-const props = defineProps(rendererProps());
-const {
-  control,
-  onChange: onChangeControl,
-  disabled,
-  flowSettings,
-} = useDialogControl<LegacyCredentials>({
-  props,
+const props = defineProps<VueControlPropsForLabelContent<LegacyCredentials>>();
+
+const { flowSettings } = useFlowSettings({
+  path: computed(() => props.control.path),
 });
 
-const onChange = (credentials: Credentials) => {
-  onChangeControl({ credentials, flowVarName: null });
+const onChangeLegacyCredentialsControl = (credentials: Credentials) => {
+  props.changeValue({ credentials, flowVarName: null });
 };
 
-const onLegacyFlowVariableSet = (flowVariableValue?: Credentials) => {
-  onChange(flowVariableValue ?? control.value.data.credentials);
+const onLegacyFlowVariableSet = (
+  flowVariableValue: Credentials | undefined,
+  flowVariableName: string,
+) => {
+  onChangeLegacyCredentialsControl({
+    ...(flowVariableValue ?? props.control.data.credentials),
+    flowVariableName,
+  });
 };
 </script>
 
@@ -37,7 +41,8 @@ const onLegacyFlowVariableSet = (flowVariableValue?: Credentials) => {
     :data="control.data.credentials"
     :flow-settings="flowSettings"
     :disabled="disabled"
-    @change="onChange"
+    :label-for-id="labelForId"
+    @change="onChangeLegacyCredentialsControl"
   />
   <LegacyFlowVariableHandler
     :flow-variable-name="control.data.flowVarName"

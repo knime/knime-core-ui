@@ -1,13 +1,19 @@
-import { type Ref, nextTick, ref, watch } from "vue";
+import { type Ref, nextTick, onMounted, ref, watch } from "vue";
 
+import inject from "../../../utils/inject";
 import { ELEMENT_RESET_BUTTON_ID } from "../EditResetButton.vue";
 
-import inject from "./../../../utils/inject";
-
 const MILLISECONDS_UNTIL_LOADING = 200;
-const hash = (ids: string[]) => ids.reduce((x, y) => x + y, "");
 
-export default (withEditAndReset: boolean, ids: Ref<string[]>) => {
+const isStringArray = (ids: (string | undefined)[]): ids is string[] =>
+  ids.every((id) => typeof id === "string");
+const hash = (ids: (string | undefined)[]) =>
+  isStringArray(ids) ? ids.reduce((x, y) => x + y, "") : false;
+
+export default (
+  withEditAndReset: boolean,
+  ids: Ref<(string | undefined)[]>,
+) => {
   // mapping  element ids to whether the element is edited
   const isEdited = ref(new Map());
   const isEditedIsLoading = ref(false);
@@ -32,10 +38,22 @@ export default (withEditAndReset: boolean, ids: Ref<string[]>) => {
     }, MILLISECONDS_UNTIL_LOADING);
     isEditedIsLoading.value = false;
   };
+
+  const hasIds = ref(false);
+
+  onMounted(() => {
+    setTimeout(() => {
+      if (!hasIds.value) {
+        isEditedIsLoading.value = true;
+      }
+    }, MILLISECONDS_UNTIL_LOADING);
+  });
+
   watch(
     () => hash(ids.value),
-    () => {
-      if (withEditAndReset) {
+    (idsAvailable) => {
+      if (withEditAndReset && idsAvailable) {
+        hasIds.value = true;
         const alreadyComputedForIds =
           ids.value.every((id) => isEdited.value.has(id)) &&
           isEdited.value.size === ids.value.length;

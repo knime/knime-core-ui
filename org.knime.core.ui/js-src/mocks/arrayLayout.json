@@ -80,6 +80,7 @@
               "options": {
                 "addButtonText": "Add dummy element",
                 "arrayElementTitle": "Dummy element",
+                "isAdvanced": true,
                 "showSortButtons": true,
                 "detail": {
                   "horizontalLayout": {

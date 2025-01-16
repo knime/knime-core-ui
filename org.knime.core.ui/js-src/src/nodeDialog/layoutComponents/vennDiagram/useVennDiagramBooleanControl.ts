@@ -1,12 +1,22 @@
 import { computed } from "vue";
 import type { ControlElement } from "@jsonforms/core";
-import type { RendererProps } from "@jsonforms/vue";
+import { type RendererProps, useJsonFormsControl } from "@jsonforms/vue";
 
-import useDialogControl from "./../../composables/components/useDialogControl";
+import { useFlowSettings } from "../../composables/components/useFlowVariables";
 
 export default (props: RendererProps<ControlElement>) => {
-  const { control, onChange, disabled } = useDialogControl<boolean>({ props });
-  const onClick = () => disabled.value || onChange(!control.value.data);
+  const { control, handleChange } = useJsonFormsControl(props);
+
+  const { disabledByFlowVariables } = useFlowSettings({
+    path: computed(() => control.value.path),
+  });
+
+  const disabled = computed(
+    () => !control.value.enabled || disabledByFlowVariables.value,
+  );
+
+  const onClick = () =>
+    disabled.value || handleChange(control.value.path, !control.value.data);
 
   const yellow = "#FFD800";
   const grey = "#D9D9D9";

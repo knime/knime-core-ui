@@ -1,3 +1,4 @@
+/* eslint-disable vitest/no-focused-tests */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { VueWrapper, mount } from "@vue/test-utils";
 import flushPromises from "flush-promises";
@@ -7,16 +8,12 @@ import {
   SharedDataService,
 } from "@knime/ui-extension-service";
 
-import { mockRegisterSettings } from "@@/test-setup/utils/integration/dirtySettingState";
+import NodeDialog from "../../NodeDialog.vue";
+import type { Result } from "../../api/types/Result";
+import type { Update, UpdateResult, ValueReference } from "../../types/Update";
+import { getOptions } from "../utils";
 
-import NodeDialog from "./../../NodeDialog.vue";
-import { getOptions } from "./../../__tests__/utils";
-import type { Result } from "./../../api/types/Result";
-import type {
-  Update,
-  UpdateResult,
-  ValueReference,
-} from "./../../types/Update";
+import { mockRegisterSettings } from "./utils/dirtySettingState";
 
 describe("updates in array layouts", () => {
   type Wrapper = VueWrapper<any> & {
@@ -189,7 +186,7 @@ describe("updates in array layouts", () => {
 
     await flushNextPromise();
 
-    expect(wrapper.vm.getData().data.view).toStrictEqual({
+    expect(wrapper.vm.getCurrentData().view).toStrictEqual({
       a: "Updated",
       c: "InitialValue",
     });
@@ -198,7 +195,7 @@ describe("updates in array layouts", () => {
 
     await flushNextPromise();
 
-    expect(wrapper.vm.getData().data.view).toStrictEqual({
+    expect(wrapper.vm.getCurrentData().view).toStrictEqual({
       a: "Updated",
       b: "Updated",
       c: "InitialValue",
@@ -208,7 +205,7 @@ describe("updates in array layouts", () => {
 
     await flushNextPromise();
 
-    expect(wrapper.vm.getData().data.view).toStrictEqual({
+    expect(wrapper.vm.getCurrentData().view).toStrictEqual({
       a: "Updated",
       b: "Updated",
       c: "Updated",
@@ -262,19 +259,19 @@ describe("updates in array layouts", () => {
 
     await flushNextPromise();
 
-    expect(wrapper.vm.getData().data.values[0]).toMatchObject({
+    expect(wrapper.vm.getCurrentData().values[0]).toMatchObject({
       a: "Updated",
     });
 
     await flushNextPromise();
 
-    expect(wrapper.vm.getData().data.values[0]).toMatchObject({
+    expect(wrapper.vm.getCurrentData().values[0]).toMatchObject({
       a: "Updated",
       b: "Updated",
     });
     await flushNextPromise();
 
-    expect(wrapper.vm.getData().data.values[0]).toMatchObject({
+    expect(wrapper.vm.getCurrentData().values[0]).toMatchObject({
       a: "Updated",
       b: "Updated",
       c: "Updated",

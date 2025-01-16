@@ -10,7 +10,8 @@
       "properties": {
         "textInput": {
           "type": "string",
-          "title": "Text Input"
+          "title": "Text Input",
+          "description": "This is a text input field"
         },
         "disabled": {
           "type": "string",

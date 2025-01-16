@@ -2,7 +2,8 @@
   "result": {
     "name": "Rich Text Control Dialog",
     "data": {
-      "richTextContent": "test"
+      "richTextContent": "test",
+      "aBoolean": false
     },
     "schema": {
       "type": "object",
@@ -12,6 +13,11 @@
           "title": "Rich Text Content",
           "description": "Test rich text Content",
           "default": "Rich text content"
+        },
+        "aBoolean": {
+          "type": "boolean",
+          "title": "A Boolean",
+          "default": false
         }
       }
     },
