@@ -1,14 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { defineComponent, ref } from "vue";
+import { ref } from "vue";
 import { mount } from "@vue/test-utils";
 
 import { createPersistSchema } from "@@/test-setup/utils/createPersistSchema";
-import type { SettingStateWrapper } from "../../nodeDialog/useDirtySettings";
-import { getFlowVariableSettingsProvidedByControl } from "../useFlowVariables";
+import type { FlowSettings } from "@/nodeDialog/api/types";
+import type { PersistSchema } from "@/nodeDialog/types/Persist";
+import { injectionKey as flowVarMapKey } from "../useProvidedFlowVariablesMap";
 
-import type { FlowSettings } from "./../../../api/types";
-import { injectionKey as flowVarMapKey } from "./../../../composables/components/useProvidedFlowVariablesMap";
-import type { PersistSchema } from "./../../../types/Persist";
 import UseFlowVariablesTestComponent from "./UseFlowVariablesTestComponent.vue";
 
 let flowVariablesMap: Record<string, FlowSettings>;
@@ -20,32 +18,11 @@ vi.mock("../../utils/inject", () => ({
 type Props = {
   path: string;
   persistSchema: PersistSchema;
-  isNew?: boolean;
 };
 
 describe("useFlowVariables", () => {
-  const InjectingSlot = defineComponent({
-    setup: () => {
-      const flowVariableSettings = getFlowVariableSettingsProvidedByControl();
-      return { flowVariableSettings };
-    },
-    render: () => "<div/>",
-  });
-
-  let mockedFlowVariableStates: SettingStateWrapper["flowVariables"];
-
   beforeEach(() => {
     flowVariablesMap = {};
-    mockedFlowVariableStates = {
-      controlling: {
-        create: vi.fn(),
-        get: vi.fn(() => null),
-      },
-      exposed: {
-        create: vi.fn(),
-        get: vi.fn(() => null),
-      },
-    };
   });
 
   const createProps = (params: {
@@ -61,16 +38,6 @@ describe("useFlowVariables", () => {
     return mount(UseFlowVariablesTestComponent, {
       props: {
         path: ref(props.path),
-        settingState: {
-          isNew: props.isNew ?? false,
-          settingState: {
-            setValue: vi.fn(),
-            flowVariables: mockedFlowVariableStates,
-          },
-        },
-      },
-      slots: {
-        default: InjectingSlot,
       },
       global: {
         provide: {
@@ -104,59 +71,17 @@ describe("useFlowVariables", () => {
     });
   };
 
-  it("provides flowSettings, configPaths, dataPaths and settingStateFlowVariables", () => {
+  it("returns flowSettings, configPaths and disabledByFlowVariables", () => {
     const wrapper = mountSinglePathTestComponent();
-    const provided =
-      wrapper.findComponent(InjectingSlot).vm.flowVariableSettings;
-    expect(provided.flowSettings).toBeDefined();
-    expect(provided.configPaths.value).toEqual([
+    expect(wrapper.vm.flowSettings).toBeDefined();
+    expect(wrapper.vm.configPaths).toEqual([
       {
         configPath: singlePathTestComponentConfigPath,
         dataPath: singlePathTestComponentDataPath,
         deprecatedConfigPaths: [],
       },
     ]);
-    expect(provided.settingStateFlowVariables).toStrictEqual(
-      mockedFlowVariableStates,
-    );
-  });
-
-  it("does not creates new flow variable states on existing setting state", () => {
-    mountSinglePathTestComponent({ isNew: false });
-    expect(mockedFlowVariableStates.controlling.create).not.toHaveBeenCalled();
-    expect(mockedFlowVariableStates.exposed.create).not.toHaveBeenCalled();
-  });
-
-  it("creates new flow variable states on new setting state", () => {
-    mountSinglePathTestComponent({ isNew: true });
-    expect(mockedFlowVariableStates.controlling.create).toHaveBeenCalledWith(
-      singlePathTestComponentConfigPath,
-      null,
-    );
-    expect(mockedFlowVariableStates.exposed.create).toHaveBeenCalledWith(
-      singlePathTestComponentConfigPath,
-      null,
-    );
-  });
-
-  it("creates new flow variable states from flowVariablesMap on new setting state", () => {
-    const flowSettings = {
-      controllingFlowVariableName: "controlling",
-      exposedFlowVariableName: "exposed",
-      controllingFlowVariableAvailable: true,
-    };
-    flowVariablesMap = {
-      [singlePathTestComponentConfigPath]: flowSettings,
-    };
-    mountSinglePathTestComponent({ isNew: true });
-    expect(mockedFlowVariableStates.controlling.create).toHaveBeenCalledWith(
-      singlePathTestComponentConfigPath,
-      flowSettings.controllingFlowVariableName,
-    );
-    expect(mockedFlowVariableStates.exposed.create).toHaveBeenCalledWith(
-      singlePathTestComponentConfigPath,
-      flowSettings.exposedFlowVariableName,
-    );
+    expect(wrapper.vm.disabledByFlowVariables).toBe(false);
   });
 
   describe("flow settings", () => {

@@ -2,9 +2,9 @@
 import { ref, watch } from "vue";
 
 import { Button, SideDrawer } from "@knime/components";
+import { Form } from "@knime/jsonforms";
 
 import inject from "../../utils/inject";
-import Form from "../Form.vue";
 
 import { setUpApplyButton } from ".";
 import SidePanelBackArrow from "./SidePanelBackArrow.vue";

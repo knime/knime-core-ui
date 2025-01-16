@@ -2,7 +2,7 @@
 import type { ControlElement } from "@jsonforms/core";
 import { DispatchRenderer, rendererProps } from "@jsonforms/vue";
 
-import VerticalLayoutBase from "../VerticalLayoutBase.vue";
+import { VerticalLayoutBase } from "@knime/jsonforms";
 
 import VennDiagram from "./VennDiagram.vue";
 

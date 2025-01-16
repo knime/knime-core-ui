@@ -1,4 +1,5 @@
-import type { AlertParams, JsonDataService } from "@knime/ui-extension-service";
+import type { Provided as ProvidedByJsonFormsDialog } from "@knime/jsonforms";
+import type { JsonDataService } from "@knime/ui-extension-service";
 
 import type { PossibleFlowVariable } from "../api/types";
 import type { Result } from "../api/types/Result";
@@ -22,27 +23,18 @@ type registerWatcher = (params: {
   dependencies: string[];
 }) => Promise<() => void>;
 
-type addStateProviderListener<T> = (
-  identity: { id: string; indexIds?: string[]; indices?: number[] },
-  callback: (data: T) => void,
-) => void;
-
 type getData = (
   params: Parameters<JsonDataService["data"]>[0] & object,
 ) => Promise<any>;
-type sendAlert = (params: AlertParams) => void;
 
-export interface Provided {
+export interface ProvidedByNodeDialog {
   getPossibleValuesFromUiSchema: getPossibleValuesFromUiSchema;
-  addStateProviderListener: addStateProviderListener<any>;
   registerWatcher: registerWatcher;
-  trigger: (triggerId: { id: string; indexIds?: string[] }) => void;
   isTriggerActive: (triggerId: {
     id: string;
     indexIds?: string[];
   }) => Promise<Result<IndexedIsActive[]>>;
   updateData: (path: string) => void;
-  sendAlert: sendAlert;
   getData: getData;
   setSubPanelExpanded: (param: { isExpanded: boolean }) => void;
   getPanelsContainer: () => null | HTMLElement;
@@ -60,6 +52,8 @@ type ProvidedFlowVariablesApi = {
   ) => Promise<any>;
   clearControllingFlowVariable: (persistPath: string) => void;
 };
+
+export type Provided = ProvidedByNodeDialog & ProvidedByJsonFormsDialog;
 
 export interface ProvidedForFlowVariables {
   flowVariablesApi: ProvidedFlowVariablesApi;

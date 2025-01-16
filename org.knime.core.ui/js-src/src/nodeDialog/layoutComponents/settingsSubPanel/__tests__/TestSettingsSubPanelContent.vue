@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 
-import { useApplyButton } from "./../../../layoutComponents/settingsSubPanel";
+import { useApplyButton } from "..";
 
 const props = defineProps<{
   onApply: () => Promise<void>;

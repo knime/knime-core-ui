@@ -2,8 +2,9 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { type Ref, ref } from "vue";
 import { shallowMount } from "@vue/test-utils";
 
+import { ErrorMessage } from "@knime/jsonforms";
+
 import { applyButtonInjectionKey } from "../../../../../layoutComponents/settingsSubPanel";
-import ErrorMessage from "../../../../ErrorMessage.vue";
 import CustomUrlFileChooser from "../CustomUrlFileChooser.vue";
 import UrlTab, { type Props as UrlTabProps } from "../UrlTab.vue";
 

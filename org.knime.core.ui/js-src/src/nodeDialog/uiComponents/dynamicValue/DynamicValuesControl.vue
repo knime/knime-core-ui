@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import { type ControlProps } from "@jsonforms/core";
-import {
-  DispatchRenderer,
-  rendererProps,
-  useJsonFormsControl,
-} from "@jsonforms/vue";
+import { DispatchRenderer } from "@jsonforms/vue";
+
+import { type VueControlProps } from "@knime/jsonforms";
 
 import DynamicValueControl, {
   type DynamicValueType,
@@ -17,13 +14,12 @@ enum InputKind {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
-interface DynamicValueInputType {
+export interface DynamicValueInputType {
   values: DynamicValueType[];
   inputKind: InputKind;
 }
 
-const props = defineProps(rendererProps());
-const { control, handleChange } = useJsonFormsControl(props as ControlProps);
+defineProps<VueControlProps<DynamicValueInputType>>();
 </script>
 
 <template>

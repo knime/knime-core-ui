@@ -6,10 +6,10 @@ export const contentId = "content";
 <script setup lang="ts">
 import { ref } from "vue";
 
+import { useApplyButton } from "..";
 import type { Props as SettingsSubPanelProps } from "../SettingsSubPanel.vue";
 import SettingsSubPanel from "../SettingsSubPanel.vue";
 
-import { useApplyButton } from "./../../../layoutComponents/settingsSubPanel";
 import TestSettingsSubPanelContent from "./TestSettingsSubPanelContent.vue";
 
 export interface Props {

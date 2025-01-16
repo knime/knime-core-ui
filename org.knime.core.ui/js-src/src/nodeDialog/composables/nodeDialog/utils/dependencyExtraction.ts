@@ -1,5 +1,6 @@
 import { get } from "lodash-es";
 
+import type { IndexIdsValuePairs } from "../../../types/Update";
 import {
   type ArrayRecord,
   getArrayIdsRecord,
@@ -7,7 +8,6 @@ import {
   getOrCreateNestedArrayRecord,
 } from "../useArrayIds";
 
-import type { IndexIdsValuePairs } from "./../../../types/Update";
 import { combineDataPathsWithIndices } from "./dataPaths";
 
 /**

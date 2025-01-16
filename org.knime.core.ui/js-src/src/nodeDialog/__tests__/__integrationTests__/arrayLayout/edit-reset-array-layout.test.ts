@@ -4,21 +4,20 @@ import flushPromises from "flush-promises";
 import { cloneDeep } from "lodash-es";
 
 import { FunctionButton } from "@knime/components";
+import { TextControl } from "@knime/jsonforms";
 import EditIcon from "@knime/styles/img/icons/pencil.svg";
 import ResetIcon from "@knime/styles/img/icons/reset-all.svg";
 import { JsonDataService } from "@knime/ui-extension-service";
 
-import { mockRegisterSettings } from "@@/test-setup/utils/integration/dirtySettingState";
-
-import NodeDialog from "./../../../NodeDialog.vue";
-import { getOptions } from "./../../../__tests__/utils";
-import EditResetButton from "./../../../layoutComponents/arrayLayout/EditResetButton.vue";
+import NodeDialog from "../../../NodeDialog.vue";
+import EditResetButton from "../../../layoutComponents/arrayLayout/EditResetButton.vue";
 import type {
   IndexIdsValuePairs,
   Update,
   UpdateResult,
-} from "./../../../types/Update";
-import TextControl from "./../../../uiComponents/TextControl.vue";
+} from "../../../types/Update";
+import { getOptions } from "../../utils";
+import { mockRegisterSettings } from "../utils/dirtySettingState";
 
 describe("edit/reset button in array layouts", () => {
   type Wrapper = VueWrapper<any> & {

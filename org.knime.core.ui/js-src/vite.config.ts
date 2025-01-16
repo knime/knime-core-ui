@@ -107,6 +107,9 @@ export default defineConfig(({ mode }) => {
         "@": fileURLToPath(new URL("./src", import.meta.url)),
         "@@": fileURLToPath(new URL(".", import.meta.url)),
       },
+      dedupe: [
+        "vue", // see https://github.com/vuejs/core/issues/4344#issuecomment-899064501
+      ],
     },
     ...(isHTMLBuildMode ? { base: "./" } : {}),
     build: {

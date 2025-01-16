@@ -1,27 +1,82 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  type Mock,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+import { reactive } from "vue";
 import { VueWrapper } from "@vue/test-utils";
 import flushPromises from "flush-promises";
 
 import { FunctionButton, SideDrawer } from "@knime/components";
+import {
+  type ProvidedMethods,
+  type VueControlTestProps,
+  getControlBase,
+  mountJsonFormsControlLabelContent,
+} from "@knime/jsonforms/testing";
 import FolderLenseIcon from "@knime/styles/img/icons/folder-lense.svg";
 
 import { createPersistSchema } from "@@/test-setup/utils/createPersistSchema";
-import {
-  getControlBase,
-  initializesJsonFormsControl,
-  mountJsonFormsComponent,
-} from "@@/test-setup/utils/jsonFormsTestUtils";
+import type { FlowSettings } from "@/nodeDialog/api/types";
+import { injectionKey as flowVariablesMapInjectionKey } from "@/nodeDialog/composables/components/useProvidedFlowVariablesMap";
 import SettingsSubPanel from "../../../../layoutComponents/settingsSubPanel/SettingsSubPanel.vue";
-import DialogLabel from "../../../label/DialogLabel.vue";
-import LabeledControl from "../../../label/LabeledControl.vue";
 import FSLocationTextControl from "../FSLocationTextControl.vue";
 import FileChooserControl from "../FileChooserControl.vue";
 import SideDrawerContent from "../SideDrawerContent.vue";
 
 describe("FileChooserControl.vue", () => {
-  let props: any, wrapper: VueWrapper<any, any>, component: any;
+  let props: VueControlTestProps<typeof FileChooserControl>,
+    wrapper: VueWrapper<any, any>,
+    changeValue: Mock;
 
-  beforeEach(async () => {
+  const labelForId = "myLabelForId";
+
+  const mountFileChooserControl = ({
+    props,
+    provide,
+    stubs,
+    withControllingFlowVariable,
+  }: {
+    props: VueControlTestProps<typeof FileChooserControl>;
+    provide?: Partial<ProvidedMethods>;
+    stubs?: Record<string, boolean>;
+    withControllingFlowVariable?: string;
+  }) => {
+    const flowVariablesMap: Record<string, FlowSettings> = reactive({});
+    if (withControllingFlowVariable) {
+      flowVariablesMap[withControllingFlowVariable] = {
+        controllingFlowVariableName: "controllingFlowVariableName",
+        exposedFlowVariableName: null,
+        controllingFlowVariableAvailable: true,
+      };
+    }
+    const getPanelsContainer = vi.fn().mockReturnValue("body");
+    const component = mountJsonFormsControlLabelContent(FileChooserControl, {
+      props,
+      provide: {
+        // @ts-expect-error
+        getPanelsContainer,
+        setSubPanelExpanded: vi.fn(),
+        getPersistSchema: () => ({}),
+        [flowVariablesMapInjectionKey as symbol]: flowVariablesMap,
+        ...provide,
+      },
+      stubs: {
+        SideDrawerContent: true,
+        ...stubs,
+      },
+    });
+    return {
+      flowVariablesMap,
+      ...component,
+    };
+  };
+
+  beforeEach(() => {
     props = {
       control: {
         ...getControlBase("test"),
@@ -50,19 +105,15 @@ describe("FileChooserControl.vue", () => {
           },
         },
       },
+      labelForId,
+      disabled: false,
     };
 
-    const getPanelsContainerMock = vi.fn().mockReturnValue("body");
-    component = await mountJsonFormsComponent(FileChooserControl, {
+    const component = mountFileChooserControl({
       props,
-      provide: {
-        getPanelsContainerMock,
-      },
-      stubs: {
-        SideDrawerContent: true,
-      },
     });
     wrapper = component.wrapper;
+    changeValue = component.changeValue;
   });
 
   afterEach(() => {
@@ -84,29 +135,23 @@ describe("FileChooserControl.vue", () => {
   it("renders", () => {
     expect(wrapper.findComponent(FSLocationTextControl).exists()).toBe(true);
     expect(wrapper.findComponent(SettingsSubPanel).exists()).toBe(true);
-    expect(wrapper.findComponent(LabeledControl).exists()).toBe(true);
   });
 
   it("sets labelForId", async () => {
-    const dialogLabel = wrapper.findComponent(DialogLabel) as any;
     expect(
       (await expandSideDrawer(wrapper)).findComponent(SideDrawerContent).props()
         .id,
-    ).toBe(dialogLabel.vm.labelForId);
+    ).toBe(labelForId);
   });
 
-  it("initializes jsonforms", () => {
-    initializesJsonFormsControl(component);
-  });
-
-  it("calls handleChange when applying changes from the side panel", async () => {
+  it("calls changeValue when applying changes from the side panel", async () => {
     const changedValue = { ...props.control.data.path, path: "new path" };
     const sideDrawer = await expandSideDrawer(wrapper);
     sideDrawer
       .findComponent(SideDrawerContent)
       .vm.$emit("update:modelValue", changedValue);
     await wrapper.findComponent(SettingsSubPanel).vm.$emit("apply");
-    expect(component.handleChange).toHaveBeenCalledWith(props.control.path, {
+    expect(changeValue).toHaveBeenCalledWith({
       path: changedValue,
     });
   });
@@ -122,42 +167,38 @@ describe("FileChooserControl.vue", () => {
       },
     });
 
-  it("disables input when controlled by a flow variable", () => {
-    const { wrapper } = mountJsonFormsComponent(FileChooserControl, {
-      props,
-      provide: { persistSchemaMock: createPersistSchemaMock() },
-      withControllingFlowVariable: `${props.control.path}.path` as any,
-    });
-    expect(findFolderLenseButton(wrapper).props().disabled).toBe(true);
-  });
-
   it.each(["LOCAL", "relative-to-current-hubspace"])(
     "sets default data when unsetting controlling flow variable",
     async (fsCategory) => {
       const stringRepresentation = "myStringRepresentation";
+      // @ts-expect-error
       props.control.data.path.fsCategory = "RELATIVE";
       props.control.data.path.context = { fsToString: stringRepresentation };
       if (fsCategory === "LOCAL") {
-        props.control.uischema.options.isLocal = true;
+        props.control.uischema.options!.isLocal = true;
       }
-      const { flowVariablesMap, wrapper, handleChange } =
-        await mountJsonFormsComponent(FileChooserControl, {
+      const { flowVariablesMap, wrapper, changeValue } =
+        await mountFileChooserControl({
           props,
-          provide: { persistSchemaMock: createPersistSchemaMock() },
+          provide: {
+            // @ts-expect-error
+            getPersistSchema: () => createPersistSchemaMock(),
+          },
           withControllingFlowVariable: `${props.control.path}.path` as any,
         });
       flowVariablesMap[
         `${props.control.path}.path` as any
-      ].controllingFlowVariableName = null as any;
+      ].controllingFlowVariableName = null;
       // @ts-ignore
       wrapper.vm.control = { ...wrapper.vm.control };
       await flushPromises();
-      expect(handleChange).toHaveBeenCalledWith(props.control.path, {
+      expect(changeValue).toHaveBeenCalledWith({
         path: {
           path: "",
           fsCategory,
           timeout: 10000,
           context: {
+            fsToString: "",
             fsSpecifier: undefined,
           },
         },
@@ -166,34 +207,27 @@ describe("FileChooserControl.vue", () => {
   );
 
   describe("switches to valid values when mounted", () => {
-    it("does not switch to the first valid category if the current category is valid", async () => {
+    it("does not switch to the first valid category if the current category is valid", () => {
       props.control.data.path.fsCategory = "relative-to-embedded-data";
-      const { handleChange } = await mountJsonFormsComponent(
-        FileChooserControl,
-        {
-          props,
-          stubs: {
-            FSLocationTextControl: true,
-          },
+      const { changeValue } = mountFileChooserControl({
+        props,
+        stubs: {
+          FSLocationTextControl: true,
         },
-      );
-      expect(handleChange).not.toHaveBeenCalled();
+      });
+      expect(changeValue).not.toHaveBeenCalled();
     });
 
-    it("switches to current hub space if non-supported fsCategory is given", async () => {
+    it("switches to current hub space if non-supported fsCategory is given", () => {
       props.control.data.path.fsCategory = "LOCAL";
-      props.control.uischema.options.isLocal = false;
-      const { handleChange } = await mountJsonFormsComponent(
-        FileChooserControl,
-        {
-          props,
-          stubs: {
-            FSLocationTextControl: true,
-          },
+      props.control.uischema.options!.isLocal = false;
+      const { changeValue } = mountFileChooserControl({
+        props,
+        stubs: {
+          FSLocationTextControl: true,
         },
-      );
-      expect(handleChange).toHaveBeenCalledWith(
-        props.control.path,
+      });
+      expect(changeValue).toHaveBeenCalledWith(
         expect.objectContaining({
           path: {
             ...props.control.data.path,
@@ -203,20 +237,16 @@ describe("FileChooserControl.vue", () => {
       );
     });
 
-    it("switches to LOCAL if non-supported fsCategory is given and isLocal is true", async () => {
+    it("switches to LOCAL if non-supported fsCategory is given and isLocal is true", () => {
       props.control.data.path.fsCategory = "CONNECTED";
-      props.control.uischema.options.isLocal = true;
-      const { handleChange } = await mountJsonFormsComponent(
-        FileChooserControl,
-        {
-          props,
-          stubs: {
-            FSLocationTextControl: true,
-          },
+      props.control.uischema.options!.isLocal = true;
+      const { changeValue } = mountFileChooserControl({
+        props,
+        stubs: {
+          FSLocationTextControl: true,
         },
-      );
-      expect(handleChange).toHaveBeenCalledWith(
-        props.control.path,
+      });
+      expect(changeValue).toHaveBeenCalledWith(
         expect.objectContaining({
           path: {
             ...props.control.data.path,
@@ -226,20 +256,16 @@ describe("FileChooserControl.vue", () => {
       );
     });
 
-    it("switches to CONNECTED if any other fsCategory is given and ", async () => {
+    it("switches to CONNECTED if any other fsCategory is given and ", () => {
       props.control.data.path.fsCategory = "relative-to-current-hubspace";
-      props.control.uischema.options.portIndex = 1;
-      const { handleChange } = await mountJsonFormsComponent(
-        FileChooserControl,
-        {
-          props,
-          stubs: {
-            FSLocationTextControl: true,
-          },
+      props.control.uischema.options!.portIndex = 1;
+      const { changeValue } = mountFileChooserControl({
+        props,
+        stubs: {
+          FSLocationTextControl: true,
         },
-      );
-      expect(handleChange).toHaveBeenCalledWith(
-        props.control.path,
+      });
+      expect(changeValue).toHaveBeenCalledWith(
         expect.objectContaining({
           path: {
             ...props.control.data.path,
@@ -249,20 +275,17 @@ describe("FileChooserControl.vue", () => {
       );
     });
 
-    it("does not switch to a valid category when overwritten by a flow variable.", async () => {
+    it("does not switch to a valid category when overwritten by a flow variable.", () => {
       props.control.data.path.fsCategory = "CONNECTED";
-      props.control.uischema.options.portIndex = 1;
-      const { handleChange } = await mountJsonFormsComponent(
-        FileChooserControl,
-        {
-          props,
-          stubs: {
-            FSLocationTextControl: true,
-          },
-          withControllingFlowVariable: `${props.control.path}.path` as any,
+      props.control.uischema.options!.portIndex = 1;
+      const { changeValue } = mountFileChooserControl({
+        props,
+        stubs: {
+          FSLocationTextControl: true,
         },
-      );
-      expect(handleChange).not.toHaveBeenCalled();
+        withControllingFlowVariable: `${props.control.path}.path` as any,
+      });
+      expect(changeValue).not.toHaveBeenCalled();
     });
   });
 });

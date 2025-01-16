@@ -5,7 +5,8 @@
     "src/**/*",
     "test-setup",
     "node_modules/@knime/**/*.vue",
-    "node_modules/@knime/**/node_modules/@knime/**/*.vue"
+    "node_modules/@knime/knime-ui-table/node_modules/@knime/**/*.vue",
+    "node_modules/@knime/rich-text-editor/node_modules/@knime/**/*.vue"
   ],
   "exclude": ["src/**/__tests__/*"],
   "compilerOptions": {

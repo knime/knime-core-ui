@@ -21,7 +21,7 @@ const props = defineProps<{
   flowVariableName: string | null | undefined;
 }>();
 const emit = defineEmits<{
-  flowVariableSet: [Credentials?];
+  flowVariableSet: [Credentials | undefined, string];
 }>();
 
 onMounted(async () => {
@@ -40,7 +40,7 @@ onMounted(async () => {
     if (typeof value === "undefined") {
       invalidateSetFlowVariable(setControllingVariableProps);
     }
-    emit("flowVariableSet", value);
+    emit("flowVariableSet", value, flowVariableName);
   }
 });
 </script>

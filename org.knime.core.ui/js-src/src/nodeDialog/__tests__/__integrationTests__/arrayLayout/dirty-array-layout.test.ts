@@ -6,13 +6,12 @@ import PlusIcon from "@knime/styles/img/icons/plus.svg";
 import TrashIcon from "@knime/styles/img/icons/trash.svg";
 import { DialogService, JsonDataService } from "@knime/ui-extension-service";
 
+import NodeDialog from "../../../NodeDialog.vue";
+import { getOptions } from "../../utils";
 import {
   controllingFlowVariableState,
   exposedFlowVariableState,
-} from "@@/test-setup/utils/integration/dirtySettingState";
-
-import NodeDialog from "./../../../NodeDialog.vue";
-import { getOptions } from "./../../../__tests__/utils";
+} from "../utils/dirtySettingState";
 
 describe("dirty array layout", () => {
   type Wrapper = VueWrapper<any> & {
@@ -124,7 +123,7 @@ describe("dirty array layout", () => {
       .map(({ getValue, initialValue }) => getValue() === initialValue)
       .filter((clean) => clean === false).length === 0;
 
-  const initialCleanState = [3, "1", "2", "3"];
+  const initialCleanState = ["1", "2", "3", 3];
 
   it("sets initial states", () => {
     expect(getCurrentValues()).toStrictEqual(initialCleanState);
@@ -133,13 +132,13 @@ describe("dirty array layout", () => {
 
   it("becomes dirty when adding an element", async () => {
     await clickAddButton(wrapper);
-    expect(getCurrentValues()).toStrictEqual([4, "1", "2", "3", "new"]);
+    expect(getCurrentValues()).toStrictEqual(["1", "2", "3", 4, "new"]);
     expect(isClean()).toBeFalsy();
   });
 
   it("becomes dirty when removing an element", async () => {
     await clickLastTrashButton(wrapper);
-    expect(getCurrentValues()).toStrictEqual([2, "1", "2", undefined]);
+    expect(getCurrentValues()).toStrictEqual(["1", "2", undefined, 2]);
     expect(isClean()).toBeFalsy();
   });
 

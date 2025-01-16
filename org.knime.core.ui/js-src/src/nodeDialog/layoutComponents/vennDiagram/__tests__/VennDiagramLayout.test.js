@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ref } from "vue";
+import { mount } from "@vue/test-utils";
 import { DispatchRenderer } from "@jsonforms/vue";
+import * as jsonformsVueModule from "@jsonforms/vue";
 
-import {
-  getControlBase,
-  mountJsonFormsComponent,
-} from "@@/test-setup/utils/jsonFormsTestUtils";
+import { getControlBase } from "@knime/jsonforms/testing";
+
+import { injectionKey as flowVaiablesMapInjectionKey } from "../../../composables/components/useProvidedFlowVariablesMap";
 import Inner from "../Inner.vue";
 import Left from "../Left.vue";
 import Right from "../Right.vue";
@@ -12,7 +14,7 @@ import VennDiagram from "../VennDiagram.vue";
 import VennDiagramLayout from "../VennDiagramLayout.vue";
 
 describe("VennDiagramLayout.vue", () => {
-  let props, wrapper, component;
+  let wrapper, handleChange;
   const uischema = {
     type: "Control",
     scope: "#/properties/view/properties/xAxisLabel",
@@ -32,28 +34,42 @@ describe("VennDiagramLayout.vue", () => {
     ],
   };
 
-  beforeEach(async () => {
-    props = {
-      control: {
-        ...getControlBase("test"),
-        schema: {
-          properties: {
-            xAxisLabel: {
-              type: "string",
-              title: "X Axis Label",
-            },
+  beforeEach(() => {
+    const control = ref({
+      ...getControlBase("test"),
+      schema: {
+        properties: {
+          xAxisLabel: {
+            type: "string",
+            title: "X Axis Label",
           },
-          default: "default value",
         },
-        uischema,
+        default: "default value",
       },
       uischema,
-    };
-
-    component = await mountJsonFormsComponent(VennDiagramLayout, {
-      props,
     });
-    wrapper = component.wrapper;
+
+    handleChange = vi.fn();
+
+    vi.spyOn(jsonformsVueModule, "useJsonFormsControl").mockReturnValue({
+      handleChange,
+      control,
+    });
+
+    wrapper = mount(VennDiagramLayout, {
+      props: {
+        uischema,
+      },
+      global: {
+        provide: {
+          getPersistSchema: () => ({}),
+          [flowVaiablesMapInjectionKey]: {},
+        },
+        stubs: {
+          DispatchRenderer: true,
+        },
+      },
+    });
   });
 
   afterEach(() => {
@@ -74,7 +90,7 @@ describe("VennDiagramLayout.vue", () => {
     "triggers change on click on svg part",
     (comp) => {
       wrapper.findComponent(comp).trigger("click");
-      expect(component.handleChange).toHaveBeenCalled();
+      expect(handleChange).toHaveBeenCalled();
     },
   );
 });

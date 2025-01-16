@@ -6,11 +6,11 @@ import { getFlowVariablesMap } from "../../../composables/components/useProvided
 export default (persistPath: string) => {
   const flowVariablesMap = getFlowVariablesMap();
 
+  const { getSettingStateFlowVariables } =
+    getFlowVariableSettingsProvidedByControl();
   const {
-    settingStateFlowVariables: {
-      exposed: { get: getDirtyExposedVariable },
-    },
-  } = getFlowVariableSettingsProvidedByControl();
+    exposed: { get: getDirtyExposedVariable },
+  } = getSettingStateFlowVariables();
   const flowSettings = computed(() => flowVariablesMap[persistPath]);
   const exposedFlowVariableName = computed(
     () => flowSettings.value?.exposedFlowVariableName ?? "",

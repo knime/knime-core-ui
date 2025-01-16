@@ -38,6 +38,7 @@ withDefaults(defineProps<DescriptionPopoverProps>(), {
   overflow: auto;
   pointer-events: auto;
   font-size: 13px;
+  font-weight: 300;
   line-height: 18.78px;
 
   /* Description component line-height-to-font-size-ratio of 26/18 times font size of 13 */

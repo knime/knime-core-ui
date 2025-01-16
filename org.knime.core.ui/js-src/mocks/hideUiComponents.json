@@ -256,9 +256,7 @@
             {
               "type": "Control",
               "scope": "#/properties/view/properties/columnFilter",
-              "options": {
-                "format": "columnFilter"
-              },
+              "options": {},
               "rule": {
                 "effect": "HIDE",
                 "condition": {
@@ -279,9 +277,7 @@
             {
               "type": "Control",
               "scope": "#/properties/view/properties/columnSelect",
-              "options": {
-                "format": "columnSelection"
-              },
+              "options": {},
               "rule": {
                 "effect": "HIDE",
                 "condition": {
@@ -302,9 +298,7 @@
             {
               "type": "Control",
               "scope": "#/properties/view/properties/dropdownInput",
-              "options": {
-                "format": "columnSelection"
-              },
+              "options": {},
               "rule": {
                 "effect": "HIDE",
                 "condition": {
@@ -417,9 +411,7 @@
             {
               "type": "Control",
               "scope": "#/properties/view/properties/twinlistInput",
-              "options": {
-                "format": "twinList"
-              },
+              "options": {},
               "rule": {
                 "effect": "HIDE",
                 "condition": {

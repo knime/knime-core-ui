@@ -9,7 +9,9 @@ import FlowVariableIcon from "./FlowVariableIcon.vue";
 import FlowVariablePopover from "./FlowVariablePopover.vue";
 
 defineProps<FlowVariableButtonProps>();
-const emit = defineEmits(["controllingFlowVariableSet"]);
+const emit = defineEmits<{
+  controllingFlowVariableSet: [string, unknown, string];
+}>();
 const { configPaths } = getFlowVariableSettingsProvidedByControl();
 
 const tooltipPrefix = ref<string | null>(null);
@@ -40,7 +42,8 @@ const tooltip = computed(() => {
     <template #popover>
       <FlowVariablePopover
         @controlling-flow-variable-set="
-          emit('controllingFlowVariableSet', $event)
+          (path, value, flowVarName) =>
+            emit('controllingFlowVariableSet', path, value, flowVarName)
         "
       />
     </template>

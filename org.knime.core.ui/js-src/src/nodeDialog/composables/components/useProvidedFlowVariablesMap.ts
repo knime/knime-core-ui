@@ -1,6 +1,6 @@
 import { type InjectionKey, inject, provide, reactive } from "vue";
 
-import type { FlowSettings } from "./../../api/types";
+import type { FlowSettings } from "../../api/types";
 
 // exported for tests
 export const injectionKey: InjectionKey<Record<string, FlowSettings>> =
@@ -10,17 +10,17 @@ export const injectionKey: InjectionKey<Record<string, FlowSettings>> =
  * initial data a reactive object available to all components.
  */
 export default () => {
-  const providedFlowVariablesMap = reactive<Record<string, FlowSettings>>({});
+  const flowVariablesMap = reactive<Record<string, FlowSettings>>({});
   const setInitialFlowVariablesMap = (
     initialMap: Record<string, FlowSettings>,
   ) => {
     Object.keys(initialMap).forEach((key) => {
-      providedFlowVariablesMap[key] = initialMap[key];
+      flowVariablesMap[key] = initialMap[key];
     });
   };
-  provide(injectionKey, providedFlowVariablesMap);
+  provide(injectionKey, flowVariablesMap);
   return {
-    providedFlowVariablesMap,
+    flowVariablesMap,
     setInitialFlowVariablesMap,
   };
 };
