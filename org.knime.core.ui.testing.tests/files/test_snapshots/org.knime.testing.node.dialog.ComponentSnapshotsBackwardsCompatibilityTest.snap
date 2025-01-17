@@ -11,6 +11,11 @@
           }
         }
       },
+      "credentials" : {
+        "isHiddenPassword" : false,
+        "isHiddenSecondFactor" : false,
+        "username" : ""
+      },
       "dynamicValuesInput" : {
         "values" : [ ],
         "inputKind" : "SINGLE"
@@ -202,7 +207,12 @@
                 "default" : ""
               }
             },
-            "title" : "Credentials"
+            "title" : "Credentials",
+            "default" : {
+              "isHiddenPassword" : false,
+              "isHiddenSecondFactor" : false,
+              "username" : ""
+            }
           },
           "dynamicValuesInput" : {
             "type" : "object",
@@ -305,7 +315,9 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/fileSelection",
       "options" : {
-        "format" : "fileChooser"
+        "format" : "fileChooser",
+        "mountId" : "Local space",
+        "isLocal" : true
       }
     }, {
       "type" : "Control",

@@ -48,6 +48,7 @@
  */
 package org.knime.testing.node.dialog;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
@@ -57,11 +58,25 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.FileLocator;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NodeView;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.util.FileUtil;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
+import org.knime.testing.util.WorkflowManagerUtil;
 import org.osgi.framework.FrameworkUtil;
 
 /**
@@ -126,6 +141,95 @@ public class DefaultNodeSettingsSnapshotTest {
     protected DefaultNodeSettingsSnapshotTest(final SnapshotTestConfiguration configuration) {
         m_snapshotTests = configuration.m_snapshotTests;
         m_snapshotTests.forEach(st -> st.setBaseName(getClass().getName()));
+    }
+
+    static final class TestNodeModel extends NodeModel {
+
+        protected TestNodeModel() {
+            super(0, 0);
+        }
+
+        @Override
+        protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+            throws IOException, CanceledExecutionException {
+            //
+        }
+
+        @Override
+        protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+            throws IOException, CanceledExecutionException {
+            //
+        }
+
+        @Override
+        protected void saveSettingsTo(final NodeSettingsWO settings) {
+            //
+
+        }
+
+        @Override
+        protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+            //
+        }
+
+        @Override
+        protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+            //
+        }
+
+        @Override
+        protected void reset() {
+            //
+
+        }
+
+    }
+
+    static final class TestNodeFactory extends NodeFactory<TestNodeModel> {
+
+        @Override
+        public TestNodeModel createNodeModel() {
+            return new TestNodeModel();
+        }
+
+        @Override
+        protected int getNrNodeViews() {
+            return 0;
+        }
+
+        @Override
+        public NodeView<TestNodeModel> createNodeView(final int viewIndex, final TestNodeModel nodeModel) {
+            return null;
+        }
+
+        @Override
+        protected boolean hasDialog() {
+            return false;
+        }
+
+        @Override
+        protected NodeDialogPane createNodeDialogPane() {
+            return null;
+        }
+
+    }
+
+    /**
+     * Some serializers ({@link Credentials}) require a {@link NodeContext} to be present.
+     *
+     * @throws IOException
+     */
+    @BeforeAll
+    static void mockNodeContext() throws IOException {
+        final var wfm = WorkflowManagerUtil.createEmptyWorkflow();
+        final var nodeContainer = WorkflowManagerUtil.createAndAddNode(wfm, new TestNodeFactory());
+
+        NodeContext.pushContext(nodeContainer);
+    }
+
+    @AfterAll
+    static void popNodeContext() {
+        NodeContext.removeLastContext();
     }
 
     /**

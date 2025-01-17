@@ -80,7 +80,7 @@ class DefaultNodeSettingsWithAllWidgets implements DefaultNodeSettings {
     FileSelection m_fileSelection = new FileSelection();
 
     @Widget(title = "Credentials", description = "")
-    Credentials m_credentials;
+    Credentials m_credentials = new Credentials();
 
     @Widget(title = "Dynamic Values Input", description = "")
     DynamicValuesInput m_dynamicValuesInput = DynamicValuesInput.emptySingle();
