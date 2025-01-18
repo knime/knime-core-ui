@@ -62,14 +62,20 @@ type RendererProps = ExtractPropTypes<ReturnType<typeof rendererProps>>;
 
 export const handleIsAdvancedRenderer =
   (showAdvancedSettings: MaybeRef<boolean>) =>
-  (component: Component<RendererProps>): Component<RendererProps> =>
+  (
+    component: Component<RendererProps>,
+    asyncSetup: () => Promise<void>,
+  ): Component<RendererProps> =>
     defineComponent(
-      (props) => () =>
-        getVNodeFromIsAdvanced(
-          props.uischema.options?.isAdvanced,
-          unref(showAdvancedSettings),
-          () => h(component, props),
-        ),
+      async (props) => {
+        await asyncSetup();
+        return () =>
+          getVNodeFromIsAdvanced(
+            props.uischema.options?.isAdvanced,
+            unref(showAdvancedSettings),
+            () => h(component, props),
+          );
+      },
       {
         props: rendererProps(),
       },
