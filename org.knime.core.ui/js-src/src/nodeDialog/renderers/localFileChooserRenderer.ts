@@ -9,11 +9,11 @@ const LocalFileChooserControl = defineAsyncComponent(
   () => import("../uiComponents/fileChooser/local/LocalFileChooserControl.vue"),
 );
 
-export const localFileChooserRenderer = {
+export const localFileChooserRenderer = addLabel({
   name: "LocalFileChooserControl",
-  control: addLabel(LocalFileChooserControl),
+  control: LocalFileChooserControl,
   tester: rankWith(
     priorityRanks.default,
     and(isStringControl, hasFormat(inputFormats.localFileChooser)),
   ),
-};
+});

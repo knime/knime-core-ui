@@ -9,11 +9,11 @@ const LegacyCredentialsControl = defineAsyncComponent(
   () => import("../uiComponents/credentials/LegacyCredentialsControl.vue"),
 );
 
-export const legacyCredentialsRenderer = {
+export const legacyCredentialsRenderer = addLabel({
   name: "LegacyCredentialsControl",
-  control: addLabel(LegacyCredentialsControl),
+  control: LegacyCredentialsControl,
   tester: rankWith(
     priorityRanks.default,
     hasFormat(inputFormats.legacyCredentials),
   ),
-};
+});

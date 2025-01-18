@@ -1,4 +1,3 @@
-/* eslint-disable vitest/no-focused-tests */
 /* eslint-disable vitest/max-nested-describe */
 /* eslint-disable max-lines */
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -19,6 +18,7 @@ import type {
 } from "../../../types/Update";
 import { getOptions } from "../../utils";
 import { mockRegisterSettings } from "../utils/dirtySettingState";
+import { dynamicImportsSettled } from "../utils/dynamicImportsSettled";
 
 describe("updates in array layouts", () => {
   type Wrapper = VueWrapper<any> & {
@@ -115,7 +115,7 @@ describe("updates in array layouts", () => {
     mockInitialData();
     const wrapper = mount(NodeDialog as any, getOptions()) as Wrapper;
     await flushPromises();
-    await vi.dynamicImportSettled();
+    await dynamicImportsSettled(wrapper);
     return wrapper;
   };
 

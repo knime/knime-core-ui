@@ -242,7 +242,6 @@ describe("NodeDialog.vue", () => {
       }));
     });
 
-    // eslint-disable-next-line vitest/no-focused-tests
     it("provides 'getPossibleValuesFromUiSchema' method", async () => {
       const mockChoices = [{ id: "foo", text: "bar" }];
       const wrapper = shallowMount(NodeDialog, getOptions());

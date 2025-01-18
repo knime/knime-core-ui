@@ -12,6 +12,7 @@ import {
   controllingFlowVariableState,
   exposedFlowVariableState,
 } from "../utils/dirtySettingState";
+import { dynamicImportsSettled } from "../utils/dynamicImportsSettled";
 
 describe("dirty array layout", () => {
   type Wrapper = VueWrapper<any> & {
@@ -113,8 +114,7 @@ describe("dirty array layout", () => {
     );
     mockInitialData();
     wrapper = mount(NodeDialog as any, getOptions()) as Wrapper;
-    await flushPromises();
-    await vi.dynamicImportSettled();
+    await dynamicImportsSettled(wrapper);
   });
 
   const getCurrentValues = () => dirtyStates.map(({ getValue }) => getValue());
@@ -123,7 +123,7 @@ describe("dirty array layout", () => {
       .map(({ getValue, initialValue }) => getValue() === initialValue)
       .filter((clean) => clean === false).length === 0;
 
-  const initialCleanState = ["1", "2", "3", 3];
+  const initialCleanState = [3, "1", "2", "3"];
 
   it("sets initial states", () => {
     expect(getCurrentValues()).toStrictEqual(initialCleanState);
@@ -132,18 +132,20 @@ describe("dirty array layout", () => {
 
   it("becomes dirty when adding an element", async () => {
     await clickAddButton(wrapper);
-    expect(getCurrentValues()).toStrictEqual(["1", "2", "3", 4, "new"]);
+    await flushPromises();
+    expect(getCurrentValues()).toStrictEqual([4, "1", "2", "3", "new"]);
     expect(isClean()).toBeFalsy();
   });
 
   it("becomes dirty when removing an element", async () => {
     await clickLastTrashButton(wrapper);
-    expect(getCurrentValues()).toStrictEqual(["1", "2", undefined, 2]);
+    expect(getCurrentValues()).toStrictEqual([2, "1", "2", undefined]);
     expect(isClean()).toBeFalsy();
   });
 
   it("becomes clean when removing an added element", async () => {
     await clickAddButton(wrapper);
+    await flushPromises();
     await clickLastTrashButton(wrapper);
     expect(getCurrentValues()).toStrictEqual([...initialCleanState, undefined]);
     expect(isClean()).toBeTruthy();

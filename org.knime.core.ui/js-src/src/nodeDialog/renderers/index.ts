@@ -6,6 +6,7 @@ import {
   type VueLayout,
   type VueLayoutRenderer,
   controls,
+  getAsyncSetupMethod,
   layouts,
   mapControls,
   toRenderers,
@@ -94,7 +95,10 @@ export const initializeRenderers = (
     otherRenderers.map(({ name, tester, renderer }) => ({
       name,
       tester,
-      renderer: handleIsAdvancedRenderer(props.showAdvancedSettings)(renderer),
+      renderer: handleIsAdvancedRenderer(props.showAdvancedSettings)(
+        renderer,
+        getAsyncSetupMethod(renderer),
+      ),
     })),
     Object.values(processControls(props)),
     allLayouts.map(({ name, tester, layout }) => ({
@@ -103,5 +107,6 @@ export const initializeRenderers = (
       layout: handleIsAdvancedLayout(props.showAdvancedSettings)(
         withDescriptionButtonLayout(layout as VueLayout),
       ),
+      __asyncSetup: getAsyncSetupMethod(layout),
     })),
   );

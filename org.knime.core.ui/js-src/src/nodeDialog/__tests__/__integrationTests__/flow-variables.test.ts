@@ -25,6 +25,7 @@ import {
   mockRegisterSettings,
   registeredSettingState,
 } from "./utils/dirtySettingState";
+import { dynamicImportsSettled } from "./utils/dynamicImportsSettled";
 
 describe("flow variables", () => {
   const flowVar1 = {
@@ -66,8 +67,7 @@ describe("flow variables", () => {
 
   const mountNodeDialog = async () => {
     wrapper = mount(NodeDialog as any, getOptions()) as Wrapper;
-    await flushPromises();
-    await vi.dynamicImportSettled();
+    await dynamicImportsSettled(wrapper);
     flowVariablesMap = wrapper.vm.flowVariablesMap;
   };
 

@@ -1,4 +1,3 @@
-/* eslint-disable vitest/no-focused-tests */
 import {
   type Mock,
   afterEach,

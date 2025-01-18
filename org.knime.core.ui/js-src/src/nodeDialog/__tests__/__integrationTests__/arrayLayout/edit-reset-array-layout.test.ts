@@ -18,6 +18,7 @@ import type {
 } from "../../../types/Update";
 import { getOptions } from "../../utils";
 import { mockRegisterSettings } from "../utils/dirtySettingState";
+import { dynamicImportsSettled } from "../utils/dynamicImportsSettled";
 
 describe("edit/reset button in array layouts", () => {
   type Wrapper = VueWrapper<any> & {
@@ -119,8 +120,8 @@ describe("edit/reset button in array layouts", () => {
   const mountNodeDialog = async () => {
     mockInitialData();
     const wrapper = mount(NodeDialog as any, getOptions()) as Wrapper;
+    await dynamicImportsSettled(wrapper); // settle vertical layout and array layout
     await flushPromises();
-    await vi.dynamicImportSettled();
     return wrapper;
   };
 

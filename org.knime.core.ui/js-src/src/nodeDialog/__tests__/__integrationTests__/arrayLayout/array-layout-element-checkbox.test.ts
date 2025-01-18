@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { VueWrapper, mount } from "@vue/test-utils";
-import flushPromises from "flush-promises";
 import { cloneDeep } from "lodash-es";
 
 import { Checkbox } from "@knime/components";
@@ -9,8 +8,9 @@ import { JsonDataService } from "@knime/ui-extension-service";
 import NodeDialog from "../../../NodeDialog.vue";
 import { getOptions } from "../../utils";
 import { mockRegisterSettings } from "../utils/dirtySettingState";
+import { dynamicImportsSettled } from "../utils/dynamicImportsSettled";
 
-describe("edit/reset button in array layouts", () => {
+describe("array layouts element checkbox", () => {
   type Wrapper = VueWrapper<any> & {
     vm: {
       schema: {
@@ -84,8 +84,7 @@ describe("edit/reset button in array layouts", () => {
   const mountNodeDialog = async () => {
     mockInitialData();
     const wrapper = mount(NodeDialog as any, getOptions()) as Wrapper;
-    await flushPromises();
-    await vi.dynamicImportSettled();
+    await dynamicImportsSettled(wrapper); // settle vertical layout and array layout
     return wrapper;
   };
 
