@@ -50,6 +50,7 @@ package org.knime.core.webui.node.impl;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Map;
 import java.util.function.Function;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -67,6 +68,7 @@ import org.knime.core.util.Version;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
@@ -349,7 +351,7 @@ public abstract class WebUINodeFactory<M extends NodeModel> extends NodeFactory<
 
     @Override
     public KaiNodeInterface createKaiNodeInterface() {
-        return createNodeDialog();
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, m_configuration.getModelSettingsClass()));
     }
 
     @Override

@@ -61,7 +61,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultNodeDia
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDataServiceImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesHolder;
-import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
 import org.knime.core.webui.page.Page;
 
 /**
@@ -71,7 +70,7 @@ import org.knime.core.webui.page.Page;
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public final class DefaultNodeDialog implements NodeDialog, KaiNodeInterface {
+public final class DefaultNodeDialog implements NodeDialog {
 
     /**
      * The page representing the default node dialog.
@@ -80,8 +79,6 @@ public final class DefaultNodeDialog implements NodeDialog, KaiNodeInterface {
         .addResourceDirectory("dist").markAsReusable("defaultdialog").build();
 
     private final DefaultNodeSettingsService m_settingsDataService;
-
-    private final DefaultNodeSettingsService m_kaiSettingsService;
 
     private final Set<SettingsType> m_settingsTypes;
 
@@ -118,7 +115,6 @@ public final class DefaultNodeDialog implements NodeDialog, KaiNodeInterface {
         m_asyncChoicesHolder = new AsyncChoicesHolder();
         m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses, m_asyncChoicesHolder);
         m_onApplyModifier = onApplyModifier;
-        m_kaiSettingsService = new DefaultNodeSettingsService(m_settingsClasses, m_asyncChoicesHolder, true);
     }
 
     /**
@@ -155,7 +151,6 @@ public final class DefaultNodeDialog implements NodeDialog, KaiNodeInterface {
         m_asyncChoicesHolder = new AsyncChoicesHolder();
         m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses, m_asyncChoicesHolder);
         m_onApplyModifier = onApplyModifier;
-        m_kaiSettingsService = new DefaultNodeSettingsService(m_settingsClasses, m_asyncChoicesHolder, true);
     }
 
     @Override
@@ -189,14 +184,11 @@ public final class DefaultNodeDialog implements NodeDialog, KaiNodeInterface {
         return m_settingsDataService;
     }
 
-    @Override
-    public NodeSettingsService getKaiNodeSettingsService() {
-        return m_kaiSettingsService;
-    }
 
     @Override
     public Optional<OnApplyNodeModifier> getOnApplyNodeModifier() {
         return Optional.ofNullable(m_onApplyModifier);
     }
+
 
 }

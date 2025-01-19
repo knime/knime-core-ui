@@ -48,10 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.kai;
 
-import java.util.Set;
-
-import org.knime.core.webui.node.dialog.NodeSettingsService;
-import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.node.InvalidSettingsException;
 
 /**
  * Interface that can be implemented by dialogs to expose their settings to K-AI.
@@ -61,14 +58,32 @@ import org.knime.core.webui.node.dialog.SettingsType;
 public interface KaiNodeInterface {
 
     /**
-     * @return the service K-AI can use to extract and inject settings
+     * Specifies how an LLM can interact with the node.
+     *
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
      */
-    NodeSettingsService getKaiNodeSettingsService();
+    record ConfigureSpec(String systemMessage, String outputSchema){
+
+        // TODO tool declarations
+
+    }
+
+    // TODO method that executes tool calls
 
     /**
-     * @return the types of the settings supported by this interface
+     * @return the specification for how the model can interact with the node
      */
-    Set<SettingsType> getSettingsTypes();
+    // TODO adjust signature to make implementations less dependent on NodeContext
+    ConfigureSpec getConfigureSpec();
+
+    /**
+     * Applies the model response to a node.
+     *
+     * @param response of the LLM. JSON if the {@link #getConfigureSpec()} declares an output schema
+     * @throws InvalidSettingsException if the settings can't be applied because they are invalid
+     */
+    // TODO adjust signature to make implementations less dependent on NodeContext
+    void applyResponse(String response) throws InvalidSettingsException;
 
 
 }
