@@ -72,7 +72,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColu
 final class KaiSchemaEnhancer {
 
     static void enhanceForKai(final TreeNode<WidgetGroup> treeNode) {
-        // TODO apply modifications before enhancement since those will otherwise overwrite the enhancements
+        // other modifications are already taken care of by WidgetTreeFactory#createTree
         if (treeNode instanceof Tree<WidgetGroup> tree) {
             tree.getChildren().stream().forEach(KaiSchemaEnhancer::enhanceForKai);
         } else if (treeNode instanceof LeafNode<WidgetGroup> leaf) {
