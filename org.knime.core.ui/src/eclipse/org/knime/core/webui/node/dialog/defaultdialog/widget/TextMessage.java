@@ -55,7 +55,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.Optional;
 
+import org.knime.core.data.DataTable;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
@@ -125,6 +127,94 @@ public @interface TextMessage {
             } else {
                 return Optional.empty();
             }
+        }
+
+    }
+
+    /**
+     * Use this interface if only the message description depends on the context with a static title and type.
+     */
+    interface InputPreviewMessageProvider extends StateProvider<Optional<TextMessage.Message>> {
+
+        /**
+         * Must be non-null
+         *
+         * @return the title of the message
+         */
+        default String title() {
+            return "Content of the first cell";
+        }
+
+        /**
+         * Must be non-null
+         *
+         * @param context the context
+         * @return the description of the message
+         */
+        default String description(final DefaultNodeSettingsContext context) {
+            var inputPorts = context.getInputPortObjects();
+            Optional<DataTable> dt =
+                inputPorts != null && inputPorts.length > 0 ? context.getDataTable(0) : Optional.empty();
+
+            if (dt.isEmpty()) {
+                return "Connect a table to see a preview";
+            }
+
+            var spec = dt.get().getDataTableSpec();
+            var cols = spec.getColumnNames();
+            var filter = getFilter();
+
+            var selectedCols = filter.isPresent() ? filter.get().getSelected(cols, spec) : cols;
+
+            if (selectedCols.length == 0) {
+                return "Select a column to see a preview";
+            }
+
+            var preview = getFirstDataCellPreview(dt.get(), selectedCols);
+            if (preview.isPresent()) {
+                return preview.get();
+            }
+
+            return "No valid data available";
+        }
+
+        /**
+         * Optional column filter used on input columns, no filtering is done if empty.
+         *
+         * @return the filter to use, or empty if no filtering needed
+         */
+        default Optional<ColumnFilter> getFilter() {
+            return Optional.empty();
+        }
+
+        /**
+         * Returns the value of the cell to display in the description
+         *
+         * @param dt the datatable
+         * @param selectedCols the array of selected columns
+         * @return the text to display in the description
+         */
+        default Optional<String> getFirstDataCellPreview(final DataTable dt, final String[] selectedCols){
+            return Optional.empty();
+        }
+
+        /**
+         * The type of the message determining the color and icon with which it is shown.
+         *
+         * @return the type of the message
+         */
+        default MessageType type() {
+            return MessageType.INFO;
+        }
+
+        @Override
+        default void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+        }
+
+        @Override
+        default Optional<Message> computeState(final DefaultNodeSettingsContext context) {
+            return Optional.of(new Message(title(), description(context), type()));
         }
 
     }
