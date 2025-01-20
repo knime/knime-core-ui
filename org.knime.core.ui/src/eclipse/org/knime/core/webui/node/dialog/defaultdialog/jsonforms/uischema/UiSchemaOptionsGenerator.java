@@ -231,6 +231,13 @@ final class UiSchemaOptionsGenerator {
                 case LOCAL_TIME:
                     options.put(TAG_FORMAT, Format.LOCAL_TIME);
                     break;
+                case LOCAL_DATE_TIME:
+                    options.put(TAG_FORMAT, Format.LOCAL_DATE_TIME);
+                    break;
+                case ZONED_DATE_TIME:
+                    options.put(TAG_FORMAT, Format.ZONED_DATE_TIME);
+                    setPossibleValuesForZoneIds(options);
+                    break;
                 case ZONE_ID:
                     options.put(TAG_FORMAT, Format.DROP_DOWN);
                     setPossibleValuesForZoneIds(options);
@@ -289,7 +296,7 @@ final class UiSchemaOptionsGenerator {
         if (annotatedWidgets.contains(DateTimeWidget.class)) {
 
             final var dateTimeWidget = m_node.getAnnotation(DateTimeWidget.class).orElseThrow();
-            options.put(TAG_FORMAT, Format.DATE_TIME);
+            options.put(TAG_FORMAT, Format.LOCAL_DATE_TIME);
             selectTimeFields(options, dateTimeWidget.showSeconds(), dateTimeWidget.showMilliseconds());
             if (!dateTimeWidget.timezone().isEmpty()) {
                 options.put("timezone", dateTimeWidget.timezone());

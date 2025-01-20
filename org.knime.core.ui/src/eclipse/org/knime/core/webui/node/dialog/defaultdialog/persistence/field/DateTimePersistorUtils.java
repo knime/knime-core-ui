@@ -140,6 +140,48 @@ final class DateTimePersistorUtils {
         }
     }
 
+    static final class LocalDateTimePersistor extends NodeSettingsPersistorWithConfigKey<LocalDateTime> {
+
+        static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
+        @Override
+        public LocalDateTime load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            var value = settings.getString(getConfigKey());
+            if (value == null) {
+                return null;
+            }
+
+            return LocalDateTime
+                .from(parseTemporal(value, List.of(ZonedDateTime::parse, LocalDateTime::parse), "date time"));
+        }
+
+        @Override
+        public void save(final LocalDateTime obj, final NodeSettingsWO settings) {
+            settings.addString(getConfigKey(), obj == null ? null : obj.format(DATE_TIME_FMT));
+        }
+    }
+
+    static final class ZonedDateTimePersistor extends NodeSettingsPersistorWithConfigKey<ZonedDateTime> {
+
+        static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter.ISO_ZONED_DATE_TIME;
+
+        @Override
+        public ZonedDateTime load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            var value = settings.getString(getConfigKey());
+            if (value == null) {
+                return null;
+            }
+
+            return ZonedDateTime //
+                .from(parseTemporal(value, List.of(ZonedDateTime::parse), "zoned date time"));
+        }
+
+        @Override
+        public void save(final ZonedDateTime obj, final NodeSettingsWO settings) {
+            settings.addString(getConfigKey(), obj == null ? null : obj.format(DATE_TIME_FMT));
+        }
+    }
+
     static final class TimeZonePersistor extends NodeSettingsPersistorWithConfigKey<ZoneId> {
 
         private static ZoneId extractFromString(final String str) throws InvalidSettingsException {

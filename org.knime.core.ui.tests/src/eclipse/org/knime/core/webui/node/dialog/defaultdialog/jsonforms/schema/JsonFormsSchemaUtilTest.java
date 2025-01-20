@@ -484,24 +484,78 @@ class JsonFormsSchemaUtilTest {
 
     private static class SettingWithJavaTime implements WidgetGroup {
 
-        private static String SNAPSHOT = "{" + "\"duration\": {"
-            + "    \"default\": 42.0, \"format\": \"int32\", \"type\": \"integer\"" + "}," + "\"year\": {"
-            + "    \"default\": \"2006\", \"format\": \"int32\", \"type\": \"integer\"" + "}," + "\"instant\": {"
-            + "    \"default\": \"2006-07-28T10:30:00Z\", \"format\": \"date-time\", \"type\": \"string\"" + "},"
-            + "\"localDate\": {" + "    \"default\": \"2006-07-28\", \"format\": \"date\", \"type\": \"string\"" + "},"
-            + "\"localDateTime\": {"
-            + "    \"default\": \"2006-07-28T10:30:00\", \"format\": \"date-time\", \"type\": \"string\"" + "},"
-            + "\"localTime\": {" + "    \"default\": \"10:30:00\", \"format\": \"date-time\", \"type\": \"string\""
-            + "}," + "\"offsetDateTime\": {"
-            + "    \"default\": \"2006-07-28T10:30:00Z\", \"format\": \"date-time\", \"type\": \"string\"" + "},"
-            + "\"offsetTime\": {" + "    \"default\": \"10:30Z\", \"format\": \"date-time\", \"type\": \"string\""
-            + "}," + "\"zonedDateTime\": {"
-            + "    \"default\": \"2006-07-28T10:30:00Z\", \"format\": \"date-time\", \"type\": \"string\"" + "},"
-            + "\"yearMonth\": {" + "    \"default\": \"2006-07\", \"type\": \"string\"" + "}," + "\"zoneId\": {"
-            + "    \"default\": \"Europe/Berlin\", \"type\": \"string\"" + "}," + "\"zoneOffset\": {"
-            + "    \"default\": \"+02:00\", \"type\": \"string\"" + "}," + "\"monthDay\": {"
-            + "    \"default\": \"--07-28\", \"type\": \"string\"" + "}," + "\"period\": {"
-            + "    \"default\": \"P16Y7M1D\", \"type\": \"string\"" + "}" + "}";
+        private static final String SNAPSHOT = """
+                {
+                  "duration": {
+                    "default": 42.0,
+                    "format": "int32",
+                    "type": "integer"
+                  },
+                  "year": {
+                    "default": "2006",
+                    "format": "int32",
+                    "type": "integer"
+                  },
+                  "instant": {
+                    "default": "2006-07-28T10:30:00Z",
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "localDate": {
+                    "default": "2006-07-28",
+                    "format": "date",
+                    "type": "string"
+                  },
+                  "localDateTime": {
+                    "default": "2006-07-28T10:30:00",
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "localTime": {
+                    "default": "10:30:00",
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "offsetDateTime": {
+                    "default": "2006-07-28T10:30:00Z",
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "offsetTime": {
+                    "default": "10:30Z",
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "zonedDateTime": {
+                    "default": {
+                      "dateTime": "2006-07-28T10:30:00",
+                      "timeZone": "Z"
+                    },
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "yearMonth": {
+                    "default": "2006-07",
+                    "type": "string"
+                  },
+                  "zoneId": {
+                    "default": "Europe/Berlin",
+                    "type": "string"
+                  },
+                  "zoneOffset": {
+                    "default": "+02:00",
+                    "type": "string"
+                  },
+                  "monthDay": {
+                    "default": "--07-28",
+                    "type": "string"
+                  },
+                  "period": {
+                    "default": "P16Y7M1D",
+                    "type": "string"
+                  }
+                }
+                """;
 
         // integer
         Duration m_duration = Duration.ofSeconds(42);

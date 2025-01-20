@@ -50,9 +50,14 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil.getMapper;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Map;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -151,7 +156,7 @@ class JsonFormsDataUtilTest {
         NodeContext.pushContext(nodeContainerMock);
         try {
             assertThatJson(JsonFormsDataUtil.toJsonData(new TestCredentialsSettings()))//
-            .inPath("credentials").isObject()//
+                .inPath("credentials").isObject()//
                 .containsEntry("username", "username")//
                 .containsEntry("isHiddenPassword", true) //
                 .doesNotContainKey("password");
@@ -160,4 +165,24 @@ class JsonFormsDataUtilTest {
         }
     }
 
+    final static class TestZonedDateTimeSettings implements DefaultNodeSettings {
+        ZonedDateTime m_zonedDateTime = ZonedDateTime.of(2021, 11, 9, 15, 30, 0, 0, ZoneId.of("Europe/Berlin"));
+    }
+
+    @Test
+    void testSerializationOfZonedDateTimes() throws JsonProcessingException {
+
+        var settingsToSerialise = new TestZonedDateTimeSettings();
+        var serialised = JsonFormsDataUtil.toJsonData(settingsToSerialise);
+
+        assertThatJson(serialised) //
+            .inPath("zonedDateTime").isObject().contains( //
+                Map.entry("dateTime", "2021-11-09T15:30:00"), //
+                Map.entry("timeZone", "Europe/Berlin") //
+            );
+
+        // also test deserialization
+        var deserialised = JsonFormsDataUtil.toDefaultNodeSettings(serialised, TestZonedDateTimeSettings.class);
+        assertEquals(settingsToSerialise.m_zonedDateTime, deserialised.m_zonedDateTime);
+    }
 }

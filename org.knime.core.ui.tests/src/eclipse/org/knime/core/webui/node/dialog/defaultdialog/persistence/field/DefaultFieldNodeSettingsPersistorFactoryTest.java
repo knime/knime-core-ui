@@ -54,6 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -160,6 +161,11 @@ class DefaultFieldNodeSettingsPersistorFactoryTest {
     }
 
     @Test
+    void testNullLocalTime() throws InvalidSettingsException {
+        testSaveLoad(LocalTime.class, null);
+    }
+
+    @Test
     void testInvalidLocalTime() throws InvalidSettingsException {
         var nodeSettings = new NodeSettings(KEY);
         var notAValidTime = "not-a-valid-time";
@@ -174,6 +180,11 @@ class DefaultFieldNodeSettingsPersistorFactoryTest {
     void testLocalDate() throws InvalidSettingsException {
         final var date = LocalDate.of(2000, 1, 1);
         testSaveLoad(LocalDate.class, date);
+    }
+
+    @Test
+    void testNullLocalDate() throws InvalidSettingsException {
+        testSaveLoad(LocalDate.class, null);
     }
 
     @Test
@@ -201,6 +212,11 @@ class DefaultFieldNodeSettingsPersistorFactoryTest {
     void testTimeZone() throws InvalidSettingsException {
         final var zone = ZoneId.of("America/New_York");
         testSaveLoadNullable(ZoneId.class, zone);
+    }
+
+    @Test
+    void testNullTimeZone() throws InvalidSettingsException {
+        testSaveLoad(ZoneId.class, null);
     }
 
     @Test
@@ -296,6 +312,28 @@ class DefaultFieldNodeSettingsPersistorFactoryTest {
 
         assertThat(assertThrows(InvalidSettingsException.class, () -> persistor.load(nodeSettings)))
             .hasMessageContaining("PT1S", "DateInterval");
+    }
+
+    @Test
+    void testZonedDateTime() throws InvalidSettingsException {
+        final var zonedDateTime = ZonedDateTime.of(2000, 1, 1, 12, 30, 0, 0, ZoneId.of("UTC"));
+        assertEquals(zonedDateTime, saveLoad(ZonedDateTime.class, zonedDateTime));
+    }
+
+    @Test
+    void testNullZonedDateTime() throws InvalidSettingsException {
+        testSaveLoad(ZonedDateTime.class, null);
+    }
+
+    @Test
+    void testLocalDateTime() throws InvalidSettingsException {
+        final var localDateTime = ZonedDateTime.of(2000, 1, 1, 12, 30, 0, 0, ZoneId.of("UTC")).toLocalDateTime();
+        assertEquals(localDateTime, saveLoad(LocalDateTime.class, localDateTime));
+    }
+
+    @Test
+    void testNullLocalDateTime() throws InvalidSettingsException {
+        testSaveLoad(LocalDateTime.class, null);
     }
 
     @Test

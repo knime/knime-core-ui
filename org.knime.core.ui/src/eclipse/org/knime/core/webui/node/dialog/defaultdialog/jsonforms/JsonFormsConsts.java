@@ -244,7 +244,9 @@ public final class JsonFormsConsts {
 
             public static final String LOCAL_TIME = "localTime";
 
-            public static final String DATE_TIME = "dateTime";
+            public static final String LOCAL_DATE_TIME = "dateTime";
+
+            public static final String ZONED_DATE_TIME = "zonedDateTime";
 
             public static final String INTERVAL = "interval";
             

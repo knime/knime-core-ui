@@ -50,6 +50,10 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -63,8 +67,11 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -139,9 +146,14 @@ public final class JsonFormsDataUtil {
 
     private static SimpleModule createDialogModule() {
         final var module = new SimpleModule();
+
         module.addSerializer(BigDecimal.class, new BigDecimalSerializer());
         Credentials.addSerializerAndDeserializer(module);
         FSLocationJsonSerializationUtil.addSerializerAndDeserializer(module);
+
+        module.addSerializer(ZonedDateTime.class, new ZonedDateTimeSerializer());
+        module.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
+
         return module;
     }
 
@@ -196,4 +208,38 @@ public final class JsonFormsDataUtil {
 
     }
 
+    private static class ZonedDateTimeSerializer extends JsonSerializer<ZonedDateTime> {
+
+        @Override
+        public void serialize(final ZonedDateTime value, final JsonGenerator gen, final SerializerProvider serializers)
+            throws IOException {
+
+            // extract wall time
+            var wallTime = value.toLocalDateTime();
+
+            gen.writeStartObject();
+            gen.writeStringField("dateTime", wallTime.format(DateTimeFormatter.ISO_DATE_TIME));
+            gen.writeStringField("timeZone", value.getZone().getId());
+            gen.writeEndObject();
+        }
+    }
+
+    private static class ZonedDateTimeDeserializer extends JsonDeserializer<ZonedDateTime> {
+
+        @Override
+        public ZonedDateTime deserialize(final JsonParser p, final DeserializationContext ctxt) throws IOException {
+
+            JsonNode node = p.getCodec().readTree(p);
+
+            var dateTimeText = node.get("dateTime").asText();
+            var timeZoneText = node.get("timeZone").asText();
+
+            // ISO_DATE_TIME can deal with formats with or without timezone information,
+            // then we extract the wall time and discard any redundant tz data.
+            var dateTime = LocalDateTime.parse(dateTimeText, DateTimeFormatter.ISO_DATE_TIME);
+            var timeZone = ZoneId.of(timeZoneText);
+
+            return ZonedDateTime.of(dateTime, timeZone);
+        }
+    }
 }

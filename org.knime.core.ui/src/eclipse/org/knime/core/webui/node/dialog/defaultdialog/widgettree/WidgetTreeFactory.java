@@ -102,12 +102,21 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
  */
 public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
 
-    private static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_ANNOTATIONS =
-        List.of(LatentWidget.class, Layout.class, Effect.class, ValueReference.class, ValueProvider.class,
-            Modification.class, Modification.WidgetReference.class);
+    private static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_ANNOTATIONS = List.of( //
+        LatentWidget.class, //
+        Layout.class, //
+        Effect.class, //
+        ValueReference.class, //
+        ValueProvider.class, //
+        Modification.class, //
+        Modification.WidgetReference.class //
+    );
 
-    private static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_CLASS_ANNOTATIONS =
-        List.of(Layout.class, Effect.class, Modification.class);
+    private static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_CLASS_ANNOTATIONS = List.of( //
+        Layout.class, //
+        Effect.class, //
+        Modification.class //
+    );
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_LEAF_ANNOTATIONS = List.of(
         ButtonWidget.class, // 
@@ -141,7 +150,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         ValueReference.class, // 
         ValueSwitchWidget.class, // 
         Widget.class // 
-);
+    );
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_ARRAY_ANNOTATIONS = List.of( //
         ArrayWidget.class, //
@@ -153,7 +162,8 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         Modification.class, //
         ValueProvider.class, //
         ValueReference.class, //
-        Widget.class); //
+        Widget.class //
+    );
 
     /**
      * Create a new factory. This factory is non-static since it implements an abstract factory, but it does not hold

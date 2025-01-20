@@ -52,8 +52,10 @@ import static java.util.stream.Collectors.toMap;
 
 import java.lang.reflect.Array;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -72,9 +74,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.PersistableSet
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DateTimePersistorUtils.DateIntervalPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DateTimePersistorUtils.IntervalPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DateTimePersistorUtils.LocalDatePersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DateTimePersistorUtils.LocalDateTimePersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DateTimePersistorUtils.LocalTimePersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DateTimePersistorUtils.TimeIntervalPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DateTimePersistorUtils.TimeZonePersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.field.DateTimePersistorUtils.ZonedDateTimePersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
@@ -246,6 +250,10 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
             return (FieldNodeSettingsPersistorWithInferredConfigs<T>)createLocalDatePersistor(configKey);
         } else if (fieldType.equals(LocalTime.class)) {
             return (FieldNodeSettingsPersistorWithInferredConfigs<T>)createLocalTimePersistor(configKey);
+        } else if (fieldType.equals(LocalDateTime.class)) {
+            return (FieldNodeSettingsPersistorWithInferredConfigs<T>)createLocalDateTimePersistor(configKey);
+        } else if (fieldType.equals(ZonedDateTime.class)) {
+            return (FieldNodeSettingsPersistorWithInferredConfigs<T>)createZonedDateTimePersistor(configKey);
         } else if (fieldType.equals(ZoneId.class)) {
             return (FieldNodeSettingsPersistorWithInferredConfigs<T>)createTimeZonePersistor(configKey);
         } else if (fieldType.equals(Interval.class)) {
@@ -320,6 +328,14 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
 
     private static FieldNodeSettingsPersistor<LocalTime> createLocalTimePersistor(final String configKey) {
         return FieldNodeSettingsPersistor.createInstance(LocalTimePersistor.class, LocalTime.class, configKey);
+    }
+
+    private static FieldNodeSettingsPersistor<LocalDateTime> createLocalDateTimePersistor(final String configKey) {
+        return FieldNodeSettingsPersistor.createInstance(LocalDateTimePersistor.class, LocalDateTime.class, configKey);
+    }
+
+    private static FieldNodeSettingsPersistor<ZonedDateTime> createZonedDateTimePersistor(final String configKey) {
+        return FieldNodeSettingsPersistor.createInstance(ZonedDateTimePersistor.class, ZonedDateTime.class, configKey);
     }
 
     private static FieldNodeSettingsPersistor<ZoneId> createTimeZonePersistor(final String configKey) {

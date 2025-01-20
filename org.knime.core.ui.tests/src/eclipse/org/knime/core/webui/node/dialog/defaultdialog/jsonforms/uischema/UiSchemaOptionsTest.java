@@ -55,6 +55,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -195,7 +196,13 @@ class UiSchemaOptionsTest {
             @Widget(title = "", description = "")
             TimeInterval m_fixedLengthInterval;
 
+            @Widget(title = "", description = "")
+            ZonedDateTime m_zonedDateTime;
+
+            @Widget(title = "", description = "")
+            LocalDateTime m_localDateTime;
         }
+
         var response = buildTestUiSchema(DefaultStylesSettings.class);
 
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("string");
@@ -236,6 +243,15 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[13].options.format").isString().isEqualTo("interval");
         assertThatJson(response).inPath("$.elements[13].options.intervalType").isString()
             .isEqualTo(IntervalWidget.IntervalType.TIME.name());
+
+        // tests for zoned date time
+        assertThatJson(response).inPath("$.elements[14].scope").isString().contains("zonedDateTime");
+        assertThatJson(response).inPath("$.elements[14].options.format").isString().isEqualTo("zonedDateTime");
+        assertThatJson(response).inPath("$.elements[14].options.possibleValues").isArray();
+
+        // tests for local date time
+        assertThatJson(response).inPath("$.elements[15].scope").isString().contains("localDateTime");
+        assertThatJson(response).inPath("$.elements[15].options.format").isString().isEqualTo("dateTime");
     }
 
     @Test

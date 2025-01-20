@@ -51,8 +51,10 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.util;
 import java.lang.annotation.Annotation;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +87,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
@@ -142,10 +145,12 @@ public final class WidgetImplementationUtil {
             LEGACY_CREDENTIALS, //
             LOCAL_DATE, //
             LOCAL_TIME, //
+            LOCAL_DATE_TIME, //
+            ZONED_DATE_TIME, //
             NAME_FILTER, //
             STRING_ARRAY, //
             TIME_INTERVAL, //
-            ZONE_ID //
+            ZONE_ID;
     }
 
     /**
@@ -171,6 +176,7 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(ButtonWidget.class), //
         new WidgetAnnotation(List.of(String.class), DateTimeWidget.class), //
         new WidgetAnnotation(List.of(LocalDate.class), DateWidget.class), //
+        new WidgetAnnotation(List.of(LocalTime.class), TimeWidget.class), //
         new WidgetAnnotation(List.of(Interval.class), IntervalWidget.class), //
         new WidgetAnnotation(List.of(String.class), DateTimeFormatPickerWidget.class), //
         new WidgetAnnotation(List.of(String.class), RichTextInputWidget.class), //
@@ -200,6 +206,8 @@ public final class WidgetImplementationUtil {
         new DefaultWidget(List.of(ColumnSelection.class), DefaultWidgetType.COLUMN_SELECTION), //
         new DefaultWidget(List.of(LocalTime.class), DefaultWidgetType.LOCAL_TIME), //
         new DefaultWidget(List.of(LocalDate.class), DefaultWidgetType.LOCAL_DATE), //
+        new DefaultWidget(List.of(LocalDateTime.class), DefaultWidgetType.LOCAL_DATE_TIME), //
+        new DefaultWidget(List.of(ZonedDateTime.class), DefaultWidgetType.ZONED_DATE_TIME), //
         new DefaultWidget(List.of(String[].class), DefaultWidgetType.STRING_ARRAY), //
         new DefaultWidget(List.of(ZoneId.class), DefaultWidgetType.ZONE_ID), //
         new DefaultWidget(List.of(Credentials.class), DefaultWidgetType.CREDENTIALS), //
