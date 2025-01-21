@@ -44,50 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 10, 2023 (Paul Bärnreuther): created
+ *   Jan 13, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.selection;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
 
 import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 
 /**
+ * Loads from legacy column filter settings. If the settings have to be saved to this legacy format as well, use a
+ * {@link LegacyColumnFilterPersistor} instead.
  *
- * @author Paul Bärnreuther
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class SelectionCheckboxesToSelectionModeMigrator implements NodeSettingsMigrator<SelectionMode> {
+public abstract class LegacyColumnFilterMigration implements NodeSettingsMigration<ColumnFilter> {
 
-    private static final String PUBLISH_SELECTION = "publishSelection";
+    private final String m_configKey;
 
-    private static final String SUBSCRIBE_TO_SELECTION = "subscribeToSelection";
+    /**
+     * @param configKey the root config key to load from.
+     */
+    protected LegacyColumnFilterMigration(final String configKey) {
+        m_configKey = configKey;
+    }
 
-    private static SelectionMode loadFromBooleans(final NodeSettingsRO settings) throws InvalidSettingsException {
-        /**
-         * There is no option for only publishing since this change to a value switch. I.e. in this case, we now also
-         * subscribe to the selection.
-         */
-        if (settings.getBoolean(PUBLISH_SELECTION)) {
-            return SelectionMode.EDIT;
-        }
-        if (settings.getBoolean(SUBSCRIBE_TO_SELECTION)) {
-            return SelectionMode.SHOW;
-        }
-        return SelectionMode.OFF;
+    private ColumnFilter loadLegacy(final NodeSettingsRO nodeSettings) throws InvalidSettingsException {
+        return LegacyColumnFilterPersistor.load(nodeSettings, m_configKey);
+    }
+
+    private boolean matchesLegacy(final NodeSettingsRO settings) {
+        return settings.containsKey(m_configKey);
     }
 
     @Override
-    public List<ConfigsDeprecation<SelectionMode>> getConfigsDeprecations() {
-        return List.of(
-            ConfigsDeprecation.builder(SelectionCheckboxesToSelectionModeMigrator::loadFromBooleans)
-                .withDeprecatedConfigPath(SUBSCRIBE_TO_SELECTION).withDeprecatedConfigPath(PUBLISH_SELECTION).build(),
-            /**
-             * Accounting for a time where not even the checkbox settings existed.
-             */
-            ConfigsDeprecation.builder(settings -> SelectionMode.EDIT).build());
+    public List<ConfigMigration<ColumnFilter>> getConfigMigrations() {
+        final var configsMigrationBuilder = ConfigMigration.builder(this::loadLegacy).withMatcher(this::matchesLegacy);
+        for (var configPath : LegacyColumnFilterPersistor.getConfigPaths(m_configKey)) {
+            configsMigrationBuilder.withDeprecatedConfigPath(configPath);
+        }
+        return List.of(configsMigrationBuilder.build());
     }
-
 }

@@ -62,7 +62,7 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMappings;
 import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
@@ -100,7 +100,7 @@ public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMap
      * @param settingsValue
      * @return the config mappings
      */
-    public static ConfigMappings getConfigMappings(final Class<? extends PersistableSettings> settingsClass,
+    public static ConfigMappings createConfigMappings(final Class<? extends PersistableSettings> settingsClass,
         final Object settingsValue) {
         return getInstance().extractFromSettings(settingsClass).getConfigMappings(settingsValue);
     }
@@ -150,7 +150,7 @@ public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMap
 
     @Override
     protected GetConfigMappings combineWithConfigsDeprecations(final GetConfigMappings withoutLoader,
-        final List<ConfigsDeprecation> configsDeprecations, final Supplier<String[][]> configPaths,
+        final List<ConfigMigration> configsDeprecations, final Supplier<String[][]> configPaths,
         final TreeNode<PersistableSettings> node) {
         final var saver = SettingsSaverFactory.getInstance().extractFromTreeNode(node);
         final var newConfigMappings = configsDeprecationsToConfigMappings(configsDeprecations, configPaths, saver);
@@ -159,7 +159,7 @@ public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMap
 
     @Override
     protected GetConfigMappings combineWithConfigsDeprecationsForType(final GetConfigMappings withoutLoader,
-        final List<ConfigsDeprecation> configsDeprecations, final Supplier<String[][]> configPaths,
+        final List<ConfigMigration> configsDeprecations, final Supplier<String[][]> configPaths,
         final Tree<PersistableSettings> node) {
         final var saver = SettingsSaverFactory.getInstance().extractFromTree(node);
         final var newConfigMappings = configsDeprecationsToConfigMappings(configsDeprecations, configPaths, saver);
@@ -188,7 +188,7 @@ public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMap
     }
 
     private static <S> GetConfigMappings configsDeprecationsToConfigMappings(
-        final List<ConfigsDeprecation> configsDeprecations, final Supplier<String[][]> configPaths,
+        final List<ConfigMigration> configsDeprecations, final Supplier<String[][]> configPaths,
         final SettingsSaver<S> saver) {
         return obj -> new ConfigMappings(configsDeprecations.stream().map(configsDeprecation -> new ConfigMappings( //
             configsDeprecation.getDeprecatedConfigPaths(), //

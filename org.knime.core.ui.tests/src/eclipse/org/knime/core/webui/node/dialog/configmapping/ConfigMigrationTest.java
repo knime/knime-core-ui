@@ -42,54 +42,64 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
-
-import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory.loadSettings;
-
-import java.util.List;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-
-/**
- * The data structure of a TwinList changed from an array of strings to a more complex representation by a
- * {@link ColumnFilter}. For previous workflows to still execute (given that the setting is not overwritten by a flow
- * variable), we transform the stored string array to the correct representation.
  *
- * @author Paul Bärnreuther
+ * History
+ *   Oct 22, 2024 (Robin Gerling): created
  */
-public abstract class StringArrayToColumnSelectionMigrator implements NodeSettingsMigrator<ColumnFilter> {
+package org.knime.core.webui.node.dialog.configmapping;
 
-    private final String m_legacyConfigKey;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-    /**
-     * The config key under which the string array has been persisted before has to be deprecated to not break flow
-     * variables. I.e. either rename the field or add a {@link Persist#configKey} annotation on the field where this
-     * class is attached.
-     *
-     * @param legacyConfigKey the config key under which the string array has been stored previously.
-     */
-    protected StringArrayToColumnSelectionMigrator(final String legacyConfigKey) {
-        m_legacyConfigKey = legacyConfigKey;
-    }
+import java.util.Optional;
+import java.util.function.Predicate;
 
-    private ColumnFilter loadLegacy(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final var fieldSettingsArray = settings.getStringArray(m_legacyConfigKey);
-        if (fieldSettingsArray != null) {
-            return new ColumnFilter(fieldSettingsArray);
-        } else {
-            return loadSettings(ColumnFilter.class, settings.getNodeSettings(m_legacyConfigKey));
+import org.junit.jupiter.api.Test;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration.Builder;
+
+class ConfigMigrationTest {
+
+    private static final Builder<Integer> createBuilder(final Optional<Predicate<NodeSettingsRO>> matcher) {
+        final var builder = new ConfigMigration.Builder<Integer>(settings -> {
+            throw new IllegalStateException("Should not be called within this test");
+        }).withDeprecatedConfigPath("A", "B").withDeprecatedConfigPath("C");
+
+        if (matcher.isPresent()) {
+            builder.withMatcher(matcher.get());
         }
+        return builder;
     }
 
-    @Override
-    public final List<ConfigsDeprecation<ColumnFilter>> getConfigsDeprecations() {
-        return List
-            .of(ConfigsDeprecation.builder(this::loadLegacy).withDeprecatedConfigPath(m_legacyConfigKey).build());
+    @Test
+    void testBuilderUsesGivenMatcher() {
+        final Predicate<NodeSettingsRO> matcher = settings -> {
+            try {
+                return settings.getNodeSettings("A").containsKey("B");
+            } catch (InvalidSettingsException ex) {
+                throw new IllegalStateException(ex);
+            }
+        };
+        final var configsDeprecation = createBuilder(Optional.of(matcher)).build();
+
+        assertEquals(matcher, configsDeprecation.getMatcher());
+    }
+
+    @Test
+    void testBuilderCreatesMatcherByDeprecatedConfigs() throws InvalidSettingsException {
+        final var builder = createBuilder(Optional.empty()).build();
+
+        final var settings = new NodeSettings("root");
+        final var settingsA = new NodeSettings("A");
+        settingsA.addString("B", "root -> A -> B");
+        settings.addNodeSettings(settingsA);
+        assertFalse(builder.getMatcher().test(settings));
+
+        settings.addString("C", "root -> C");
+        assertTrue(builder.getMatcher().test(settings));
     }
 
 }

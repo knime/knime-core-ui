@@ -42,33 +42,54 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Dec 11, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
+
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory.loadSettings;
+
+import java.util.List;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 
 /**
- * A context that is available in {@link NodeSettingsPersistor NodeSettingsPersistors} providing additional information.
- * It can be accessed by adding a constructor with this type as a single parameter.
+ * The data structure of a TwinList changed from an array of strings to a more complex representation by a
+ * {@link ColumnFilter}. For previous workflows to still execute (given that the setting is not overwritten by a flow
+ * variable), we transform the stored string array to the correct representation.
  *
- * @param <T> the type of the persisted object
  * @author Paul Bärnreuther
  */
-public interface NodeSettingsPersistorContext<T> {
+public abstract class StringArrayToColumnFilterMigration implements NodeSettingsMigration<ColumnFilter> {
+
+    private final String m_legacyConfigKey;
 
     /**
-     * Only use this method within a persistor attached to a field.
+     * The config key under which the string array has been persisted before has to be deprecated to not break flow
+     * variables. I.e. either rename the field or add a {@link Persist#configKey} annotation on the field where this
+     * class is attached.
      *
-     * @return the config key that would be used by default if this field was not attached to a persistor. I.e. the
-     *         field name stripped of the "m_" prefix if it exists.
-     * @throws IllegalStateException if the current persistor is not attached to a field but instead to a class.
+     * @param legacyConfigKey the config key under which the string array has been stored previously.
      */
-    String getFieldName();
+    protected StringArrayToColumnFilterMigration(final String legacyConfigKey) {
+        m_legacyConfigKey = legacyConfigKey;
+    }
 
-    /**
-     * @return the class of the persisted object, i.e., its type is the same as the generic type of the persistor.
-     */
-    Class<T> getPersistedObjectClass();
+    private ColumnFilter loadLegacy(final NodeSettingsRO settings) throws InvalidSettingsException {
+        final var fieldSettingsArray = settings.getStringArray(m_legacyConfigKey);
+        if (fieldSettingsArray != null) {
+            return new ColumnFilter(fieldSettingsArray);
+        } else {
+            return loadSettings(ColumnFilter.class, settings.getNodeSettings(m_legacyConfigKey));
+        }
+    }
+
+    @Override
+    public final List<ConfigMigration<ColumnFilter>> getConfigMigrations() {
+        return List
+            .of(ConfigMigration.builder(this::loadLegacy).withDeprecatedConfigPath(m_legacyConfigKey).build());
+    }
 
 }

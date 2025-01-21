@@ -60,17 +60,18 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.util.filter.NameFilterConfiguration.EnforceOption;
 import org.knime.core.node.util.filter.PatternFilterConfiguration;
 
-/**
- * Unit tests for the {@link LegacyColumnFilterPersistor}.
- *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- */
 final class LegacyColumnFilterPersistorTest {
 
     private final LegacyColumnFilterPersistor m_persistor = createPersistor();
 
+    static final class TestLegacyColumnFilterPersistor extends LegacyColumnFilterPersistor {
+        TestLegacyColumnFilterPersistor() {
+            super("config_key");
+        }
+    }
+
     private static LegacyColumnFilterPersistor createPersistor() {
-        return new LegacyColumnFilterPersistor("config_key");
+        return new TestLegacyColumnFilterPersistor();
     }
 
     @Test

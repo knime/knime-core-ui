@@ -53,18 +53,20 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelInteger;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 
 /**
  * Saves a Integer or int field as if it was controlled by a {@link SettingsModelInteger}.
  *
  * @author Paul Bärnreuther
  */
-public class SettingsModelIntegerPersistor implements NodeSettingsPersistor<Integer> {
+public abstract class SettingsModelIntegerPersistor implements NodeSettingsPersistor<Integer> {
     private final String m_configKey;
 
-    SettingsModelIntegerPersistor(final NodeSettingsPersistorContext<Integer> context) {
-        m_configKey = context.getFieldName();
+    /**
+     * @param configKey the config key used by the settings model
+     */
+    protected SettingsModelIntegerPersistor(final String configKey) {
+        m_configKey = configKey;
     }
 
     @Override

@@ -61,7 +61,7 @@ import java.util.stream.Stream;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
@@ -99,7 +99,7 @@ public final class SettingsLoaderFactory extends PersistenceFactory<SettingsLoad
      */
     public static <S extends PersistableSettings> S loadSettings(final Class<S> settingsClass,
         final NodeSettingsRO nodeSettings) throws InvalidSettingsException {
-        return getSettingsLoader(settingsClass).load(nodeSettings);
+        return createSettingsLoader(settingsClass).load(nodeSettings);
     }
 
     /**
@@ -108,7 +108,7 @@ public final class SettingsLoaderFactory extends PersistenceFactory<SettingsLoad
      * @param <S> the type of the settings
      */
     @SuppressWarnings("unchecked")
-    public static <S extends PersistableSettings> SettingsLoader<S> getSettingsLoader(final Class<S> settingsClass) {
+    public static <S extends PersistableSettings> SettingsLoader<S> createSettingsLoader(final Class<S> settingsClass) {
         return getInstance().extractFromSettings(settingsClass);
     }
 
@@ -161,7 +161,7 @@ public final class SettingsLoaderFactory extends PersistenceFactory<SettingsLoad
     @Override
     @SuppressWarnings("unchecked")
     protected final SettingsLoader combineWithConfigsDeprecations(final SettingsLoader withoutLoader,
-        final List<ConfigsDeprecation> configsDeprecations, final Supplier<String[][]> configPathsSupplier) {
+        final List<ConfigMigration> configsDeprecations, final Supplier<String[][]> configPathsSupplier) {
 
         return settings -> {
             for (final var configDeprecation : configsDeprecations) {
@@ -173,8 +173,11 @@ public final class SettingsLoaderFactory extends PersistenceFactory<SettingsLoad
                     if (configPaths == null || configPaths.length == 0) {
                         throw new IllegalStateException(
                             "There exists a custom persistor without or with empty config paths but "
-                                + "a deprecation matcher was set via 'withNewSettingsMissingMatcher' is used."
-                                + "Either supply a custom matcher via 'withMatcher' or define config paths.");
+                                + "a migration was defined without specifying deprecated config keys"
+                                + " and without specifying a matcher."
+                                + "Either supply a custom matcher via 'withMatcher', "
+                                + "specify deprecated config paths using 'withDeprecatedConfigPaths' "
+                                + "or define config paths within the custom persistor.");
                     }
                     if (Arrays.stream(configPaths).map(Arrays::asList).map(ConfigPath::new)
                         .allMatch(configPath -> !hasPath(settings, configPath))) {

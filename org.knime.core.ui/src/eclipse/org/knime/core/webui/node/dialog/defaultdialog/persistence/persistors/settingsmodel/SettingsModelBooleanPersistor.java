@@ -53,20 +53,21 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 
 /**
  * Saves a Boolean or boolean field as if it was controlled by a {@link SettingsModelBoolean}.
  *
  * @author Paul Bärnreuther
  */
-public class SettingsModelBooleanPersistor implements NodeSettingsPersistor<Boolean> {
+public abstract class SettingsModelBooleanPersistor implements NodeSettingsPersistor<Boolean> {
 
     private final String m_configKey;
 
-    SettingsModelBooleanPersistor(final NodeSettingsPersistorContext<Boolean> context) {
-        m_configKey = context.getFieldName();
-
+    /**
+     * @param configKey the config key of the settings model
+     */
+    protected SettingsModelBooleanPersistor(final String configKey) {
+        m_configKey = configKey;
     }
 
     @Override

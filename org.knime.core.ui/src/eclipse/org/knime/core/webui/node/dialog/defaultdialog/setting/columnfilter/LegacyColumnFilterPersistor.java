@@ -60,26 +60,23 @@ import org.knime.core.node.util.filter.PatternFilterConfiguration;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.PatternFilter.PatternMode;
 
 /**
  * {@link NodeSettingsPersistor} for {@link ColumnFilter} that persists it in a way compatible to
  * {@link DataColumnSpecFilterConfiguration}.
  *
+ * If only backwards compatible load is required but the settings should be saved as per default (i.e. also with the
+ * default flow variables), use a {@link LegacyColumnFilterMigration} instead.
+ *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public class LegacyColumnFilterPersistor implements NodeSettingsPersistor<ColumnFilter> {
+public abstract class LegacyColumnFilterPersistor implements NodeSettingsPersistor<ColumnFilter> {
 
     private final String m_configKey;
 
-    LegacyColumnFilterPersistor(final NodeSettingsPersistorContext<ColumnFilter> context) {
-        m_configKey = context.getFieldName();
-    }
-
     /**
-     * @param configKey the root config key to save to and load from. Do not extend this class but use it directly if
-     *            the field name of the {@link ColumnFilter} field should be used as root config key.
+     * @param configKey the root config key to save to and load from.
      */
     protected LegacyColumnFilterPersistor(final String configKey) {
         m_configKey = configKey;
@@ -233,7 +230,7 @@ public class LegacyColumnFilterPersistor implements NodeSettingsPersistor<Column
         return getConfigPaths(m_configKey);
     }
 
-    private static String[][] getConfigPaths(final String configKey) {
+    static String[][] getConfigPaths(final String configKey) {
         return new String[][]{//
             {configKey, KEY_FILTER_TYPE}, //
             {configKey, LegacyManualFilterPersistorUtil.KEY_INCLUDED_NAMES}, //

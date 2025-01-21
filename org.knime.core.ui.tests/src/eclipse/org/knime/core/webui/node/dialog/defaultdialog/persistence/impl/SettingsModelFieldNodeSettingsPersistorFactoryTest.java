@@ -193,7 +193,13 @@ class SettingsModelPersistorTest {
             m_value = value;
         }
 
-        @Persistor(SettingsModelIntegerPersistor.class)
+        static final class TestSettingsModelIntegerPersistor extends SettingsModelIntegerPersistor {
+            TestSettingsModelIntegerPersistor() {
+                super(CFG_KEY);
+            }
+        }
+
+        @Persistor(TestSettingsModelIntegerPersistor.class)
         int m_value;
 
         @Override
@@ -218,7 +224,13 @@ class SettingsModelPersistorTest {
             m_value = value;
         }
 
-        @Persistor(SettingsModelStringPersistor.class)
+        static final class TestSettingsModelStringPersistor extends SettingsModelStringPersistor {
+            TestSettingsModelStringPersistor() {
+                super(CFG_KEY);
+            }
+        }
+
+        @Persistor(TestSettingsModelStringPersistor.class)
         String m_value;
 
         @Override
@@ -244,7 +256,13 @@ class SettingsModelPersistorTest {
             m_value = value;
         }
 
-        @Persistor(SettingsModelLongPersistor.class)
+        static final class TestSettingsModelLongPersistor extends SettingsModelLongPersistor {
+            TestSettingsModelLongPersistor() {
+                super(CFG_KEY);
+            }
+        }
+
+        @Persistor(TestSettingsModelLongPersistor.class)
         long m_value;
 
         @Override
@@ -269,7 +287,13 @@ class SettingsModelPersistorTest {
             m_value = value;
         }
 
-        @Persistor(SettingsModelDoublePersistor.class)
+        static final class TestSettingsModelDoublePersistor extends SettingsModelDoublePersistor {
+            TestSettingsModelDoublePersistor() {
+                super(CFG_KEY);
+            }
+        }
+
+        @Persistor(TestSettingsModelDoublePersistor.class)
         double m_value;
 
         @Override
@@ -293,7 +317,13 @@ class SettingsModelPersistorTest {
             m_value = value;
         }
 
-        @Persistor(SettingsModelBooleanPersistor.class)
+        static final class TestSettingsModelBooleanPersistor extends SettingsModelBooleanPersistor {
+            TestSettingsModelBooleanPersistor() {
+                super(CFG_KEY);
+            }
+        }
+
+        @Persistor(TestSettingsModelBooleanPersistor.class)
         boolean m_value;
 
         @Override

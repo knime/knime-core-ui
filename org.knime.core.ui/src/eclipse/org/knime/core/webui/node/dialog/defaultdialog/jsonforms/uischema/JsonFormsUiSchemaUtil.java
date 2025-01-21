@@ -157,7 +157,7 @@ public final class JsonFormsUiSchemaUtil {
 
     private static LayoutTreeNode widgetTreesToLayoutTreeRoot(final Collection<Tree<WidgetGroup>> widgetTrees) {
         final Map<Boolean, List<TreeNode<WidgetGroup>>> hasLayoutToWidgets =
-            widgetTrees.stream().flatMap(Tree<WidgetGroup>::getWidgetNodes).filter(node -> !isHiddenOrLatent(node))
+            widgetTrees.stream().flatMap(Tree<WidgetGroup>::getWidgetNodes).filter(node -> !isHidden(node))
                 .collect(Collectors.partitioningBy(node -> node.getAnnotation(Layout.class).isPresent()));
 
         final Map<Class<?>, List<TreeNode<WidgetGroup>>> layoutPartsToWidgets = hasLayoutToWidgets.get(true).stream()
@@ -170,7 +170,7 @@ public final class JsonFormsUiSchemaUtil {
     private static final List<Class<? extends Annotation>> VISIBLE_WITHOUT_WIDGET_ANNOTATION =
         List.of(TextMessage.class);
 
-    private static boolean isHiddenOrLatent(final TreeNode<WidgetGroup> node) {
+    private static boolean isHidden(final TreeNode<WidgetGroup> node) {
         return node.getAnnotation(Widget.class).isEmpty() && VISIBLE_WITHOUT_WIDGET_ANNOTATION.stream()
             .filter(node.getPossibleAnnotations()::contains).map(node::getAnnotation).allMatch(Optional::isEmpty);
     }

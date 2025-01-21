@@ -53,7 +53,7 @@ import java.util.Collection;
 /**
  * This class provides a connection from an array of config paths relative to the base config of a field to another one.
  *
- * @see ConfigsDeprecation
+ * @see ConfigMigration
  *
  * @author Paul Bärnreuther
  */

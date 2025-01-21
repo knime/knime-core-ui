@@ -86,7 +86,7 @@ public final class SettingsSaverFactory extends PersistenceFactory<SettingsSaver
      */
     public static <S extends PersistableSettings> void saveSettings(final S settings,
         final NodeSettingsWO nodeSettings) {
-        getSettingsSaver((Class<S>)settings.getClass()).save(settings, nodeSettings);
+        createSettingsSaver((Class<S>)settings.getClass()).save(settings, nodeSettings);
     }
 
     /**
@@ -94,7 +94,7 @@ public final class SettingsSaverFactory extends PersistenceFactory<SettingsSaver
      * @return a settings saver for the given class.
      * @param <S> the type of the settings to save.
      */
-    public static <S extends PersistableSettings> SettingsSaver<S> getSettingsSaver(final Class<S> settingsClass) {
+    public static <S extends PersistableSettings> SettingsSaver<S> createSettingsSaver(final Class<S> settingsClass) {
         return getInstance().extractFromSettings(settingsClass);
     }
 

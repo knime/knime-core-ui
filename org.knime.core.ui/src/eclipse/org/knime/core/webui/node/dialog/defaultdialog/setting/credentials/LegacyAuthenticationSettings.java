@@ -60,11 +60,11 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.node.workflow.CredentialsProvider;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration.Builder;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
@@ -142,12 +142,12 @@ public final class LegacyAuthenticationSettings implements WidgetGroup, Persista
         @Override
         public LegacyAuthenticationSettings load(final NodeSettingsRO settings) throws InvalidSettingsException {
             return new LegacyAuthenticationSettings(
-                SettingsLoaderFactory.getSettingsLoader(AuthenticationSettings.class).load(settings));
+                SettingsLoaderFactory.createSettingsLoader(AuthenticationSettings.class).load(settings));
         }
 
         @Override
         public void save(final LegacyAuthenticationSettings obj, final NodeSettingsWO settings) {
-            SettingsSaverFactory.getSettingsSaver(AuthenticationSettings.class).save(obj.toAuthenticationSettings(),
+            SettingsSaverFactory.createSettingsSaver(AuthenticationSettings.class).save(obj.toAuthenticationSettings(),
                 settings);
         }
 
@@ -165,7 +165,7 @@ public final class LegacyAuthenticationSettings implements WidgetGroup, Persista
      * @author Paul Bärnreuther
      */
     public abstract static class SettingsModelAuthenticationBackwardsCompatibleLoader
-        implements NodeSettingsMigrator<LegacyAuthenticationSettings> {
+        implements NodeSettingsMigration<LegacyAuthenticationSettings> {
 
         private AuthenticationSettings.SettingsModelAuthenticationMigrator m_settingsModelAuthenticationPersistor;
 
@@ -187,7 +187,7 @@ public final class LegacyAuthenticationSettings implements WidgetGroup, Persista
         }
 
         @Override
-        public List<ConfigsDeprecation<LegacyAuthenticationSettings>> getConfigsDeprecations() {
+        public List<ConfigMigration<LegacyAuthenticationSettings>> getConfigMigrations() {
             return List.of(new Builder<LegacyAuthenticationSettings>(this::loadFromSettingsModelSettings)//
                 .withDeprecatedConfigPath(m_configKey, SETTINGS_MODEL_KEY_CREDENTIAL) //
                 .withDeprecatedConfigPath(m_configKey, SETTINGS_MODEL_KEY_PASSWORD) //

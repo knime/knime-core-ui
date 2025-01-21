@@ -42,54 +42,31 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Feb 8, 2023 (Benjamin Wilhelm, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection;
-
-import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory.loadSettings;
+package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
 
 import java.util.List;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 
 /**
- * The data structure of a ColumnSelection dropdown changed from a strings to a more complex representation by a
- * {@link ColumnSelection}. For previous workflows to still execute, we transform the stored string to the correct
- * representation. For that, one config key has to be deprecated and a new one has to be used instead.
+ * Interface that has to be implemented to use within the {@link Migration} annotation.
  *
+ * @param <T> type of object loaded from deprecated settings, i.e. the type of the associated field or class.
  * @author Paul Bärnreuther
  */
-public abstract class StringToColumnSelectionMigrator implements NodeSettingsMigrator<ColumnSelection> {
-
-    private final String m_legacyConfigKey;
+public interface NodeSettingsMigration<T> {
 
     /**
-     * The config key under which the string has been persisted before has to be deprecated to not break flow variables.
-     * I.e. either rename the field or add a {@link Persist#configKey} annotation on the field where this class is
-     * attached.
+     * Each element of this list is associated to a point in time where the settings changed, i.e. are not saved like
+     * before.
      *
-     * @param legacyConfigKey the config key under which the string has been stored previously.
+     * @return a list of definitions of states from which one can still load in a backwards-compatible way but not save
+     *         back to in the same way.
      */
-    protected StringToColumnSelectionMigrator(final String legacyConfigKey) {
-        m_legacyConfigKey = legacyConfigKey;
-    }
-
-    private ColumnSelection loadLegacy(final NodeSettingsRO settings) throws InvalidSettingsException {
-        try {
-            final var fieldSettingsString = settings.getString(m_legacyConfigKey);
-            return new ColumnSelection(fieldSettingsString, null);
-        } catch (InvalidSettingsException ex) { //NOSONAR
-            return loadSettings(ColumnSelection.class, settings.getNodeSettings(m_legacyConfigKey));
-        }
-    }
-
-    @Override
-    public final List<ConfigsDeprecation<ColumnSelection>> getConfigsDeprecations() {
-        return List
-            .of(ConfigsDeprecation.builder(this::loadLegacy).withDeprecatedConfigPath(m_legacyConfigKey).build());
-    }
+    List<ConfigMigration<T>> getConfigMigrations();
 
 }

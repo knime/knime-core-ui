@@ -54,7 +54,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 import org.knime.filehandling.core.data.location.FSLocationSerializationUtils;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
 
@@ -64,12 +63,15 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.Settin
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
-public final class LegacyReaderFileSelectionPersistor implements NodeSettingsPersistor<FileSelection> {
+public abstract class LegacyReaderFileSelectionPersistor implements NodeSettingsPersistor<FileSelection> {
 
     private String m_configKey;
 
-    LegacyReaderFileSelectionPersistor(final NodeSettingsPersistorContext<FileSelection> context) {
-        m_configKey = context.getFieldName();
+    /**
+     * @param configKey the root key used for the {@link SettingsModelReaderFileChooser} settings
+     */
+    protected LegacyReaderFileSelectionPersistor(final String configKey) {
+        m_configKey = configKey;
     }
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(LegacyReaderFileSelectionPersistor.class);

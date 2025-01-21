@@ -196,7 +196,7 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
             return m_underlyingField.get(parentValue);
         } catch (IllegalAccessException ex) {
             throw new IllegalStateException(String.format(
-                "Could not access value of settings field %s although " + "reflection was used to make it accessible.",
+                "Could not access value of settings field %s although reflection was used to make it accessible.",
                 getPath()), ex);
         }
     }

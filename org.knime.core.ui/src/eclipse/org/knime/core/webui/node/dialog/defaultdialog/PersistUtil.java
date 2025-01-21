@@ -58,7 +58,7 @@ import java.util.function.Supplier;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
@@ -114,7 +114,7 @@ public final class PersistUtil {
         final var properties = addObjectProperties(persist);
         final var persistSchemaFactory = new PersistSchemaFactory();
         persistTrees.entrySet().forEach(entry -> properties.set(entry.getKey().getConfigKey(),
-            persistSchemaFactory.getPersistSchemaFromTree(entry.getValue())));
+            persistSchemaFactory.createPersistSchemaFromTree(entry.getValue())));
     }
 
     private static ObjectNode addObjectProperties(final ObjectNode objectNode) {
@@ -127,7 +127,7 @@ public final class PersistUtil {
 
         static final ObjectMapper MAPPER = new ObjectMapper();
 
-        ObjectNode getPersistSchemaFromTree(final Tree<PersistableSettings> node) {
+        ObjectNode createPersistSchemaFromTree(final Tree<PersistableSettings> node) {
             return super.extractFromTree(node);
         }
 
@@ -181,7 +181,7 @@ public final class PersistUtil {
 
         @Override
         protected ObjectNode combineWithConfigsDeprecations(final ObjectNode existing,
-            final List<ConfigsDeprecation> configsDeprecations, final Supplier<String[][]> configPaths,
+            final List<ConfigMigration> configsDeprecations, final Supplier<String[][]> configPaths,
             final TreeNode<PersistableSettings> node) {
             addDeprecatedConfigKeys((ObjectNode)existing.get(node.getName().orElseThrow(IllegalStateException::new)),
                 "deprecatedConfigKeys", configsDeprecations);
@@ -190,7 +190,7 @@ public final class PersistUtil {
 
         @Override
         protected ObjectNode combineWithConfigsDeprecationsForType(final ObjectNode withoutLoader,
-            final List<ConfigsDeprecation> configsDeprecations, final Supplier<String[][]> configPaths,
+            final List<ConfigMigration> configsDeprecations, final Supplier<String[][]> configPaths,
             final Tree<PersistableSettings> node) {
             return addDeprecatedConfigKeys(withoutLoader, "propertiesDeprecatedConfigKeys", configsDeprecations);
 
@@ -234,7 +234,7 @@ public final class PersistUtil {
         }
 
         private static ObjectNode addDeprecatedConfigKeys(final ObjectNode node, final String deprecatedConfigKeysTag,
-            final List<ConfigsDeprecation> configsDeprecations) {
+            final List<ConfigMigration> configsDeprecations) {
             final var deprecatedConfigsNode = node.putArray(deprecatedConfigKeysTag);
             configsDeprecations.stream()
                 .forEach(configsDeprecation -> putDeprecatedConfig(deprecatedConfigsNode, configsDeprecation));
@@ -242,7 +242,7 @@ public final class PersistUtil {
         }
 
         private static void putDeprecatedConfig(final ArrayNode deprecatedConfigsNode,
-            final ConfigsDeprecation<?> newAndDeprecatedConfigPaths) {
+            final ConfigMigration<?> newAndDeprecatedConfigPaths) {
             final var nextDeprecatedConfigs = deprecatedConfigsNode.addObject();
 
             final var deprecatedConfigPaths = newAndDeprecatedConfigPaths.getDeprecatedConfigPaths();

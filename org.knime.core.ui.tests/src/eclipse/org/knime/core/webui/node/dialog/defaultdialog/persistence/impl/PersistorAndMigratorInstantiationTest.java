@@ -58,9 +58,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
@@ -192,14 +192,14 @@ class PersistorAndMigratorInstantiationTest {
 
     }
 
-    static abstract class AbstractMigrator implements NodeSettingsMigrator<String> {
+    static abstract class AbstractMigrator implements NodeSettingsMigration<String> {
 
         AbstractMigrator() {
             throw new UnsupportedOperationException("not used by tests");
         }
 
         @Override
-        public List<ConfigsDeprecation<String>> getConfigsDeprecations() {
+        public List<ConfigMigration<String>> getConfigMigrations() {
             throw new UnsupportedOperationException("not used by tests");
         }
     }
@@ -228,7 +228,7 @@ class PersistorAndMigratorInstantiationTest {
                 .hasMessageContaining("AbstractMigrator", "abstract");
     }
 
-    static final class MigratorWithDefaultConstructor implements NodeSettingsMigrator<Integer> {
+    static final class MigratorWithDefaultConstructor implements NodeSettingsMigration<Integer> {
         final int m_loadedValue;
 
         MigratorWithDefaultConstructor() {
@@ -237,8 +237,8 @@ class PersistorAndMigratorInstantiationTest {
         }
 
         @Override
-        public List<ConfigsDeprecation<Integer>> getConfigsDeprecations() {
-            return List.of(ConfigsDeprecation.builder(settings -> m_loadedValue).build());
+        public List<ConfigMigration<Integer>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(settings -> m_loadedValue).build());
         }
 
     }
@@ -259,7 +259,7 @@ class PersistorAndMigratorInstantiationTest {
             .as("should use custom migrator instance with default constructor.");
     }
 
-    static final class MigratorWithoutDefaultConstructor implements NodeSettingsMigrator<String> {
+    static final class MigratorWithoutDefaultConstructor implements NodeSettingsMigration<String> {
         final String m_loadedValue;
 
         MigratorWithoutDefaultConstructor(final String loadedValue) {
@@ -267,8 +267,8 @@ class PersistorAndMigratorInstantiationTest {
         }
 
         @Override
-        public List<ConfigsDeprecation<String>> getConfigsDeprecations() {
-            return List.of(ConfigsDeprecation.builder(settings -> m_loadedValue).build());
+        public List<ConfigMigration<String>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(settings -> m_loadedValue).build());
         }
 
     }

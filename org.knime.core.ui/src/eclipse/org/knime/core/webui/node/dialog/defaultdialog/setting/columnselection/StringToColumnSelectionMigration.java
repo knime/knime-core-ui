@@ -42,64 +42,54 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Oct 22, 2024 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.configmapping;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory.loadSettings;
 
-import java.util.Optional;
-import java.util.function.Predicate;
+import java.util.List;
 
-import org.junit.jupiter.api.Test;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 
-class ConfigsDeprecationTest {
+/**
+ * The data structure of a ColumnSelection dropdown changed from a strings to a more complex representation by a
+ * {@link ColumnSelection}. For previous workflows to still execute, we transform the stored string to the correct
+ * representation. For that, one config key has to be deprecated and a new one has to be used instead.
+ *
+ * @author Paul Bärnreuther
+ */
+public abstract class StringToColumnSelectionMigration implements NodeSettingsMigration<ColumnSelection> {
 
-    private static final Builder<Integer> createBuilder(final Optional<Predicate<NodeSettingsRO>> matcher) {
-        final var builder = new ConfigsDeprecation.Builder<Integer>(settings -> {
-            throw new IllegalStateException("Should not be called within this test");
-        }).withDeprecatedConfigPath("A", "B").withDeprecatedConfigPath("C");
+    private final String m_legacyConfigKey;
 
-        if (matcher.isPresent()) {
-            builder.withMatcher(matcher.get());
+    /**
+     * The config key under which the string has been persisted before has to be deprecated to not break flow variables.
+     * I.e. either rename the field or add a {@link Persist#configKey} annotation on the field where this class is
+     * attached.
+     *
+     * @param legacyConfigKey the config key under which the string has been stored previously.
+     */
+    protected StringToColumnSelectionMigration(final String legacyConfigKey) {
+        m_legacyConfigKey = legacyConfigKey;
+    }
+
+    private ColumnSelection loadLegacy(final NodeSettingsRO settings) throws InvalidSettingsException {
+        try {
+            final var fieldSettingsString = settings.getString(m_legacyConfigKey);
+            return new ColumnSelection(fieldSettingsString, null);
+        } catch (InvalidSettingsException ex) { //NOSONAR
+            return loadSettings(ColumnSelection.class, settings.getNodeSettings(m_legacyConfigKey));
         }
-        return builder;
     }
 
-    @Test
-    void testBuilderUsesGivenMatcher() {
-        final Predicate<NodeSettingsRO> matcher = settings -> {
-            try {
-                return settings.getNodeSettings("A").containsKey("B");
-            } catch (InvalidSettingsException ex) {
-                throw new IllegalStateException(ex);
-            }
-        };
-        final var configsDeprecation = createBuilder(Optional.of(matcher)).build();
-
-        assertEquals(matcher, configsDeprecation.getMatcher());
-    }
-
-    @Test
-    void testBuilderCreatesMatcherByDeprecatedConfigs() throws InvalidSettingsException {
-        final var builder = createBuilder(Optional.empty()).build();
-
-        final var settings = new NodeSettings("root");
-        final var settingsA = new NodeSettings("A");
-        settingsA.addString("B", "root -> A -> B");
-        settings.addNodeSettings(settingsA);
-        assertFalse(builder.getMatcher().test(settings));
-
-        settings.addString("C", "root -> C");
-        assertTrue(builder.getMatcher().test(settings));
+    @Override
+    public final List<ConfigMigration<ColumnSelection>> getConfigMigrations() {
+        return List
+            .of(ConfigMigration.builder(this::loadLegacy).withDeprecatedConfigPath(m_legacyConfigKey).build());
     }
 
 }

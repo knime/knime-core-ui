@@ -44,28 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 8, 2023 (Benjamin Wilhelm, KNIME GmbH, Berlin, Germany): created
+ *   Oct 10, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.selection;
 
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 
 /**
- * Interface that has to be implemented to use within the {@link Migration} annotation.
  *
- * @param <T> type of object loaded from deprecated settings, i.e. the type of the associated field or class.
  * @author Paul Bärnreuther
  */
-public interface NodeSettingsMigrator<T> {
+public class SelectionCheckboxesToSelectionModeMigration implements NodeSettingsMigration<SelectionMode> {
 
-    /**
-     * Each element of this list is associated to a point in time where the settings changed, i.e. are not saved like
-     * before.
-     *
-     * @return a list of how to load backwards-compatible
-     */
-    List<ConfigsDeprecation<T>> getConfigsDeprecations();
+    private static final String PUBLISH_SELECTION = "publishSelection";
+
+    private static final String SUBSCRIBE_TO_SELECTION = "subscribeToSelection";
+
+    private static SelectionMode loadFromBooleans(final NodeSettingsRO settings) throws InvalidSettingsException {
+        /**
+         * There is no option for only publishing since this change to a value switch. I.e. in this case, we now also
+         * subscribe to the selection.
+         */
+        if (settings.getBoolean(PUBLISH_SELECTION)) {
+            return SelectionMode.EDIT;
+        }
+        if (settings.getBoolean(SUBSCRIBE_TO_SELECTION)) {
+            return SelectionMode.SHOW;
+        }
+        return SelectionMode.OFF;
+    }
+
+    @Override
+    public List<ConfigMigration<SelectionMode>> getConfigMigrations() {
+        return List.of(
+            ConfigMigration.builder(SelectionCheckboxesToSelectionModeMigration::loadFromBooleans)
+                .withDeprecatedConfigPath(SUBSCRIBE_TO_SELECTION).withDeprecatedConfigPath(PUBLISH_SELECTION).build(),
+            /**
+             * Accounting for a time where not even the checkbox settings existed.
+             */
+            ConfigMigration.builder(settings -> SelectionMode.EDIT).build());
+    }
 
 }

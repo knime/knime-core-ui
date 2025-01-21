@@ -53,19 +53,21 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 
 /**
  * Saves a String field if it was controlled by a {@link SettingsModelString}.
  *
  * @author Paul Bärnreuther
  */
-public class SettingsModelStringPersistor implements NodeSettingsPersistor<String> {
+public abstract class SettingsModelStringPersistor implements NodeSettingsPersistor<String> {
 
     private final String m_configKey;
 
-    SettingsModelStringPersistor(final NodeSettingsPersistorContext<String> context) {
-        m_configKey = context.getFieldName();
+    /**
+     * @param configKey the config key of the settings model
+     */
+    protected SettingsModelStringPersistor(final String configKey) {
+        m_configKey = configKey;
     }
 
     @Override

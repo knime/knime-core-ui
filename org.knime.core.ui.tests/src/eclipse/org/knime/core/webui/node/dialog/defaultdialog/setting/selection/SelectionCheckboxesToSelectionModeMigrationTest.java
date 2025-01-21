@@ -43,86 +43,81 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.selection;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory.loadSettings;
 import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory.saveSettings;
 
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 
-class StringArrayToColumnFilterMigratorTest {
+class SelectionCheckboxesToSelectionModeMigrationTest {
 
     private static final String ROOT_KEY = "Test";
 
-    private static final class StringArrayToColumnFilterMigratorSettings implements DefaultNodeSettings {
+    private static final class TestSettings implements DefaultNodeSettings {
 
-        static final class FooMigrator extends StringArrayToColumnSelectionMigrator {
-
-            protected FooMigrator() {
-                super("foo");
-            }
-
-        }
-
-        @Migration(FooMigrator.class)
-        ColumnFilter m_fooV2;
+        @Migration(SelectionCheckboxesToSelectionModeMigration.class)
+        SelectionMode m_selectionMode;
     }
 
-    @Test
-    void testLoadsColumnFilterFromOldStringArray() throws InvalidSettingsException {
-        final var array = new String[]{"bar", "baz"};
+    static Stream<Arguments> publishAndSubscribeAndModeSource() {
+        return Stream.of( //
+            Arguments.of(false, true, SelectionMode.SHOW), //
+            Arguments.of(false, false, SelectionMode.OFF), //
+            Arguments.of(true, false, SelectionMode.EDIT), //
+            Arguments.of(true, true, SelectionMode.EDIT) //
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("publishAndSubscribeAndModeSource")
+    void testLoadCheckboxSettings(final boolean publish, final boolean subscribe, final SelectionMode selectionMode)
+        throws InvalidSettingsException {
 
         final var savedSettings = new NodeSettings(ROOT_KEY);
-        savedSettings.addStringArray("foo", array);
-        final var loaded = loadSettings(StringArrayToColumnFilterMigratorSettings.class, savedSettings);
+        savedSettings.addBoolean("publishSelection", publish);
+        savedSettings.addBoolean("subscribeToSelection", subscribe);
 
-        final var expected = new StringArrayToColumnFilterMigratorSettings();
-        expected.m_fooV2 = new ColumnFilter(array);
+        final var loaded = loadSettings(TestSettings.class, savedSettings);
+
+        final var expected = new TestSettings();
+        expected.m_selectionMode = selectionMode;
         assertResults(expected, loaded);
     }
 
-    /**
-     * The first iteration of this migrator was a persistor that saved again to the same setting. We changed that but
-     * for the saved settings in the meantime we also have to be able to load from that state.
-     *
-     * @throws InvalidSettingsException
-     */
     @Test
-    void testLoadsColumnFilterFromOldKey() throws InvalidSettingsException {
-        final var array = new String[]{"bar", "baz"};
-        final var columnFilter = new ColumnFilter(array);
+    void testLoadLegacyWithoutAnyPreviousSettings() throws InvalidSettingsException {
         final var savedSettings = new NodeSettings(ROOT_KEY);
-        final var oldFooSettings = savedSettings.addNodeSettings("foo");
-        saveSettings(columnFilter, oldFooSettings);
-        final var loaded = loadSettings(StringArrayToColumnFilterMigratorSettings.class, savedSettings);
+        final var loaded = loadSettings(TestSettings.class, savedSettings);
 
-        final var expected = new StringArrayToColumnFilterMigratorSettings();
-        expected.m_fooV2 = columnFilter;
+        final var expected = new TestSettings();
+        expected.m_selectionMode = SelectionMode.EDIT;
         assertResults(expected, loaded);
     }
 
     @Test
     void testSaveAndLoad() throws InvalidSettingsException {
-        final var array = new String[]{"bar", "baz"};
-
-        final var expected = new StringArrayToColumnFilterMigratorSettings();
-        expected.m_fooV2 = new ColumnFilter(array);
-
+        final var expected = new TestSettings();
+        expected.m_selectionMode = SelectionMode.SHOW;
         final var savedSettings = new NodeSettings(ROOT_KEY);
         saveSettings(expected, savedSettings);
-        var loaded = loadSettings(StringArrayToColumnFilterMigratorSettings.class, savedSettings);
+        final var loaded = loadSettings(TestSettings.class, savedSettings);
         assertResults(expected, loaded);
     }
 
-    private static void assertResults(final StringArrayToColumnFilterMigratorSettings expected,
-        final StringArrayToColumnFilterMigratorSettings loaded) {
-        assertArrayEquals(expected.m_fooV2.m_manualFilter.m_manuallySelected,
-            loaded.m_fooV2.m_manualFilter.m_manuallySelected, "The loaded settings are not as expected");
+    private static void assertResults(final TestSettings expected, final TestSettings loaded) {
+        assertEquals(expected.m_selectionMode, loaded.m_selectionMode, "The loaded selection mode is not as expected");
+
     }
 
 }

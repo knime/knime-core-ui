@@ -553,7 +553,7 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
     static <S extends DefaultNodeSettings> ConfigMappings
         getConfigMappings(final Class<S> settingsClass,
         final DefaultNodeSettings settingsObject) {
-        return ConfigMappingsFactory.getConfigMappings(settingsClass, settingsObject);
+        return ConfigMappingsFactory.createConfigMappings(settingsClass, settingsObject);
     }
 
     /**

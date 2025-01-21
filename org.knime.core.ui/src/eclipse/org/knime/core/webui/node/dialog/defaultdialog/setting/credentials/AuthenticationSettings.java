@@ -55,12 +55,12 @@ import java.util.function.Supplier;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration.Builder;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
@@ -191,7 +191,7 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
      * @author Paul Bärnreuther
      */
     public static class SettingsModelAuthenticationMigrator
-        implements NodeSettingsMigrator<AuthenticationSettings> {
+        implements NodeSettingsMigration<AuthenticationSettings> {
 
         private final String m_configKey;
 
@@ -258,7 +258,7 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
         }
 
         @Override
-        public List<ConfigsDeprecation<AuthenticationSettings>> getConfigsDeprecations() {
+        public List<ConfigMigration<AuthenticationSettings>> getConfigMigrations() {
             return List
                 .of(new Builder<AuthenticationSettings>(settings -> loadFromModel(loadModelFromSettings(settings)))
                     .withDeprecatedConfigPath(m_configKey, SETTINGS_MODEL_KEY_CREDENTIAL) //

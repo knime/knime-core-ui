@@ -58,7 +58,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NewSettingsMissingMatcher;
@@ -84,7 +84,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NewSe
  * @author Paul Bärnreuther
  * @param <T> the type of the loaded config object
  */
-public final class ConfigsDeprecation<T> {
+public final class ConfigMigration<T> {
 
     private final Predicate<NodeSettingsRO> m_matcher;
 
@@ -95,7 +95,7 @@ public final class ConfigsDeprecation<T> {
     /**
      * Private. Use the {@link Builder} or {@link #builder} instead.
      */
-    private ConfigsDeprecation(final Collection<ConfigPath> deprecatedConfigPaths,
+    private ConfigMigration(final Collection<ConfigPath> deprecatedConfigPaths,
         final Predicate<NodeSettingsRO> matcher, final SettingsLoader<T> loader) {
         this.m_deprecatedConfigPaths = deprecatedConfigPaths;
         this.m_matcher = matcher;
@@ -126,14 +126,22 @@ public final class ConfigsDeprecation<T> {
     /**
      * @param <T> the type of the loaded object
      * @param loader used to load from the deprecated configs
-     * @return a builder for {@link ConfigsDeprecation}.
+     * @return a builder for {@link ConfigMigration}.
      */
     public static <T> Builder<T> builder(final SettingsLoader<T> loader) {
         return new Builder<>(loader);
     }
 
     /**
-     * Builder for {@link ConfigsDeprecation}.
+     * Builder for {@link ConfigMigration}.
+     *
+     * When {@link #withMatcher(Predicate)} is not called, a matcher will be created based on the deprecatedConfigPaths
+     * given with {@link #withDeprecatedConfigPath}. This default matcher simply checks whether all deprecated config
+     * paths are contained in the settings.
+     *
+     * Wehen neither {@link #withMatcher(Predicate)} nor {@link #withDeprecatedConfigPath(String...)} is called, a
+     * {@link NewSettingsMissingMatcher} will be created that checks for whether the inferred new config keys are (not)
+     * present.
      *
      * @param <T> the type of the loaded object
      * @author Paul Bärnreuther
@@ -147,7 +155,7 @@ public final class ConfigsDeprecation<T> {
         private final Collection<ConfigPath> m_deprecatedConfigPaths = new ArrayList<>(0);
 
         /**
-         * Builder for {@link ConfigsDeprecation}. See {@link ConfigsDeprecation} for more information.
+         * Builder for {@link ConfigMigration}. See {@link ConfigMigration} for more information.
          *
          * @param loader used to load from the deprecated configs
          */
@@ -172,9 +180,7 @@ public final class ConfigsDeprecation<T> {
          * Specify a predicate, which determines based on the {@link NodeSettingsRO} whether these are in the deprecated
          * state defined by the to be constructed deprecation.
          *
-         * This method can be called at most once. If it is not called, a matcher will be created based on the
-         * deprecatedConfigPaths given with {@link #withDeprecatedConfigPath}. This default matcher simply checks
-         * whether all deprecated config paths are contained in the settings.
+         * This method can be called at most once.
          *
          * @param matcher the matcher used to determine whether settings are deprecated and should be loaded by the
          *            given loader
@@ -190,11 +196,11 @@ public final class ConfigsDeprecation<T> {
         }
 
         /**
-         * @return a new {@link ConfigsDeprecation} to be used in {@link NodeSettingsMigrator#getConfigsDeprecations()}
+         * @return a new {@link ConfigMigration} to be used in {@link NodeSettingsMigration#getConfigMigrations()}
          */
-        public ConfigsDeprecation<T> build() {
+        public ConfigMigration<T> build() {
             final var matcher = m_matcher == null ? createMatcherByDeprecatedConfigPaths() : m_matcher;
-            return new ConfigsDeprecation<>(m_deprecatedConfigPaths, matcher, m_loader);
+            return new ConfigMigration<>(m_deprecatedConfigPaths, matcher, m_loader);
         }
 
         private Predicate<NodeSettingsRO> createMatcherByDeprecatedConfigPaths() {

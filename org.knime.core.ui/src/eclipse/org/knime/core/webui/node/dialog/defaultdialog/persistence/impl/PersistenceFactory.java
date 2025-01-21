@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.CreatePersisenceObjectsUtil.createPersistor;
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.CreatePersistenceObjectsUtil.createPersistor;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -57,10 +57,10 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.NotImplementedException;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
@@ -165,7 +165,7 @@ public abstract class PersistenceFactory<T> {
      * @param configPaths the config paths used to persist this node.
      * @return the combined result
      */
-    protected T combineWithConfigsDeprecations(final T existing, final List<ConfigsDeprecation> configsDeprecations,
+    protected T combineWithConfigsDeprecations(final T existing, final List<ConfigMigration> configsDeprecations,
         final Supplier<String[][]> configPaths) {
         return existing;
     }
@@ -183,7 +183,7 @@ public abstract class PersistenceFactory<T> {
      * @param node the node with {@link Migration} as field annotation.
      * @return the adjusted property.
      */
-    protected T combineWithConfigsDeprecations(final T existing, final List<ConfigsDeprecation> configsDeprecations,
+    protected T combineWithConfigsDeprecations(final T existing, final List<ConfigMigration> configsDeprecations,
         final Supplier<String[][]> configPaths, final TreeNode<PersistableSettings> node) {
         return combineWithConfigsDeprecations(existing, configsDeprecations, configPaths);
     }
@@ -202,7 +202,7 @@ public abstract class PersistenceFactory<T> {
      * @return the adjusted property.
      */
     protected T combineWithConfigsDeprecationsForType(final T existing,
-        final List<ConfigsDeprecation> configsDeprecations, final Supplier<String[][]> configPaths,
+        final List<ConfigMigration> configsDeprecations, final Supplier<String[][]> configPaths,
         final Tree<PersistableSettings> node) {
         return combineWithConfigsDeprecations(existing, configsDeprecations, configPaths);
     }
@@ -288,9 +288,9 @@ public abstract class PersistenceFactory<T> {
     @SuppressWarnings("unchecked")
     private T performCombineWithDeprecatedConfigs(final ExtractionMethods<T> ex, final T withoutLoader,
         final Supplier<String[][]> configPathsSupplier) {
-        final List<ConfigsDeprecation> deprecatedConfigs =
-            ex.getAnnotation(Migration.class).map(CreatePersisenceObjectsUtil::createMigrator)
-                .map(NodeSettingsMigrator::getConfigsDeprecations).orElse(List.of());
+        final List<ConfigMigration> deprecatedConfigs =
+            ex.getAnnotation(Migration.class).map(CreatePersistenceObjectsUtil::createMigrator)
+                .map(NodeSettingsMigration::getConfigMigrations).orElse(List.of());
         if (deprecatedConfigs.isEmpty()) {
             return withoutLoader;
         }
@@ -308,7 +308,7 @@ public abstract class PersistenceFactory<T> {
 
         String[][] getDefaultConfigPaths();
 
-        T combineWithLoader(T withoutLoader, List<ConfigsDeprecation> deprecatedConfigs,
+        T combineWithLoader(T withoutLoader, List<ConfigMigration> deprecatedConfigs,
             Supplier<String[][]> configPathsSupplier);
 
         T postProcess(T result, Supplier<String[][]> configPathsProvider);
@@ -356,7 +356,7 @@ public abstract class PersistenceFactory<T> {
         }
 
         @Override
-        public T combineWithLoader(final T withoutLoader, final List<ConfigsDeprecation> deprecatedConfigs,
+        public T combineWithLoader(final T withoutLoader, final List<ConfigMigration> deprecatedConfigs,
             final Supplier<String[][]> configPathsSupplier) {
             return combineWithConfigsDeprecationsForType(withoutLoader, deprecatedConfigs, configPathsSupplier, m_node);
         }
@@ -408,7 +408,7 @@ public abstract class PersistenceFactory<T> {
         }
 
         @Override
-        public T combineWithLoader(final T withoutLoader, final List<ConfigsDeprecation> deprecatedConfigs,
+        public T combineWithLoader(final T withoutLoader, final List<ConfigMigration> deprecatedConfigs,
             final Supplier<String[][]> configPathsSupplier) {
             return combineWithConfigsDeprecations(withoutLoader, deprecatedConfigs, configPathsSupplier, m_node);
         }

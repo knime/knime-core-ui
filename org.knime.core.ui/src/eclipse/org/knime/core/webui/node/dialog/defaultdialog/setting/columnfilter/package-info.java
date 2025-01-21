@@ -50,7 +50,7 @@
  * This package offers the {@link ColumnFilter} class used for settings holding a collection of selected columns. In
  * contrast to an array of strings it can also hold filter information like regex, wildcard and type information. When
  * upgrading from a simple array of strings to this more capable representation, the custom persistor
- * {@link org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.StringArrayToColumnSelectionMigrator} can be
+ * {@link org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.StringArrayToColumnFilterMigration} can be
  * used to offer backwards compatibility.
  *
  * @author Paul Bärnreuther

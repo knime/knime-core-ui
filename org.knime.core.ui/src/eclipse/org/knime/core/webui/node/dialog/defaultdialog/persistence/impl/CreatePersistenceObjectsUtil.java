@@ -49,18 +49,18 @@
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 
 /**
- * Utility class to create instances of {@link NodeSettingsPersistor} and {@link NodeSettingsMigrator} classes.
+ * Utility class to create instances of {@link NodeSettingsPersistor} and {@link NodeSettingsMigration} classes.
  *
  * @author Paul Bärnreuther
  */
-final class CreatePersisenceObjectsUtil {
+final class CreatePersistenceObjectsUtil {
 
-    private CreatePersisenceObjectsUtil() {
+    private CreatePersistenceObjectsUtil() {
         // utility class
     }
 
@@ -136,7 +136,7 @@ final class CreatePersisenceObjectsUtil {
     }
 
     @SuppressWarnings("rawtypes")
-    static NodeSettingsMigrator createMigrator(final Migration migration) {
+    static NodeSettingsMigration createMigrator(final Migration migration) {
         final var migratorClass = migration.value();
         return ReflectionUtil.createInstance(migratorClass)
             .orElseThrow(() -> new IllegalStateException(

@@ -54,8 +54,8 @@ import java.util.function.Predicate;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration.Builder;
 import org.knime.core.webui.node.view.table.TableViewViewSettings.RowHeightMode;
 import org.knime.core.webui.node.view.table.TableViewViewSettings.VerticalPaddingMode;
 
@@ -188,7 +188,7 @@ public final class RowHeightPersistorUtil {
         T apply(LegacyLoadResult legacyLoadResult, NodeSettingsRO settings) throws InvalidSettingsException;
     }
 
-    static <T> List<ConfigsDeprecation<T>>
+    static <T> List<ConfigMigration<T>>
         createDefaultConfigsDeprecations(final LegacyLoadResultExtractor<T> legacyLoadResultExtractor) {
 
         return List.of( //

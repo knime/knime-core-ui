@@ -53,7 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory.loadSettings;
-import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory.getSettingsSaver;
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory.createSettingsSaver;
 import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory.saveSettings;
 
 import java.util.List;
@@ -65,12 +65,12 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
@@ -188,7 +188,7 @@ class FieldBasedNodeSettingsPersistorTest {
 
     @Test
     void testSaveNullArraySettings() throws InvalidSettingsException {
-        final var saver = getSettingsSaver(ArraySettings.class);
+        final var saver = createSettingsSaver(ArraySettings.class);
         var root = new NodeSettings(ROOT_KEY);
         assertThrows(NullPointerException.class, () -> saver.save(null, root));
     }
@@ -749,10 +749,10 @@ class FieldBasedNodeSettingsPersistorTest {
 
     static final class MigrationAndMigrateUsedAtTheSameTime implements DefaultNodeSettings {
 
-        static final class MigratorClass implements NodeSettingsMigrator<Integer> {
+        static final class MigratorClass implements NodeSettingsMigration<Integer> {
 
             @Override
-            public List<ConfigsDeprecation<Integer>> getConfigsDeprecations() {
+            public List<ConfigMigration<Integer>> getConfigMigrations() {
                 throw new IllegalStateException("not used by tests");
 
             }

@@ -65,7 +65,7 @@ import java.lang.annotation.Target;
  * <li>To be able to still load from these old settings.</li>
  * <li>To not break flow variables set for old configs that are not saved to again.</li>
  * </ul>
- * Note that the first point could be accheved by using a {@link Persistor} but the second one cannot.
+ * Note that the first point could be achieved by using a {@link Persistor} but the second one cannot.
  *
  *
  * <p>
@@ -86,17 +86,20 @@ public @interface Migrate {
      * If it isn't present, during load, then the default value of this field from the declaring DefaultNodeSettings
      * class is used.
      *
+     * In case a custom {@link Persistor} is used, being present means that any of the specified config paths in
+     * {@link NodeSettingsPersistor#getConfigPaths()} is present.
+     *
      * <h5>@Migration Alternative:</h5>
      * <p>
      * This annotation might not suffice because
      * <ol>
      * <li>a different value than the field's default value is needed (in case the default changed with the
      * migration)</li>
-     * <li>a subsequent migration are required additionally.
+     * <li>a second migration is required additionally.</li>
      * </ol>
-     * For 1. one can use a {@link Migration @Migration} with a {@link NodeSettingsMigrator} implementing
-     * {@link DefaultProvider}. For 2. the same effect can be achieved by using a {@link NodeSettingsMigrator} including
-     * the following configs deprecation (usually as the last in the provided list):
+     * For 1. one can use a {@link Migration @Migration} with a {@link NodeSettingsMigration} implementing
+     * {@link DefaultProvider}. For 2. the same effect can be achieved by using a {@link NodeSettingsMigration}
+     * including the following configs deprecation (usually as the last in the provided list):
      *
      * <pre>
      * {@code

@@ -81,7 +81,7 @@ public @interface Persist {
      *
      * <h5>@Persistor Alternative:</h5>
      * <p>
-     * Use the key directly within the a {@link NodeSettingsPersistor} implementation.
+     * Use the key directly within a {@link NodeSettingsPersistor} implementation.
      * </p>
      *
      * @return the key under which to store the field in the NodeSettings.
@@ -89,7 +89,7 @@ public @interface Persist {
     String configKey() default "";
 
     /**
-     * Optional argument that allows to: prevent the user settings flow variables for this field
+     * Optional argument that allows to prevent the user from setting flow variables for this field
      *
      * <h5>@Persistor Alternative:</h5>
      * <p>

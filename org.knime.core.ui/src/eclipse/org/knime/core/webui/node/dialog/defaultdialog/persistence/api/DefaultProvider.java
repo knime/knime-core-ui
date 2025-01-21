@@ -50,7 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
 
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 
 /**
  * Provides the default for a field.
@@ -59,7 +59,7 @@ import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
  * @param <T> the type of the field
  */
 @FunctionalInterface
-public interface DefaultProvider<T> extends NodeSettingsMigrator<T> {
+public interface DefaultProvider<T> extends NodeSettingsMigration<T> {
 
     /**
      * @return the default during loading
@@ -67,8 +67,8 @@ public interface DefaultProvider<T> extends NodeSettingsMigrator<T> {
     T getDefault();
 
     @Override
-    default List<ConfigsDeprecation<T>> getConfigsDeprecations() {
-        return List.of(ConfigsDeprecation.builder(settings -> getDefault()).build());
+    default List<ConfigMigration<T>> getConfigMigrations() {
+        return List.of(ConfigMigration.builder(settings -> getDefault()).build());
     }
 
 }

@@ -53,12 +53,10 @@ import java.util.function.Predicate;
 import org.knime.core.node.NodeSettingsRO;
 
 /**
- * Used to resolve
- * {@link org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder#withNewConfigsMissingMatcher()
- * withNewConfigsMissingMatcher()}
+ * Used to resolve migrations without a matcher and without deprecated configs.
  *
- * Instead of calling the test method, the framework checks whether the inferred new config keys (see
- * {@link NodeSettingsPersistorWithInferredConfigs}) are present in the settings and returns true if they are not.
+ * Instead of calling the test method, the framework checks whether the inferred new config keys are present in the
+ * settings and returns true if they are not.
  *
  * @author Paul Bärnreuther
  */

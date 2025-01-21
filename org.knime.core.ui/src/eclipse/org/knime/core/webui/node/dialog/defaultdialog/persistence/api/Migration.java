@@ -85,6 +85,6 @@ public @interface Migration {
      * @return the class of the migrator defining the migration strategy.
      */
     @SuppressWarnings("rawtypes")
-    Class<? extends NodeSettingsMigrator> value();
+    Class<? extends NodeSettingsMigration> value();
 
 }

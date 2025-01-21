@@ -59,10 +59,10 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation.Builder;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration.Builder;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
@@ -223,9 +223,9 @@ public class PersistUtilTest {
         assertThatJson(result).inPath("$.properties.model.properties.test.configKey").isString().isEqualTo("bar");
     }
 
-    private static class CustomModifierInteger implements NodeSettingsMigrator<Integer> {
+    private static class CustomModifierInteger implements NodeSettingsMigration<Integer> {
         @Override
-        public List<ConfigsDeprecation<Integer>> getConfigsDeprecations() {
+        public List<ConfigMigration<Integer>> getConfigMigrations() {
             return getDummyConfigsDeprecations();
         }
 
@@ -260,9 +260,9 @@ public class PersistUtilTest {
     }
 
     private static class CustomModifier
-        implements NodeSettingsMigrator<SettingWithCustomClassPersistorWithDeprecatedConfigs> {
+        implements NodeSettingsMigration<SettingWithCustomClassPersistorWithDeprecatedConfigs> {
         @Override
-        public List<ConfigsDeprecation<SettingWithCustomClassPersistorWithDeprecatedConfigs>> getConfigsDeprecations() {
+        public List<ConfigMigration<SettingWithCustomClassPersistorWithDeprecatedConfigs>> getConfigMigrations() {
             return getDummyConfigsDeprecations();
         }
 
@@ -310,7 +310,7 @@ public class PersistUtilTest {
             .hasSize(3);
     }
 
-    private static <T> List<ConfigsDeprecation<T>> getDummyConfigsDeprecations() {
+    private static <T> List<ConfigMigration<T>> getDummyConfigsDeprecations() {
         SettingsLoader<T> dummyLoader = settings -> {
             throw new IllegalStateException("Should not be called within this test");
         };

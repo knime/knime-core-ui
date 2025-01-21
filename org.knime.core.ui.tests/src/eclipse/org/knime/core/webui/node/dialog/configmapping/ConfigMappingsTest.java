@@ -49,7 +49,7 @@
 package org.knime.core.webui.node.dialog.configmapping;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigMappingsFactory.getConfigMappings;
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigMappingsFactory.createConfigMappings;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -58,7 +58,7 @@ import org.junit.jupiter.api.Test;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
@@ -69,13 +69,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 @SuppressWarnings("java:S2698") // we accept assertions without messages
 class ConfigMappingsTest {
 
-    static final class Migrator implements NodeSettingsMigrator<Integer> {
+    static final class Migrator implements NodeSettingsMigration<Integer> {
 
         private static final String DEPRECATED = "deprecated";
 
         @Override
-        public List<ConfigsDeprecation<Integer>> getConfigsDeprecations() {
-            return List.of(ConfigsDeprecation.builder(settings -> 1).withDeprecatedConfigPath(DEPRECATED).build());
+        public List<ConfigMigration<Integer>> getConfigMigrations() {
+            return List.of(ConfigMigration.builder(settings -> 1).withDeprecatedConfigPath(DEPRECATED).build());
         }
 
     }
@@ -108,7 +108,7 @@ class ConfigMappingsTest {
 
     @Test
     void testInferredConfigsFromConfigPaths() {
-        final var configMappings = getConfigMappings(InferredConfigsFromConfigPathsTestSettings.class,
+        final var configMappings = createConfigMappings(InferredConfigsFromConfigPathsTestSettings.class,
             new InferredConfigsFromConfigPathsTestSettings());
         ConfigMappings firstNonEmptyConfigMappingsChild = getFirstNonEmptyConfigMappingsChild(configMappings);
         assertDeprecatedConfigPaths(firstNonEmptyConfigMappingsChild);
@@ -128,7 +128,7 @@ class ConfigMappingsTest {
 
     @Test
     void testInferredConfigsFromConfigKey() {
-        final var configMappings = getConfigMappings(InferredConfigsFromConfigKeyTestSettings.class,
+        final var configMappings = createConfigMappings(InferredConfigsFromConfigKeyTestSettings.class,
             new InferredConfigsFromConfigKeyTestSettings());
         ConfigMappings firstNonEmptyConfigMappingsChild = getFirstNonEmptyConfigMappingsChild(configMappings);
         assertDeprecatedConfigPaths(firstNonEmptyConfigMappingsChild);
@@ -145,7 +145,7 @@ class ConfigMappingsTest {
 
     @Test
     void testInferredConfigsFromFieldName() {
-        final var configMappings = getConfigMappings(InferredConfigsFromFieldNameTestSettings.class,
+        final var configMappings = createConfigMappings(InferredConfigsFromFieldNameTestSettings.class,
             new InferredConfigsFromFieldNameTestSettings());
         ConfigMappings firstNonEmptyConfigMappingsChild = getFirstNonEmptyConfigMappingsChild(configMappings);
         assertDeprecatedConfigPaths(firstNonEmptyConfigMappingsChild);
@@ -180,7 +180,7 @@ class ConfigMappingsTest {
 
     @Test
     void testOptionalField() {
-        final var configMappings = getConfigMappings(OptionalFieldSettings.class, new OptionalFieldSettings());
+        final var configMappings = createConfigMappings(OptionalFieldSettings.class, new OptionalFieldSettings());
         ConfigMappings firstNonEmptyConfigMappingsChild = getFirstNonEmptyConfigMappingsChild(configMappings);
         assertThat(firstNonEmptyConfigMappingsChild.m_newConfigPaths)
             .isEqualTo(List.of(new ConfigPath(List.of("fieldName"))));

@@ -53,7 +53,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelLong;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 
 /**
  * Saves a Long or long field as if it was controlled by a {@link SettingsModelLong}.
@@ -64,8 +63,11 @@ public class SettingsModelLongPersistor implements NodeSettingsPersistor<Long> {
 
     private final String m_configKey;
 
-    SettingsModelLongPersistor(final NodeSettingsPersistorContext<Long> context) {
-        m_configKey = context.getFieldName();
+    /**
+     * @param configKey the config key used by the settings model
+     */
+    protected SettingsModelLongPersistor(final String configKey) {
+        m_configKey = configKey;
     }
 
     @Override

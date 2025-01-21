@@ -116,7 +116,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         new ClassAnnotationSpec(Modification.class) //
     );
 
-   private static final Collection<Class<? extends Annotation>> POSSIBLE_LEAF_ANNOTATIONS = List.of(
+    private static final Collection<Class<? extends Annotation>> POSSIBLE_LEAF_ANNOTATIONS = List.of(//
         ButtonWidget.class, //
         ChoicesWidget.class, //
         ComboBoxWidget.class, //
@@ -149,7 +149,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         Widget.class //
     );
 
-private static final Collection<Class<? extends Annotation>> POSSIBLE_ARRAY_ANNOTATIONS = List.of(
+    private static final Collection<Class<? extends Annotation>> POSSIBLE_ARRAY_ANNOTATIONS = List.of(//
         ArrayWidget.class, //
         Effect.class, //
         InternalArrayWidget.class, //

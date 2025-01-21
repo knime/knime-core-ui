@@ -53,10 +53,10 @@ import java.util.List;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
@@ -149,10 +149,10 @@ class DefaultNodeSettingsWithAllWidgets implements DefaultNodeSettings {
 
     }
 
-    static final class Migrator implements NodeSettingsMigrator<NestedSettings> {
+    static final class Migrator implements NodeSettingsMigration<NestedSettings> {
         @Override
-        public List<ConfigsDeprecation<NestedSettings>> getConfigsDeprecations() {
-            return List.of(ConfigsDeprecation.<NestedSettings> builder(settings -> {
+        public List<ConfigMigration<NestedSettings>> getConfigMigrations() {
+            return List.of(ConfigMigration.<NestedSettings> builder(settings -> {
                 throw new IllegalStateException("Should not be called within this test");
             }).withDeprecatedConfigPath("deprecatedConfigKey").build());
 

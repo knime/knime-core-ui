@@ -53,7 +53,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 
 /**
  * Combines the two config keys present in the {@link SettingsModelColumnName} into one string by using the value
@@ -67,8 +66,11 @@ public class SettingsModelColumnNamePersistor implements NodeSettingsPersistor<S
 
     private final String m_configKey;
 
-    SettingsModelColumnNamePersistor(final NodeSettingsPersistorContext<String> context) {
-        m_configKey = context.getFieldName();
+    /**
+     * @param configKey the root config key used by the settings model
+     */
+    protected SettingsModelColumnNamePersistor(final String configKey) {
+        m_configKey = configKey;
     }
 
     @Override

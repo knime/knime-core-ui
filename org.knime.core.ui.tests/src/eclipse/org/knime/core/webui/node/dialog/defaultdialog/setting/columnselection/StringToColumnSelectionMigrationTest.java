@@ -43,80 +43,90 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.selection;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory.loadSettings;
 import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory.saveSettings;
 
-import java.util.stream.Stream;
-
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 
-class SelectionCheckboxesToSelectionModeMigratorTest {
+class StringToColumnSelectionMigrationTest {
 
     private static final String ROOT_KEY = "Test";
 
-    private static final class TestSettings implements DefaultNodeSettings {
+    private static final String LEGACY_CFG_KEY = "foo";
 
-        @Migration(SelectionCheckboxesToSelectionModeMigrator.class)
-        SelectionMode m_selectionMode;
-    }
+    private static final class StringToColumnSelectionMigrationSettings implements DefaultNodeSettings {
 
-    static Stream<Arguments> publishAndSubscribeAndModeSource() {
-        return Stream.of( //
-            Arguments.of(false, true, SelectionMode.SHOW), //
-            Arguments.of(false, false, SelectionMode.OFF), //
-            Arguments.of(true, false, SelectionMode.EDIT), //
-            Arguments.of(true, true, SelectionMode.EDIT) //
-        );
-    }
+        static final class FooMigrator extends StringToColumnSelectionMigration {
 
-    @ParameterizedTest
-    @MethodSource("publishAndSubscribeAndModeSource")
-    void testLoadCheckboxSettings(final boolean publish, final boolean subscribe, final SelectionMode selectionMode)
-        throws InvalidSettingsException {
+            protected FooMigrator() {
+                super(LEGACY_CFG_KEY);
+            }
 
-        final var savedSettings = new NodeSettings(ROOT_KEY);
-        savedSettings.addBoolean("publishSelection", publish);
-        savedSettings.addBoolean("subscribeToSelection", subscribe);
+        }
 
-        final var loaded = loadSettings(TestSettings.class, savedSettings);
-
-        final var expected = new TestSettings();
-        expected.m_selectionMode = selectionMode;
-        assertResults(expected, loaded);
+        @Migration(FooMigrator.class)
+        ColumnSelection m_fooV2;
     }
 
     @Test
-    void testLoadLegacyWithoutAnyPreviousSettings() throws InvalidSettingsException {
-        final var savedSettings = new NodeSettings(ROOT_KEY);
-        final var loaded = loadSettings(TestSettings.class, savedSettings);
+    void testLoadsColumnSelectionFromOldString() throws InvalidSettingsException {
+        final var savedString = "bar";
 
-        final var expected = new TestSettings();
-        expected.m_selectionMode = SelectionMode.EDIT;
+        final var savedSettings = new NodeSettings(ROOT_KEY);
+        savedSettings.addString(LEGACY_CFG_KEY, savedString);
+        final var loaded = loadSettings(StringToColumnSelectionMigrationSettings.class, savedSettings);
+
+        final var expected = new StringToColumnSelectionMigrationSettings();
+        expected.m_fooV2 = new ColumnSelection(savedString, null);
+        assertResults(expected, loaded);
+    }
+
+    /**
+     * The first iteration of this migrator was a persistor that saved again to the same setting. We changed that but
+     * for the saved settings in the meantime we also have to be able to load from that state.
+     */
+    @Test
+    void testLoadsColumnSelectionFromOldKey() throws InvalidSettingsException {
+        final var savedColumnSelection = new ColumnSelection("test", StringCell.TYPE);
+        final var savedSettings = new NodeSettings(ROOT_KEY);
+        final var oldFooSettings = savedSettings.addNodeSettings(LEGACY_CFG_KEY);
+        saveSettings(savedColumnSelection, oldFooSettings);
+        final var loaded = loadSettings(StringToColumnSelectionMigrationSettings.class, savedSettings);
+
+        final var expected = new StringToColumnSelectionMigrationSettings();
+        expected.m_fooV2 = savedColumnSelection;
         assertResults(expected, loaded);
     }
 
     @Test
     void testSaveAndLoad() throws InvalidSettingsException {
-        final var expected = new TestSettings();
-        expected.m_selectionMode = SelectionMode.SHOW;
+        final var savedColumnSelection = new ColumnSelection("test", StringCell.TYPE);
+
+        final var expected = new StringToColumnSelectionMigrationSettings();
+
+        expected.m_fooV2 = savedColumnSelection;
+
         final var savedSettings = new NodeSettings(ROOT_KEY);
         saveSettings(expected, savedSettings);
-        final var loaded = loadSettings(TestSettings.class, savedSettings);
+        var loaded = loadSettings(StringToColumnSelectionMigrationSettings.class, savedSettings);
         assertResults(expected, loaded);
     }
 
-    private static void assertResults(final TestSettings expected, final TestSettings loaded) {
-        assertEquals(expected.m_selectionMode, loaded.m_selectionMode, "The loaded selection mode is not as expected");
+    private static void assertResults(final StringToColumnSelectionMigrationSettings expected,
+        final StringToColumnSelectionMigrationSettings loaded) {
+        assertEquals(expected.m_fooV2.m_selected, loaded.m_fooV2.m_selected,
+            "The loaded selected value is not as expected");
+        assertArrayEquals(expected.m_fooV2.m_compatibleTypes, loaded.m_fooV2.m_compatibleTypes,
+            "The loaded compatible types are not as expected");
 
     }
 

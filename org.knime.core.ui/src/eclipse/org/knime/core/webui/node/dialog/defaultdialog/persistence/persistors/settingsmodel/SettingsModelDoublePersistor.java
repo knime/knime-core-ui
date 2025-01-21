@@ -53,7 +53,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 
 /**
  * Saves a Double or double field as if it was controlled by a {@link SettingsModelDouble}.
@@ -64,8 +63,11 @@ public class SettingsModelDoublePersistor implements NodeSettingsPersistor<Doubl
 
     private final String m_configKey;
 
-    SettingsModelDoublePersistor(final NodeSettingsPersistorContext<Double> context) {
-        m_configKey = context.getFieldName();
+    /**
+     * @param configKey the root config key used by the settings model
+     */
+    protected SettingsModelDoublePersistor(final String configKey) {
+        m_configKey = configKey;
     }
 
     @Override

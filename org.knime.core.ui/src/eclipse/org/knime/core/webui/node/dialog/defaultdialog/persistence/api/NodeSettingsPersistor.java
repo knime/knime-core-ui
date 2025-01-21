@@ -91,8 +91,17 @@ public interface NodeSettingsPersistor<T> extends SettingsSaver<T>, SettingsLoad
      * persistor saves to the config named "foo" with sub configs "bar" and "baz", the result here should be [["foo",
      * "bar"], ["foo", baz"]].
      *
-     * @return an array of all config paths that are used to save the settings to the node settings or null if those
-     *         should be inferred as if this persistor was not present.
+     *
+     * <h5>Special cases</h5>
+     * <ul>
+     * <li>One can omit paths here in order to prevent controlling or exposing them via flow variable.</li>
+     * <li>One can even return an empty array, i.e. String[0][] to prevent any flow variables for this setting.</li>
+     * <li>If next to this persistor, a {@link Migration} is defined on the same field and defines a migration without a
+     * custom matcher and without deprecated config paths, the inferred matcher checks for the config paths here to not
+     * be present. I.e., an error will be thrown in that case if the array returned here is empty.</li>
+     * </ul>
+     *
+     * @return an array of all config paths that are used to save the settings to the node settings.
      */
     String[][] getConfigPaths();
 

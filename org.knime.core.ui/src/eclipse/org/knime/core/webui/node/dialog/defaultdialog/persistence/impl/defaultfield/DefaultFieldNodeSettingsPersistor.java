@@ -54,7 +54,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.DefaultFieldPersistor;
 
 /**
- * {@link FiledNodeSettingsPersistor} for fields that composes the config key with the implementation of the persistor.
+ * Persistor for fields that composes the config key with the implementation of the field persistor.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */

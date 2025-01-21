@@ -54,16 +54,16 @@ import java.util.List;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.configmapping.ConfigsDeprecation;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigrator;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.StringArrayToColumnSelectionMigrator;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.selection.SelectionCheckboxesToSelectionModeMigrator;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.StringArrayToColumnFilterMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.selection.SelectionCheckboxesToSelectionModeMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.selection.SelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
@@ -106,7 +106,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
     /**
      * Previously, displayedColumnsV2 was called displayedColumns and stored a string array.
      */
-    static final class DisplayedColumnsMigrator extends StringArrayToColumnSelectionMigrator {
+    static final class DisplayedColumnsMigrator extends StringArrayToColumnFilterMigration {
 
         public DisplayedColumnsMigrator() {
             super("displayedColumns");
@@ -239,10 +239,10 @@ public class TableViewViewSettings implements DefaultNodeSettings {
         }
 
         static final class CompactModeAndLegacyRowHeightModePersistor
-            implements NodeSettingsMigrator<RowHeightMode> {
+            implements NodeSettingsMigration<RowHeightMode> {
 
             @Override
-            public List<ConfigsDeprecation<RowHeightMode>> getConfigsDeprecations() {
+            public List<ConfigMigration<RowHeightMode>> getConfigMigrations() {
                 return createDefaultConfigsDeprecations((loadResult, settings) -> loadResult.getRowHeightMode());
             }
         }
@@ -263,10 +263,10 @@ public class TableViewViewSettings implements DefaultNodeSettings {
 
     static final int DEFAULT_CUSTOM_ROW_HEIGHT = 80;
 
-    static final class CustomRowHeightPersistor implements NodeSettingsMigrator<Integer> {
+    static final class CustomRowHeightPersistor implements NodeSettingsMigration<Integer> {
 
         @Override
-        public List<ConfigsDeprecation<Integer>> getConfigsDeprecations() {
+        public List<ConfigMigration<Integer>> getConfigMigrations() {
             return createDefaultConfigsDeprecations((loadResult, settings) -> {
                 final var customRowHeight = loadResult.getCustomRowHeight();
                 if (customRowHeight.isPresent()) {
@@ -298,10 +298,10 @@ public class TableViewViewSettings implements DefaultNodeSettings {
             COMPACT;
 
         static final class VerticalPaddingModePersistor
-            implements NodeSettingsMigrator<VerticalPaddingMode> {
+            implements NodeSettingsMigration<VerticalPaddingMode> {
 
             @Override
-            public List<ConfigsDeprecation<VerticalPaddingMode>> getConfigsDeprecations() {
+            public List<ConfigMigration<VerticalPaddingMode>> getConfigMigrations() {
                 return createDefaultConfigsDeprecations((loadResult, settings) -> loadResult.getVerticalPaddingMode());
             }
         }
@@ -372,7 +372,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
             + " to other views that show the selection.")
     @ValueSwitchWidget
     @Layout(InteractivitySection.class)
-    @Migration(SelectionCheckboxesToSelectionModeMigrator.class)
+    @Migration(SelectionCheckboxesToSelectionModeMigration.class)
     public SelectionMode m_selectionMode = SelectionMode.EDIT;
 
     /**
