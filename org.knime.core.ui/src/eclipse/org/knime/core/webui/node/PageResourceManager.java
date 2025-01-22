@@ -180,7 +180,7 @@ public final class PageResourceManager<N extends NodeWrapper> {
         m_decomposePagePath = decomposePagePath;
         m_shouldCleanUpPageOnNodeStateChange = shouldCleanUpPageOnNodeStateChange;
         m_domainName = "org.knime.core.ui." + m_pageType.toString();
-        m_baseUrl = baseUrlOverwrite == null ? ("http://" + m_domainName + "/") : baseUrlOverwrite;
+        m_baseUrl = baseUrlOverwrite == null ? ("https://" + m_domainName + "/") : baseUrlOverwrite;
         m_nodeDebugPatternProp = "org.knime.ui.dev.node." + m_pageType.toString() + ".url.factory-class";
         m_nodeDebugUrlProp = "org.knime.ui.dev.node." + m_pageType.toString() + ".url";
     }
