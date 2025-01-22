@@ -7,7 +7,7 @@ import {
   type Rect,
   TableUIWithAutoSizeCalculation,
 } from "@knime/knime-ui-table";
-import type { DataValueViewConfig } from "@knime/ui-extension-service";
+import type { DataValueViewConfig } from "@knime/ui-extension-service/internal";
 
 import useAutoSizes from "./composables/useAutoSizes";
 import useColumnSizes from "./composables/useColumnSizes";

@@ -15,24 +15,20 @@ const heightCSS = `<style>
 
 vi.stubGlobal("__INLINE_CSS_CODE__", ".someCssCode { color: red; }");
 
-const mountApp = (initialData: any = null) => {
+const mountApp = () => {
   const AppComponent = defineComponent({
     props: { initialData: { type: Object, default: null } },
-    template:
-      "<div :initialData='initialData && JSON.stringify(initialData)'>The App</div>",
+    template: "<div>The App</div>",
   });
 
-  const exportedAppFunction = createShadowRootApp(
-    AppComponent,
-    Boolean(initialData),
-  );
+  const exportedAppFunction = createShadowRootApp(AppComponent);
 
   const shadowRoot = document
     .createElement("div")
     .attachShadow({ mode: "open" });
   const knimeService = {} as UIExtensionService;
 
-  const app = exportedAppFunction(shadowRoot, knimeService, initialData);
+  const app = exportedAppFunction(shadowRoot, knimeService);
 
   return { app, shadowRoot };
 };
@@ -42,16 +38,6 @@ describe("createShadowRootApp", () => {
     const { app, shadowRoot } = mountApp();
     expect(shadowRoot.innerHTML).toBe(
       `${heightCSS}<style>.someCssCode { color: red; }</style><div id="holder" data-v-app=""><div>The App</div></div>`,
-    );
-
-    expect(app.teardown).toBeInstanceOf(Function);
-  });
-
-  it("passes initialData if given", () => {
-    const { app, shadowRoot } = mountApp({ someData: 3 });
-    expect(shadowRoot.innerHTML).toBe(
-      `${heightCSS}<style>.someCssCode { color: red; }</style><div id="holder" data-v-app="">` +
-        '<div initialdata="{&quot;someData&quot;:3}">The App</div></div>',
     );
 
     expect(app.teardown).toBeInstanceOf(Function);

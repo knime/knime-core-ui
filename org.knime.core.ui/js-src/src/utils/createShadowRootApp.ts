@@ -2,12 +2,8 @@ import { type Component, createApp } from "vue";
 
 import type { UIExtensionService } from "@knime/ui-extension-service";
 
-export default (component: Component, withInitialData = false) => {
-  return (
-    shadowRoot: ShadowRoot,
-    knimeService: UIExtensionService,
-    initialData: any,
-  ) => {
+export default (component: Component) => {
+  return (shadowRoot: ShadowRoot, knimeService: UIExtensionService) => {
     // create a app holder in the shadow root
     const holder = document.createElement("div");
 
@@ -34,9 +30,7 @@ export default (component: Component, withInitialData = false) => {
     shadowRoot.appendChild(style);
     shadowRoot.appendChild(holder);
 
-    const rootProps = withInitialData ? { initialData } : null;
-
-    const app = createApp(component, rootProps);
+    const app = createApp(component);
     app.provide("getKnimeService", () => knimeService);
     app.provide("shadowRoot", shadowRoot);
     app.mount(holder);

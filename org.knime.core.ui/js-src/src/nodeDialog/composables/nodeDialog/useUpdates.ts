@@ -4,8 +4,6 @@ import { get } from "lodash-es";
 
 import {
   type AlertParams,
-  AlertType,
-  type DialogSettings,
   JsonDataService,
   type UIExtensionService,
 } from "@knime/ui-extension-service";
@@ -35,7 +33,7 @@ import {
 const resolveToIndices = (ids: string[] | undefined) =>
   (ids ?? []).map((id) => getIndex(id));
 
-export type DialogSettingsObject = DialogSettings & object;
+export type DialogSettings = { view?: any; model?: any };
 
 const indicesAreDefined = (indices: (number | null)[]): indices is number[] =>
   !indices.includes(null);
@@ -50,7 +48,7 @@ const getToBeAdjustedSegments = (
    * Mapping further indices to the respective values
    */
   values: [number[], unknown][],
-  newSettings: DialogSettingsObject,
+  newSettings: DialogSettings,
 ) => {
   const pathSegments = combineScopesWithIndices(scopes, indices ?? []);
 
@@ -160,7 +158,7 @@ export default ({
       onValueUpdate: (path: string) => void,
       indexIds: string[],
     ) =>
-    (newSettings: DialogSettingsObject) => {
+    (newSettings: DialogSettings) => {
       const indices = resolveToIndices(indexIds);
 
       if (!indicesAreDefined(indices)) {
@@ -207,7 +205,7 @@ export default ({
 
   const resolveUpdateResults = (
     initialUpdates: UpdateResult[],
-    currentSettings: DialogSettingsObject,
+    currentSettings: DialogSettings,
     indexIds: string[] = [],
   ) => {
     const updatedPaths: string[] = [];
@@ -278,7 +276,7 @@ export default ({
     messages?.forEach((message) =>
       sendAlert({
         message,
-        type: AlertType.ERROR,
+        type: "error",
       }),
     );
   };
@@ -286,9 +284,7 @@ export default ({
   const getUpdateResults =
     ({ dependencies, trigger }: Update) =>
     (indexIds: string[]) =>
-    (
-      dependencySettings: DialogSettingsObject,
-    ): Promise<Result<UpdateResult[]>> => {
+    (dependencySettings: DialogSettings): Promise<Result<UpdateResult[]>> => {
       const indicesBeforeUpdate = resolveToIndices(indexIds);
       if (!indicesAreDefined(indicesBeforeUpdate)) {
         throw Error("Trigger called with wrong ids: No indices found.");
@@ -355,7 +351,7 @@ export default ({
     indexIds,
   }: {
     updateResult: UpdateResult[];
-    settings: DialogSettingsObject;
+    settings: DialogSettings;
     indexIds: string[];
   }) =>
     updateResult.reduce((acc: IndexedIsActive[], { id, scopes, values }) => {
@@ -389,7 +385,7 @@ export default ({
     ({ dependencies, trigger }: Update) =>
     (indexIds: string[]) =>
     async (
-      dependencySettings: DialogSettingsObject,
+      dependencySettings: DialogSettings,
     ): Promise<Result<IndexedIsActive[]>> => {
       const response = await getUpdateResults({ dependencies, trigger })(
         indexIds,

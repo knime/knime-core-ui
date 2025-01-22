@@ -6,7 +6,6 @@ import flushPromises from "flush-promises";
 
 import { JsonFormsDialog } from "@knime/jsonforms";
 import {
-  AlertType,
   AlertingService,
   DialogService,
   JsonDataService,
@@ -175,7 +174,7 @@ describe("NodeDialog.vue", () => {
     }));
     const options = getOptions();
     const wrapper = shallowMount(NodeDialog, options);
-    const callParams = { type: AlertType.ERROR, message: "message" };
+    const callParams = { type: "error", message: "message" };
     wrapper.vm.sendAlert(callParams);
     expect(sendAlert).toHaveBeenCalledWith(callParams);
   });

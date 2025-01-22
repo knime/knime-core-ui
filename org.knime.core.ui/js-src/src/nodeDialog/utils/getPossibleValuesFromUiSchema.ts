@@ -1,6 +1,6 @@
 import { type Ref, ref, watch } from "vue";
 
-import { type AlertParams, AlertType } from "@knime/ui-extension-service";
+import { type AlertParams } from "@knime/ui-extension-service";
 
 import type { Result } from "../api/types/Result";
 import type {
@@ -30,14 +30,14 @@ const extractPossibleValues = (
       sendAlert({
         message: "Fetching possible values has been canceled.",
         details: `Fetching possible values from ${choicesProviderClass} has been canceled.`,
-        type: AlertType.ERROR,
+        type: "error",
       });
     }
     if (state === "FAIL") {
       sendAlert({
         message: "Failed to fetch possible values.",
         details: asyncResult.message[0],
-        type: AlertType.ERROR,
+        type: "error",
       });
     }
     return [];

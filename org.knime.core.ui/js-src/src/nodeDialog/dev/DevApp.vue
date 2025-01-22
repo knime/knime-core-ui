@@ -3,11 +3,10 @@
 import {
   type Alert,
   type DataValueViewConfig,
-  ExtensionTypes,
-  RenderingType,
-  UIExtensionPushEvents,
+  type UIExtensionPushEvents,
   type UIExtensionService,
-} from "@knime/ui-extension-service";
+  type UIExtensionServiceConfig,
+} from "@knime/ui-extension-renderer/api";
 
 import NodeDialog from "../NodeDialog.vue";
 
@@ -78,25 +77,17 @@ export default {
   methods: {
     getMockBaseService(): UIExtensionService {
       let initialData = JSON.stringify(this.currentDialog);
-      let extensionConfig = {
+      let extensionConfig: UIExtensionServiceConfig = {
         initialData,
         nodeId: "0",
         workflowId: "0",
         projectId: "7",
-        flowVariableSettings: {
-          modelVariables: this.currentDialog.result.schema.flowVariablesMap,
-          viewVariables: this.currentDialog.result.schema.flowVariablesMap,
-        },
-        nodeInfo: {
-          nodeState: "executed",
-          nodeName: "DevApp",
-        },
         hasNodeView: false,
-        extensionType: ExtensionTypes.DIALOG,
+        extensionType: "dialog",
         renderingConfig: {
-          type: RenderingType.DEFAULT,
+          type: "DEFAULT",
         },
-      };
+      } as const;
       return {
         callNodeDataService: (params) => {
           console.log("callNodeDataService called");

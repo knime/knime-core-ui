@@ -2,20 +2,17 @@ import { ref } from "vue";
 import { toDataPath } from "@jsonforms/core";
 import { v4 as uuidv4 } from "uuid";
 
-import type { DialogSettings } from "@knime/ui-extension-service";
-
 import type { SettingsData } from "../../types/SettingsData";
 
 import { toIndexIds } from "./useArrayIds";
+import type { DialogSettings } from "./useUpdates";
 import { getIndicesFromDataPaths } from "./utils/dataPaths";
 
-export type TransformSettings = (newSettings: DialogSettings & object) => void;
+export type TransformSettings = (newSettings: DialogSettings) => void;
 
 export type RegisterWatcherTransformSettings = (
   indexIds: string[],
-) => (
-  settingsForDependencies: DialogSettings & object,
-) => Promise<TransformSettings>;
+) => (settingsForDependencies: DialogSettings) => Promise<TransformSettings>;
 type RegisteredWatcher = {
   id: string;
   dataPaths: string[][];

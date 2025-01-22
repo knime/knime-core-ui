@@ -8,10 +8,7 @@ import {
   JsonFormsDialog,
   type NamedRenderer,
 } from "@knime/jsonforms";
-import {
-  AlertType,
-  type UIExtensionService,
-} from "@knime/ui-extension-service";
+import { type UIExtensionService } from "@knime/ui-extension-service";
 
 import * as flowVariablesApi from "./api/flowVariables";
 import getChoices from "./api/getChoices";
@@ -66,7 +63,7 @@ const sendAlert = alertingService.sendAlert.bind(alertingService);
 const sendJsonFormsAlert = (alert: JsonFormsAlertParams) =>
   sendAlert({
     message: alert.message,
-    type: alert.type === "error" ? AlertType.ERROR : AlertType.WARN,
+    type: alert.type === "error" ? "error" : "warn",
     details: alert.details,
   });
 const {
@@ -269,7 +266,7 @@ const onSettingsChanged = ({ data }: { data: SettingsData }) => {
 const applySettings = async () => {
   const { result } = await jsonDataService!.applyData(getData());
   if (result) {
-    sendAlert({ message: result, type: AlertType.ERROR });
+    sendAlert({ message: result, type: "error" });
     return { isApplied: false };
   }
   return { isApplied: true };

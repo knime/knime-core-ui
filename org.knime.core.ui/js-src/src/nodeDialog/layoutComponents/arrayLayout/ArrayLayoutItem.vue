@@ -2,8 +2,6 @@
 import { computed, onMounted, onUnmounted, provide } from "vue";
 import { composePaths } from "@jsonforms/core";
 
-import { AlertType } from "@knime/ui-extension-service";
-
 import { provideForAddedArrayLayoutElements } from "../../composables/components/useAddedArrayLayoutItem";
 import {
   type IdsRecord,
@@ -50,7 +48,7 @@ onMounted(() => {
       message:
         "For displaying more than one row of widgets within an array layout element, " +
         "the configuration must provide a title for an element.",
-      type: AlertType.ERROR,
+      type: "error",
     });
   }
 });

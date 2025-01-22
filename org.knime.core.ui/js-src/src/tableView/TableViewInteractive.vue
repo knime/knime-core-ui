@@ -8,7 +8,6 @@ import {
 } from "@knime/knime-ui-table";
 import {
   JsonDataService,
-  SelectionModes,
   SelectionService,
   SharedDataService,
   type UIExtensionService,
@@ -1043,7 +1042,7 @@ export default {
         : this.bottomRows[rowInd][1];
       this.totalSelected += selected ? 1 : -1;
       await this.selectionService.publishOnSelectionChange(
-        selected ? SelectionModes.ADD : SelectionModes.REMOVE,
+        selected ? "ADD" : "REMOVE",
         [rowKey],
       );
       this.transformSelection();
