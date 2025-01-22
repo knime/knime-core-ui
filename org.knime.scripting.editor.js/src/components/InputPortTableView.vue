@@ -5,7 +5,7 @@ import {
   type ExtensionConfig,
   UIExtension,
   type UIExtensionAPILayer,
-} from "@knime/ui-extension-renderer";
+} from "@knime/ui-extension-renderer/vue";
 import {
   AlertingService,
   JsonDataService,
