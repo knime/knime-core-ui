@@ -50,6 +50,7 @@ package org.knime.core.webui.node.impl;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Map;
 import java.util.function.Function;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -64,12 +65,14 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
 import org.knime.core.util.Version;
-import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
@@ -85,7 +88,8 @@ import org.xml.sax.SAXException;
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public abstract class WebUINodeFactory<M extends NodeModel> extends NodeFactory<M> implements NodeDialogFactory {
+public abstract class WebUINodeFactory<M extends NodeModel> extends NodeFactory<M>
+    implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     private final WebUINodeConfiguration m_configuration;
 
@@ -342,8 +346,13 @@ public abstract class WebUINodeFactory<M extends NodeModel> extends NodeFactory<
     }
 
     @Override
-    public final NodeDialog createNodeDialog() {
+    public final DefaultNodeDialog createNodeDialog() {
         return new DefaultNodeDialog(SettingsType.MODEL, m_configuration.getModelSettingsClass());
+    }
+
+    @Override
+    public KaiNodeInterface createKaiNodeInterface() {
+        return new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, m_configuration.getModelSettingsClass()));
     }
 
     @Override
