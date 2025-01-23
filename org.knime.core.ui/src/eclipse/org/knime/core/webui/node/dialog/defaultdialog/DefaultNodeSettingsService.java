@@ -51,27 +51,19 @@ package org.knime.core.webui.node.dialog.defaultdialog;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.FIELD_NAME_DATA;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.FIELD_NAME_SCHEMA;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.FIELD_NAME_UI_SCHEMA;
-import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.TextToJsonUtil.textToJson;
 import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil.addVariableSettingsToRootJson;
-import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil.rootJsonToVariableSettings;
 import static org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMapUtil.map;
 
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.VariableSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.NodeSettingsCorrectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
@@ -79,16 +71,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSetting
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
-import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.JsonDataToDefaultNodeSettingsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.NodeSettingsToDefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.ToNodeSettingsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
-import org.knime.core.webui.node.dialog.internal.InternalVariableSettings;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -105,6 +93,9 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
 
     private final Map<SettingsType, Class<? extends DefaultNodeSettings>> m_settingsClasses;
 
+    private final DefaultTextToNodeSettingsConverter m_textToNodeSettingsConverter;
+
+
     /**
      * @param settingsClasses map that associates a {@link DefaultNodeSettings} class-with a {@link SettingsType}
      * @param asyncChoicesHolder used to start asynchronous computations of choices during the ui-schema generation.
@@ -113,52 +104,15 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
         final AsyncChoicesHolder asyncChoicesHolder) {
         m_settingsClasses = settingsClasses;
         m_asyncChoicesHolder = asyncChoicesHolder;
+        m_textToNodeSettingsConverter = new DefaultTextToNodeSettingsConverter(settingsClasses);
     }
 
     @Override
     public void toNodeSettings(final String textSettings,
         final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
         final Map<SettingsType, NodeAndVariableSettingsWO> settings) {
+        m_textToNodeSettingsConverter.toNodeSettings(textSettings, previousSettings, settings);
 
-        final var root = textToJson(textSettings);
-        final var defaultNodeSettings =
-            JsonDataToDefaultNodeSettingsUtil.toDefaultNodeSettings(m_settingsClasses, root.get(FIELD_NAME_DATA));
-        final var extractedNodeSettings = ToNodeSettingsUtil.toNodeSettings(defaultNodeSettings);
-        final var extractedVariableSettings = extractVariableSettings(settings, root);
-
-        alignSettingsWithFlowVariables(//
-            extractedNodeSettings,
-            previousSettings.entrySet().stream().collect(Collectors.toMap(Entry::getKey, Entry::getValue)),
-            extractedVariableSettings, defaultNodeSettings);
-        copyLeftToRight(extractedNodeSettings, settings);
-        rootJsonToVariableSettings(root, map(settings));
-    }
-
-    private static Map<SettingsType, VariableSettingsRO>
-        extractVariableSettings(final Map<SettingsType, NodeAndVariableSettingsWO> settings, final JsonNode root) {
-        final var currentFlowVars = settings.keySet().stream()
-            .collect(Collectors.toMap(Function.identity(), k -> new InternalVariableSettings()));
-        rootJsonToVariableSettings(root, map(currentFlowVars));
-        return map(currentFlowVars);
-    }
-
-    private void alignSettingsWithFlowVariables( //
-        final Map<SettingsType, NodeSettings> settings, //
-        final Map<SettingsType, NodeSettingsRO> previousSettings, //
-        final Map<SettingsType, VariableSettingsRO> extractedVariableSettings, //
-        final Map<SettingsType, DefaultNodeSettings> defaultNodeSettingsMap //
-    ) {
-        for (var key : settings.keySet()) { // NOSONAR
-            final var configMappings =
-                DefaultNodeSettings.getConfigMappings(m_settingsClasses.get(key), defaultNodeSettingsMap.get(key));
-            NodeSettingsCorrectionUtil.correctNodeSettingsRespectingFlowVariables(configMappings, settings.get(key),
-                previousSettings.get(key), extractedVariableSettings.get(key));
-        }
-    }
-
-    private static void copyLeftToRight(final Map<SettingsType, NodeSettings> extractedNodeSettings,
-        final Map<SettingsType, NodeAndVariableSettingsWO> settings) {
-        extractedNodeSettings.entrySet().forEach(entry -> entry.getValue().copyTo(settings.get(entry.getKey())));
     }
 
     @Override
@@ -171,6 +125,7 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
 
         final var widgetTreeFactory = new WidgetTreeFactory();
         final var widgetTrees = map(loadedSettings, (type, s) -> widgetTreeFactory.createTree(s.getClass(), type));
+
 
         final var jsonFormsSettings = new JsonFormsSettingsImpl(loadedSettings, context, widgetTrees);
         final var root = jsonFormsSettingsToJson(jsonFormsSettings, mapper);
