@@ -46,10 +46,11 @@
  * History
  *   Mar 10, 2023 (hornm): created
  */
-package org.knime.core.webui.node.dialog;
+package org.knime.core.webui.node.dialog.internal;
 
 import java.io.IOException;
 import java.util.EnumMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
@@ -63,10 +64,14 @@ import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeID;
 import org.knime.core.node.workflow.NodeTimer;
 import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
+import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier;
-import org.knime.core.webui.node.dialog.SettingsTreeTraversalUtil.VariableSettingsTree;
-import org.knime.core.webui.node.dialog.SettingsTreeTraversalUtil.VariableSettingsTreeNode;
-import org.knime.core.webui.node.dialog.internal.VariableSettings;
+import org.knime.core.webui.node.dialog.NodeSettingsService;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.internal.SettingsTreeTraversalUtil.VariableSettingsTree;
+import org.knime.core.webui.node.dialog.internal.SettingsTreeTraversalUtil.VariableSettingsTreeNode;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
 import org.knime.core.webui.node.view.NodeViewManager;
 
 import com.google.common.base.Objects;
@@ -77,51 +82,68 @@ import com.google.common.base.Objects;
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("java:S3553") // accept Optionals as parameters as it is much more readable this way
-final class ApplyData {
+public final class SettingsApplier {
 
     private final NodeContainer m_nc;
 
     private final Set<SettingsType> m_settingsTypes;
 
-    private final NodeSettingsService m_nodeSettingsService;
+    private final TextToNodeSettingsConverter m_textToNodeSettingsConverter;
 
     private final OnApplyNodeModiferWrapper m_onApplyModifierWrapper;
 
-    ApplyData(final NodeContainer nc, final Set<SettingsType> settingsTypes,
-        final NodeSettingsService nodeSettingsService, final OnApplyNodeModifier onApplyModifier) {
-        m_nc = nc;
+    /**
+     * Interprets the textual settings representation and writes it into the settings object. Common denominator of
+     * {@link KaiNodeInterface#applyConfigureResponse(String, Map, Map)} and
+     * {@link NodeSettingsService#toNodeSettings(String, Map, Map)}.
+     *
+     */
+    @FunctionalInterface
+    public interface TextToNodeSettingsConverter {
+        /**
+         * @param textSettings to convert
+         * @param previousSettings of the node
+         * @param settings to be written
+         */
+        void toNodeSettings(final String textSettings, Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
+            Map<SettingsType, NodeAndVariableSettingsWO> settings);
+    }
+
+    /**
+     * @param nodeContainer of the node
+     * @param settingsTypes of the node
+     * @param textToNodeSettingsConverter that writes the text representation of the settings into the settings object
+     * @param onApplyModifier to apply when the data is applied
+     */
+    public SettingsApplier(final NodeContainer nodeContainer, final Set<SettingsType> settingsTypes,
+        final TextToNodeSettingsConverter textToNodeSettingsConverter, final OnApplyNodeModifier onApplyModifier) {
+        m_nc = nodeContainer;
         m_settingsTypes = settingsTypes;
-        m_nodeSettingsService = nodeSettingsService;
-        m_onApplyModifierWrapper = (onApplyModifier != null && nc instanceof NativeNodeContainer nnc)
+        m_textToNodeSettingsConverter = textToNodeSettingsConverter;
+        m_onApplyModifierWrapper = (onApplyModifier != null && nodeContainer instanceof NativeNodeContainer nnc)
             ? new OnApplyNodeModiferWrapper(onApplyModifier, nnc) : null;
     }
 
-    static NodeSettings getOrCreateSubSettings(final NodeSettings settings, final SettingsType type)
-        throws InvalidSettingsException {
-        final var key = type.getConfigKey();
-        NodeSettings subSettings;
-        if (settings.containsKey(key)) {
-            subSettings = settings.getNodeSettings(key);
-        } else {
-            subSettings = new NodeSettings(key);
-            settings.addNodeSettings(subSettings);
-        }
-        return subSettings;
-    }
 
-    void applyData(final String data) throws IOException {
+    /**
+     * Applies the given data.
+     *
+     * @param settings string representation of the settings to apply
+     * @throws IOException if an {@link InvalidSettingsException} is raised
+     */
+    public void applySettings(final String settings) throws IOException {
         try {
-            applyDataOrThrow(data);
+            applySettingsOrThrow(settings);
         } catch (InvalidSettingsException ex) {
             throw new IOException("Invalid node settings: " + ex.getMessage(), ex);
         }
     }
 
-    private void applyDataOrThrow(final String data) throws InvalidSettingsException {
+    private void applySettingsOrThrow(final String settings) throws InvalidSettingsException {
         var wfm = m_nc.getParent();
         var nodeID = m_nc.getID();
         var previousNodeSettings = getExistingNodeSettings(wfm, nodeID);
-        var nodeSettings = getToBeAppliedNodeSettings(data, previousNodeSettings);
+        var nodeSettings = getToBeAppliedNodeSettings(settings, previousNodeSettings);
 
         final Optional<ApplyDataSettings> modelApplyDataSettings =
             getApplyDataSettings(nodeSettings, previousNodeSettings, SettingsType.MODEL);
@@ -174,15 +196,15 @@ final class ApplyData {
             nodeSettings.addNodeSettings(new NodeSettings(settingsType.getConfigKey()));
             nodeSettings.addNodeSettings(new NodeSettings(settingsType.getVariablesConfigKey()));
             settingsMap.put(settingsType, NodeAndVariableSettingsProxy.createWOProxy(//
-                getOrCreateSubSettings(nodeSettings, settingsType), //
+                ApplyDataSettings.getOrCreateSubSettings(nodeSettings, settingsType), //
                 new VariableSettings(nodeSettings, settingsType)//
             ));
             previousSettingsMap.put(settingsType, NodeAndVariableSettingsProxy.createROProxy( //
-                getOrCreateSubSettings(previousNodeSettings, settingsType),
+                ApplyDataSettings.getOrCreateSubSettings(previousNodeSettings, settingsType),
                 new VariableSettings(previousNodeSettings, settingsType) //
             ));
         }
-        m_nodeSettingsService.toNodeSettings(data, previousSettingsMap, settingsMap);
+        m_textToNodeSettingsConverter.toNodeSettings(data, previousSettingsMap, settingsMap);
     }
 
     private Optional<ApplyDataSettings> getApplyDataSettings(final NodeSettings nodeSettings,
@@ -244,7 +266,7 @@ final class ApplyData {
      */
     private static boolean exposedVariablesChanged(final ApplyDataSettings view) {
         return SettingsTreeTraversalUtil.traverseSettingsTrees(new VariableSettingsTree(view),
-            ApplyData::exposedVariableChanged);
+            SettingsApplier::exposedVariableChanged);
     }
 
     private static boolean exposedVariableChanged(final VariableSettingsTreeNode leaf) {
@@ -317,7 +339,10 @@ final class ApplyData {
         }
     }
 
-    void cleanUp() {
+    /**
+     * Clean up
+     */
+    public void cleanUp() {
         if (m_onApplyModifierWrapper != null) {
             m_onApplyModifierWrapper.onApply();
         }

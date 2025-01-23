@@ -46,13 +46,14 @@
  * History
  *   Dec 11, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog;
+package org.knime.core.webui.node.dialog.internal;
 
 import java.util.Objects;
 import java.util.Optional;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.SettingsType;
 
 /**
  * For either model or view settings, this class is used in ApplyData to compare against the previous settings and
@@ -73,11 +74,24 @@ final class ApplyDataSettings {
 
     ApplyDataSettings(final NodeSettings nodeSettings, final NodeSettings previousNodeSettings, final SettingsType type)
         throws InvalidSettingsException {
-        m_settings = ApplyData.getOrCreateSubSettings(nodeSettings, type);
+        m_settings = getOrCreateSubSettings(nodeSettings, type);
         m_variables = getVariableSettings(nodeSettings, type);
-        m_previousSettings = ApplyData.getOrCreateSubSettings(previousNodeSettings, type);
+        m_previousSettings = getOrCreateSubSettings(previousNodeSettings, type);
         m_previousVariables = getVariableSettings(previousNodeSettings, type);
         m_changed = settingsChanged() || variableSettingsChanged();
+    }
+
+    static NodeSettings getOrCreateSubSettings(final NodeSettings settings, final SettingsType type)
+        throws InvalidSettingsException {
+        final var key = type.getConfigKey();
+        NodeSettings subSettings;
+        if (settings.containsKey(key)) {
+            subSettings = settings.getNodeSettings(key);
+        } else {
+            subSettings = new NodeSettings(key);
+            settings.addNodeSettings(subSettings);
+        }
+        return subSettings;
     }
 
     boolean hasChanged() {

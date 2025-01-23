@@ -46,6 +46,8 @@
  */
 package org.knime.core.webui.node.dialog;
 
+import static org.knime.core.webui.data.util.InputPortUtil.getInputSpecsExcludingVariablePort;
+
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
@@ -69,6 +71,8 @@ import org.knime.core.webui.data.DataServiceProvider;
 import org.knime.core.webui.data.InitialDataService;
 import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier;
+import org.knime.core.webui.node.dialog.internal.SettingsApplier;
+import org.knime.core.webui.node.dialog.internal.SettingsExtractor;
 import org.knime.core.webui.page.Page;
 
 /**
@@ -123,8 +127,15 @@ final class NodeDialogAdapter implements UIExtension, DataServiceProvider {
 
     @Override
     public Optional<InitialDataService<String>> createInitialDataService() {
-        var initialData = new InitialData(m_snc, m_settingsTypes, m_nodeSettingsService);
-        return Optional.of(InitialDataService.builder(initialData::get).onDeactivate(this::deactivate).build());
+        return Optional.of(InitialDataService.builder(this::getInitialData).onDeactivate(this::deactivate).build());
+    }
+
+    private String getInitialData() {
+        var specs = getInputSpecsExcludingVariablePort(m_snc);
+        var settingsExtractor =
+            new SettingsExtractor(m_snc, m_settingsTypes, m_nodeSettingsService::validateNodeSettingsAndVariables);
+        var settings = settingsExtractor.getSettingsOverwrittenByVariables();
+        return m_nodeSettingsService.fromNodeSettings(settings, specs);
     }
 
     @Override
@@ -134,8 +145,9 @@ final class NodeDialogAdapter implements UIExtension, DataServiceProvider {
 
     @Override
     public Optional<ApplyDataService<String>> createApplyDataService() {
-        var applyData = new ApplyData(m_snc, m_settingsTypes, m_nodeSettingsService, m_onApplyModifier);
-        return Optional.of(ApplyDataService.builder(applyData::applyData) //
+        var applyData =
+            new SettingsApplier(m_snc, m_settingsTypes, m_nodeSettingsService::toNodeSettings, m_onApplyModifier);
+        return Optional.of(ApplyDataService.builder(applyData::applySettings) //
             .onDeactivate(applyData::cleanUp) //
             .build());
     }

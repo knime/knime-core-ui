@@ -44,11 +44,9 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 10, 2023 (hornm): created
+ *   Jan 20, 2025 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog;
-
-import static org.knime.core.webui.data.util.InputPortUtil.getInputSpecsExcludingVariablePort;
+package org.knime.core.webui.node.dialog.internal;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -60,38 +58,57 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContainer;
-import org.knime.core.webui.node.dialog.internal.VariableSettings;
+import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
+import org.knime.core.webui.node.dialog.SettingsType;
 
 /**
- * Helper to assemble the initial-data object for node dialogs (which encompasses a representation of the model and view
- * settings).
+ * Applies flow variables and extracts the settings of a node.
  *
- * @author Martin Horn, KNIME GmbH, Konstanz, Germany
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class InitialData {
+public final class SettingsExtractor {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(InitialData.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(SettingsExtractor.class);
 
     private final NodeContainer m_nc;
 
     private final Set<SettingsType> m_settingsTypes;
 
-    private final NodeSettingsService m_nodeSettingsService;
+    private final SettingsValidator m_validator;
 
-    protected InitialData(final NodeContainer nc, final Set<SettingsType> settingsTypes,
-        final NodeSettingsService nodeSettingsService) {
-        m_nc = nc;
+    /**
+     * Validates initial settings.
+     *
+     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+     */
+    public interface SettingsValidator {
+        /**
+         * Validates the given settings.
+         *
+         * @param settings to validate
+         * @throws InvalidSettingsException if the settings are invalid
+         */
+        void validate(final Map<SettingsType, NodeAndVariableSettingsRO> settings) throws InvalidSettingsException;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param nodeContainer to extract the settings from
+     * @param settingsTypes the node has
+     * @param settingsValidator to check if the settings are valie
+     */
+    public SettingsExtractor(final NodeContainer nodeContainer, final Set<SettingsType> settingsTypes,
+        final SettingsValidator settingsValidator) {
+        m_nc = nodeContainer;
         m_settingsTypes = settingsTypes;
-        m_nodeSettingsService = nodeSettingsService;
+        m_validator = settingsValidator;
     }
 
-    String get() {
-        var specs = getInputSpecsExcludingVariablePort(m_nc);
-        Map<SettingsType, NodeAndVariableSettingsRO> settings = getSettingsOverwrittenByVariables();
-        return m_nodeSettingsService.fromNodeSettings(settings, specs);
-    }
-
-    private Map<SettingsType, NodeAndVariableSettingsRO> getSettingsOverwrittenByVariables() {
+    /**
+     * @return the settings values after flow variable have been applied
+     */
+    public Map<SettingsType, NodeAndVariableSettingsRO> getSettingsOverwrittenByVariables() {
         Map<SettingsType, NodeAndVariableSettingsRO> resultSettings = new EnumMap<>(SettingsType.class);
         if (m_nc instanceof NativeNodeContainer nnc) {
             var isInitialLoad = false;
@@ -178,7 +195,7 @@ final class InitialData {
     private void revertOverridesIfInvalid(final Map<SettingsType, NodeAndVariableSettingsRO> settings,
         final NativeNodeContainer nnc) {
         try {
-            m_nodeSettingsService.validateNodeSettingsAndVariables(settings);
+            m_validator.validate(settings);
         } catch (InvalidSettingsException ex) {
             LOGGER.error(String.format("Settings overwritten by flow variables are invalid. "
                 + "So the flow variables are ignored. Error message is: %s.", ex.getMessage()), ex);

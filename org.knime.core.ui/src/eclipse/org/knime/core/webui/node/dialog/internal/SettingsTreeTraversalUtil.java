@@ -46,7 +46,7 @@
  * History
  *   Dec 12, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog;
+package org.knime.core.webui.node.dialog.internal;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -54,7 +54,6 @@ import java.util.Optional;
 
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.config.base.AbstractConfigEntry;
-import org.knime.core.webui.node.dialog.internal.VariableSettings;
 
 /**
  *

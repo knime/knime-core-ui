@@ -46,7 +46,7 @@
  * History
  *   Aug 25, 2023 (hornm): created
  */
-package org.knime.core.webui.node.dialog;
+package org.knime.core.webui.node.dialog.internal;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -55,7 +55,8 @@ import java.util.function.Supplier;
 
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.config.base.ConfigBase.CopyFromConfigBase;
-import org.knime.core.webui.node.dialog.internal.VariableSettings;
+import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
+import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 
 /**
  * Instead of implementing the {@link NodeAndVariableSettingsRO}- and {@link NodeAndVariableSettingsWO}-interface and
