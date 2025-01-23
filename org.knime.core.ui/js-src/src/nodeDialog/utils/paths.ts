@@ -177,7 +177,7 @@ export const getLongestCommonPrefix = (paths: string[]) => {
   if (!paths.length) {
     return "";
   }
-  const segments = paths[0].split(".");
+  const segments = paths[0].split(".").slice(0, -1);
   let prefix = "";
   for (const segment of segments) {
     for (let j = 1; j < paths.length; j++) {
@@ -187,5 +187,5 @@ export const getLongestCommonPrefix = (paths: string[]) => {
     }
     prefix += segment.concat(".");
   }
-  return paths[0];
+  return prefix;
 };
