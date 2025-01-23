@@ -53,7 +53,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 
 /**
  * Persistor for {@link SettingsModelString} that saves and loads the value as an enum.
@@ -66,15 +65,6 @@ public class EnumSettingsModelStringPersistor<E extends Enum<E>> implements Node
     private final String m_configKey;
 
     private Class<E> m_enumClass;
-
-    /**
-     * Each implementation must call this constructor by using a constructor with the same signature.
-     *
-     * @param context
-     */
-    public EnumSettingsModelStringPersistor(final NodeSettingsPersistorContext<E> context) {
-        this(context.getFieldName(), context.getPersistedObjectClass());
-    }
 
     /**
      * @param configKey the config key of the settings model

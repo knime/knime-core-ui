@@ -78,7 +78,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesHolder;
@@ -239,11 +238,7 @@ class DefaultNodeSettingsServiceTest {
 
         static class MyLegacyPersistor implements NodeSettingsPersistor<String> {
 
-            private final String m_configKey;
-
-            public MyLegacyPersistor(final NodeSettingsPersistorContext<String> context) {
-                m_configKey = context.getFieldName();
-            }
+            private static final String CFG_KEY = "value";
 
             @Override
             public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -252,12 +247,12 @@ class DefaultNodeSettingsServiceTest {
 
             @Override
             public void save(final String obj, final NodeSettingsWO settings) {
-                settings.addString(m_configKey, obj);
+                settings.addString(CFG_KEY, obj);
             }
 
             @Override
             public String[][] getConfigPaths() {
-                return new String[][]{{m_configKey}};
+                return new String[][]{{CFG_KEY}};
             }
 
         }

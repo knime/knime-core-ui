@@ -48,8 +48,6 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.CreatePersistenceObjectsUtil.createPersistor;
-
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Optional;
@@ -201,9 +199,8 @@ public abstract class PersistenceFactory<T> {
      * @param node the tree with {@link Migration} as type annotation.
      * @return the adjusted property.
      */
-    protected T combineWithConfigsDeprecationsForType(final T existing,
-        final List<ConfigMigration> configsDeprecations, final Supplier<String[][]> configPaths,
-        final Tree<PersistableSettings> node) {
+    protected T combineWithConfigsDeprecationsForType(final T existing, final List<ConfigMigration> configsDeprecations,
+        final Supplier<String[][]> configPaths, final Tree<PersistableSettings> node) {
         return combineWithConfigsDeprecations(existing, configsDeprecations, configPaths);
     }
 
@@ -277,7 +274,8 @@ public abstract class PersistenceFactory<T> {
     }
 
     private T performExtraction(final ExtractionMethods<T> ex) {
-        final var customPersistor = ex.getAnnotation(Persistor.class).map(Persistor::value).map(ex::constructPersistor);
+        final var customPersistor = ex.getAnnotation(Persistor.class).map(Persistor::value)
+            .map(InitializeWithDefaultConstructorUtil::createPersistor);
         final var withoutLoader = customPersistor.map(ex::fromPersistor).orElseGet(ex::getDefault);
         final Supplier<String[][]> configPathsSupplier =
             () -> customPersistor.map(NodeSettingsPersistor::getConfigPaths).orElseGet(ex::getDefaultConfigPaths);
@@ -289,7 +287,7 @@ public abstract class PersistenceFactory<T> {
     private T performCombineWithDeprecatedConfigs(final ExtractionMethods<T> ex, final T withoutLoader,
         final Supplier<String[][]> configPathsSupplier) {
         final List<ConfigMigration> deprecatedConfigs =
-            ex.getAnnotation(Migration.class).map(CreatePersistenceObjectsUtil::createMigrator)
+            ex.getAnnotation(Migration.class).map(InitializeWithDefaultConstructorUtil::createMigrator)
                 .map(NodeSettingsMigration::getConfigMigrations).orElse(List.of());
         if (deprecatedConfigs.isEmpty()) {
             return withoutLoader;
@@ -299,8 +297,6 @@ public abstract class PersistenceFactory<T> {
 
     interface ExtractionMethods<T> {
         <A extends Annotation> Optional<A> getAnnotation(Class<A> annotationClass);
-
-        NodeSettingsPersistor constructPersistor(Class<? extends NodeSettingsPersistor> persistorClass);
 
         T fromPersistor(NodeSettingsPersistor<?> persistor);
 
@@ -325,12 +321,6 @@ public abstract class PersistenceFactory<T> {
         @Override
         public <A extends Annotation> Optional<A> getAnnotation(final Class<A> annotationClass) {
             return m_node.getTypeAnnotation(annotationClass);
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public NodeSettingsPersistor constructPersistor(final Class<? extends NodeSettingsPersistor> persistorClass) {
-            return createPersistor(persistorClass, m_node.getType());
         }
 
         @Override
@@ -377,12 +367,6 @@ public abstract class PersistenceFactory<T> {
         @Override
         public <A extends Annotation> Optional<A> getAnnotation(final Class<A> annotationClass) {
             return m_node.getAnnotation(annotationClass);
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public NodeSettingsPersistor constructPersistor(final Class<? extends NodeSettingsPersistor> persistorClass) {
-            return createPersistor(persistorClass, m_node.getType(), m_node.getName().orElse(""));
         }
 
         @Override

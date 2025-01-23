@@ -62,7 +62,6 @@ import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 
@@ -126,37 +125,6 @@ class PersistorAndMigratorInstantiationTest {
 
         assertThat(testSettings.m_value).isEqualTo(42)
             .as("should use custom persistor instance with default constructor.");
-    }
-
-    static class CustomPersistorWithContext implements TestPersistor<String> {
-
-        private final NodeSettingsPersistorContext<String> m_context;
-
-        CustomPersistorWithContext(final NodeSettingsPersistorContext<String> context) {
-            m_context = context;
-        }
-
-        @Override
-        public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            return String.format("fieldName: %s, class: %s", m_context.getFieldName(),
-                m_context.getPersistedObjectClass().getSimpleName());
-        }
-    }
-
-    static final class TestSettingsWithCustomPersistorWithContext implements PersistableSettings {
-
-        @Persistor(CustomPersistorWithContext.class)
-        String m_value;
-
-    }
-
-    @Test
-    void testCreateInstanceWithContext() throws InvalidSettingsException {
-        final var testSettings =
-            SettingsLoaderFactory.loadSettings(TestSettingsWithCustomPersistorWithContext.class, null);
-
-        assertThat(testSettings.m_value).isEqualTo("fieldName: value, class: String")
-            .as("should use custom persistor instance with context constructor.");
     }
 
     static final class CustomPersistorWithoutSuitableConstructor implements TestPersistor<String> {

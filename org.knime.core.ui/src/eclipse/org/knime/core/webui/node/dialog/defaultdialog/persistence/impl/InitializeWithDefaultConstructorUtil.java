@@ -46,29 +46,49 @@
  * History
  *   Dec 11, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
+package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
+
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 
 /**
- * A context that is available in {@link NodeSettingsPersistor NodeSettingsPersistors} providing additional information.
- * It can be accessed by adding a constructor with this type as a single parameter.
+ * Utility class to create instances of {@link NodeSettingsPersistor} and {@link NodeSettingsMigration} classes.
  *
- * @param <T> the type of the persisted object
  * @author Paul Bärnreuther
  */
-public interface NodeSettingsPersistorContext<T> {
+final class InitializeWithDefaultConstructorUtil {
+
+    private InitializeWithDefaultConstructorUtil() {
+        // utility class
+    }
 
     /**
-     * Only use this method within a persistor attached to a field.
+     * Create an instance of a {@link NodeSettingsPersistor}. We use the empty constructor as per contract.
      *
-     * @return the config key that would be used by default if this field was not attached to a persistor. I.e. the
-     *         field name stripped of the "m_" prefix if it exists.
-     * @throws IllegalStateException if the current persistor is not attached to a field but instead to a class.
+     * @throws IllegalStateException if the class does not have a suitable constructor, is abstract, or the constructor
+     *             raises an exception
      */
-    String getFieldName();
+    static <P extends NodeSettingsPersistor<?>> P createPersistor(final Class<P> persistorClass) {
+        return ReflectionUtil.createInstance(persistorClass)
+            .orElseThrow(() -> new IllegalStateException(
+                String.format("The provided persistor class '%s' does not provide a default constructor ",
+                    persistorClass.getCanonicalName())));
+    }
 
     /**
-     * @return the class of the persisted object, i.e., its type is the same as the generic type of the persistor.
+     * Create an instance of a {@link NodeSettingsMigration}. We use the empty constructor as per contract.
+     *
+     * @throws IllegalStateException if the class does not have a suitable constructor, is abstract, or the constructor
+     *             raises an exception
      */
-    Class<T> getPersistedObjectClass();
+    @SuppressWarnings("rawtypes")
+    static NodeSettingsMigration createMigrator(final Migration migration) {
+        final var migratorClass = migration.value();
+        return ReflectionUtil.createInstance(migratorClass)
+            .orElseThrow(() -> new IllegalStateException(
+                String.format("The provided migrator class '%s' does not provide an empty constructor.",
+                    migratorClass.getCanonicalName())));
+    }
 
 }

@@ -52,9 +52,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
-
 /**
  * Contains utility functions for dealing with reflection.
  *
@@ -63,19 +60,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
 public final class ReflectionUtil {
 
     private ReflectionUtil() {
-
+        // Utility class
     }
 
     static <T> Optional<T> createInstance(final Class<T> clazz) {
         return getConstructor(clazz).map(ReflectionUtil::createInstance);
     }
 
-    static <S, P extends NodeSettingsPersistor<S>> Optional<P> createInstance(final Class<P> clazz,
-        final NodeSettingsPersistorContext<S> context) {
-        return getConstructor(clazz, NodeSettingsPersistorContext.class).map(c -> createInstance(c, context));
-    }
-
-    static <T> T createInstance(final Constructor<T> constructor, final Object... initArgs) {
+    private static <T> T createInstance(final Constructor<T> constructor, final Object... initArgs) {
         constructor.setAccessible(true); // NOSONAR
         try {
             return constructor.newInstance(initArgs);
@@ -93,7 +85,7 @@ public final class ReflectionUtil {
         }
     }
 
-    static <T> Optional<Constructor<T>> getConstructor(final Class<T> clazz, final Class<?>... parameterTypes) {
+    private static <T> Optional<Constructor<T>> getConstructor(final Class<T> clazz, final Class<?>... parameterTypes) {
         try {
             return Optional.of(clazz.getDeclaredConstructor(parameterTypes));
         } catch (NoSuchMethodException ex) {

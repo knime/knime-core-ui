@@ -55,6 +55,8 @@ import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 /**
  * Interface that has to be implemented to use within the {@link Migration} annotation.
  *
+ * An implementation must have a non-private default constructor.
+ *
  * @param <T> type of object loaded from deprecated settings, i.e. the type of the associated field or class.
  * @author Paul Bärnreuther
  */

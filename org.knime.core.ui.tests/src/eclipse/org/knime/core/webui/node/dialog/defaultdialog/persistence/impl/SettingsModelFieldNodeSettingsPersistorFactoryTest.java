@@ -60,7 +60,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistorContext;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
@@ -90,8 +89,8 @@ class SettingsModelPersistorTest {
 
     static final class TestEnumSettingsModelStringPersistor extends EnumSettingsModelStringPersistor<TestEnum> {
 
-        TestEnumSettingsModelStringPersistor(final NodeSettingsPersistorContext<TestEnum> context) {
-            super(context);
+        TestEnumSettingsModelStringPersistor() {
+            super(CFG_KEY, TestEnum.class);
         }
 
     }

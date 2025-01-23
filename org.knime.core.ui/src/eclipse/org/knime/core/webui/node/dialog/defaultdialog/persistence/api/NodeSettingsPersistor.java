@@ -57,8 +57,7 @@ import org.knime.core.node.NodeSettingsWO;
  * A persistor that is to be used within an {@link Persistor} annotation to define or refine the way a certain field or
  * class is persisted to {@link NodeSettings}.
  *
- * For an implementation to be used by the {@link Persist} annotation, it must have a non-private constructor that
- * either takes no arguments or a single {@link NodeSettingsPersistorContext} argument.
+ * An implementation must have a non-private default constructor.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
