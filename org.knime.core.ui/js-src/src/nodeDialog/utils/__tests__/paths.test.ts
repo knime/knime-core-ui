@@ -444,13 +444,14 @@ describe("paths", () => {
             type: "object",
             properties: {
               mySetting: {},
+              mySettingTwo: {},
             },
           },
         },
       };
       const dataPaths = getDataPaths(path, persistSchema);
       const prefix = getLongestCommonPrefix(dataPaths);
-      expect(prefix).toBe("model.mySetting");
+      expect(prefix).toBe("model.");
     });
 
     it("determines longest common prefix with keys from sub persist schema", () => {
