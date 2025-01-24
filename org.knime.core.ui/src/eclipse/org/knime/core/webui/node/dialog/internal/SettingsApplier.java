@@ -351,7 +351,7 @@ public final class SettingsApplier {
     /*
      * Replaceable for testing purposes.
      */
-    static BooleanSupplier calledForEmbeddedDialogsPredicate = () -> {
+    public static BooleanSupplier calledForEmbeddedDialogsPredicate = () -> {
         var thread = Thread.currentThread();
         return Stream.of(thread.getStackTrace())
             .noneMatch(e -> e.getClassName().equals("org.knime.core.wizard.rpc.DefaultNodeService")

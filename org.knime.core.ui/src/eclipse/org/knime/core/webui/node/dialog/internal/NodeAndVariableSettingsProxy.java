@@ -66,20 +66,34 @@ import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
-final class NodeAndVariableSettingsProxy {
+public final class NodeAndVariableSettingsProxy {
 
     private NodeAndVariableSettingsProxy() {
         // utility
     }
 
-    static NodeAndVariableSettingsRO createROProxy(final NodeSettings nodeSettingsDelegate,
+    /**
+     * Creates a {@link NodeAndVariableSettingsRO} that combines the given {@link NodeSettings} and {@link VariableSettings}.
+     *
+     * @param nodeSettingsDelegate the NodeSettings
+     * @param variableSettingsDelegate the VariableSettings
+     * @return a proxy combining the two provided settings
+     */
+    public static NodeAndVariableSettingsRO createROProxy(final NodeSettings nodeSettingsDelegate,
         final VariableSettings variableSettingsDelegate) {
         assert nodeSettingsDelegate != null;
         assert variableSettingsDelegate != null;
         return (NodeAndVariableSettingsRO)createProxy(nodeSettingsDelegate, variableSettingsDelegate);
     }
 
-    static NodeAndVariableSettingsWO createWOProxy(final NodeSettings nodeSettingsDelegate,
+    /**
+     * Creates a {@link NodeAndVariableSettingsWO} that combines the given {@link NodeSettings} and {@link VariableSettings}.
+     *
+     * @param nodeSettingsDelegate the NodeSettings
+     * @param variableSettingsDelegate the VariableSettings
+     * @return a proxy combining the two provided settings
+     */
+    public static NodeAndVariableSettingsWO createWOProxy(final NodeSettings nodeSettingsDelegate,
         final VariableSettings variableSettingsDelegate) {
         assert nodeSettingsDelegate != null;
         assert variableSettingsDelegate != null;

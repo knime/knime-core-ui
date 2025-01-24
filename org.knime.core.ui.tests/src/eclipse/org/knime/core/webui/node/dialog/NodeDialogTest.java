@@ -77,6 +77,8 @@ import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.webui.node.NodeWrapper;
 import org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier;
 import org.knime.core.webui.node.dialog.NodeDialogAdapter.LegacyFlowVariableNodeDialog;
+import org.knime.core.webui.node.dialog.internal.NodeAndVariableSettingsProxy;
+import org.knime.core.webui.node.dialog.internal.SettingsApplier;
 import org.knime.core.webui.node.dialog.internal.VariableSettings;
 import org.knime.core.webui.node.view.NodeViewManager;
 import org.knime.core.webui.node.view.NodeViewManagerTest;
@@ -271,8 +273,8 @@ public class NodeDialogTest {
     @Test
     void testOnApplyNodeModifierForDetachedDialogs() throws Exception {
 
-        var originalPredicate = ApplyData.calledForEmbeddedDialogsPredicate;
-        ApplyData.calledForEmbeddedDialogsPredicate = () -> false;
+        var originalPredicate = SettingsApplier.calledForEmbeddedDialogsPredicate;
+        SettingsApplier.calledForEmbeddedDialogsPredicate = () -> false;
 
         var onApplyModifier = new TestOnApplyNodeModifer();
         var wfm = WorkflowManagerUtil.createEmptyWorkflow();
@@ -310,7 +312,7 @@ public class NodeDialogTest {
         dataServiceManager.deactivateDataServices(nncWrapper); // clean up data services (simulate closing of the dialog)
         assertThat(onApplyModifier.m_onApplyCalled).isTrue();
 
-        ApplyData.calledForEmbeddedDialogsPredicate = originalPredicate;
+        SettingsApplier.calledForEmbeddedDialogsPredicate = originalPredicate;
     }
 
     /**
