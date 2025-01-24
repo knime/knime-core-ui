@@ -11,11 +11,9 @@ import type {
 import { AutoSizeColumnsToContent, RowHeightMode } from "../types/ViewSettings";
 import type { TableViewViewSettings } from "../types/ViewSettings";
 
-const { MAX_AUTO_ROW_HEIGHT } = tableConstants;
-
 type RelevantViewSettings = Pick<
   TableViewViewSettings,
-  "autoSizeColumnsToContent" | "rowHeightMode"
+  "autoSizeColumnsToContent" | "rowHeightMode" | "maxAutoRowHeight"
 >;
 export interface UseAutoSizesOptions {
   settings: Ref<RelevantViewSettings>;
@@ -42,6 +40,10 @@ export default ({
     () => currentRowHeight.value - BORDER_BOTTOM_WIDTH,
   );
 
+  const maxAutoRowHeight = computed(() =>
+    Math.max(settings.value.maxAutoRowHeight, tableConstants.MIN_ROW_HEIGHT),
+  );
+
   const autoColumnSizesActive = computed(() => {
     return (
       settings.value.autoSizeColumnsToContent !== AutoSizeColumnsToContent.FIXED
@@ -66,7 +68,7 @@ export default ({
     imageDimension: ImageDimension,
   ): ImageDimension => {
     const scaledHeight = Math.min(
-      MAX_AUTO_ROW_HEIGHT,
+      maxAutoRowHeight.value,
       imageDimension.heightInPx,
     );
     const scaledWidth = getImageAutoSizeWidthFromHeight(
@@ -122,6 +124,7 @@ export default ({
   const autoRowHeightOptions = computed(() => ({
     calculate: autoRowHeightsActive.value,
     fixedHeights: fixedSizes.value.fixedRowHeights,
+    maxHeight: maxAutoRowHeight.value,
   }));
 
   return {

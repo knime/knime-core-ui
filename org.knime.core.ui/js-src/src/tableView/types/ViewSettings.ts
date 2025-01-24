@@ -30,6 +30,7 @@ type GenericTableViewViewSettings<T extends string[] | undefined> = {
   rowHeightMode: RowHeightMode;
   verticalPaddingMode: VerticalPaddingMode;
   customRowHeight: number;
+  maxAutoRowHeight: number;
   selectionMode: SelectionMode;
   enableColumnSearch: boolean;
   enablePagination: boolean;

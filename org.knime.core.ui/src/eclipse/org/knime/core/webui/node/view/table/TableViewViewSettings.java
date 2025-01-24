@@ -261,6 +261,15 @@ public class TableViewViewSettings implements DefaultNodeSettings {
 
         }
 
+        static final class IsAuto implements PredicateProvider {
+
+            @Override
+            public Predicate init(final PredicateInitializer i) {
+                return i.getEnum(Ref.class).isOneOf(AUTO);
+            }
+
+        }
+
         static final class CompactModeAndLegacyRowHeightModePersistor implements NodeSettingsMigration<RowHeightMode> {
 
             @Override
@@ -327,6 +336,17 @@ public class TableViewViewSettings implements DefaultNodeSettings {
             }
         }
     }
+
+    /**
+     * The maximum auto row height used when m_rowHeightMode is auto
+     */
+    @Widget(title = "Maximum auto row height",
+        description = "Set the maximum height of the rows while using row height “Auto”.", advanced = true)
+    @NumberInputWidget(min = 24, max = 1000000)
+    @Layout(ViewSection.class)
+    @Migrate(loadDefaultIfAbsent = true)
+    @Effect(predicate = RowHeightMode.IsAuto.class, type = EffectType.SHOW)
+    public int m_maxAutoRowHeight = 120;
 
     /**
      * The mode of the row padding. Either a default larger padding or a compact smaller padding.

@@ -103,6 +103,7 @@ export const getDefaultProps = (): TableViewDisplayProps => {
       enableCellCopying: false,
       enableDataValueViews: false,
       rowLabel: "",
+      maxAutoRowHeight: 120,
     },
     page: {
       currentRowCount: 4,

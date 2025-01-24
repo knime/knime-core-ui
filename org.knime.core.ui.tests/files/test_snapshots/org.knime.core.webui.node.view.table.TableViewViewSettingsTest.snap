@@ -29,6 +29,7 @@
       "autoSizeColumnsToContent" : "FIXED",
       "rowHeightMode" : "AUTO",
       "customRowHeight" : 80,
+      "maxAutoRowHeight" : 120,
       "verticalPaddingMode" : "DEFAULT",
       "enableGlobalSearch" : true,
       "enableColumnSearch" : true,
@@ -238,6 +239,13 @@
             "title" : "Enable sorting by header",
             "description" : "Enables or disables the ability to sort the table by clicking on the column headers",
             "default" : true
+          },
+          "maxAutoRowHeight" : {
+            "type" : "integer",
+            "format" : "int32",
+            "title" : "Maximum auto row height",
+            "description" : "Set the maximum height of the rows while using row height “Auto”.",
+            "default" : 120
           },
           "pageSize" : {
             "type" : "integer",
@@ -467,6 +475,25 @@
         }
       }, {
         "type" : "Control",
+        "scope" : "#/properties/view/properties/maxAutoRowHeight",
+        "options" : {
+          "isAdvanced" : true,
+          "min" : 24.0,
+          "max" : 1000000.0
+        },
+        "rule" : {
+          "effect" : "SHOW",
+          "condition" : {
+            "scope" : "#/properties/view/properties/rowHeightMode",
+            "schema" : {
+              "oneOf" : [ {
+                "const" : "AUTO"
+              } ]
+            }
+          }
+        }
+      }, {
+        "type" : "Control",
         "scope" : "#/properties/view/properties/verticalPaddingMode",
         "options" : {
           "format" : "valueSwitch"
@@ -597,6 +624,7 @@
               "deprecated" : [ [ "rowHeightMode" ] ]
             } ]
           },
+          "maxAutoRowHeight" : { },
           "verticalPaddingMode" : {
             "deprecatedConfigKeys" : [ {
               "deprecated" : [ ]
