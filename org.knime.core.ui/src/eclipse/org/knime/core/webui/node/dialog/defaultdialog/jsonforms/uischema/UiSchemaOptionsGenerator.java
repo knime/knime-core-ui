@@ -90,7 +90,9 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.contextv2.HubSpaceLocationInfo;
 import org.knime.core.node.workflow.contextv2.LocalLocationInfo;
+import org.knime.core.node.workflow.contextv2.LocationInfo;
 import org.knime.core.node.workflow.contextv2.ServerLocationInfo;
+import org.knime.core.node.workflow.contextv2.WorkflowContextV2.ExecutorType;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
@@ -240,7 +242,7 @@ final class UiSchemaOptionsGenerator {
                     break;
                 case FILE_CHOOSER:
                     options.put(TAG_FORMAT, Format.FILE_CHOOSER);
-                    addLocationInfo(options);
+                    addWorkflowContextInfo(options);
                     break;
                 case DYNAMIC_VALUE:
                     options.put(TAG_FORMAT, Format.DYNAMIC_VALUE);
@@ -550,22 +552,35 @@ final class UiSchemaOptionsGenerator {
         throw new IllegalStateException(String.format("Port at index %s is not a file system port", portIndex));
     }
 
-    private static void addLocationInfo(final ObjectNode options) {
+    private static void addWorkflowContextInfo(final ObjectNode options) {
         WorkflowContextUtil.getWorkflowContextV2Optional().ifPresent(context -> {
-            final var locationInfo = context.getLocationInfo();
-            if (locationInfo instanceof LocalLocationInfo) {
-                addLocalLocationInfo(options);
-            } else if (locationInfo instanceof HubSpaceLocationInfo hubSpace) {
-                addhubSpaceLocationInfo(options, hubSpace);
-            } else if (locationInfo instanceof ServerLocationInfo server) {
-                addServerLocationInfo(options, server);
-            }
+            addExecutorTypeInformation(options, context.getExecutorType());
+            addLocationInfo(options, context.getLocationInfo());
         });
+    }
+
+    private static void addExecutorTypeInformation(final ObjectNode options, final ExecutorType executorType) {
+        if (executorType == ExecutorType.ANALYTICS_PLATFORM) {
+            addLocalExecutorInfo(options);
+        }
+    }
+
+    private static void addLocalExecutorInfo(final ObjectNode options) {
+        options.put("isLocal", true);
+    }
+
+    private static void addLocationInfo(final ObjectNode options, final LocationInfo locationInfo) {
+        if (locationInfo instanceof LocalLocationInfo) {
+            addLocalLocationInfo(options);
+        } else if (locationInfo instanceof HubSpaceLocationInfo hubSpace) {
+            addhubSpaceLocationInfo(options, hubSpace);
+        } else if (locationInfo instanceof ServerLocationInfo server) {
+            addServerLocationInfo(options, server);
+        }
     }
 
     private static void addLocalLocationInfo(final ObjectNode options) {
         options.put("mountId", "Local space");
-        options.put("isLocal", true);
     }
 
     private static void addhubSpaceLocationInfo(final ObjectNode options, final HubSpaceLocationInfo hubSpace) {
