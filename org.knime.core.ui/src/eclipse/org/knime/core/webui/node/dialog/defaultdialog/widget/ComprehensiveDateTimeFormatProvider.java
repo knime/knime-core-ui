@@ -63,6 +63,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.Temporal;
 import java.util.Arrays;
 import java.util.Collection;
@@ -70,12 +71,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.function.Consumer;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.StringHistory;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
@@ -443,7 +443,6 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSS[ZZZZ]", ZONED_DATE_TIME, EUROPEAN), //
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSSVV'['zzzz']'", ZONED_DATE_TIME, EUROPEAN), //
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ssVV", ZONED_DATE_TIME, EUROPEAN), //
-        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ssXXX", ZONED_DATE_TIME, EUROPEAN), //
         new FormatWithoutExample("yyyy-MM-dd HH:mm:ss VV", ZONED_DATE_TIME, EUROPEAN), //
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss'Z'", ZONED_DATE_TIME, AMERICAN), //
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss", ZONED_DATE_TIME, AMERICAN), //
@@ -451,7 +450,6 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSSVV", ZONED_DATE_TIME, AMERICAN), //
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSSZ", ZONED_DATE_TIME, AMERICAN), //
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSS[Z]", ZONED_DATE_TIME, AMERICAN), //
-        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ssXXX", ZONED_DATE_TIME, AMERICAN), //
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss'['VV']'", ZONED_DATE_TIME, AMERICAN), //
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSS[ZZZZ]", ZONED_DATE_TIME, AMERICAN), //
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSSVV'['zzzz']'", ZONED_DATE_TIME, AMERICAN), //
@@ -460,20 +458,6 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSS", ZONED_DATE_TIME, AMERICAN), //
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ssXXX", ZONED_DATE_TIME, AMERICAN) //
     );
-
-    /**
-     * Check a given format and if it has an issue, log it. Useful because some error messages produced by Java's
-     * {@link DateTimeFormatter} don't include the pattern, which makes it very hard to debug them when we have this
-     * many.
-     */
-    private static final Consumer<FormatWithoutExample> CHECK_FORMAT = fmt -> {
-        try {
-            DateTimeFormatter.ofPattern(fmt.format);
-        } catch (IllegalArgumentException ex) {
-            NodeLogger.getLogger(ComprehensiveDateTimeFormatProvider.class) //
-                .error("Invalid date-time format '%s'. Reason was: %s".formatted(fmt.format, ex.getMessage()), ex);
-        }
-    };
 
     /**
      * All the formats combined together.
@@ -492,7 +476,6 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
             ZONED_DATE_TIME_FORMATS //
         ) //
             .flatMap(Collection::stream) //
-            .peek(CHECK_FORMAT) // NOSONAR - gives much better console errors on invalid formats
             .toList() //
     );
 
@@ -570,4 +553,68 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
                 <li>]: optional section end</li>
             </ul>
             """;
+
+    /**
+     * Return the first format that matches all of the provided dateStrings, or empty if none of the formats match all
+     * of the dateStrings. Note that this can never return a format like 'yyyy/QQ' because that format doesn't fully
+     * specify any of the {@link FormatTemporalType four supported temporal types}.
+     *
+     * @param dateStrings a collection of date/time strings (e.g. 2020-01-01 or 13:23:45)
+     * @param temporalType the temporal type to use for parsing the date strings
+     * @return optional containing the first format that matches all of the dateStrings, or empty if none of the formats
+     *         match all of the dateStrings
+     */
+    public static Optional<String> bestFormatGuess(final Collection<String> dateStrings,
+        final FormatTemporalType temporalType) {
+        if (dateStrings.isEmpty()) {
+            throw new IllegalArgumentException("dateStrings must not be empty");
+        }
+
+        return ALL_FORMATS.stream() //
+            .filter(fmt -> temporalType == fmt.temporalType) //
+            .filter(fmt -> matchesAllDateStrings(fmt, dateStrings, temporalType)) //
+            .map(FormatWithoutExample::format) //
+            .findFirst();
+    }
+
+    /**
+     * Does the given format match all of the given date strings? Note that this is for PARSING only. So for example,
+     * this can never return true for a format like 'yyyy/QQ' because it doesn't fully specify any of the
+     * {@link FormatTemporalType four supported temporal types}.
+     *
+     * @param format a date-time format, from the list of valid formats. It must be valid or this method will throw.
+     * @param dateStrings a collection of date strings (e.g. '2020-01-01')
+     * @param desiredType the temporal type to use for parsing the date strings. Not only must the types match, but the
+     *            query associated with the type will be used when parsing. This has the advantage of eliminating some
+     *            parsing edge cases, like when the format string 'Q' might accept a value like '31' even though it's
+     *            not a valid quarter.
+     * @return true if the format matches all of the date strings and the provided format type, else false
+     */
+    static boolean matchesAllDateStrings(final FormatWithoutExample format, final Collection<String> dateStrings,
+        final FormatTemporalType desiredType) {
+
+        Objects.requireNonNull(format, "format must not be null");
+        Objects.requireNonNull(dateStrings, "dateStrings must not be null");
+        Objects.requireNonNull(desiredType, "desiredType must not be null");
+
+        if (dateStrings.isEmpty()) {
+            throw new IllegalArgumentException("dateStrings must not be empty");
+        }
+
+        if (format.temporalType != desiredType) {
+            return false;
+        }
+
+        // should not throw since pattern is from our big list of valid formats
+        var pattern = DateTimeFormatter.ofPattern(format.format);
+
+        return dateStrings.stream().allMatch(dateString -> {
+            try {
+                pattern.parse(dateString, desiredType.associatedQuery());
+                return true;
+            } catch (DateTimeParseException ex) {
+                return false;
+            }
+        });
+    }
 }
