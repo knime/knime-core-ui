@@ -91,6 +91,7 @@ describe("CredentialsControl.vue", () => {
       },
       labelForId,
       disabled: false,
+      isValid: true,
     };
 
     const component = mountCredentialsControl({

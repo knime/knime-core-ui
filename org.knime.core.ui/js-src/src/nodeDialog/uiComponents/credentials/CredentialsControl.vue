@@ -22,6 +22,7 @@ const { flowSettings } = useFlowSettings({
     :flow-settings="flowSettings"
     :disabled="disabled"
     :label-for-id="labelForId"
+    :is-valid
     @change="changeValue"
   />
 </template>

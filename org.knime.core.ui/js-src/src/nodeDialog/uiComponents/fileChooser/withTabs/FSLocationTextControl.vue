@@ -8,6 +8,7 @@ interface Props {
   isLocal?: boolean;
   portIndex?: number;
   fileSystemSpecifier?: string;
+  isValid: boolean;
 }
 export type { Props };
 
@@ -146,6 +147,7 @@ const onTextInput = (text: string) => {
     :model-value="currentValue"
     :disabled="disabled"
     compact
+    :is-valid
     @update:model-value="onTextInput"
     @focusout="updateCurrentValueFromModelValue"
   />

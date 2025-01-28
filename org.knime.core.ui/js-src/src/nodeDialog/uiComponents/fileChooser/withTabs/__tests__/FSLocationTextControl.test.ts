@@ -23,6 +23,7 @@ describe("FSLocationTextControl.vue", () => {
       },
       disabled: false,
       isLocal: false,
+      isValid: true,
     };
   });
 

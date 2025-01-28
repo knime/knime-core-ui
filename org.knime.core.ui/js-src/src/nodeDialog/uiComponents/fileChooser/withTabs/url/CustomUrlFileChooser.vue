@@ -28,7 +28,7 @@ defineEmits(["update:path", "update:timeout"]);
   <ErrorMessage
     v-if="urlErrorMessage"
     :style="{ display: 'unset' }"
-    :errors="[{ message: urlErrorMessage }]"
+    :errors="[urlErrorMessage]"
   />
   <Label #default="{ labelForId }" class="timeout" text="Timeout">
     <NumberInput

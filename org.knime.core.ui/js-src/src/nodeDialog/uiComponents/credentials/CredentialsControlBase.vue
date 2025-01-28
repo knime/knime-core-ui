@@ -26,6 +26,7 @@ const props = defineProps<{
   flowSettings: FlowSettings | null;
   disabled: boolean;
   labelForId?: string;
+  isValid: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -119,6 +120,7 @@ const controlElement = ref<null | HTMLElement>(null);
       :placeholder="usernameLabel"
       :model-value="data.username"
       :disabled="disabled"
+      :is-valid
       compact
       type="text"
       @update:model-value="onChangeUsername"
@@ -129,6 +131,7 @@ const controlElement = ref<null | HTMLElement>(null);
       :placeholder="passwordLabel"
       :model-value="displayedPassword"
       :disabled="disabled"
+      :is-valid
       compact
       type="password"
       @update:model-value="onChangePassword"
@@ -139,6 +142,7 @@ const controlElement = ref<null | HTMLElement>(null);
       :placeholder="secondFactorLabel"
       :model-value="displayedSecondFactor"
       :disabled="disabled"
+      :is-valid
       compact
       type="password"
       @update:model-value="onChangeSecondFactor"

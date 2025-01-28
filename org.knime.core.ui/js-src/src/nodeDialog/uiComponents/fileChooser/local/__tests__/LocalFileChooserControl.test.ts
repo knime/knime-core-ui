@@ -49,6 +49,7 @@ describe("LabeledLocalFileChooserControl.vue", () => {
       },
       labelForId,
       disabled: false,
+      isValid: true,
     };
 
     const component = await mountJsonFormsControlLabelContent(

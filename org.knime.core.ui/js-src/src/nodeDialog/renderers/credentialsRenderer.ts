@@ -1,7 +1,7 @@
 import { defineAsyncComponent } from "vue";
 import { type Tester, rankWith } from "@jsonforms/core";
 
-import { addLabel, priorityRanks } from "@knime/jsonforms";
+import { priorityRanks, withLabel } from "@knime/jsonforms";
 
 import { inputFormats } from "../constants/inputFormats";
 
@@ -13,7 +13,7 @@ export const credentialsTester: Tester = (uischema) => {
   return uischema.options?.format === inputFormats.credentials;
 };
 
-export const credentialsRenderer = addLabel({
+export const credentialsRenderer = withLabel({
   name: "CredentialsControl",
   control: CredentialsControl,
   tester: rankWith(priorityRanks.default, credentialsTester),

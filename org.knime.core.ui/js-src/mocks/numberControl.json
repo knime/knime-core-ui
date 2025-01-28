@@ -46,6 +46,37 @@
               "label": "Disabled"
             }
           ]
+        },
+        {
+          "type": "Section",
+          "label": "Validation (min and max)",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/integer",
+              "label": "Integer input with min",
+              "options": {
+                "min": 5
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/double",
+              "label": "Double input with max",
+              "options": {
+                "max": 0.1
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/integer",
+              "label": "With lower and upper bound",
+              "options": {
+                "min": 1,
+                "max": 2
+              }
+            }
+          ]
         }
       ]
     },

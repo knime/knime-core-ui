@@ -50,7 +50,7 @@ const ariaLabel = computed(
   <ErrorMessage
     v-if="!isValid"
     class="error"
-    :errors="[{ message: 'Flow variable name must not be blank.' }]"
+    :errors="['Flow variable name must not be blank.']"
   />
 </template>
 

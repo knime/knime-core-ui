@@ -89,6 +89,7 @@ describe("LegacyCredentialsControl.vue", () => {
       },
       labelForId,
       disabled: false,
+      isValid: true,
     };
     const component = mountLegacyCredentialsControl({
       props,

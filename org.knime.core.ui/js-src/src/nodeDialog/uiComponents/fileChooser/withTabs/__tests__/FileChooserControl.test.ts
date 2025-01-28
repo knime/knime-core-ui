@@ -107,6 +107,7 @@ describe("FileChooserControl.vue", () => {
       },
       labelForId,
       disabled: false,
+      isValid: true,
     };
 
     const component = mountFileChooserControl({

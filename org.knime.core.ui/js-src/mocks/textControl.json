@@ -3,6 +3,7 @@
     "name": "Text Dialog",
     "data": {
       "textInput": "",
+      "withPatternValidation": "",
       "disabled": "I am disabled"
     },
     "schema": {
@@ -12,6 +13,12 @@
           "type": "string",
           "title": "Text Input",
           "description": "This is a text input field"
+        },
+        "withPatternValidation": {
+          "type": "string",
+          "title": "Single letter text input",
+          "description": "This is a text input field with a pattern validation. In case a non-single-letter text is entered, the field should show an error state and an error message should appear",
+          "pattern": "."
         },
         "disabled": {
           "type": "string",
@@ -31,6 +38,13 @@
               "scope": "#/properties/textInput",
               "options": {
                 "placeholder": "Placeholder"
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/withPatternValidation",
+              "options": {
+                "placeholder": "Enter something to fix me"
               }
             },
             {

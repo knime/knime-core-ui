@@ -58,11 +58,7 @@ describe("UrlTab.vue", () => {
       .findComponent(ErrorMessage);
     expect(errorMessage.exists()).toBeTruthy();
     expect(errorMessage.props()).toStrictEqual({
-      errors: [
-        {
-          message: 'The url needs to start with a scheme (e.g. "https://")',
-        },
-      ],
+      errors: ['The url needs to start with a scheme (e.g. "https://")'],
     });
     expect(applyDisabled.value).toBeTruthy();
   });

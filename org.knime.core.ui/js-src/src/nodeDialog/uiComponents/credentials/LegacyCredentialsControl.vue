@@ -42,6 +42,7 @@ const onLegacyFlowVariableSet = (
     :flow-settings="flowSettings"
     :disabled="disabled"
     :label-for-id="labelForId"
+    :is-valid
     @change="onChangeLegacyCredentialsControl"
   />
   <LegacyFlowVariableHandler

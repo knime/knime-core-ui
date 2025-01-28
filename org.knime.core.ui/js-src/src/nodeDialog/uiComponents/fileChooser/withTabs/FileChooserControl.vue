@@ -104,6 +104,7 @@ const { onApply, sideDrawerValue } = useSideDrawerContent<FileChooserValue>({
       :model-value="data"
       :disabled="isDisabled"
       :is-local="browseOptions.isLocal"
+      :is-valid
       :port-index="browseOptions.portIndex"
       :file-system-specifier="browseOptions.fileSystemSpecifier"
       @update:model-value="onChangePath"

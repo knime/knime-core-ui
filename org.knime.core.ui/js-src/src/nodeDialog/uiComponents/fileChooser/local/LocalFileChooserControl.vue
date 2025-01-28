@@ -35,6 +35,7 @@ const { appendedExtension, filteredExtensions, isLoaded, isWriter } =
       :disabled="disabled"
       :model-value="control.data"
       :placeholder="uiSchemaOptions.placeholder"
+      :is-valid
       compact
       @update:model-value="changeValue"
     />

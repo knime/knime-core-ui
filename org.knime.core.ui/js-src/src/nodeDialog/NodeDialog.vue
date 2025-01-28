@@ -288,7 +288,7 @@ const hasAdvancedOptions2 = () => {
   return hasAdvancedOptions(uischema.value);
 };
 
-const renderers = ref<null | NamedRenderer[]>(null);
+const renderers = ref<null | readonly NamedRenderer[]>(null);
 
 onMounted(async () => {
   const initialSettings = (await jsonDataService.initialData()) as InitialData;

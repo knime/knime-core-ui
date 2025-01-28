@@ -79,11 +79,16 @@ describe("ButtonControl", () => {
       },
     },
     disabled: false,
+    isValid: true,
+    messages: { errors: [] },
   });
 
   let getDataResult: any,
     wrapper: VueWrapper<any>,
-    props: Omit<VueControlProps<any>, "handleChange" | "changeValue">,
+    props: Omit<
+      VueControlProps<any>,
+      "handleChange" | "changeValue" | "onRegisterValidation"
+    >,
     getData: Mock,
     changeValue: Mock;
 
