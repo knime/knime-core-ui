@@ -8,6 +8,11 @@ export default () => {
 
   const flowVariablesMap = getFlowVariablesMap();
 
+  const getFlowVariablePathsStartingWithKey = (key: string) =>
+    Object.keys(flowVariablesMap).filter((flowVariablePath) =>
+      flowVariablePath.startsWith(key),
+    );
+
   const deprecatedConfigPaths = computed(() => {
     return configPaths.value.flatMap(
       ({ deprecatedConfigPaths }) => deprecatedConfigPaths,
@@ -15,7 +20,7 @@ export default () => {
   });
 
   const deprecatedSetConfigPaths = computed(() =>
-    deprecatedConfigPaths.value.filter((key) => Boolean(flowVariablesMap[key])),
+    deprecatedConfigPaths.value.flatMap(getFlowVariablePathsStartingWithKey),
   );
 
   return { deprecatedSetConfigPaths };

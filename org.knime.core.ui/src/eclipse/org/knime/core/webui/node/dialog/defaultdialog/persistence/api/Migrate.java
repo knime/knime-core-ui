@@ -97,9 +97,9 @@ public @interface Migrate {
      * migration)</li>
      * <li>a second migration is required additionally.</li>
      * </ol>
-     * For 1. one can use a {@link Migration @Migration} with a {@link NodeSettingsMigration} implementing
-     * {@link DefaultProvider}. For 2. the same effect can be achieved by using a {@link NodeSettingsMigration}
-     * including the following configs deprecation (usually as the last in the provided list):
+     * For 1. one can use a {@link Migration @Migration} using a {@link DefaultProvider}. For 2. the same effect can be
+     * achieved by using a {@link NodeSettingsMigration} including the following configs deprecation (usually as the
+     * last in the provided list):
      *
      * <pre>
      * {@code

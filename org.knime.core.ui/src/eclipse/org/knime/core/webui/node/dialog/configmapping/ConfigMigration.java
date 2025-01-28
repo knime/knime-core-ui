@@ -95,8 +95,8 @@ public final class ConfigMigration<T> {
     /**
      * Private. Use the {@link Builder} or {@link #builder} instead.
      */
-    private ConfigMigration(final Collection<ConfigPath> deprecatedConfigPaths,
-        final Predicate<NodeSettingsRO> matcher, final SettingsLoader<T> loader) {
+    private ConfigMigration(final Collection<ConfigPath> deprecatedConfigPaths, final Predicate<NodeSettingsRO> matcher,
+        final SettingsLoader<T> loader) {
         this.m_deprecatedConfigPaths = deprecatedConfigPaths;
         this.m_matcher = matcher;
         this.m_loader = loader;
@@ -165,10 +165,12 @@ public final class ConfigMigration<T> {
 
         /**
          * Enter a path to a config used within the loader which is not saved back again in
-         * {@link NodeSettingsPersistor#save}. This method can called multiple times.
+         * {@link NodeSettingsPersistor#save}. This method can be called multiple times.
+         *
+         * With any given deprecated config path, also all sub-paths starting with this path are considered deprecated.
          *
          * @param configKeys the configKeys forming a path from the base config of the {@link NodeSettingsPersistor} to
-         *            a desired subconfig.
+         *            a desired subconfig (which might have further subconfigs)
          * @return the builder
          */
         public Builder<T> withDeprecatedConfigPath(final String... configKeys) {
