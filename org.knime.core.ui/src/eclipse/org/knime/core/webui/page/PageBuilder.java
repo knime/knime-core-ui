@@ -126,6 +126,22 @@ public class PageBuilder {
      */
     public PageBuilder addResources(final Function<String, InputStream> supplier, final String relativePathPrefix,
         final boolean areStatic) {
+        return addResources(supplier, relativePathPrefix, areStatic, null);
+    }
+
+    /**
+     * Allows one to add multiple resources at once with a single function which dynamically maps paths to resources.
+     * I.e. no need to define the exact path upfront (apart from a path-prefix).
+     *
+     * @param supplier the mapping function from relative path to resource content
+     * @param relativePathPrefix the path prefix; if there are resources registered with 'overlapping' path prefixes,
+     *            the resources with the 'longest' match are being used
+     * @param areStatic whether the returned resources can be considered static or not - see {@link Resource#isStatic()}
+     * @param charset the encoding of the content of all the resources
+     * @return this page builder instance
+     */
+    public PageBuilder addResources(final Function<String, InputStream> supplier, final String relativePathPrefix,
+        final boolean areStatic, final Charset charset) {
         if (m_dynamicResources == null) {
             m_dynamicResources = new HashMap<>();
         }
@@ -134,7 +150,7 @@ public class PageBuilder {
             if (inputStream == null) {
                 return null;
             }
-            return createResource(() -> inputStream, relativePath, areStatic, null);
+            return createResource(() -> inputStream, relativePath, areStatic, charset);
         });
         if (!areStatic) {
             m_dynamicResourcesAreStatic = false;
