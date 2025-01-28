@@ -17,7 +17,7 @@ import type {
   ValueReference,
 } from "../../types/Update";
 
-import { getIndex } from "./useArrayIds";
+import { type ArrayRecord, getIndex } from "./useArrayIds";
 import type {
   IndexedIsActive,
   IsActiveCallback,
@@ -123,6 +123,7 @@ export default ({
   sendAlert,
   pathIsControlledByFlowVariable,
   setValueAtPath,
+  globalArrayIdsRecord,
 }: {
   callStateProviderListener: (
     location: { id: string; indexIds?: string[] },
@@ -148,6 +149,7 @@ export default ({
   sendAlert: (params: AlertParams) => void;
   pathIsControlledByFlowVariable: (path: string) => boolean;
   setValueAtPath: (path: string, value: unknown) => void;
+  globalArrayIdsRecord: ArrayRecord;
 }) => {
   const baseService = inject<() => UIExtensionService>("getKnimeService")!();
   const jsonDataService = new JsonDataService(baseService);
@@ -256,7 +258,12 @@ export default ({
     Object.fromEntries<Pairs>(
       dependencies.map((dep) => [
         dep.id,
-        getDependencyValues(newSettings, dep.scopes.map(toDataPath), indices),
+        getDependencyValues(
+          newSettings,
+          dep.scopes.map(toDataPath),
+          indices,
+          globalArrayIdsRecord,
+        ),
       ]),
     );
 

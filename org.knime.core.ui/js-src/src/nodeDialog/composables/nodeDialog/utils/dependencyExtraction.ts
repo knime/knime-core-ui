@@ -3,7 +3,6 @@ import { get } from "lodash-es";
 import type { IndexIdsValuePairs } from "../../../types/Update";
 import {
   type ArrayRecord,
-  getArrayIdsRecord,
   getOrCreateIdForIndex,
   getOrCreateNestedArrayRecord,
 } from "../useArrayIds";
@@ -22,7 +21,7 @@ export const getDependencyValues = (
   settings: object,
   dataPaths: string[],
   indices: number[],
-  arrayRecord: ArrayRecord = getArrayIdsRecord(),
+  arrayRecord: ArrayRecord,
 ): IndexIdsValuePairs => {
   // eslint-disable-next-line no-use-before-define -- the function is hoisted
   return getDependencyValuesWithoutFixedIndices(
@@ -67,12 +66,15 @@ function getDependencyValuesWithoutFixedIndices(
         firstDataPath,
         arrayRecord,
       );
-      return getDependencyValues(elementSettings, restDataPaths, [index]).map(
-        ({ indices: indexIds, value }) => ({
-          indices: [id, ...indexIds],
-          value,
-        }),
-      );
+      return getDependencyValues(
+        elementSettings,
+        restDataPaths,
+        [index],
+        arrayRecord,
+      ).map(({ indices: indexIds, value }) => ({
+        indices: [id, ...indexIds],
+        value,
+      }));
     });
   }
   return [{ indices: [], value: atFirstPath }];

@@ -15,8 +15,8 @@ import getChoices from "./api/getChoices";
 import type { FlowSettings } from "./api/types";
 import useProvidedFlowVariablesMap from "./composables/components/useProvidedFlowVariablesMap";
 import {
+  type ArrayRecord,
   createArrayAtPath,
-  getArrayIdsRecord,
 } from "./composables/nodeDialog/useArrayIds";
 import useCurrentData from "./composables/nodeDialog/useCurrentData";
 import { provideAndGetSetupMethod } from "./composables/nodeDialog/useDirtySettings";
@@ -66,6 +66,7 @@ const sendJsonFormsAlert = (alert: JsonFormsAlertParams) =>
     type: alert.type === "error" ? "error" : "warn",
     details: alert.details,
   });
+const globalArrayIdsRecord: ArrayRecord = {};
 const {
   addStateProviderListener,
   callStateProviderListener,
@@ -75,7 +76,7 @@ const {
   registerWatcher: registerWatcherInternal,
   updateData: updateDataInternal,
   updateDataMultiplePaths: updateDataMultiplePathsInternal,
-} = useGlobalWatchers();
+} = useGlobalWatchers(globalArrayIdsRecord);
 
 const persistSchema = ref<PersistSchema | null>(null);
 
@@ -152,6 +153,7 @@ const { registerUpdates, resolveUpdateResults } = useUpdates({
       publishSettings();
     }
   },
+  globalArrayIdsRecord,
 });
 const resolveInitialUpdates = (initialUpdates: UpdateResult[]) =>
   resolveUpdateResults(initialUpdates, getCurrentData());
@@ -319,7 +321,7 @@ const provided: ProvidedByNodeDialog & ProvidedForFlowVariables = {
   },
   getPersistSchema,
   createArrayAtPath: (path: string) =>
-    createArrayAtPath(getArrayIdsRecord(), path),
+    createArrayAtPath(globalArrayIdsRecord, path),
   getDialogPopoverTeleportDest: () => dialogPopoverTeleportDest.value,
   getPanelsContainer: () => subPanelsTeleportDest.value,
   setSubPanelExpanded,

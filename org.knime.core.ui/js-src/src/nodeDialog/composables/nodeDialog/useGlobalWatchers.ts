@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import type { SettingsData } from "../../types/SettingsData";
 
-import { toIndexIds } from "./useArrayIds";
+import { type ArrayRecord, toIndexIds } from "./useArrayIds";
 import type { DialogSettings } from "./useUpdates";
 import { getIndicesFromDataPaths } from "./utils/dataPaths";
 
@@ -45,7 +45,7 @@ const getKey = (item: {
     indexIds: item.indexIds,
   });
 
-export default () => {
+export default (globalArrayIdsRecord: ArrayRecord) => {
   const registeredWatchers = ref<RegisteredWatcher[]>([]);
 
   type TriggeredWatcher = {
@@ -70,6 +70,7 @@ export default () => {
         const indexIds = toIndexIds(
           indicesFromDataPath.indices,
           indicesFromDataPath.dataPath,
+          globalArrayIdsRecord,
         );
         triggeredWatchers.push({
           registeredWatcher,

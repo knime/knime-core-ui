@@ -40,12 +40,6 @@ export interface IdsRecord {
   [id: string]: ArrayRecord;
 }
 
-/**
- * The global record listing ids for array layouts which are part of the dialog.
- */
-const globalArrayRecord: ArrayRecord = {};
-export const getArrayIdsRecord = () => globalArrayRecord;
-
 export const createNewId = () => uuidv4();
 
 /**
@@ -73,7 +67,7 @@ export const deleteArrayItem = (obj: IdsRecord, id: string) => delete obj[id];
 export const toIndexIds = (
   indices: number[],
   dataPaths: string[],
-  arrayRecord: ArrayRecord = globalArrayRecord,
+  arrayRecord: ArrayRecord,
 ): string[] => {
   const idsRecord = arrayRecord[dataPaths[0]];
   if (indices.length === 0) {
