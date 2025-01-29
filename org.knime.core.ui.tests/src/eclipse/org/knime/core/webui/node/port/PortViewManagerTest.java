@@ -121,7 +121,7 @@ class PortViewManagerTest {
             List.of(0, 2), List.of(1, 2, 3));
 
         // page properties
-        assertThat(portViewManager.getPageResourceManager().getBaseUrl()).isEqualTo("http://org.knime.core.ui.port/");
+        assertThat(portViewManager.getPageResourceManager().getBaseUrl()).isEqualTo("https://org.knime.core.ui.port/");
         var npw = NodePortWrapper.of(nnc, 0, 0);
         assertThat(portViewManager.getPageResourceManager().getPagePath(npw))
             .isEqualTo("uiext/port_view_page_name/page.js");

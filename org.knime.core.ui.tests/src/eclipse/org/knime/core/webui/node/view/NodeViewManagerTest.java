@@ -241,7 +241,7 @@ public class NodeViewManagerTest {
         assertThat(path).isEqualTo("uiext-view/"
             + NodeViewNodeFactory.getNodeWrapperTypeIdStatic((NativeNodeContainer)nnc.get()) + "/page.html");
         String baseUrl = pageResourceManager.getBaseUrl();
-        assertThat(baseUrl).isEqualTo("http://org.knime.core.ui.view/");
+        assertThat(baseUrl).isEqualTo("https://org.knime.core.ui.view/");
     }
 
     /**
