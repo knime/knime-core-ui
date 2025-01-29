@@ -274,7 +274,6 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
         new FormatWithoutExample("yyyyMMdd", DATE, STANDARD), //
         new FormatWithoutExample("YYYY-MM", DATE, STANDARD), //
         new FormatWithoutExample("yyyy-M-d", DATE, STANDARD), //
-        new FormatWithoutExample("yyyy-MM-'01'", DATE, STANDARD), //
         new FormatWithoutExample("yyyy-MMMM-dd", DATE, STANDARD), //
         new FormatWithoutExample("yyyy-MMM-dd", DATE, STANDARD), //
         new FormatWithoutExample("yyyy-ww", DATE, STANDARD), //
@@ -282,9 +281,7 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
         new FormatWithoutExample("YYYYwwee", DATE, STANDARD), //
         new FormatWithoutExample("yyyy-QQ", DATE, STANDARD), //
         new FormatWithoutExample("yyyy-QQQ", DATE, STANDARD), //
-        new FormatWithoutExample("yyyy-QQ-dd", DATE, STANDARD), //
         new FormatWithoutExample("yyyy-'W'ww", DATE, STANDARD), //
-        new FormatWithoutExample("yyyy-M[M]-d[d]", DATE, STANDARD), //
         new FormatWithoutExample("dd/MM/yyyy", DATE, EUROPEAN), //
         new FormatWithoutExample("dd.MM.yyyy", DATE, EUROPEAN), //
         new FormatWithoutExample("dd/MM/yy", DATE, EUROPEAN), //
@@ -308,8 +305,8 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
         new FormatWithoutExample("d/MM/yyyy", DATE, EUROPEAN), //
         new FormatWithoutExample("d. MMM. yyyy", DATE, EUROPEAN), //
         new FormatWithoutExample("yyyy MMM dd", DATE, EUROPEAN), //
-        new FormatWithoutExample("'Q'Q/yyyy", DATE, EUROPEAN), //
-        new FormatWithoutExample("yyyy/'Q'Q", DATE, EUROPEAN), //
+        new FormatWithoutExample("QQQ/yyyy", DATE, EUROPEAN), //
+        new FormatWithoutExample("yyyy/QQQ", DATE, EUROPEAN), //
         new FormatWithoutExample("MM/dd/yyyy", DATE, AMERICAN), //
         new FormatWithoutExample("MM/dd/yy", DATE, AMERICAN), //
         new FormatWithoutExample("MMM d, yyyy", DATE, AMERICAN), //
@@ -327,7 +324,7 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
         new FormatWithoutExample("MM/yyyy", DATE, AMERICAN), //
         new FormatWithoutExample("MMM dd, yyyy", DATE, AMERICAN), //
         new FormatWithoutExample("Q/yyyy", DATE, AMERICAN), //
-        new FormatWithoutExample("'Q'Q/yyyy", DATE, AMERICAN) //
+        new FormatWithoutExample("QQ/yyyy", DATE, AMERICAN) //
     );
 
     /**
@@ -340,11 +337,9 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
         new FormatWithoutExample("H:mm:ss", TIME, STANDARD), //
         new FormatWithoutExample("HH:mm:ss.SSS", TIME, STANDARD), //
         new FormatWithoutExample("HH:mm:ss[.SSS]", TIME, STANDARD), //
-        new FormatWithoutExample("HH:mm:ss[.SSS][.SS][.S]", TIME, STANDARD), //
         new FormatWithoutExample("HH:mm:ss.nnn", TIME, STANDARD), //
         new FormatWithoutExample("HH:mm:ss[.n]", TIME, STANDARD), //
         new FormatWithoutExample("HH:mm[:ss[.SSS]]", TIME, STANDARD), //
-        new FormatWithoutExample("HH:mm[:ss[.SSS][.SS][.S]]", TIME, STANDARD), //
         new FormatWithoutExample("hh:mma", TIME, STANDARD), //
         new FormatWithoutExample("h:mm a", TIME, STANDARD), //
         new FormatWithoutExample("h:mm:ss a", TIME, STANDARD), //
@@ -354,11 +349,9 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
         new FormatWithoutExample("H:mm:ss", TIME, EUROPEAN), //
         new FormatWithoutExample("HH:mm:ss.SSS", TIME, EUROPEAN), //
         new FormatWithoutExample("HH:mm:ss[.SSS]", TIME, EUROPEAN), //
-        new FormatWithoutExample("HH:mm:ss[.SSS][.SS][.S]", TIME, EUROPEAN), //
         new FormatWithoutExample("HH:mm:ss.nnn", TIME, EUROPEAN), //
         new FormatWithoutExample("HH:mm:ss[.n]", TIME, EUROPEAN), //
         new FormatWithoutExample("HH:mm[:ss[.SSS]]", TIME, EUROPEAN), //
-        new FormatWithoutExample("HH:mm[:ss[.SSS][.SS][.S]]", TIME, EUROPEAN), //
         new FormatWithoutExample("hh:mma", TIME, EUROPEAN), //
         new FormatWithoutExample("h:mm a", TIME, EUROPEAN), //
         new FormatWithoutExample("h:mm:ss a", TIME, EUROPEAN), //
@@ -368,11 +361,9 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
         new FormatWithoutExample("H:mm:ss", TIME, AMERICAN), //
         new FormatWithoutExample("HH:mm:ss.SSS", TIME, AMERICAN), //
         new FormatWithoutExample("HH:mm:ss[.SSS]", TIME, AMERICAN), //
-        new FormatWithoutExample("HH:mm:ss[.SSS][.SS][.S]", TIME, AMERICAN), //
         new FormatWithoutExample("HH:mm:ss.nnn", TIME, AMERICAN), //
         new FormatWithoutExample("HH:mm:ss[.n]", TIME, AMERICAN), //
         new FormatWithoutExample("HH:mm[:ss[.SSS]]", TIME, AMERICAN), //
-        new FormatWithoutExample("HH:mm[:ss[.SSS][.SS][.S]]", TIME, AMERICAN), //
         new FormatWithoutExample("hh:mma", TIME, AMERICAN), //
         new FormatWithoutExample("h:mm a", TIME, AMERICAN), //
         new FormatWithoutExample("h:mm:ss a", TIME, AMERICAN) //
@@ -390,15 +381,12 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
         new FormatWithoutExample("yyyy-MM-dd;HH:mm:ss", DATE_TIME, STANDARD), //
         new FormatWithoutExample("yyyy-MM-dd HH:mm[:ss[.SSS]]", DATE_TIME, STANDARD), //
         new FormatWithoutExample("yyyy-MM-dd HH:mm[:ss]", DATE_TIME, STANDARD), //
-        new FormatWithoutExample("yyyy-MM-dd;HH:mm:ss[.SSS][.SS][.S]", DATE_TIME, STANDARD), //
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm", DATE_TIME, STANDARD), //
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss", DATE_TIME, STANDARD), //
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss[.SSS]", DATE_TIME, STANDARD), //
-        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S]", DATE_TIME, STANDARD), //
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSS", DATE_TIME, STANDARD), //
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm[:ss[.SSS]]", DATE_TIME, STANDARD), //
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm[:ss]", DATE_TIME, STANDARD), //
-        new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss[.S[S[S]]]", DATE_TIME, STANDARD), //
         new FormatWithoutExample("yyyy-MM-dd HH:mm", DATE_TIME, EUROPEAN), //
         new FormatWithoutExample("yyyy-MM-dd HH:mm:ss", DATE_TIME, EUROPEAN), //
         new FormatWithoutExample("yyyy-MM-dd HH:mm:ss.SSS", DATE_TIME, EUROPEAN), //
@@ -509,6 +497,13 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
     );
 
     /**
+     * Link to the JavaDoc for {@link DateTimeFormatter}, which includes a list of all the format characters that can be
+     * used.
+     */
+    public static final String LINK_TO_FORMAT_JAVADOC =
+        "https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html";
+
+    /**
      * Convenient list of allowed format strings in the date/time format picker, intended to be used verbatim in widget
      * documentation. Based on the format strings allowed by {@link DateTimeFormatter}.
      */
@@ -521,15 +516,22 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
                 <li>M: month in year (context sensitive)</li>
                 <li>L: month in year (standalone form)</li>
                 <li>d: day of month</li>
-                <li>Q: quarter of year</li>
-                <li>q: quarter of year</li>
-                <li>Y: week based year</li>
+                <li>Q/q: quarter of year</li>
+                <li>Y: week based year (you probably want to use y instead)</li>
                 <li>w: week of week based year</li>
                 <li>W: week of month</li>
                 <li>E: day of week</li>
-                <li>e: localized day of week</li>
-                <li>c: localized day of week</li>
-                <li>F: week of month</li>
+                <li>e: localized day of week
+                    <ul>
+                        <li>e: 4</li>
+                        <li>ee: 04</li>
+                        <li>eee: Wed</li>
+                        <li>eeee: Wednesday</li>
+                        <li>eeeee: W</li>
+                    </ul>
+                </li>
+                <li>c: day of week</li>
+                <li>F: day-of-week in month</li>
                 <li>a: am/pm of day</li>
                 <li>h: clock hour of am/pm (1-12)</li>
                 <li>K: hour of am/pm (0-11)</li>
@@ -540,13 +542,27 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
                 <li>S: fraction of second</li>
                 <li>A: milli of day</li>
                 <li>n: nano of second</li>
-                <li>N: nano of second</li>
+                <li>N: nano of day</li>
                 <li>V: time zone ID</li>
                 <li>z: time zone name</li>
                 <li>O: localized zone offset</li>
-                <li>X zone offset ('Z' for zero)</li>
-                <li>x: zone offset</li>
-                <li>Z: zone offset</li>
+                <li>x: zone offset (ISO8601)
+                      <ul>
+                          <li>X: +08 or +0830</li>
+                          <li>XX: +0800 or +0830 (no colons)</li>
+                          <li>XXX: +08:00 or +08:30 (with colons)</li>
+                          <li>XXXX: +0800 or +083015 (i.e. including offset seconds, no colons)</li>
+                          <li>XXXXX: +08:00 or +08:30:15 (i.e. including offset seconds, with colons)</li>
+                      </ul>
+                </li>
+                <li>X: same as x, but outputs Z when offset is 0</li>
+                <li>Z: zone offset (RFC822)
+                    <ul>
+                        <li>Z, ZZ, ZZZ: +0800 or +0830</li>
+                        <li>ZZZZ: GMT+08:00 or GMT+08:30</li>
+                        <li>ZZZZZ: +08:00 or +08:30:15</li>
+                    </ul>
+                </li>
                 <li>p: pad next</li>
                 <li>' : escape for text</li>
                 <li>'': single quote</li>
