@@ -57,6 +57,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
@@ -115,13 +116,35 @@ public class TableViewViewSettings implements DefaultNodeSettings {
     }
 
     /**
+     * This modification is to be used for default node settings extending {@link TableViewViewSettings} which need to
+     * replace the displayed columns.
+     *
+     * More precisely, this is in place for the statistics view. Other settings are hidden by reflection but because the
+     * persisted settings differ here, this is not an option for the displayed columns.
+     *
+     * @author Paul Bärnreuther
+     */
+    public static final class RemoveDisplayedColumns implements WidgetGroup.Modifier {
+
+        private interface DisplayedColumnsWidgetRef extends Modification.Reference {
+        }
+
+        @Override
+        public void modify(final WidgetGroupModifier group) {
+            group.find(DisplayedColumnsWidgetRef.class).removeAnnotation(Widget.class);
+        }
+    }
+
+    /**
      * The selected columns to be displayed.
      */
     @Widget(title = "Displayed columns", description = "Select the columns that should be displayed in the table")
     @ChoicesWidget(choices = AllColumns.class)
     @Migration(DisplayedColumnsMigrator.class)
     @Layout(DataSection.class)
-    public ColumnFilter m_displayedColumnsV2;
+    @Persist(configKey = "displayedColumnsV2") // V2 Required for migration
+    @Modification.WidgetReference(RemoveDisplayedColumns.DisplayedColumnsWidgetRef.class)
+    public ColumnFilter m_displayedColumns;
 
     /**
      * If the row numbers should be displayed
@@ -238,8 +261,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
 
         }
 
-        static final class CompactModeAndLegacyRowHeightModePersistor
-            implements NodeSettingsMigration<RowHeightMode> {
+        static final class CompactModeAndLegacyRowHeightModePersistor implements NodeSettingsMigration<RowHeightMode> {
 
             @Override
             public List<ConfigMigration<RowHeightMode>> getConfigMigrations() {
@@ -297,8 +319,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
                     + " as possible in given space.")
             COMPACT;
 
-        static final class VerticalPaddingModePersistor
-            implements NodeSettingsMigration<VerticalPaddingMode> {
+        static final class VerticalPaddingModePersistor implements NodeSettingsMigration<VerticalPaddingMode> {
 
             @Override
             public List<ConfigMigration<VerticalPaddingMode>> getConfigMigrations() {
@@ -441,12 +462,12 @@ public class TableViewViewSettings implements DefaultNodeSettings {
      */
     public TableViewViewSettings(final DataTableSpec spec) {
         final String[] allColumnNames = spec == null ? new String[0] : spec.getColumnNames();
-        m_displayedColumnsV2 = new ColumnFilter(allColumnNames);
+        m_displayedColumns = new ColumnFilter(allColumnNames);
     }
 
     @SuppressWarnings("javadoc")
     public String[] getDisplayedColumns(final DataTableSpec spec) {
         final var choices = spec.getColumnNames();
-        return m_displayedColumnsV2.getSelectedIncludingMissing(choices, spec);
+        return m_displayedColumns.getSelectedIncludingMissing(choices, spec);
     }
 }

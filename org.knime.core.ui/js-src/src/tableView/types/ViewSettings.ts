@@ -60,26 +60,27 @@ export type TableViewDialogSettings = GenericTableViewViewSettings<
  * The alternative would be to make the statistics view have its own view which wraps
  * the TableView, which is not as feasible as this workaround here.
  */
-export type StatisticsViewDialogSettings = Omit<
+export type StatisticsViewSettings = Omit<
   TableViewViewSettings,
   "displayedColumns"
 > & {
-  displayedColumns: string[];
+  displayedStatistics: string[];
 };
 
-const isStatisticsSettings = (
-  data: StatisticsViewDialogSettings | TableViewDialogSettings,
-): data is StatisticsViewDialogSettings => Array.isArray(data.displayedColumns);
+const isStatisticsSettings = (data: any): data is StatisticsViewSettings =>
+  Boolean(data.displayedStatistics);
 
 const toTableViewSettings = (
-  statisticsDialogSettings: StatisticsViewDialogSettings,
+  statisticsDialogSettings: StatisticsViewSettings,
 ): TableViewViewSettings => ({
   ...statisticsDialogSettings,
-  displayedColumns: { selected: statisticsDialogSettings.displayedColumns },
+  displayedColumns: {
+    selected: statisticsDialogSettings.displayedStatistics,
+  },
 });
 
 export const parseOnViewSettingsChangeSettings = (
-  dialogSettings: StatisticsViewDialogSettings | TableViewDialogSettings,
+  dialogSettings: StatisticsViewSettings | TableViewDialogSettings,
   currentSelected: string[],
 ): TableViewViewSettings => {
   if (isStatisticsSettings(dialogSettings)) {

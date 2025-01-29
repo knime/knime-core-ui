@@ -27,7 +27,7 @@ import type { InitialData } from "./types/InitialData";
 import type { ColumnContentType, Table } from "./types/Table";
 import {
   AutoSizeColumnsToContent,
-  type StatisticsViewDialogSettings,
+  type StatisticsViewSettings,
   type TableViewDialogSettings,
   type TableViewViewSettings,
   parseOnViewSettingsChangeSettings,
@@ -906,7 +906,7 @@ export default {
       data: { view: newSettings },
     }: {
       data: {
-        view: TableViewDialogSettings | StatisticsViewDialogSettings;
+        view: TableViewDialogSettings | StatisticsViewSettings;
       };
     }) {
       const tableViewViewSettings = parseOnViewSettingsChangeSettings(

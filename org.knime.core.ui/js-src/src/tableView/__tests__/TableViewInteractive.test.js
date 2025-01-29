@@ -1607,7 +1607,7 @@ describe("TableViewInteractive.vue", () => {
     it("updates view settings in case of statistics dialog settings", async () => {
       const statisticsSettings = {
         ...initialDataMock.settings,
-        displayedColumns: ["A", "B", "C"],
+        displayedStatistics: ["A", "B", "C"],
       };
       wrapper.vm.onViewSettingsChange({
         data: { view: statisticsSettings },
