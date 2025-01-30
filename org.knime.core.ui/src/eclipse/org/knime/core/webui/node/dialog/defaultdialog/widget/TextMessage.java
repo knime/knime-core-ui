@@ -152,12 +152,18 @@ public @interface TextMessage {
          * @return the description of the message
          */
         default String description(final DefaultNodeSettingsContext context) {
+            var portObjectSpecs = context.getPortObjectSpecs();
+
+            if (portObjectSpecs == null || portObjectSpecs.length == 0 || portObjectSpecs[0] == null) {
+                return "No input data available. Connect a node to the input port.";
+            }
+
             var inputPorts = context.getInputPortObjects();
             Optional<DataTable> dt =
                 inputPorts != null && inputPorts.length > 0 ? context.getDataTable(0) : Optional.empty();
 
             if (dt.isEmpty()) {
-                return "Connect a table to see a preview";
+                return "No input data available. Execute upstream nodes.";
             }
 
             var spec = dt.get().getDataTableSpec();
@@ -194,7 +200,7 @@ public @interface TextMessage {
          * @param selectedCols the array of selected columns
          * @return the text to display in the description
          */
-        default Optional<String> getFirstDataCellPreview(final DataTable dt, final String[] selectedCols){
+        default Optional<String> getFirstDataCellPreview(final DataTable dt, final String[] selectedCols) {
             return Optional.empty();
         }
 

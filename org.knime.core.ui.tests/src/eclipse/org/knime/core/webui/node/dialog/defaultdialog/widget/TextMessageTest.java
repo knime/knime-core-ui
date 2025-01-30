@@ -60,6 +60,7 @@ import org.junit.jupiter.api.Test;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.InputPreviewMessageProvider;
@@ -102,11 +103,24 @@ public class TextMessageTest {
     void testDefaultDescriptionWithNoTable() {
         var provider = new DefaultTestInputPreviewMessageProvider();
         final var mockContext = mock(DefaultNodeSettingsContext.class);
-        when(mockContext.getInputPortObjects()).thenReturn(null);
+        when(mockContext.getPortObjectSpecs()).thenReturn(new PortObjectSpec[]{null});
 
         var description = provider.description(mockContext);
 
-        assertEquals("Connect a table to see a preview", description);
+        assertEquals("No input data available. Connect a node to the input port.", description);
+    }
+
+    @Test
+    void testDefaultDescriptionWithTableNotExecuted() {
+        var provider = new DefaultTestInputPreviewMessageProvider();
+        final var mockContext = mock(DefaultNodeSettingsContext.class);
+        when(mockContext.getPortObjectSpecs()).thenReturn(new PortObjectSpec[]{new DataTableSpec()});
+        when(mockContext.getInputPortObjects()).thenReturn(new PortObject[1]);
+        when(mockContext.getDataTable(0)).thenReturn(Optional.empty());
+
+        var description = provider.description(mockContext);
+
+        assertEquals("No input data available. Execute upstream nodes.", description);
     }
 
     @Test
@@ -115,6 +129,7 @@ public class TextMessageTest {
         final var mockContext = mock(DefaultNodeSettingsContext.class);
         final var mockDataTable = mock(DataTable.class);
         final var mockSpec = mock(DataTableSpec.class);
+        when(mockContext.getPortObjectSpecs()).thenReturn(new PortObjectSpec[]{mockSpec});
         when(mockContext.getInputPortObjects()).thenReturn(new PortObject[1]);
         when(mockContext.getDataTable(0)).thenReturn(Optional.of(mockDataTable));
         when(mockDataTable.getDataTableSpec()).thenReturn(mockSpec);
@@ -133,6 +148,7 @@ public class TextMessageTest {
         final var mockContext = mock(DefaultNodeSettingsContext.class);
         final var mockDataTable = mock(DataTable.class);
         final var mockSpec = mock(DataTableSpec.class);
+        when(mockContext.getPortObjectSpecs()).thenReturn(new PortObjectSpec[]{mockSpec});
         when(mockContext.getInputPortObjects()).thenReturn(new PortObject[1]);
         when(mockContext.getDataTable(0)).thenReturn(Optional.of(mockDataTable));
         when(mockDataTable.getDataTableSpec()).thenReturn(mockSpec);
@@ -150,6 +166,7 @@ public class TextMessageTest {
         final var mockContext = mock(DefaultNodeSettingsContext.class);
         final var mockDataTable = mock(DataTable.class);
         final var mockSpec = mock(DataTableSpec.class);
+        when(mockContext.getPortObjectSpecs()).thenReturn(new PortObjectSpec[]{mockSpec});
         when(mockContext.getInputPortObjects()).thenReturn(new PortObject[1]);
         when(mockContext.getDataTable(0)).thenReturn(Optional.of(mockDataTable));
         when(mockDataTable.getDataTableSpec()).thenReturn(mockSpec);
@@ -166,6 +183,7 @@ public class TextMessageTest {
         final var mockContext = mock(DefaultNodeSettingsContext.class);
         final var mockDataTable = mock(DataTable.class);
         final var mockSpec = mock(DataTableSpec.class);
+        when(mockContext.getPortObjectSpecs()).thenReturn(new PortObjectSpec[]{mockSpec});
         when(mockContext.getInputPortObjects()).thenReturn(new PortObject[1]);
         when(mockContext.getDataTable(0)).thenReturn(Optional.of(mockDataTable));
         when(mockDataTable.getDataTableSpec()).thenReturn(mockSpec);
