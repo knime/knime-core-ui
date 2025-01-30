@@ -83,17 +83,14 @@ public @interface DateTimeWidget {
     boolean showMilliseconds() default false;
 
     /**
-     * @return whether to use a specific timezone, e.g. "America/Dawson_Creek"
-     */
-    String timezone() default "";
-
-    /**
-     * @return no date before the specified minDate can be chosen
+     * @return no date before the specified minDate can be chosen. Do not enter an iso date string but a local date
+     *         (& time) e.g. "2024-01-02T10:12"
      */
     String minDate() default "";
 
     /**
-     * @return no date after the specified minDate can be chosen
+     * @return no date after the specified minDate can be chosen. Do not enter an iso date string but a local date
+     *         (& time) e.g. "2024-01-02T10:12"
      */
     String maxDate() default "";
 }

@@ -300,9 +300,6 @@ final class UiSchemaOptionsGenerator {
             final var dateTimeWidget = m_node.getAnnotation(DateTimeWidget.class).orElseThrow();
             options.put(TAG_FORMAT, Format.LOCAL_DATE_TIME);
             selectTimeFields(options, dateTimeWidget.showSeconds(), dateTimeWidget.showMilliseconds());
-            if (!dateTimeWidget.timezone().isEmpty()) {
-                options.put("timezone", dateTimeWidget.timezone());
-            }
             setMinAndMaxDate(options, dateTimeWidget.minDate(), dateTimeWidget.maxDate());
         }
 

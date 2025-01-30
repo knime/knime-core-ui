@@ -949,8 +949,7 @@ class UiSchemaOptionsTest {
         class DateTimeDefaultTestSettings implements DefaultNodeSettings {
 
             @Widget(title = "", description = "")
-            @DateTimeWidget(showSeconds = true, showMilliseconds = true, minDate = "2023-06-12", maxDate = "2023-06-14",
-                timezone = "America/Dawson_Creek")
+            @DateTimeWidget(showSeconds = true, showMilliseconds = true, minDate = "2023-06-12", maxDate = "2023-06-14")
             String m_dateTime;
         }
 
@@ -959,7 +958,6 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dateTime");
         assertThatJson(response).inPath("$.elements[0].options.showSeconds").isBoolean().isTrue();
         assertThatJson(response).inPath("$.elements[0].options.showMilliseconds").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[0].options.timezone").isString().isEqualTo("America/Dawson_Creek");
         assertThatJson(response).inPath("$.elements[0].options.minimum").isString().isEqualTo("2023-06-12");
         assertThatJson(response).inPath("$.elements[0].options.maximum").isString().isEqualTo("2023-06-14");
     }
