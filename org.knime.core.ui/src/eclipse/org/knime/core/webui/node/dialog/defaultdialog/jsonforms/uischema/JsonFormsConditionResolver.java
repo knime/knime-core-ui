@@ -94,7 +94,7 @@ class JsonFormsConditionResolver implements ConditionVisitor<ObjectNode> {
         final var node = getMapper().createObjectNode();
         final var oneOf = node.putArray(TAG_ONEOF);
         for (var option : oneOfEnumCondition.oneOf()) {
-            oneOf.addObject().put(TAG_CONST, option.toString());
+            oneOf.addObject().put(TAG_CONST, option.name());
         }
         return node;
     }

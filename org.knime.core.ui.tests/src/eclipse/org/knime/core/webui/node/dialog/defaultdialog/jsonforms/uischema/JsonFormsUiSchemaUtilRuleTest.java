@@ -1088,4 +1088,49 @@ class JsonFormsUiSchemaUtilRuleTest {
         assertThatJson(response).inPath("$.elements[0].rule.effect").isString().isEqualTo("HIDE");
     }
 
+    @Test
+    void testEnumPredicateWorksWhenToStringIsOverwritten() {
+        final class SettingsWithEnum implements DefaultNodeSettings {
+            enum TestEnum {
+                    VAL1("testValue1"), //
+                    VAL2("testValue2");
+
+                private String m_name;
+
+                TestEnum(final String name) {
+                    this.m_name = name;
+                }
+
+                @Override
+                public String toString() {
+                    return m_name;
+                }
+            }
+
+            interface Ref extends Reference<TestEnum> {
+            }
+
+            @ValueReference(Ref.class)
+            TestEnum m_testvalue = TestEnum.VAL2;
+
+            static final class TestPredicate implements PredicateProvider {
+
+                @Override
+                public Predicate init(final PredicateInitializer i) {
+                    return i.getEnum(Ref.class).isOneOf(TestEnum.VAL2);
+                }
+            }
+
+            @Widget(title = "", description = "")
+            @Effect(predicate = TestPredicate.class, type = EffectType.SHOW)
+            String m_val2Text;
+        }
+
+        final var response = buildTestUiSchema(SettingsWithEnum.class);
+
+        assertThatJson(response).inPath("$.elements").isArray().hasSize(1);
+        assertThatJson(response).inPath("$.elements[0].rule.condition.schema.oneOf[0].const").isString()
+            .isEqualTo(SettingsWithEnum.TestEnum.VAL2.name());
+    }
+
 }
