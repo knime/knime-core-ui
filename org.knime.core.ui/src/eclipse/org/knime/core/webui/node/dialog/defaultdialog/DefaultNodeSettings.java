@@ -330,6 +330,16 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
         }
 
         /**
+         * Widens scope of constructor of {@link DefaultNodeSettingsContext}. Only used in tests.
+         */
+        @SuppressWarnings("javadoc")
+        public static DefaultNodeSettingsContext createDefaultNodeSettingsContext(final PortType[] inPortTypes,
+            final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider,
+            final PortObject[] inputPortObjects) {
+            return new DefaultNodeSettingsContext(inPortTypes, specs, stack, credentialsProvider, inputPortObjects);
+        }
+
+        /**
          * The node's input types. Not null and not containing null.
          *
          * @return the inTypes
@@ -550,8 +560,7 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
      *         settings and flow variables.
      * @see NodeSettingsCorrectionUtil
      */
-    static <S extends DefaultNodeSettings> ConfigMappings
-        getConfigMappings(final Class<S> settingsClass,
+    static <S extends DefaultNodeSettings> ConfigMappings getConfigMappings(final Class<S> settingsClass,
         final DefaultNodeSettings settingsObject) {
         return ConfigMappingsFactory.createConfigMappings(settingsClass, settingsObject);
     }
