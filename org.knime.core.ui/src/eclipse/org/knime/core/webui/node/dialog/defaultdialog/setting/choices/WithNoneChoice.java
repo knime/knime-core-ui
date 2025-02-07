@@ -48,11 +48,19 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.choices;
 
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
+
 /**
+ *
+ * Use this as static choices in a {@link SingleSelection} field to allow the user to select none of the available
+ * options.
+ *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("javadoc")
 public enum WithNoneChoice {
 
-    NONE;
+        /**
+         * No selection.
+         */
+        NONE;
 }

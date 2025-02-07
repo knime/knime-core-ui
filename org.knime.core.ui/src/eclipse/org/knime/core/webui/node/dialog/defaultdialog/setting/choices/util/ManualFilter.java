@@ -66,12 +66,16 @@ public class ManualFilter implements PersistableSettings {
 
     /**
      * the manually selected columns in case of m_mode = "MANUAL"
+     *
+     * public for tests
      */
     public String[] m_manuallySelected; //NOSONAR
 
     /**
      * the (last) deselected columns. It is necessary to store these in order to know which colums of a new input
      * {@link DataTableSpec} are unknown.
+     *
+     * public for tests
      */
     public String[] m_manuallyDeselected; //NOSONAR
 
@@ -79,6 +83,8 @@ public class ManualFilter implements PersistableSettings {
      * A column is unknown if it is was not present in the last executed input table. If this setting is true, these
      * columns will be selected/included when the selected columns are updated after a reconfiguration of the input
      * table.
+     *
+     * public for tests
      */
     public boolean m_includeUnknownColumns; //NOSONAR
 

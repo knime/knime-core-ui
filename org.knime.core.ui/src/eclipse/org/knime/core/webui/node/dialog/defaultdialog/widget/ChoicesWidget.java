@@ -79,34 +79,6 @@ public @interface ChoicesWidget {
     Class<? extends ChoicesProvider> choices() default ChoicesProvider.class;
 
     /**
-     *
-     * @return whether to show an additional choice "None" representing no selection.
-     */
-    boolean showNoneColumn() default false;
-
-    /**
-     * TODO UIEXT-907 Make this only available for column choices.
-     *
-     * @return whether to show an additional choice "RowIDs" representing the row key column.
-     */
-    boolean showRowKeysColumn() default false;
-
-    /**
-     * @return whether to show an additional choice "Row numbers" representing the row number column.
-     */
-    boolean showRowNumbersColumn() default false;
-
-    /**
-     * @return whether a search field should be shown for the {@link ColumnFilter}
-     */
-    boolean showSearch() default true;
-
-    /**
-     * @return whether the column filter mode selection should be displayed for the {@link ColumnFilter}.
-     */
-    boolean showMode() default true;
-
-    /**
      * @return the label of the included columns for the {@link ColumnFilter}
      */
     String includedLabel() default "";

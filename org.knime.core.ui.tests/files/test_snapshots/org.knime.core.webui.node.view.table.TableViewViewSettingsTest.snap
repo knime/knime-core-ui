@@ -376,11 +376,7 @@
               "text" : "String"
             },
             "compatibleTypes" : [ "org.knime.core.data.StringValue", "org.knime.core.data.DataValue", "org.knime.core.data.NominalValue" ]
-          } ],
-          "showNoneColumn" : false,
-          "showRowKeys" : false,
-          "showSearch" : true,
-          "showMode" : true
+          } ]
         }
       }, {
         "type" : "Control",

@@ -88,8 +88,8 @@ public final class Tree<S> extends TreeNode<S> {
 
     private final Class<? extends S> m_treeClass;
 
-    Tree(final Tree<S> parent, final SettingsType settingsType, final JavaType treeType, final Class<? extends S> treeClass,
-        final Function<Class<? extends Annotation>, Annotation> annotations,
+    Tree(final Tree<S> parent, final SettingsType settingsType, final JavaType treeType,
+        final Class<? extends S> treeClass, final Function<Class<? extends Annotation>, Annotation> annotations,
         final Collection<Class<? extends Annotation>> possibleAnnotations,
         final Function<Class<? extends Annotation>, Annotation> treeClassAnnotations,
         final Collection<Class<? extends Annotation>> possibleTreeClassAnnotations, final Field underlyingField) {

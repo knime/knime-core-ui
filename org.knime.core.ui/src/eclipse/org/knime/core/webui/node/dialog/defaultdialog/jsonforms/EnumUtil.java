@@ -59,7 +59,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public class EnumUtil {
+public final class EnumUtil {
+
+    private EnumUtil() {
+        // util class
+    }
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(EnumUtil.class);
 
@@ -91,7 +95,4 @@ public class EnumUtil {
         return new TitleAndDescription(label, null);
     }
 
-    private EnumUtil() {
-        // util class
-    }
 }

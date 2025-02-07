@@ -49,15 +49,15 @@
 package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.config.base.ConfigBaseRO;
+import org.knime.core.node.config.base.ConfigBaseWO;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.PatternFilter.PatternMode;
 
 /**
  * @author Paul Bärnreuther
  */
 @SuppressWarnings("javadoc")
-public class LegacyPatternFilterPersistorUtil {
+public final class LegacyPatternFilterPersistorUtil {
 
     private LegacyPatternFilterPersistorUtil() {
         // Utility
@@ -93,7 +93,7 @@ public class LegacyPatternFilterPersistorUtil {
      */
     public static final String PATTERN_FILTER_EXCLUDEMATCHING = "excludeMatching";
 
-    public static PatternMode loadPatternMode(final NodeSettingsRO patternMatchingSettings)
+    public static PatternMode loadPatternMode(final ConfigBaseRO patternMatchingSettings)
         throws InvalidSettingsException {
         var patternMatchingType = patternMatchingSettings.getString(PATTERN_FILTER_TYPE);
         if (PATTERN_FILTER_WILDCARD.equals(patternMatchingType)) {
@@ -105,7 +105,7 @@ public class LegacyPatternFilterPersistorUtil {
         }
     }
 
-    public static PatternFilter loadPatternMatching(final NodeSettingsRO patternMatchingSettings)
+    public static PatternFilter loadPatternMatching(final ConfigBaseRO patternMatchingSettings)
         throws InvalidSettingsException {
         var patternFilter = new PatternFilter();
         patternFilter.m_pattern = patternMatchingSettings.getString(PATTERN_FILTER_PATTERN);
@@ -117,7 +117,7 @@ public class LegacyPatternFilterPersistorUtil {
     }
 
     public static void savePatternMatching(final PatternFilter patternFilter, final PatternMode mode,
-        final NodeSettingsWO patternMatchingSettings) {
+        final ConfigBaseWO patternMatchingSettings) {
         patternMatchingSettings.addString(PATTERN_FILTER_PATTERN, patternFilter.m_pattern);
         // not entirely backwards compatible because we don't persist the pattern type if pattern matching
         // is not the current mode but we accept that

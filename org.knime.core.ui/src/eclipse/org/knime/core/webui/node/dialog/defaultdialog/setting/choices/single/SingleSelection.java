@@ -54,7 +54,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistabl
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 
 /**
- * Use this class whenever a combination of static/special and dynamic/special choices is required. If no special
+ * Use this class whenever a combination of static/special and dynamic/regular choices is required. If no special
  * choices are required, use a String field instead. If no dynamic choices are required, use an enum field instead.
  *
  * Use a {@link ChoicesWidget} annotation to define the dynamic choices.
@@ -72,8 +72,11 @@ public final class SingleSelection<E extends Enum<E>> implements PersistableSett
      * If set to true, the special choice is enforced, even if a regular choice is set. This option is only exposed to
      * the user in the flow variable tab. It is needed to be able to dynamically switch between regular and special
      * choices.
+     *
+     * If this value is set to true, but both the manual settings are a regular choice and the specialChoice is not
+     * overwritten as well, this boolean has no effect.
      */
-    boolean m_enforceSpecialChoice;
+    boolean m_preferSpecialChoice;
 
     E m_specialChoice;
 
@@ -101,16 +104,19 @@ public final class SingleSelection<E extends Enum<E>> implements PersistableSett
      * @return the selected special choice if a special choice is selected.
      */
     public Optional<E> getSpecialChoice() {
-        if (m_regularChoice == null || m_enforceSpecialChoice) {
-            return Optional.of(m_specialChoice);
+        if (m_regularChoice == null || m_preferSpecialChoice) {
+            return Optional.ofNullable(m_specialChoice);
         }
         return Optional.empty();
     }
+
     /**
-     * Call this method only when {@link #getSpecialChoice} returned an empty optional in order to guarantee that the returned value is non-null.
+     * Call this method only when {@link #getSpecialChoice} returned an empty optional in order to guarantee that the
+     * returned value is non-null.
+     *
      * @return the selected regular choices.
      */
     public String getRegularChoice() {
-        return m_enforceSpecialChoice ? null : m_regularChoice;
+        return m_preferSpecialChoice ? null : m_regularChoice;
     }
 }

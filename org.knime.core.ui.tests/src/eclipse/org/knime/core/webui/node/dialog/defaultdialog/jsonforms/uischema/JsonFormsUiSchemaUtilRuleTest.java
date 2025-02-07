@@ -880,7 +880,7 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     @Test
     void testSingleSelectionConditions() {
-        final class SingleSelectionConditionSettigns implements DefaultNodeSettings {
+        final class SingleSelectionConditionSettings implements DefaultNodeSettings {
 
             static final class SingleSelectionReference implements Reference<SingleSelection<WithNoneChoice>> {
             }
@@ -888,7 +888,7 @@ class JsonFormsUiSchemaUtilRuleTest {
             @Widget(title = "Foo", description = "")
             @ChoicesWidget(choices = TestChoicesProvider.class)
             @ValueReference(SingleSelectionReference.class)
-            SingleSelection<WithNoneChoice> columnSelection;
+            SingleSelection<WithNoneChoice> singleSelection;
 
             static final class MySpecialChoiceCondition implements PredicateProvider {
 
@@ -914,7 +914,7 @@ class JsonFormsUiSchemaUtilRuleTest {
             boolean regularChoiceTestSetting;
 
         }
-        final var response = buildTestUiSchema(SingleSelectionConditionSettigns.class);
+        final var response = buildTestUiSchema(SingleSelectionConditionSettings.class);
         assertThatJson(response).inPath("$.elements").isArray().hasSize(3);
         assertThatJson(response).inPath("$.elements[0].type").isString().isEqualTo("Control");
         assertThatJson(response).inPath("$.elements[1].type").isString().isEqualTo("Control");
