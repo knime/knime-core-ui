@@ -232,12 +232,7 @@ final class UiSchemaOptionsGenerator {
                     break;
                 case SINGLE_SELECTION:
                     options.put(TAG_FORMAT, Format.SINGLE_SELECTION);
-                    final var specialChoices = options.putArray("specialChoices");
-                    @SuppressWarnings({"unchecked", "rawtypes"}) final var specialChoicesEnumType = (Class<? extends Enum>)m_fieldType.containedType(0).getRawClass(); // The first generic
-                    for (var enumConstant : specialChoicesEnumType.getEnumConstants()) {
-                        final var titleAndDescription = EnumUtil.createConstantEntry(enumConstant);
-                        specialChoices.addObject().put("id", enumConstant.name()).put("text", titleAndDescription.title());
-                    }
+                    addSingleSelectionChoicesParams(options);
                     break;
                 case COLUMN_SELECTION:
                     options.put(TAG_FORMAT, Format.COLUMN_SELECTION);
@@ -535,13 +530,6 @@ final class UiSchemaOptionsGenerator {
             if (choicesWidget.optional()) {
                 options.put("hideOnNull", choicesWidget.optional());
             }
-            options.put("showNoneColumn", choicesWidget.showNoneColumn());
-            options.put("showRowKeys", choicesWidget.showRowKeysColumn());
-            if (choicesWidget.showRowNumbersColumn()) {
-                options.put("showRowNumbers", choicesWidget.showRowNumbersColumn());
-            }
-            options.put("showSearch", choicesWidget.showSearch());
-            options.put("showMode", choicesWidget.showMode());
             if (!choicesWidget.includedLabel().isEmpty()) {
                 options.put("includedLabel", choicesWidget.includedLabel());
             }
@@ -581,6 +569,17 @@ final class UiSchemaOptionsGenerator {
 
         if (options.isEmpty()) {
             control.remove(TAG_OPTIONS);
+        }
+    }
+
+    private void addSingleSelectionChoicesParams(final ObjectNode options) {
+        final var specialChoices = options.putArray("specialChoices");
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        // The first generic
+        final var specialChoicesEnumType = (Class<? extends Enum>)m_fieldType.containedType(0).getRawClass();
+        for (var enumConstant : specialChoicesEnumType.getEnumConstants()) {
+            final var titleAndDescription = EnumUtil.createConstantEntry(enumConstant);
+            specialChoices.addObject().put("id", enumConstant.name()).put("text", titleAndDescription.title());
         }
     }
 

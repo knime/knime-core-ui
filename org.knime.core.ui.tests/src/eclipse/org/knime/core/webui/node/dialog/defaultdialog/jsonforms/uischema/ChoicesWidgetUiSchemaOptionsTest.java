@@ -164,7 +164,7 @@ class ChoicesWidgetUiSchemaOptionsTest {
     class ChoicesSettings implements DefaultNodeSettings {
 
         @Widget(title = "", description = "")
-        @ChoicesWidget(showNoneColumn = true, choices = TestColumnChoicesProvider.class)
+        @ChoicesWidget(choices = TestColumnChoicesProvider.class)
         ColumnSelection m_foo;
 
         @Widget(title = "", description = "")
@@ -195,7 +195,6 @@ class ChoicesWidgetUiSchemaOptionsTest {
 
         var response = buildTestUiSchema(ChoicesSettings.class, defaultNodeSettingsContext);
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("foo");
-        assertThatJson(response).inPath("$.elements[0].options.showNoneColumn").isBoolean().isTrue();
         assertThatJson(response).inPath("$.elements[0].options.possibleValues").isArray().hasSize(2);
         assertThatJson(response).inPath("$.elements[0].options.possibleValues[0].id").isString().isEqualTo("column1");
         assertThatJson(response).inPath("$.elements[0].options.possibleValues[1].id").isString().isEqualTo("column2");
@@ -235,7 +234,6 @@ class ChoicesWidgetUiSchemaOptionsTest {
 
         var response = buildTestUiSchema(ChoicesSettings.class, null);
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("foo");
-        assertThatJson(response).inPath("$.elements[0].options.showNoneColumn").isBoolean().isTrue();
         assertThatJson(response).inPath("$.elements[0].options.possibleValues").isArray().isEmpty();
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("bar");
         assertThatJson(response).inPath("$.elements[1].options.possibleValues").isArray().isEmpty();
@@ -275,7 +273,7 @@ class ChoicesWidgetUiSchemaOptionsTest {
         class AsyncChoicesSettings implements DefaultNodeSettings {
 
             @Widget(title = "", description = "")
-            @ChoicesWidget(showNoneColumn = true, choices = TestAsyncColumnChoicesProvider.class)
+            @ChoicesWidget(choices = TestAsyncColumnChoicesProvider.class)
             ColumnSelection m_foo;
 
             @Widget(title = "", description = "")
@@ -300,7 +298,6 @@ class ChoicesWidgetUiSchemaOptionsTest {
             var response =
                 buildTestUiSchema(AsyncChoicesSettings.class, defaultNodeSettingsContext, asyncChoicesHolder);
             assertThatJson(response).inPath("$.elements[0].scope").isString().contains("foo");
-            assertThatJson(response).inPath("$.elements[0].options.showNoneColumn").isBoolean().isTrue();
             assertThatJson(response).inPath("$.elements[0].options").isObject().doesNotContainKey("possibleValues");
             assertThatJson(response).inPath("$.elements[0].options.choicesProviderClass").isString()
                 .isEqualTo(TestAsyncColumnChoicesProvider.class.getName());
@@ -380,106 +377,6 @@ class ChoicesWidgetUiSchemaOptionsTest {
 
         }
 
-    }
-
-    @Test
-    void testChoicesWidgetShowNoneColumn() {
-        class ChoicesWidgetTestSettings implements DefaultNodeSettings {
-
-            @Widget(title = "", description = "")
-            @ChoicesWidget(choices = TestChoicesProvider.class, showNoneColumn = true)
-            ColumnSelection m_foo;
-
-            @Widget(title = "", description = "")
-            @ChoicesWidget(choices = TestChoicesProvider.class)
-            ColumnSelection m_bar;
-
-        }
-        var response = buildTestUiSchema(ChoicesWidgetTestSettings.class);
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("foo");
-        assertThatJson(response).inPath("$.elements[0].options.showNoneColumn").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[1].scope").isString().contains("bar");
-        assertThatJson(response).inPath("$.elements[1].options.showNoneColumn").isBoolean().isFalse();
-    }
-
-    @Test
-    void testChoicesWidgetShowRowKeys() {
-        class ChoicesWidgetTestSettings implements DefaultNodeSettings {
-
-            @Widget(title = "", description = "")
-            @ChoicesWidget(choices = TestChoicesProvider.class, showRowKeysColumn = true)
-            ColumnSelection m_foo;
-
-            @Widget(title = "", description = "")
-            @ChoicesWidget(choices = TestChoicesProvider.class)
-            ColumnSelection m_bar;
-
-        }
-        var response = buildTestUiSchema(ChoicesWidgetTestSettings.class);
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("foo");
-        assertThatJson(response).inPath("$.elements[0].options.showRowKeys").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[1].scope").isString().contains("bar");
-        assertThatJson(response).inPath("$.elements[1].options.showRowKeys").isBoolean().isFalse();
-    }
-
-    @Test
-    void testChoicesWidgetShowRowNumbers() {
-        class ChoicesWidgetTestSettings implements DefaultNodeSettings {
-
-            @Widget(title = "", description = "")
-            @ChoicesWidget(choices = TestChoicesProvider.class, showRowNumbersColumn = true)
-            ColumnSelection m_foo;
-
-            @Widget(title = "", description = "")
-            @ChoicesWidget(choices = TestChoicesProvider.class)
-            ColumnSelection m_bar;
-
-        }
-        var response = buildTestUiSchema(ChoicesWidgetTestSettings.class);
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("foo");
-        assertThatJson(response).inPath("$.elements[0].options.showRowNumbers").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[1].scope").isString().contains("bar");
-        assertThatJson(response).inPath("$.elements[1].options.showRowNumbers").isAbsent();
-    }
-
-    @Test
-    void testChoicesWidgetHideSearch() {
-        class ChoicesWidgetTestSettings implements DefaultNodeSettings {
-
-            @Widget(title = "", description = "")
-            @ChoicesWidget(choices = TestChoicesProvider.class, showSearch = false)
-            ColumnSelection m_foo;
-
-            @Widget(title = "", description = "")
-            @ChoicesWidget(choices = TestChoicesProvider.class)
-            ColumnSelection m_bar;
-
-        }
-        var response = buildTestUiSchema(ChoicesWidgetTestSettings.class);
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("foo");
-        assertThatJson(response).inPath("$.elements[0].options.showSearch").isBoolean().isFalse();
-        assertThatJson(response).inPath("$.elements[1].scope").isString().contains("bar");
-        assertThatJson(response).inPath("$.elements[1].options.showSearch").isBoolean().isTrue();
-    }
-
-    @Test
-    void testChoicesWidgetHideMode() {
-        class ChoicesWidgetTestSettings implements DefaultNodeSettings {
-
-            @Widget(title = "", description = "")
-            @ChoicesWidget(choices = TestChoicesProvider.class, showMode = false)
-            ColumnSelection m_foo;
-
-            @Widget(title = "", description = "")
-            @ChoicesWidget(choices = TestChoicesProvider.class)
-            ColumnSelection m_bar;
-
-        }
-        var response = buildTestUiSchema(ChoicesWidgetTestSettings.class);
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("foo");
-        assertThatJson(response).inPath("$.elements[0].options.showMode").isBoolean().isFalse();
-        assertThatJson(response).inPath("$.elements[1].scope").isString().contains("bar");
-        assertThatJson(response).inPath("$.elements[1].options.showMode").isBoolean().isTrue();
     }
 
     @Test
