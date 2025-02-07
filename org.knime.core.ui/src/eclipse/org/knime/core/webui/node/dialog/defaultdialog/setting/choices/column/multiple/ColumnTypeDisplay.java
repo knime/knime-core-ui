@@ -46,7 +46,7 @@
  * History
  *   7 Feb 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple;
 
 import static java.util.stream.Collectors.toMap;
 

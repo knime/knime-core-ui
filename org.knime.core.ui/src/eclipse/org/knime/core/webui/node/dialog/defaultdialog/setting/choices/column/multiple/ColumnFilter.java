@@ -46,7 +46,7 @@
  * History
  *   15 Dec 2022 Paul Bärnreuther: created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple;
 
 import java.util.Objects;
 
@@ -55,7 +55,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.Defaul
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.PatternFilter.PatternMode;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.ManualFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.PatternFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 
@@ -176,7 +177,7 @@ public class ColumnFilter implements PersistableSettings {
         return switch (m_mode) {
             case MANUAL -> m_manualFilter.getUpdatedManuallySelectedIncludingMissing(choices);
             case TYPE -> m_typeFilter.getSelected(choices, spec);
-            default -> m_patternFilter.getSelected(PatternMode.of(m_mode), choices);
+            default -> m_patternFilter.getSelected(m_mode.toPatternMode(), choices);
         };
     }
 

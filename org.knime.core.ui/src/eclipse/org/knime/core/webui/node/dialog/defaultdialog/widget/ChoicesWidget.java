@@ -54,8 +54,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilterMode;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.NoopChoicesUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
@@ -103,8 +102,7 @@ public @interface ChoicesWidget {
     boolean showSearch() default true;
 
     /**
-     * @return whether the column filter mode selection should be displayed for the {@link ColumnFilter}. The possible
-     *         modes are defined by {@link ColumnFilterMode}.
+     * @return whether the column filter mode selection should be displayed for the {@link ColumnFilter}.
      */
     boolean showMode() default true;
 
