@@ -53,14 +53,10 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.Schema.TAG_TITLE;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
-import org.knime.core.node.NodeLogger;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.EnumUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.DescriptionUtil.TitleAndDescription;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.victools.jsonschema.generator.CustomPropertyDefinition;
@@ -107,35 +103,12 @@ final class EnumDefinitionProvider implements CustomPropertyDefinitionProvider<F
         var name = constant.name();
         final var innerObjectNode = arrayNode.addObject();
         innerObjectNode.put(TAG_CONST, name);
-        var constantEntry = createConstantEntry(constant);
+        var constantEntry = EnumUtil.createConstantEntry(constant);
         innerObjectNode.put(TAG_TITLE, constantEntry.title());
     }
 
     static <E extends Enum<E>> List<TitleAndDescription> getEnumConstantDescription(final Class<E> enumClass) {
         return Stream.of(enumClass.getEnumConstants())//
-            .map(EnumDefinitionProvider::createConstantEntry).toList();
+            .map(EnumUtil::createConstantEntry).toList();
     }
-
-    static <E extends Enum<E>> TitleAndDescription createConstantEntry(final E constant) {
-        var enumClass = constant.getDeclaringClass();
-        var name = constant.name();
-        try {
-            final var field = enumClass.getField(name);
-            if (field.isAnnotationPresent(Widget.class)) {
-                throw new IllegalStateException(String.format(
-                    "There is a @Widget annotation present at the enum field %s. Use the @Label annotation instead.",
-                    name));
-            }
-            if (field.isAnnotationPresent(Label.class)) {
-                final var label = field.getAnnotation(Label.class);
-                return new TitleAndDescription(label.value(), label.description());
-            }
-        } catch (NoSuchFieldException | SecurityException e) {
-            NodeLogger.getLogger(EnumDefinitionProvider.class)
-                .error(String.format("Exception when accessing field %s.", name), e);
-        }
-        var label = StringUtils.capitalize(name.toLowerCase(Locale.getDefault()).replace("_", " "));
-        return new TitleAndDescription(label, null);
-    }
-
 }

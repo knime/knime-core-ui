@@ -83,7 +83,7 @@ final class DependencyResolver {
             .concat(rootWidgetTrees.stream(),
                 node.getContainingArrayWidgetNodes().stream().map(ArrayParentNode<WidgetGroup>::getElementTree))
             .flatMap(widgetTree -> widgetTree.getWidgetNodes()
-                .map(n -> new WidgetTreeNodeWithRootClass(n, widgetTree.getType())))
+                .map(n -> new WidgetTreeNodeWithRootClass(n, widgetTree.getRawClass())))
             .collect(Collectors.toSet());
 
         m_scope = scope;
@@ -128,7 +128,7 @@ final class DependencyResolver {
             if (declaringDefaultNodeSettings != null && !control.rootClass().equals(declaringDefaultNodeSettings)) {
                 return false;
             }
-            boolean classEquals = control.node().getType().equals(clazz);
+            boolean classEquals = control.node().getRawClass().equals(clazz);
             boolean matchesSearchPath = control.getScope().endsWith(searchScope);
             return classEquals && matchesSearchPath;
         }).map(WidgetTreeNodeWithRootClass::getScope).toList();
