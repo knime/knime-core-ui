@@ -62,7 +62,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.InputPreviewMessageProvider;
 
 /**
