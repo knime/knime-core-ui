@@ -44,27 +44,36 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 22, 2024 (Paul Bärnreuther): created
+ *   Feb 21, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
+import org.junit.jupiter.api.Test;
+import org.knime.core.data.StringValue;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnTypeDisplay;
 
 /**
  *
- * @author Paul Bärnreuther
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public enum NameFilterMode {
+@SuppressWarnings("static-method")
+final class ColumnTypeDisplayTest {
 
-    /**
-     * manual selection, i.e. a stored list of manually selected strings
-     */
-    MANUAL,
-    /**
-     * selection by matching to a regex pattern
-     */
-    REGEX,
-    /**
-     * selection by matching to a wildcard pattern
-     */
-    WILDCARD,
+    @Test
+    void testFromPreferredValueClass() {
+        String knownPreferredValueClass = StringValue.class.getName();
+        var display = ColumnTypeDisplay.fromPreferredValueClass(knownPreferredValueClass)//
+            .orElseThrow();
+        assertEquals(knownPreferredValueClass, display.m_id, "Wrong id");
+        assertEquals("String", display.m_text, "Wrong text");
+    }
 
+    @Test
+    void testFromUnknownPreferredValueClass() throws Exception {
+        var display = ColumnTypeDisplay.fromPreferredValueClass("foobar");
+        assertFalse(display.isPresent(), "There is a type called foobar");
+    }
 }

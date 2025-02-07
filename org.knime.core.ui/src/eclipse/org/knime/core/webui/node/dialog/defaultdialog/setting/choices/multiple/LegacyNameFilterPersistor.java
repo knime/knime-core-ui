@@ -46,7 +46,7 @@
  * History
  *   Jan 13, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
@@ -56,7 +56,8 @@ import org.knime.core.node.util.filter.NameFilterConfiguration;
 import org.knime.core.node.util.filter.PatternFilterConfiguration;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.PatternFilter.PatternMode;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.LegacyManualFilterPersistorUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.LegacyPatternFilterPersistorUtil;
 
 /**
  * {@link NodeSettingsPersistor} for {@link NameFilter} that persists it in a way compatible to
@@ -106,7 +107,8 @@ public abstract class LegacyNameFilterPersistor implements NodeSettingsPersistor
             return NameFilterMode.MANUAL;
         } else if (PatternFilterConfiguration.TYPE.equals(filterType)) {
             var patternMatchingSettings = nameFilterSettings.getNodeSettings(PatternFilterConfiguration.TYPE);
-            return LegacyPatternFilterPersistorUtil.loadPatternMode(patternMatchingSettings).toNameFilterMode();
+            return NameFilterMode
+                .toNameFilterMode(LegacyPatternFilterPersistorUtil.loadPatternMode(patternMatchingSettings));
         } else {
             throw new InvalidSettingsException("Unsupported name filter type: " + filterType);
         }
@@ -122,7 +124,7 @@ public abstract class LegacyNameFilterPersistor implements NodeSettingsPersistor
         nameFilterSettings.addString(KEY_FILTER_TYPE, toFilterType(nameFilter.m_mode));
         LegacyManualFilterPersistorUtil.saveManualFilter(nameFilter.m_manualFilter, nameFilterSettings);
         LegacyPatternFilterPersistorUtil.savePatternMatching(nameFilter.m_patternFilter,
-            PatternMode.of(nameFilter.m_mode), nameFilterSettings.addNodeSettings(PatternFilterConfiguration.TYPE));
+            nameFilter.m_mode.toPatternMode(), nameFilterSettings.addNodeSettings(PatternFilterConfiguration.TYPE));
     }
 
     private static String createFilterNullError(final String configKey) {

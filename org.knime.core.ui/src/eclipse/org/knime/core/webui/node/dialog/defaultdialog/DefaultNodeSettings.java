@@ -85,8 +85,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistabl
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigMappingsFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple.NameFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
