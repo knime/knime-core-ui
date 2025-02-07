@@ -50,11 +50,11 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.config.base.ConfigBaseWO;
 import org.knime.core.node.util.filter.NameFilterConfiguration.EnforceOption;
 
 @SuppressWarnings("javadoc")
-public class LegacyManualFilterPersistorUtil {
+public final class LegacyManualFilterPersistorUtil {
 
     /**
      * See NameFilterConfiguration.KEY_ENFORCE_OPTION
@@ -90,7 +90,7 @@ public class LegacyManualFilterPersistorUtil {
         return enforceOption == EnforceOption.EnforceExclusion;
     }
 
-    public static void saveManualFilter(final ManualFilter manualFilter, final NodeSettingsWO columnFilterSettings) {
+    public static void saveManualFilter(final ManualFilter manualFilter, final ConfigBaseWO columnFilterSettings) {
         columnFilterSettings.addStringArray(KEY_INCLUDED_NAMES, manualFilter.m_manuallySelected);
         columnFilterSettings.addStringArray(OLD_EXCLUDED_NAMES, manualFilter.m_manuallyDeselected);
         columnFilterSettings.addString(KEY_ENFORCE_OPTION, getEnforceOption(manualFilter).name());
