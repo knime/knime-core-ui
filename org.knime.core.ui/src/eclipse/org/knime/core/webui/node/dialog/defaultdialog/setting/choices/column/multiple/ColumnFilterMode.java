@@ -75,23 +75,11 @@ enum ColumnFilterMode {
         TYPE;
 
     PatternMode toPatternMode() {
-        switch (this) {
-            case REGEX:
-                return PatternMode.REGEX;
-            default:
-                return PatternMode.WILDCARD;
-        }
-
+        return this == REGEX ? PatternMode.REGEX : PatternMode.WILDCARD;
     }
 
     static ColumnFilterMode toColumnFilterMode(final PatternMode mode) {
-        switch (mode) {
-            case REGEX:
-                return ColumnFilterMode.REGEX;
-            default:
-                return ColumnFilterMode.WILDCARD;
-
-        }
+        return mode == PatternMode.REGEX ? REGEX : WILDCARD;
     }
 
 }

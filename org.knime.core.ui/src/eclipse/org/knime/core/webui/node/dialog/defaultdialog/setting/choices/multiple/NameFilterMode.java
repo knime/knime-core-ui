@@ -70,22 +70,11 @@ enum NameFilterMode {
         WILDCARD;
 
     public PatternMode toPatternMode() {
-        switch (this) {
-            case REGEX:
-                return PatternMode.REGEX;
-            default:
-                return PatternMode.WILDCARD;
-        }
+        return this == REGEX ? PatternMode.REGEX : PatternMode.WILDCARD;
     }
 
     public static NameFilterMode toNameFilterMode(final PatternMode mode) {
-        switch (mode) {
-            case REGEX:
-                return NameFilterMode.REGEX;
-            default:
-                return NameFilterMode.WILDCARD;
-
-        }
+        return mode == PatternMode.REGEX ? REGEX : WILDCARD;
     }
 
 }
