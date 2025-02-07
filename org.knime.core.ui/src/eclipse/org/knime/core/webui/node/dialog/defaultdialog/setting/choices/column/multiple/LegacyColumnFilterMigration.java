@@ -44,15 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 4, 2023 (Paul Bärnreuther): created
+ *   Jan 13, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple;
+
+import java.util.List;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+
 /**
- * This package offers the {@link ColumnFilter} class used for settings holding a collection of selected columns. In
- * contrast to an array of strings it can also hold filter information like regex, wildcard and type information. When
- * upgrading from a simple array of strings to this more capable representation, the custom persistor
- * {@link org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.StringArrayToColumnFilterMigration} can be
- * used to offer backwards compatibility.
+ * Loads from legacy column filter settings. If the settings have to be saved to this legacy format as well, use a
+ * {@link LegacyColumnFilterPersistor} instead.
  *
- * @author Paul Bärnreuther
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
+public abstract class LegacyColumnFilterMigration implements NodeSettingsMigration<ColumnFilter> {
+
+    private final String m_configKey;
+
+    /**
+     * @param configKey the root config key to load from.
+     */
+    protected LegacyColumnFilterMigration(final String configKey) {
+        m_configKey = configKey;
+    }
+
+    private ColumnFilter loadLegacy(final NodeSettingsRO nodeSettings) throws InvalidSettingsException {
+        return LegacyColumnFilterPersistor.load(nodeSettings, m_configKey);
+    }
+
+    private boolean matchesLegacy(final NodeSettingsRO settings) {
+        return settings.containsKey(m_configKey);
+    }
+
+    @Override
+    public List<ConfigMigration<ColumnFilter>> getConfigMigrations() {
+        final var configsMigrationBuilder = ConfigMigration.builder(this::loadLegacy).withMatcher(this::matchesLegacy);
+        for (var configPath : LegacyColumnFilterPersistor.getConfigPaths(m_configKey)) {
+            configsMigrationBuilder.withDeprecatedConfigPath(configPath);
+        }
+        return List.of(configsMigrationBuilder.build());
+    }
+}

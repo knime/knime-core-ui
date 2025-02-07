@@ -47,14 +47,16 @@
  *   15 Dec 2022 Paul Bärnreuther: created
  */
 
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple;
+
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.PatternFilter.PatternMode;
 
 /**
  * This enum lists the possibilities of how to choose from a set of table columns
  *
  * @author Paul Bärnreuther
  */
-public enum ColumnFilterMode {
+enum ColumnFilterMode {
         /**
          * manual selection, i.e. a stored list of manually selected columns
          */
@@ -70,5 +72,26 @@ public enum ColumnFilterMode {
         /**
          * selection by filtering by the types of the table columns with respect to a list of selected types
          */
-        TYPE
+        TYPE;
+
+    PatternMode toPatternMode() {
+        switch (this) {
+            case REGEX:
+                return PatternMode.REGEX;
+            default:
+                return PatternMode.WILDCARD;
+        }
+
+    }
+
+    static ColumnFilterMode toColumnFilterMode(final PatternMode mode) {
+        switch (mode) {
+            case REGEX:
+                return ColumnFilterMode.REGEX;
+            default:
+                return ColumnFilterMode.WILDCARD;
+
+        }
+    }
+
 }

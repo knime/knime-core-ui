@@ -60,6 +60,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicatePr
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.BooleanReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.ColumnSelectionReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.EnumReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.SingleSelectionReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.StringReference;
 
 /**
@@ -97,11 +98,6 @@ public class ConditionToPredicateTranslator {
             return this.<PatternCondition> createPredicate(() -> pattern);
         }
 
-        @Override
-        public Predicate isNoneString() {
-            return isEqualTo(SpecialColumns.NONE.getId());
-        }
-
     }
 
     public static final class EnumFieldReference<E extends Enum<E>> extends ConditionToPredicateTranslator
@@ -118,8 +114,7 @@ public class ConditionToPredicateTranslator {
 
     }
 
-    public static final class BooleanFieldReference extends ConditionToPredicateTranslator
-        implements BooleanReference {
+    public static final class BooleanFieldReference extends ConditionToPredicateTranslator implements BooleanReference {
 
         public BooleanFieldReference(final Function<Condition, Predicate> conditionToPredicate) {
             super(conditionToPredicate);
@@ -175,6 +170,27 @@ public class ConditionToPredicateTranslator {
         @Override
         public Predicate hasColumnType(final Class<? extends DataValue> type) {
             return this.<IsColumnOfTypeCondition> createPredicate(() -> type);
+        }
+
+    }
+
+    public static final class SingleSelectionFieldReference<E extends Enum<E>> extends ConditionToPredicateTranslator
+        implements SingleSelectionReference<E> {
+
+        public SingleSelectionFieldReference(final Function<Condition, Predicate> conditionToPredicate) {
+            super(conditionToPredicate);
+        }
+
+        @Override
+        public EnumReference<E> isSpecialChoice() {
+            return new EnumFieldReference<>(
+                condition -> this.<IsSpecialChoiceCondition> createPredicate(() -> condition));
+        }
+
+        @Override
+        public StringReference isRegularChoice() {
+            return new StringFieldReference(
+                condition -> this.<IsRegularChoiceCondition> createPredicate(() -> condition));
         }
 
     }

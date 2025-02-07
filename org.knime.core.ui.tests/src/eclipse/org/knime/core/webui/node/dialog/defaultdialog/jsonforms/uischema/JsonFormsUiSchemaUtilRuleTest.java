@@ -59,6 +59,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.WithNoneChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -877,37 +879,56 @@ class JsonFormsUiSchemaUtilRuleTest {
     }
 
     @Test
-    void testIsNoneStringCondition() {
-        final class ChoicesWithNoneColumnCondition implements DefaultNodeSettings {
+    void testSingleSelectionConditions() {
+        final class SingleSelectionConditionSettigns implements DefaultNodeSettings {
 
-            static final class ColumnSelectionReference implements Reference<String> {
+            static final class SingleSelectionReference implements Reference<SingleSelection<WithNoneChoice>> {
             }
 
             @Widget(title = "Foo", description = "")
             @ChoicesWidget(choices = TestChoicesProvider.class)
-            @ValueReference(ColumnSelectionReference.class)
-            String columnSelection;
+            @ValueReference(SingleSelectionReference.class)
+            SingleSelection<WithNoneChoice> columnSelection;
 
-            static final class MyCondition implements PredicateProvider {
+            static final class MySpecialChoiceCondition implements PredicateProvider {
 
                 @Override
                 public Predicate init(final PredicateInitializer i) {
-                    return i.getString(ColumnSelectionReference.class).isNoneString();
+                    return i.getSingleSelection(SingleSelectionReference.class).isSpecialChoice(WithNoneChoice.NONE);
+                }
+            }
+
+            static final class MyRegularChoiceCondition implements PredicateProvider {
+                @Override
+                public Predicate init(final PredicateInitializer i) {
+                    return i.getSingleSelection(SingleSelectionReference.class).isRegularChoice().matchesPattern("abc");
                 }
             }
 
             @Widget(title = "", description = "")
-            @Effect(predicate = MyCondition.class, type = EffectType.SHOW)
-            boolean someConditionalSetting = true;
+            @Effect(predicate = MySpecialChoiceCondition.class, type = EffectType.SHOW)
+            boolean specialChoiceTestSetting;
+
+            @Widget(title = "", description = "")
+            @Effect(predicate = MyRegularChoiceCondition.class, type = EffectType.SHOW)
+            boolean regularChoiceTestSetting;
+
         }
-        final var response = buildTestUiSchema(ChoicesWithNoneColumnCondition.class);
-        assertThatJson(response).inPath("$.elements").isArray().hasSize(2);
+        final var response = buildTestUiSchema(SingleSelectionConditionSettigns.class);
+        assertThatJson(response).inPath("$.elements").isArray().hasSize(3);
         assertThatJson(response).inPath("$.elements[0].type").isString().isEqualTo("Control");
         assertThatJson(response).inPath("$.elements[1].type").isString().isEqualTo("Control");
-        assertThatJson(response).inPath("$.elements[1].rule.effect").isString().isEqualTo("SHOW");
         assertThatJson(response).inPath("$.elements[1].rule.condition.scope").isString()
             .isEqualTo(response.get("elements").get(0).get("scope").asText());
-        assertThatJson(response).inPath("$.elements[1].rule.condition.schema.const").isString().isEqualTo("<none>");
+        assertThatJson(response).inPath("$.elements[1].rule.condition.schema.properties.specialChoice.oneOf[0].const")
+            .isString().isEqualTo("NONE");
+        assertThatJson(response).inPath("$.elements[2].rule.condition.scope").isString()
+            .isEqualTo(response.get("elements").get(0).get("scope").asText());
+        assertThatJson(response).inPath("$.elements[2].rule.condition.schema.properties.regularChoice.pattern")
+            .isString().isEqualTo("abc");
+        assertThatJson(response).inPath("$.elements[2].rule.condition.schema.properties.enforceSpecialChoice.not.const")
+            .isBoolean().isTrue();
+
     }
 
     @Test
