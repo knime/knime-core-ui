@@ -60,8 +60,8 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
+import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
@@ -138,7 +138,7 @@ public final class SettingsLoaderFactory extends PersistenceFactory<SettingsLoad
         final SettingsLoader elementLoader) {
         return settings -> {
             int size = (int)settings.keySet().stream().filter(s -> IS_DIGIT.matcher(s).matches()).count();
-            var values = (Object[])Array.newInstance(arrayNode.getElementTree().getType(), size);
+            var values = (Object[])Array.newInstance(arrayNode.getElementTree().getRawClass(), size);
             for (int i = 0; i < size; i++) {
                 values[i] = elementLoader.load(settings.getNodeSettings(Integer.toString(i)));
             }

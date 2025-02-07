@@ -44,28 +44,15 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 20, 2024 (Paul Bärnreuther): created
+ *   Feb 5, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+/**
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ */
+@SuppressWarnings("javadoc")
+public enum WithNoneChoice {
 
-final class CreateDefaultsUtil {
-
-    private CreateDefaultsUtil() {
-        // Utility class
-    }
-
-    static Object createDefaultSettings(final Tree<PersistableSettings> tree) {
-        final var settingsClass = tree.getRawClass();
-        return ReflectionUtil.createInstance(settingsClass).orElseThrow(() -> new IllegalArgumentException(
-            String.format("The provided PersistableSettings '%s' don't provide an empty constructor.", settingsClass)));
-    }
-
-    static Object createDefaultSettingsFieldValue(final TreeNode<PersistableSettings> node) {
-        return node.getDefaultValueFromParent(CreateDefaultsUtil::createDefaultSettings);
-    }
-
+    NONE;
 }

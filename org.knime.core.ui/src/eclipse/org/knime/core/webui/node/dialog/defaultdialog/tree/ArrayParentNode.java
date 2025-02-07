@@ -56,6 +56,8 @@ import java.util.function.Function;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 
+import com.fasterxml.jackson.databind.JavaType;
+
 /**
  * An instance of this class corresponds to an array widget, i.e. a widget whose subwidgets are repeated n times.
  *
@@ -75,10 +77,10 @@ public final class ArrayParentNode<S> extends TreeNode<S> {
 
     private final Tree<S> m_elementTree;
 
-    ArrayParentNode(final Tree<S> parent, final Tree<S> elementWidgetTree, final Class<?> type,
+    ArrayParentNode(final Tree<S> parent, final Tree<S> elementWidgetTree, final JavaType type, final Class<?> rawClass,
         final Function<Class<? extends Annotation>, Annotation> annotations,
         final Collection<Class<? extends Annotation>> possibleAnnotations, final Field underlyingField) {
-        super(parent, parent.getSettingsType(), type, annotations, possibleAnnotations, underlyingField);
+        super(parent, parent.getSettingsType(), type, rawClass, annotations, possibleAnnotations, underlyingField);
         m_elementTree = elementWidgetTree;
         m_elementTree.m_arrayWidgetNodeParent = this; // NOSONAR doesn't need to be thread-safe
     }

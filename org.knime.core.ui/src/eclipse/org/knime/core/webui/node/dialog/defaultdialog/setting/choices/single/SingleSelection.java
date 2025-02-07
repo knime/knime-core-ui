@@ -44,28 +44,73 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 20, 2024 (Paul Bärnreuther): created
+ *   Feb 5, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single;
+
+import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 
-final class CreateDefaultsUtil {
+/**
+ * Use this class whenever a combination of static/special and dynamic/special choices is required. If no special
+ * choices are required, use a String field instead. If no dynamic choices are required, use an enum field instead.
+ *
+ * Use a {@link ChoicesWidget} annotation to define the dynamic choices.
+ *
+ *
+ * @param <E> an enum representing the fixed/special choices of this selection. The same mechanism as when the enum is
+ *            used directly as field type applies here.
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ */
+public final class SingleSelection<E extends Enum<E>> implements PersistableSettings {
 
-    private CreateDefaultsUtil() {
-        // Utility class
+    String m_regularChoice;
+
+    /**
+     * If set to true, the special choice is enforced, even if a regular choice is set. This option is only exposed to
+     * the user in the flow variable tab. It is needed to be able to dynamically switch between regular and special
+     * choices.
+     */
+    boolean m_enforceSpecialChoice;
+
+    E m_specialChoice;
+
+    SingleSelection() {
+        // for serialization
     }
 
-    static Object createDefaultSettings(final Tree<PersistableSettings> tree) {
-        final var settingsClass = tree.getRawClass();
-        return ReflectionUtil.createInstance(settingsClass).orElseThrow(() -> new IllegalArgumentException(
-            String.format("The provided PersistableSettings '%s' don't provide an empty constructor.", settingsClass)));
+    /**
+     *
+     * @param regularChoice one of the dynamic choices as defined in the associated provider, which should be selected
+     *            initially,
+     */
+    public SingleSelection(final String regularChoice) {
+        m_regularChoice = regularChoice;
     }
 
-    static Object createDefaultSettingsFieldValue(final TreeNode<PersistableSettings> node) {
-        return node.getDefaultValueFromParent(CreateDefaultsUtil::createDefaultSettings);
+    /**
+     * @param specialChoice one of the special choices, which should be selected initially.
+     */
+    public SingleSelection(final E specialChoice) {
+        m_specialChoice = specialChoice;
     }
 
+    /**
+     * @return the selected special choice if a special choice is selected.
+     */
+    public Optional<E> getSpecialChoice() {
+        if (m_regularChoice == null || m_enforceSpecialChoice) {
+            return Optional.of(m_specialChoice);
+        }
+        return Optional.empty();
+    }
+    /**
+     * Call this method only when {@link #getSpecialChoice} returned an empty optional in order to guarantee that the returned value is non-null.
+     * @return the selected regular choices.
+     */
+    public String getRegularChoice() {
+        return m_enforceSpecialChoice ? null : m_regularChoice;
+    }
 }

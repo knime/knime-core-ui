@@ -97,9 +97,11 @@ import org.knime.core.node.workflow.contextv2.ServerLocationInfo;
 import org.knime.core.node.workflow.contextv2.WorkflowContextV2.ExecutorType;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.EnumUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
@@ -157,6 +159,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.BuiltinV
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -167,6 +170,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 final class UiSchemaOptionsGenerator {
 
     private final TreeNode<WidgetGroup> m_node;
+
+    private final JavaType m_fieldType;
 
     private final Class<?> m_fieldClass;
 
@@ -195,7 +200,8 @@ final class UiSchemaOptionsGenerator {
         final Collection<Tree<WidgetGroup>> widgetTrees) {
         m_node = node;
         m_asyncChoicesAdder = asyncChoicesAdder;
-        m_fieldClass = node.getType();
+        m_fieldType = node.getType();
+        m_fieldClass = node.getRawClass();
         m_defaultNodeSettingsContext = context;
         m_scope = scope;
         m_widgetTrees = widgetTrees;
@@ -225,6 +231,15 @@ final class UiSchemaOptionsGenerator {
                     break;
                 case NAME_FILTER:
                     options.put(TAG_FORMAT, Format.NAME_FILTER);
+                    break;
+                case SINGLE_SELECTION:
+                    options.put(TAG_FORMAT, Format.SINGLE_SELECTION);
+                    final var specialChoices = options.putArray("specialChoices");
+                    @SuppressWarnings({"unchecked", "rawtypes"}) final var specialChoicesEnumType = (Class<? extends Enum>)m_fieldType.containedType(0).getRawClass(); // The first generic
+                    for (var enumConstant : specialChoicesEnumType.getEnumConstants()) {
+                        final var titleAndDescription = EnumUtil.createConstantEntry(enumConstant);
+                        specialChoices.addObject().put("id", enumConstant.name()).put("text", titleAndDescription.title());
+                    }
                     break;
                 case COLUMN_SELECTION:
                     options.put(TAG_FORMAT, Format.COLUMN_SELECTION);
@@ -469,7 +484,11 @@ final class UiSchemaOptionsGenerator {
             final var choicesUpdateHandlerClassSet = !choicesUpdateHandlerClass.equals(NoopChoicesUpdateHandler.class);
             final var choicesStateProviderClassSet = !choicesStateProviderClass.equals(ChoicesStateProvider.class);
 
-            if (!ZoneId.class.isAssignableFrom(m_node.getType())) {
+            /**
+             * TODO NOSONAR remove with UIEXT-1742 we only have this check here in place because we have ZoneIds that
+             * use the optional = true flag in the choices widget annotation.
+             */
+            if (!ZoneId.class.isAssignableFrom(m_fieldClass)) {
                 CheckUtils.check(
                     choicesProviderClassSet || choicesUpdateHandlerClassSet || choicesStateProviderClassSet,
                     UiSchemaGenerationException::new,
@@ -509,7 +528,7 @@ final class UiSchemaOptionsGenerator {
             }
 
             if (!m_fieldClass.equals(ColumnSelection.class) && !m_fieldClass.equals(ColumnFilter.class)
-                && !m_fieldClass.equals(NameFilter.class)) {
+                && !m_fieldClass.equals(NameFilter.class) && !m_fieldClass.equals(SingleSelection.class)) {
                 String format = getChoicesComponentFormat();
                 options.put(TAG_FORMAT, format);
             }

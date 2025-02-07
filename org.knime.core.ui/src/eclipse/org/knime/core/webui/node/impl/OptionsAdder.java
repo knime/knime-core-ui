@@ -131,9 +131,9 @@ final class OptionsAdder {
         final var widgetAnnotation = field.getAnnotation(Widget.class);
         if (widgetAnnotation.isPresent()) {
             final var widget = widgetAnnotation.get();
-            var description = JsonFormsSchemaUtil.resolveDescription(widget, field.getType()).orElse("");
+            var description = JsonFormsSchemaUtil.resolveDescription(widget, field.getRawClass()).orElse("");
             if (field instanceof ArrayParentNode<WidgetGroup> arrayField) {
-                description = getDescriptionPlusChildDescriptions(description, arrayField.getElementTree().getType());
+                description = getDescriptionPlusChildDescriptions(description, arrayField.getElementTree().getRawClass());
             }
             return Optional.of(new TitleAndDescription(widget.title(), description));
         }

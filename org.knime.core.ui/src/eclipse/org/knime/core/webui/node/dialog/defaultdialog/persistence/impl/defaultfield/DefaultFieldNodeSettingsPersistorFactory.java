@@ -116,7 +116,7 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
      */
     public static DefaultFieldPersistor<?> createPersistor(final LeafNode<PersistableSettings> node,
         final String configKey) {
-        return createPersistor(node.getType(), configKey);
+        return createPersistor(node.getRawClass(), configKey);
     }
 
     /**

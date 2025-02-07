@@ -61,6 +61,7 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 
+import com.fasterxml.jackson.databind.JavaType;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
@@ -87,12 +88,12 @@ public final class Tree<S> extends TreeNode<S> {
 
     private final Class<? extends S> m_treeClass;
 
-    Tree(final Tree<S> parent, final SettingsType settingsType, final Class<? extends S> treeClass,
+    Tree(final Tree<S> parent, final SettingsType settingsType, final JavaType treeType, final Class<? extends S> treeClass,
         final Function<Class<? extends Annotation>, Annotation> annotations,
         final Collection<Class<? extends Annotation>> possibleAnnotations,
         final Function<Class<? extends Annotation>, Annotation> treeClassAnnotations,
         final Collection<Class<? extends Annotation>> possibleTreeClassAnnotations, final Field underlyingField) {
-        super(parent, settingsType, treeClass, annotations, possibleAnnotations, underlyingField);
+        super(parent, settingsType, treeType, treeClass, annotations, possibleAnnotations, underlyingField);
         m_treeClassAnnotations = toMap(treeClassAnnotations, possibleTreeClassAnnotations);
         m_treeClass = treeClass;
     }
@@ -141,7 +142,7 @@ public final class Tree<S> extends TreeNode<S> {
     }
 
     @Override
-    public Class<? extends S> getType() {
+    public Class<? extends S> getRawClass() {
         return m_treeClass;
     }
 

@@ -66,6 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
@@ -151,6 +152,7 @@ public final class WidgetImplementationUtil {
             LOCAL_DATE_TIME, //
             ZONED_DATE_TIME, //
             NAME_FILTER, //
+            SINGLE_SELECTION, //
             STRING_ARRAY, //
             TIME_INTERVAL, //
             ZONE_ID;
@@ -206,6 +208,7 @@ public final class WidgetImplementationUtil {
         new DefaultWidget(List.of(boolean.class, Boolean.class), DefaultWidgetType.CHECKBOX), //
         new DefaultWidget(List.of(ColumnFilter.class), DefaultWidgetType.COLUMN_FILTER), //
         new DefaultWidget(List.of(NameFilter.class), DefaultWidgetType.NAME_FILTER), //
+        new DefaultWidget(List.of(SingleSelection.class), DefaultWidgetType.SINGLE_SELECTION), //
         new DefaultWidget(List.of(ColumnSelection.class), DefaultWidgetType.COLUMN_SELECTION), //
         new DefaultWidget(List.of(LocalTime.class), DefaultWidgetType.LOCAL_TIME), //
         new DefaultWidget(List.of(LocalDate.class), DefaultWidgetType.LOCAL_DATE), //

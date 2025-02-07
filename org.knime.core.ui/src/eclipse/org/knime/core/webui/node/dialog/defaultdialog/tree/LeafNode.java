@@ -56,6 +56,8 @@ import java.util.function.Function;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 
+import com.fasterxml.jackson.databind.JavaType;
+
 /**
  *
  * A node representing a final leaf of the {@link Tree}, i.e. it corresponds to a field within a
@@ -68,10 +70,10 @@ public final class LeafNode<S> extends TreeNode<S> {
 
     private final Class<?> m_contentType;
 
-    LeafNode(final Tree<S> parent, final Class<?> type, final Class<?> contentType,
+    LeafNode(final Tree<S> parent,final JavaType type, final Class<?> rawClass, final Class<?> contentType,
         final Function<Class<? extends Annotation>, Annotation> annotations,
         final Collection<Class<? extends Annotation>> possibleAnnotations, final Field underlyingField) {
-        super(parent, parent.getSettingsType(), type, annotations, possibleAnnotations, underlyingField);
+        super(parent, parent.getSettingsType(), type, rawClass, annotations, possibleAnnotations, underlyingField);
         m_contentType = contentType;
     }
 

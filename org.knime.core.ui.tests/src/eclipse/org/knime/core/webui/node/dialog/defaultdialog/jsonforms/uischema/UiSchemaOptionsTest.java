@@ -76,6 +76,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TestButtonActionHandler.TestStates;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
@@ -105,6 +106,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextAreaWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
@@ -1705,4 +1707,40 @@ class UiSchemaOptionsTest {
             .isEqualTo("The value must be at least 1.");
     }
 
+    static class RegularChoicesProvider implements StringChoicesStateProvider {
+
+        @Override
+        public String[] choices(final DefaultNodeSettingsContext context) {
+            return new String[]{"Regular 1", "Regular 2"};
+        }
+    }
+
+    @Test
+    void testSingleSelection() {
+
+        enum TestSpecialChoices {
+                @Label("Special 1") //
+                SPECIAL1, //
+                @Label(value = "Special 2", description = "with description") //
+                SPECIAL2;
+        }
+
+        class SingleSelectionSettings implements DefaultNodeSettings {
+
+            @Widget(title = "", description = "")
+            @ChoicesWidget(choicesProvider = RegularChoicesProvider.class)
+            SingleSelection<TestSpecialChoices> m_singleSelection;
+        }
+
+        final var response = buildTestUiSchema(SingleSelectionSettings.class);
+
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("singleSelection");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("singleSelection");
+
+        assertThatJson(response).inPath("$.elements[0].options.specialChoices").isArray()
+            .containsExactly(new IdAndText("SPECIAL1", "Special 1"), new IdAndText("SPECIAL2", "Special 2"));
+
+        assertThatJson(response).inPath("$.elements[0].options.choicesProvider").isString()
+            .isEqualTo(RegularChoicesProvider.class.getName());
+    }
 }

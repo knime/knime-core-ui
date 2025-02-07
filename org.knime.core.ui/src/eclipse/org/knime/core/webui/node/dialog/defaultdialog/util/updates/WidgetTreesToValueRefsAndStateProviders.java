@@ -331,7 +331,7 @@ final class WidgetTreesToValueRefsAndStateProviders {
 
     private void addWidgetValueAnnotationValueRefAndValueProviderForNode(final TreeNode<WidgetGroup> node) {
         final var pathsWithSettingsKey = PathsWithSettingsType.fromTreeNode(node);
-        final var type = node.getType();
+        final var type = node.getRawClass();
         node.getAnnotation(ValueReference.class)
             .ifPresent(valueReference -> addValueRef(valueReference.value(), type, pathsWithSettingsKey));
         node.getAnnotation(ValueProvider.class)

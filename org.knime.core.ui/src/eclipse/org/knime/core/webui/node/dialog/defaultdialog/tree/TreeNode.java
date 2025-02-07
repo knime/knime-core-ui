@@ -66,6 +66,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 
+import com.fasterxml.jackson.databind.JavaType;
+
 /**
  * These are the nodes within a {@link Tree}. Next to the branching {@link Tree} node, there are two kinds of leafs:
  * {@link LeafNode}s with no further child widgets and {@link ArrayParentNode}s with an attached separate {@link Tree}
@@ -83,7 +85,9 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
 
     private Optional<ArrayParentNode<S>> m_containingArrayNode;
 
-    private final Class<?> m_type;
+    private final JavaType m_type;
+
+    private final Class<?> m_rawClass;
 
     private final SettingsType m_settingsType;
 
@@ -97,16 +101,18 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
      * @param parent the parent widget tree or {@code null} if it's the root
      * @param settingsType
      * @param type the type this widget tree node represents
+     * @param rawClass the raw class of that type
      * @param annotations function to get get the 'annotation instance' for an annotation class; function returns
      *            {@code null} if there is none
      * @param possibleAnnotations all allowed annotations
      * @param underlyingField used to get or set parent values
      */
-    protected TreeNode(final Tree<S> parent, final SettingsType settingsType, final Class<?> type,
-        final Function<Class<? extends Annotation>, Annotation> annotations,
+    protected TreeNode(final Tree<S> parent, final SettingsType settingsType, final JavaType type,
+        final Class<?> rawClass, final Function<Class<? extends Annotation>, Annotation> annotations,
         final Collection<Class<? extends Annotation>> possibleAnnotations, final Field underlyingField) {
         m_parent = parent;
         m_type = type;
+        m_rawClass = rawClass;
         m_settingsType = settingsType;
         m_annotations = toMap(annotations, possibleAnnotations);
         m_possibleAnnotations = possibleAnnotations;
@@ -166,7 +172,7 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
      * This method can be used similar to {@link Field#set} to set the value of this node within a parents value. I.e.
      * this method can only be used when the node has a parent.
      *
-     * @param parentValue a value of {@link #getType()} of the parent node.
+     * @param parentValue a value of {@link #getRawClass()} of the parent node.
      * @param value the value to set
      *
      * @throws IllegalArgumentException if the parent value is null
@@ -185,7 +191,7 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
      * This method can be used similar to {@link Field#get} to get the value of this node from the parents value. I.e.
      * this method can only be used when the node has a parent.
      *
-     * @param parentValue a value of {@link #getType()} of the parent node.
+     * @param parentValue a value of {@link #getRawClass()} of the parent node.
      *
      * @return the value of this node given the parent value
      * @throws IllegalArgumentException if the parent value is null
@@ -211,7 +217,7 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
 
     private void checkParentValue(final Object parentValue) {
         CheckUtils.checkArgument(getParent() != null, "This method can only be used when the node has a parent.");
-        CheckUtils.checkArgument(getParent().getType().isAssignableFrom(parentValue.getClass()),
+        CheckUtils.checkArgument(getParent().getRawClass().isAssignableFrom(parentValue.getClass()),
             "The parent value must be of the parent type.");
     }
 
@@ -254,6 +260,9 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
 
     /**
      * Used only for resolving {@link Modification}s.
+     *
+     * @param key
+     * @param value
      */
     public void addOrReplaceAnnotation(final Class<? extends Annotation> key, final Annotation value) {
         m_annotations.put(key, value);
@@ -295,10 +304,21 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
     }
 
     /**
+     *
+     * Note: Ideally we would not use a jackson class here but it is either that or creating our own representation of a
+     * type that contains information about generic types.
+     *
      * @return the type
      */
-    public Class<?> getType() {
+    public JavaType getType() {
         return m_type;
+    }
+
+    /**
+     * @return the type
+     */
+    public Class<?> getRawClass() {
+        return m_rawClass;
     }
 
 }
