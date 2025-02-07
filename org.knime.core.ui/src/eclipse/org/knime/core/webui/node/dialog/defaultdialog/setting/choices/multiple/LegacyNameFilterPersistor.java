@@ -175,7 +175,7 @@ public abstract class LegacyNameFilterPersistor implements NodeSettingsPersistor
             {configKey, LegacyManualFilterPersistorUtil.KEY_ENFORCE_OPTION}, //
             {configKey, PatternFilterConfiguration.TYPE, LegacyPatternFilterPersistorUtil.PATTERN_FILTER_PATTERN}, //
             {configKey, PatternFilterConfiguration.TYPE, LegacyPatternFilterPersistorUtil.PATTERN_FILTER_TYPE}, //
-            {configKey, PatternFilterConfiguration.TYPE, LegacyPatternFilterPersistorUtil.PATTERN_FILTER_CASESENSITIVE}, //
+            {configKey, PatternFilterConfiguration.TYPE, LegacyPatternFilterPersistorUtil.PATTERN_FILTER_CASESENSITIVE},
             {configKey, PatternFilterConfiguration.TYPE,
                 LegacyPatternFilterPersistorUtil.PATTERN_FILTER_EXCLUDEMATCHING} //
         };
