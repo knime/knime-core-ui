@@ -1,0 +1,84 @@
+{
+  "result": {
+    "name": "Single Select Dialog",
+    "data": {
+      "singleSelect": null,
+      "disabled": { "specialChoice": "I am disabled" },
+      "loading": null
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "singleSelect": {
+          "title": "Single Select",
+          "description": "This is a single select field"
+        },
+        "disabled": {
+          "title": "Disabled"
+        }
+      }
+    },
+    "ui_schema": {
+      "type": "VerticalLayout",
+      "elements": [
+        {
+          "type": "Section",
+          "label": "Single Select",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/singleSelect",
+              "options": {
+                "format": "singleSelection",
+                "choicesProvider": "regularChoicesProvider",
+                "specialChoices": [
+                  { "id": "special1", "text": "Special Choice 1" },
+                  { "id": "special2", "text": "Special Choice 2" }
+                ]
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/disabled",
+              "options": {
+                "format": "singleSelection",
+                "choicesProvider": "regularChoicesProvider",
+                "specialChoices": [
+                  { "id": "I am disabled", "text": "I am disabled" }
+                ]
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/loading",
+              "options": {
+                "format": "singleSelection",
+                "choicesProvider": "choicesProviderWithoutInitialUpdate",
+                "specialChoices": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "flowVariableSettings": {
+      "disabled": {
+        "controllingFlowVariableName": "myVar"
+      }
+    },
+    "initialUpdates": [
+      {
+        "id": "regularChoicesProvider",
+        "values": [
+          {
+            "indices": [],
+            "value": [
+              { "id": "choice1", "text": "Choice 1" },
+              { "id": "choice2", "text": "Choice 2" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

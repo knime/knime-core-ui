@@ -44,28 +44,54 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 20, 2024 (Paul Bärnreuther): created
+ *   Feb 6, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
+package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import java.util.Locale;
 
-final class CreateDefaultsUtil {
+import org.apache.commons.lang3.StringUtils;
+import org.knime.core.node.NodeLogger;
+import org.knime.core.webui.node.dialog.defaultdialog.util.DescriptionUtil.TitleAndDescription;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
-    private CreateDefaultsUtil() {
-        // Utility class
+/**
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ */
+public class EnumUtil {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(EnumUtil.class);
+
+    /**
+     * converts an enum constant to a title and description.
+     *
+     * @param constant the enum constant to convert
+     * @param <E> the type of enum
+     * @return the converted enum constant
+     */
+    public static TitleAndDescription createConstantEntry(final Enum<?> constant) {
+        var enumClass = constant.getDeclaringClass();
+        var name = constant.name();
+        try {
+            final var field = enumClass.getField(name);
+            if (field.isAnnotationPresent(Widget.class)) {
+                throw new IllegalStateException(String.format(
+                    "There is a @Widget annotation present at the enum field %s. Use the @Label annotation instead.",
+                    name));
+            }
+            if (field.isAnnotationPresent(Label.class)) {
+                final var label = field.getAnnotation(Label.class);
+                return new TitleAndDescription(label.value(), label.description());
+            }
+        } catch (NoSuchFieldException | SecurityException e) {
+            LOGGER.error(String.format("Exception when accessing field %s.", name), e);
+        }
+        var label = StringUtils.capitalize(name.toLowerCase(Locale.getDefault()).replace("_", " "));
+        return new TitleAndDescription(label, null);
     }
 
-    static Object createDefaultSettings(final Tree<PersistableSettings> tree) {
-        final var settingsClass = tree.getRawClass();
-        return ReflectionUtil.createInstance(settingsClass).orElseThrow(() -> new IllegalArgumentException(
-            String.format("The provided PersistableSettings '%s' don't provide an empty constructor.", settingsClass)));
+    private EnumUtil() {
+        // util class
     }
-
-    static Object createDefaultSettingsFieldValue(final TreeNode<PersistableSettings> node) {
-        return node.getDefaultValueFromParent(CreateDefaultsUtil::createDefaultSettings);
-    }
-
 }
