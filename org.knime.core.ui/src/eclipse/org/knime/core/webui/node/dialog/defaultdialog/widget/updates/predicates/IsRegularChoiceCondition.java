@@ -44,48 +44,38 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 13, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 27, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import java.util.List;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
 
 /**
- * Loads from legacy column filter settings. If the settings have to be saved to this legacy format as well, use a
- * {@link LegacyColumnFilterPersistor} instead.
+ * Triggers whenever a {@link SingleSelection} has a dynamic/regular choice selected which satisfies a certain
+ * condition.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Paul Bärnreuther
  */
-public abstract class LegacyColumnFilterMigration implements NodeSettingsMigration<ColumnFilter> {
-
-    private final String m_configKey;
+public interface IsRegularChoiceCondition extends Condition {
 
     /**
-     * @param configKey the root config key to load from.
+     * See the field name within {@link SingleSelection}
      */
-    protected LegacyColumnFilterMigration(final String configKey) {
-        m_configKey = configKey;
-    }
+    String REGULAR_CHOICE_PROPERTY_NAME = "regularChoice";
 
-    private ColumnFilter loadLegacy(final NodeSettingsRO nodeSettings) throws InvalidSettingsException {
-        return LegacyColumnFilterPersistor.load(nodeSettings, m_configKey);
-    }
-
-    private boolean matchesLegacy(final NodeSettingsRO settings) {
-        return settings.containsKey(m_configKey);
-    }
+    /**
+     * See the field name within {@link SingleSelection}
+     */
+    String ENFORCE_SPECIAL_PROPERTY_NAME = "enforceSpecialChoice";
 
     @Override
-    public List<ConfigMigration<ColumnFilter>> getConfigMigrations() {
-        final var configsMigrationBuilder = ConfigMigration.builder(this::loadLegacy).withMatcher(this::matchesLegacy);
-        for (var configPath : LegacyColumnFilterPersistor.getConfigPaths(m_configKey)) {
-            configsMigrationBuilder.withDeprecatedConfigPath(configPath);
-        }
-        return List.of(configsMigrationBuilder.build());
+    default <T> T accept(final ConditionVisitor<T> visitor) {
+        return visitor.visit(this);
     }
+
+    /**
+     * @return condition on the
+     */
+    Condition condition();
+
 }

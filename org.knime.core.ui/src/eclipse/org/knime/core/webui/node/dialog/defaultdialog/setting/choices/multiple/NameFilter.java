@@ -46,7 +46,7 @@
  * History
  *   Jan 22, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple;
 
 import java.util.Objects;
 
@@ -54,7 +54,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.Defaul
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.PatternFilter.PatternMode;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.ManualFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.PatternFilter;
 
 /**
  *
@@ -125,7 +126,7 @@ public class NameFilter implements PersistableSettings {
         return switch (m_mode) {
             case MANUAL -> m_manualFilter
                 .getUpdatedManuallySelectedIncludingMissing(Objects.requireNonNull(allCurrentChoices));
-            default -> m_patternFilter.getSelected(PatternMode.of(m_mode), allCurrentChoices);
+            default -> m_patternFilter.getSelected(m_mode.toPatternMode(), allCurrentChoices);
         };
     }
 

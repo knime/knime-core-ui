@@ -42,66 +42,54 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Jan 22, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple;
+
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory.loadSettings;
+
+import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.util.filter.NameFilterConfiguration.EnforceOption;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 
 /**
+ * The data structure of a TwinList changed from an array of strings to a more complex representation by a
+ * {@link ColumnFilter}. For previous workflows to still execute (given that the setting is not overwritten by a flow
+ * variable), we transform the stored string array to the correct representation.
+ *
  * @author Paul Bärnreuther
  */
-public class LegacyManualFilterPersistorUtil {
+public abstract class StringArrayToColumnFilterMigration implements NodeSettingsMigration<ColumnFilter> {
+
+    private final String m_legacyConfigKey;
 
     /**
-     * See NameFilterConfiguration.KEY_ENFORCE_OPTION
+     * The config key under which the string array has been persisted before has to be deprecated to not break flow
+     * variables. I.e. either rename the field or add a {@link Persist#configKey} annotation on the field where this
+     * class is attached.
+     *
+     * @param legacyConfigKey the config key under which the string array has been stored previously.
      */
-    static final String KEY_ENFORCE_OPTION = "enforce_option";
-
-    /**
-     * See NameFilterConfiguration.KEY_EXCLUDED_NAMES
-     */
-    static final String OLD_EXCLUDED_NAMES = "excluded_names";
-
-    /**
-     * See NameFilterConfiguration.KEY_INCLUDED_NAMES
-     */
-    static final String KEY_INCLUDED_NAMES = "included_names";
-
-    private LegacyManualFilterPersistorUtil() {
-        // Utility
+    protected StringArrayToColumnFilterMigration(final String legacyConfigKey) {
+        m_legacyConfigKey = legacyConfigKey;
     }
 
-    static ManualFilter loadManualFilter(final NodeSettingsRO columnFilterSettings) throws InvalidSettingsException {
-        var manualFilter = new ManualFilter(columnFilterSettings.getStringArray(KEY_INCLUDED_NAMES));
-        manualFilter.m_manuallyDeselected = columnFilterSettings.getStringArray(OLD_EXCLUDED_NAMES);
-        manualFilter.m_includeUnknownColumns = loadIncludeUnknownColumns(columnFilterSettings);
-        return manualFilter;
-    }
-
-    private static boolean loadIncludeUnknownColumns(final NodeSettingsRO columnFilterSettings)
-        throws InvalidSettingsException {
-        var enforceOptionName = columnFilterSettings.getString(KEY_ENFORCE_OPTION);
-        var enforceOption = EnforceOption.valueOf(enforceOptionName);
-        return enforceOption == EnforceOption.EnforceExclusion;
-    }
-
-    static void saveManualFilter(final ManualFilter manualFilter, final NodeSettingsWO columnFilterSettings) {
-        columnFilterSettings.addStringArray(KEY_INCLUDED_NAMES, manualFilter.m_manuallySelected);
-        columnFilterSettings.addStringArray(OLD_EXCLUDED_NAMES, manualFilter.m_manuallyDeselected);
-        columnFilterSettings.addString(KEY_ENFORCE_OPTION, getEnforceOption(manualFilter).name());
-    }
-
-    private static EnforceOption getEnforceOption(final ManualFilter manualFilter) {
-        if (manualFilter.m_includeUnknownColumns) {
-            return EnforceOption.EnforceExclusion;
+    private ColumnFilter loadLegacy(final NodeSettingsRO settings) throws InvalidSettingsException {
+        final var fieldSettingsArray = settings.getStringArray(m_legacyConfigKey);
+        if (fieldSettingsArray != null) {
+            return new ColumnFilter(fieldSettingsArray);
         } else {
-            return EnforceOption.EnforceInclusion;
+            return loadSettings(ColumnFilter.class, settings.getNodeSettings(m_legacyConfigKey));
         }
     }
+
+    @Override
+    public final List<ConfigMigration<ColumnFilter>> getConfigMigrations() {
+        return List
+            .of(ConfigMigration.builder(this::loadLegacy).withDeprecatedConfigPath(m_legacyConfigKey).build());
+    }
+
 }

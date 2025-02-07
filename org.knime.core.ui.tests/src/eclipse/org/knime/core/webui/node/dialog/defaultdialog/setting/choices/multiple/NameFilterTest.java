@@ -46,12 +46,14 @@
  * History
  *   9 Nov 2021 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple.NameFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple.NameFilterMode;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany

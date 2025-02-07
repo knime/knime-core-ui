@@ -44,44 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 6, 2023 (Paul Bärnreuther): created
+ *   Jan 22, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.IsColumnOfTypeCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.IsSpecificColumnCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.PatternFilter.PatternMode;
 
 /**
- * A visitor visiting all permitted implementations of {@link Condition} which is used to translate the condition to a
- * implementation dependent format.
  *
  * @author Paul Bärnreuther
- * @param <T> the type of the returned value on visiting a {@link Condition}
  */
-@SuppressWarnings("javadoc")
-public interface ConditionVisitor<T> {
+enum NameFilterMode {
 
-    <E extends Enum<E>> T visit(OneOfEnumCondition<E> oneOfEnumCondition);
+        /**
+         * manual selection, i.e. a stored list of manually selected strings
+         */
+        MANUAL,
+        /**
+         * selection by matching to a regex pattern
+         */
+        REGEX,
+        /**
+         * selection by matching to a wildcard pattern
+         */
+        WILDCARD;
 
-    <E extends Enum<E>> T visit(IsSpecialChoiceCondition oneOfSinlgeSelectionCondition);
+    public PatternMode toPatternMode() {
+        switch (this) {
+            case REGEX:
+                return PatternMode.REGEX;
+            default:
+                return PatternMode.WILDCARD;
+        }
+    }
 
-    T visit(IsRegularChoiceCondition isRegularStringCondition);
+    public static NameFilterMode toNameFilterMode(final PatternMode mode) {
+        switch (mode) {
+            case REGEX:
+                return NameFilterMode.REGEX;
+            default:
+                return NameFilterMode.WILDCARD;
 
-    T visit(TrueCondition trueCondition);
-
-    T visit(FalseCondition falseCondition);
-
-    T visit(HasMultipleItemsCondition hasMultipleItemsCondition);
-
-    T visit(IsSpecificColumnCondition isSpecificColumnCondition);
-
-    T visit(IsSpecificStringCondition isSpecificStringCondition);
-
-    T visit(PatternCondition patternCondition);
-
-    T visit(ArrayContainsCondition arrayContainsCondition);
-
-    T visit(IsColumnOfTypeCondition isColumnOfTypeCondition);
-
+        }
+    }
 
 }

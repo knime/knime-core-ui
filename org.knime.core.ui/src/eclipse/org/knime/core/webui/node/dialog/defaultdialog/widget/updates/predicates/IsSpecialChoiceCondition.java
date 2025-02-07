@@ -44,36 +44,32 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 21, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Nov 27, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-
-import org.junit.jupiter.api.Test;
-import org.knime.core.data.StringValue;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnTypeDisplay;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
 
 /**
+ * Triggers whenever a {@link SingleSelection} has the given special choices.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Paul Bärnreuther
  */
-@SuppressWarnings("static-method")
-final class ColumnTypeDisplayTest {
+public interface IsSpecialChoiceCondition extends Condition {
 
-    @Test
-    void testFromPreferredValueClass() {
-        String knownPreferredValueClass = StringValue.class.getName();
-        var display = ColumnTypeDisplay.fromPreferredValueClass(knownPreferredValueClass)//
-            .orElseThrow();
-        assertEquals(knownPreferredValueClass, display.m_id, "Wrong id");
-        assertEquals("String", display.m_text, "Wrong text");
+    /**
+     * See the field name within {@link SingleSelection}
+     */
+    String PROPERTY_NAME = "specialChoice";
+
+    @Override
+    default <T> T accept(final ConditionVisitor<T> visitor) {
+        return visitor.visit(this);
     }
 
-    @Test
-    void testFromUnknownPreferredValueClass() throws Exception {
-        var display = ColumnTypeDisplay.fromPreferredValueClass("foobar");
-        assertFalse(display.isPresent(), "There is a type called foobar");
-    }
+    /**
+     * @return the values of the special choices enum for which the condition should apply
+     */
+    Condition condition();
+
 }

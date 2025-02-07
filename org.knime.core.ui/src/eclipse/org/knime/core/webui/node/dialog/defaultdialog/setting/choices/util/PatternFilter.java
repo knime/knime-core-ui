@@ -46,7 +46,7 @@
  * History
  *   16 Jan 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util;
 
 import static org.apache.commons.io.FilenameUtils.wildcardMatch;
 
@@ -65,81 +65,44 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  *
  * @author Paul Bärnreuther
  */
-class PatternFilter implements PersistableSettings {
+public class PatternFilter implements PersistableSettings {
 
     /**
      * the pattern to which column names are matched in case of m_mode = "REGEX" or "WILDCARD"
      */
-    String m_pattern; //NOSONAR
+    public String m_pattern; //NOSONAR
 
     private Pair<Pattern, String> m_compiledPattern;
 
     /**
      * whether m_pattern is case sensitive
      */
-    boolean m_isCaseSensitive; //NOSONAR
+    public boolean m_isCaseSensitive; //NOSONAR
 
     /**
      * whether the pattern determines the excluded columns or the included ones
      */
-    boolean m_isInverted; //NOSONAR
+    public boolean m_isInverted; //NOSONAR
 
     /**
      * Initialise to empty pattern matching anything
      */
-    PatternFilter() {
+    public PatternFilter() {
         m_isCaseSensitive = false;
         m_isInverted = false;
         m_pattern = "";
     }
 
-    enum PatternMode {
-        REGEX, WILDCARD, NONE;
-
-        static PatternMode of(final ColumnFilterMode mode) {
-            switch(mode) {
-                case REGEX:
-                    return REGEX;
-                case WILDCARD:
-                    return WILDCARD;
-                default:
-                    return NONE;
-            }
-
-        }
-
-        static PatternMode of(final NameFilterMode mode) {
-            switch(mode) {
-                case REGEX:
-                    return REGEX;
-                case WILDCARD:
-                    return WILDCARD;
-                default:
-                    return NONE;
-            }
-        }
+    /**
+     * The different kinds of patterns we support.
+     */
+    @SuppressWarnings("javadoc")
+    public enum PatternMode {
+            REGEX, WILDCARD;
 
 
-        ColumnFilterMode toColumnFilterMode() {
-            switch(this) {
-                case REGEX:
-                    return ColumnFilterMode.REGEX;
-                default:
-                    return ColumnFilterMode.WILDCARD;
-
-            }
-        }
 
 
-        NameFilterMode toNameFilterMode() {
-            switch(this) {
-                case REGEX:
-                    return NameFilterMode.REGEX;
-                default:
-                    return NameFilterMode.WILDCARD;
-
-            }
-        }
     }
 
     /**

@@ -54,6 +54,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.Schema.TAG_PATTERN;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.Schema.TAG_PROPERTIES;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_CONTAINS;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_NOT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil.getMapper;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
@@ -67,6 +68,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ConditionVisitor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.FalseCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.HasMultipleItemsCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsRegularChoiceCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsSpecialChoiceCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsSpecificStringCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.PatternCondition;
@@ -162,6 +165,25 @@ class JsonFormsConditionResolver implements ConditionVisitor<ObjectNode> {
         }
         throw new UiSchemaGenerationException(
             "Invalid reference used for an \"array contains\" condition. It has to be an array of widget groups.");
+    }
+
+    @Override
+    public ObjectNode visit(final IsSpecialChoiceCondition isSpecialChoiceCondition) {
+        final var node = getMapper().createObjectNode();
+        node.putObject(TAG_PROPERTIES).set(IsSpecialChoiceCondition.PROPERTY_NAME,
+            isSpecialChoiceCondition.condition().accept(this));
+        return node;
+    }
+
+    @Override
+    public ObjectNode visit(final IsRegularChoiceCondition isRegularStringCondition) {
+        final var node = getMapper().createObjectNode();
+        final var properties = node.putObject(TAG_PROPERTIES);
+        properties.putObject(IsRegularChoiceCondition.ENFORCE_SPECIAL_PROPERTY_NAME).putObject(TAG_NOT).put(TAG_CONST,
+            true);
+        properties.set(IsRegularChoiceCondition.REGULAR_CHOICE_PROPERTY_NAME,
+            isRegularStringCondition.condition().accept(this));
+        return node;
     }
 
 }

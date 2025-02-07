@@ -46,17 +46,18 @@
  * History
  *   Jan 22, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.PatternFilter.PatternMode;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.PatternFilter.PatternMode;
 
 /**
  * @author Paul Bärnreuther
  */
-class LegacyPatternFilterPersistorUtil {
+@SuppressWarnings("javadoc")
+public class LegacyPatternFilterPersistorUtil {
 
     private LegacyPatternFilterPersistorUtil() {
         // Utility
@@ -65,34 +66,35 @@ class LegacyPatternFilterPersistorUtil {
     /**
      * See PatternFilterConfiguration.CFG_TYPE
      */
-    static final String PATTERN_FILTER_TYPE = "type";
+    public static final String PATTERN_FILTER_TYPE = "type";
 
     /**
      * See PatternFilterConfiguration.PatternFilterType.Regex
      */
-    static final String PATTERN_FILTER_REGEX = "Regex";
+    public static final String PATTERN_FILTER_REGEX = "Regex";
 
     /**
      * See PatternFilterConfiguration.PatternFilterType.Wildcard
      */
-    static final String PATTERN_FILTER_WILDCARD = "Wildcard";
+    public static final String PATTERN_FILTER_WILDCARD = "Wildcard";
 
     /**
      * See PatternFilterConfiguration.CFG_PATTERN
      */
-    static final String PATTERN_FILTER_PATTERN = "pattern";
+    public static final String PATTERN_FILTER_PATTERN = "pattern";
 
     /**
      * See PatternFilterConfiguration.CFG_CASESENSITIVE
      */
-    static final String PATTERN_FILTER_CASESENSITIVE = "caseSensitive";
+    public static final String PATTERN_FILTER_CASESENSITIVE = "caseSensitive";
 
     /**
      * See PatternFilterConfiguration.CFG_EXCLUDEMATCHING
      */
-    static final String PATTERN_FILTER_EXCLUDEMATCHING = "excludeMatching";
+    public static final String PATTERN_FILTER_EXCLUDEMATCHING = "excludeMatching";
 
-    static PatternMode loadPatternMode(final NodeSettingsRO patternMatchingSettings) throws InvalidSettingsException {
+    public static PatternMode loadPatternMode(final NodeSettingsRO patternMatchingSettings)
+        throws InvalidSettingsException {
         var patternMatchingType = patternMatchingSettings.getString(PATTERN_FILTER_TYPE);
         if (PATTERN_FILTER_WILDCARD.equals(patternMatchingType)) {
             return PatternMode.WILDCARD;
@@ -103,7 +105,7 @@ class LegacyPatternFilterPersistorUtil {
         }
     }
 
-    static PatternFilter loadPatternMatching(final NodeSettingsRO patternMatchingSettings)
+    public static PatternFilter loadPatternMatching(final NodeSettingsRO patternMatchingSettings)
         throws InvalidSettingsException {
         var patternFilter = new PatternFilter();
         patternFilter.m_pattern = patternMatchingSettings.getString(PATTERN_FILTER_PATTERN);
@@ -114,7 +116,7 @@ class LegacyPatternFilterPersistorUtil {
         return patternFilter;
     }
 
-    static void savePatternMatching(final PatternFilter patternFilter, final PatternMode mode,
+    public static void savePatternMatching(final PatternFilter patternFilter, final PatternMode mode,
         final NodeSettingsWO patternMatchingSettings) {
         patternMatchingSettings.addString(PATTERN_FILTER_PATTERN, patternFilter.m_pattern);
         // not entirely backwards compatible because we don't persist the pattern type if pattern matching

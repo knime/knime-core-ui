@@ -46,7 +46,7 @@
  * History
  *   9 Nov 2021 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -58,6 +58,9 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilterMode;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.TypeFilter;
 import org.knime.testing.util.TableTestUtil;
 
 /**

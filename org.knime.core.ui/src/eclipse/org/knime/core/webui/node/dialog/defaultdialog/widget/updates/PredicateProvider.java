@@ -52,6 +52,7 @@ import org.knime.core.data.DataValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.And;
@@ -163,6 +164,13 @@ public interface PredicateProvider {
         ColumnSelectionReference getColumnSelection(Class<? extends Reference<ColumnSelection>> reference);
 
         /**
+         * @param reference bound to exactly one {@link SingleSelection} field via {@link ValueReference}
+         * @return an object that can be further transformed to a predicate using one of its methods
+         */
+        <E extends Enum<E>> SingleSelectionReference<E>
+            getSingleSelection(Class<? extends Reference<SingleSelection<E>>> reference);
+
+        /**
          * @param reference bound to exactly one enum field via {@link ValueReference}
          * @return an object that can be further transformed to a predicate using one of its methods
          */
@@ -189,12 +197,6 @@ public interface PredicateProvider {
              */
             Predicate matchesPattern(String pattern);
 
-            /**
-             * @return predicate that is fulfilled, when the referenced String field is annotated with a
-             *         {@link ChoicesWidget} with {@link ChoicesWidget#showNoneColumn()} and the "None" column is
-             *         selected.
-             */
-            Predicate isNoneString();
         }
 
         /**
@@ -221,6 +223,7 @@ public interface PredicateProvider {
              */
             @SuppressWarnings("unchecked")
             Predicate isOneOf(E... values);
+
         }
 
         /**
@@ -274,6 +277,25 @@ public interface PredicateProvider {
              * @return predicate that is fulfilled, when a column with the given type is selected.
              */
             Predicate hasColumnType(Class<? extends DataValue> type);
+        }
+
+        /**
+         * Returned by {@link PredicateInitializer#getSingleSelection}
+         *
+         * @author Paul Bärnreuther
+         * @param <E>
+         */
+        interface SingleSelectionReference<E extends Enum<E>> {
+
+            EnumReference<E> isSpecialChoice();
+
+            @SuppressWarnings("unchecked")
+            default Predicate isSpecialChoice(final E specialChoice) {
+                return isSpecialChoice().isOneOf(specialChoice);
+            }
+
+            StringReference isRegularChoice();
+
         }
 
         /**

@@ -46,7 +46,7 @@
  * History
  *   Jan 13, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -60,7 +60,9 @@ import org.knime.core.node.util.filter.PatternFilterConfiguration;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.PatternFilter.PatternMode;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.LegacyManualFilterPersistorUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.LegacyPatternFilterPersistorUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.PatternFilter;
 
 /**
  * {@link NodeSettingsPersistor} for {@link ColumnFilter} that persists it in a way compatible to
@@ -138,7 +140,8 @@ public abstract class LegacyColumnFilterPersistor implements NodeSettingsPersist
             return ColumnFilterMode.MANUAL;
         } else if (PatternFilterConfiguration.TYPE.equals(filterType)) {
             var patternMatchingSettings = columnFilterSettings.getNodeSettings(PatternFilterConfiguration.TYPE);
-            return LegacyPatternFilterPersistorUtil.loadPatternMode(patternMatchingSettings).toColumnFilterMode();
+            return ColumnFilterMode
+                .toColumnFilterMode(LegacyPatternFilterPersistorUtil.loadPatternMode(patternMatchingSettings));
         } else if (OLD_FILTER_TYPE_DATATYPE.equals(filterType)) {
             return ColumnFilterMode.TYPE;
         } else {
@@ -182,7 +185,7 @@ public abstract class LegacyColumnFilterPersistor implements NodeSettingsPersist
         columnFilterSettings.addString(KEY_FILTER_TYPE, toFilterType(columnFilter.m_mode));
         LegacyManualFilterPersistorUtil.saveManualFilter(columnFilter.m_manualFilter, columnFilterSettings);
         LegacyPatternFilterPersistorUtil.savePatternMatching(columnFilter.m_patternFilter,
-            PatternMode.of(columnFilter.m_mode), columnFilterSettings.addNodeSettings(PatternFilterConfiguration.TYPE));
+            columnFilter.m_mode.toPatternMode(), columnFilterSettings.addNodeSettings(PatternFilterConfiguration.TYPE));
         saveTypeFilter(columnFilter.m_typeFilter, columnFilterSettings.addNodeSettings(OLD_FILTER_TYPE_DATATYPE));
     }
 
