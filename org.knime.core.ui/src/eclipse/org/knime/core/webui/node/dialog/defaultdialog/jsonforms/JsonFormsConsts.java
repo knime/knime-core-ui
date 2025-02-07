@@ -224,6 +224,8 @@ public final class JsonFormsConsts {
 
             public static final String NAME_FILTER = "nameFilter";
 
+            public static final String SINGLE_SELECTION = "singleSelection";
+
             public static final String COLUMN_SELECTION = "columnSelection";
 
             public static final String DROP_DOWN = "dropDown";
@@ -249,7 +251,7 @@ public final class JsonFormsConsts {
             public static final String ZONED_DATE_TIME = "zonedDateTime";
 
             public static final String INTERVAL = "interval";
-            
+
             public static final String DATE_TIME_FORMAT = "dateTimeFormat";
 
             public static final String RICH_TEXT_INPUT = "richTextInput";
