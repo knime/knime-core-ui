@@ -44,26 +44,40 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 28, 2023 (Paul Bärnreuther): created
+ *   Aug 31, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProvider;
 
 /**
- * This represents one of the possible values within a {@link ChoicesWidget}.
- *
- * @param id the id which is saved on selection
- * @param text the displayed text
+ * This represents one of the possible values within a {@link ChoicesProvider} with a {@link ColumnChoicesProvider}.
  *
  * @author Paul Bärnreuther
+ * @param id to be used as an identifier for the selection option
+ * @param text to be displayed for the selection option
+ * @param type the id and displayed text of the type of the column
  */
-public record IdAndText(String id, String text) {
+public record PossibleColumnValue(String id, String text, PossibleTypeValue type) {
+
     /**
-     * @param id
-     * @return a choice whose text matches the given id.
+     * @param id identifying a type
+     * @param text to be displayed for selecting the type
      */
-    public static IdAndText fromId(final String id) {
-        return new IdAndText(id, id);
+    public static record PossibleTypeValue(String id, String text) {
+    }
+
+    /**
+     * @param colSpec the spec of the column to be represented
+     * @return the PossibleColumnValue associated to the given colSpec
+     */
+    public static PossibleColumnValue fromColSpec(final DataColumnSpec colSpec) {
+        final var colName = colSpec.getName();
+        final var colType = colSpec.getType();
+        final var typeIdentifier = colType.getPreferredValueClass().getName();
+        final var displayedType = colType.getName();
+        return new PossibleColumnValue(colName, colName, new PossibleTypeValue(typeIdentifier, displayedType));
     }
 }

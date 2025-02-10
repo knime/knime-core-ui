@@ -60,7 +60,6 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultNodeDialogDataServiceImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDataServiceImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesHolder;
 import org.knime.core.webui.page.Page;
 
 /**
@@ -83,8 +82,6 @@ public final class DefaultNodeDialog implements NodeDialog {
     private final Set<SettingsType> m_settingsTypes;
 
     private final OnApplyNodeModifier m_onApplyModifier;
-
-    private final AsyncChoicesHolder m_asyncChoicesHolder;
 
     private final Map<SettingsType, Class<? extends DefaultNodeSettings>> m_settingsClasses;
 
@@ -112,8 +109,7 @@ public final class DefaultNodeDialog implements NodeDialog {
         final OnApplyNodeModifier onApplyModifier) {
         m_settingsTypes = Set.of(settingsType);
         m_settingsClasses = Map.of(settingsType, settingsClass);
-        m_asyncChoicesHolder = new AsyncChoicesHolder();
-        m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses, m_asyncChoicesHolder);
+        m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses);
         m_onApplyModifier = onApplyModifier;
     }
 
@@ -148,8 +144,7 @@ public final class DefaultNodeDialog implements NodeDialog {
         final Class<? extends DefaultNodeSettings> settingsClass2, final OnApplyNodeModifier onApplyModifier) {
         m_settingsTypes = Set.of(settingsType1, settingsType2);
         m_settingsClasses = Map.of(settingsType1, settingsClass1, settingsType2, settingsClass2);
-        m_asyncChoicesHolder = new AsyncChoicesHolder();
-        m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses, m_asyncChoicesHolder);
+        m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses);
         m_onApplyModifier = onApplyModifier;
     }
 
@@ -165,7 +160,7 @@ public final class DefaultNodeDialog implements NodeDialog {
 
     @Override
     public Optional<RpcDataService> createRpcDataService() {
-        final var dataService = new DefaultNodeDialogDataServiceImpl(m_settingsClasses, m_asyncChoicesHolder);
+        final var dataService = new DefaultNodeDialogDataServiceImpl(m_settingsClasses);
         final var flowVariablesDataService =
             new FlowVariableDataServiceImpl(new DefaultDialogDataConverterImpl(m_settingsClasses));
         final var fileChooserService = new FileChooserDataService();
@@ -173,10 +168,7 @@ public final class DefaultNodeDialog implements NodeDialog {
             .addService("settings", dataService) //
             .addService("flowVariables", flowVariablesDataService) //
             .addService("fileChooser", fileChooserService) //
-            .onDeactivate(() -> {
-                m_asyncChoicesHolder.clear();
-                fileChooserService.clear();
-            }).build());
+            .onDeactivate(fileChooserService::clear).build());
     }
 
     @Override

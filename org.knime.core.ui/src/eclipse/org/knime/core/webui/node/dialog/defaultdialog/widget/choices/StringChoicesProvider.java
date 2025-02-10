@@ -42,12 +42,53 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- */
-/**
- * TODO UIEXT-1012: Move the {@link ChoicesWidget} and the {@link ChoicesProvider} to this package.
  *
- * For now this package contains update handlers used inside the {@link ChoicesWidget}.
+ * History
+ *   Mar 18, 2024 (Paul Bärnreuther): created
+ */
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+
+import java.util.List;
+
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+
+/**
+ * A class that provides an array of possible values of a {@link ChoicesProvider} based on the current
+ * {@link DefaultNodeSettingsContext}.
  *
  * @author Paul Bärnreuther
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+public non-sealed interface StringChoicesProvider extends ChoicesStateProvider<PossibleValue> {
+
+    /**
+     * {@inheritDoc}
+     *
+     * Here, the state provider is already configured to compute the state initially before the dialog is opened. If
+     * this is desired but other initial configurations (like dependencies) are desired, override this method and call
+     * super.init within it. If choices should instead be asynchronously loaded once the dialog is opened, override this
+     * method without calling super.init to configure the initializer to do so.
+     */
+    @Override
+    default void init(final StateProviderInitializer initializer) {
+        initializer.computeBeforeOpenDialog();
+
+    }
+
+    /**
+     * Computes the array of possible values based on the {@link DefaultNodeSettingsContext}.
+     *
+     * @param context the context that holds any available information that might be relevant for determining available
+     *            choices
+     * @return array of possible values, never {@code null}
+     */
+    default List<String> choices(final DefaultNodeSettingsContext context) {
+        throw new IllegalStateException("At least one method must be implemented: "
+            + "StringChoicesStateProvider.choices or StringChoicesStateProvider.computeState");
+    }
+
+    @Override
+    default List<PossibleValue> computeState(final DefaultNodeSettingsContext context) {
+        return choices(context).stream().map(PossibleValue::fromId).toList();
+    }
+
+}

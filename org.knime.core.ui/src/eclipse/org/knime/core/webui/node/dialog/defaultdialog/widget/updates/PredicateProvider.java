@@ -48,12 +48,10 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates;
 
-import org.knime.core.data.DataValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.And;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.Not;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.Or;
@@ -245,31 +243,6 @@ public interface PredicateProvider {
              *         referenced array.
              */
             Predicate containsElementSatisfying(PredicateProvider elementPredicate);
-        }
-
-        /**
-         * Returned by {@link PredicateInitializer#getColumnSelection}
-         *
-         * @author Paul Bärnreuther
-         */
-        interface ColumnSelectionReference {
-            /**
-             * @return predicate that is fulfilled, when the referenced field is annotated with a {@link ChoicesWidget}
-             *         with {@link ChoicesWidget#showNoneColumn()} and the "None" column is selected.
-             */
-            Predicate isNoneColumn();
-
-            /**
-             * @param columnName
-             * @return predicate that is fulfilled, when a column with the given name is selected.
-             */
-            Predicate hasColumnName(String columnName);
-
-            /**
-             * @param type
-             * @return predicate that is fulfilled, when a column with the given type is selected.
-             */
-            Predicate hasColumnType(Class<? extends DataValue> type);
         }
 
         /**
