@@ -62,7 +62,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFor
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesAdder;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -78,8 +77,6 @@ final class LayoutNodesGenerator {
 
     private final DefaultNodeSettingsContext m_defaultNodeSettingsContext;
 
-    private final AsyncChoicesAdder m_asyncChoicesAdder;
-
     private final Collection<Tree<WidgetGroup>> m_allWidgetTrees;
 
     private final UiSchemaRulesGenerator m_rulesGenerator;
@@ -90,13 +87,11 @@ final class LayoutNodesGenerator {
      * @param context the settings creation context with access to the input ports
      * @param asyncChoicesAdder used to start asynchronous computations of choices during the ui-schema generation.
      */
-    LayoutNodesGenerator(final LayoutSkeleton layout, final DefaultNodeSettingsContext context,
-        final AsyncChoicesAdder asyncChoicesAdder) {
+    LayoutNodesGenerator(final LayoutSkeleton layout, final DefaultNodeSettingsContext context) {
         m_rulesGenerator = new UiSchemaRulesGenerator(layout.widgetTrees(), context);
         m_allWidgetTrees = Stream.concat(layout.widgetTrees().stream(), layout.parentWidgetTrees().stream()).toList();
         m_rootLayoutTree = layout.layoutTreeRoot();
         m_defaultNodeSettingsContext = context;
-        m_asyncChoicesAdder = asyncChoicesAdder;
     }
 
     private static String getScope(final TreeNode<WidgetGroup> node) {
@@ -132,8 +127,8 @@ final class LayoutNodesGenerator {
     private void addOptions(final TreeNode<WidgetGroup> node, final ObjectNode control) {
         final var scope = getScope(node);
         try {
-            new UiSchemaOptionsGenerator(node, m_defaultNodeSettingsContext, scope, m_asyncChoicesAdder,
-                m_allWidgetTrees).addOptionsTo(control);
+            new UiSchemaOptionsGenerator(node, m_defaultNodeSettingsContext, scope, m_allWidgetTrees)
+                .addOptionsTo(control);
         } catch (UiSchemaGenerationException ex) {
             throw new UiSchemaGenerationException(
                 String.format("Error when generating the options of %s.: %s", scope, ex.getMessage()), ex);
