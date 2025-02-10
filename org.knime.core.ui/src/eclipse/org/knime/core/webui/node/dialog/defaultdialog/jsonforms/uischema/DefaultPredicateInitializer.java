@@ -51,7 +51,6 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
@@ -139,11 +138,6 @@ class DefaultPredicateInitializer implements PredicateInitializer {
             condition -> createPredicate(reference, condition));
     }
 
-    @Override
-    public ColumnSelectionReference getColumnSelection(final Class<? extends Reference<ColumnSelection>> reference) {
-        return new ConditionToPredicateTranslator.ColumnFieldSelectionReference(
-            condition -> createPredicate(reference, condition));
-    }
 
     @Override
     public <E extends Enum<E>> SingleSelectionReference<E>

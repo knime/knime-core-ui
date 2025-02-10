@@ -50,15 +50,10 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates
 
 import java.util.function.Function;
 
-import org.knime.core.data.DataValue;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.IsColumnOfTypeCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.IsSpecificColumnCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.SpecialColumns;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.ArrayReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.BooleanReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.ColumnSelectionReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.EnumReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.SingleSelectionReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.StringReference;
@@ -146,30 +141,6 @@ public class ConditionToPredicateTranslator {
         @Override
         public Predicate containsElementSatisfying(final PredicateProvider elementPredicate) {
             return this.<ArrayContainsCondition> createPredicate(() -> elementPredicate);
-        }
-
-    }
-
-    public static final class ColumnFieldSelectionReference extends ConditionToPredicateTranslator
-        implements ColumnSelectionReference {
-
-        public ColumnFieldSelectionReference(final Function<Condition, Predicate> conditionToPredicate) {
-            super(conditionToPredicate);
-        }
-
-        @Override
-        public Predicate isNoneColumn() {
-            return hasColumnName(SpecialColumns.NONE.getId());
-        }
-
-        @Override
-        public Predicate hasColumnName(final String columnName) {
-            return this.<IsSpecificColumnCondition> createPredicate(() -> columnName);
-        }
-
-        @Override
-        public Predicate hasColumnType(final Class<? extends DataValue> type) {
-            return this.<IsColumnOfTypeCondition> createPredicate(() -> type);
         }
 
     }

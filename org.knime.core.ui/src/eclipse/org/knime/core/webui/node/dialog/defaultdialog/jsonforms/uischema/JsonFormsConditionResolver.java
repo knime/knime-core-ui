@@ -59,9 +59,6 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.IsColumnOfTypeCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.IsSpecificColumnCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ArrayContainsCondition;
@@ -119,25 +116,6 @@ class JsonFormsConditionResolver implements ConditionVisitor<ObjectNode> {
     @Override
     public ObjectNode visit(final HasMultipleItemsCondition hasMultipleItemsCondition) {
         return getMapper().createObjectNode().put(TAG_ITEMS_MIN, 2);
-    }
-
-    @Override
-    public ObjectNode visit(final IsSpecificColumnCondition isSpecificColumnCondition) {
-        final var condition = getMapper().createObjectNode();
-        condition //
-            .putObject(TAG_PROPERTIES).putObject(IsSpecificColumnCondition.PROPERTY_NAME) //
-            .put(TAG_CONST, isSpecificColumnCondition.getColumnName());
-        return condition;
-    }
-
-    @Override
-    public ObjectNode visit(final IsColumnOfTypeCondition isColumnOfTypeCondition) {
-        final var condition = getMapper().createObjectNode();
-        condition //
-            .putObject(TAG_PROPERTIES).putObject(IsColumnOfTypeCondition.PROPERTY_NAME) //
-            .putObject(TAG_CONTAINS)
-            .put(TAG_CONST, ColumnSelection.getTypeClassIdentifier(isColumnOfTypeCondition.getDataValueClass()));
-        return condition;
     }
 
     @Override

@@ -87,7 +87,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsL
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple.NameFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
@@ -233,11 +232,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <td>Arrays/Collections of {@link DefaultNodeSettings} (**)</td>
  * <td>Array Widget ({@link ArrayWidgetExample example})</td>
  * <td>{@link ArrayWidget}</td>
- * </tr>
- * <tr>
- * <td>{@link ColumnSelection}</td>
- * <td></td>
- * <td>{@link ChoicesWidget} (drop-down)</td>
  * </tr>
  * <tr>
  * <td>{@link ColumnFilter}</td>

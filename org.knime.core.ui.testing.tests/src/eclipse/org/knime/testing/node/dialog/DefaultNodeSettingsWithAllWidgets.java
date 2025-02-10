@@ -61,9 +61,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
@@ -88,8 +89,13 @@ class DefaultNodeSettingsWithAllWidgets implements DefaultNodeSettings {
     @Widget(title = "Dynamic Values Input", description = "")
     DynamicValuesInput m_dynamicValuesInput = DynamicValuesInput.emptySingle();
 
+
+    static final class MyColumnChoicesProvider implements ColumnChoicesStateProvider {
+    }
+
     @Widget(title = "Column Selection", description = "")
-    ColumnSelection m_columnSelection = new ColumnSelection();
+    @ChoicesWidget(choicesProvider = MyColumnChoicesProvider.class)
+    String m_columnSelection;
 
     @Widget(title = "Column Filter", description = "")
     ColumnFilter m_columnFilter = new ColumnFilter();
@@ -164,3 +170,4 @@ class DefaultNodeSettingsWithAllWidgets implements DefaultNodeSettings {
     NestedSettings m_nestedSettingsWithCustomPersistor;
 
 }
+

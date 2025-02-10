@@ -53,7 +53,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.And;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.Not;
@@ -156,12 +155,6 @@ public interface PredicateProvider {
          * @return an object that can be further transformed to a predicate using one of its methods
          */
         <T> ArrayReference getArray(Class<? extends Reference<T[]>> reference);
-
-        /**
-         * @param reference bound to exactly one {@link ColumnSelection} field via {@link ValueReference}
-         * @return an object that can be further transformed to a predicate using one of its methods
-         */
-        ColumnSelectionReference getColumnSelection(Class<? extends Reference<ColumnSelection>> reference);
 
         /**
          * @param reference bound to exactly one {@link SingleSelection} field via {@link ValueReference}

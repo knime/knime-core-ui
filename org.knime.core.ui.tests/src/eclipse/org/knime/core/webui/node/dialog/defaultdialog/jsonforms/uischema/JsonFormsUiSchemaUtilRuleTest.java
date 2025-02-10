@@ -54,14 +54,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.buildTestUiSchema;
 
 import org.junit.jupiter.api.Test;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.WithNoneChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -75,7 +73,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("java:S2698") // we accept assertions without messages
+// we accept assertions without messages
+@SuppressWarnings({"unused", "java:S2698"})
 class JsonFormsUiSchemaUtilRuleTest {
 
     @Test
@@ -751,7 +750,6 @@ class JsonFormsUiSchemaUtilRuleTest {
     }
 
     @Test
-    @SuppressWarnings("unused")
     void testEffectAnnotationOnClass() {
         final var response = buildTestUiSchema(EffectOnClassSettings.class);
         assertThatJson(response).inPath("$.elements").isArray().hasSize(9);
@@ -766,117 +764,6 @@ class JsonFormsUiSchemaUtilRuleTest {
         assertThatJson(response).inPath("$.elements[8].rule").isObject();
     }
 
-    @Test
-    void testIsSpecificColumnCondition() {
-
-        final class ChoicesWithSpecificColumnCondition implements DefaultNodeSettings {
-
-            static final class ColumnSelectionReference implements Reference<ColumnSelection> {
-            }
-
-            @Widget(title = "Foo", description = "")
-            @ChoicesWidget(choices = TestChoicesProvider.class)
-            @ValueReference(ColumnSelectionReference.class)
-            ColumnSelection columnSelection = new ColumnSelection();
-
-            static final class MyCondition implements PredicateProvider {
-
-                @Override
-                public Predicate init(final PredicateInitializer i) {
-                    return i.getColumnSelection(ColumnSelectionReference.class).hasColumnName("foo");
-                }
-            }
-
-            @Widget(title = "", description = "")
-            @Effect(predicate = MyCondition.class, type = EffectType.SHOW)
-            boolean someConditionalSetting = true;
-
-        }
-
-        final var response = buildTestUiSchema(ChoicesWithSpecificColumnCondition.class);
-        assertThatJson(response).inPath("$.elements").isArray().hasSize(2);
-        assertThatJson(response).inPath("$.elements[0].type").isString().isEqualTo("Control");
-        assertThatJson(response).inPath("$.elements[1].type").isString().isEqualTo("Control");
-        assertThatJson(response).inPath("$.elements[1].rule.effect").isString().isEqualTo("SHOW");
-        assertThatJson(response).inPath("$.elements[1].rule.condition.scope").isString()
-            .isEqualTo(response.get("elements").get(0).get("scope").asText());
-        assertThatJson(response).inPath("$.elements[1].rule.condition.schema.properties.selected.const").isString()
-            .isEqualTo("foo");
-    }
-
-    @Test
-    void testIsColumnOfTypeCondition() {
-
-        final class ChoicesWithColumnTypeCondition implements DefaultNodeSettings {
-
-            static final class ColumnSelectionReference implements Reference<ColumnSelection> {
-            }
-
-            @Widget(title = "Foo", description = "")
-            @ChoicesWidget(choices = TestChoicesProvider.class)
-            @ValueReference(ColumnSelectionReference.class)
-            ColumnSelection columnSelection = new ColumnSelection();
-
-            static final class MyCondition implements PredicateProvider {
-
-                @Override
-                public Predicate init(final PredicateInitializer i) {
-                    return i.getColumnSelection(ColumnSelectionReference.class).hasColumnType(StringCell.class);
-                }
-            }
-
-            @Widget(title = "", description = "")
-            @Effect(predicate = MyCondition.class, type = EffectType.SHOW)
-            boolean someConditionalSetting = true;
-
-        }
-
-        final var response = buildTestUiSchema(ChoicesWithColumnTypeCondition.class);
-        assertThatJson(response).inPath("$.elements").isArray().hasSize(2);
-        assertThatJson(response).inPath("$.elements[0].type").isString().isEqualTo("Control");
-        assertThatJson(response).inPath("$.elements[1].type").isString().isEqualTo("Control");
-        assertThatJson(response).inPath("$.elements[1].rule.effect").isString().isEqualTo("SHOW");
-        assertThatJson(response).inPath("$.elements[1].rule.condition.scope").isString()
-            .isEqualTo(response.get("elements").get(0).get("scope").asText());
-        assertThatJson(response).inPath("$.elements[1].rule.condition.schema.properties.compatibleTypes.contains.const")
-            .isString().isEqualTo(StringCell.class.getName());
-    }
-
-    @Test
-    void testIsNoneColumnCondition() {
-        final class ChoicesWithNoneColumnCondition implements DefaultNodeSettings {
-
-            static final class ColumnSelectionReference implements Reference<ColumnSelection> {
-            }
-
-            @Widget(title = "Foo", description = "")
-            @ChoicesWidget(choices = TestChoicesProvider.class)
-            @ValueReference(ColumnSelectionReference.class)
-            ColumnSelection columnSelection = new ColumnSelection();
-
-            static final class MyCondition implements PredicateProvider {
-
-                @Override
-                public Predicate init(final PredicateInitializer i) {
-                    return i.getColumnSelection(ColumnSelectionReference.class).isNoneColumn();
-                }
-            }
-
-            @Widget(title = "", description = "")
-            @Effect(predicate = MyCondition.class, type = EffectType.SHOW)
-            boolean someConditionalSetting = true;
-
-        }
-        final var response = buildTestUiSchema(ChoicesWithNoneColumnCondition.class);
-        assertThatJson(response).inPath("$.elements").isArray().hasSize(2);
-        assertThatJson(response).inPath("$.elements[0].type").isString().isEqualTo("Control");
-        assertThatJson(response).inPath("$.elements[1].type").isString().isEqualTo("Control");
-        assertThatJson(response).inPath("$.elements[1].rule.effect").isString().isEqualTo("SHOW");
-        assertThatJson(response).inPath("$.elements[1].rule.condition.scope").isString()
-            .isEqualTo(response.get("elements").get(0).get("scope").asText());
-        assertThatJson(response).inPath("$.elements[1].rule.condition.schema.properties.selected.const").isString()
-            .isEqualTo("<none>");
-    }
 
     @Test
     void testSingleSelectionConditions() {

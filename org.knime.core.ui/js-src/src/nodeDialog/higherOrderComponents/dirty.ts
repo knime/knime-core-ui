@@ -51,30 +51,8 @@ class TwinlistValueComparator extends DefaultSettingComparator<
   }
 }
 
-type ColumnSelectValue = ExtractData<typeof allControls.columnSelectRenderer>;
-class ColumnSelectValueComparator extends DefaultSettingComparator<
-  ColumnSelectValue | undefined,
-  string | null | undefined
-> {
-  // eslint-disable-next-line class-methods-use-this
-  toInternalState(
-    cleanSettings: ColumnSelectValue | undefined,
-  ): string | null | undefined {
-    return cleanSettings?.selected;
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  equals(
-    newState: string | null | undefined,
-    cleanState: string | null | undefined,
-  ): boolean {
-    return newState === cleanState;
-  }
-}
-
 export const valueComparators: ValueComparators<typeof allControls> = {
   twinlistRenderer: () => new TwinlistValueComparator(),
-  columnSelectRenderer: () => new ColumnSelectValueComparator(),
 };
 
 export const mapDirty = mapControls((c, k) =>

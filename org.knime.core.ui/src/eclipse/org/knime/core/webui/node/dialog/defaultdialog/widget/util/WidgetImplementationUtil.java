@@ -63,7 +63,6 @@ import java.util.stream.Collectors;
 
 import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple.NameFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
@@ -209,7 +208,6 @@ public final class WidgetImplementationUtil {
         new DefaultWidget(List.of(ColumnFilter.class), DefaultWidgetType.COLUMN_FILTER), //
         new DefaultWidget(List.of(NameFilter.class), DefaultWidgetType.NAME_FILTER), //
         new DefaultWidget(List.of(SingleSelection.class), DefaultWidgetType.SINGLE_SELECTION), //
-        new DefaultWidget(List.of(ColumnSelection.class), DefaultWidgetType.COLUMN_SELECTION), //
         new DefaultWidget(List.of(LocalTime.class), DefaultWidgetType.LOCAL_TIME), //
         new DefaultWidget(List.of(LocalDate.class), DefaultWidgetType.LOCAL_DATE), //
         new DefaultWidget(List.of(LocalDateTime.class), DefaultWidgetType.LOCAL_DATE_TIME), //

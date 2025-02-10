@@ -71,7 +71,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.Defaul
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.AsyncChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -99,9 +98,6 @@ class ChoicesWidgetUiSchemaOptionsTest {
 
         @SuppressWarnings("unused")
         class SeveralChoicesSettings implements DefaultNodeSettings {
-            @Widget(title = "", description = "")
-            @ChoicesWidget(choices = TestChoicesProvider.class)
-            ColumnSelection m_columnSelection;
 
             @Widget(title = "", description = "")
             @ChoicesWidget(choices = TestChoicesProvider.class)
@@ -125,16 +121,14 @@ class ChoicesWidgetUiSchemaOptionsTest {
         }
 
         var response = buildTestUiSchema(SeveralChoicesSettings.class, null);
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("columnSelection");
-        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("columnSelection");
-        assertThatJson(response).inPath("$.elements[1].scope").isString().contains("columnFilter");
-        assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo("columnFilter");
-        assertThatJson(response).inPath("$.elements[2].scope").isString().contains("stringArray");
-        assertThatJson(response).inPath("$.elements[2].options.format").isString().isEqualTo("twinList");
-        assertThatJson(response).inPath("$.elements[3].scope").isString().contains("string");
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("columnFilter");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("columnFilter");
+        assertThatJson(response).inPath("$.elements[1].scope").isString().contains("stringArray");
+        assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo("twinList");
+        assertThatJson(response).inPath("$.elements[2].scope").isString().contains("string");
+        assertThatJson(response).inPath("$.elements[2].options.format").isString().isEqualTo("dropDown");
+        assertThatJson(response).inPath("$.elements[3].scope").isString().contains("foo");
         assertThatJson(response).inPath("$.elements[3].options.format").isString().isEqualTo("dropDown");
-        assertThatJson(response).inPath("$.elements[4].scope").isString().contains("foo");
-        assertThatJson(response).inPath("$.elements[4].options.format").isString().isEqualTo("dropDown");
     }
 
     static class TestColumnChoicesProvider implements ColumnChoicesProvider {
@@ -165,7 +159,7 @@ class ChoicesWidgetUiSchemaOptionsTest {
 
         @Widget(title = "", description = "")
         @ChoicesWidget(choices = TestColumnChoicesProvider.class)
-        ColumnSelection m_foo;
+        String m_foo;
 
         @Widget(title = "", description = "")
         @ChoicesWidget(choices = TestChoicesProvider.class)
@@ -274,7 +268,7 @@ class ChoicesWidgetUiSchemaOptionsTest {
 
             @Widget(title = "", description = "")
             @ChoicesWidget(choices = TestAsyncColumnChoicesProvider.class)
-            ColumnSelection m_foo;
+            String m_foo;
 
             @Widget(title = "", description = "")
             @ChoicesWidget(choices = TestAsyncChoicesProvider.class)
