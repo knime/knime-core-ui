@@ -44,23 +44,29 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 21, 2023 (Paul Bärnreuther): created
+ *   Feb 10, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.util.List;
+import java.util.stream.Stream;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProvider;
 
 /**
- * Annotate a String[] field which is a {@link ChoicesWidget} in order to display a combo box component.
+ * Offers all column from the first input table as options.
  *
- * @author Paul Bärnreuther
+ * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface ComboBoxWidget {
-
+public final class AllColumnsProvider implements ColumnChoicesProvider {
+    @Override
+    public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+        return context.getDataTableSpec(0) //
+            .map(DataTableSpec::stream) //
+            .orElseGet(Stream::empty) //
+            .toList();
+    }
 }

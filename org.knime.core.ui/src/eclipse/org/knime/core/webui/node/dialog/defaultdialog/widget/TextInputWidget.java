@@ -69,15 +69,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInpu
 public @interface TextInputWidget {
 
     /**
-     * With this field set to true, the input also has a checkbox which indicates whether the value is null. If so, the
-     * input is hidden.
-     *
-     * @return whether the input should be hidden in case the value is null.
+     * @return the opaque text that should appear on an empty field
      */
-    boolean optional() default false;
-
     String placeholder() default "";
 
+    /**
+     *
+     * @return same as {@link #placeholder()} but allows for dynamic changes
+     */
     Class<? extends StateProvider<String>> placeholderProvider() default NoopStringProvider.class;
 
     /**

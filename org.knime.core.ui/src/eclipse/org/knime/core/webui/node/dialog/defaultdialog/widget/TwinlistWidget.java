@@ -44,28 +44,37 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 28, 2023 (Paul Bärnreuther): created
+ *   Feb 10, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.widget;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple.NameFilter;
 
 /**
- * This represents one of the possible values within a {@link ChoicesWidget}.
- *
- * @param id the id which is saved on selection
- * @param text the displayed text
+ * Configure the labels used in a widget including a twin-list, i.e. e.g. for a {@link ColumnFilter} or a
+ * {@link NameFilter}.
  *
  * @author Paul Bärnreuther
  */
-public record IdAndText(String id, String text) {
-    /**
-     * @param id
-     * @return a choice whose text matches the given id.
-     */
-    public static IdAndText fromId(final String id) {
-        return new IdAndText(id, id);
-    }
+@Retention(RUNTIME)
+@Target(FIELD)
+public @interface TwinlistWidget {
 
+    /**
+     * @return the label of the included values
+     */
+    String includedLabel() default "";
+
+    /**
+     * @return the label of the excluded values
+     */
+    String excludedLabel() default "";
 
 }

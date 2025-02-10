@@ -49,7 +49,6 @@
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -64,9 +63,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataColumnSpecCreator;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.node.Node;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.CredentialsProvider;
@@ -80,18 +76,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.Defaul
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonChange;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesUpdateHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
@@ -127,20 +117,15 @@ class DefaultNodeDialogDataServiceImplTest {
 
     private static DefaultNodeDialogDataServiceImpl
         getDataService(final Class<? extends DefaultNodeSettings> modelSettingsClass) {
-        return getDataServiceWithAsyncChoices(modelSettingsClass, new AsyncChoicesHolder());
-    }
-
-    private static DefaultNodeDialogDataServiceImpl getDataServiceWithAsyncChoices(
-        final Class<? extends DefaultNodeSettings> modelSettingsClass, final AsyncChoicesHolder asyncChoicesHolder) {
-        return new DefaultNodeDialogDataServiceImpl(Map.of(SettingsType.MODEL, modelSettingsClass), asyncChoicesHolder);
+        return new DefaultNodeDialogDataServiceImpl(Map.of(SettingsType.MODEL, modelSettingsClass));
     }
 
     private static DefaultNodeDialogDataServiceImpl getDataService(
         final Class<? extends DefaultNodeSettings> modelSettingsClass,
         final Class<? extends DefaultNodeSettings> viewSettingsClass) {
         return new DefaultNodeDialogDataServiceImpl(
-            Map.of(SettingsType.MODEL, modelSettingsClass, SettingsType.VIEW, viewSettingsClass),
-            new AsyncChoicesHolder());
+            Map.of(SettingsType.MODEL, modelSettingsClass, SettingsType.VIEW, viewSettingsClass));
+
     }
 
     @Nested
@@ -350,121 +335,6 @@ class DefaultNodeDialogDataServiceImplTest {
     }
 
     @Nested
-    class ChoicesDataServiceTest {
-        static class TestChoicesUpdateHandler implements ChoicesUpdateHandler<TestDefaultNodeSettings> {
-
-            public final static IdAndText[] getResult(final String id) {
-                return new IdAndText[]{IdAndText.fromId(id)};
-
-            }
-
-            /**
-             * {@inheritDoc}
-             */
-            @Override
-            public IdAndText[] update(final TestDefaultNodeSettings settings,
-                final DefaultNodeSettingsContext context) {
-                return getResult(settings.m_foo);
-            }
-        }
-
-        @Test
-        void testUpdate() throws ExecutionException, InterruptedException {
-
-            class ChoicesSettings implements DefaultNodeSettings {
-                @Widget(title = "", description = "")
-                @ChoicesWidget(choicesUpdateHandler = TestChoicesUpdateHandler.class)
-                String m_choicesWidgetElement;
-
-                @Widget(title = "", description = "")
-                @SuppressWarnings("unused")
-                String m_otherSetting;
-            }
-
-            final String testDepenenciesFooValue = "custom value";
-            final var dataService = getDataService(ChoicesSettings.class);
-            final var result = dataService.update("widgetId", TestChoicesUpdateHandler.class.getName(),
-                Map.of("foo", testDepenenciesFooValue));
-            assertThat(result.result()).isEqualTo(TestChoicesUpdateHandler.getResult(testDepenenciesFooValue));
-        }
-
-        @Test
-        void testUpdateInsideArrayLayout() throws ExecutionException, InterruptedException {
-
-            class ChoicesSettings implements DefaultNodeSettings {
-                static class ArrayElem implements DefaultNodeSettings {
-                    @Widget(title = "", description = "")
-                    @ChoicesWidget(choicesUpdateHandler = TestChoicesUpdateHandler.class)
-                    String m_choicesWidgetElement;
-                }
-
-                @Widget(title = "", description = "")
-                @SuppressWarnings("unused")
-                ArrayElem[] m_array;
-            }
-
-            final String testDepenenciesFooValue = "custom value";
-            final var dataService = getDataService(ChoicesSettings.class);
-            final var result = dataService.update("widgetId", TestChoicesUpdateHandler.class.getName(),
-                Map.of("foo", testDepenenciesFooValue));
-            assertThat(result.result()).isEqualTo(TestChoicesUpdateHandler.getResult(testDepenenciesFooValue));
-        }
-
-        static class TestChoicesProvider implements ChoicesProvider {
-
-            @Override
-            public String[] choices(final DefaultNodeSettingsContext context) {
-                return new String[]{"A", "B", "C"};
-            }
-
-        }
-
-        static class TestColumnChoicesProvider implements ColumnChoicesProvider {
-
-            @Override
-            public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-                final var colSpec = new DataColumnSpecCreator("myCol", StringCell.TYPE).createSpec();
-                return new DataColumnSpec[]{colSpec};
-            }
-
-        }
-
-        static class TestChoicesProviderWithError implements ChoicesProvider {
-
-            public static final String MY_ERROR = "MyError";
-
-            @Override
-            public String[] choices(final DefaultNodeSettingsContext context) {
-                throw new WidgetHandlerException(MY_ERROR);
-            }
-
-        }
-
-        @Test
-        void testGetChoicesWithError() throws ExecutionException, InterruptedException {
-
-            class ChoicesSettings implements DefaultNodeSettings {
-                @Widget(title = "", description = "")
-                @ChoicesWidget(choices = TestChoicesProviderWithError.class)
-                String m_foo;
-            }
-
-            final var asyncChoicesHolder = new AsyncChoicesHolder();
-            final var choices = new IdAndText[]{new IdAndText("id", "text")};
-            asyncChoicesHolder.addChoices(TestChoicesProvider.class.getName(), () -> choices);
-            final var errorMessage = "Failed to load choices";
-            asyncChoicesHolder.addChoices(TestColumnChoicesProvider.class.getName(), () -> {
-                throw new WidgetHandlerException(errorMessage);
-            });
-            final var dataService = getDataServiceWithAsyncChoices(ChoicesSettings.class, asyncChoicesHolder);
-            final var result1 = dataService.getChoices(TestChoicesProvider.class.getName());
-            assertThat(result1.result()).isEqualTo(choices);
-            final var result2 = dataService.getChoices(TestColumnChoicesProvider.class.getName());
-            assertThat(result2.message()).isEqualTo(List.of(errorMessage));
-        }
-    }
-
-    @Nested
     class ButtonDataServiceTest {
 
         enum TestButtonStates {
@@ -659,146 +529,6 @@ class DefaultNodeDialogDataServiceImplTest {
             @SuppressWarnings("unchecked")
             final var buttonChange = (ButtonChange<String, TestButtonStates>)result.result();
             assertThat(buttonChange.settingValue()).isEqualTo(testDepenenciesFooValue);
-        }
-    }
-
-    @Nested
-    class FindHandlerTest {
-
-        interface SimpleTestHandler extends ChoicesUpdateHandler<TestDefaultNodeSettings> {
-
-            String getResult();
-
-            @Override
-            default public IdAndText[] update(final TestDefaultNodeSettings settings,
-                final DefaultNodeSettingsContext context) {
-                return new IdAndText[]{IdAndText.fromId(getResult())};
-
-            }
-
-        }
-
-        static class FirstTestHandler implements SimpleTestHandler {
-
-            public static final String ID = "FirstTestHandler";
-
-            @Override
-            public String getResult() {
-                return ID;
-            }
-
-        }
-
-        static class SecondTestHandler implements SimpleTestHandler {
-
-            public static final String ID = "SecondTestHandler";
-
-            @Override
-            public String getResult() {
-                return ID;
-            }
-
-        }
-
-        @Test
-        void testMultipleHandlers() throws ExecutionException, InterruptedException {
-
-            class TestSettings implements DefaultNodeSettings {
-                @Widget(title = "", description = "")
-                @ChoicesWidget(choicesUpdateHandler = FirstTestHandler.class)
-                String m_button;
-
-                @Widget(title = "", description = "")
-                @ChoicesWidget(choicesUpdateHandler = SecondTestHandler.class)
-                String m_otherButton;
-            }
-
-            final var dataService = getDataService(TestSettings.class);
-            final var firstResult = dataService.update("widgetId", FirstTestHandler.class.getName(), null);
-            final var secondResult = dataService.update("widgetId", SecondTestHandler.class.getName(), null);
-            assertThat(((IdAndText[])firstResult.result())[0].id()).isEqualTo(FirstTestHandler.ID);
-            assertThat(((IdAndText[])secondResult.result())[0].id()).isEqualTo(SecondTestHandler.ID);
-        }
-
-        @Test
-        void testThrowsIfNoHandlerPresent() throws ExecutionException, InterruptedException {
-
-            class TestSettings implements DefaultNodeSettings {
-                @Widget(title = "", description = "")
-                @ChoicesWidget(choicesUpdateHandler = FirstTestHandler.class)
-                String m_button;
-            }
-
-            final var dataService = getDataService(TestSettings.class);
-            final var handlerName = SecondTestHandler.class.getName();
-            assertThrows(IllegalArgumentException.class, () -> dataService.update("widgetId", handlerName, null));
-
-        }
-
-        @Test
-        void testThrowsIfHandlerInstantiationFailed() throws ExecutionException, InterruptedException {
-
-            class NonStaticHandler extends FirstTestHandler {
-            }
-
-            class TestSettings implements DefaultNodeSettings {
-                @ChoicesWidget(choicesUpdateHandler = NonStaticHandler.class)
-                String m_button;
-            }
-            final var handlerName = NonStaticHandler.class.getName();
-            final var dataService = getDataService(TestSettings.class);
-            assertThrows(IllegalArgumentException.class, () -> dataService.update("widgetId", handlerName, null));
-
-        }
-
-        @Test
-        void testMultipleSettingsClasses() throws ExecutionException, InterruptedException {
-
-            class TestSettings implements DefaultNodeSettings {
-                @Widget(title = "", description = "")
-                @ChoicesWidget(choicesUpdateHandler = FirstTestHandler.class)
-                String m_button;
-            }
-
-            class OtherTestSettings implements DefaultNodeSettings {
-                @Widget(title = "", description = "")
-                @ChoicesWidget(choicesUpdateHandler = SecondTestHandler.class)
-                String m_button;
-            }
-
-            final var dataService = getDataService(TestSettings.class, OtherTestSettings.class);
-            final var firstResult = dataService.update("widgetId", FirstTestHandler.class.getName(), null);
-            final var secondResult = dataService.update("widgetId", SecondTestHandler.class.getName(), null);
-            assertThat(((IdAndText[])firstResult.result())[0].id()).isEqualTo(FirstTestHandler.ID);
-            assertThat(((IdAndText[])secondResult.result())[0].id()).isEqualTo(SecondTestHandler.ID);
-        }
-    }
-
-    static class DefaultNodeSettingsContextHandler implements ChoicesUpdateHandler<TestDefaultNodeSettings> {
-
-        @Override
-        public IdAndText[] update(final TestDefaultNodeSettings settings, final DefaultNodeSettingsContext context) {
-            assertThat(context.getPortObjectSpecs()).isEqualTo(PORT_OBJECT_SPECS);
-            return null;
-        }
-
-    }
-
-    @Nested
-    class DefaultNodeSettingsContextSupplierTest {
-
-        @Test
-        void testSuppliesDefaultNodeSettingsContextToHandler() throws ExecutionException, InterruptedException {
-
-            class ButtonSettings implements DefaultNodeSettings {
-                @Widget(title = "", description = "")
-                @ChoicesWidget(choicesUpdateHandler = DefaultNodeSettingsContextHandler.class)
-                Boolean m_button;
-            }
-
-            final var dataService = getDataService(ButtonSettings.class);
-            dataService.update("widgetId", DefaultNodeSettingsContextHandler.class.getName(), null).result();
-            /** Assertion happens inside {@link DefaultNodeSettingsContextHandler#update} */
         }
     }
 

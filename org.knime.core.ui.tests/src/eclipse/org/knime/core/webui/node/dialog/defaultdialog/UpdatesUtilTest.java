@@ -75,18 +75,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDa
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DataTypeChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.MessageType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
@@ -784,12 +784,12 @@ public class UpdatesUtilTest {
 
         }
 
-        static final class TestStringChoicesProvider implements StringChoicesStateProvider {
+        static final class TestStringChoicesProvider implements StringChoicesProvider {
 
-            static final String[] RESULT = new String[]{"A", "B", "C"};
+            static final List<String> RESULT = List.of("A", "B", "C");
 
             @Override
-            public String[] choices(final DefaultNodeSettingsContext context) {
+            public List<String> choices(final DefaultNodeSettingsContext context) {
                 return RESULT;
             }
 
@@ -799,7 +799,7 @@ public class UpdatesUtilTest {
         void testChoicesWidgetStringChoicesStateProvider() {
             class TestSettings implements DefaultNodeSettings {
 
-                @ChoicesWidget(choicesProvider = TestStringChoicesProvider.class)
+                @ChoicesProvider(choicesProvider = TestStringChoicesProvider.class)
                 String m_string;
 
             }
@@ -812,18 +812,18 @@ public class UpdatesUtilTest {
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isArray().hasSize(3);
             List.of(0, 1, 2).forEach(i -> {
                 assertThatJson(response).inPath(String.format("$.initialUpdates[0].values[0].value[%s].id", i))
-                    .isString().isEqualTo(TestStringChoicesProvider.RESULT[i]);
+                    .isString().isEqualTo(TestStringChoicesProvider.RESULT.get(i));
                 assertThatJson(response).inPath(String.format("$.initialUpdates[0].values[0].value[%s].text", i))
-                    .isString().isEqualTo(TestStringChoicesProvider.RESULT[i]);
+                    .isString().isEqualTo(TestStringChoicesProvider.RESULT.get(i));
             });
 
         }
 
-        static final class TestColumnChoicesProvider implements ColumnChoicesStateProvider {
+        static final class TestColumnChoicesProvider implements ColumnChoicesProvider {
 
             @Override
-            public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-                return new DataColumnSpec[]{new DataColumnSpecCreator("A", StringCell.TYPE).createSpec()};
+            public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+                return List.of(new DataColumnSpecCreator("A", StringCell.TYPE).createSpec());
             }
 
         }
@@ -832,7 +832,7 @@ public class UpdatesUtilTest {
         void testChoicesWidgetColumnChoicesStateProvider() {
             class TestSettings implements DefaultNodeSettings {
 
-                @ChoicesWidget(choicesProvider = TestColumnChoicesProvider.class)
+                @ChoicesProvider(choicesProvider = TestColumnChoicesProvider.class)
                 String m_columnSelection;
 
             }
@@ -849,8 +849,6 @@ public class UpdatesUtilTest {
                 .isEqualTo(StringCell.TYPE.getPreferredValueClass().getName());
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].type.text").isString()
                 .isEqualTo(StringCell.TYPE.getName());
-            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].compatibleTypes").isArray()
-                .hasSize(3);
         }
 
         @Test

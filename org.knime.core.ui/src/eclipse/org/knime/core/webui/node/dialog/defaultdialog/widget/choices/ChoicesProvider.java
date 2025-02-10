@@ -44,32 +44,33 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 18, 2024 (Paul Bärnreuther): created
+ *   May 5, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
- * TODO: This is only a sealed abstract class because UIEXT-1491 Split into different providers for columns, strings and
- * enums.
+ * Some widgets require choices for a selection (e.g. a dropdown). Use this interface to provide an array of possible
+ * values.
  *
  * @author Paul Bärnreuther
  */
-public sealed interface ChoicesStateProvider<T> extends StateProvider<T>
-    permits StringChoicesStateProvider, ColumnChoicesStateProvider, DataTypeChoicesStateProvider {
+@Retention(RUNTIME)
+@Target(FIELD)
+public @interface ChoicesProvider {
 
     /**
-     * {@inheritDoc}
-     *
-     * Here, the state provider is already configured to compute the state initially before the dialog is opened. If
-     * this is desired but other initial configurations (like dependencies) are desired, override this method and call
-     * super.init within it. If choices should instead be asynchronously loaded once the dialog is opened, override this
-     * method without calling super.init to configure the initializer to do so.
+     * @return the provider for the list of possible values. Make the choices provider asynchronous or depend on other
+     *         settings by overriding its {@link StateProvider#init} method appropriately.
      */
-    @Override
-    default void init(final StateProviderInitializer initializer) {
-        initializer.computeBeforeOpenDialog();
-    }
+    @SuppressWarnings("rawtypes")
+    Class<? extends ChoicesStateProvider> choicesProvider();
 
 }

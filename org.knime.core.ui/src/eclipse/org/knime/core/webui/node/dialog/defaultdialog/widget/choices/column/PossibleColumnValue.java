@@ -42,12 +42,42 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- */
-/**
- * TODO UIEXT-1012: Move the {@link ChoicesWidget} and the {@link ChoicesProvider} to this package.
  *
- * For now this package contains update handlers used inside the {@link ChoicesWidget}.
+ * History
+ *   Aug 31, 2023 (Paul Bärnreuther): created
+ */
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column;
+
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProvider;
+
+/**
+ * This represents one of the possible values within a {@link ChoicesProvider} with a {@link ColumnChoicesProvider}.
  *
  * @author Paul Bärnreuther
+ * @param id to be used as an identifier for the selection option
+ * @param text to be displayed for the selection option
+ * @param type the id and displayed text of the type of the column
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+public record PossibleColumnValue(String id, String text, PossibleTypeValue type) {
+
+    /**
+     * @param id identifying a type
+     * @param text to be displayed for selecting the type
+     */
+    public static record PossibleTypeValue(String id, String text) {
+    }
+
+    /**
+     * @param colSpec the spec of the column to be represented
+     * @return the PossibleColumnValue associated to the given colSpec
+     */
+    public static PossibleColumnValue fromColSpec(final DataColumnSpec colSpec) {
+        final var colName = colSpec.getName();
+        final var colType = colSpec.getType();
+        final var typeIdentifier = colType.getPreferredValueClass().getName();
+        final var displayedType = colType.getName();
+        return new PossibleColumnValue(colName, colName, new PossibleTypeValue(typeIdentifier, displayedType));
+    }
+}

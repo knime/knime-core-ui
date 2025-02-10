@@ -69,6 +69,7 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.util.ColumnFilter;
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.FlowObjectStack;
 import org.knime.core.node.workflow.FlowVariable;
@@ -85,7 +86,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistabl
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigMappingsFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple.NameFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
@@ -95,8 +95,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInter
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ComboBoxWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DataTypeChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
@@ -113,10 +111,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextAreaWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
@@ -180,7 +182,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <tr>
  * <td>String</td>
  * <td>Text Input</td>
- * <td>{@link ChoicesWidget} (twin-list)<br>
+ * <td>{@link ChoicesProvider} (Drop Down)<br>
  * {@link TextAreaWidget}<br>
  * {@link TextInputWidget}<br>
  * {@link LocalFileReaderWidget}<br>
@@ -214,19 +216,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * </tr>
  * </tr>
  * <td>String[]</td>
- * <td></td>
- * <td>{@link ChoicesWidget} (drop-down) <br>
- * {@link ComboBoxWidget} <br>
+ * <td>Combo Box</td>
+ * <td>{@link ChoicesProvider} <br>
  * {@link SortListWidget} <br>
- * </td>
+ * {@link TwinlistWidget}</td>
  * </tr>
  * <tr>
  * <td>Enums(*)</td>
  * <td>Drop Down</td>
  * <td>{@link ValueSwitchWidget}<br>
  * {@link RadioButtonsWidget}<br>
- * {@link ChoicesWidget} (Drop Down; Can be used to set dynamic values. This will be replaced with a different
- * annotation with UIEXT-1681)</td>
+ * {@link ChoicesProvider} with a {@link StringChoicesProvider} (Drop Down; Can be used to set dynamic values. This will
+ * be replaced with a different annotation with UIEXT-1681)</td>
  * </tr>
  * <tr>
  * <td>Arrays/Collections of {@link DefaultNodeSettings} (**)</td>
@@ -236,12 +237,16 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <tr>
  * <td>{@link ColumnFilter}</td>
  * <td></td>
- * <td>{@link ChoicesWidget} (twin-list)</td>
+ * <td>{@link ChoicesProvider} with a {@link ColumnChoicesProvider}<br>
+ * {@link TwinlistWidget}
+ * <td>
  * </tr>
  * <tr>
  * <td>{@link NameFilter}</td>
  * <td></td>
- * <td>{@link ChoicesWidget} (twin-list)</td>
+ * <td>{@link ChoicesProvider}<br>
+ * {@link TwinlistWidget}
+ * <td>
  * </tr>
  * <tr>
  * <td>{@link DataType}</td>

@@ -44,26 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 25, 2023 (Paul Bärnreuther): created
+ *   Feb 10, 2025 (Paul Baernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl;
+package org.knime.core.webui.node.dialog.defaultdialog.widget;
 
-import java.util.concurrent.Callable;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 /**
+ * TODO: UIEXT-1742 Remove this annotation in favor of using Optional<> types.
  *
- * @author Paul Bärnreuther
+ *
+ * With this field set to true, the input also has a checkbox which indicates whether the value is null. If so, the
+ * control is hidden. This is currently only implemented for dropdowns and text controls.
  */
-public interface AsyncChoicesAdder {
-
-    /**
-     * To be called when adding choices
-     *
-     * @param id
-     * @param choicesCallable to retrieve the choices
-     * @return the stored representation of the choices. This is a package scoped class as it should only be used for
-     *         creating decorators of this interface.
-     */
-    ChoicesFutureHolder addChoices(String id, Callable<Object[]> choicesCallable);
+@Retention(RUNTIME)
+@Target(FIELD)
+public @interface OptionalWidget {
 
 }

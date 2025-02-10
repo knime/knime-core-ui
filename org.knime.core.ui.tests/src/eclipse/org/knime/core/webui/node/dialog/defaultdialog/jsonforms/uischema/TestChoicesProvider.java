@@ -48,21 +48,23 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
+import java.util.List;
+
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 
 /**
- * Dummy test choices provider. We need this at multiple places since the {@link ChoicesWidget} complains if no choices
- * are set.
+ * Dummy test choices provider. We need this at multiple places since the {@link ChoicesProvider} complains if no
+ * choices are set.
  *
  * @author Paul Bärnreuther
  */
-final class TestChoicesProvider implements ChoicesProvider {
+final class TestChoicesProvider implements StringChoicesProvider {
 
     @Override
-    public String[] choices(final DefaultNodeSettingsContext context) {
-        return new String[0];
+    public List<String> choices(final DefaultNodeSettingsContext context) {
+        return List.of();
     }
 
 }

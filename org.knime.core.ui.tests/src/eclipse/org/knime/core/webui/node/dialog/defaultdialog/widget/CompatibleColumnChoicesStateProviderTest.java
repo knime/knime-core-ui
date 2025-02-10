@@ -50,7 +50,6 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -71,7 +70,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.PossibleColumnValue;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.PossibleColumnValue;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.testing.node.dialog.updates.DialogUpdateSimulator;
@@ -115,7 +115,7 @@ class CompatibleColumnChoicesStateProviderTest {
 
             @Widget(title = "Test colum choices with only compatible column data types", description = "")
             @Persistor(ColSelectPersistor.class)
-            @ChoicesWidget(choicesProvider = ColumnProvider.class)
+            @ChoicesProvider(choicesProvider = ColumnProvider.class)
             ColumnFilter m_columnFilter = new ColumnFilter();
         }
 
@@ -137,7 +137,7 @@ class CompatibleColumnChoicesStateProviderTest {
 
     private static void assertColumnChoices(final UpdateSimulatorResult result, final String... expectedColumnNames) {
         var columnChoices = result.getUiStateUpdateAt(ColumnProvider.class);
-        assertThat(Arrays.stream(columnChoices).map(PossibleColumnValue::id).toList())
+        assertThat(columnChoices.stream().map(PossibleColumnValue::id).toList())
             .isEqualTo(List.of(expectedColumnNames));
     }
 

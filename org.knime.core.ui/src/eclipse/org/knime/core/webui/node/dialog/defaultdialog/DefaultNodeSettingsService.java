@@ -73,7 +73,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.Pe
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.NodeSettingsToDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -89,21 +88,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 final class DefaultNodeSettingsService implements NodeSettingsService {
 
-    private final AsyncChoicesHolder m_asyncChoicesHolder;
-
     private final Map<SettingsType, Class<? extends DefaultNodeSettings>> m_settingsClasses;
 
     private final DefaultTextToNodeSettingsConverter m_textToNodeSettingsConverter;
 
-
     /**
      * @param settingsClasses map that associates a {@link DefaultNodeSettings} class-with a {@link SettingsType}
-     * @param asyncChoicesHolder used to start asynchronous computations of choices during the ui-schema generation.
      */
-    public DefaultNodeSettingsService(final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses,
-        final AsyncChoicesHolder asyncChoicesHolder) {
+    public DefaultNodeSettingsService(final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses) {
         m_settingsClasses = settingsClasses;
-        m_asyncChoicesHolder = asyncChoicesHolder;
         m_textToNodeSettingsConverter = new DefaultTextToNodeSettingsConverter(settingsClasses);
     }
 
@@ -126,18 +119,18 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
         final var widgetTreeFactory = new WidgetTreeFactory();
         final var widgetTrees = map(loadedSettings, (type, s) -> widgetTreeFactory.createTree(s.getClass(), type));
 
-
         final var jsonFormsSettings = new JsonFormsSettingsImpl(loadedSettings, context, widgetTrees);
         final var root = jsonFormsSettingsToJson(jsonFormsSettings, mapper);
         addAdditionalFieldsToRoot(root, settings, loadedSettings, context, widgetTrees);
         return jsonToString(root, mapper);
     }
 
-    private ObjectNode jsonFormsSettingsToJson(final JsonFormsSettings jsonFormsSettings, final ObjectMapper mapper) {
+    private static ObjectNode jsonFormsSettingsToJson(final JsonFormsSettings jsonFormsSettings,
+        final ObjectMapper mapper) {
         final var root = mapper.createObjectNode();
         root.set(FIELD_NAME_DATA, jsonFormsSettings.getData());
         root.set(FIELD_NAME_SCHEMA, jsonFormsSettings.getSchema());
-        root.putRawValue(FIELD_NAME_UI_SCHEMA, jsonFormsSettings.getUiSchema(m_asyncChoicesHolder));
+        root.putRawValue(FIELD_NAME_UI_SCHEMA, jsonFormsSettings.getUiSchema());
         return root;
     }
 

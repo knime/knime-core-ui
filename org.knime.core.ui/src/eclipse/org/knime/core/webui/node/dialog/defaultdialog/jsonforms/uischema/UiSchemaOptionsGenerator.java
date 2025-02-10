@@ -61,7 +61,6 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_SHOW_SORT_BUTTONS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_WITH_EDIT_AND_RESET;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_CHOICES_PROVIDER;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_CHOICES_UPDATE_HANDLER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_DEPENDENCIES;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ELEMENTS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSION;
@@ -83,7 +82,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
-import java.util.concurrent.Callable;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -112,11 +110,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.AsyncChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesStateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ComboBoxWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
@@ -126,12 +119,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.OptionalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextAreaWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonActionHandler;
@@ -140,10 +135,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.Icon;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.NoopButtonUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesAdder;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.NoopChoicesUpdateHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.PersistentAsyncChoicesAdder;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.PossibleValue;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
@@ -178,11 +171,7 @@ final class UiSchemaOptionsGenerator {
 
     private final String m_scope;
 
-    private final AsyncChoicesAdder m_asyncChoicesAdder;
-
     private final Collection<Tree<WidgetGroup>> m_widgetTrees;
-
-    private static final int ASYNC_CHOICES_THRESHOLD = 100;
 
     /**
      *
@@ -191,14 +180,12 @@ final class UiSchemaOptionsGenerator {
      * @param fields all traversed fields
      * @param scope of the current field
      * @param asyncChoicesProvider to be used to store results of asynchronously computed choices of
-     *            {@link ChoicesWidget}s.
+     *            {@link ChoicesProvider}s.
      * @param widgetTrees the widgetTrees to resolve dependencies from. With UIEXT-1673 This can be removed again
      */
     UiSchemaOptionsGenerator(final TreeNode<WidgetGroup> node, final DefaultNodeSettingsContext context,
-        final String scope, final AsyncChoicesAdder asyncChoicesAdder,
-        final Collection<Tree<WidgetGroup>> widgetTrees) {
+        final String scope, final Collection<Tree<WidgetGroup>> widgetTrees) {
         m_node = node;
-        m_asyncChoicesAdder = asyncChoicesAdder;
         m_fieldType = node.getType();
         m_fieldClass = node.getRawClass();
         m_defaultNodeSettingsContext = context;
@@ -206,7 +193,7 @@ final class UiSchemaOptionsGenerator {
         m_widgetTrees = widgetTrees;
     }
 
-    /**
+    /*
      * This method applies the styles of the given field to the given control as described in {@link Widget}
      *
      * @param control
@@ -468,80 +455,37 @@ final class UiSchemaOptionsGenerator {
             }
         }
 
-        if (annotatedWidgets.contains(ChoicesWidget.class)) {
-            final var choicesWidget = m_node.getAnnotation(ChoicesWidget.class).orElseThrow();
-            final var choicesProviderClass = choicesWidget.choices();
-
-            final var choicesUpdateHandlerClass = choicesWidget.choicesUpdateHandler();
-            final var choicesStateProviderClass = choicesWidget.choicesProvider();
-            final var choicesProviderClassSet = !choicesProviderClass.equals(ChoicesProvider.class);
-            final var choicesUpdateHandlerClassSet = !choicesUpdateHandlerClass.equals(NoopChoicesUpdateHandler.class);
-            final var choicesStateProviderClassSet = !choicesStateProviderClass.equals(ChoicesStateProvider.class);
-
-            /**
-             * TODO NOSONAR remove with UIEXT-1742 we only have this check here in place because we have ZoneIds that
-             * use the optional = true flag in the choices widget annotation.
-             */
-            if (!ZoneId.class.isAssignableFrom(m_fieldClass)) {
-                CheckUtils.check(
-                    choicesProviderClassSet || choicesUpdateHandlerClassSet || choicesStateProviderClassSet,
-                    UiSchemaGenerationException::new,
-                    () -> "Either the property \"choices\", \"choicesUpdateHandler\" or \"choicesProvider\" "
-                        + "has to be defined in a \"ChoicesWidget\" annotation");
+        final var hasChoices = annotatedWidgets.contains(ChoicesProvider.class);
+        final var isFilter = m_fieldClass.equals(ColumnFilter.class) || m_fieldClass.equals(NameFilter.class);
+        final var isSingleSelection = m_fieldClass.equals(SingleSelection.class);
+        if (hasChoices) {
+            final var choicesWidget = m_node.getAnnotation(ChoicesProvider.class).orElseThrow();
+            options.put(TAG_CHOICES_PROVIDER, choicesWidget.choicesProvider().getName());
+            if (!isFilter && !isSingleSelection) {
+                options.put(TAG_FORMAT, getChoicesComponentFormat());
             }
+        }
 
-            if (choicesStateProviderClassSet) {
-                CheckUtils.check(!choicesProviderClassSet && !choicesUpdateHandlerClassSet,
-                    UiSchemaGenerationException::new,
-                    () -> "When the property \"choicesProvider\" is used, the properties \"choicesUpdateHandler\" "
-                        + "or \"choicesProvider\" cannot be used, too.");
-                options.put(TAG_CHOICES_PROVIDER, choicesStateProviderClass.getName());
+        if (annotatedWidgets.contains(SortListWidget.class)) {
+            options.put(TAG_FORMAT, Format.SORT_LIST);
+        }
+
+        if (annotatedWidgets.contains(TwinlistWidget.class)) {
+            if (!isFilter) {
+                options.put(TAG_FORMAT, Format.TWIN_LIST);
+            }
+            final var twinlistWidget = m_node.getAnnotation(TwinlistWidget.class).orElseThrow();
+            if (!twinlistWidget.includedLabel().isEmpty()) {
+                options.put("includedLabel", twinlistWidget.includedLabel());
+            }
+            if (!twinlistWidget.excludedLabel().isEmpty()) {
+                options.put("excludedLabel", twinlistWidget.excludedLabel());
             }
 
-            if (choicesProviderClassSet) {
-                if (AsyncChoicesProvider.class.isAssignableFrom(choicesProviderClass)) {
-                    prepareAsyncChoices(options, choicesProviderClass,
-                        () -> generatePossibleValues(choicesProviderClass));
-                } else {
-                    final var possibleValues = generatePossibleValues(choicesProviderClass);
-                    if (possibleValues.length < ASYNC_CHOICES_THRESHOLD) {
-                        options.set("possibleValues", JsonFormsUiSchemaUtil.getMapper().valueToTree(possibleValues));
-                    } else {
-                        prepareAsyncChoices(options, choicesProviderClass, () -> possibleValues);
-                    }
-                }
-            }
+        }
 
-            if (choicesUpdateHandlerClassSet) {
-                options.put(TAG_CHOICES_UPDATE_HANDLER, choicesWidget.choicesUpdateHandler().getName());
-                final var dependencies = options.putArray(TAG_DEPENDENCIES);
-                addDependencies(dependencies, choicesWidget.choicesUpdateHandler());
-                final var choicesUpdateHandlerInstance =
-                    InstantiationUtil.createInstance(choicesWidget.choicesUpdateHandler());
-                options.put("setFirstValueOnUpdate", choicesUpdateHandlerInstance.setFirstValueOnUpdate());
-            }
-
-            if (!m_fieldClass.equals(ColumnFilter.class)
-                && !m_fieldClass.equals(NameFilter.class) && !m_fieldClass.equals(SingleSelection.class)) {
-                String format = getChoicesComponentFormat();
-                options.put(TAG_FORMAT, format);
-            }
-
-            if (choicesWidget.optional()) {
-                options.put("hideOnNull", choicesWidget.optional());
-            }
-            if (!choicesWidget.includedLabel().isEmpty()) {
-                options.put("includedLabel", choicesWidget.includedLabel());
-            }
-            if (!choicesWidget.excludedLabel().isEmpty()) {
-                options.put("excludedLabel", choicesWidget.excludedLabel());
-            }
-            if (annotatedWidgets.contains(ComboBoxWidget.class)) {
-                options.put(TAG_FORMAT, Format.COMBO_BOX);
-            }
-            if (annotatedWidgets.contains(SortListWidget.class)) {
-                options.put(TAG_FORMAT, Format.SORT_LIST);
-            }
+        if (annotatedWidgets.contains(OptionalWidget.class)) {
+            options.put("hideOnNull", true);
         }
 
         if (annotatedWidgets.contains(TextAreaWidget.class)) {
@@ -552,7 +496,6 @@ final class UiSchemaOptionsGenerator {
 
         if (annotatedWidgets.contains(TextInputWidget.class)) {
             final var textInputWidget = m_node.getAnnotation(TextInputWidget.class).orElseThrow();
-            options.put("hideOnNull", textInputWidget.optional());
             if (!textInputWidget.placeholder().equals("")) {
                 options.put("placeholder", textInputWidget.placeholder());
             }
@@ -718,18 +661,6 @@ final class UiSchemaOptionsGenerator {
         }
     }
 
-    private void prepareAsyncChoices(final ObjectNode options,
-        final Class<? extends ChoicesProvider> choicesProviderClass, final Callable<Object[]> getChoices) {
-        String choicesProviderClassName = choicesProviderClass.getName();
-        options.put("choicesProviderClass", choicesProviderClassName);
-        m_asyncChoicesAdder.addChoices(choicesProviderClassName, getChoices);
-    }
-
-    private Object[] generatePossibleValues(final Class<? extends ChoicesProvider> choicesProviderClass) {
-        final var choicesProvider = InstantiationUtil.createInstance(choicesProviderClass);
-        return ChoicesGeneratorUtil.getChoices(choicesProvider, m_defaultNodeSettingsContext);
-    }
-
     private static <M extends Enum<M>> void generateStates(final ArrayNode states,
         final ButtonActionHandler<?, ?, M> handler) {
         final var stateMachine = handler.getStateMachine();
@@ -773,8 +704,8 @@ final class UiSchemaOptionsGenerator {
         options.set("possibleValues", JsonFormsUiSchemaUtil.getMapper().valueToTree( //
             ZoneId.getAvailableZoneIds().stream() //
                 .sorted() //
-                .map(IdAndText::fromId) //
-                .toArray(IdAndText[]::new)) //
+                .map(PossibleValue::fromId) //
+                .toArray(PossibleValue[]::new)) //
         );
     }
 
@@ -783,18 +714,11 @@ final class UiSchemaOptionsGenerator {
         new DependencyResolver(m_node, m_widgetTrees, m_scope).addDependencyScopes(actionHandler, dependencies::add);
     }
 
-    /**
-     * Note that for ColumnFilter and ColumnSelection, the format is set as part of the default formats. For String
-     * arrays, we use the "twinList" format and otherwise we use "dropDown".
-     *
-     * @return
-     */
     private String getChoicesComponentFormat() {
-        String format = Format.DROP_DOWN;
         if (m_node instanceof LeafNode<WidgetGroup> leafNode && String.class.equals(leafNode.getContentType())) {
-            format = Format.TWIN_LIST;
+            return Format.COMBO_BOX;
         }
-        return format;
+        return Format.DROP_DOWN;
     }
 
     /**
@@ -830,14 +754,8 @@ final class UiSchemaOptionsGenerator {
     }
 
     private void applyArrayLayoutOptions(final ObjectNode options, final Tree<WidgetGroup> elementTree) {
-        /**
-         * We need a persistent async choices adder in case of settings nested inside an array layout, since the
-         * frontend fetches the choices for every element in it individually and one can add more than initially
-         * present.
-         */
-        final var persistentAsyncChoicesAdder = new PersistentAsyncChoicesAdder(m_asyncChoicesAdder);
-        var details = JsonFormsUiSchemaUtil.buildUISchema(List.of(elementTree), m_widgetTrees,
-            m_defaultNodeSettingsContext, persistentAsyncChoicesAdder).get(TAG_ELEMENTS);
+        var details = JsonFormsUiSchemaUtil
+            .buildUISchema(List.of(elementTree), m_widgetTrees, m_defaultNodeSettingsContext).get(TAG_ELEMENTS);
         options.set(TAG_ARRAY_LAYOUT_DETAIL, details);
 
         m_node.getAnnotation(ArrayWidget.class).ifPresent(arrayWidget -> addArrayLayoutOptions(arrayWidget, options));

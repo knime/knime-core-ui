@@ -44,43 +44,51 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 10, 2023 (Paul Bärnreuther): created
+ *   Mar 18, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
 
-import java.util.Collection;
-import java.util.Optional;
+import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.TraversedField;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesUpdateHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.NoopChoicesUpdateHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 
 /**
- * The holder of all {@link ChoicesWidget#choicesUpdateHandler}s.
+ * A class that provides an array of possible values of a {@link ChoicesProvider} based on the current
+ * {@link DefaultNodeSettingsContext}.
  *
  * @author Paul Bärnreuther
  */
-class ChoicesWidgetUpdateHandlerHolder extends HandlerHolder<ChoicesUpdateHandler<?>> {
+public non-sealed interface StringChoicesProvider extends ChoicesStateProvider<PossibleValue> {
 
     /**
-     * @param settingsClasses
+     * {@inheritDoc}
+     *
+     * Here, the state provider is already configured to compute the state initially before the dialog is opened. If
+     * this is desired but other initial configurations (like dependencies) are desired, override this method and call
+     * super.init within it. If choices should instead be asynchronously loaded once the dialog is opened, override this
+     * method without calling super.init to configure the initializer to do so.
      */
-    ChoicesWidgetUpdateHandlerHolder(final Collection<Class<? extends WidgetGroup>> settingsClasses) {
-        super(settingsClasses);
+    @Override
+    default void init(final StateProviderInitializer initializer) {
+        initializer.computeBeforeOpenDialog();
+
+    }
+
+    /**
+     * Computes the array of possible values based on the {@link DefaultNodeSettingsContext}.
+     *
+     * @param context the context that holds any available information that might be relevant for determining available
+     *            choices
+     * @return array of possible values, never {@code null}
+     */
+    default List<String> choices(final DefaultNodeSettingsContext context) {
+        throw new IllegalStateException("At least one method must be implemented: "
+            + "StringChoicesStateProvider.choices or StringChoicesStateProvider.computeState");
     }
 
     @Override
-    Optional<Class<? extends ChoicesUpdateHandler<?>>> getHandlerClass(final TraversedField field) {
-        final var choicesWidget = field.propertyWriter().getAnnotation(ChoicesWidget.class);
-        if (choicesWidget != null) {
-            final var updateHandler = choicesWidget.choicesUpdateHandler();
-            if (updateHandler != NoopChoicesUpdateHandler.class) {
-                return Optional.of(updateHandler);
-            }
-        }
-        return Optional.empty();
+    default List<PossibleValue> computeState(final DefaultNodeSettingsContext context) {
+        return choices(context).stream().map(PossibleValue::fromId).toList();
     }
 
 }

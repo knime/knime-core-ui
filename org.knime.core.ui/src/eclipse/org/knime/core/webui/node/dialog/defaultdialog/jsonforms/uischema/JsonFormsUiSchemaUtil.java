@@ -64,7 +64,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesAdder;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -117,18 +116,18 @@ public final class JsonFormsUiSchemaUtil {
      * @return the uischema
      */
     public static ObjectNode buildUISchema(final Collection<Tree<WidgetGroup>> widgetTrees,
-        final DefaultNodeSettingsContext context, final AsyncChoicesAdder asyncChoicesAdder) {
-        return buildUISchema(widgetTrees, List.of(), context, asyncChoicesAdder);
+        final DefaultNodeSettingsContext context) {
+        return buildUISchema(widgetTrees, List.of(), context);
     }
 
     /**
      * @param parentWidgetTrees of the fields of the "outside" layout. With UIEXT-1673 This can be removed again
      */
     static ObjectNode buildUISchema(final Collection<Tree<WidgetGroup>> widgetTrees,
-        final Collection<Tree<WidgetGroup>> parentWidgetTrees, final DefaultNodeSettingsContext context,
-        final AsyncChoicesAdder asyncChoicesAdder) {
+        final Collection<Tree<WidgetGroup>> parentWidgetTrees, final DefaultNodeSettingsContext context
+        ){
         final var layoutSkeleton = resolveLayout(widgetTrees, parentWidgetTrees);
-        return new LayoutNodesGenerator(layoutSkeleton, context, asyncChoicesAdder).build();
+        return new LayoutNodesGenerator(layoutSkeleton, context).build();
     }
 
     private static List<Tree<WidgetGroup>>

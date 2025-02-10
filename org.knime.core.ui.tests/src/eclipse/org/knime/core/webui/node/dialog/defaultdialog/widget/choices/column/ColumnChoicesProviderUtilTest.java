@@ -46,7 +46,7 @@
  * History
  *   Aug 10, 2022 (konrad-amtenbrink): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -75,10 +75,8 @@ import org.knime.core.data.property.ColorModelRange;
 import org.knime.core.data.vector.bitvector.SparseBitVectorCell;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.ColorColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.CompatibleColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.DoubleColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProviderUtil.StringColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnChoicesProvider.DoubleColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.CompatibleColumnChoicesProvider.StringColumnChoicesProvider;
 import org.knime.testing.util.TableTestUtil.SpecBuilder;
 
 /**
@@ -87,7 +85,7 @@ import org.knime.testing.util.TableTestUtil.SpecBuilder;
  */
 @SuppressWarnings("java:S2698") // we accept assertions without message
 
-class ColumnChoicesProviderUtilTest {
+class ColumnChoicesProviderTest {
 
     private static DataTableSpec createDefaultTestSpec() {
         return new SpecBuilder().addColumn("int", IntCell.TYPE)//
@@ -100,12 +98,16 @@ class ColumnChoicesProviderUtilTest {
             .build();
     }
 
+    static private String[] getColumnNames(final List<DataColumnSpec> colSpecs) {
+        return colSpecs.stream().map(DataColumnSpec::getName).toArray(String[]::new);
+    }
+
     @Test
     void testStringColumnChoicesProvider() {
         final var spec = createDefaultTestSpec();
         var choicesProvider = new StringColumnChoicesProvider();
-        assertThat(
-            choicesProvider.choices(DefaultNodeSettings.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec})))
+        assertThat(getColumnNames(choicesProvider
+            .columnChoices(DefaultNodeSettings.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec}))))
                 .isEqualTo(new String[]{"string"});
     }
 
@@ -113,8 +115,8 @@ class ColumnChoicesProviderUtilTest {
     void testDoubleColumnChoicesProvider() {
         final var spec = createDefaultTestSpec();
         var choicesProvider = new DoubleColumnChoicesProvider();
-        assertThat(
-            choicesProvider.choices(DefaultNodeSettings.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec})))
+        assertThat(getColumnNames(choicesProvider
+            .columnChoices(DefaultNodeSettings.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec}))))
                 .isEqualTo(new String[]{"int", "long", "double", "boolean"});
     }
 
@@ -122,8 +124,8 @@ class ColumnChoicesProviderUtilTest {
     void testColumnChoicesProvider() {
         final var spec = createDefaultTestSpec();
         var choicesProvider = new CompatibleColumnChoicesProvider(List.of(DoubleValue.class, BooleanValue.class));
-        assertThat(
-            choicesProvider.choices(DefaultNodeSettings.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec})))
+        assertThat(getColumnNames(choicesProvider
+            .columnChoices(DefaultNodeSettings.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec}))))
                 .isEqualTo(new String[]{"int", "long", "double", "boolean"});
     }
 
@@ -133,16 +135,15 @@ class ColumnChoicesProviderUtilTest {
         var nominalColorModel = new ColorModelNominal(
             Map.of((DataCell)new StringCell("foo"), ColorAttr.getInstance(new Color(0, 255, 0))), new ColorAttr[0]);
 
-        final DataColumnSpec[] dataColumnSpecs = new DataColumnSpec[]{
-            createDataColumnSpec(numericColorModel, "foo"),
+        final DataColumnSpec[] dataColumnSpecs = new DataColumnSpec[]{createDataColumnSpec(numericColorModel, "foo"),
             createDataColumnSpec(nominalColorModel, "bar"),
             new DataColumnSpecCreator("baz", StringCell.TYPE).createSpec()
 
         };
         final var spec = new DataTableSpec(dataColumnSpecs);
         var choicesProvider = new ColorColumnsProvider();
-        assertThat(
-            choicesProvider.choices(DefaultNodeSettings.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec})))
+        assertThat(getColumnNames(choicesProvider
+            .columnChoices(DefaultNodeSettings.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec}))))
                 .isEqualTo(new String[]{"foo", "bar"});
     }
 

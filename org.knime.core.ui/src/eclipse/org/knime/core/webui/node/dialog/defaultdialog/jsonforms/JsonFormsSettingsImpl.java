@@ -62,7 +62,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonForms
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -118,12 +117,12 @@ public final class JsonFormsSettingsImpl implements JsonFormsSettings {
     }
 
     @Override
-    public RawValue getUiSchema(final AsyncChoicesHolder asyncChoicesHolder) {
+    public RawValue getUiSchema() {
         final var clazz = m_settings.containsKey(SettingsType.VIEW) ? m_settings.get(SettingsType.VIEW).getClass()
             : m_settings.get(SettingsType.MODEL).getClass();
         try (final var inputStream = clazz.getResourceAsStream("uischema.json")) {
             if (inputStream == null) {
-                return generateUiSchema(asyncChoicesHolder == null ? new AsyncChoicesHolder() : asyncChoicesHolder);
+                return generateUiSchema();
             }
             return new RawValue(IOUtils.toString(inputStream, StandardCharsets.UTF_8));
         } catch (IOException ex) {
@@ -132,8 +131,8 @@ public final class JsonFormsSettingsImpl implements JsonFormsSettings {
 
     }
 
-    private RawValue generateUiSchema(final AsyncChoicesHolder asyncChoicesHolder) {
-        final var uiSchema = JsonFormsUiSchemaUtil.buildUISchema(m_widgetTrees.values(), m_context, asyncChoicesHolder);
+    private RawValue generateUiSchema() {
+        final var uiSchema = JsonFormsUiSchemaUtil.buildUISchema(m_widgetTrees.values(), m_context);
         return new RawValue(uiSchema.toString());
     }
 

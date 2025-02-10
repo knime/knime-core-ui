@@ -51,13 +51,13 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single;
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 
 /**
  * Use this class whenever a combination of static/special and dynamic/regular choices is required. If no special
  * choices are required, use a String field instead. If no dynamic choices are required, use an enum field instead.
  *
- * Use a {@link ChoicesWidget} annotation to define the dynamic choices.
+ * Use a {@link ChoicesProvider} annotation to define the dynamic choices.
  *
  *
  * @param <E> an enum representing the fixed/special choices of this selection. The same mechanism as when the enum is

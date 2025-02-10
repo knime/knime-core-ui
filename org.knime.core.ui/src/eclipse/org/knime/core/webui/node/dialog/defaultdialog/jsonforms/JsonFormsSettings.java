@@ -48,8 +48,6 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesHolder;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.util.RawValue;
 
@@ -70,7 +68,7 @@ public interface JsonFormsSettings {
      * @param asyncChoicesHolder used to start asynchronous computations of choices during the ui-schema generation.
      * @return the dialog's UI schema content
      */
-    RawValue getUiSchema(AsyncChoicesHolder asyncChoicesHolder);
+    RawValue getUiSchema();
 
     /**
      * @return the dialog's data content

@@ -60,8 +60,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.WithNoneChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
@@ -773,7 +773,7 @@ class JsonFormsUiSchemaUtilRuleTest {
             }
 
             @Widget(title = "Foo", description = "")
-            @ChoicesWidget(choices = TestChoicesProvider.class)
+            @ChoicesProvider(choicesProvider = TestChoicesProvider.class)
             @ValueReference(SingleSelectionReference.class)
             SingleSelection<WithNoneChoice> singleSelection;
 

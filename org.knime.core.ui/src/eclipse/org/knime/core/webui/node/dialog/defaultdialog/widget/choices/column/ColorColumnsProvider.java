@@ -44,27 +44,31 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 28, 2023 (Paul Bärnreuther): created
+ *   Feb 10, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column;
 
+import java.util.List;
+
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProvider;
 
 /**
+ * Offers all column from the first input table which have a color handler.
  *
  * @author Paul Bärnreuther
- * @param <S> the supplier of the column name whose domain should be used. Other settings can be referenced by using the
- *            same name/paths for fields in this class as described in {@link DependencyHandler}.
  */
-public class DomainChoicesUpdateHandler<S extends ColumnNameSupplier> implements ChoicesUpdateHandler<S> {
+public final class ColorColumnsProvider implements ColumnChoicesProvider {
 
     @Override
-    public IdAndText[] update(final S settings, final DefaultNodeSettingsContext context)
-        throws WidgetHandlerException {
-        final var columnName = settings.columnName();
-        final var domainValues = DomainChoicesUtil.getChoicesByContextAndColumn(context, columnName);
-        return domainValues.stream().map(IdAndText::fromId).toArray(IdAndText[]::new);
+    public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+        return context.getDataTableSpec(0).map(spec -> getColumnsWithColorHandler(spec)).orElse(List.of());
     }
+
+    private static List<DataColumnSpec> getColumnsWithColorHandler(final DataTableSpec spec) {
+        return spec.stream().filter(col -> col.getColorHandler() != null).toList();
+    }
+
 }

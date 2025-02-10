@@ -52,7 +52,6 @@ import static org.knime.core.webui.node.view.table.RowHeightPersistorUtil.create
 
 import java.util.List;
 
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
@@ -66,12 +65,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.mul
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.StringArrayToColumnFilterMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.selection.SelectionCheckboxesToSelectionModeMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.selection.SelectionMode;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
@@ -94,18 +93,6 @@ import org.knime.core.webui.node.view.table.TableViewViewSettings.VerticalPaddin
  */
 @SuppressWarnings("java:S103") // we accept too long lines
 public class TableViewViewSettings implements DefaultNodeSettings {
-
-    private static final class AllColumns implements ColumnChoicesProvider {
-
-        @Override
-        public DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
-            return context.getDataTableSpec(0)//
-                .stream()//
-                .flatMap(DataTableSpec::stream)//
-                .toArray(DataColumnSpec[]::new);
-        }
-
-    }
 
     /**
      * Previously, displayedColumnsV2 was called displayedColumns and stored a string array.
@@ -142,7 +129,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
      * The selected columns to be displayed.
      */
     @Widget(title = "Displayed columns", description = "Select the columns that should be displayed in the table")
-    @ChoicesWidget(choices = AllColumns.class)
+    @ChoicesProvider(choicesProvider = AllColumnsProvider.class)
     @Migration(DisplayedColumnsMigrator.class)
     @Layout(DataSection.class)
     @Persist(configKey = "displayedColumnsV2") // V2 Required for migration

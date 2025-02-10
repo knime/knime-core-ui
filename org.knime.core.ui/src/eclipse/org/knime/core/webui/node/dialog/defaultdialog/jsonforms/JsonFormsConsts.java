@@ -48,10 +48,9 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesUpdateHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 
 import com.github.victools.jsonschema.generator.SchemaKeyword;
 import com.github.victools.jsonschema.generator.SchemaVersion;
@@ -171,18 +170,12 @@ public final class JsonFormsConsts {
         public static final String TAG_ACTION_HANDLER = "actionHandler";
 
         /**
-         * The {@link ChoicesUpdateHandler} of a {@link ChoicesWidget}
-         */
-        public static final String TAG_CHOICES_UPDATE_HANDLER = "choicesUpdateHandler";
-
-
-        /**
          * The choices provider of a choices widget
          */
         public static final String TAG_CHOICES_PROVIDER = "choicesProvider";
 
         /**
-         * The dependencies of a {@link ButtonWidget} or the possible values of a {@link ChoicesWidget}
+         * The dependencies of a {@link ButtonWidget} or the possible values of a {@link ChoicesProvider}
          */
         public static final String TAG_DEPENDENCIES = "dependencies";
 

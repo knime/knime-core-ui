@@ -74,7 +74,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.VerticalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -88,28 +87,24 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 class JsonFormsUiSchemaUtilTest {
 
     static ObjectNode buildUiSchema(final Map<SettingsType, Class<? extends WidgetGroup>> settings) {
-        return buildUiSchema(settings, null, new AsyncChoicesHolder());
+        return buildUiSchema(settings, null);
     }
 
     static ObjectNode buildUiSchema(final Map<SettingsType, Class<? extends WidgetGroup>> settings,
-        final DefaultNodeSettingsContext context, final AsyncChoicesHolder asyncChoicesHolder) {
+        final DefaultNodeSettingsContext context) {
         return JsonFormsUiSchemaUtil.buildUISchema(settings.entrySet().stream()
-            .map(e -> new WidgetTreeFactory().createTree(e.getValue(), e.getKey())).toList(), context,
-            asyncChoicesHolder);
+            .map(e -> new WidgetTreeFactory().createTree(e.getValue(), e.getKey())).toList(), context
+            );
     }
 
     static ObjectNode buildTestUiSchema(final Class<? extends DefaultNodeSettings> settingsClass) {
         return buildUiSchema(Map.of(SettingsType.MODEL, settingsClass));
     }
 
-    static ObjectNode buildTestUiSchema(final Class<? extends DefaultNodeSettings> settingsClass,
-        final DefaultNodeSettingsContext context) {
-        return buildTestUiSchema(settingsClass, context, new AsyncChoicesHolder());
-    }
 
     static ObjectNode buildTestUiSchema(final Class<? extends DefaultNodeSettings> settingsClass,
-        final DefaultNodeSettingsContext context, final AsyncChoicesHolder asyncChoicesHolder) {
-        return buildUiSchema(Map.of(SettingsType.MODEL, settingsClass), context, asyncChoicesHolder);
+        final DefaultNodeSettingsContext context) {
+        return buildUiSchema(Map.of(SettingsType.MODEL, settingsClass), context);
     }
 
     interface TestSettingsLayout {
