@@ -358,6 +358,13 @@ getInitialDataService()
       margin-left: var(--ai-bar-margin);
       line-height: 15.23px;
       word-wrap: break-word;
+      max-height: 100px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      line-clamp: 5; /* This adds an ellipsis at the end of the 5th line. Is the new standard but not well supported yet */
+      display: -webkit-box; /* For older browsers including our CEF we need to use these -webkit properties */
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 5;
     }
 
     & .error-message {
