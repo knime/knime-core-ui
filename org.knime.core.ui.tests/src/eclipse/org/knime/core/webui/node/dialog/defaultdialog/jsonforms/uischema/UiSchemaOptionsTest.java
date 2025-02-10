@@ -79,7 +79,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple.NameFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
@@ -178,9 +177,6 @@ class UiSchemaOptionsTest {
             ColumnFilter m_columnFilter;
 
             @Widget(title = "", description = "")
-            ColumnSelection m_columnSelection;
-
-            @Widget(title = "", description = "")
             LocalDate m_localDate;
 
             @Widget(title = "", description = "")
@@ -227,20 +223,25 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[2]").isObject().doesNotContainKey("options");
         assertThatJson(response).inPath("$.elements[3].scope").isString().contains("columnFilter");
         assertThatJson(response).inPath("$.elements[3].options.format").isString().isEqualTo("columnFilter");
-        assertThatJson(response).inPath("$.elements[4].scope").isString().contains("columnSelection");
-        assertThatJson(response).inPath("$.elements[4].options.format").isString().isEqualTo("columnSelection");
-        assertThatJson(response).inPath("$.elements[5].scope").isString().contains("localDate");
-        assertThatJson(response).inPath("$.elements[5].options.format").isString().isEqualTo("localDate");
-        assertThatJson(response).inPath("$.elements[6].scope").isString().contains("localTime");
-        assertThatJson(response).inPath("$.elements[6].options.format").isString().isEqualTo("localTime");
-        assertThatJson(response).inPath("$.elements[7].scope").isString().contains("credentials");
-        assertThatJson(response).inPath("$.elements[7].options.format").isString().isEqualTo("credentials");
-        assertThatJson(response).inPath("$.elements[8].scope").isString().contains("legacyCredentials");
-        assertThatJson(response).inPath("$.elements[8].options.format").isString().isEqualTo("legacyCredentials");
-        assertThatJson(response).inPath("$.elements[9].scope").isString().contains("fileSelection");
-        assertThatJson(response).inPath("$.elements[9].options.format").isString().isEqualTo("fileChooser");
-        assertThatJson(response).inPath("$.elements[10].scope").isString().contains("nameFilter");
-        assertThatJson(response).inPath("$.elements[10].options.format").isString().isEqualTo("nameFilter");
+        assertThatJson(response).inPath("$.elements[4].scope").isString().contains("localDate");
+        assertThatJson(response).inPath("$.elements[4].options.format").isString().isEqualTo("localDate");
+        assertThatJson(response).inPath("$.elements[5].scope").isString().contains("localTime");
+        assertThatJson(response).inPath("$.elements[5].options.format").isString().isEqualTo("localTime");
+        assertThatJson(response).inPath("$.elements[6].scope").isString().contains("credentials");
+        assertThatJson(response).inPath("$.elements[6].options.format").isString().isEqualTo("credentials");
+        assertThatJson(response).inPath("$.elements[7].scope").isString().contains("legacyCredentials");
+        assertThatJson(response).inPath("$.elements[7].options.format").isString().isEqualTo("legacyCredentials");
+        assertThatJson(response).inPath("$.elements[8].scope").isString().contains("fileSelection");
+        assertThatJson(response).inPath("$.elements[8].options.format").isString().isEqualTo("fileChooser");
+        assertThatJson(response).inPath("$.elements[9].scope").isString().contains("nameFilter");
+        assertThatJson(response).inPath("$.elements[9].options.format").isString().isEqualTo("nameFilter");
+
+        // tests for interval default formats
+        assertThatJson(response).inPath("$.elements[10].scope").isString().contains("interval");
+        assertThatJson(response).inPath("$.elements[10].options.format").isString().isEqualTo("interval");
+        assertThatJson(response).inPath("$.elements[10].options.intervalType").isString()
+            .isEqualTo(IntervalWidget.IntervalType.DATE_OR_TIME.name());
+
         assertThatJson(response).inPath("$.elements[11].scope").isString().contains("interval");
         assertThatJson(response).inPath("$.elements[11].options.format").isString().isEqualTo("interval");
         assertThatJson(response).inPath("$.elements[11].options.intervalType").isString()
@@ -346,10 +347,10 @@ class UiSchemaOptionsTest {
         class AdvancedSettings implements DefaultNodeSettings {
 
             @Widget(title = "", description = "", advanced = true)
-            ColumnSelection m_foo;
+            String m_foo;
 
             @Widget(title = "", description = "")
-            ColumnSelection m_bar;
+            String m_bar;
 
         }
         var response = buildTestUiSchema(AdvancedSettings.class);

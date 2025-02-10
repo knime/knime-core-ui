@@ -11,7 +11,6 @@ import {
 import { type UIExtensionService } from "@knime/ui-extension-service";
 
 import * as flowVariablesApi from "./api/flowVariables";
-import getChoices from "./api/getChoices";
 import type { FlowSettings } from "./api/types";
 import useProvidedFlowVariablesMap from "./composables/components/useProvidedFlowVariablesMap";
 import {
@@ -28,7 +27,6 @@ import useTriggers, {
 } from "./composables/nodeDialog/useTriggers";
 import useUpdates from "./composables/nodeDialog/useUpdates";
 import { initializeRenderers } from "./renderers";
-import type { Control } from "./types/Control";
 import type { InitialData } from "./types/InitialData";
 import type { PersistSchema } from "./types/Persist";
 import type { SettingsData } from "./types/SettingsData";
@@ -38,7 +36,7 @@ import type {
   ProvidedByNodeDialog,
   ProvidedForFlowVariables,
 } from "./types/provided";
-import { getPossibleValuesFromUiSchema, hasAdvancedOptions } from "./utils";
+import { hasAdvancedOptions } from "./utils";
 import { getConfigPaths } from "./utils/paths";
 
 const { setCurrentData, getCurrentData } = useCurrentData();
@@ -190,13 +188,6 @@ const callDataService = ({
 }: Parameters<Provided["getData"]>[0]) =>
   jsonDataService?.data({ method, options })!;
 
-const getPossibleValuesFromUiSchema2 = (control: Control) =>
-  getPossibleValuesFromUiSchema(
-    control,
-    getChoices(callDataService),
-    sendAlert,
-  );
-
 const getAvailableFlowVariables = (persistPath: string) =>
   flowVariablesApi.getAvailableFlowVariables(
     callDataService,
@@ -306,7 +297,6 @@ const provided: ProvidedByNodeDialog & ProvidedForFlowVariables = {
   isTriggerActive,
   registerWatcher,
   getData: jsonDataService.data.bind(jsonDataService),
-  getPossibleValuesFromUiSchema: getPossibleValuesFromUiSchema2,
   flowVariablesApi: {
     getAvailableFlowVariables,
     getFlowVariableOverrideValue,
