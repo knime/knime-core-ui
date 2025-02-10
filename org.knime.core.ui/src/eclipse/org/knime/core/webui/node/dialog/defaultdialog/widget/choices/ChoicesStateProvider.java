@@ -44,19 +44,29 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 28, 2023 (Paul Bärnreuther): created
+ *   Feb 19, 2025 (paulbaernreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
 
-/**
- * A interface to communicate the columnName representing a setting to a dependent setting with an update handler.
- *
- * @author Paul Bärnreuther
- */
-public interface ColumnNameSupplier {
+import java.util.List;
 
-    /**
-     * @return the name of a column in the first input port of the current settings creation context
-     */
-    String columnName();
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+
+/**
+ * Interface for state providers that provide a list of choices used in the {@link ChoicesProvider} annotation.
+ *
+ * The following options are available:
+ * <ul>
+ * <li>{@link StringChoicesProvider} for choosing a string</li>
+ * <li>{@link ColumnChoicesProvider} for choosing a column</li>
+ * </ul>
+ *
+ * See {@link DefaultNodeSettings} for further information which state provider is to be used for which setting.
+ *
+ * @author paulbaernreuther
+ */
+public sealed interface ChoicesStateProvider<S> extends StateProvider<List<S>>
+    permits StringChoicesProvider, ColumnChoicesProvider {
+
 }

@@ -44,52 +44,93 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 14, 2024 (Tobias Kampmann): created
+ *   Feb 10, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.DoubleValue;
+import org.knime.core.data.StringValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 
 /**
- * A class that provides an array of possible column choices based on a {@link CompatibleDataValueClassesSupplier}.
+ * A {@link StringChoicesProvider} which can be given one or multiple classes extending {@link DataValue} and provides
+ * the compatible columns of a given spec at the first input port.
  *
- * @param <T> the type that provides the compatible data values, most probably an enum
+ * @author Paul Bärnreuther
  */
-public abstract class CompatibleColumnChoicesStateProvider<T extends CompatibleDataValueClassesSupplier>
-    implements ColumnChoicesProvider {
+public class CompatibleColumnChoicesProvider implements ColumnChoicesProvider {
 
-    private Supplier<T> m_compatibleDataValueClassesSupplier;
+    private final Collection<Class<? extends DataValue>> m_valueClasses;
 
-    @Override
-    public void init(final StateProviderInitializer initializer) {
-        ColumnChoicesProvider.super.init(initializer);
-
-        this.m_compatibleDataValueClassesSupplier = initializer.computeFromValueSupplier(getReferenceClass());
+    /**
+     * @param valueClass the class for which compatible columns should be provided
+     */
+    protected CompatibleColumnChoicesProvider(final Class<? extends DataValue> valueClass) {
+        m_valueClasses = List.of(valueClass);
     }
 
     /**
-     * @return the compatible data values classes for this enum.
+     * @param valueClasses a list of classes for which compatible columns should be provided
      */
-    protected abstract Class<? extends Reference<T>> getReferenceClass();
+    protected CompatibleColumnChoicesProvider(final Collection<Class<? extends DataValue>> valueClasses) {
+        m_valueClasses = valueClasses;
+    }
 
+    /**
+     * @param spec
+     * @param valueClasses a list of classes for which compatible columns should be determined
+     * @return the columns of the spec which are compatible with any of the given value classes
+     */
+    public static List<DataColumnSpec> getCompatibleColumns(final DataTableSpec spec,
+        final Collection<Class<? extends DataValue>> valueClasses) {
+        return spec.stream()
+            .filter(s -> valueClasses.stream().anyMatch(valueClass -> s.getType().isCompatible(valueClass))).toList();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-        final Collection<Class<? extends DataValue>> allowedTypes =
-            m_compatibleDataValueClassesSupplier.get().getCompatibleDataValueClasses();
+        final var spec = context.getDataTableSpec(0);
+        if (spec.isEmpty()) {
+            return List.of();
+        } else {
+            return getCompatibleColumns(spec.get(), m_valueClasses);
+        }
+    }
 
-        return context.getDataTableSpec(0).map(DataTableSpec::stream) //
-            .orElseGet(Stream::empty) //
-            .filter(columnSpec -> allowedTypes.stream().anyMatch(columnSpec.getType()::isCompatible)) //
-            .toList();
+    /**
+     * ChoicesProvider providing all columns which are compatible with {@link StringValue}
+     *
+     * @author Paul Bärnreuther
+     */
+    public static final class StringColumnChoicesProvider extends CompatibleColumnChoicesProvider {
+
+        StringColumnChoicesProvider() {
+            super(StringValue.class);
+        }
+
+    }
+
+    /**
+     * ChoicesProvider providing all columns which are compatible with {@link DoubleValue}
+     *
+     * @author Paul Bärnreuther
+     */
+    public static final class DoubleColumnChoicesProvider extends CompatibleColumnChoicesProvider {
+
+        DoubleColumnChoicesProvider() {
+            super(DoubleValue.class);
+        }
+
     }
 }

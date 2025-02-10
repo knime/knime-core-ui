@@ -43,58 +43,27 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Jun 28, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
-
-import java.util.Arrays;
-
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.PossibleColumnValue;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
 
 /**
- * This generator can be used to get the representation of the choices in a {@link ChoicesWidget} which we send via the
- * uischema to the front-end. It is also used in data service requests when fetching the choices asynchronously.
+ * This represents one of the possible values within a {@link ChoicesProvider}.
+ *
+ * @param id the id which is saved on selection
+ * @param text the displayed text
  *
  * @author Paul Bärnreuther
  */
-public final class ChoicesGeneratorUtil {
-
-    private ChoicesGeneratorUtil() {
-        // Utility class
-    }
-
+public record PossibleValue(String id, String text) {
     /**
-     * @param choicesProvider
-     * @param settingsContext supplied to the choices providers
-     * @return an array of possible values (either an array of {@link IdAndText} or of {@link PossibleColumnValue}).
+     * @param id
+     * @return a choice whose text matches the given id.
      */
-    public static Object[] getChoices(final ChoicesProvider choicesProvider,
-        final DefaultNodeSettingsContext settingsContext) {
-        if (choicesProvider instanceof ColumnChoicesProvider columnChoicesProvider) {
-            return getChoicesFromColumnChoicesProvider(columnChoicesProvider, settingsContext);
-        } else {
-            return getChoicesFromChoicesProvider(choicesProvider, settingsContext);
-        }
-
+    public static PossibleValue fromId(final String id) {
+        return new PossibleValue(id, id);
     }
 
-    private static PossibleColumnValue[] getChoicesFromColumnChoicesProvider(
-        final ColumnChoicesProvider choicesProvider, final DefaultNodeSettingsContext settingsContext) {
-        DataColumnSpec[] columnChoices = choicesProvider == null || settingsContext == null ? new DataColumnSpec[0]
-            : choicesProvider.columnChoices(settingsContext);
-        return Arrays.asList(columnChoices).stream().map(PossibleColumnValue::fromColSpec)
-            .toArray(PossibleColumnValue[]::new);
-    }
 
-    private static IdAndText[] getChoicesFromChoicesProvider(final ChoicesProvider choicesProvider,
-        final DefaultNodeSettingsContext settingsContext) {
-        return choicesProvider == null || settingsContext == null //
-            ? new IdAndText[0] //
-            : choicesProvider.choicesWithIdAndText(settingsContext);
-    }
 }

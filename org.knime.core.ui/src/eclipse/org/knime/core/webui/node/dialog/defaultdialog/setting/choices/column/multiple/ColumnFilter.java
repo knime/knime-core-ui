@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple;
 
+import java.util.List;
 import java.util.Objects;
 
 import org.knime.core.data.DataTableSpec;
@@ -58,7 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistabl
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.ManualFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.PatternFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 
 /**
  * A class used to store several representation of column choices. I.e. the columns can be determined using one of the
@@ -113,6 +114,16 @@ public class ColumnFilter implements PersistableSettings {
     }
 
     /**
+     * Initialises the column selection with an initial array of columns which are manually selected
+     *
+     * @param initialSelected the initial manually selected non-null columns
+     */
+    public ColumnFilter(final List<String> initialSelected) {
+        this(initialSelected.toArray(String[]::new));
+    }
+
+
+    /**
      * Set the column filter to exclude unknown columns while in manual mode.
      *
      * @return the instance
@@ -151,13 +162,13 @@ public class ColumnFilter implements PersistableSettings {
     /**
      * Creates a ColumnFilter that includes all columns the choicesProvider selects including unknown new columns.
      *
-     * @param choicesProviderClass the class of {@link ChoicesProvider}
+     * @param choicesProviderClass the class of {@link StringChoicesProvider}
      * @param context of the settings creation
      * @return a new ColumnFilter
      */
-    public static ColumnFilter createDefault(final Class<? extends ChoicesProvider> choicesProviderClass,
+    public static ColumnFilter createDefault(final Class<? extends StringChoicesProvider> choicesProviderClass,
         final DefaultNodeSettingsContext context) {
-        ChoicesProvider choicesProvider = InstantiationUtil.createInstance(choicesProviderClass);
+        StringChoicesProvider choicesProvider = InstantiationUtil.createInstance(choicesProviderClass);
         return new ColumnFilter(choicesProvider.choices(context)).withIncludeUnknownColumns();
     }
 

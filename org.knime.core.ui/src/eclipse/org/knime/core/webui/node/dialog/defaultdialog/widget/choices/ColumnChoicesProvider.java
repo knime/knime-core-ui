@@ -46,27 +46,33 @@
  * History
  *   Mar 18, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
 
-import java.util.Arrays;
+import java.util.List;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.PossibleColumnValue;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.PossibleColumnValue;
 
 /**
  * A class that provides an array of possible column choices based on the current {@link DefaultNodeSettingsContext}.
  *
  * @author Paul Bärnreuther
  */
-public non-sealed interface ColumnChoicesStateProvider extends ChoicesStateProvider<PossibleColumnValue[]> {
+public non-sealed interface ColumnChoicesProvider extends ChoicesStateProvider<PossibleColumnValue> {
 
     /**
      * {@inheritDoc}
+     *
+     * Here, the state provider is already configured to compute the state initially before the dialog is opened. If
+     * this is desired but other initial configurations (like dependencies) are desired, override this method and call
+     * super.init within it. If choices should instead be asynchronously loaded once the dialog is opened, override this
+     * method without calling super.init to configure the initializer to do so.
      */
     @Override
     default void init(final StateProviderInitializer initializer) {
-        ChoicesStateProvider.super.init(initializer);
+        initializer.computeBeforeOpenDialog();
+
     }
 
     /**
@@ -76,15 +82,14 @@ public non-sealed interface ColumnChoicesStateProvider extends ChoicesStateProvi
      *            choices
      * @return array of possible values, never {@code null}
      */
-    default DataColumnSpec[] columnChoices(final DefaultNodeSettingsContext context) {
+    default List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
         throw new IllegalStateException("At least one method must be implemented: "
             + "ColumnChoicesStateProvider.columnChoices or ColumnChoicesStateProvider.computeState");
     }
 
     @Override
-    default PossibleColumnValue[] computeState(final DefaultNodeSettingsContext context) {
-        return Arrays.asList(columnChoices(context)).stream().map(PossibleColumnValue::fromColSpec)
-            .toArray(PossibleColumnValue[]::new);
+    default List<PossibleColumnValue> computeState(final DefaultNodeSettingsContext context) {
+        return columnChoices(context).stream().map(PossibleColumnValue::fromColSpec).toList();
 
     }
 
