@@ -65,11 +65,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.UpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonActionHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesGetter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.ErrorHandlingSingleton;
 
 /**
- * Implementation of the {@link DefaultNodeDialogDataService}.
+ * Implementation of the DefaultNodeDialogDataService.
  *
  * @author Paul Bärnreuther
  */
@@ -80,11 +79,7 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
 
     private final ButtonWidgetActionHandlerHolder m_buttonActionHandlers;
 
-    private final ChoicesWidgetUpdateHandlerHolder m_choicesUpdateHandlers;
-
     private final DataServiceRequestHandler m_requestHandler;
-
-    private final AsyncChoicesGetter m_asyncChoicesGetter;
 
     final Map<SettingsType, Class<? extends WidgetGroup>> m_keyToSettingsClassMap;
 
@@ -92,19 +87,14 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
 
     /**
      * @param settingsClasses the classes of the {@link DefaultNodeSettings} associated to the dialog.
-     * @param asyncChoicesGetter for retrieving those choices whose computation was triggered during the determination
-     *            of the initial data.
      */
     public DefaultNodeDialogDataServiceImpl(
-        final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses,
-        final AsyncChoicesGetter asyncChoicesGetter) {
+        final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses) {
         m_keyToSettingsClassMap = new EnumMap<>(SettingsType.class);
         settingsClasses.forEach(m_keyToSettingsClassMap::put);
         m_buttonActionHandlers = new ButtonWidgetActionHandlerHolder(m_keyToSettingsClassMap.values());
         m_buttonUpdateHandlers = new ButtonWidgetUpdateHandlerHolder(m_keyToSettingsClassMap.values());
-        m_choicesUpdateHandlers = new ChoicesWidgetUpdateHandlerHolder(m_keyToSettingsClassMap.values());
         m_requestHandler = new DataServiceRequestHandler();
-        m_asyncChoicesGetter = asyncChoicesGetter;
     }
 
     DataServiceTriggerInvocationHandler getTriggerInvocationHandler() {
@@ -160,14 +150,10 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
 
     private UpdateHandler<?, ?> getUpdateHandler(final String handlerClassName) {
         final var buttonHandler = m_buttonUpdateHandlers.getHandler(handlerClassName);
-        if (buttonHandler != null) {
-            return buttonHandler;
+        if (buttonHandler == null) {
+            throw new NoHandlerFoundException(handlerClassName);
         }
-        final var choicesHandler = m_choicesUpdateHandlers.getHandler(handlerClassName);
-        if (choicesHandler != null) {
-            return choicesHandler;
-        }
-        throw new NoHandlerFoundException(handlerClassName);
+        return buttonHandler;
     }
 
     @Override
@@ -178,11 +164,6 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         final var triggerInvocationHandler = getTriggerInvocationHandler();
         return m_requestHandler.handleRequest(widgetId,
             () -> triggerInvocationHandler.trigger(triggerClass, rawDependenciesUnparsed));
-    }
-
-    @Override
-    public Result<?> getChoices(final String className) throws InterruptedException, ExecutionException {
-        return m_requestHandler.handleRequestFuture(m_asyncChoicesGetter.getChoices(className));
     }
 
     static final class NoHandlerFoundException extends IllegalArgumentException {

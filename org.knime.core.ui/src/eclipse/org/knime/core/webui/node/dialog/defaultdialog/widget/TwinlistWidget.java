@@ -43,58 +43,38 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Feb 10, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
+package org.knime.core.webui.node.dialog.defaultdialog.widget;
 
-import java.util.Arrays;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.PossibleColumnValue;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple.NameFilter;
 
 /**
- * This generator can be used to get the representation of the choices in a {@link ChoicesWidget} which we send via the
- * uischema to the front-end. It is also used in data service requests when fetching the choices asynchronously.
+ * Configure the labels used in a widget including a twin-list, i.e. e.g. for a {@link ColumnFilter} or a
+ * {@link NameFilter}.
  *
  * @author Paul Bärnreuther
  */
-public final class ChoicesGeneratorUtil {
-
-    private ChoicesGeneratorUtil() {
-        // Utility class
-    }
+@Retention(RUNTIME)
+@Target(FIELD)
+public @interface TwinlistWidget {
 
     /**
-     * @param choicesProvider
-     * @param settingsContext supplied to the choices providers
-     * @return an array of possible values (either an array of {@link IdAndText} or of {@link PossibleColumnValue}).
+     * @return the label of the included values
      */
-    public static Object[] getChoices(final ChoicesProvider choicesProvider,
-        final DefaultNodeSettingsContext settingsContext) {
-        if (choicesProvider instanceof ColumnChoicesProvider columnChoicesProvider) {
-            return getChoicesFromColumnChoicesProvider(columnChoicesProvider, settingsContext);
-        } else {
-            return getChoicesFromChoicesProvider(choicesProvider, settingsContext);
-        }
+    String includedLabel() default "";
 
-    }
+    /**
+     * @return the label of the excluded values
+     */
+    String excludedLabel() default "";
 
-    private static PossibleColumnValue[] getChoicesFromColumnChoicesProvider(
-        final ColumnChoicesProvider choicesProvider, final DefaultNodeSettingsContext settingsContext) {
-        DataColumnSpec[] columnChoices = choicesProvider == null || settingsContext == null ? new DataColumnSpec[0]
-            : choicesProvider.columnChoices(settingsContext);
-        return Arrays.asList(columnChoices).stream().map(PossibleColumnValue::fromColSpec)
-            .toArray(PossibleColumnValue[]::new);
-    }
-
-    private static IdAndText[] getChoicesFromChoicesProvider(final ChoicesProvider choicesProvider,
-        final DefaultNodeSettingsContext settingsContext) {
-        return choicesProvider == null || settingsContext == null //
-            ? new IdAndText[0] //
-            : choicesProvider.choicesWithIdAndText(settingsContext);
-    }
 }

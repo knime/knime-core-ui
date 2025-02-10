@@ -190,7 +190,7 @@ class DefaultNodeSettingsToJsonFormsTest {
                 }
                 """);
 
-        var uiSchema = jsonForms.getUiSchema(null);
+        var uiSchema = jsonForms.getUiSchema();
         var uiSchemaJson = mapper.readTree(uiSchema.rawValue().toString());
         assertThatJson(uiSchemaJson).isEqualTo("""
                 {

@@ -71,8 +71,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.File
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ComboBoxWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
@@ -82,16 +80,19 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.OptionalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TimeWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
@@ -171,8 +172,7 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(OverwriteDialogTitle.class), //
         new WidgetAnnotation(List.of(Enum.class), RadioButtonsWidget.class), //
         new WidgetAnnotation(List.of(Enum.class), ValueSwitchWidget.class), //
-        new WidgetAnnotation(ChoicesWidget.class), //
-        new WidgetAnnotation(List.of(String[].class), ComboBoxWidget.class), //
+        new WidgetAnnotation(ChoicesProvider.class), //
         new WidgetAnnotation(List.of(String[].class), SortListWidget.class), //
         new WidgetAnnotation(ButtonWidget.class), //
         new WidgetAnnotation(List.of(String.class), DateTimeWidget.class), //
@@ -191,6 +191,8 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(String.class), TextInputWidget.class), //
         new WidgetAnnotation(List.of(Void.class), SimpleButtonWidget.class), //
         new WidgetAnnotation(List.of(Void.class), TextMessage.class), //
+        new WidgetAnnotation(List.of(String.class, ZoneId.class), OptionalWidget.class), //
+        new WidgetAnnotation(List.of(String[].class, ColumnFilter.class, NameFilter.class), TwinlistWidget.class), //
         new WidgetAnnotation(List.of(byte.class, double.class, float.class, int.class, long.class, Duration.class),
             NumberInputWidget.class) //
     };
