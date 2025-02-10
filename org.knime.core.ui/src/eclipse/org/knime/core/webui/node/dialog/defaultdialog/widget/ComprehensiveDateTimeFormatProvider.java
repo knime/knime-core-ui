@@ -407,9 +407,21 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm:ss.SSS", DATE_TIME, STANDARD), //
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm[:ss[.SSS]]", DATE_TIME, STANDARD), //
         new FormatWithoutExample("yyyy-MM-dd'T'HH:mm[:ss]", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MMM-dd HH:mm", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MMM-dd HH:mm:ss", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MMM-dd'T'HH:mm", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MMM-dd'T'HH:mm:ss", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MMM-dd;HH:mm", DATE_TIME, STANDARD), //
+        new FormatWithoutExample("yyyy-MMM-dd;HH:mm:ss", DATE_TIME, STANDARD), //
         new FormatWithoutExample("yyyy-MM-dd HH:mm", DATE_TIME, EUROPEAN), //
         new FormatWithoutExample("yyyy-MM-dd HH:mm:ss", DATE_TIME, EUROPEAN), //
         new FormatWithoutExample("yyyy-MM-dd HH:mm:ss.SSS", DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MMM-dd HH:mm", DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MMM-dd HH:mm:ss", DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MMM-dd'T'HH:mm", DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MMM-dd'T'HH:mm:ss", DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MMM-dd;HH:mm", DATE_TIME, EUROPEAN), //
+        new FormatWithoutExample("yyyy-MMM-dd;HH:mm:ss", DATE_TIME, EUROPEAN), //
         new FormatWithoutExample("dd/MM/yyyy HH:mm", DATE_TIME, EUROPEAN), //
         new FormatWithoutExample("dd/MM/yyyy HH:mm:ss", DATE_TIME, EUROPEAN), //
         new FormatWithoutExample("dd/MM/yyyy hh:mm a", DATE_TIME, EUROPEAN), //
