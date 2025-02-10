@@ -173,6 +173,15 @@ const hasTopContent = computed(() => {
   );
 });
 
+// Used to disable the send button if the prompt is too long, so as not to break the AI service.
+// 3000 characters is enough to paste in a non-trivial code snippet or error message, which is
+// hopefully enough for users.
+const MAX_PROMPT_LENGTH = 3000;
+
+const promptTooLong = computed(() => {
+  return input.value ? input.value.length > MAX_PROMPT_LENGTH : false;
+});
+
 // The id of the hub is used to display the name of the hub in the login button
 // Updated with the actual hub id once the scripting service is ready
 const hubId = ref<string>("KNIME Hub");
@@ -254,7 +263,7 @@ getInitialDataService()
               ref="sendButton"
               primary
               title="Send"
-              :disabled="!input || showDisclaimer"
+              :disabled="!input || showDisclaimer || promptTooLong"
               class="send-button"
               @click="request"
             >
@@ -275,6 +284,13 @@ getInitialDataService()
           <WarningIcon class="error-icon" />
           <span class="error-text">
             {{ errorText }}
+          </span>
+        </div>
+        <div v-if="promptTooLong" class="error-message">
+          <WarningIcon class="error-icon" />
+          <span class="error-text">
+            "The prompt is too long. Please shorten it to
+            {{ MAX_PROMPT_LENGTH }} characters or less."
           </span>
         </div>
       </div>
