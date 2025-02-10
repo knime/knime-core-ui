@@ -104,7 +104,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple.NameFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
@@ -521,7 +520,7 @@ final class UiSchemaOptionsGenerator {
                 options.put("setFirstValueOnUpdate", choicesUpdateHandlerInstance.setFirstValueOnUpdate());
             }
 
-            if (!m_fieldClass.equals(ColumnSelection.class) && !m_fieldClass.equals(ColumnFilter.class)
+            if (!m_fieldClass.equals(ColumnFilter.class)
                 && !m_fieldClass.equals(NameFilter.class) && !m_fieldClass.equals(SingleSelection.class)) {
                 String format = getChoicesComponentFormat();
                 options.put(TAG_FORMAT, format);
