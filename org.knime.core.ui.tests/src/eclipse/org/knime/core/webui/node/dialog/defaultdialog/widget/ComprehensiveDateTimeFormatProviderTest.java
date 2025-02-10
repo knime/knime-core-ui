@@ -73,7 +73,7 @@ final class ComprehensiveDateTimeFormatProviderTest {
 
     @Test
     void checkThatAllFormatsAreValid() {
-        var invalidFormatStrings = ComprehensiveDateTimeFormatProvider.ALL_FORMATS.stream() //
+        var invalidFormatStrings = ComprehensiveDateTimeFormatProvider.ALL_DEFAULT_FORMATS.stream() //
             .map(FormatWithoutExample::format) //
             .filter(ComprehensiveDateTimeFormatProviderTest::isFormatInvalid) //
             .toList();
@@ -87,7 +87,7 @@ final class ComprehensiveDateTimeFormatProviderTest {
     @Test
     void checkThatThereAreNoDuplicateFormats() {
         // find duplicate formsts
-        var duplicateFormats = ComprehensiveDateTimeFormatProvider.ALL_FORMATS.stream() //
+        var duplicateFormats = ComprehensiveDateTimeFormatProvider.ALL_DEFAULT_FORMATS.stream() //
             .collect(Collectors.groupingBy(Function.identity(), Collectors.counting())) //
             .entrySet().stream() //
             .filter(entry -> entry.getValue() > 1) //
@@ -99,7 +99,7 @@ final class ComprehensiveDateTimeFormatProviderTest {
     @Test
     void testAutoGuessFormat() {
         assertPresentAndEquals("yyyy-MM-dd'T'HH:mm[:ss[.SSS]]",
-            ComprehensiveDateTimeFormatProvider.bestFormatGuess(List.of( //
+            ComprehensiveDateTimeFormatProvider.bestFormatGuessWithoutRecentFormats(List.of( //
                 "2025-01-28T12:00:00", //
                 "2025-01-28T12:00:00.000", //
                 "2025-02-01T12:00" //
@@ -107,21 +107,21 @@ final class ComprehensiveDateTimeFormatProviderTest {
 
         assertTrue(
             ComprehensiveDateTimeFormatProvider
-                .bestFormatGuess(List.of("blah", "hello", "world"), FormatTemporalType.TIME).isEmpty(),
+                .bestFormatGuessWithoutRecentFormats(List.of("blah", "hello", "world"), FormatTemporalType.TIME).isEmpty(),
             "Expected no format to be guessed because inputs are not date-times");
 
         assertTrue(
             ComprehensiveDateTimeFormatProvider
-                .bestFormatGuess(List.of("2025-01-28", "2025-02-01"), FormatTemporalType.DATE_TIME).isEmpty(),
+                .bestFormatGuessWithoutRecentFormats(List.of("2025-01-28", "2025-02-01"), FormatTemporalType.DATE_TIME).isEmpty(),
             "Expected no format to be guessed because query is for LocalDateTime but all inputs are LocalDate");
 
         assertTrue(
-            ComprehensiveDateTimeFormatProvider.bestFormatGuess(List.of("2025-01-28 12:00:00"), FormatTemporalType.DATE)
+            ComprehensiveDateTimeFormatProvider.bestFormatGuessWithoutRecentFormats(List.of("2025-01-28 12:00:00"), FormatTemporalType.DATE)
                 .isEmpty(),
             "Expected no format to be guessed because query is for LocalDate but all inputs are LocalDateTime");
 
         assertTrue(
-            ComprehensiveDateTimeFormatProvider.bestFormatGuess(List.of("Q1/2024"), FormatTemporalType.DATE).isEmpty(),
+            ComprehensiveDateTimeFormatProvider.bestFormatGuessWithoutRecentFormats(List.of("Q1/2024"), FormatTemporalType.DATE).isEmpty(),
             "Expected no format to be guessed because query is for LocalDate but all inputs less specific than that");
 
         // we had an issue where a string like '2025-01-28' will match a format like 'yyyy-MM-Q' even though
@@ -130,6 +130,15 @@ final class ComprehensiveDateTimeFormatProviderTest {
         var testFormat = new FormatWithoutExample("yyyy-Q", FormatTemporalType.DATE, FormatCategory.STANDARD);
         assertFalse(ComprehensiveDateTimeFormatProvider.matchesAllDateStrings(testFormat, List.of("2024-31"),
             FormatTemporalType.DATE), "Expected format to not match due to 31 being an invalid quarter");
+    }
+
+    @Test
+    void testAutoGuessFormatWithRecentFormats() {
+        assertPresentAndEquals("yyyy-MMMMM-dd'X'HH:mm", ComprehensiveDateTimeFormatProvider.bestFormatGuess(List.of( //
+            "2025-J-28X12:00", //
+            "2025-J-28X12:00", //
+            "2025-J-01X12:00" //
+        ), FormatTemporalType.DATE_TIME, List.of("yyyy-MMMMM-dd'X'HH:mm")));
     }
 
     private static <T> void assertPresentAndEquals(final T expected, final Optional<T> actual) {

@@ -50,7 +50,6 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget;
 
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory.AMERICAN;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory.EUROPEAN;
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory.RECENT;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory.STANDARD;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatTemporalType.DATE;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatTemporalType.DATE_TIME;
@@ -65,6 +64,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.Temporal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -115,7 +115,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 @SuppressWarnings("squid:S1192") // suppress sonar's "too many literals" warning
 public class ComprehensiveDateTimeFormatProvider implements StateProvider<FormatWithExample[]> {
 
-    private final String[] m_recentFormats;
+    private Collection<String> m_recentFormats;
 
     /**
      * Constructor for providing a list of recently used formats. Most probably useful when this class is used as a base
@@ -125,8 +125,7 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
      * @throws NullPointerException if recentFormats is null
      */
     public ComprehensiveDateTimeFormatProvider(final List<String> recentFormats) {
-        m_recentFormats = Objects.requireNonNull(recentFormats, "recentFormats must not be null") //
-            .toArray(String[]::new);
+        m_recentFormats = new ArrayList<>((Objects.requireNonNull(recentFormats, "recentFormats must not be null")));
     }
 
     /**
@@ -171,9 +170,9 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
      * @param exampleLocale
      * @return the formats with examples.
      */
-    protected static final FormatWithExample[] computeDefaultFormats(final ZonedDateTime exampleTime,
+    protected static final Collection<FormatWithExample> computeDefaultFormats(final ZonedDateTime exampleTime,
         final Locale exampleLocale) {
-        return ALL_FORMATS //
+        return ALL_DEFAULT_FORMATS //
             .stream() //
             .map(formatWithoutExample -> new FormatWithExample( //
                 formatWithoutExample.format, //
@@ -181,7 +180,7 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
                 formatWithoutExample.category, //
                 DateTimeFormatter.ofPattern(formatWithoutExample.format, exampleLocale).format(exampleTime) //
             )) //
-            .toArray(FormatWithExample[]::new);
+            .toList();
     }
 
     /**
@@ -192,20 +191,34 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
      * @param recentFormats
      * @return the formats with examples.
      */
-    protected static final FormatWithExample[] computeRecentFormats(final ZonedDateTime exampleTime,
-        final Locale exampleLocale, final String[] recentFormats) {
-        return Arrays.stream(recentFormats) //
+    protected static final List<FormatWithExample> computeRecentFormats(final ZonedDateTime exampleTime,
+        final Locale exampleLocale, final Collection<String> recentFormats) {
+
+        return computeRecentFormatsWithoutExamples(recentFormats).stream() //
+            .map(formatWithoutExample -> formatWithoutExample.withExample(exampleTime, exampleLocale)) //
+            .toList();
+    }
+
+    /**
+     * Compute the recently used formats without examples.
+     *
+     * @param recentFormats
+     * @return the formats without examples.
+     */
+    protected static final List<FormatWithoutExample>
+        computeRecentFormatsWithoutExamples(final Collection<String> recentFormats) {
+
+        return recentFormats.stream() //
             .map(format -> { //
                 var compatibleTypes = inferCompatibleTypesFromPattern(format);
 
                 return compatibleTypes.stream() //
-                    .map(type -> new FormatWithExample( //
+                    .map(type -> new FormatWithoutExample( //
                         format, //
                         type, //
-                        RECENT, //
-                        DateTimeFormatter.ofPattern(format, exampleLocale).format(exampleTime) //
+                        FormatCategory.RECENT //
                 ));
-            }).flatMap(Function.identity()).toArray(FormatWithExample[]::new);
+            }).flatMap(Function.identity()).toList();
     }
 
     @Override
@@ -216,8 +229,7 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
         var recentFormats = computeRecentFormats(time, locale, m_recentFormats);
         var defaultFormats = computeDefaultFormats(time, locale);
 
-        return Stream.concat(Arrays.stream(recentFormats), Arrays.stream(defaultFormats))
-            .toArray(FormatWithExample[]::new);
+        return Stream.concat(recentFormats.stream(), defaultFormats.stream()).toArray(FormatWithExample[]::new);
     }
 
     /**
@@ -263,6 +275,14 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
      * @param category
      */
     public record FormatWithoutExample(String format, FormatTemporalType temporalType, FormatCategory category) {
+
+        FormatWithExample withExample(final String example) {
+            return new FormatWithExample(format, temporalType, category, example);
+        }
+
+        FormatWithExample withExample(final ZonedDateTime exampleTime, final Locale exampleLocale) {
+            return withExample(DateTimeFormatter.ofPattern(format, exampleLocale).format(exampleTime));
+        }
     }
 
     /**
@@ -468,7 +488,7 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
      * it being mutable).
      * </p>
      */
-    public static final Collection<FormatWithoutExample> ALL_FORMATS = Collections.unmodifiableCollection( //
+    public static final Collection<FormatWithoutExample> ALL_DEFAULT_FORMATS = Collections.unmodifiableCollection( //
         Stream.of( //
             DATE_FORMATS, //
             TIME_FORMATS, //
@@ -561,20 +581,35 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
      *
      * @param dateStrings a collection of date/time strings (e.g. 2020-01-01 or 13:23:45)
      * @param temporalType the temporal type to use for parsing the date strings
+     * @param recentFormats the formats that the user has recently used.
      * @return optional containing the first format that matches all of the dateStrings, or empty if none of the formats
      *         match all of the dateStrings
      */
     public static Optional<String> bestFormatGuess(final Collection<String> dateStrings,
-        final FormatTemporalType temporalType) {
+        final FormatTemporalType temporalType, final Collection<String> recentFormats) {
         if (dateStrings.isEmpty()) {
             throw new IllegalArgumentException("dateStrings must not be empty");
         }
 
-        return ALL_FORMATS.stream() //
+        return Stream.concat(ALL_DEFAULT_FORMATS.stream(), //
+	    computeRecentFormatsWithoutExamples(recentFormats).stream()) //
             .filter(fmt -> temporalType == fmt.temporalType) //
             .filter(fmt -> matchesAllDateStrings(fmt, dateStrings, temporalType)) //
             .map(FormatWithoutExample::format) //
             .findFirst();
+    }
+
+    /**
+     * See {@link #bestFormatGuess(Collection, FormatTemporalType, Collection)}. This is a convenience method that
+     * doesn't include any recently used formats from the string history.
+     *
+     * @param dateStrings
+     * @param temporalType
+     * @return the best format guess
+     */
+    public static Optional<String> bestFormatGuessWithoutRecentFormats(final Collection<String> dateStrings,
+        final FormatTemporalType temporalType) {
+        return bestFormatGuess(dateStrings, temporalType, Collections.emptyList());
     }
 
     /**
