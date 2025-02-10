@@ -401,7 +401,8 @@ getInitialDataService()
         font-size: 13px;
         font-weight: lighter;
         font-family: Roboto, sans-serif;
-        overflow: hidden;
+        overflow: hidden auto;
+        max-height: 100px;
 
         &::placeholder {
           color: var(--knime-dove-gray);
