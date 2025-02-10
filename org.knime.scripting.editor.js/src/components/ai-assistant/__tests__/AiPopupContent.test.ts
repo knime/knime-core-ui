@@ -103,6 +103,22 @@ describe("AiPopup", () => {
     expect(sendButton.isDisabled).toBeTruthy();
   });
 
+  it("disables send button if input textarea content is longer than 3000 characters", async () => {
+    const bar = await doMount();
+    await flushPromises();
+
+    const longMessage = "a".repeat(3001);
+    const textarea = bar.find("textarea");
+    textarea.setValue(longMessage);
+
+    await bar.vm.$nextTick();
+
+    const sendButton = bar.findComponent({ ref: "sendButton" });
+
+    // @ts-ignore
+    expect(sendButton.isDisabled).toBeTruthy();
+  });
+
   it("test aiBar abort request", async () => {
     const bar = await doMount();
     await flushPromises();
