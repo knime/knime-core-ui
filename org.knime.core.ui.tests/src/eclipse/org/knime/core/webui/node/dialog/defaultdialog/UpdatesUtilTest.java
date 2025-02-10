@@ -69,7 +69,6 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
@@ -829,7 +828,7 @@ public class UpdatesUtilTest {
             class TestSettings implements DefaultNodeSettings {
 
                 @ChoicesWidget(choicesProvider = TestColumnChoicesProvider.class)
-                ColumnSelection m_columnSelection;
+                String m_columnSelection;
 
             }
             final var settings = new TestSettings();

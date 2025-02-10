@@ -48,8 +48,6 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.IsColumnOfTypeCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.IsSpecificColumnCondition;
 
 /**
  * A visitor visiting all permitted implementations of {@link Condition} which is used to translate the condition to a
@@ -73,7 +71,6 @@ public interface ConditionVisitor<T> {
 
     T visit(HasMultipleItemsCondition hasMultipleItemsCondition);
 
-    T visit(IsSpecificColumnCondition isSpecificColumnCondition);
 
     T visit(IsSpecificStringCondition isSpecificStringCondition);
 
@@ -81,7 +78,6 @@ public interface ConditionVisitor<T> {
 
     T visit(ArrayContainsCondition arrayContainsCondition);
 
-    T visit(IsColumnOfTypeCondition isColumnOfTypeCondition);
 
 
 }
