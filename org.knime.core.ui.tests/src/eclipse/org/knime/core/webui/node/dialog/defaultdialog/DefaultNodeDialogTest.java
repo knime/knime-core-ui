@@ -95,7 +95,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.Defaul
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesHolder;
 import org.knime.core.webui.page.Page;
 import org.knime.testing.util.WorkflowManagerUtil;
 
@@ -244,7 +243,7 @@ public class DefaultNodeDialogTest {
         final var settingsClasses =
             Map.of(SettingsType.MODEL, ModelSettings.class, SettingsType.VIEW, ViewSettings.class);
         final var defaultNodeSettingsService =
-            new DefaultNodeSettingsService(settingsClasses, new AsyncChoicesHolder());
+            new DefaultNodeSettingsService(settingsClasses);
         Supplier<NodeDialog> nodeDialogCreator =
             () -> createNodeDialog(Page.builder(() -> "page content", "page.html").build(),
                 defaultNodeSettingsService, null);

@@ -49,12 +49,13 @@
 package org.knime.core.webui.node.dialog.defaultdialog.widget;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 
 /**
  * This interface is used for defining any kind of update of settings values or context information (e.g. possible
- * values in a {@link ChoicesWidget} whenever one setting depends on at least one other setting. The update handler is
+ * values in a {@link ChoicesProvider} whenever one setting depends on at least one other setting. The update handler is
  * linked to the target of such a dependency by annotations.
  *
  * @param <R> the return type of the update method. This is the information that is transmitted to the frontend on an

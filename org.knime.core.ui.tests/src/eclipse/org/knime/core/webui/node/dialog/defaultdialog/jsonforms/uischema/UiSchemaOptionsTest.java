@@ -86,9 +86,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ComboBoxWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
@@ -102,10 +99,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidg
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget.DoubleProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.OptionalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.StringChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.MessageType;
@@ -116,7 +113,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonUpdate
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.Icon;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.PossibleValue;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
@@ -256,7 +255,8 @@ class UiSchemaOptionsTest {
         class HidableStringSettings implements DefaultNodeSettings {
 
             @Widget(title = "", description = "")
-            @TextInputWidget(optional = true)
+            @OptionalWidget
+            @TextInputWidget
             String m_string;
 
         }
@@ -273,7 +273,8 @@ class UiSchemaOptionsTest {
         class HidableStringSettings implements DefaultNodeSettings {
 
             @Widget(title = "", description = "")
-            @ChoicesWidget(choices = TestChoicesProvider.class, optional = true)
+            @ChoicesProvider(choicesProvider = TestChoicesProvider.class)
+            @OptionalWidget
             String m_string = "TestString";
         }
 
@@ -292,8 +293,7 @@ class UiSchemaOptionsTest {
             String[] m_comboBox;
 
             @Widget(title = "", description = "")
-            @ChoicesWidget(choices = TestChoicesProvider.class)
-            @ComboBoxWidget
+            @ChoicesProvider(choicesProvider = TestChoicesProvider.class)
             String[] m_comboBoxWithChoices;
 
         }
@@ -305,7 +305,6 @@ class UiSchemaOptionsTest {
 
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("comboBoxWithChoices");
         assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo(Format.COMBO_BOX);
-        assertThatJson(response).inPath("$.elements[1].options.possibleValues").isArray().hasSize(0);
     }
 
     @Test
@@ -313,7 +312,7 @@ class UiSchemaOptionsTest {
         class ComboBoxFormatSettings implements DefaultNodeSettings {
 
             @Widget(title = "", description = "")
-            @ChoicesWidget(choices = TestChoicesProvider.class)
+            @ChoicesProvider(choicesProvider = TestChoicesProvider.class)
             @SortListWidget
             String[] m_sortList;
 
@@ -973,7 +972,7 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0]").isObject().containsKey("options");
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dropDown");
         assertThatJson(response).inPath("$.elements[0].options.possibleValues").isArray().isNotEmpty();
-        var elementForUtcTimeZone = new IdAndText("UTC", "UTC");
+        var elementForUtcTimeZone = new PossibleValue("UTC", "UTC");
         assertThatJson(response).inPath("$.elements[0].options.possibleValues").isArray()
             .contains(elementForUtcTimeZone);
     }
@@ -983,7 +982,7 @@ class UiSchemaOptionsTest {
         class TimeZoneDefaultTestSettings implements DefaultNodeSettings {
 
             @Widget(title = "", description = "")
-            @ChoicesWidget(optional = true)
+            @OptionalWidget
             ZoneId m_zoneId;
         }
 
@@ -994,10 +993,10 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].options.hideOnNull").isBoolean().isTrue();
     }
 
-    static final class TimeZoneIdProvider implements ChoicesProvider {
+    static final class TimeZoneIdProvider implements StringChoicesProvider {
         @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
-            return new String[]{"UTC", "Europe/Berlin", "America/New_York"};
+        public List<String> choices(final DefaultNodeSettingsContext context) {
+            return List.of("UTC", "Europe/Berlin", "America/New_York");
         }
     }
 
@@ -1007,7 +1006,7 @@ class UiSchemaOptionsTest {
         class TimeZoneDefaultTestSettings implements DefaultNodeSettings {
 
             @Widget(title = "", description = "")
-            @ChoicesWidget(choices = TimeZoneIdProvider.class)
+            @ChoicesProvider(choicesProvider = TimeZoneIdProvider.class)
             ZoneId m_zoneId;
         }
 
@@ -1424,9 +1423,6 @@ class UiSchemaOptionsTest {
             @TextInputWidget(placeholderProvider = TestStringProvider.class)
             String m_textInputPlaceholderProvider;
 
-            @Widget(title = "", description = "")
-            @TextInputWidget(optional = true)
-            String m_textInputOptional;
         }
 
         var response = buildTestUiSchema(TextInputWidgetTestSettings.class);
@@ -1437,8 +1433,6 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[1].options.placeholderProvider").isString()
             .isEqualTo(TestStringProvider.class.getName());
 
-        assertThatJson(response).inPath("$.elements[2].scope").isString().contains("textInputOptional");
-        assertThatJson(response).inPath("$.elements[2].options.hideOnNull").isBoolean().isTrue();
     }
 
     @Test
@@ -1567,11 +1561,11 @@ class UiSchemaOptionsTest {
             .isEqualTo(TestProvider.class.getName());
     }
 
-    static class RegularChoicesProvider implements StringChoicesStateProvider {
+    static class RegularChoicesProvider implements StringChoicesProvider {
 
         @Override
-        public String[] choices(final DefaultNodeSettingsContext context) {
-            return new String[]{"Regular 1", "Regular 2"};
+        public List<String> choices(final DefaultNodeSettingsContext context) {
+            return List.of("Regular 1", "Regular 2");
         }
     }
 
@@ -1588,7 +1582,7 @@ class UiSchemaOptionsTest {
         class SingleSelectionSettings implements DefaultNodeSettings {
 
             @Widget(title = "", description = "")
-            @ChoicesWidget(choicesProvider = RegularChoicesProvider.class)
+            @ChoicesProvider(choicesProvider = RegularChoicesProvider.class)
             SingleSelection<TestSpecialChoices> m_singleSelection;
         }
 
@@ -1598,7 +1592,7 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("singleSelection");
 
         assertThatJson(response).inPath("$.elements[0].options.specialChoices").isArray()
-            .containsExactly(new IdAndText("SPECIAL1", "Special 1"), new IdAndText("SPECIAL2", "Special 2"));
+            .containsExactly(new PossibleValue("SPECIAL1", "Special 1"), new PossibleValue("SPECIAL2", "Special 2"));
 
         assertThatJson(response).inPath("$.elements[0].options.choicesProvider").isString()
             .isEqualTo(RegularChoicesProvider.class.getName());
