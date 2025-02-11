@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { reactive, ref } from "vue";
+import { reactive } from "vue";
 import type { VueWrapper } from "@vue/test-utils";
 import flushPromises from "flush-promises";
 
@@ -11,8 +11,8 @@ import {
 } from "@knime/jsonforms/testing";
 
 import type { FlowSettings } from "@/nodeDialog/api/types";
-import { injectionKey as flowVariableSettingsProvidedByControlInjectionKey } from "../../../composables/components/useFlowVariables";
 import { injectionKey as flowVariablesMapInjectionKey } from "../../../composables/components/useProvidedFlowVariablesMap";
+import { injectionKey as useDirtySettingsInjectionKey } from "../../../composables/nodeDialog/useDirtySettings";
 import { inputFormats } from "../../../constants/inputFormats";
 import CredentialsControlBase from "../CredentialsControlBase.vue";
 import LegacyCredentialsControl from "../LegacyCredentialsControl.vue";
@@ -23,7 +23,7 @@ describe("LegacyCredentialsControl.vue", () => {
 
   const labelForId = "myLabelForId";
 
-  const mountLegacyCredentialsControl = ({
+  const mountLegacyCredentialsControl = async ({
     props,
     provide,
   }: {
@@ -43,14 +43,8 @@ describe("LegacyCredentialsControl.vue", () => {
           },
           getPersistSchema: () => ({}),
           [flowVariablesMapInjectionKey as symbol]: flowVariablesMap,
-          [flowVariableSettingsProvidedByControlInjectionKey as symbol]: {
-            configPaths: ref([
-              {
-                configPath: "legacyCredentials",
-              },
-            ]),
-            flowSettings: ref({}),
-            getSettingStateFlowVariables: vi.fn(() => ({
+          [useDirtySettingsInjectionKey as symbol]: {
+            getFlowVariableDirtyState: vi.fn(() => ({
               controlling: { get: () => ({ set: setFlowVarState }) },
             })),
           },
@@ -58,6 +52,7 @@ describe("LegacyCredentialsControl.vue", () => {
         },
       },
     );
+    await vi.runAllTimers();
     return {
       flowVariablesMap,
       setFlowVarState,
@@ -65,7 +60,7 @@ describe("LegacyCredentialsControl.vue", () => {
     };
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     props = {
       control: {
         ...getControlBase("legacyCredentials"),
@@ -91,7 +86,8 @@ describe("LegacyCredentialsControl.vue", () => {
       disabled: false,
       isValid: true,
     };
-    const component = mountLegacyCredentialsControl({
+    vi.useFakeTimers();
+    const component = await mountLegacyCredentialsControl({
       props,
     });
     wrapper = component.wrapper;
@@ -99,6 +95,7 @@ describe("LegacyCredentialsControl.vue", () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it("sets legacy flow variable on mounted", async () => {
@@ -112,7 +109,7 @@ describe("LegacyCredentialsControl.vue", () => {
     };
     props.control.data.flowVarName = flowVarName;
     const { flowVariablesMap, changeValue, setFlowVarState } =
-      mountLegacyCredentialsControl({
+      await mountLegacyCredentialsControl({
         props,
         provide: {
           // @ts-expect-error
@@ -138,7 +135,7 @@ describe("LegacyCredentialsControl.vue", () => {
     };
     props.control.data.flowVarName = flowVarName;
     const { flowVariablesMap, changeValue, setFlowVarState } =
-      mountLegacyCredentialsControl({
+      await mountLegacyCredentialsControl({
         props,
         provide: {
           // @ts-expect-error

@@ -1,21 +1,19 @@
 import { computed } from "vue";
 
+import type { FlowVariablesForSettings } from "@/nodeDialog/composables/nodeDialog/useDirtySettings";
 import { getFlowVariableSettingsProvidedByControl } from "../../../composables/components/useFlowVariables";
 import { getFlowVariablesMap } from "../../../composables/components/useProvidedFlowVariablesMap";
 
-export default (persistPath: string) => {
-  const flowVariablesMap = getFlowVariablesMap();
-
-  const { getSettingStateFlowVariables } =
-    getFlowVariableSettingsProvidedByControl();
+export const getControllingFlowVariablesMethods = ({
+  flowVariablesMap,
+  getSettingStateFlowVariables,
+}: {
+  flowVariablesMap: Record<string, any>;
+  getSettingStateFlowVariables: () => FlowVariablesForSettings;
+}) => {
   const {
     controlling: { get: getDirtyControllingFlowVariable },
   } = getSettingStateFlowVariables();
-  const flowSettings = computed(() => flowVariablesMap[persistPath]);
-  const controllingFlowVariableName = computed(
-    () => flowSettings.value?.controllingFlowVariableName ?? "",
-  );
-
   const setControllingFlowVariable = ({
     path,
     flowVariableName,
@@ -51,6 +49,32 @@ export default (persistPath: string) => {
       isFlawed: true,
     });
   };
+
+  return {
+    setControllingFlowVariable,
+    unsetControllingFlowVariable,
+    invalidateSetFlowVariable,
+  };
+};
+
+export default (persistPath: string) => {
+  const flowVariablesMap = getFlowVariablesMap();
+
+  const { getSettingStateFlowVariables } =
+    getFlowVariableSettingsProvidedByControl();
+  const flowSettings = computed(() => flowVariablesMap[persistPath]);
+  const controllingFlowVariableName = computed(
+    () => flowSettings.value?.controllingFlowVariableName ?? "",
+  );
+
+  const {
+    setControllingFlowVariable,
+    unsetControllingFlowVariable,
+    invalidateSetFlowVariable,
+  } = getControllingFlowVariablesMethods({
+    flowVariablesMap,
+    getSettingStateFlowVariables,
+  });
 
   return {
     controllingFlowVariableName,

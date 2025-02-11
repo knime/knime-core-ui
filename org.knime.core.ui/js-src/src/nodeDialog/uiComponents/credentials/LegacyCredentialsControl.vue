@@ -4,6 +4,7 @@ import { computed } from "vue";
 import type { VueControlPropsForLabelContent } from "@knime/jsonforms";
 
 import { useFlowSettings } from "../../composables/components/useFlowVariables";
+import { useProvideForFlowVariables } from "../flowVariables/components/useProvideForFlowVariables";
 
 import CredentialsControlBase from "./CredentialsControlBase.vue";
 import LegacyFlowVariableHandler from "./LegacyFlowVariableHandler.vue";
@@ -16,8 +17,14 @@ export interface LegacyCredentials {
 
 const props = defineProps<VueControlPropsForLabelContent<LegacyCredentials>>();
 
-const { flowSettings } = useFlowSettings({
+const { flowSettings, configPaths } = useFlowSettings({
   path: computed(() => props.control.path),
+});
+
+useProvideForFlowVariables({
+  flowSettings,
+  configPaths,
+  dataPath: props.control.path,
 });
 
 const onChangeLegacyCredentialsControl = (credentials: Credentials) => {

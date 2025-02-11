@@ -5,15 +5,20 @@
  */
 import { onMounted } from "vue";
 
+import { getFlowVariablesMap } from "@/nodeDialog/composables/components/useProvidedFlowVariablesMap";
 import { getFlowVariableSettingsProvidedByControl } from "../../composables/components/useFlowVariables";
 import { injectForFlowVariables } from "../../utils/inject";
-import useControllingFlowVariable from "../flowVariables/composables/useControllingFlowVariable";
+import { getControllingFlowVariablesMethods } from "../flowVariables/composables/useControllingFlowVariable";
 
 import type { Credentials } from "./types/Credentials";
 
 const { configPaths } = getFlowVariableSettingsProvidedByControl();
-const { setControllingFlowVariable, invalidateSetFlowVariable } =
-  useControllingFlowVariable(configPaths.value[0].configPath);
+
+const flowVariablesMap = getFlowVariablesMap();
+
+const { getSettingStateFlowVariables } =
+  getFlowVariableSettingsProvidedByControl();
+
 const { getFlowVariableOverrideValue } =
   injectForFlowVariables("flowVariablesApi");
 
@@ -24,23 +29,31 @@ const emit = defineEmits<{
   flowVariableSet: [Credentials | undefined, string];
 }>();
 
-onMounted(async () => {
+onMounted(() => {
   const flowVariableName = props.flowVariableName;
   if (flowVariableName) {
-    const { configPath: persistPath, dataPath } = configPaths.value[0];
-    const setControllingVariableProps = {
-      path: configPaths.value[0].configPath,
-      flowVariableName,
-    };
-    setControllingFlowVariable(setControllingVariableProps);
-    const value = (await getFlowVariableOverrideValue(
-      persistPath,
-      dataPath,
-    )) satisfies Credentials | undefined;
-    if (typeof value === "undefined") {
-      invalidateSetFlowVariable(setControllingVariableProps);
-    }
-    emit("flowVariableSet", value, flowVariableName);
+    // timeout required for the setting state to be initialized
+    setTimeout(async () => {
+      const { setControllingFlowVariable, invalidateSetFlowVariable } =
+        getControllingFlowVariablesMethods({
+          flowVariablesMap,
+          getSettingStateFlowVariables,
+        });
+      const { configPath: persistPath, dataPath } = configPaths.value[0];
+      const setControllingVariableProps = {
+        path: configPaths.value[0].configPath,
+        flowVariableName,
+      };
+      setControllingFlowVariable(setControllingVariableProps);
+      const value = (await getFlowVariableOverrideValue(
+        persistPath,
+        dataPath,
+      )) satisfies Credentials | undefined;
+      if (typeof value === "undefined") {
+        invalidateSetFlowVariable(setControllingVariableProps);
+      }
+      emit("flowVariableSet", value, flowVariableName);
+    }, 0);
   }
 });
 </script>
