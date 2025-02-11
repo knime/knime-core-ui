@@ -402,7 +402,6 @@ getInitialDataService()
         font-weight: lighter;
         font-family: Roboto, sans-serif;
         overflow: hidden;
-        text-wrap: soft;
 
         &::placeholder {
           color: var(--knime-dove-gray);
