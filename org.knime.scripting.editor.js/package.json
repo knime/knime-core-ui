@@ -25,9 +25,9 @@
     "postinstall": "license-check -c"
   },
   "dependencies": {
-    "@knime/styles": "^1.1.0",
-    "@knime/ui-extension-renderer": "2.0.3",
-    "@knime/utils": "^1.0.17",
+    "@knime/styles": "^1.2.0",
+    "@knime/ui-extension-renderer": "2.0.7",
+    "@knime/utils": "^1.2.4",
     "@vueuse/core": "10.09.0",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-unicode11": "^0.8.0",
@@ -37,13 +37,13 @@
     "vscode-languageserver-protocol": "3.17.5"
   },
   "devDependencies": {
-    "@knime/eslint-config": "8.2.0",
-    "@knime/licenses": "^1.0.6",
+    "@knime/eslint-config": "8.3.0",
+    "@knime/licenses": "^1.1.0",
     "@rushstack/eslint-patch": "1.10.4",
-    "@tsconfig/node20": "20.1.4",
+    "@tsconfig/node22": "22.0.0",
     "@types/jsdom": "21.1.7",
     "@types/lodash-es": "^4.17.12",
-    "@types/node": "22.7.2",
+    "@types/node": "22.10.10",
     "@types/splitpanes": "2.2.6",
     "@vitejs/plugin-vue": "5.1.4",
     "@vitest/coverage-v8": "2.1.1",
@@ -59,7 +59,7 @@
     "jsdom": "25.0.1",
     "npm-run-all": "4.1.5",
     "prettier": "3.3.3",
-    "stylelint": "16.9.0",
+    "stylelint": "16.14.1",
     "ts-xor": "1.3.0",
     "vite": "5.4.8",
     "vite-plugin-css-injected-by-js": "3.5.1",
@@ -69,8 +69,8 @@
     "vue-tsc": "2.1.6"
   },
   "peerDependencies": {
-    "@knime/components": "^1.4.5",
-    "@knime/ui-extension-service": "^2.0.1",
+    "@knime/components": "^1.17.0",
+    "@knime/ui-extension-service": "^2.1.1",
     "monaco-editor": "0.45.x",
     "vue": "3.4.27"
   },
@@ -87,9 +87,10 @@
     "./initial-data-service-browser-mock": "./dist/initial-data-service-browser-mock.js"
   },
   "engines": {
-    "node": "20.x"
+    "node": "22.x"
   },
   "volta": {
-    "node": "20.11.1"
+    "node": "22.11.0",
+    "npm": "10.9.1"
   }
 }
