@@ -289,12 +289,14 @@ public abstract class ScriptingService {
          *
          * @param userPrompt Description of what the user wants the code to do
          * @param currentCode The current code
+         * @param inputOutputModel The inputs and outputs of the editor for which the code suggestion is requested
          */
-        public void suggestCode(final String userPrompt, final String currentCode) {
+        public void suggestCode(final String userPrompt, final String currentCode,
+            final InputOutputModel[] inputOutputModel) {
             var executorService = getExecutorService();
             m_lastCodeSuggestion = executorService.submit(() -> {
                 try {
-                    var response = getCodeSuggestion(userPrompt, currentCode);
+                    var response = getCodeSuggestion(userPrompt, currentCode, inputOutputModel);
                     if (Thread.interrupted()) {
                         // Code suggestion cancelled - the event was already sent by the abortSuggestCodeRequest function
                         return;
@@ -314,11 +316,12 @@ public abstract class ScriptingService {
          *
          * @param userPrompt Description of what the user wants the code to do
          * @param currentCode The current code
+         * @param inputModels The inputs of the editor for which the code suggestion is requested
          * @return suggested code
          * @throws IOException
          */
-        protected abstract String getCodeSuggestion(final String userPrompt, final String currentCode)
-            throws IOException;
+        protected abstract String getCodeSuggestion(final String userPrompt, final String currentCode,
+            final InputOutputModel[] inputModels) throws IOException;
 
         /**
          * Interrupt currently running suggest code thread and ignore request response
