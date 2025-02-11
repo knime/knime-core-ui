@@ -52,7 +52,7 @@
     "@jsonforms/vue-vanilla": "3.4.0",
     "@knime/components": "1.16.1",
     "@knime/jsonforms": "1.5.0",
-    "@knime/knime-ui-table": "0.5.17",
+    "@knime/knime-ui-table": "0.5.20",
     "@knime/rich-text-editor": "1.2.14",
     "@knime/styles": "1.2.0",
     "@knime/ui-extension-service": "2.0.1",
