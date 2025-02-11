@@ -27,6 +27,7 @@ import {
   type PromptResponseStore,
   activeEditorStore,
   clearPromptResponseStore,
+  currentInputOutputItems,
   showDisclaimer,
   usePromptResponseStore,
 } from "@/store/ai-bar";
@@ -113,6 +114,7 @@ const request = async () => {
   await scriptingService.sendToService("suggestCode", [
     input.value,
     activeEditorStore.value?.text.value,
+    currentInputOutputItems.value,
   ]);
 };
 

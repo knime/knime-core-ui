@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { type Directive, ref } from "vue";
+import { type Directive, ref, toRef, watch } from "vue";
 import * as monaco from "monaco-editor";
 
 import { useMainCodeEditorStore } from "@/editor";
+import { currentInputOutputItems } from "@/store/ai-bar";
 import { useInputOutputSelectionStore } from "@/store/io-selection";
 
 import InputOutputItem, {
@@ -29,6 +30,13 @@ const props = withDefaults(
     inputOutputItems: () => [],
   },
 );
+
+// Watch inputOutputItems and update store/ai-bar/currentInputOutputItems
+const inputOutputItemsRef = toRef(props, "inputOutputItems");
+
+watch(inputOutputItemsRef, (newItems) => {
+  currentInputOutputItems.value = newItems;
+});
 
 const inputOutputSelectionStore = useInputOutputSelectionStore();
 
