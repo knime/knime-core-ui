@@ -92,6 +92,7 @@ public final class SubNodeContainerDialogFactory implements NodeDialogFactory {
 
     private static final String SUB_NODE_CONTAINER_UI_MODE_PROPERTY = "org.knime.component.ui.mode";
 
+
     private static final String SUB_NODE_CONTAINER_UI_MODE_SWING = "swing";
 
     private static final String SUB_NODE_CONTAINER_UI_MODE_JS = "js";
@@ -157,10 +158,10 @@ public final class SubNodeContainerDialogFactory implements NodeDialogFactory {
     private static String getWorkflowRepresentationJson(final DialogNode node) throws IOException {
         var dialogRepr = node.getDialogRepresentation();
         if (!(dialogRepr instanceof WebViewContent)) {
-            throw new IOException("Configuration Dialogs only work with elements that extend JSONViewContent");
+            throw new IOException("Configuration Dialogs only work with elements that extend WebViewContent");
         }
-        var jsonDialogRepr = (WebViewContent)dialogRepr;
-        try (var stream = jsonDialogRepr.saveToStream()) {
+        var webDialogRepr = (WebViewContent)dialogRepr;
+        try (var stream = webDialogRepr.saveToStream()) {
             if (!(stream instanceof ByteArrayOutputStream)) {
                 throw new IllegalStateException(
                     "Cannot read json dialog representation from stream other than ByteArrayOutputStream");
@@ -226,11 +227,11 @@ public final class SubNodeContainerDialogFactory implements NodeDialogFactory {
                 var dialogNode = m_dialogNodes.get(dialogNodeId);
 
                 try {
-                    DialogNodeValue value = dialogNode.getDialogValue();
+                    DialogNodeValue value = dialogNode.createEmptyDialogValue();
                     var jsonStr = getWorkflowRepresentationJson(dialogNode);
                     String parameterName = "param_" + dialogNodeId.getIndex();
                     value.loadFromJson(UiComponentConverterRegistry.getConverter(jsonStr, parameterName)
-                        .getDialogNodeValueJsonFromJsonFormsModel(newSettingsJson.get("model")));
+                        .getDialogNodeValueJsonFromJsonFormsModel(newSettingsJson.get("data").get("model")));
 
                     dialogNode.validateDialogValue(value);
                     dialogNode.setDialogValue(value);
