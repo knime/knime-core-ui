@@ -43,7 +43,20 @@ type Status =
   | "unauthorized"
   | "readonly";
 
-const { textarea, input } = useTextareaAutosize();
+const { textarea, input } = useTextareaAutosize({
+  // Note that useTextareaAutosize does not set the size correctly if the
+  // textarea has a border and "box-sizing: border-box". This is a workaround
+  // to take the border into account
+  // See https://github.com/vueuse/vueuse/issues/3133
+  onResize() {
+    const style = getComputedStyle(textarea.value);
+    const heightWithBorder =
+      parseFloat(textarea.value.style.height) +
+      parseFloat(style.borderTopWidth) +
+      parseFloat(style.borderBottomWidth);
+    textarea.value.style.height = `${heightWithBorder}px`;
+  },
+});
 
 const emit = defineEmits(["request-close"]);
 
