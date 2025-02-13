@@ -103,6 +103,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
@@ -271,6 +272,7 @@ final class UiSchemaOptionsGenerator {
                     break;
                 case DYNAMIC_VALUE:
                     options.put(TAG_FORMAT, Format.DYNAMIC_VALUE);
+                    break;
             }
         }
 
@@ -314,9 +316,9 @@ final class UiSchemaOptionsGenerator {
         }
 
         if (annotatedWidgets.contains(DateTimeFormatPickerWidget.class)) {
-            options.put(TAG_FORMAT, Format.DATE_TIME_FORMAT);
-            final var dateTimeFormatPickerWidget = m_node.getAnnotation(DateTimeFormatPickerWidget.class).orElseThrow();
+            options.put(TAG_FORMAT, getDateTimeFormatFormat());
 
+            final var dateTimeFormatPickerWidget = m_node.getAnnotation(DateTimeFormatPickerWidget.class).orElseThrow();
             options.put("formatProvider", dateTimeFormatPickerWidget.formatProvider().getName());
         }
 
@@ -625,7 +627,6 @@ final class UiSchemaOptionsGenerator {
         }
     }
 
-
     private static void addLocalLocationInfo(final ObjectNode options) {
         options.put("mountId", "Local space");
     }
@@ -768,6 +769,23 @@ final class UiSchemaOptionsGenerator {
             format = Format.TWIN_LIST;
         }
         return format;
+    }
+
+    /**
+     * No, that's not a typo in the method name. We want the jsonforms format for picking a date-time format string,
+     * which depends on the type of the field targeted by the annotation.
+     *
+     * @return
+     */
+    private String getDateTimeFormatFormat() {
+        if (String.class.equals(m_node.getType())) {
+            return Format.TEMPORAL_FORMAT;
+        } else if (TemporalFormat.class.equals(m_node.getType())) {
+            return Format.TEMPORAL_FORMAT_WITH_TYPE;
+        } else {
+            throw new UiSchemaGenerationException("The annotation %s is not applicable for type %s"
+                .formatted(DateTimeFormatPickerWidget.class, m_node.getType()));
+        }
     }
 
     private Collection<?> getAnnotatedWidgets() {

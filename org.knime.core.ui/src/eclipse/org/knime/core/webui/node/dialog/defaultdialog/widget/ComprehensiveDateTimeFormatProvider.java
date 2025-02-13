@@ -48,13 +48,13 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType.DATE;
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType.DATE_TIME;
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType.TIME;
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType.ZONED_DATE_TIME;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory.AMERICAN;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory.EUROPEAN;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory.STANDARD;
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatTemporalType.DATE;
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatTemporalType.DATE_TIME;
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatTemporalType.TIME;
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatTemporalType.ZONED_DATE_TIME;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
@@ -64,6 +64,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.Temporal;
+import java.time.temporal.TemporalQuery;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -79,8 +80,8 @@ import java.util.stream.Stream;
 import org.knime.core.node.util.StringHistory;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatTemporalType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatWithExample;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
@@ -597,31 +598,17 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
      * @return optional containing the first format that matches all of the dateStrings, or empty if none of the formats
      *         match all of the dateStrings
      */
-    public static Optional<String> bestFormatGuess(final Collection<String> dateStrings,
+    public static Optional<FormatWithoutExample> bestFormatGuess(final Collection<String> dateStrings,
         final FormatTemporalType temporalType, final Collection<String> recentFormats) {
         if (dateStrings.isEmpty()) {
             throw new IllegalArgumentException("dateStrings must not be empty");
         }
 
         return Stream.concat(ALL_DEFAULT_FORMATS.stream(), //
-	    computeRecentFormatsWithoutExamples(recentFormats).stream()) //
-            .filter(fmt -> temporalType == fmt.temporalType) //
+            computeRecentFormatsWithoutExamples(recentFormats).stream()) //
+            .filter(fmt -> temporalType == null || temporalType == fmt.temporalType) //
             .filter(fmt -> matchesAllDateStrings(fmt, dateStrings, temporalType)) //
-            .map(FormatWithoutExample::format) //
             .findFirst();
-    }
-
-    /**
-     * See {@link #bestFormatGuess(Collection, FormatTemporalType, Collection)}. This is a convenience method that
-     * doesn't include any recently used formats from the string history.
-     *
-     * @param dateStrings
-     * @param temporalType
-     * @return the best format guess
-     */
-    public static Optional<String> bestFormatGuessWithoutRecentFormats(final Collection<String> dateStrings,
-        final FormatTemporalType temporalType) {
-        return bestFormatGuess(dateStrings, temporalType, Collections.emptyList());
     }
 
     /**
@@ -642,26 +629,40 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
 
         Objects.requireNonNull(format, "format must not be null");
         Objects.requireNonNull(dateStrings, "dateStrings must not be null");
-        Objects.requireNonNull(desiredType, "desiredType must not be null");
 
         if (dateStrings.isEmpty()) {
             throw new IllegalArgumentException("dateStrings must not be empty");
         }
 
-        if (format.temporalType != desiredType) {
+        if (format.temporalType != desiredType && desiredType != null) {
             return false;
         }
 
         // should not throw since pattern is from our big list of valid formats
         var pattern = DateTimeFormatter.ofPattern(format.format);
 
-        return dateStrings.stream().allMatch(dateString -> {
-            try {
-                pattern.parse(dateString, desiredType.associatedQuery());
-                return true;
-            } catch (DateTimeParseException ex) {
-                return false;
-            }
-        });
+        if (desiredType == null) {
+            var allQueries = Arrays.stream(FormatTemporalType.values()) //
+                .map(FormatTemporalType::associatedQuery) //
+                .toArray(TemporalQuery[]::new);
+
+            return dateStrings.stream().allMatch(dateString -> {
+                try {
+                    pattern.parseBest(dateString, allQueries);
+                    return true;
+                } catch (DateTimeParseException ex) {
+                    return false;
+                }
+            });
+        } else {
+            return dateStrings.stream().allMatch(dateString -> {
+                try {
+                    pattern.parse(dateString, desiredType.associatedQuery());
+                    return true;
+                } catch (DateTimeParseException ex) {
+                    return false;
+                }
+            });
+        }
     }
 }

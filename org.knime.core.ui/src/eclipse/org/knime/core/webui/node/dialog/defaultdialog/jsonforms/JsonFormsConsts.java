@@ -249,8 +249,10 @@ public final class JsonFormsConsts {
             public static final String ZONED_DATE_TIME = "zonedDateTime";
 
             public static final String INTERVAL = "interval";
-            
-            public static final String DATE_TIME_FORMAT = "dateTimeFormat";
+
+            public static final String TEMPORAL_FORMAT_WITH_TYPE = "dateTimeFormatWithType";
+
+            public static final String TEMPORAL_FORMAT = "dateTimeFormat";
 
             public static final String RICH_TEXT_INPUT = "richTextInput";
 

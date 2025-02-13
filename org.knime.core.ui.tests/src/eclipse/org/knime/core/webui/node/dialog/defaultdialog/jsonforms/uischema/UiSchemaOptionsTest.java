@@ -84,6 +84,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.File
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
@@ -1368,14 +1369,37 @@ class UiSchemaOptionsTest {
             @Widget(title = "", description = "")
             @DateTimeFormatPickerWidget(formatProvider = DateTimeFormatProvider.class)
             String m_formatPickerField;
+
+            @Widget(title = "", description = "")
+            @DateTimeFormatPickerWidget(formatProvider = DateTimeFormatProvider.class)
+            TemporalFormat m_formatPickerFieldWithTemporalFormat;
+
+            @Widget(title = "", description = "")
+            @DateTimeFormatPickerWidget
+            TemporalFormat m_formatPickerFieldWithTemporalFormat2;
         }
 
         var response = buildTestUiSchema(DateTimeFormatPickerWidgetTestSettings.class);
 
+        // first test the one of type string
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("formatPickerField");
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dateTimeFormat");
         assertThatJson(response).inPath("$.elements[0].options.formatProvider").isString()
             .isEqualTo(DateTimeFormatProvider.class.getName());
+
+        // then the one of type TemporalFormat
+        assertThatJson(response).inPath("$.elements[1].scope").isString()
+            .contains("formatPickerFieldWithTemporalFormat");
+        assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo("dateTimeFormatWithType");
+        assertThatJson(response).inPath("$.elements[1].options.formatProvider").isString()
+            .isEqualTo(DateTimeFormatProvider.class.getName());
+
+        // and the repeat with no format provider
+        assertThatJson(response).inPath("$.elements[2].scope").isString()
+            .contains("formatPickerFieldWithTemporalFormat2");
+        assertThatJson(response).inPath("$.elements[2].options.format").isString().isEqualTo("dateTimeFormatWithType");
+        assertThatJson(response).inPath("$.elements[2].options.formatProvider").isString()
+            .isEqualTo(ComprehensiveDateTimeFormatProvider.class.getName());
     }
 
     static final class TestStringProvider implements StateProvider<String> {

@@ -60,9 +60,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider.FormatWithoutExample;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatTemporalType;
 
 /**
  *
@@ -99,29 +99,29 @@ final class ComprehensiveDateTimeFormatProviderTest {
     @Test
     void testAutoGuessFormat() {
         assertPresentAndEquals("yyyy-MM-dd'T'HH:mm[:ss[.SSS]]",
-            ComprehensiveDateTimeFormatProvider.bestFormatGuessWithoutRecentFormats(List.of( //
+            ComprehensiveDateTimeFormatProvider.bestFormatGuess(List.of( //
                 "2025-01-28T12:00:00", //
                 "2025-01-28T12:00:00.000", //
                 "2025-02-01T12:00" //
-            ), FormatTemporalType.DATE_TIME));
+            ), FormatTemporalType.DATE_TIME, List.of()).map(FormatWithoutExample::format));
 
         assertTrue(
             ComprehensiveDateTimeFormatProvider
-                .bestFormatGuessWithoutRecentFormats(List.of("blah", "hello", "world"), FormatTemporalType.TIME).isEmpty(),
+                .bestFormatGuess(List.of("blah", "hello", "world"), FormatTemporalType.TIME, List.of()).isEmpty(),
             "Expected no format to be guessed because inputs are not date-times");
 
-        assertTrue(
-            ComprehensiveDateTimeFormatProvider
-                .bestFormatGuessWithoutRecentFormats(List.of("2025-01-28", "2025-02-01"), FormatTemporalType.DATE_TIME).isEmpty(),
+        assertTrue(ComprehensiveDateTimeFormatProvider
+            .bestFormatGuess(List.of("2025-01-28", "2025-02-01"), FormatTemporalType.DATE_TIME, List.of()).isEmpty(),
             "Expected no format to be guessed because query is for LocalDateTime but all inputs are LocalDate");
 
         assertTrue(
-            ComprehensiveDateTimeFormatProvider.bestFormatGuessWithoutRecentFormats(List.of("2025-01-28 12:00:00"), FormatTemporalType.DATE)
-                .isEmpty(),
+            ComprehensiveDateTimeFormatProvider
+                .bestFormatGuess(List.of("2025-01-28 12:00:00"), FormatTemporalType.DATE, List.of()).isEmpty(),
             "Expected no format to be guessed because query is for LocalDate but all inputs are LocalDateTime");
 
         assertTrue(
-            ComprehensiveDateTimeFormatProvider.bestFormatGuessWithoutRecentFormats(List.of("Q1/2024"), FormatTemporalType.DATE).isEmpty(),
+            ComprehensiveDateTimeFormatProvider.bestFormatGuess(List.of("Q1/2024"), FormatTemporalType.DATE, List.of())
+                .isEmpty(),
             "Expected no format to be guessed because query is for LocalDate but all inputs less specific than that");
 
         // we had an issue where a string like '2025-01-28' will match a format like 'yyyy-MM-Q' even though
@@ -138,7 +138,7 @@ final class ComprehensiveDateTimeFormatProviderTest {
             "2025-J-28X12:00", //
             "2025-J-28X12:00", //
             "2025-J-01X12:00" //
-        ), FormatTemporalType.DATE_TIME, List.of("yyyy-MMMMM-dd'X'HH:mm")));
+        ), FormatTemporalType.DATE_TIME, List.of("yyyy-MMMMM-dd'X'HH:mm")).map(FormatWithoutExample::format));
     }
 
     private static <T> void assertPresentAndEquals(final T expected, final Optional<T> actual) {

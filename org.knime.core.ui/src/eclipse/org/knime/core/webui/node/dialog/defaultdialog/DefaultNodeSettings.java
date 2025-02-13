@@ -92,10 +92,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.File
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComboBoxWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
@@ -182,7 +184,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * {@link DateTimeWidget}<br>
  * {@link LocalFileReaderWidget}<br>
  * {@link LocalFileWriterWidget}<br>
- * {@link RichTextInputWidget}</td>
+ * {@link RichTextInputWidget}<br>
+ * {@link DateTimeFormatPickerWidget}</td>
  * </tr>
  * <tr>
  * <td>{@link LocalDate}</td>
@@ -266,6 +269,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <td>Any type</td>
  * <td></td>
  * <td>{@link ButtonWidget} (button with backend-side action handler)</td>
+ * </tr>
+ * <tr>
+ * <td>{@link TemporalFormat}</td>
+ * <td></td>
+ * <td>{@link DateTimeFormatPickerWidget}</td>
  * </tr>
  * </table>
  *

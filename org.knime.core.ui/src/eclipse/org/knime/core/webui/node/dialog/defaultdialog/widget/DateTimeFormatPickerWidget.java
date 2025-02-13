@@ -53,13 +53,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalQuery;
 
+import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
@@ -80,34 +76,6 @@ public @interface DateTimeFormatPickerWidget {
      */
     Class<? extends StateProvider<FormatWithExample[]>> formatProvider() //
     default ComprehensiveDateTimeFormatProvider.class;
-
-    /**
-     * The type of temporal that the format represents.
-     */
-    @SuppressWarnings("javadoc")
-    public enum FormatTemporalType {
-
-            DATE(LocalDate::from), //
-            TIME(LocalTime::from), //
-            DATE_TIME(LocalDateTime::from), //
-            ZONED_DATE_TIME(ZonedDateTime::from);
-
-        private final TemporalQuery<?> m_associatedQuery;
-
-        FormatTemporalType(final TemporalQuery<?> associatedQuery) {
-            this.m_associatedQuery = associatedQuery;
-        }
-
-        /**
-         * Returns the associated query for this temporal type.
-         *
-         * @return the associated query
-         */
-        @SuppressWarnings("rawtypes")
-        public TemporalQuery associatedQuery() {
-            return m_associatedQuery;
-        }
-    }
 
     /**
      * The category of the format.
