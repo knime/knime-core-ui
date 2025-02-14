@@ -240,7 +240,7 @@ export default ArrayLayout;
 </script>
 
 <template>
-  <div v-if="control.visible" class="array">
+  <div v-if="control.visible" :class="['array', { cards: useCardLayout }]">
     <div
       v-for="(obj, objIndex) in control.data"
       :key="`${control.path}-${obj._id}`"
@@ -318,15 +318,19 @@ export default ArrayLayout;
 .array {
   display: flex;
   flex-direction: column;
-  gap: var(--space-16);
+  gap: var(--error-message-min-reserved-space);
   margin-bottom: 10px;
+
+  &.cards {
+    gap: var(--space-12);
+  }
 
   & .item {
     display: flex;
     flex-direction: column;
 
     &.card {
-      padding: 5px 10px 10px;
+      padding: 4px 8px var(--error-message-min-reserved-space);
       background-color: white;
       box-shadow: 0 1px 4px 0 var(--knime-gray-dark-semi);
     }

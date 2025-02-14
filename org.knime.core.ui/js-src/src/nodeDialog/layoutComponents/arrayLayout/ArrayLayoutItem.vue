@@ -120,7 +120,7 @@ onUnmounted(() => {
 .elements {
   display: flex;
   flex-direction: column;
-  gap: var(--space-16);
+  gap: var(--var-error-message-min-reserved-space);
   margin-top: var(--space-16);
 
   &:empty {
@@ -130,7 +130,6 @@ onUnmounted(() => {
 
 .element {
   display: flex;
-  align-items: center;
   gap: 5px;
 
   /* Needed to align buttons centered with controls that have a label */

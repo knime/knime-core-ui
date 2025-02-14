@@ -2,7 +2,7 @@
 import { computed, ref, watchEffect } from "vue";
 
 import { InputField } from "@knime/components";
-import { ErrorMessage } from "@knime/jsonforms";
+import { ErrorMessages } from "@knime/jsonforms";
 
 import useExposedFlowVariable from "../composables/useExposedFlowVariable";
 import { type FlowVariableSelectorProps } from "../types/FlowVariableExposerProps";
@@ -47,7 +47,7 @@ const ariaLabel = computed(
     compact
     @update:model-value="onUpdate"
   />
-  <ErrorMessage
+  <ErrorMessages
     v-if="!isValid"
     class="error"
     :errors="['Flow variable name must not be blank.']"

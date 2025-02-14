@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { type Ref, ref } from "vue";
 import { shallowMount } from "@vue/test-utils";
 
-import { ErrorMessage } from "@knime/jsonforms";
+import { ErrorMessages } from "@knime/jsonforms";
 
 import { applyButtonInjectionKey } from "../../../../../layoutComponents/settingsSubPanel";
 import CustomUrlFileChooser from "../CustomUrlFileChooser.vue";
@@ -55,7 +55,7 @@ describe("UrlTab.vue", () => {
 
     const errorMessage = wrapper
       .findComponent(CustomUrlFileChooser)
-      .findComponent(ErrorMessage);
+      .findComponent(ErrorMessages);
     expect(errorMessage.exists()).toBeTruthy();
     expect(errorMessage.props()).toStrictEqual({
       errors: ['The url needs to start with a scheme (e.g. "https://")'],
@@ -69,7 +69,7 @@ describe("UrlTab.vue", () => {
 
     const errorMessage = wrapper
       .findComponent(CustomUrlFileChooser)
-      .findComponent(ErrorMessage);
+      .findComponent(ErrorMessages);
     expect(errorMessage.exists()).toBeFalsy();
     expect(applyDisabled.value).toBeFalsy();
   });

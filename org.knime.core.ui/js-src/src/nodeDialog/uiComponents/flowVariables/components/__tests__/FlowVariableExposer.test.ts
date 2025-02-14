@@ -12,7 +12,7 @@ import { mount } from "@vue/test-utils";
 import flushPromises from "flush-promises";
 
 import { InputField } from "@knime/components";
-import { ErrorMessage } from "@knime/jsonforms";
+import { ErrorMessages } from "@knime/jsonforms";
 
 import { type FlowSettings } from "../../../../api/types";
 import { injectionKey as providedByComponentKey } from "../../../../composables/components/useFlowVariables";
@@ -135,7 +135,7 @@ describe("FlowVariableExposer", () => {
   it("shows error and invalid state in case of a blank input", async () => {
     const wrapper = mountFlowVariableExposer({ props });
     await wrapper.findComponent(InputField).vm.$emit("update:model-value", " ");
-    const errorMessage = wrapper.findComponent(ErrorMessage);
+    const errorMessage = wrapper.findComponent(ErrorMessages);
     expect(errorMessage.exists()).toBeTruthy();
     expect(errorMessage.props().errors![0]).toBe(
       "Flow variable name must not be blank.",

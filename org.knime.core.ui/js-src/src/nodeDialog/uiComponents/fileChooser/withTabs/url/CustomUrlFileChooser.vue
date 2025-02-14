@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { InputField, Label, NumberInput } from "@knime/components";
-import { ErrorMessage } from "@knime/jsonforms";
+import { ErrorMessages } from "@knime/jsonforms";
 
 withDefaults(
   defineProps<{
@@ -25,7 +25,7 @@ defineEmits(["update:path", "update:timeout"]);
     placeholder="URL"
     @update:model-value="$emit('update:path', $event)"
   />
-  <ErrorMessage
+  <ErrorMessages
     v-if="urlErrorMessage"
     :style="{ display: 'unset' }"
     :errors="[urlErrorMessage]"
