@@ -14,6 +14,7 @@ import {
 } from "@/settings-service-browser-mock";
 import {
   clearPromptResponseStore,
+  currentInputOutputItems,
   setActiveEditorStoreForAi,
   usePromptResponseStore,
 } from "@/store/ai-bar";
@@ -38,6 +39,20 @@ const doMount = async () => {
   await flushPromises();
 
   return wrapper;
+};
+
+const mockSuggestCode = () => {
+  const scriptingService = getScriptingService();
+  // vi mocked gives type support for mocked vi.fn()
+  const mockedSendToService = vi.mocked(scriptingService.sendToService);
+  mockedSendToService.mockClear();
+  mockedSendToService.mockReturnValueOnce(
+    Promise.resolve({
+      code: JSON.stringify({ code: "import happy.hacking" }),
+      status: "SUCCESS",
+    }),
+  );
+  return mockedSendToService;
 };
 
 describe("AiPopup", () => {
@@ -71,24 +86,47 @@ describe("AiPopup", () => {
     const textarea = bar.find("textarea");
     textarea.setValue(message);
 
-    const scriptingService = getScriptingService();
-    // vi mocked gives type support for mocked vi.fn()
-    vi.mocked(scriptingService.sendToService).mockClear();
-    vi.mocked(scriptingService.sendToService).mockReturnValueOnce(
-      Promise.resolve({
-        code: JSON.stringify({ code: "import happy.hacking" }),
-        status: "SUCCESS",
-      }),
-    );
+    const sendToService = mockSuggestCode();
+
     // click Send Button
     const sendButton = bar.findComponent({ ref: "sendButton" });
     sendButton.vm.$emit("click");
 
     // expect scripting service to be called with
-    expect(scriptingService.sendToService).toHaveBeenCalledOnce();
-    expect(scriptingService.sendToService).toBeCalledWith("suggestCode", [
+    expect(sendToService).toHaveBeenCalledOnce();
+    expect(sendToService).toBeCalledWith("suggestCode", [message, "", []]);
+  });
+
+  it("suggestCode sends current input/output items", async () => {
+    const bar = await doMount();
+    await flushPromises();
+    (bar.vm as any).showDisclaimer = false;
+    await bar.vm.$nextTick();
+    const message = "Do something!";
+    // write to textarea
+    const textarea = bar.find("textarea");
+    textarea.setValue(message);
+
+    const sendToService = mockSuggestCode();
+
+    // Set current input/output items
+    const inputOutputItems = [
+      { name: "input1" },
+      { name: "input2" },
+      { name: "output1" },
+    ];
+    currentInputOutputItems.value = inputOutputItems;
+
+    // click Send Button
+    const sendButton = bar.findComponent({ ref: "sendButton" });
+    sendButton.vm.$emit("click");
+
+    // expect scripting service to be called with
+    expect(sendToService).toHaveBeenCalledOnce();
+    expect(sendToService).toBeCalledWith("suggestCode", [
       message,
       "",
+      inputOutputItems,
     ]);
   });
 
