@@ -1,4 +1,4 @@
-import { reactive, ref, shallowRef, watch } from "vue";
+import { type Ref, reactive, ref, shallowRef, watch } from "vue";
 
 import type { InputOutputModel } from "@/components/InputOutputItem.vue";
 import { type UseCodeEditorReturn, useMainCodeEditorStore } from "@/editor";
@@ -49,4 +49,6 @@ watch(() => useMainCodeEditorStore().value, setActiveEditorStoreForAi);
 
 // We keep track of the current inputOutputItems to be able to feed all available columns and flow variables
 // to the AI for code suggestions. This gets populated from the InputOutputPane
-export const currentInputOutputItems = ref<InputOutputModel[]>([]);
+export const currentInputOutputItems: Ref<InputOutputModel[]> = ref<
+  InputOutputModel[]
+>([]);
