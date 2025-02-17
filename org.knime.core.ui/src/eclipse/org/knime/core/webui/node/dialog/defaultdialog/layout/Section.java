@@ -78,4 +78,10 @@ public @interface Section {
      * @return Whether the whole section is only shown when advanced settings are visible.
      */
     boolean advanced() default false;
+
+    /**
+     * @return Whether the section should be shown in a side drawer, i.e. a separate sub-panel with a nice transition
+     *         animation.
+     */
+    boolean sideDrawer() default false;
 }

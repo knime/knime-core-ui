@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { type Ref, ref } from "vue";
 import { shallowMount } from "@vue/test-utils";
 
-import { applyButtonInjectionKey } from "../../../../layoutComponents/settingsSubPanel";
 import DialogFileExplorer from "../../DialogFileExplorer.vue";
+import { applyButtonInjectionKey } from "../../settingsSubPanel";
 import FileExplorerTab, {
   type FileExplorerTabProps,
 } from "../FileExplorerTab.vue";

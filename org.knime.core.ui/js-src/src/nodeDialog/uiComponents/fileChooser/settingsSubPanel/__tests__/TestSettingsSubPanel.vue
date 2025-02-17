@@ -7,8 +7,8 @@ export const contentId = "content";
 import { ref } from "vue";
 
 import { useApplyButton } from "..";
-import type { Props as SettingsSubPanelProps } from "../SettingsSubPanel.vue";
-import SettingsSubPanel from "../SettingsSubPanel.vue";
+import type { Props as SettingsSubPanelProps } from "../SettingsSubPanelForFileChooser.vue";
+import SettingsSubPanelForFileChooser from "../SettingsSubPanelForFileChooser.vue";
 
 import TestSettingsSubPanelContent from "./TestSettingsSubPanelContent.vue";
 
@@ -28,7 +28,7 @@ defineExpose({
 </script>
 
 <template>
-  <SettingsSubPanel v-bind="settingsSubPanelConfig">
+  <SettingsSubPanelForFileChooser v-bind="settingsSubPanelConfig">
     <template #expand-button="{ expand }">
       <button :id="expandButtonId" @click="expand">Expand</button>
     </template>
@@ -39,5 +39,5 @@ defineExpose({
         :on-apply="onApply"
       />
     </template>
-  </SettingsSubPanel>
+  </SettingsSubPanelForFileChooser>
 </template>

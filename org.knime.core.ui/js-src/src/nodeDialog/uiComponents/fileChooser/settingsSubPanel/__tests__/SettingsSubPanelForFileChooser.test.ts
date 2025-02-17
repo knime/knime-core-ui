@@ -1,8 +1,21 @@
-import { type Mock, beforeEach, describe, expect, it, vi } from "vitest";
-import { VueWrapper, mount } from "@vue/test-utils";
-import flushPromises from "flush-promises";
+import {
+  type Mock,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+import { nextTick } from "vue";
+import {
+  VueWrapper,
+  enableAutoUnmount,
+  flushPromises,
+  mount,
+} from "@vue/test-utils";
 
-import { Button, FunctionButton, SideDrawer } from "@knime/components";
+import { Button } from "@knime/components";
 
 import TestSettingsSubPanel, {
   type Props as TestComponentProps,
@@ -10,7 +23,9 @@ import TestSettingsSubPanel, {
   expandButtonId,
 } from "./TestSettingsSubPanel.vue";
 
-describe("SettingsSubPanel", () => {
+enableAutoUnmount(afterEach);
+
+describe("SettingsSubPanelForFileChoooser", () => {
   let props: TestComponentProps,
     onApply: Mock<() => Promise<void>>,
     setSubPanelExpanded: () => void;
@@ -24,69 +39,92 @@ describe("SettingsSubPanel", () => {
     };
   });
 
-  const mountTestComponent = () =>
-    mount(TestSettingsSubPanel, {
+  const mountTestComponent = async () => {
+    const wrapper = mount(TestSettingsSubPanel, {
       props,
       global: {
         provide: {
           setSubPanelExpanded,
-          getPanelsContainer: () => "body",
+          getPanelsContainer: vi.fn(() => "body"),
         },
       },
+      attachTo: document.body,
     });
+    await flushPromises();
+    await nextTick();
+
+    return wrapper;
+  };
 
   const clickExpandButton = (wrapper: VueWrapper<any>) =>
     wrapper.find(`#${expandButtonId}`).trigger("click");
-  const findContent = (wrapper: VueWrapper<any>) =>
-    wrapper.findComponent(SideDrawer).find(`#${contentId}`);
+  const findContent = () => document.body.querySelector(`#${contentId}`);
   const findButtonByText = (text: string) => (wrapper: VueWrapper<any>) =>
     wrapper
-      .findComponent(SideDrawer)
       .findAllComponents(Button)
       .filter((wrapper) => wrapper.text() === text)[0];
 
+  it("displays the expand button with the correct id", async () => {
+    const wrapper = await mountTestComponent();
+
+    const expandButton = wrapper.find(`#${expandButtonId}`);
+    expect(expandButton.exists()).toBeTruthy();
+    expect(expandButton.isVisible()).toBeTruthy();
+  });
+
   it("expands subpanel on expand button click", async () => {
-    const wrapper = mountTestComponent();
-    expect(findContent(wrapper).exists()).toBeFalsy();
+    const wrapper = await mountTestComponent();
+
+    expect(findContent()).toBeNull();
     expect(setSubPanelExpanded).not.toHaveBeenCalled();
     await clickExpandButton(wrapper);
-    expect(findContent(wrapper).exists()).toBeTruthy();
+
+    expect(findContent()).not.toBeNull();
     expect(setSubPanelExpanded).toHaveBeenCalledWith({ isExpanded: true });
   });
 
   it("closes subpanel on cancel", async () => {
-    const wrapper = mountTestComponent();
+    const wrapper = await mountTestComponent();
     await clickExpandButton(wrapper);
 
     const cancelButton = findButtonByText("Cancel")(wrapper);
     await cancelButton.trigger("click");
 
-    expect(findContent(wrapper).exists()).toBeFalsy();
+    await flushPromises();
+    await nextTick();
+
+    expect(findContent()).toBeNull();
     expect(setSubPanelExpanded).toHaveBeenCalledWith({ isExpanded: false });
   });
 
   it("applies and closes subpanel on apply", async () => {
-    const wrapper = mountTestComponent();
+    const wrapper = await mountTestComponent();
     await clickExpandButton(wrapper);
+    expect(findContent()).not.toBeNull();
     onApply.mockResolvedValue();
     const applyButton = findButtonByText("Apply")(wrapper);
     await applyButton.trigger("click");
     await flushPromises();
-    expect(findContent(wrapper).exists()).toBeFalsy();
+    await nextTick();
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(findContent()).toBeNull();
   });
 
   it("does not close the subpanel on an erroneous apply", async () => {
-    const wrapper = mountTestComponent();
+    const wrapper = await mountTestComponent();
     await clickExpandButton(wrapper);
+    expect(findContent()).not.toBeNull();
     onApply.mockRejectedValue("Rejected");
     const applyButton = findButtonByText("Apply")(wrapper);
     await applyButton.trigger("click");
     await flushPromises();
-    expect(findContent(wrapper).exists()).toBeTruthy();
+    expect(findContent()).not.toBeNull();
   });
 
   it("disables the apply button", async () => {
-    const wrapper = mountTestComponent();
+    const wrapper = await mountTestComponent();
     await clickExpandButton(wrapper);
     const applyButton = findButtonByText("Apply")(wrapper);
     expect(applyButton.props().disabled).toBeFalsy();
@@ -98,24 +136,14 @@ describe("SettingsSubPanel", () => {
   it("sets the apply button text", async () => {
     const applyText = "My Apply";
     onApply.mockResolvedValue();
-    const wrapper = mountTestComponent();
+    const wrapper = await mountTestComponent();
     await clickExpandButton(wrapper);
     wrapper.vm.getApplyButton()!.text.value = applyText;
     await flushPromises();
     const applyButton = findButtonByText(applyText)(wrapper);
     await applyButton.trigger("click");
     await flushPromises();
-    expect(findContent(wrapper).exists()).toBeFalsy();
-  });
-
-  it("shows back arrow if desired", async () => {
-    props.settingsSubPanelConfig.showBackArrow = true;
-    onApply.mockResolvedValue();
-    const wrapper = mountTestComponent();
-    await clickExpandButton(wrapper);
-    const backButton = wrapper.findComponent(FunctionButton);
-    await backButton.trigger("click");
-    await flushPromises();
-    expect(findContent(wrapper).exists()).toBeFalsy();
+    await nextTick();
+    expect(findContent()).toBeNull();
   });
 });

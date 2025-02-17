@@ -23,7 +23,7 @@ import FolderLenseIcon from "@knime/styles/img/icons/folder-lense.svg";
 import { createPersistSchema } from "@@/test-setup/utils/createPersistSchema";
 import type { FlowSettings } from "@/nodeDialog/api/types";
 import { injectionKey as flowVariablesMapInjectionKey } from "@/nodeDialog/composables/components/useProvidedFlowVariablesMap";
-import SettingsSubPanel from "../../../../layoutComponents/settingsSubPanel/SettingsSubPanel.vue";
+import SettingsSubPanelForFileChooser from "../../settingsSubPanel/SettingsSubPanelForFileChooser.vue";
 import FSLocationTextControl from "../FSLocationTextControl.vue";
 import FileChooserControl from "../FileChooserControl.vue";
 import SideDrawerContent from "../SideDrawerContent.vue";
@@ -54,7 +54,7 @@ describe("FileChooserControl.vue", () => {
         controllingFlowVariableAvailable: true,
       };
     }
-    const getPanelsContainer = vi.fn().mockReturnValue("body");
+    const getPanelsContainer = vi.fn(() => "body");
     const component = mountJsonFormsControlLabelContent(FileChooserControl, {
       props,
       provide: {
@@ -67,6 +67,8 @@ describe("FileChooserControl.vue", () => {
       },
       stubs: {
         SideDrawerContent: true,
+        transition: false,
+        "transition-group": false,
         ...stubs,
       },
     });
@@ -135,23 +137,27 @@ describe("FileChooserControl.vue", () => {
 
   it("renders", () => {
     expect(wrapper.findComponent(FSLocationTextControl).exists()).toBe(true);
-    expect(wrapper.findComponent(SettingsSubPanel).exists()).toBe(true);
+    expect(wrapper.findComponent(SettingsSubPanelForFileChooser).exists()).toBe(
+      true,
+    );
   });
 
   it("sets labelForId", async () => {
-    expect(
-      (await expandSideDrawer(wrapper)).findComponent(SideDrawerContent).props()
-        .id,
-    ).toBe(labelForId);
+    await expandSideDrawer(wrapper);
+
+    expect(wrapper.findComponent(SideDrawerContent).props().id).toBe(
+      labelForId,
+    );
   });
 
   it("calls changeValue when applying changes from the side panel", async () => {
     const changedValue = { ...props.control.data.path, path: "new path" };
-    const sideDrawer = await expandSideDrawer(wrapper);
-    sideDrawer
+    await expandSideDrawer(wrapper);
+    wrapper
       .findComponent(SideDrawerContent)
       .vm.$emit("update:modelValue", changedValue);
-    await wrapper.findComponent(SettingsSubPanel).vm.$emit("apply");
+
+    wrapper.findComponent(SettingsSubPanelForFileChooser).vm.$emit("apply");
     expect(changeValue).toHaveBeenCalledWith({
       path: changedValue,
     });

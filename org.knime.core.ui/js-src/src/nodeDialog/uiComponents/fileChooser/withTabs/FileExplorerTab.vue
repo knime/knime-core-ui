@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 
-import { useApplyButton } from "../../../layoutComponents/settingsSubPanel";
 import DialogFileExplorer, {
   type DialogFileExplorerProps,
 } from "../DialogFileExplorer.vue";
+import { useApplyButton } from "../settingsSubPanel";
 
 export type FileExplorerTabProps = Omit<
   DialogFileExplorerProps,

@@ -2,7 +2,7 @@
 import { FunctionButton } from "@knime/components";
 import FolderLenseIcon from "@knime/styles/img/icons/folder-lense.svg";
 
-import SettingsSubPanel from "../../layoutComponents/settingsSubPanel/SettingsSubPanel.vue";
+import SettingsSubPanelForFileChooser from "./settingsSubPanel/SettingsSubPanelForFileChooser.vue";
 
 interface Props {
   disabled: boolean;
@@ -13,7 +13,7 @@ const emit = defineEmits(["apply"]);
 </script>
 
 <template>
-  <SettingsSubPanel @apply="() => emit('apply')">
+  <SettingsSubPanelForFileChooser @apply="() => emit('apply')">
     <template #expand-button="{ expand }">
       <FunctionButton
         class="fit-content"
@@ -27,5 +27,5 @@ const emit = defineEmits(["apply"]);
     <template #default>
       <slot />
     </template>
-  </SettingsSubPanel>
+  </SettingsSubPanelForFileChooser>
 </template>

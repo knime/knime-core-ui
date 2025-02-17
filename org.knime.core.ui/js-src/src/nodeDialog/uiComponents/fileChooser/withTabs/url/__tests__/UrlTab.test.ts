@@ -4,7 +4,7 @@ import { shallowMount } from "@vue/test-utils";
 
 import { ErrorMessages } from "@knime/jsonforms";
 
-import { applyButtonInjectionKey } from "../../../../../layoutComponents/settingsSubPanel";
+import { applyButtonInjectionKey } from "../../../settingsSubPanel";
 import CustomUrlFileChooser from "../CustomUrlFileChooser.vue";
 import UrlTab, { type Props as UrlTabProps } from "../UrlTab.vue";
 
