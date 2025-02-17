@@ -56,6 +56,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_TYPE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TYPE_HORIZONTAL_LAYOUT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TYPE_SECTION;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TYPE_SIDE_DRAWER_SECTION;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TYPE_VERTICAL_LAYOUT;
 
 import java.util.function.Function;
@@ -116,7 +117,7 @@ enum LayoutPart {
         final var node = parent.addObject();
         final var label = sectionAnnotation.title();
         node.put(TAG_LABEL, label);
-        node.put(TAG_TYPE, TYPE_SECTION);
+        node.put(TAG_TYPE, sectionAnnotation.sideDrawer() ? TYPE_SIDE_DRAWER_SECTION : TYPE_SECTION);
         if (sectionAnnotation.advanced()) {
             node.putObject(TAG_OPTIONS).put(OPTIONS_IS_ADVANCED, true);
         }

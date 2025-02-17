@@ -267,6 +267,7 @@ public final class JsonFormsConsts {
             public static final String DYNAMIC_VALUE = "dynamicValue";
 
             public static final String TEXT_MESSAGE = "textMessage";
+
         }
 
         /**
@@ -384,6 +385,11 @@ public final class JsonFormsConsts {
          * The type of a section
          */
         public static final String TYPE_SECTION = "Section";
+
+        /**
+         * The type of a side drawer section
+         */
+        public static final String TYPE_SIDE_DRAWER_SECTION = "SettingsSubPanelLayout";
 
         /**
          * The type of a horizontal layout part
