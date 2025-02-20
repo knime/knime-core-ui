@@ -115,7 +115,7 @@ export const getConfigPaths = ({
   const deprecatedConfigPathsCandidates: DeprecatedConfigPathsCandidate[] = [];
   for (const segment of segments) {
     if (traversalIsAborted) {
-      return [];
+      break;
     }
     if (schema.type === "array") {
       configPaths = configPaths.map((p) => composePaths(p, segment));

@@ -292,7 +292,7 @@ describe("paths", () => {
       );
     });
 
-    it("returns an empty result if traversal is aborted before the path ended", () => {
+    it("returns an empty result if traversal is aborted with empty config paths before the path ended", () => {
       const path = "model.mySetting";
       const persistSchema: PersistSchema = {
         type: "object",
@@ -313,6 +313,34 @@ describe("paths", () => {
       };
       const configPaths = getConfigPaths(path, persistSchema);
       expect(configPaths).toStrictEqual([]);
+    });
+
+    it("returns a non-empyt result if traversal is aborted with non-empty config paths", () => {
+      const path = "model.mySetting";
+      const persistSchema: PersistSchema = {
+        type: "object",
+        properties: {
+          model: {
+            type: "object",
+            configPaths: [["model_1"], ["model_2"]],
+            properties: {
+              mySetting: {
+                type: "object",
+                properties: {
+                  subConfigKey: {},
+                },
+              },
+            },
+          },
+        },
+      };
+      const configPaths = getConfigPaths(path, persistSchema);
+      expect(configPaths).toStrictEqual(
+        ["model_1", "model_2"].map((configPath) => ({
+          configPath,
+          deprecatedConfigPaths: [],
+        })),
+      );
     });
 
     it("navigates to items and ignores segments for array schema ", () => {
