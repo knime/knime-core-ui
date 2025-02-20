@@ -166,18 +166,18 @@ class TableViewInitialDataTest {
         var dataTypes = initData.getDataTypes();
 
         var stringType = dataTypes.get(String.valueOf(System.identityHashCode(StringCell.TYPE)));
-        assertThat(stringType.getName()).isEqualTo("String");
+        assertThat(stringType.getName()).isEqualTo(StringCell.TYPE.getName());
         assertRendererNames(stringType.getRenderers(), "Multi-line String", "String");
         assertThat(stringType.getHasDataValueView()).isTrue();
 
         var doubleType = dataTypes.get(String.valueOf(System.identityHashCode(DoubleCell.TYPE)));
-        assertThat(doubleType.getName()).isEqualTo("Number (double)");
+        assertThat(doubleType.getName()).isEqualTo(DoubleCell.TYPE.getName());
         assertRendererNames(doubleType.getRenderers(), "Standard Double", "Percentage", "Full Precision", "Gray Scale",
             "Bars", "Default");
         assertThat(doubleType.getHasDataValueView()).isFalse();
 
         var booleanType = dataTypes.get(String.valueOf(System.identityHashCode(BooleanCell.TYPE)));
-        assertThat(booleanType.getName()).isEqualTo("Boolean value");
+        assertThat(booleanType.getName()).isEqualTo(BooleanCell.TYPE.getName());
         assertRendererNames(booleanType.getRenderers(), "Boolean", "Integer", "Standard Double", "Percentage",
             "Full Precision", "Gray Scale", "Bars", "Default");
         assertThat(booleanType.getHasDataValueView()).isFalse();

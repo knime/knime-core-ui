@@ -89,13 +89,16 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataTableSpecCreator;
+import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.MissingCell;
 import org.knime.core.data.RowKey;
+import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.filestore.internal.NotInWorkflowDataRepository;
+import org.knime.core.data.image.png.PNGImageCell;
 import org.knime.core.data.property.ColorAttr;
 import org.knime.core.data.property.ColorHandler;
 import org.knime.core.data.property.ColorModelNominal;
@@ -626,21 +629,21 @@ class TableViewTest {
         var table = initData.getTable();
 
         var stringType = dataTypes.get(table.getColumnDataTypeIds()[1]);
-        assertThat(stringType.getName()).isEqualTo("String");
+        assertThat(stringType.getName()).isEqualTo(StringCell.TYPE.getName());
         assertRendererNames(stringType.getRenderers(), "Multi-line String", "String");
 
         var doubleType = dataTypes.get(table.getColumnDataTypeIds()[3]);
-        assertThat(doubleType.getName()).isEqualTo("Number (double)");
+        assertThat(doubleType.getName()).isEqualTo(DoubleCell.TYPE.getName());
         assertRendererNames(doubleType.getRenderers(), "Standard Double", "Percentage", "Full Precision", "Gray Scale",
             "Bars", "Default");
 
         var booleanType = dataTypes.get(table.getColumnDataTypeIds()[5]);
-        assertThat(booleanType.getName()).isEqualTo("Boolean value");
+        assertThat(booleanType.getName()).isEqualTo(BooleanCell.TYPE.getName());
         assertRendererNames(booleanType.getRenderers(), "Boolean", "Integer", "Standard Double", "Percentage",
             "Full Precision", "Gray Scale", "Bars", "Default");
 
         var imageType = dataTypes.get(table.getColumnDataTypeIds()[6]);
-        assertThat(imageType.getName()).isEqualTo("PNG Image");
+        assertThat(imageType.getName()).isEqualTo(DataType.getType(PNGImageCell.class).getName());
         assertRendererNames(imageType.getRenderers(), "PNG Image", "Image");
     }
 

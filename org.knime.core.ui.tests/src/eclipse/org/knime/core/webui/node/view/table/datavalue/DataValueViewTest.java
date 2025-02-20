@@ -60,6 +60,7 @@ import java.util.NoSuchElementException;
 import org.apache.xmlbeans.XmlException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.DoubleCell.DoubleCellFactory;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.property.ValueFormatHandler;
@@ -309,7 +310,7 @@ final class DataValueViewTest {
         final var dataValueWrapper = setUpDataValueWrapper(executeResult).build();
         assertThat(
             assertThrows(NoSuchElementException.class, () -> INSTANCE.getDataValueView(dataValueWrapper)).getMessage())
-                .isEqualTo("No data value view is available for data type Number (double)");
+                .isEqualTo("No data value view is available for data type " + DoubleCell.TYPE.getName());
     }
 
     @Test

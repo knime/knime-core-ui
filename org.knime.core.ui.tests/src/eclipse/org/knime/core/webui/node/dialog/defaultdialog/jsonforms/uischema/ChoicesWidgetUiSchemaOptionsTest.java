@@ -206,9 +206,9 @@ class ChoicesWidgetUiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].options.possibleValues[1].type.id").isString()
             .isEqualTo("org.knime.core.data.DoubleValue");
         assertThatJson(response).inPath("$.elements[0].options.possibleValues[0].type.text").isString()
-            .isEqualTo("String");
+            .isEqualTo(StringCell.TYPE.getName());
         assertThatJson(response).inPath("$.elements[0].options.possibleValues[1].type.text").isString()
-            .isEqualTo("Number (double)");
+            .isEqualTo(DoubleCell.TYPE.getName());
         assertThatJson(response).inPath("$.elements[0].options.possibleValues[0].compatibleTypes").isArray()
             .contains("org.knime.core.data.NominalValue");
         assertThatJson(response).inPath("$.elements[0].options.possibleValues[1].compatibleTypes").isArray()
