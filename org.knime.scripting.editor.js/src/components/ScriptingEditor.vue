@@ -304,7 +304,11 @@ const defaultInputOutputItems = computedAsync<InputOutputModel[]>(async () => {
               </pane>
             </splitpanes>
           </pane>
-          <pane data-testid="bottomPane" :size="currentPaneSizes.bottom">
+          <pane
+            data-testid="bottomPane"
+            class="bottom-pane"
+            :size="currentPaneSizes.bottom"
+          >
             <ScriptingEditorBottomPane
               :slotted-tabs="additionalBottomPaneTabContent"
             >

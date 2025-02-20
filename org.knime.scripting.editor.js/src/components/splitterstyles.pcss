@@ -26,6 +26,12 @@
   }
 }
 
+.slim-mode .bottom-pane.splitpanes__pane,
+.slim-mode .right-pane.splitpanes__pane {
+  display: none;
+  pointer-events: none;
+}
+
 .common-splitter.slim-splitter :deep(.splitpanes__splitter) {
   position: relative;
   min-width: 2px;
