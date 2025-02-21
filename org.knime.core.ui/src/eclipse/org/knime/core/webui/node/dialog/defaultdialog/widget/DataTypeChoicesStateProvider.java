@@ -44,46 +44,53 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 5, 2022 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 3, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield;
+package org.knime.core.webui.node.dialog.defaultdialog.widget;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.Arrays;
+import java.util.Comparator;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.DefaultFieldPersistor;
+import org.apache.commons.lang3.StringUtils;
+import org.knime.core.data.DataType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.DataTypeAndText;
 
 /**
- * Persistor for fields that composes the config key with the implementation of the field persistor.
+ * A provider for an array of possible values of a {@link DataType} selection
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Paul Bärnreuther
  */
-final class DefaultFieldNodeSettingsPersistor<T> implements DefaultFieldPersistor<T> {
-    private final String m_configKey;
+public non-sealed interface DataTypeChoicesStateProvider extends ChoicesStateProvider<DataTypeAndText[]> {
 
-    private final FieldPersistor<T> m_impl;
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default void init(final StateProviderInitializer initializer) {
+        ChoicesStateProvider.super.init(initializer);
+    }
 
-    DefaultFieldNodeSettingsPersistor(final String configKey, final FieldPersistor<T> impl) {
-        m_configKey = configKey;
-        m_impl = impl;
+    /**
+     * Computes the array of possible values based on the {@link DefaultNodeSettingsContext}.
+     *
+     * Per default, this list of data types is sorted alphabetically when presented as choices in a data type selection.
+     *
+     * @param context the context that holds any available information that might be relevant for determining available
+     *            choices
+     * @return array of possible values, never {@code null}
+     */
+    default DataType[] choices(final DefaultNodeSettingsContext context) {
+        throw new IllegalStateException("At least one method must be implemented: "
+            + "DataTypeChoicesStateProvider.choices or DataTypeChoicesStateProvider.computeState");
     }
 
     @Override
-    public void save(final T obj, final NodeSettingsWO settings) {
-        m_impl.save(obj, settings, m_configKey);
-    }
-
-    @Override
-    public T load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return m_impl.load(settings, m_configKey);
-    }
-
-    @Override
-    public Optional<List<String>> getSubConfigPath() {
-        return m_impl.getSubConfigPath();
+    default DataTypeAndText[] computeState(final DefaultNodeSettingsContext context) {
+        return Arrays.stream(choices(context))//
+            .sorted(Comparator.comparing(DataType::getName, StringUtils::compare))//
+            .map(DataTypeAndText::fromDataType)//
+            .toArray(DataTypeAndText[]::new); //
     }
 
 }

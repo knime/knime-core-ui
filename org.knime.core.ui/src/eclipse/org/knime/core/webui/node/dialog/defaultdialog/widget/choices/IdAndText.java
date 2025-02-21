@@ -66,4 +66,6 @@ public record IdAndText(String id, String text) {
     public static IdAndText fromId(final String id) {
         return new IdAndText(id, id);
     }
+
+
 }

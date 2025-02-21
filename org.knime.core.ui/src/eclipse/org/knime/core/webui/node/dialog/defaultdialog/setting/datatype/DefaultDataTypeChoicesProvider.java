@@ -44,46 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 5, 2022 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 3, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.datatype;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.DefaultFieldPersistor;
+import org.knime.core.data.DataType;
+import org.knime.core.data.DataTypeRegistry;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DataTypeChoicesStateProvider;
 
 /**
- * Persistor for fields that composes the config key with the implementation of the field persistor.
+ * Default provider for {@link DataType} choices. Provides all available data types.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Paul Bärnreuther
  */
-final class DefaultFieldNodeSettingsPersistor<T> implements DefaultFieldPersistor<T> {
-    private final String m_configKey;
-
-    private final FieldPersistor<T> m_impl;
-
-    DefaultFieldNodeSettingsPersistor(final String configKey, final FieldPersistor<T> impl) {
-        m_configKey = configKey;
-        m_impl = impl;
-    }
+public final class DefaultDataTypeChoicesProvider implements DataTypeChoicesStateProvider {
 
     @Override
-    public void save(final T obj, final NodeSettingsWO settings) {
-        m_impl.save(obj, settings, m_configKey);
-    }
-
-    @Override
-    public T load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return m_impl.load(settings, m_configKey);
-    }
-
-    @Override
-    public Optional<List<String>> getSubConfigPath() {
-        return m_impl.getSubConfigPath();
+    public DataType[] choices(final DefaultNodeSettingsContext context) {
+        return DataTypeRegistry.getInstance().availableDataTypes().stream().toArray(DataType[]::new);
     }
 
 }

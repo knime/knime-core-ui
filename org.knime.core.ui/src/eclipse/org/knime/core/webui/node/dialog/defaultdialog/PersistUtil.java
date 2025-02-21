@@ -52,18 +52,22 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
+import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigKeyUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.PersistenceFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
@@ -134,7 +138,20 @@ public final class PersistUtil {
         @Override
         protected ObjectNode getForLeaf(final LeafNode<PersistableSettings> node) {
             final var objectNode = MAPPER.createObjectNode();
-            return getNested(node, objectNode);
+            final var configKey = ConfigKeyUtil.getConfigKey(node);
+            final var defaultPersistor = DefaultFieldNodeSettingsPersistorFactory.createPersistor(node, configKey);
+            final var subConfigPaths = defaultPersistor.getSubConfigPath();
+            return getNested(node, handleSubConfigPaths(objectNode, configKey, subConfigPaths));
+        }
+
+        private static ObjectNode handleSubConfigPaths(final ObjectNode objectNode, final String configKey,
+            final Optional<List<String>> subConfigPaths) {
+            if (subConfigPaths.isPresent()) {
+                final var configPath =
+                    Stream.concat(Stream.of(configKey), subConfigPaths.get().stream()).toArray(String[]::new);
+                return addConfigPaths(objectNode, "configPaths", new String[][]{configPath});
+            }
+            return objectNode;
         }
 
         @Override

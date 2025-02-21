@@ -57,7 +57,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
  * @author Paul Bärnreuther
  */
 public sealed interface ChoicesStateProvider<T> extends StateProvider<T>
-    permits StringChoicesStateProvider, ColumnChoicesStateProvider {
+    permits StringChoicesStateProvider, ColumnChoicesStateProvider, DataTypeChoicesStateProvider {
 
     /**
      * {@inheritDoc}
@@ -70,7 +70,6 @@ public sealed interface ChoicesStateProvider<T> extends StateProvider<T>
     @Override
     default void init(final StateProviderInitializer initializer) {
         initializer.computeBeforeOpenDialog();
-
     }
 
 }

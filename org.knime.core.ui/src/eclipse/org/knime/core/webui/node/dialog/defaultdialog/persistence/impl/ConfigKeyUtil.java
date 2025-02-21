@@ -68,10 +68,11 @@ public final class ConfigKeyUtil {
     }
 
     /**
-     * Get the configKey defined by the {@link Persist} annotation on the given field. If the field is not annotated or
+     * @param node a field node.
+     * @return the configKey defined by the {@link Persist} annotation on the given field. If the field is not annotated or
      * the {@link Persist#configKey()} option is not set, a default key is extracted from the field name.
      */
-    static String getConfigKey(final TreeNode<PersistableSettings> node) {
+    public static String getConfigKey(final TreeNode<PersistableSettings> node) {
         var persist = node.getAnnotation(Persist.class);
         final var fieldName = node.getName().orElse(null); // should never be null
         if (persist.isEmpty()) {

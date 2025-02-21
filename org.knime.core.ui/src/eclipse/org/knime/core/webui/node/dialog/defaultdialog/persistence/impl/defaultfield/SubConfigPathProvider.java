@@ -44,46 +44,33 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 5, 2022 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 4, 2025 (paulbaernreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield;
 
 import java.util.List;
 import java.util.Optional;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.DefaultFieldPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 
 /**
- * Persistor for fields that composes the config key with the implementation of the field persistor.
+ * Used for default field persistors to be able to define sub configs that should be overwritable by flow variable also
+ * for default persistors.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Paul Bärnreuther
  */
-final class DefaultFieldNodeSettingsPersistor<T> implements DefaultFieldPersistor<T> {
-    private final String m_configKey;
+interface SubConfigPathProvider {
 
-    private final FieldPersistor<T> m_impl;
-
-    DefaultFieldNodeSettingsPersistor(final String configKey, final FieldPersistor<T> impl) {
-        m_configKey = configKey;
-        m_impl = impl;
-    }
-
-    @Override
-    public void save(final T obj, final NodeSettingsWO settings) {
-        m_impl.save(obj, settings, m_configKey);
-    }
-
-    @Override
-    public T load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return m_impl.load(settings, m_configKey);
-    }
-
-    @Override
-    public Optional<List<String>> getSubConfigPath() {
-        return m_impl.getSubConfigPath();
+    /**
+     * @return the path added to the root config key leading to the sub config that should be overwritten with a flow
+     *         variable instead of the root config.
+     *
+     *         This could be changed to a method returning multiple paths if necessary. Note that this method is
+     *         different from {@link NodeSettingsPersistor#getConfigPaths()} in that it does not list the root config
+     *         key as part of the config path(s).
+     */
+    default Optional<List<String>> getSubConfigPath() {
+        return Optional.empty();
     }
 
 }

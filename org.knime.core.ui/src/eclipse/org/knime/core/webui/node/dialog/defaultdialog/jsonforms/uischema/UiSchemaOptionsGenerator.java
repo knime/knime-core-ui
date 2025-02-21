@@ -60,6 +60,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_HAS_FIXED_SIZE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_SHOW_SORT_BUTTONS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_WITH_EDIT_AND_RESET;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_CHOICES_PROVIDER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_CHOICES_UPDATE_HANDLER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_DEPENDENCIES;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ELEMENTS;
@@ -103,6 +104,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
@@ -226,6 +228,10 @@ final class UiSchemaOptionsGenerator {
                     break;
                 case COLUMN_SELECTION:
                     options.put(TAG_FORMAT, Format.COLUMN_SELECTION);
+                    break;
+                case DATA_TYPE:
+                    options.put(TAG_FORMAT, Format.DROP_DOWN);
+                    options.put(TAG_CHOICES_PROVIDER, DefaultDataTypeChoicesProvider.class.getName());
                     break;
                 case LOCAL_DATE:
                     options.put(TAG_FORMAT, Format.LOCAL_DATE);
@@ -476,7 +482,7 @@ final class UiSchemaOptionsGenerator {
                     UiSchemaGenerationException::new,
                     () -> "When the property \"choicesProvider\" is used, the properties \"choicesUpdateHandler\" "
                         + "or \"choicesProvider\" cannot be used, too.");
-                options.put("choicesProvider", choicesStateProviderClass.getName());
+                options.put(TAG_CHOICES_PROVIDER, choicesStateProviderClass.getName());
             }
 
             if (choicesProviderClassSet) {

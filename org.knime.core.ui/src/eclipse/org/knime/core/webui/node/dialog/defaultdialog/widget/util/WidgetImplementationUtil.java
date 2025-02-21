@@ -61,6 +61,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameFilter;
@@ -138,6 +139,7 @@ public final class WidgetImplementationUtil {
             COLUMN_FILTER, //
             COLUMN_SELECTION, //
             CREDENTIALS, //
+            DATA_TYPE, //
             DATE_INTERVAL, //
             DYNAMIC_VALUE, //
             FILE_CHOOSER, //
@@ -215,7 +217,8 @@ public final class WidgetImplementationUtil {
         new DefaultWidget(List.of(Interval.class), DefaultWidgetType.INTERVAL), //
         new DefaultWidget(List.of(DateInterval.class), DefaultWidgetType.DATE_INTERVAL), //
         new DefaultWidget(List.of(TimeInterval.class), DefaultWidgetType.TIME_INTERVAL), //
-        new DefaultWidget(List.of(DynamicValuesInput.class), DefaultWidgetType.DYNAMIC_VALUE) //
+        new DefaultWidget(List.of(DynamicValuesInput.class), DefaultWidgetType.DYNAMIC_VALUE), //
+        new DefaultWidget(List.of(DataType.class), DefaultWidgetType.DATA_TYPE) //
     };
 
     /**

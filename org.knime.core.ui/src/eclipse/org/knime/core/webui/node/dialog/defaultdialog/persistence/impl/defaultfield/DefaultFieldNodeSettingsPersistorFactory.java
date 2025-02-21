@@ -55,13 +55,18 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.config.ConfigRO;
 import org.knime.core.node.config.base.ConfigBaseRO;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsSaver;
@@ -92,7 +97,14 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
     private static final Map<Class<?>, FieldPersistor<?>> IMPL_MAP = Stream.of(PersistorImpl.values())//
         .collect(toMap(PersistorImpl::getFieldType, PersistorImpl::getFieldPersistor));
 
-    public interface DefaultFieldPersistor<S> extends SettingsSaver<S>, SettingsLoader<S> {
+    /**
+     * Similar to {@link NodeSettingsPersistor} but since every default persistor should persist to the given config
+     * key, it is only possible to declare sub config keys if present.
+     *
+     * @param <S> the type of the settings object
+     *
+     */
+    public interface DefaultFieldPersistor<S> extends SettingsSaver<S>, SettingsLoader<S>, SubConfigPathProvider {
 
     }
 
@@ -181,13 +193,19 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
             BOOLEAN_ARRAY(boolean[].class, ConfigBaseRO::getBooleanArray, (v, s, k) -> s.addBooleanArray(k, v)),
             FLOAT_ARRAY(float[].class, ConfigBaseRO::getFloatArray, (v, s, k) -> s.addFloatArray(k, v)),
             CHAR_ARRAY(char[].class, ConfigBaseRO::getCharArray, (v, s, k) -> s.addCharArray(k, v)),
-            BYTE_ARRAY(byte[].class, ConfigBaseRO::getByteArray, (v, s, k) -> s.addByteArray(k, v));
+            BYTE_ARRAY(byte[].class, ConfigBaseRO::getByteArray, (v, s, k) -> s.addByteArray(k, v)),
+            DATA_TYPE(DataType.class, ConfigRO::getDataType, (v, s, k) -> s.addDataType(k, v), List.of("cell_class"));
 
         private final Class<?> m_type;
 
         private final FieldPersistor<?> m_fieldPersistor;
 
         <T> PersistorImpl(final Class<T> type, final FieldLoader<T> loader, final FieldSaver<T> saver) {
+            this(type, loader, saver, null);
+        }
+
+        <T> PersistorImpl(final Class<T> type, final FieldLoader<T> loader, final FieldSaver<T> saver,
+            final List<String> subConfigPaths) {
             m_type = type;
             m_fieldPersistor = new FieldPersistor<T>() {
 
@@ -199,6 +217,11 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
                 @Override
                 public void save(final T value, final NodeSettingsWO settings, final String configKey) {
                     saver.save(value, settings, configKey);
+                }
+
+                @Override
+                public Optional<List<String>> getSubConfigPath() {
+                    return Optional.ofNullable(subConfigPaths);
                 }
 
             };

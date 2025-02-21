@@ -67,6 +67,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.knime.core.data.DataType;
 import org.knime.core.node.port.PortType;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
@@ -80,6 +81,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameF
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
@@ -201,6 +203,9 @@ class UiSchemaOptionsTest {
 
             @Widget(title = "", description = "")
             LocalDateTime m_localDateTime;
+
+            @Widget(title = "", description = "")
+            DataType m_dataType;
         }
 
         var response = buildTestUiSchema(DefaultStylesSettings.class);
@@ -227,33 +232,29 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[9].options.format").isString().isEqualTo("fileChooser");
         assertThatJson(response).inPath("$.elements[10].scope").isString().contains("nameFilter");
         assertThatJson(response).inPath("$.elements[10].options.format").isString().isEqualTo("nameFilter");
-
-        // tests for interval default formats
         assertThatJson(response).inPath("$.elements[11].scope").isString().contains("interval");
         assertThatJson(response).inPath("$.elements[11].options.format").isString().isEqualTo("interval");
         assertThatJson(response).inPath("$.elements[11].options.intervalType").isString()
             .isEqualTo(IntervalWidget.IntervalType.DATE_OR_TIME.name());
-
         assertThatJson(response).inPath("$.elements[12].scope").isString().contains("variableLengthInterval");
         assertThatJson(response).inPath("$.elements[12].options.format").isString().isEqualTo("interval");
         assertThatJson(response).inPath("$.elements[12].options.intervalType").isString()
             .isEqualTo(IntervalWidget.IntervalType.DATE.name());
-
         assertThatJson(response).inPath("$.elements[13].scope").isString().contains("fixedLengthInterval");
         assertThatJson(response).inPath("$.elements[13].options.format").isString().isEqualTo("interval");
         assertThatJson(response).inPath("$.elements[13].options.intervalType").isString()
             .isEqualTo(IntervalWidget.IntervalType.TIME.name());
-
-        // tests for zoned date time
         assertThatJson(response).inPath("$.elements[14].scope").isString().contains("zonedDateTime");
         assertThatJson(response).inPath("$.elements[14].options.format").isString().isEqualTo("zonedDateTime");
         assertThatJson(response).inPath("$.elements[14].options.possibleValues").isArray();
         assertThatJson(response).inPath("$.elements[15].options.showMilliseconds").isBoolean().isTrue();
-
-        // tests for local date time
         assertThatJson(response).inPath("$.elements[15].scope").isString().contains("localDateTime");
         assertThatJson(response).inPath("$.elements[15].options.format").isString().isEqualTo("dateTime");
         assertThatJson(response).inPath("$.elements[15].options.showMilliseconds").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[16].scope").isString().contains("dataType");
+        assertThatJson(response).inPath("$.elements[16].options.format").isString().isEqualTo("dropDown");
+        assertThatJson(response).inPath("$.elements[16].options.choicesProvider").isString()
+            .isEqualTo(DefaultDataTypeChoicesProvider.class.getName());
     }
 
     @Test

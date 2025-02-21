@@ -44,46 +44,66 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 5, 2022 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Feb 21, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.datatype;
 
-import java.util.List;
-import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.knime.core.data.DataType;
+import org.knime.core.data.collection.ListCell;
+import org.knime.core.data.def.StringCell;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.DefaultFieldPersistor;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
-/**
- * Persistor for fields that composes the config key with the implementation of the field persistor.
- *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
- */
-final class DefaultFieldNodeSettingsPersistor<T> implements DefaultFieldPersistor<T> {
-    private final String m_configKey;
+class DataTypeSerializationTest {
 
-    private final FieldPersistor<T> m_impl;
+    ObjectMapper objectMapper;
 
-    DefaultFieldNodeSettingsPersistor(final String configKey, final FieldPersistor<T> impl) {
-        m_configKey = configKey;
-        m_impl = impl;
+    @BeforeEach
+    void createObjectMapper() {
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new Jdk8Module());
+        objectMapper.setSerializationInclusion(Include.NON_NULL);
+        objectMapper.setVisibility(PropertyAccessor.ALL, Visibility.NON_PRIVATE);
+        final var module = new SimpleModule();
+        DataTypeSerializationUtil.addSerializerAndDeserializer(module);
+        objectMapper.registerModule(module);
     }
 
-    @Override
-    public void save(final T obj, final NodeSettingsWO settings) {
-        m_impl.save(obj, settings, m_configKey);
+    static final class TestSettings {
+
+        TestSettings() {
+            // default constructor
+        }
+
+        TestSettings(final DataType dataType) {
+            m_dataType = dataType;
+        }
+
+        DataType m_dataType;
     }
 
-    @Override
-    public T load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return m_impl.load(settings, m_configKey);
+    @Test
+    void testSerializeAndDeserializeNormalType() {
+        final var testSettings = new TestSettings(StringCell.TYPE);
+        final var json = objectMapper.valueToTree(testSettings);
+        final var deserialized = objectMapper.convertValue(json, TestSettings.class);
+        assert deserialized.m_dataType.equals(StringCell.TYPE);
     }
 
-    @Override
-    public Optional<List<String>> getSubConfigPath() {
-        return m_impl.getSubConfigPath();
+    @Test
+    void testSerializeAndDeserializeCollectionType() {
+        final var collectionType = ListCell.getCollectionType(StringCell.TYPE);
+        final var testSettings = new TestSettings(collectionType);
+        final var json = objectMapper.valueToTree(testSettings);
+        final var deserialized = objectMapper.convertValue(json, TestSettings.class);
+        assert deserialized.m_dataType.equals(collectionType);
     }
 
 }

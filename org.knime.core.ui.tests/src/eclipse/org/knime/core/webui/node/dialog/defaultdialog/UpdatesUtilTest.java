@@ -61,6 +61,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.PortObjectSpec;
@@ -70,11 +72,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.Defaul
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ColumnChoicesStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DataTypeChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
@@ -847,6 +851,46 @@ public class UpdatesUtilTest {
                 .isEqualTo(StringCell.TYPE.getName());
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].compatibleTypes").isArray()
                 .hasSize(3);
+        }
+
+        @Test
+        void testDataTypeChoicesStateProvider() {
+            class TestSettings implements DefaultNodeSettings {
+
+                @Widget(title = "Data type", description = "Select the data type to be displayed in the table")
+                DataType m_dataType = StringCell.TYPE;
+
+                static final class OnlyStringAndDoubleChoicesProvider implements DataTypeChoicesStateProvider {
+                    @Override
+                    public DataType[] choices(final DefaultNodeSettingsContext context) {
+                        return new DataType[]{StringCell.TYPE, DoubleCell.TYPE};
+                    }
+                }
+
+                @Widget(title = "Data type with limited choices",
+                    description = "Select the data type to be displayed in the table")
+                @ChoicesWidget(choicesProvider = OnlyStringAndDoubleChoicesProvider.class)
+                DataType m_limitedChoicesDataType = StringCell.TYPE;
+            }
+
+            final var settings = new TestSettings();
+            final var response = buildUpdates(settings);
+            assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(2);
+            assertThatJson(response).inPath("$.initialUpdates[0].id").isString()
+                .isEqualTo(TestSettings.OnlyStringAndDoubleChoicesProvider.class.getName());
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isArray().hasSize(2);
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].id").isString()
+                .contains(DoubleCell.class.getName());
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].text").isString()
+                .isEqualTo(DoubleCell.TYPE.getName());
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[1].id").isString()
+                .contains(StringCell.class.getName());
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[1].text").isString()
+                .isEqualTo(StringCell.TYPE.getName());
+            assertThatJson(response).inPath("$.initialUpdates[1].id").isString()
+                .isEqualTo(DefaultDataTypeChoicesProvider.class.getName());
+            assertThatJson(response).inPath("$.initialUpdates[1].values[0].value").isArray().hasSizeGreaterThan(2);
+
         }
 
         static final class MyDoubleProvider implements NumberInputWidget.DoubleProvider {

@@ -175,6 +175,12 @@ public final class JsonFormsConsts {
          */
         public static final String TAG_CHOICES_UPDATE_HANDLER = "choicesUpdateHandler";
 
+
+        /**
+         * The choices provider of a choices widget
+         */
+        public static final String TAG_CHOICES_PROVIDER = "choicesProvider";
+
         /**
          * The dependencies of a {@link ButtonWidget} or the possible values of a {@link ChoicesWidget}
          */

@@ -60,6 +60,7 @@ import java.util.stream.IntStream;
 
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
@@ -97,6 +98,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComboBoxWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DataTypeChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
@@ -244,6 +246,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <td>{@link NameFilter}</td>
  * <td></td>
  * <td>{@link ChoicesWidget} (twin-list)</td>
+ * </tr>
+ * <tr>
+ * <td>{@link DataType}</td>
+ * <td>A drop down of all available data types</td>
+ * <td>{@link ChoicesWidget} using a {@link DataTypeChoicesStateProvider}</td>
  * </tr>
  * <tr>
  * <td>{@link Credentials}</td>

@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
+import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -153,6 +154,21 @@ public class PersistUtilTest {
             .isEqualTo(new String[][]{{"config_key_from_persistor_1", "config_key_from_persistor_2"},
                 {"config_key_from_persistor_3"}});
 
+    }
+
+    @SuppressWarnings("unused")
+    private static class SettingsWithDefaultPersistorWithPath implements PersistableSettings {
+        /**
+         * the default persistor of DataType uses the sub config key "cell_class".
+         */
+        public DataType fieldName;
+    }
+
+    @Test
+    void testConfigPathsFromDefaultPersistor() throws JsonProcessingException {
+        final var result = getPersistSchema(SettingsWithDefaultPersistorWithPath.class);
+        assertThatJson(result).inPath("$.properties.model.properties.fieldName.configPaths").isArray()
+            .isEqualTo(new String[][]{{"fieldName", "cell_class"}});
     }
 
     private static class CustomPersistorWithKeysContainingDots implements TestPersistor<Integer> {
