@@ -54,6 +54,8 @@ import java.util.List;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
@@ -145,6 +147,10 @@ public class TableViewViewSettings implements DefaultNodeSettings {
     @Persist(configKey = "displayedColumnsV2") // V2 Required for migration
     @Modification.WidgetReference(RemoveDisplayedColumns.DisplayedColumnsWidgetRef.class)
     public ColumnFilter m_displayedColumns;
+
+
+    @Widget(title = "Data type", description = "Select the data type to be displayed in the table")
+    DataType m_dataType = StringCell.TYPE;
 
     /**
      * If the row numbers should be displayed

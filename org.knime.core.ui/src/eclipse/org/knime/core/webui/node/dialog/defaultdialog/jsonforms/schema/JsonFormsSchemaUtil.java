@@ -74,6 +74,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
@@ -202,7 +203,6 @@ public final class JsonFormsSchemaUtil {
             .withIgnoreCheck(f -> f.isPrivate() || PROHIBITED_TYPES.contains(f.getType().getErasedType()));
 
         builder.forFields().withCustomDefinitionProvider(new EnumDefinitionProvider());
-
         builder.forFields().withDefaultResolver(new DefaultResolver(context));
 
         builder.forFields().withTitleResolver(field -> retrieveAnnotation(field, Widget.class, widgetTree)
@@ -322,10 +322,10 @@ public final class JsonFormsSchemaUtil {
         if (field.isFakeContainerItemScope()) {
             return Collections.emptyList();
         }
-        return javaTimeToNumeric(field);
+        return resolveCustomTypes(field);
     }
 
-    private static List<ResolvedType> javaTimeToNumeric(final FieldScope field) {
+    private static List<ResolvedType> resolveCustomTypes(final FieldScope field) {
         final var ctx = field.getContext();
         final var fieldClass = field.getDeclaredType().getErasedType();
         // Make java.time types that are not supported out-of-the-box by JSONForms map to supported fallback types
@@ -339,7 +339,8 @@ public final class JsonFormsSchemaUtil {
             return List.of(ctx.resolve(int.class));
         }
         if (MonthDay.class.equals(fieldClass) || YearMonth.class.equals(fieldClass)
-            || ZoneOffset.class.equals(fieldClass) || Period.class.equals(fieldClass)) {
+            || ZoneOffset.class.equals(fieldClass) || Period.class.equals(fieldClass)
+            || DataType.class.equals(fieldClass)) {
             // make `{... "type":"object"}` become `{... "type":"string"}`
             return List.of(ctx.resolve(String.class));
         }

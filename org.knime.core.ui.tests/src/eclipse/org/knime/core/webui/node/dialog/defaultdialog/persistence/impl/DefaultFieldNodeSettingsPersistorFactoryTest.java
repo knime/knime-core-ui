@@ -61,6 +61,8 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 import org.junit.jupiter.api.Test;
+import org.knime.core.data.DataType;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
@@ -151,6 +153,12 @@ class DefaultFieldNodeSettingsPersistorFactoryTest {
 
     private enum TestEnum {
             FOO, BAR;
+    }
+
+    @Test
+    void testDataType() throws InvalidSettingsException {
+        testSaveLoad(DataType.class, StringCell.TYPE);
+        testSaveLoad(DataType.class, null);
     }
 
     @Test

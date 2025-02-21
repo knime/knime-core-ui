@@ -58,9 +58,11 @@ import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.config.ConfigRO;
 import org.knime.core.node.config.base.ConfigBaseRO;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
@@ -181,7 +183,8 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
             BOOLEAN_ARRAY(boolean[].class, ConfigBaseRO::getBooleanArray, (v, s, k) -> s.addBooleanArray(k, v)),
             FLOAT_ARRAY(float[].class, ConfigBaseRO::getFloatArray, (v, s, k) -> s.addFloatArray(k, v)),
             CHAR_ARRAY(char[].class, ConfigBaseRO::getCharArray, (v, s, k) -> s.addCharArray(k, v)),
-            BYTE_ARRAY(byte[].class, ConfigBaseRO::getByteArray, (v, s, k) -> s.addByteArray(k, v));
+            BYTE_ARRAY(byte[].class, ConfigBaseRO::getByteArray, (v, s, k) -> s.addByteArray(k, v)),
+            DATA_TYPE(DataType.class, ConfigRO::getDataType, (v, s, k) -> s.addDataType(k, v));
 
         private final Class<?> m_type;
 
