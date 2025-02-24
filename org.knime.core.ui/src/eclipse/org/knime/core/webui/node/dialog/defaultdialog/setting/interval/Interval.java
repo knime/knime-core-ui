@@ -98,6 +98,20 @@ public sealed interface Interval extends TemporalAmount permits TimeInterval, Da
     String toISOString();
 
     /**
+     * Convert this interval to a short-form human-readable string.
+     *
+     * @return the short human-readable string representing this interval
+     */
+    String toShortHumanReadableString();
+
+    /**
+     * Convert this interval to a long-form human-readable string.
+     *
+     * @return the long human-readable string representing this interval
+     */
+    String toLongHumanReadableString();
+
+    /**
      * @return whether this interval is negative. This will return false for zero intervals. If you need to check if an
      *         interval is non-strictly negative, use {@link #isStrictlyNegative()} || {@link #isZero()}.
      */
@@ -112,9 +126,36 @@ public sealed interface Interval extends TemporalAmount permits TimeInterval, Da
     }
 
     /**
-     * @return whether this interval is zero.
+     * @return whether this interval is zero, meaning all fields are zero. Note that it could be possible for an
+     *         interval to refer to a zero-length amount of time, but not actually be zero. For that case, see
+     *         {@link #isEffectivelyZero()}.
      */
     boolean isZero();
+
+    /**
+     * @return whether this interval is effectively zero, meaning it refers to a zero-length amount of time.
+     */
+    boolean isEffectivelyZero();
+
+    /**
+     * Check if all fields in this interval are the same as the given interval.
+     *
+     * @param obj
+     *
+     * @return whether this interval is equal to the given interval.
+     */
+    @Override
+    boolean equals(Object obj);
+
+    /**
+     * Check if this interval has the same length as the given interval. Not necessarily the same as equals, as for
+     * example a {@link TimeInterval} of 1 hour is not equal to one of 3600 seconds, but they are the same length.
+     *
+     * @param obj
+     *
+     * @return whether this interval has the same length as the given interval.
+     */
+    boolean hasSameLength(Object obj);
 
     /**
      * Parse the given string to either a {@link DateInterval} or a {@link TimeInterval}. It will first try to parse it

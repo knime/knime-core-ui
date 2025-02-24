@@ -56,6 +56,8 @@ import java.time.temporal.TemporalAmount;
 import java.time.temporal.TemporalUnit;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -66,7 +68,6 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.google.common.base.Preconditions;
 
 /**
  * A class representing an interval consisting of variable-length units, like days, months, weeks and years. This is
@@ -79,8 +80,6 @@ import com.google.common.base.Preconditions;
 @JsonDeserialize(using = DateInterval.Deserializer.class)
 public final class DateInterval implements Interval {
 
-    private final boolean m_negative;
-
     private final int m_years;
 
     private final int m_months;
@@ -89,17 +88,15 @@ public final class DateInterval implements Interval {
 
     private final int m_days;
 
-    private DateInterval(final boolean negative, final int years, final int months, final int weeks, final int days) {
-
-        this.m_negative = negative;
-        this.m_years = requireNonNegative(years);
-        this.m_months = requireNonNegative(months);
-        this.m_weeks = requireNonNegative(weeks);
-        this.m_days = requireNonNegative(days);
+    private DateInterval(final int years, final int months, final int weeks, final int days) {
+        this.m_years = years;
+        this.m_months = months;
+        this.m_weeks = weeks;
+        this.m_days = days;
     }
 
     DateInterval() {
-        this(false, 0, 0, 0, 0);
+        this(0, 0, 0, 0);
     }
 
     @Override
@@ -132,45 +129,122 @@ public final class DateInterval implements Interval {
 
     @Override
     public String toISOString() {
-        return "%sP%sY%sM%sW%sD".formatted(signAsSymbol(), m_years, m_months, m_weeks, m_days);
+        // if all fields are negative we can prepend the -. Otherwise, we have to prepend it to all fields individually
+        var shouldPrependMinus = m_years <= 0 && m_months <= 0 && m_weeks <= 0 && m_days <= 0 && !isZero();
+
+        return shouldPrependMinus //
+            ? "-P%sY%sM%sW%sD".formatted(Math.abs(m_years), Math.abs(m_months), Math.abs(m_weeks), Math.abs(m_days)) //
+            : "P%sY%sM%sW%sD".formatted(m_years, m_months, m_weeks, m_days);
+    }
+
+    @Override
+    public String toShortHumanReadableString() {
+        return toLongHumanReadableString() //
+            .replaceAll("\\s*years?", "y") //
+            .replaceAll("\\s*months?", "M") //
+            .replaceAll("\\s*weeks?", "w") //
+            .replaceAll("\\s*days?", "d");
+    }
+
+    @Override
+    public String toLongHumanReadableString() {
+        if (isZero()) {
+            return "0 days";
+        }
+
+        var names = List.of("year", "month", "week", "day");
+        var values = List.of(m_years, m_months, m_weeks, m_days);
+
+        var shouldPrependMinus = values.stream().allMatch(i -> i <= 0) && !isZero();
+
+        var outputTokens = IntStream.range(0, names.size()) //
+            .filter(i -> values.get(i) != 0) //
+            .mapToObj(i -> String.join( //
+                "", //
+                String.valueOf(conditionalAbs(values.get(i), shouldPrependMinus)), //
+                " ", //
+                pluralise(names.get(i), values.get(i)) //
+            )) //
+            .toList();
+
+        if (shouldPrependMinus) {
+            return outputTokens.size() == 1 //
+                ? "-" + outputTokens.get(0) //
+                : "-(" + String.join(" ", outputTokens) + ")";
+        }
+
+        return String.join(" ", outputTokens).trim();
     }
 
     /**
      * @return the days
      */
     public int getDays() {
-        return signMultiplier() * m_days;
+        return m_days;
     }
 
     /**
      * @return the months
      */
     public int getMonths() {
-        return signMultiplier() * m_months;
+        return m_months;
     }
 
     /**
      * @return the weeks
      */
     public int getWeeks() {
-        return signMultiplier() * m_weeks;
+        return m_weeks;
     }
 
     /**
      * @return the years
      */
     public int getYears() {
-        return signMultiplier() * m_years;
+        return m_years;
     }
 
     @Override
     public boolean isStrictlyNegative() {
-        return m_negative && !isZero();
+        var effectiveDays = getDays() + 7 * getWeeks();
+
+        // check all fields are <= 0 and at least one < 0
+        return !isZero() && m_years <= 0 && m_months <= 0 && effectiveDays <= 0;
+    }
+
+    /**
+     * This method checks if the sign of the {@link DateInterval} is ambiguous. This is the case if the interval
+     * consists of a mix of positive and negative values. Note that since weeks are directly convertable to days, we can
+     * count them as days when checking for ambiguity.
+     *
+     * @return true if the sign of the {@link DateInterval} is ambiguous, false otherwise.
+     */
+    public boolean isAmbiguousSign() {
+        var effectiveDays = getDays() + 7 * getWeeks();
+
+        var signs = Stream.of(m_years, m_months, effectiveDays) //
+            .mapToInt(i -> Integer.signum(i)) //
+            .filter(i -> i != 0) // zero is irrelevant for this check
+            .distinct() //
+            .count();
+
+        return signs > 1;
     }
 
     @Override
     public boolean isZero() {
         return m_years == 0 && m_months == 0 && m_weeks == 0 && m_days == 0;
+    }
+
+    /**
+     * Check if this interval is effectively zero. This is the case if the interval refers to an amount of time that is
+     * zero, but the fields are not all zero (so e.g. 1 week and -7 days would be effectively zero).
+     *
+     * @return true if the interval is effectively zero, false otherwise
+     */
+    @Override
+    public boolean isEffectivelyZero() {
+        return m_years == 0 && m_months == 0 && (7 * m_weeks + m_days == 0);
     }
 
     /**
@@ -192,13 +266,27 @@ public final class DateInterval implements Interval {
         }
 
         var other = (DateInterval)obj;
-        return m_negative == other.m_negative && m_years == other.m_years && m_months == other.m_months
-            && m_weeks == other.m_weeks && m_days == other.m_days;
+        return m_years == other.m_years && m_months == other.m_months && m_weeks == other.m_weeks
+            && m_days == other.m_days;
+    }
+
+    @Override
+    public boolean hasSameLength(final Object obj) {
+        if (!(obj instanceof DateInterval)) {
+            return false;
+        }
+
+        var other = (DateInterval)obj;
+
+        var effectiveDays = getDays() + 7 * getWeeks();
+        var otherEffectiveDays = other.getDays() + 7 * other.getWeeks();
+
+        return m_years == other.m_years && m_months == other.m_months && effectiveDays == otherEffectiveDays;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(m_negative, m_years, m_months, m_weeks, m_days);
+        return Objects.hash(m_years, m_months, m_weeks, m_days);
     }
 
     @Override
@@ -206,16 +294,8 @@ public final class DateInterval implements Interval {
         return "DateInterval[%s]".formatted(toISOString());
     }
 
-    private int signMultiplier() {
-        return m_negative ? -1 : 1;
-    }
-
-    private String signAsSymbol() {
-        return m_negative ? "-" : "";
-    }
-
     /**
-     * Create a positive {@link DateInterval} from the given fields.
+     * Create a {@link DateInterval} from the given fields.
      *
      * @param years
      * @param months
@@ -225,29 +305,17 @@ public final class DateInterval implements Interval {
      *         {@link TemporalAmount} and easily converted to a {@link Period}.
      */
     public static DateInterval of(final int years, final int months, final int weeks, final int days) {
-        return of(false, years, months, weeks, days);
+        return new DateInterval(years, months, weeks, days);
     }
 
     /**
-     * Create a {@link DateInterval} from the given fields.
+     * Create a {@link DateInterval} from a {@link Period}.
      *
-     * @param negative is true, this interval will be negative.
-     * @param years
-     * @param months
-     * @param weeks
-     * @param days
-     * @return a {@link DateInterval} that keeps track of the values used to create it, but can be used like a normal
-     *         {@link TemporalAmount} and easily converted to a {@link Period}.
+     * @param value the period to convert
+     * @return a {@link DateInterval} that represents the same period as the given {@link Period}.
      */
-    public static DateInterval of(final boolean negative, final int years, final int months, final int weeks,
-        final int days) {
-
-        return new DateInterval(negative, years, months, weeks, days);
-    }
-
-    private static int requireNonNegative(final int value) {
-        Preconditions.checkArgument(value >= 0, "Value must be positive");
-        return value;
+    public static DateInterval fromPeriod(final Period value) {
+        return of(value.getYears(), value.getMonths(), value.getDays() / 7, value.getDays() % 7);
     }
 
     /**
@@ -285,5 +353,13 @@ public final class DateInterval implements Interval {
             throws IOException {
             gen.writeString(value.toISOString());
         }
+    }
+
+    private static String pluralise(final String value, final int count) {
+        return (Math.abs(count) == 1) ? value : value + "s";
+    }
+
+    private static int conditionalAbs(final int value, final boolean condition) {
+        return condition ? Math.abs(value) : value;
     }
 }

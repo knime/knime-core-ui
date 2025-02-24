@@ -59,33 +59,33 @@ final class StringToIntervalUtil {
     }
 
     // These are the regexes used to parse human-readable intervals and durations.
-    private static final String HR_YEARS_PART = "(\\d+)\\s*y(?:ears?)?";
+    private static final String HR_YEARS_PART = "(-)?\\s*(\\d+)\\s*y(?:ears?)?";
 
-    private static final String HR_MONTHS_PART = "(\\d+)\\s*m(?:o(?:nths?)?)?";
+    private static final String HR_MONTHS_PART = "(-)?\\s*(\\d+)\\s*m(?:o(?:nths?)?)?";
 
-    private static final String HR_WEEKS_PART = "(\\d+)\\s*w(?:eeks?)?";
+    private static final String HR_WEEKS_PART = "(-)?\\s*(\\d+)\\s*w(?:eeks?)?";
 
-    private static final String HR_DAYS_PART = "(\\d+)\\s*d(?:ays?)?";
+    private static final String HR_DAYS_PART = "(-)?\\s*(\\d+)\\s*d(?:ays?)?";
 
-    private static final String HR_HOURS_PART = "(\\d+)\\s*h(?:ours?)?";
+    private static final String HR_HOURS_PART = "(-)?\\s*(\\d+)\\s*h(?:ours?)?";
 
-    private static final String HR_MINUTES_PART = "(\\d+)\\s*m(?:in(?:s|utes?)?)?";
+    private static final String HR_MINUTES_PART = "(-)?\\s*(\\d+)\\s*m(?:in(?:s|utes?)?)?";
 
-    private static final String HR_SECONDS_PART = "(\\d+)(?:[,.](\\d{1,3}))?\\s*s(?:ec(?:s|onds?)?)?";
+    private static final String HR_SECONDS_PART = "(-)?\\s*(\\d+)(?:[,.](\\d{1,3}))?\\s*s(?:ec(?:s|onds?)?)?";
 
     /**
      * Match the period part of an ISO8601 duration. Here we allow a negative sign in front of the whole thing, but each
      * individual unit must be positive.
      */
     private static final Pattern ISO_PERIOD_REGEX =
-        Pattern.compile("^(-?)P(?:(\\d+)Y)?(?:(\\d+)M)?(?:(\\d+)W)?(?:(\\d+)D)?$");
+        Pattern.compile("^(-?)P(?:(-?)(\\d+)Y)?(?:(-?)(\\d+)M)?(?:(-?)(\\d+)W)?(?:(-?)(\\d+)D)?$");
 
     /**
      * Match the duration part of an ISO8601 duration. Here individual units can be negative, but the whole thing must
      * be positive.
      */
     private static final Pattern ISO_DURATION_REGEX =
-        Pattern.compile("^(-?)PT(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)(?:[,.](\\d{1,3}))?S)?$");
+        Pattern.compile("^(-?)PT(?:(-?)(\\d+)H)?(?:(-?)(\\d+)M)?(?:(-?)(\\d+)(?:[,.](\\d{1,3}))?S)?$");
 
     /**
      * Match a human-readable period, e.g. "1 year 2 months 3 weeks 4 days". Letter case is unimportant, and each unit
@@ -158,23 +158,27 @@ final class StringToIntervalUtil {
         }
 
         if (periodMatches) {
+            var overallSign = tryParseSign(periodMatcher.group(1));
+
             return DateInterval.of( //
-                tryParseInt(periodMatcher.group(1), 0), //
-                tryParseInt(periodMatcher.group(2), 0), //
-                tryParseInt(periodMatcher.group(3), 0), //
-                tryParseInt(periodMatcher.group(4), 0) //
+                tryParseInt(periodMatcher.group(2), 0) * tryParseSign(periodMatcher.group(1)) * overallSign, //
+                tryParseInt(periodMatcher.group(4), 0) * tryParseSign(periodMatcher.group(3)) * overallSign, //
+                tryParseInt(periodMatcher.group(6), 0) * tryParseSign(periodMatcher.group(5)) * overallSign, //
+                tryParseInt(periodMatcher.group(8), 0) * tryParseSign(periodMatcher.group(7)) * overallSign //
             );
         } else if (durationMatches) {
-            var millisMatch = durationMatcher.group(4);
+            var overallSign = tryParseSign(durationMatcher.group(1));
+
+            var millisMatch = durationMatcher.group(7);
             var milliseconds = millisMatch == null //
                 ? 0 //
                 : Long.parseLong(StringUtils.rightPad(millisMatch, 3, '0'));
 
             return TimeInterval.of( //
-                tryParseLong(durationMatcher.group(1), 0), //
-                tryParseLong(durationMatcher.group(2), 0), //
-                tryParseLong(durationMatcher.group(3), 0), //
-                milliseconds //
+                tryParseLong(durationMatcher.group(2), 0) * tryParseSign(durationMatcher.group(1)) * overallSign, //
+                tryParseLong(durationMatcher.group(4), 0) * tryParseSign(durationMatcher.group(3)) * overallSign, //
+                tryParseLong(durationMatcher.group(6), 0) * tryParseSign(durationMatcher.group(5)) * overallSign, //
+                milliseconds * tryParseSign(durationMatcher.group(5)) * overallSign // same sign as seconds
             );
         } else {
             throw new IllegalArgumentException(
@@ -195,25 +199,27 @@ final class StringToIntervalUtil {
         var durationMatcher = ISO_DURATION_REGEX.matcher(iso);
 
         if (periodMatcher.matches()) {
+            var overallMultiplier = tryParseSign(periodMatcher.group(1));
+
             return DateInterval.of( //
-                "-".equals(periodMatcher.group(1)), //
-                tryParseInt(periodMatcher.group(2), 0), //
-                tryParseInt(periodMatcher.group(3), 0), //
-                tryParseInt(periodMatcher.group(4), 0), //
-                tryParseInt(periodMatcher.group(5), 0) //
+                tryParseInt(periodMatcher.group(3), 0) * tryParseSign(periodMatcher.group(2)) * overallMultiplier, //
+                tryParseInt(periodMatcher.group(5), 0) * tryParseSign(periodMatcher.group(4)) * overallMultiplier, //
+                tryParseInt(periodMatcher.group(7), 0) * tryParseSign(periodMatcher.group(6)) * overallMultiplier, //
+                tryParseInt(periodMatcher.group(9), 0) * tryParseSign(periodMatcher.group(8)) * overallMultiplier //
             );
         } else if (durationMatcher.matches()) {
-            var millisMatch = durationMatcher.group(5);
+            var overallMultiplier = tryParseSign(durationMatcher.group(1));
+
+            var millisMatch = durationMatcher.group(8);
             var milliseconds = millisMatch == null //
                 ? 0 //
                 : Long.parseLong(StringUtils.rightPad(millisMatch, 3, '0'));
 
             return TimeInterval.of( //
-                "-".equals(durationMatcher.group(1)), //
-                tryParseLong(durationMatcher.group(2), 0), //
-                tryParseLong(durationMatcher.group(3), 0), //
-                tryParseLong(durationMatcher.group(4), 0), //
-                milliseconds //
+                tryParseLong(durationMatcher.group(3), 0) * tryParseSign(durationMatcher.group(2)) * overallMultiplier, //
+                tryParseLong(durationMatcher.group(5), 0) * tryParseSign(durationMatcher.group(4)) * overallMultiplier, //
+                tryParseLong(durationMatcher.group(7), 0) * tryParseSign(durationMatcher.group(6)) * overallMultiplier, //
+                milliseconds * tryParseSign(durationMatcher.group(6)) * overallMultiplier // same sign as seconds
             );
         } else {
             throw new IllegalArgumentException("'%s' is neither an ISO duration nor an ISO period".formatted(iso));
@@ -230,6 +236,14 @@ final class StringToIntervalUtil {
         } else {
             return Integer.parseInt(str);
         }
+    }
+
+    private static int tryParseSign(final String signOrNull) {
+        if (signOrNull == null) {
+            return 1;
+        }
+
+        return signOrNull.equals("-") ? -1 : 1;
     }
 
     /**
