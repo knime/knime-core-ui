@@ -120,7 +120,7 @@ onUnmounted(() => {
 .elements {
   display: flex;
   flex-direction: column;
-  gap: var(--var-error-message-min-reserved-space);
+  gap: var(--error-message-min-reserved-space);
   margin-top: var(--space-16);
 
   &:empty {
