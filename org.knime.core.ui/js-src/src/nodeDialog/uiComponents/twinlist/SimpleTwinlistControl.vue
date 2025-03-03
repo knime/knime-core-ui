@@ -77,7 +77,6 @@ if (!choicesProvider.value) {
       :right-label="twinlistRightLabel"
       compact
       show-resize-handle
-      :filter-chosen-values-on-possible-values-change="false"
       @update:model-value="onChange"
     />
   </LabeledControl>
