@@ -2,7 +2,6 @@ import path from "node:path";
 import { URL, fileURLToPath } from "node:url";
 
 import type { LibraryOptions } from "vite";
-import { loadEnv } from "vite";
 import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vitest/config";
 import svgLoader from "vite-svg-loader";
@@ -91,7 +90,6 @@ const getHtmlViewRollupOptions = (mode: string) => ({
 
 // https://vitest.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = { ...process.env, ...loadEnv(mode, process.cwd()) };
   const testMode = mode === "integration" ? "integration" : "unit";
 
   const conditionalRollupOptions = { external: [], output: {} };
@@ -99,7 +97,7 @@ export default defineConfig(({ mode }) => {
   const isHTMLBuildMode = mode.startsWith(htmlModePrefix);
   return {
     define: {
-      "process.env": env, // needed by v-calendar
+      "process.env": { NODE_ENV: process.env.NODE_ENV }, // needed by v-calendar, vue-virtual-scroller
     },
     plugins: [vue(), svgLoader({ svgoConfig })],
     resolve: {
