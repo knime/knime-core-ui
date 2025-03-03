@@ -97,7 +97,7 @@ export default defineConfig(({ mode }) => {
   const isHTMLBuildMode = mode.startsWith(htmlModePrefix);
   return {
     define: {
-      "process.env": { NODE_ENV: process.env.NODE_ENV }, // needed by v-calendar, vue-virtual-scroller
+      "process.env": { NODE_ENV: process.env.NODE_ENV }, // needed by v-calendar
     },
     plugins: [vue(), svgLoader({ svgoConfig })],
     resolve: {
