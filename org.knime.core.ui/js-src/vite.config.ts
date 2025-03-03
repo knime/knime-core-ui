@@ -3,7 +3,6 @@ import { defineConfig } from "vitest/config";
 import vue from "@vitejs/plugin-vue";
 import svgLoader from "vite-svg-loader";
 import type { LibraryOptions } from "vite";
-import { loadEnv } from "vite";
 // @ts-ignore
 import { svgoConfig } from "webapps-common/config/svgo.config";
 
@@ -81,14 +80,13 @@ const getTestSetupFile = (mode: "integration" | "unit") => {
 
 // https://vitest.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = { ...process.env, ...loadEnv(mode, process.cwd()) };
   const testMode = mode === "integration" ? "integration" : "unit";
 
   const conditionalRollupOptions = { external: [], output: {} };
 
   return {
     define: {
-      "process.env": env, // needed by v-calendar
+      "process.env": { NODE_ENV: process.env.NODE_ENV }, // needed by v-calendar, vue-virtual-scroller
     },
     plugins: [vue(), svgLoader({ svgoConfig })],
     resolve: {
