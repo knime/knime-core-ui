@@ -4,7 +4,6 @@ import vue from "@vitejs/plugin-vue";
 import svgLoader from "vite-svg-loader";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 import type { LibraryOptions } from "vite";
-import { loadEnv } from "vite";
 
 const camelCase = (input: string) => {
   return input
@@ -88,11 +87,10 @@ const getTestSetupFile = (mode: "integration" | "unit") => {
 
 // https://vitest.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = { ...process.env, ...loadEnv(mode, process.cwd()) };
   const testMode = mode === "integration" ? "integration" : "unit";
   return {
     define: {
-      "process.env": env, // needed by v-calendar
+      "process.env": { NODE_ENV: process.env.NODE_ENV }, // needed by v-calendar, vue-virtual-scroller
     },
     plugins: [
       vue(),
