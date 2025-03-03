@@ -13,7 +13,7 @@ definitions:
           - npm run ci:lint-format
           - npm run coverage
           - npm run test:integration
-          # - npm run audit # TODO temporarily disabled due to unsolvable issues
+          - npm run audit # TODO temporarily disabled due to unsolvable issues
           - npm run build
         artifacts:
           - org.knime.core.ui/js-src/dist/**
@@ -23,5 +23,5 @@ pipelines:
     '**':
       - step: *vue-lint-test-build
   branches:
-    master:
+    '{master,releases/*}':
       - step: *vue-lint-test-build
