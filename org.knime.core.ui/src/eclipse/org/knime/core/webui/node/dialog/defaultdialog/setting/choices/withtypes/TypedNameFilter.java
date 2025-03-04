@@ -46,28 +46,31 @@
  * History
  *   15 Dec 2022 Paul Bärnreuther: created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple.NameFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.ManualFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.PatternFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.PatternFilter.PatternMode;
 
 /**
- * A class used to store several representation of column choices. I.e. the columns can be determined using one of the
- * modes of {@link ColumnFilterMode}.
+ * A class used to filter names with associated types. I.e. the names can be determined using the same filter options as
+ * {@link NameFilter} and an additional option that allows for filtering by a type.
  *
  * @author Paul Bärnreuther
+ * @param <T> the type of the type filter
  */
-public class ColumnFilter implements PersistableSettings {
+public abstract class TypedNameFilter<T extends TypeFilter> implements PersistableSettings {
 
     /**
      * The setting representing the selected columns. This field is usually null and only needs to be set when
@@ -83,7 +86,7 @@ public class ColumnFilter implements PersistableSettings {
     /**
      * The way the selection is determined by
      */
-    public ColumnFilterMode m_mode; //NOSONAR
+    public TypedNameFilterMode m_mode; //NOSONAR
 
     /**
      * Settings regarding selection by pattern matching (regex or wildcard)
@@ -98,97 +101,65 @@ public class ColumnFilter implements PersistableSettings {
     /**
      * Settings regarding selection per type
      */
-    public TypeFilter m_typeFilter; //NOSONAR
+    public T m_typeFilter; //NOSONAR
 
     /**
-     * Initialises the column selection with an initial array of columns which are manually selected
+     * Initializes the column selection with an initial array of columns which are manually selected
      *
      * @param initialSelected the initial manually selected non-null columns
+     * @param defaultTypeFilter the initial value of the type filter
      */
-    public ColumnFilter(final String[] initialSelected) {
-        m_mode = ColumnFilterMode.MANUAL;
+    protected TypedNameFilter(final String[] initialSelected, final T defaultTypeFilter) {
+        m_mode = TypedNameFilterMode.MANUAL;
         m_manualFilter = new ManualFilter(Objects.requireNonNull(initialSelected));
         m_patternFilter = new PatternFilter();
-        m_typeFilter = new TypeFilter();
+        m_typeFilter = defaultTypeFilter;
         m_selected = initialSelected;
     }
 
     /**
-     * Initialises the column selection with an initial array of columns which are manually selected
+     * Initializes the column selection with an initial array of columns which are manually selected
      *
      * @param initialSelected the initial manually selected non-null columns
+     * @param defaultTypeFilter the initial value of the type filter
      */
-    public ColumnFilter(final List<String> initialSelected) {
-        this(initialSelected.toArray(String[]::new));
+    protected TypedNameFilter(final List<String> initialSelected, final T defaultTypeFilter) {
+        this(initialSelected.toArray(String[]::new), defaultTypeFilter);
     }
 
-
     /**
-     * Set the column filter to exclude unknown columns while in manual mode.
+     * Set the filter to include unknown values while in manual mode.
      *
-     * @return the instance
-     */
-    public ColumnFilter withExcludeUnknownColumns() {
-        m_manualFilter.m_includeUnknownColumns = false;
-        return this;
-    }
-
-    /**
-     * Set the column filter to include unknown columns while in manual mode.
+     * @param value
      *
-     * @return the instance
      */
-    public ColumnFilter withIncludeUnknownColumns() {
-        m_manualFilter.m_includeUnknownColumns = true;
-        return this;
+    protected void setIncludeUnknownValues(final boolean value) {
+        m_manualFilter.m_includeUnknownColumns = value;
     }
 
     /**
-     * Initialises the column selection with no initially selected columns.
+     * @param typeFilter the current type filter value
+     * @param choices the non-null list of all possible values
+     * @return the subset of the choices that are selected by the type filter
      */
-    public ColumnFilter() {
-        this(new String[0]);
-    }
-
-    /**
-     * Initialises the column selection based on the given context.
-     *
-     * @param context settings creation context
-     */
-    public ColumnFilter(final DefaultNodeSettingsContext context) {
-        this();
-    }
-
-    /**
-     * Creates a ColumnFilter that includes all columns the choicesProvider selects including unknown new columns.
-     *
-     * @param choicesProviderClass the class of {@link StringChoicesProvider}
-     * @param context of the settings creation
-     * @return a new ColumnFilter
-     */
-    public static ColumnFilter createDefault(final Class<? extends StringChoicesProvider> choicesProviderClass,
-        final DefaultNodeSettingsContext context) {
-        StringChoicesProvider choicesProvider = InstantiationUtil.createInstance(choicesProviderClass);
-        return new ColumnFilter(choicesProvider.choices(context)).withIncludeUnknownColumns();
-    }
 
     /**
      * Get selected columns, including columns that were selected but are not in the provided column list. You likely
-     * want to use {@link #getSelected(String[], DataTableSpec)} instead.
+     * want to use {@link #getSelected} instead.
      *
-     * @see #getSelected(String[], DataTableSpec)
-     * @param choices the non-null list of all possible column names
-     * @param spec of the input data table (for type selection)
-     * @return the array of currently selected columns with respect to the mode
-     * @throws NullPointerException if {@code choices} is {@code null} or the filter mode
-     *             is @{@link ColumnFilterMode#TYPE} and {@code spec} is {@code null}
+     * @see #getSelected
+     * @param choices the non-null list of all possible names
+     * @param getSelectedFromTypeFilter the function to get the selected values when using the type filter
+     * @return the subset of the choices that are selected by the filter plus the ones that are selected but missing in
+     *         the list of choices in case manual selection is chosen.
      */
-    public String[] getSelectedIncludingMissing(final String[] choices, final DataTableSpec spec) {
+    protected String[] getSelectedIncludingMissing(final String[] choices,
+        final Function<T, String[]> getSelectedFromTypeFilter) {
         Objects.requireNonNull(choices);
         return switch (m_mode) {
             case MANUAL -> m_manualFilter.getUpdatedManuallySelectedIncludingMissing(choices);
-            case TYPE -> m_typeFilter.getSelected(choices, spec);
-            default -> m_patternFilter.getSelected(m_mode.toPatternMode(), choices);
+            default -> getSelected(choices, getSelectedFromTypeFilter);
+
         };
     }
 
@@ -196,33 +167,37 @@ public class ColumnFilter implements PersistableSettings {
      * Get selected columns, but only those that are available in the provided column list. This is likely the method
      * you want to use.
      *
-     * @see #getSelectedIncludingMissing(String[], DataTableSpec)
+     * @see #getSelectedIncludingMissing
      * @param choices the non-null list of all possible column names
-     * @param spec of the input data table (for type selection)
-     * @return the array of currently selected columns with respect to the mode which are contained in the given array
-     *         of choices
-     * @throws NullPointerException if {@code choices} is {@code null} or the filter mode
-     *             is @{@link ColumnFilterMode#TYPE} and {@code spec} is {@code null}
+     * @param getSelectedFromTypeFilter the function to get the selected values when using the type filter
+     * @return the subset of the choices that are selected by the filter.
      */
-    public String[] getSelected(final String[] choices, final DataTableSpec spec) {
+    protected String[] getSelected(final String[] choices, final Function<T, String[]> getSelectedFromTypeFilter) {
         Objects.requireNonNull(choices);
-        return switch (m_mode) {
-            case MANUAL -> m_manualFilter.getUpdatedManuallySelected(choices).toArray(String[]::new);
-            default -> getSelectedIncludingMissing(choices, spec);
-        };
+        if (m_mode == TypedNameFilterMode.TYPE) {
+            return getSelectedFromTypeFilter.apply(m_typeFilter);
+        }
+        final var predicate = getNameIsSelectedPredicate();
+        return Arrays.asList(choices).stream().filter(predicate::test).toArray(String[]::new);
     }
 
     /**
-     * Get selected columns that appears in the given full spec.
+     * If the order of manually selected values or missing manually selected values matter, use {@link #getSelected} or
+     * {@link #getSelectedIncludingMissing} instead.
      *
-     * @param spec
-     * @return the array of currently selected columns with respect to the mode which are contained in the given array
+     * @throws IllegalStateException in case the mode is TYPE
+     * @return a predicate on names
      */
-    public String[] getSelectedFromFullSpec(final DataTableSpec spec) {
-        var choices = spec.getColumnNames();
-        if (choices == null) {
-            return new String[0];
-        }
-        return getSelected(spec.getColumnNames(), spec);
+    protected Predicate<String> getNameIsSelectedPredicate() {
+        CheckUtils.checkState(m_mode != TypedNameFilterMode.TYPE,
+            "isSelected predicate on string is not possible for filtering by type.");
+        return switch (m_mode) {
+            case MANUAL -> m_manualFilter.getIsSelectedPredicate();
+            case REGEX -> m_patternFilter.getIsSelectedPredicate(PatternMode.REGEX);
+            case WILDCARD -> m_patternFilter.getIsSelectedPredicate(PatternMode.WILDCARD);
+            default -> throw new IllegalArgumentException("Unexpected value: " + m_mode);
+        };
+
     }
+
 }

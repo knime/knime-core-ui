@@ -44,53 +44,34 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 18, 2024 (Paul Bärnreuther): created
+ *   Mar 5, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column;
 
-import java.util.List;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.PossibleColumnValue;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 
 /**
- * A class that provides an array of possible column choices based on the current {@link DefaultNodeSettingsContext}.
+ * Annotation on a {@link ColumnFilter} which in contrast to the generic {@link ChoicesProvider} annotation restricts
+ * the possible providers to {@link ColumnChoicesProvider}.
  *
- * @author Paul Bärnreuther
+ * @author Paul Baernreuther
  */
-public non-sealed interface ColumnChoicesProvider extends ChoicesStateProvider<PossibleColumnValue> {
+@Retention(RUNTIME)
+@Target(FIELD)
+public @interface ColumnFilterWidget {
 
     /**
-     * {@inheritDoc}
+     * Since column filters filter by type, we need to be able to associate types to the names.
      *
-     * Here, the state provider is already configured to compute the state initially before the dialog is opened. If
-     * this is desired but other initial configurations (like dependencies) are desired, override this method and call
-     * super.init within it. If choices should instead be asynchronously loaded once the dialog is opened, override this
-     * method without calling super.init to configure the initializer to do so.
+     * @return a provider for column names with associated types.
      */
-    @Override
-    default void init(final StateProviderInitializer initializer) {
-        initializer.computeBeforeOpenDialog();
-
-    }
-
-    /**
-     * Computes the array of possible column choices based on the {@link DefaultNodeSettingsContext}.
-     *
-     * @param context the context that holds any available information that might be relevant for determining available
-     *            choices
-     * @return array of possible values, never {@code null}
-     */
-    default List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-        throw new IllegalStateException("At least one method must be implemented: "
-            + "ColumnChoicesStateProvider.columnChoices or ColumnChoicesStateProvider.computeState");
-    }
-
-    @Override
-    default List<PossibleColumnValue> computeState(final DefaultNodeSettingsContext context) {
-        return columnChoices(context).stream().map(PossibleColumnValue::fromColSpec).toList();
-
-    }
+    Class<? extends ColumnChoicesProvider> choicesProvider();
 
 }

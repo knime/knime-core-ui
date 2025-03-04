@@ -52,7 +52,7 @@ import java.util.List;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.NameChoicesProvider;
 
 /**
  * Dummy test choices provider. We need this at multiple places since the {@link ChoicesProvider} complains if no
@@ -60,7 +60,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoic
  *
  * @author Paul Bärnreuther
  */
-final class TestChoicesProvider implements StringChoicesProvider {
+final class TestChoicesProvider implements NameChoicesProvider {
 
     @Override
     public List<String> choices(final DefaultNodeSettingsContext context) {

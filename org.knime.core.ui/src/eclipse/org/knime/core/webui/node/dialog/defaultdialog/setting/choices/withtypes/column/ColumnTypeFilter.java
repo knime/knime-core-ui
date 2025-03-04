@@ -44,33 +44,72 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2023 (Paul Bärnreuther): created
+ *   Mar 4, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.IntStream;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.PossibleTypedNameValue.PossibleTypeValue;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.TypeFilter;
 
 /**
- * Some widgets require choices for a selection (e.g. a dropdown). Use this interface to provide an array of possible
- * values.
+ * The type filter used within a {@link ColumnFilter}.
  *
  * @author Paul Bärnreuther
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface ChoicesProvider {
+public final class ColumnTypeFilter extends TypeFilter {
+
+    ColumnTypeFilter() {
+        super();
+    }
+
+    ColumnTypeFilter(final String[] selectedTypes) {
+        super(selectedTypes);
+    }
+
+    @Override
+    protected Optional<PossibleTypeValue> fromTypeId(final String typeId) {
+        return ColumnTypeToPossibleTypeValueUtil.fromPreferredValueClassString(typeId);
+    }
 
     /**
-     * @return the provider for the list of possible values. Make the choices provider asynchronous or depend on other
-     *         settings by overriding its {@link StateProvider#init} method appropriately.
+     * @param choices the list of all possible column names
+     * @param spec of the input data table (for type selection)
+     * @return the array of currently selected columns with respect to the mode
+     * @throws NullPointerException if {@code spec} is {@code null}
      */
-    @SuppressWarnings("rawtypes")
-    Class<? extends ChoicesStateProvider> value();
+    String[] getSelected(final String[] choices, final DataTableSpec spec) {
+        Objects.requireNonNull(spec);
+        final var types = getTypes(choices, spec);
+        var selectedTypes = Set.of(m_selectedTypes);
+        return IntStream.range(0, types.length)//
+            .filter(i -> selectedTypes.contains(types[i]))//
+            .mapToObj(i -> choices[i])//
+            .toArray(String[]::new);
+    }
+
+    private static String[] getTypes(final String[] choices, final DataTableSpec spec) {
+        final var choicesSet = new HashSet<>(Arrays.asList(choices));
+        return spec.stream()//
+            .filter(colSpec -> choicesSet.contains(colSpec.getName())) //
+            .map(ColumnTypeFilter::columnToTypeString) //
+            .toArray(String[]::new);
+    }
+
+    /**
+     * @param colSpec
+     * @return the string representation of the data type
+     */
+    public static String columnToTypeString(final DataColumnSpec colSpec) {
+        return colSpec.getType().getPreferredValueClass().getName();
+    }
 
 }

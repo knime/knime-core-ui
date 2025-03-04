@@ -46,10 +46,9 @@
  * History
  *   Jan 13, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column;
 
 import java.util.ArrayList;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -63,9 +62,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.LegacyManualFilterPersistorUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.LegacyPatternFilterPersistorUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.PatternFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.TypeFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.TypedNameFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.TypedNameFilterMode;
 
 /**
- * {@link NodeSettingsPersistor} for {@link ColumnFilter} that persists it in a way compatible to
+ * {@link NodeSettingsPersistor} for {@link TypedNameFilter} that persists it in a way compatible to
  * {@link DataColumnSpecFilterConfiguration}.
  *
  * If only backwards compatible load is required but the settings should be saved as per default (i.e. also with the
@@ -127,40 +129,31 @@ public abstract class LegacyColumnFilterPersistor implements NodeSettingsPersist
         } else {
             // in some very old workflows this field might not have been populated,
             // see knime://Testflows/Testflows%20(master)/knime-base/Flow%20Control/testGroupLoopStart
-            columnFilter.m_typeFilter = new TypeFilter();
+            columnFilter.m_typeFilter = new ColumnTypeFilter();
         }
 
         return columnFilter;
     }
 
-    private static ColumnFilterMode loadMode(final NodeSettingsRO columnFilterSettings)
+    private static TypedNameFilterMode loadMode(final NodeSettingsRO columnFilterSettings)
         throws InvalidSettingsException {
         var filterType = columnFilterSettings.getString(KEY_FILTER_TYPE);
         if (KEY_FILTER_TYPE_MANUAL.equals(filterType)) {
-            return ColumnFilterMode.MANUAL;
+            return TypedNameFilterMode.MANUAL;
         } else if (PatternFilterConfiguration.TYPE.equals(filterType)) {
             var patternMatchingSettings = columnFilterSettings.getNodeSettings(PatternFilterConfiguration.TYPE);
-            return ColumnFilterMode
-                .toColumnFilterMode(LegacyPatternFilterPersistorUtil.loadPatternMode(patternMatchingSettings));
+            return TypedNameFilterMode
+                .toTypedNameFilterMode(LegacyPatternFilterPersistorUtil.loadPatternMode(patternMatchingSettings));
         } else if (OLD_FILTER_TYPE_DATATYPE.equals(filterType)) {
-            return ColumnFilterMode.TYPE;
+            return TypedNameFilterMode.TYPE;
         } else {
             throw new InvalidSettingsException("Unsupported column filter type: " + filterType);
         }
     }
 
-    private static TypeFilter loadTypeFilter(final NodeSettingsRO typeFilterSettings) throws InvalidSettingsException {
-        var typeFilter = new TypeFilter();
-        typeFilter.m_selectedTypes = loadSelectedTypes(typeFilterSettings);
-        typeFilter.m_typeDisplays = getDisplays(typeFilter.m_selectedTypes);
-        return typeFilter;
-    }
-
-    private static ColumnTypeDisplay[] getDisplays(final String[] selectedTypes) {
-        return Stream.of(selectedTypes)//
-            .map(ColumnTypeDisplay::fromPreferredValueClass)//
-            .flatMap(Optional::stream)//
-            .toArray(ColumnTypeDisplay[]::new);
+    private static ColumnTypeFilter loadTypeFilter(final NodeSettingsRO typeFilterSettings)
+        throws InvalidSettingsException {
+        return new ColumnTypeFilter(loadSelectedTypes(typeFilterSettings));
     }
 
     private static String[] loadSelectedTypes(final NodeSettingsRO typeFilterSettings) throws InvalidSettingsException {
@@ -202,7 +195,7 @@ public abstract class LegacyColumnFilterPersistor implements NodeSettingsPersist
             + " It is replaced by a new ColumnFilter instance to prevent errors but please fix this issue anyway.";
     }
 
-    private static String toFilterType(final ColumnFilterMode mode) {
+    private static String toFilterType(final TypedNameFilterMode mode) {
         return switch (mode) {
             case MANUAL -> KEY_FILTER_TYPE_MANUAL;
             case REGEX, WILDCARD -> PatternFilterConfiguration.TYPE;

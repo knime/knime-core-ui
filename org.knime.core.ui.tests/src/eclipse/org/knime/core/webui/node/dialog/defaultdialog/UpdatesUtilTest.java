@@ -56,9 +56,13 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataType;
@@ -67,11 +71,16 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.node.workflow.VariableType.BooleanType;
+import org.knime.core.node.workflow.VariableType.IntType;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
@@ -85,8 +94,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.Message
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.NameChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
@@ -784,7 +796,7 @@ public class UpdatesUtilTest {
 
         }
 
-        static final class TestStringChoicesProvider implements StringChoicesProvider {
+        static final class TestStringChoicesProvider implements NameChoicesProvider {
 
             static final List<String> RESULT = List.of("A", "B", "C");
 
@@ -799,7 +811,7 @@ public class UpdatesUtilTest {
         void testChoicesWidgetStringChoicesStateProvider() {
             class TestSettings implements DefaultNodeSettings {
 
-                @ChoicesProvider(choicesProvider = TestStringChoicesProvider.class)
+                @ChoicesProvider(TestStringChoicesProvider.class)
                 String m_string;
 
             }
@@ -828,15 +840,10 @@ public class UpdatesUtilTest {
 
         }
 
-        @Test
-        void testChoicesWidgetColumnChoicesStateProvider() {
-            class TestSettings implements DefaultNodeSettings {
+        @ParameterizedTest
+        @MethodSource("columnChoicesProviderSettings")
+        void testChoicesWidgetColumnChoicesStateProvider(final DefaultNodeSettings settings) {
 
-                @ChoicesProvider(choicesProvider = TestColumnChoicesProvider.class)
-                String m_columnSelection;
-
-            }
-            final var settings = new TestSettings();
             final var response = buildUpdates(settings);
 
             assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
@@ -849,6 +856,77 @@ public class UpdatesUtilTest {
                 .isEqualTo(StringCell.TYPE.getPreferredValueClass().getName());
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].type.text").isString()
                 .isEqualTo(StringCell.TYPE.getName());
+        }
+
+        static Stream<Arguments> columnChoicesProviderSettings() {
+
+            class TestCaseChoicesProvider implements DefaultNodeSettings {
+
+                @ChoicesProvider(TestColumnChoicesProvider.class)
+                String m_columnSelection;
+
+            }
+
+            class TestCaseColumnFilterWidget implements DefaultNodeSettings {
+
+                @ColumnFilterWidget(choicesProvider = TestColumnChoicesProvider.class)
+                ColumnFilter m_columnFilter;
+            }
+
+            return Stream.of( //
+                Arguments.of(new TestCaseChoicesProvider()), //
+                Arguments.of(new TestCaseColumnFilterWidget())//
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("flowVariableChoicesProviderSettings")
+        void testChoicesWidgetFlowVariableChoicesStateProvider(final DefaultNodeSettings settings) {
+
+            final var response = buildUpdates(settings);
+
+            assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
+            assertThatJson(response).inPath("$.initialUpdates[0].id").isString()
+                .isEqualTo(TestFlowVariableChoicesProvider.class.getName());
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isArray().hasSize(1);
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].id").isString()
+                .isEqualTo("someInt");
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].text").isString()
+                .isEqualTo("someInt");
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].type.id").isString()
+                .isEqualTo(IntType.INSTANCE.getIdentifier());
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].type.text").isString()
+                .isEqualTo("Integer");
+        }
+
+        static final class TestFlowVariableChoicesProvider implements FlowVariableChoicesProvider {
+
+            @Override
+            public List<FlowVariable> flowVariableChoices(final DefaultNodeSettingsContext context) {
+                return List.of(new FlowVariable("someInt", 123), new FlowVariable("someBoolean", BooleanType.INSTANCE));
+            }
+
+        }
+
+        static Stream<Arguments> flowVariableChoicesProviderSettings() {
+
+            class TestCaseChoicesProvider implements DefaultNodeSettings {
+
+                @ChoicesProvider(TestFlowVariableChoicesProvider.class)
+                String m_flowVariableSelection;
+
+            }
+
+            class TestCaseFlowVariableFilterWidget implements DefaultNodeSettings {
+
+                @FlowVariableFilterWidget(choicesProvider = TestFlowVariableChoicesProvider.class)
+                FlowVariableFilter m_flowVariableFilter;
+            }
+
+            return Stream.of( //
+                Arguments.of(new TestCaseChoicesProvider()), //
+                Arguments.of(new TestCaseFlowVariableFilterWidget())//
+            );
         }
 
         @Test

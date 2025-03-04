@@ -44,40 +44,28 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 31, 2023 (Paul Bärnreuther): created
+ *   Feb 10, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProvider;
+import java.util.List;
+
+import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.node.workflow.VariableTypeRegistry;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 
 /**
- * This represents one of the possible values within a {@link ChoicesProvider} with a {@link ColumnChoicesProvider}.
+ * Offers all flow variables from the stack with a registered type.
  *
- * @author Paul Bärnreuther
- * @param id to be used as an identifier for the selection option
- * @param text to be displayed for the selection option
- * @param type the id and displayed text of the type of the column
+ * @author Paul Baernrether
  */
-public record PossibleColumnValue(String id, String text, PossibleTypeValue type) {
+public final class AllFlowVariablesProvider implements FlowVariableChoicesProvider {
 
-    /**
-     * @param id identifying a type
-     * @param text to be displayed for selecting the type
-     */
-    public static record PossibleTypeValue(String id, String text) {
+    @Override
+    public List<FlowVariable> flowVariableChoices(final DefaultNodeSettingsContext context) {
+        final var allFlowVariables =
+            context.getAvailableInputFlowVariables(VariableTypeRegistry.getInstance().getAllTypes());
+        return allFlowVariables.values().stream().toList();
     }
 
-    /**
-     * @param colSpec the spec of the column to be represented
-     * @return the PossibleColumnValue associated to the given colSpec
-     */
-    public static PossibleColumnValue fromColSpec(final DataColumnSpec colSpec) {
-        final var colName = colSpec.getName();
-        final var colType = colSpec.getType();
-        final var typeIdentifier = colType.getPreferredValueClass().getName();
-        final var displayedType = colType.getName();
-        return new PossibleColumnValue(colName, colName, new PossibleTypeValue(typeIdentifier, displayedType));
-    }
 }

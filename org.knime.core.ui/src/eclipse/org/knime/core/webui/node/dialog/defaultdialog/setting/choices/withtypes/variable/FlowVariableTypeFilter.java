@@ -44,33 +44,52 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2023 (Paul Bärnreuther): created
+ *   Mar 4, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.variable;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.util.Optional;
+import java.util.function.Predicate;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.PossibleTypedNameValue.PossibleTypeValue;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.TypeFilter;
 
 /**
- * Some widgets require choices for a selection (e.g. a dropdown). Use this interface to provide an array of possible
- * values.
+ * The type filter used within a {@link FlowVariableFilter}.
  *
  * @author Paul Bärnreuther
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface ChoicesProvider {
+public final class FlowVariableTypeFilter extends TypeFilter {
+
+    FlowVariableTypeFilter() {
+        super();
+    }
+
+    FlowVariableTypeFilter(final String[] selectedTypes) {
+        super(selectedTypes);
+    }
+
+    @Override
+    protected Optional<PossibleTypeValue> fromTypeId(final String typeId) {
+        return FlowVariableTypeToPossibleTypeValueUtil.fromVariableTypeId(typeId);
+    }
 
     /**
-     * @return the provider for the list of possible values. Make the choices provider asynchronous or depend on other
-     *         settings by overriding its {@link StateProvider#init} method appropriately.
+     * @param flowVariable a flow variable which is part of the choices of this filter.
+     * @return whether the value is selected
      */
-    @SuppressWarnings("rawtypes")
-    Class<? extends ChoicesStateProvider> value();
+    Predicate<FlowVariable> getIsFlowVariableSelectedPredicate() {
+        final var superPredicate = super.getIsSelectedPredicate();
+        return flowVar -> superPredicate.test(flowVariableToTypeString(flowVar));
+    }
+
+    /**
+     * @param flowVariable
+     * @return the string representation of the flow variables type
+     */
+    public static String flowVariableToTypeString(final FlowVariable flowVariable) {
+        return flowVariable.getVariableType().getIdentifier();
+    }
 
 }

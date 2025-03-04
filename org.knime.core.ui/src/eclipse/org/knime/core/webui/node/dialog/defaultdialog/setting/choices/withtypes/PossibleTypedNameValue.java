@@ -44,51 +44,53 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 18, 2024 (Paul Bärnreuther): created
+ *   Aug 31, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes;
 
-import java.util.List;
-
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.ColumnTypeToPossibleTypeValueUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.variable.FlowVariableTypeToPossibleTypeValueUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedNameChoicesProvider;
 
 /**
- * A class that provides an array of possible values of a {@link ChoicesProvider} based on the current
- * {@link DefaultNodeSettingsContext}.
+ * This represents one of the possible values within a {@link ChoicesProvider} with a {@link TypedNameChoicesProvider}.
  *
  * @author Paul Bärnreuther
+ * @param id to be used as an identifier for the selection option
+ * @param text to be displayed for the selection option
+ * @param type the id and displayed text of the associated type
  */
-public non-sealed interface StringChoicesProvider extends ChoicesStateProvider<PossibleValue> {
+public record PossibleTypedNameValue(String id, String text, PossibleTypeValue type) {
 
     /**
-     * {@inheritDoc}
-     *
-     * Here, the state provider is already configured to compute the state initially before the dialog is opened. If
-     * this is desired but other initial configurations (like dependencies) are desired, override this method and call
-     * super.init within it. If choices should instead be asynchronously loaded once the dialog is opened, override this
-     * method without calling super.init to configure the initializer to do so.
+     * @param id identifying a type
+     * @param text to be displayed for selecting the type
      */
-    @Override
-    default void init(final StateProviderInitializer initializer) {
-        initializer.computeBeforeOpenDialog();
-
+    public static record PossibleTypeValue(String id, String text) {
     }
 
     /**
-     * Computes the array of possible values based on the {@link DefaultNodeSettingsContext}.
-     *
-     * @param context the context that holds any available information that might be relevant for determining available
-     *            choices
-     * @return array of possible values, never {@code null}
+     * @param colSpec the spec of the column to be represented
+     * @return the PossibleColumnValue associated to the given colSpec
      */
-    default List<String> choices(final DefaultNodeSettingsContext context) {
-        throw new IllegalStateException("At least one method must be implemented: "
-            + "StringChoicesStateProvider.choices or StringChoicesStateProvider.computeState");
+    public static PossibleTypedNameValue fromColSpec(final DataColumnSpec colSpec) {
+        final var colName = colSpec.getName();
+        final var colType = colSpec.getType();
+        return new PossibleTypedNameValue(colName, colName,
+            ColumnTypeToPossibleTypeValueUtil.fromVariableType(colType));
     }
 
-    @Override
-    default List<PossibleValue> computeState(final DefaultNodeSettingsContext context) {
-        return choices(context).stream().map(PossibleValue::fromId).toList();
+    /**
+     * @param flowVariable to be represented
+     * @return the PossibleColumnValue associated to the given flow variable
+     */
+    public static PossibleTypedNameValue fromFlowVariable(final FlowVariable flowVariable) {
+        final var flowVarName = flowVariable.getName();
+        final var flowVarType = flowVariable.getVariableType();
+        return new PossibleTypedNameValue(flowVarName, flowVarName,
+            FlowVariableTypeToPossibleTypeValueUtil.fromVariableType(flowVarType));
     }
-
 }

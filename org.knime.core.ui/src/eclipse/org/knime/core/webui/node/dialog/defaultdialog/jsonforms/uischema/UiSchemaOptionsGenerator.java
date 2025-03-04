@@ -63,6 +63,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_CHOICES_PROVIDER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_DEPENDENCIES;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ELEMENTS;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_EMPTY_STATE_LABEL;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSION;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSIONS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSION_PROVIDER;
@@ -71,6 +72,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_IS_WRITER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_LABEL;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_OPTIONS;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_UNKNWON_VALUES_TEXT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_USE_FLOW_VAR_TEMPLATES;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.getApplicableDefaults;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.partitionWidgetAnnotationsByApplicability;
@@ -88,7 +90,6 @@ import java.util.stream.Stream;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.node.util.ColumnFilter;
 import org.knime.core.node.workflow.contextv2.HubSpaceLocationInfo;
 import org.knime.core.node.workflow.contextv2.LocalLocationInfo;
 import org.knime.core.node.workflow.contextv2.LocationInfo;
@@ -103,6 +104,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple.NameFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
@@ -137,6 +140,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.button.NoopButtonUp
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.PossibleValue;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
@@ -213,7 +220,12 @@ final class UiSchemaOptionsGenerator {
                     options.put(TAG_FORMAT, Format.CHECKBOX);
                     break;
                 case COLUMN_FILTER:
-                    options.put(TAG_FORMAT, Format.COLUMN_FILTER);
+                    options.put(TAG_FORMAT, Format.TYPED_NAME_FILTER);
+                    addTypedNameFilterOptions(options, "column");
+                    break;
+                case FLOW_VARIABLE_FILTER:
+                    options.put(TAG_FORMAT, Format.TYPED_NAME_FILTER);
+                    addTypedNameFilterOptions(options, "variable");
                     break;
                 case NAME_FILTER:
                     options.put(TAG_FORMAT, Format.NAME_FILTER);
@@ -459,11 +471,20 @@ final class UiSchemaOptionsGenerator {
         final var isFilter = m_fieldClass.equals(ColumnFilter.class) || m_fieldClass.equals(NameFilter.class);
         final var isSingleSelection = m_fieldClass.equals(SingleSelection.class);
         if (hasChoices) {
-            final var choicesWidget = m_node.getAnnotation(ChoicesProvider.class).orElseThrow();
-            options.put(TAG_CHOICES_PROVIDER, choicesWidget.choicesProvider().getName());
+            final var choicesProvider = m_node.getAnnotation(ChoicesProvider.class).orElseThrow();
+            options.put(TAG_CHOICES_PROVIDER, choicesProvider.value().getName());
+            assertCorrectChoicesProviderIfNecessary(choicesProvider);
             if (!isFilter && !isSingleSelection) {
                 options.put(TAG_FORMAT, getChoicesComponentFormat());
             }
+        }
+        if (annotatedWidgets.contains(ColumnFilterWidget.class)) {
+            final var columnFilterWidget = m_node.getAnnotation(ColumnFilterWidget.class).orElseThrow();
+            options.put("choicesProvider", columnFilterWidget.choicesProvider().getName());
+        }
+        if (annotatedWidgets.contains(FlowVariableFilterWidget.class)) {
+            final var flowVarFilterWidget = m_node.getAnnotation(FlowVariableFilterWidget.class).orElseThrow();
+            options.put("choicesProvider", flowVarFilterWidget.choicesProvider().getName());
         }
 
         if (annotatedWidgets.contains(SortListWidget.class)) {
@@ -529,6 +550,39 @@ final class UiSchemaOptionsGenerator {
         }
         if (validationProviders.length != 0) {
             options.set("validationProviders", JsonFormsUiSchemaUtil.getMapper().valueToTree(validationProviders));
+        }
+    }
+
+    private static void addTypedNameFilterOptions(final ObjectNode options, final String filteredObject) {
+        options.put(TAG_UNKNWON_VALUES_TEXT, String.format("Any unknown %s", filteredObject));
+        options.put(TAG_EMPTY_STATE_LABEL, String.format("No %ss in this list.", filteredObject));
+    }
+
+    /**
+     * Enforces that the {@link ChoicesProvider} annotation on a {@link ColumnFilter} or a {@link FlowVariableFilter}
+     * matches the expected type.
+     */
+    private void assertCorrectChoicesProviderIfNecessary(final ChoicesProvider choicesProvider) {
+        assertChoicesProviderIfNecessary(ColumnFilter.class, ColumnChoicesProvider.class, ColumnFilterWidget.class,
+            choicesProvider);
+        assertChoicesProviderIfNecessary(FlowVariableFilter.class, FlowVariableChoicesProvider.class,
+            FlowVariableFilterWidget.class, choicesProvider);
+    }
+
+    /**
+     * We allow setting a {@link ChoicesProvider @ChoicesProvider} annotation for discoverability, but we need to
+     * enforce the same type as in the type-safe variant.
+     */
+    private void assertChoicesProviderIfNecessary(final Class<?> expectedClass, final Class<?> expectedProviderClass,
+        final Class<?> widgetClass, final ChoicesProvider choicesProvider) {
+
+        if (m_node.getRawClass().equals(expectedClass)
+            && !expectedProviderClass.isAssignableFrom(choicesProvider.value())) {
+            throw new UiSchemaGenerationException(String.format(
+                "The field %s is a %s and the provided choicesProvider '%s' is not a %s. "
+                    + "To prevent this from happening in a type-safe way, use the @%s annotation instead",
+                m_node.getName().orElseThrow(), expectedClass.getSimpleName(), choicesProvider.value().getSimpleName(),
+                expectedProviderClass.getSimpleName(), widgetClass.getSimpleName()));
         }
     }
 
@@ -728,9 +782,9 @@ final class UiSchemaOptionsGenerator {
      * @return
      */
     private String getDateTimeFormatFormat() {
-        if (String.class.equals(m_node.getType())) {
+        if (String.class.equals(m_node.getRawClass())) {
             return Format.TEMPORAL_FORMAT;
-        } else if (TemporalFormat.class.equals(m_node.getType())) {
+        } else if (TemporalFormat.class.equals(m_node.getRawClass())) {
             return Format.TEMPORAL_FORMAT_WITH_TYPE;
         } else {
             throw new UiSchemaGenerationException("The annotation %s is not applicable for type %s"

@@ -42,11 +42,10 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Jan 13, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column;
+
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory.loadSettings;
 
 import java.util.List;
 
@@ -54,38 +53,44 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.TypedNameFilter;
 
 /**
- * Loads from legacy column filter settings. If the settings have to be saved to this legacy format as well, use a
- * {@link LegacyColumnFilterPersistor} instead.
+ * The data structure of a TwinList changed from an array of strings to a more complex representation by a
+ * {@link TypedNameFilter}. For previous workflows to still execute (given that the setting is not overwritten by a flow
+ * variable), we transform the stored string array to the correct representation.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Paul Bärnreuther
  */
-public abstract class LegacyColumnFilterMigration implements NodeSettingsMigration<ColumnFilter> {
+public abstract class StringArrayToColumnFilterMigration implements NodeSettingsMigration<ColumnFilter> {
 
-    private final String m_configKey;
+    private final String m_legacyConfigKey;
 
     /**
-     * @param configKey the root config key to load from.
+     * The config key under which the string array has been persisted before has to be deprecated to not break flow
+     * variables. I.e. either rename the field or add a {@link Persist#configKey} annotation on the field where this
+     * class is attached.
+     *
+     * @param legacyConfigKey the config key under which the string array has been stored previously.
      */
-    protected LegacyColumnFilterMigration(final String configKey) {
-        m_configKey = configKey;
+    protected StringArrayToColumnFilterMigration(final String legacyConfigKey) {
+        m_legacyConfigKey = legacyConfigKey;
     }
 
-    private ColumnFilter loadLegacy(final NodeSettingsRO nodeSettings) throws InvalidSettingsException {
-        return LegacyColumnFilterPersistor.load(nodeSettings, m_configKey);
-    }
-
-    private boolean matchesLegacy(final NodeSettingsRO settings) {
-        return settings.containsKey(m_configKey);
+    private ColumnFilter loadLegacy(final NodeSettingsRO settings) throws InvalidSettingsException {
+        final var fieldSettingsArray = settings.getStringArray(m_legacyConfigKey);
+        if (fieldSettingsArray != null) {
+            return new ColumnFilter(fieldSettingsArray);
+        } else {
+            return loadSettings(ColumnFilter.class, settings.getNodeSettings(m_legacyConfigKey));
+        }
     }
 
     @Override
-    public List<ConfigMigration<ColumnFilter>> getConfigMigrations() {
-        final var configsMigrationBuilder = ConfigMigration.builder(this::loadLegacy).withMatcher(this::matchesLegacy);
-        for (var configPath : LegacyColumnFilterPersistor.getConfigPaths(m_configKey)) {
-            configsMigrationBuilder.withDeprecatedConfigPath(configPath);
-        }
-        return List.of(configsMigrationBuilder.build());
+    public final List<ConfigMigration<ColumnFilter>> getConfigMigrations() {
+        return List
+            .of(ConfigMigration.builder(this::loadLegacy).withDeprecatedConfigPath(m_legacyConfigKey).build());
     }
+
 }

@@ -61,14 +61,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistabl
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
- * The sub-settings of the column filter which hold the information for filtering by regex or wildcard pattern.
+ * The sub-settings of filter settings which hold the information for filtering by regex or wildcard pattern.
  *
  * @author Paul Bärnreuther
  */
 public class PatternFilter implements PersistableSettings {
 
     /**
-     * the pattern to which column names are matched in case of m_mode = "REGEX" or "WILDCARD"
+     * the pattern to which names are matched in case of m_mode = "REGEX" or "WILDCARD"
      */
     public String m_pattern; //NOSONAR
 
@@ -80,7 +80,7 @@ public class PatternFilter implements PersistableSettings {
     public boolean m_isCaseSensitive; //NOSONAR
 
     /**
-     * whether the pattern determines the excluded columns or the included ones
+     * whether the pattern determines the excluded values or the included ones
      */
     public boolean m_isInverted; //NOSONAR
 
@@ -100,9 +100,6 @@ public class PatternFilter implements PersistableSettings {
     public enum PatternMode {
             REGEX, WILDCARD;
 
-
-
-
     }
 
     /**
@@ -112,21 +109,32 @@ public class PatternFilter implements PersistableSettings {
      */
     @JsonIgnore
     public String[] getSelected(final PatternMode mode, final String[] choices) {
-        final Predicate<String> predicate;
-        final var casedPattern = m_isCaseSensitive ? m_pattern : m_pattern.toLowerCase(Locale.getDefault());
-        switch (mode) {
-            case REGEX:
-                predicate = getBasePredicateRegex(casedPattern);
-                break;
-            case WILDCARD:
-                predicate = choice -> wildcardMatch(choice, casedPattern);
-                break;
-            default:
-                return new String[0];
-        }
+        final var predicate = getIsSelectedPredicate(mode);
+        return Arrays.asList(choices).stream().filter(predicate).toArray(String[]::new);
+    }
 
-        final var augmentedPredicate = getAugmentedPredicate(predicate, m_isCaseSensitive, m_isInverted);
-        return Arrays.asList(choices).stream().filter(augmentedPredicate).toArray(String[]::new);
+    /**
+     * @param mode
+     * @return a predicate on names
+     */
+    public Predicate<String> getIsSelectedPredicate(final PatternMode mode) {
+        final Predicate<String> predicate = constructRawPredicate(mode);
+        return getAugmentedPredicate(predicate, m_isCaseSensitive, m_isInverted);
+    }
+
+    private static Predicate<String> getAugmentedPredicate(final Predicate<String> originalPredicate,
+        final boolean isCaseSensitive, final boolean isInverted) {
+        final var directedPredicate = isInverted ? originalPredicate.negate() : originalPredicate;
+        return string -> directedPredicate.test(isCaseSensitive ? string : string.toLowerCase(Locale.getDefault()));
+    }
+
+    private Predicate<String> constructRawPredicate(final PatternMode mode) {
+        final var casedPattern = m_isCaseSensitive ? m_pattern : m_pattern.toLowerCase(Locale.getDefault());
+        return switch (mode) {
+            case REGEX -> getBasePredicateRegex(casedPattern);
+            case WILDCARD -> choice -> wildcardMatch(choice, casedPattern);
+            default -> throw new IllegalArgumentException("Unexpected value: " + mode);
+        };
     }
 
     private Predicate<String> getBasePredicateRegex(final String casedPattern) {
@@ -139,12 +147,6 @@ public class PatternFilter implements PersistableSettings {
             m_compiledPattern = new Pair<>(pattern, completedPattern);
         }
         return casedPattern.isEmpty() ? choice -> false : pattern.asPredicate();
-    }
-
-    private static Predicate<String> getAugmentedPredicate(final Predicate<String> originalPredicate,
-        final boolean isCaseSensitive, final boolean isInverted) {
-        final var directedPredicate = isInverted ? originalPredicate.negate() : originalPredicate;
-        return string -> directedPredicate.test(isCaseSensitive ? string : string.toLowerCase(Locale.getDefault()));
     }
 
 }

@@ -44,33 +44,54 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2023 (Paul Bärnreuther): created
+ *   Mar 18, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.util.List;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.PossibleTypedNameValue;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedNameChoicesProvider;
 
 /**
- * Some widgets require choices for a selection (e.g. a dropdown). Use this interface to provide an array of possible
- * values.
+ * A class that provides an array of possible column choices based on the current {@link DefaultNodeSettingsContext}.
  *
  * @author Paul Bärnreuther
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface ChoicesProvider {
+public interface ColumnChoicesProvider extends TypedNameChoicesProvider {
 
     /**
-     * @return the provider for the list of possible values. Make the choices provider asynchronous or depend on other
-     *         settings by overriding its {@link StateProvider#init} method appropriately.
+     * {@inheritDoc}
+     *
+     * Here, the state provider is already configured to compute the state initially before the dialog is opened. If
+     * this is desired but other initial configurations (like dependencies) are desired, override this method and call
+     * super.init within it. If choices should instead be asynchronously loaded once the dialog is opened, override this
+     * method without calling super.init to configure the initializer to do so.
      */
-    @SuppressWarnings("rawtypes")
-    Class<? extends ChoicesStateProvider> value();
+    @Override
+    default void init(final StateProviderInitializer initializer) {
+        initializer.computeBeforeOpenDialog();
+
+    }
+
+    /**
+     * Computes the array of possible column choices based on the {@link DefaultNodeSettingsContext}.
+     *
+     * @param context the context that holds any available information that might be relevant for determining available
+     *            choices
+     * @return array of possible values, never {@code null}
+     */
+    default List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+        throw new IllegalStateException("At least one method must be implemented: "
+            + "ColumnChoicesStateProvider.columnChoices or ColumnChoicesStateProvider.computeState");
+    }
+
+    @Override
+    default List<PossibleTypedNameValue> computeState(final DefaultNodeSettingsContext context) {
+        return columnChoices(context).stream().map(PossibleTypedNameValue::fromColSpec).toList();
+
+    }
 
 }
