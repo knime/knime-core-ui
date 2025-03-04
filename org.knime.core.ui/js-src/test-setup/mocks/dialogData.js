@@ -410,7 +410,9 @@ export const dialogInitialData = {
             type: "Control",
             scope: "#/properties/view/properties/frequencyColumns",
             options: {
-              format: "columnFilter",
+              format: "typedNameFilter",
+              emptyStateLabel: "No columns in this list",
+              unknownValuesText: "Any unknown column",
               possibleValues: [
                 {
                   id: "Cluster_Membership",
@@ -565,7 +567,7 @@ export const expectedRenderers = [
   },
   {
     scope: "#/properties/view/properties/frequencyColumns",
-    component: "ColumnFilter",
+    component: "TypedNameFilter",
   },
   {
     scope: "#/properties/view/properties/simpleTwinlist",

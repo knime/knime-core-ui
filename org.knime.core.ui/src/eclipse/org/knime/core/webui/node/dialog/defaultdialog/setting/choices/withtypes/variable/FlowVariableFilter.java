@@ -44,92 +44,99 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 10, 2025 (paulbaernreuther): created
+ *   15 Dec 2022 Paul Bärnreuther: created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.variable;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataValue;
-import org.knime.core.data.DoubleValue;
-import org.knime.core.data.StringValue;
+import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.NameChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.TypedNameFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.TypedNameFilterMode;
 
 /**
- * A {@link NameChoicesProvider} which can be given one or multiple classes extending {@link DataValue} and provides
- * the compatible columns of a given spec at the first input port.
+ * A class used to store several representation of column choices. I.e. the columns can be determined using one of the
+ * modes of {@link TypedNameFilterMode}.
  *
  * @author Paul Bärnreuther
  */
-public class CompatibleColumnChoicesProvider implements ColumnChoicesProvider {
-
-    private final Collection<Class<? extends DataValue>> m_valueClasses;
+public final class FlowVariableFilter extends TypedNameFilter<FlowVariableTypeFilter> {
 
     /**
-     * @param valueClass the class for which compatible columns should be provided
+     * @param context settings creation context
      */
-    protected CompatibleColumnChoicesProvider(final Class<? extends DataValue> valueClass) {
-        m_valueClasses = List.of(valueClass);
+    public FlowVariableFilter(final DefaultNodeSettingsContext context) {
+        this();
     }
 
     /**
-     * @param valueClasses a list of classes for which compatible columns should be provided
+     * A filter with excluded unknown values and no included columns.
      */
-    protected CompatibleColumnChoicesProvider(final Collection<Class<? extends DataValue>> valueClasses) {
-        m_valueClasses = valueClasses;
+    public FlowVariableFilter() {
+        this(new String[0]);
     }
 
     /**
-     * @param spec
-     * @param valueClasses a list of classes for which compatible columns should be determined
-     * @return the columns of the spec which are compatible with any of the given value classes
-     */
-    public static List<DataColumnSpec> getCompatibleColumns(final DataTableSpec spec,
-        final Collection<Class<? extends DataValue>> valueClasses) {
-        return spec.stream()
-            .filter(s -> valueClasses.stream().anyMatch(valueClass -> s.getType().isCompatible(valueClass))).toList();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-        final var spec = context.getDataTableSpec(0);
-        if (spec.isEmpty()) {
-            return List.of();
-        } else {
-            return getCompatibleColumns(spec.get(), m_valueClasses);
-        }
-    }
-
-    /**
-     * ChoicesProvider providing all columns which are compatible with {@link StringValue}
+     * A filter with excluded unknown values and initially selected included flow variables.
      *
-     * @author Paul Bärnreuther
+     * @param selected
      */
-    public static final class StringColumnChoicesProvider extends CompatibleColumnChoicesProvider {
-
-        StringColumnChoicesProvider() {
-            super(StringValue.class);
-        }
-
+    public FlowVariableFilter(final String[] selected) {
+        super(selected, new FlowVariableTypeFilter());
     }
 
     /**
-     * ChoicesProvider providing all columns which are compatible with {@link DoubleValue}
+     * A filter with excluded unknown values and initially selected included flow variables.
      *
-     * @author Paul Bärnreuther
+     * @param selected
      */
-    public static final class DoubleColumnChoicesProvider extends CompatibleColumnChoicesProvider {
-
-        DoubleColumnChoicesProvider() {
-            super(DoubleValue.class);
-        }
-
+    public FlowVariableFilter(final List<String> selected) {
+        super(selected, new FlowVariableTypeFilter());
     }
+
+    /**
+     * Set the column filter to exclude unknown columns while in manual mode.
+     *
+     * @return the instance
+     */
+    public FlowVariableFilter withExcludedUnknowns() {
+        setIncludeUnknownValues(false);
+        return this;
+    }
+
+    /**
+     * Set the column filter to include unknown columns while in manual mode.
+     *
+     * @return the instance
+     */
+    public FlowVariableFilter withIncludedUnknowns() {
+        setIncludeUnknownValues(true);
+        return this;
+    }
+
+    /**
+     * @return a predicate on flow variables
+     */
+    public Predicate<FlowVariable> getIsSelectedPredicate() {
+        if (m_mode == TypedNameFilterMode.TYPE) {
+            return m_typeFilter.getIsFlowVariableSelectedPredicate();
+        }
+        final var namePredicate = super.getNameIsSelectedPredicate();
+        return flowVar -> namePredicate.test(flowVar.getName());
+    }
+
+    /**
+     * Get selected flow variables
+     *
+     * @param flowVariables
+     * @return the array of currently selected flow variables with respect to the mode which are contained in the given
+     *         input
+     */
+    public List<FlowVariable> getSelected(final List<FlowVariable> flowVariables) {
+        final var predicate = getIsSelectedPredicate();
+        return flowVariables.stream().filter(predicate::test).toList();
+    }
+
 }

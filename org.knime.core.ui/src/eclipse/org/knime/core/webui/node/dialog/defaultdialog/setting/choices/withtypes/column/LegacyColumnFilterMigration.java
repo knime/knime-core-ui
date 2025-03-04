@@ -44,33 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2023 (Paul Bärnreuther): created
+ *   Jan 13, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.util.List;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 
 /**
- * Some widgets require choices for a selection (e.g. a dropdown). Use this interface to provide an array of possible
- * values.
+ * Loads from legacy column filter settings. If the settings have to be saved to this legacy format as well, use a
+ * {@link LegacyColumnFilterPersistor} instead.
  *
- * @author Paul Bärnreuther
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface ChoicesProvider {
+public abstract class LegacyColumnFilterMigration implements NodeSettingsMigration<ColumnFilter> {
+
+    private final String m_configKey;
 
     /**
-     * @return the provider for the list of possible values. Make the choices provider asynchronous or depend on other
-     *         settings by overriding its {@link StateProvider#init} method appropriately.
+     * @param configKey the root config key to load from.
      */
-    @SuppressWarnings("rawtypes")
-    Class<? extends ChoicesStateProvider> value();
+    protected LegacyColumnFilterMigration(final String configKey) {
+        m_configKey = configKey;
+    }
 
+    private ColumnFilter loadLegacy(final NodeSettingsRO nodeSettings) throws InvalidSettingsException {
+        return LegacyColumnFilterPersistor.load(nodeSettings, m_configKey);
+    }
+
+    private boolean matchesLegacy(final NodeSettingsRO settings) {
+        return settings.containsKey(m_configKey);
+    }
+
+    @Override
+    public List<ConfigMigration<ColumnFilter>> getConfigMigrations() {
+        final var configsMigrationBuilder = ConfigMigration.builder(this::loadLegacy).withMatcher(this::matchesLegacy);
+        for (var configPath : LegacyColumnFilterPersistor.getConfigPaths(m_configKey)) {
+            configsMigrationBuilder.withDeprecatedConfigPath(configPath);
+        }
+        return List.of(configsMigrationBuilder.build());
+    }
 }

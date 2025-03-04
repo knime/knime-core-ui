@@ -688,11 +688,11 @@ class JsonFormsUiSchemaUtilRuleTest {
 
         assertThat(assertThrows(UiSchemaGenerationException.class,
             () -> buildTestUiSchema(EffectWithoutReferenceSettings.class)).getMessage())
-                .isEqualTo(String.format(
-                    "Error when resolving @Effect annotation for #/properties/model/properties/setting.: "
-                        + "Missing reference annotation: %s. If this is correct and desired, "
-                        + "check for that in advance using PredicateInitializer#isMissing.",
-                    EffectWithoutReferenceSettings.UnmetReference.class.getName()));
+            .isEqualTo(String.format(
+                "Error when resolving @Effect annotation for #/properties/model/properties/setting.: "
+                    + "Missing reference annotation: %s. If this is correct and desired, "
+                    + "check for that in advance using PredicateInitializer#isMissing.",
+                EffectWithoutReferenceSettings.UnmetReference.class.getName()));
 
     }
 
@@ -764,7 +764,6 @@ class JsonFormsUiSchemaUtilRuleTest {
         assertThatJson(response).inPath("$.elements[8].rule").isObject();
     }
 
-
     @Test
     void testSingleSelectionConditions() {
         final class SingleSelectionConditionSettings implements DefaultNodeSettings {
@@ -773,7 +772,7 @@ class JsonFormsUiSchemaUtilRuleTest {
             }
 
             @Widget(title = "Foo", description = "")
-            @ChoicesProvider(choicesProvider = TestChoicesProvider.class)
+            @ChoicesProvider(TestChoicesProvider.class)
             @ValueReference(SingleSelectionReference.class)
             SingleSelection<WithNoneChoice> singleSelection;
 

@@ -156,21 +156,6 @@
                     "items" : {
                       "type" : "string"
                     }
-                  },
-                  "typeDisplays" : {
-                    "default" : [ ],
-                    "type" : "array",
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : {
-                          "type" : "string"
-                        },
-                        "text" : {
-                          "type" : "string"
-                        }
-                      }
-                    }
                   }
                 },
                 "default" : {
@@ -359,7 +344,8 @@
         "type" : "Control",
         "scope" : "#/properties/view/properties/displayedColumns",
         "options" : {
-          "format" : "columnFilter",
+          "format" : "typedNameFilter",
+          "unknownValuesText" : "Any unknown columns",
           "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider"
         }
       }, {
@@ -565,10 +551,7 @@
               "typeFilter" : {
                 "type" : "object",
                 "properties" : {
-                  "selectedTypes" : { },
-                  "typeDisplays" : {
-                    "configPaths" : [ ]
-                  }
+                  "selectedTypes" : { }
                 }
               }
             },

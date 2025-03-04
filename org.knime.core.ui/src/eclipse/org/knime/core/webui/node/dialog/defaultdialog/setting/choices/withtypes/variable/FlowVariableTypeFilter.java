@@ -44,36 +44,52 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 21, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 4, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.variable;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import java.util.Optional;
+import java.util.function.Predicate;
 
-import org.junit.jupiter.api.Test;
-import org.knime.core.data.StringValue;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnTypeDisplay;
+import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.TypeFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.PossibleTypedNameValue.PossibleTypeValue;
 
 /**
+ * The type filter used within a {@link FlowVariableFilter}.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Paul Bärnreuther
  */
-@SuppressWarnings("static-method")
-final class ColumnTypeDisplayTest {
+public final class FlowVariableTypeFilter extends TypeFilter {
 
-    @Test
-    void testFromPreferredValueClass() {
-        String knownPreferredValueClass = StringValue.class.getName();
-        var display = ColumnTypeDisplay.fromPreferredValueClass(knownPreferredValueClass)//
-            .orElseThrow();
-        assertEquals(knownPreferredValueClass, display.m_id, "Wrong id");
-        assertEquals("String", display.m_text, "Wrong text");
+    FlowVariableTypeFilter() {
+        super();
     }
 
-    @Test
-    void testFromUnknownPreferredValueClass() throws Exception {
-        var display = ColumnTypeDisplay.fromPreferredValueClass("foobar");
-        assertFalse(display.isPresent(), "There is a type called foobar");
+    FlowVariableTypeFilter(final String[] selectedTypes) {
+        super(selectedTypes);
     }
+
+    @Override
+    protected final Optional<PossibleTypeValue> fromTypeId(final String typeId) {
+        return FlowVariableTypeToPossibleTypeValueUtil.fromVariableTypeId(typeId);
+    }
+
+    /**
+     * @param flowVariable a flow variable which is part of the choices of this filter.
+     * @return whether the value is selected
+     */
+    Predicate<FlowVariable> getIsFlowVariableSelectedPredicate() {
+        final var superPredicate = super.getIsSelectedPredicate();
+        return (flowVar) -> superPredicate.test(flowVariableToTypeString(flowVar));
+    }
+
+    /**
+     * @param flowVariable
+     * @return the string representation of the flow variables type
+     */
+    public static String flowVariableToTypeString(final FlowVariable flowVariable) {
+        return flowVariable.getVariableType().getIdentifier();
+    }
+
 }

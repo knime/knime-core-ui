@@ -48,7 +48,8 @@
  * {@link NodeSettings} structure as a specific {@link SettingsModel}.
  *
  * Note that these do not encompass only simple settings models, since complex settings models are mapped to custom java
- * classes (e.g. {@link ColumnFilter}) and the custom persistors reside in the respective packages.
+ * classes (e.g. {@link org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.ColumnFilter})
+ * and the custom persistors reside in the respective packages.
  *
  * @author Paul Bärnreuther
  */
