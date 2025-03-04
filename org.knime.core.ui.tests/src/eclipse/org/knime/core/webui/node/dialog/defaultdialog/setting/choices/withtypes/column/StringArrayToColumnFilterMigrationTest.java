@@ -43,7 +43,7 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory.loadSettings;
@@ -54,8 +54,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.StringArrayToColumnFilterMigration;
 
 class StringArrayToColumnFilterMigrationTest {
 

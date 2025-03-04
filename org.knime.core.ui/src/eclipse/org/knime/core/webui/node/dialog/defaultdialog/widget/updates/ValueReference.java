@@ -65,7 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProv
  * Possible use cases include:
  * <ul>
  * <li>Updating the possible values of a second dropdown depending on the selected value in the one referenced here (see
- * {@link ChoicesProvider#choicesProvider()})</li>
+ * {@link ChoicesProvider#value()})</li>
  * <li>Updating the value of another setting depending on this one (see {@link ValueProvider})</li>
  * </ul>
  * </p>

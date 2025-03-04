@@ -44,36 +44,31 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 21, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
+ *   Mar 18, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-
-import org.junit.jupiter.api.Test;
-import org.knime.core.data.StringValue;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnTypeDisplay;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.PossibleTypedNameValue;
 
 /**
+ * A class that provides an array of possible values for a selection of typed names.
  *
- * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
+ * @author Paul Bärnreuther
  */
-@SuppressWarnings("static-method")
-final class ColumnTypeDisplayTest {
+public non-sealed interface TypedNameChoicesProvider extends ChoicesStateProvider<PossibleTypedNameValue> {
 
-    @Test
-    void testFromPreferredValueClass() {
-        String knownPreferredValueClass = StringValue.class.getName();
-        var display = ColumnTypeDisplay.fromPreferredValueClass(knownPreferredValueClass)//
-            .orElseThrow();
-        assertEquals(knownPreferredValueClass, display.m_id, "Wrong id");
-        assertEquals("String", display.m_text, "Wrong text");
+    /**
+     * {@inheritDoc}
+     *
+     * Here, the state provider is already configured to compute the state initially before the dialog is opened. If
+     * this is desired but other initial configurations (like dependencies) are desired, override this method and call
+     * super.init within it. If choices should instead be asynchronously loaded once the dialog is opened, override this
+     * method without calling super.init to configure the initializer to do so.
+     */
+    @Override
+    default void init(final StateProviderInitializer initializer) {
+        initializer.computeBeforeOpenDialog();
+
     }
 
-    @Test
-    void testFromUnknownPreferredValueClass() throws Exception {
-        var display = ColumnTypeDisplay.fromPreferredValueClass("foobar");
-        assertFalse(display.isPresent(), "There is a type called foobar");
-    }
 }

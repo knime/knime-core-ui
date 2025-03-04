@@ -383,7 +383,9 @@
               "type": "Control",
               "scope": "properties/model/properties/multipleDataAndPersistPaths",
               "options": {
-                "format": "columnFilter",
+                "format": "typedNameFilter",
+                "emptyStateLabel": "No columns in this list",
+                "unknownValuesText": "Any unknown column",
                 "possibleValues": [
                   {
                     "id": "test1",
@@ -391,15 +393,7 @@
                     "type": {
                       "id": "org.knime.core.data.DoubleValue",
                       "text": "Number (double)"
-                    },
-                    "compatibleTypes": [
-                      "org.knime.core.data.DoubleValue",
-                      "org.knime.core.data.DataValue",
-                      "org.knime.core.data.ComplexNumberValue",
-                      "org.knime.core.data.FuzzyNumberValue",
-                      "org.knime.core.data.FuzzyIntervalValue",
-                      "org.knime.core.data.BoundedValue"
-                    ]
+                    }
                   },
                   {
                     "id": "test2",
@@ -425,7 +419,9 @@
               "type": "Control",
               "scope": "properties/model/properties/multipleDataAndPersistPathsWithCustomSubConfigKeys",
               "options": {
-                "format": "columnFilter",
+                "format": "typedNameFilter",
+                "emptyStateLabel": "No columns in this list",
+                "unknownValuesText": "Any unknown column",
                 "possibleValues": [
                   {
                     "id": "test3",

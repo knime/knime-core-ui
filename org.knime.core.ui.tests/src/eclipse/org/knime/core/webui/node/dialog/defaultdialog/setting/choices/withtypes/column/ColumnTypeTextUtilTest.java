@@ -44,33 +44,35 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2023 (Paul Bärnreuther): created
+ *   Feb 21, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.junit.jupiter.api.Test;
+import org.knime.core.data.StringValue;
 
 /**
- * Some widgets require choices for a selection (e.g. a dropdown). Use this interface to provide an array of possible
- * values.
  *
- * @author Paul Bärnreuther
+ * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface ChoicesProvider {
+@SuppressWarnings("static-method")
+final class ColumnTypeTextUtilTest {
 
-    /**
-     * @return the provider for the list of possible values. Make the choices provider asynchronous or depend on other
-     *         settings by overriding its {@link StateProvider#init} method appropriately.
-     */
-    @SuppressWarnings("rawtypes")
-    Class<? extends ChoicesStateProvider> value();
+    @Test
+    void testFromPreferredValueClass() {
+        String knownPreferredValueClass = StringValue.class.getName();
+        var display = ColumnTypeToPossibleTypeValueUtil.fromPreferredValueClassString(knownPreferredValueClass)//
+            .orElseThrow();
+        assertEquals(knownPreferredValueClass, display.id(), "Wrong id");
+        assertEquals("String", display.text(), "Wrong text");
+    }
 
+    @Test
+    void testFromUnknownPreferredValueClass() throws Exception {
+        var display = ColumnTypeToPossibleTypeValueUtil.fromPreferredValueClassString("foobar");
+        assertFalse(display.isPresent(), "There is a type called foobar");
+    }
 }

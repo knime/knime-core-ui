@@ -44,42 +44,66 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   15 Dec 2022 Paul Bärnreuther: created
+ *   7 Feb 2023 (Paul Bärnreuther): created
  */
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.variable;
 
-package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple;
+import static java.util.stream.Collectors.toMap;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.PatternFilter.PatternMode;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
+
+import org.knime.core.data.DataType;
+import org.knime.core.node.workflow.VariableType;
+import org.knime.core.node.workflow.VariableTypeRegistry;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.PossibleTypedNameValue.PossibleTypeValue;
 
 /**
- * This enum lists the possibilities of how to choose from a set of table columns
+ * Used to construct possible type values used in the dialog to select types in the {@link FlowVariableTypeFilter}.
  *
  * @author Paul Bärnreuther
  */
-enum ColumnFilterMode {
-        /**
-         * manual selection, i.e. a stored list of manually selected columns
-         */
-        MANUAL,
-        /**
-         * selection by matching to a regex pattern
-         */
-        REGEX,
-        /**
-         * selection by matching to a wildcard pattern
-         */
-        WILDCARD,
-        /**
-         * selection by filtering by the types of the table columns with respect to a list of selected types
-         */
-        TYPE;
+public final class FlowVariableTypeToPossibleTypeValueUtil {
 
-    PatternMode toPatternMode() {
-        return this == REGEX ? PatternMode.REGEX : PatternMode.WILDCARD;
+    private FlowVariableTypeToPossibleTypeValueUtil() {
+        // utility class
     }
 
-    static ColumnFilterMode toColumnFilterMode(final PatternMode mode) {
-        return mode == PatternMode.REGEX ? REGEX : WILDCARD;
+    private static final Map<String, String> FLOW_VARIABLE_ID_TO_DISPLAY =
+        Arrays.stream(VariableTypeRegistry.getInstance().getAllTypes())//
+            .collect(toMap(t -> t.getIdentifier(), t -> t.getSimpleType().getSimpleName(), (l, r) -> l));
+
+    private static <T> String getTypeName(final VariableType<T> variableType) {
+        return variableType.getSimpleType().getSimpleName();
+    }
+
+    private static <T> String getTypeId(final VariableType<T> variableType) {
+        return variableType.getIdentifier();
+    }
+
+    /**
+     * @param <T>
+     * @param variableType
+     * @return the used possible type value
+     */
+    public static <T> PossibleTypeValue fromVariableType(final VariableType<T> variableType) {
+        return new PossibleTypeValue(getTypeId(variableType), getTypeName(variableType));
+    }
+
+    /**
+     * Creates the ColumnTypeDisplay from the preferred value class.
+     *
+     * @param preferredValueClass the name of the {@link DataType#getPreferredValueClass()}
+     * @return the display for the given preferredValueClass
+     */
+    static Optional<PossibleTypeValue> fromVariableTypeId(final String preferredValueClass) {
+        return getText(preferredValueClass).map(t -> new PossibleTypeValue(preferredValueClass, t));
+    }
+
+    private static Optional<String> getText(final String id) {
+        var text = FLOW_VARIABLE_ID_TO_DISPLAY.get(id);
+        return Optional.ofNullable(text);
     }
 
 }

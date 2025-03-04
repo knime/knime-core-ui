@@ -49,6 +49,8 @@
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.buildTestUiSchema;
 
 import java.util.List;
@@ -65,13 +67,17 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.NameChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.PossibleValue;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.AllFlowVariablesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
 
 /**
  *
@@ -90,20 +96,24 @@ class ChoicesWidgetUiSchemaOptionsTest {
         class SeveralChoicesSettings implements DefaultNodeSettings {
 
             @Widget(title = "", description = "")
-            @ChoicesProvider(choicesProvider = TestChoicesProvider.class)
+            @ColumnFilterWidget(choicesProvider = TestColumnChoicesProvider.class)
             ColumnFilter m_columnFilter;
 
             @Widget(title = "", description = "")
-            @ChoicesProvider(choicesProvider = TestChoicesProvider.class)
+            @FlowVariableFilterWidget(choicesProvider = AllFlowVariablesProvider.class)
+            FlowVariableFilter m_flowVariableFilter;
+
+            @Widget(title = "", description = "")
+            @ChoicesProvider(TestChoicesProvider.class)
             String[] m_stringArray;
 
             @Widget(title = "", description = "")
-            @ChoicesProvider(choicesProvider = TestChoicesProvider.class)
+            @ChoicesProvider(TestChoicesProvider.class)
             @TwinlistWidget
             String[] m_twinList;
 
             @Widget(title = "", description = "")
-            @ChoicesProvider(choicesProvider = TestChoicesProvider.class)
+            @ChoicesProvider(TestChoicesProvider.class)
             String m_string;
 
             enum MyEnum {
@@ -111,21 +121,32 @@ class ChoicesWidgetUiSchemaOptionsTest {
             }
 
             @Widget(title = "", description = "")
-            @ChoicesProvider(choicesProvider = TestChoicesProvider.class)
+            @ChoicesProvider(TestChoicesProvider.class)
             MyEnum m_foo;
         }
 
         var response = buildTestUiSchema(SeveralChoicesSettings.class, null);
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("columnFilter");
-        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("columnFilter");
-        assertThatJson(response).inPath("$.elements[1].scope").isString().contains("stringArray");
-        assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo("comboBox");
-        assertThatJson(response).inPath("$.elements[2].scope").isString().contains("twinList");
-        assertThatJson(response).inPath("$.elements[2].options.format").isString().isEqualTo("twinList");
-        assertThatJson(response).inPath("$.elements[3].scope").isString().contains("string");
-        assertThatJson(response).inPath("$.elements[3].options.format").isString().isEqualTo("dropDown");
-        assertThatJson(response).inPath("$.elements[4].scope").isString().contains("foo");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("typedNameFilter");
+        assertThatJson(response).inPath("$.elements[0].options.unknownValuesText").isString()
+            .isEqualTo("Any unknown column");
+        assertThatJson(response).inPath("$.elements[0].options.emptyStateLabel").isString()
+            .isEqualTo("No columns in this list.");
+        assertThatJson(response).inPath("$.elements[1].scope").isString().contains("flowVariableFilter");
+        assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo("typedNameFilter");
+        assertThatJson(response).inPath("$.elements[1].options.unknownValuesText").isString()
+            .isEqualTo("Any unknown variable");
+        assertThatJson(response).inPath("$.elements[1].options.emptyStateLabel").isString()
+            .isEqualTo("No variables in this list.");
+
+        assertThatJson(response).inPath("$.elements[2].scope").isString().contains("stringArray");
+        assertThatJson(response).inPath("$.elements[2].options.format").isString().isEqualTo("comboBox");
+        assertThatJson(response).inPath("$.elements[3].scope").isString().contains("twinList");
+        assertThatJson(response).inPath("$.elements[3].options.format").isString().isEqualTo("twinList");
+        assertThatJson(response).inPath("$.elements[4].scope").isString().contains("string");
         assertThatJson(response).inPath("$.elements[4].options.format").isString().isEqualTo("dropDown");
+        assertThatJson(response).inPath("$.elements[5].scope").isString().contains("foo");
+        assertThatJson(response).inPath("$.elements[5].options.format").isString().isEqualTo("dropDown");
     }
 
     static class TestColumnChoicesProvider implements ColumnChoicesProvider {
@@ -136,7 +157,7 @@ class ChoicesWidgetUiSchemaOptionsTest {
         }
     }
 
-    static class TestChoicesProvider implements StringChoicesProvider {
+    static class TestChoicesProvider implements NameChoicesProvider {
 
         @Override
         public List<String> choices(final DefaultNodeSettingsContext context) {
@@ -144,7 +165,7 @@ class ChoicesWidgetUiSchemaOptionsTest {
         }
     }
 
-    static class TestChoicesProviderWithIdAndText implements StringChoicesProvider {
+    static class TestChoicesProviderWithIdAndText implements NameChoicesProvider {
 
         @Override
         public List<PossibleValue> computeState(final DefaultNodeSettingsContext context) {
@@ -169,11 +190,11 @@ class ChoicesWidgetUiSchemaOptionsTest {
         class ChoicesSettings implements DefaultNodeSettings {
 
             @Widget(title = "", description = "")
-            @ChoicesProvider(choicesProvider = TestColumnChoicesProvider.class)
+            @ChoicesProvider(TestColumnChoicesProvider.class)
             String m_foo;
 
             @Widget(title = "", description = "")
-            @ChoicesProvider(choicesProvider = TestChoicesProvider.class)
+            @ChoicesProvider(TestChoicesProvider.class)
             String m_bar;
 
         }
@@ -196,17 +217,17 @@ class ChoicesWidgetUiSchemaOptionsTest {
         class ChoicesWidgetTestSettings implements DefaultNodeSettings {
 
             @Widget(title = "", description = "")
-            @ChoicesProvider(choicesProvider = TestChoicesProvider.class)
+            @ChoicesProvider(TestColumnChoicesProvider.class)
             @TwinlistWidget(includedLabel = "Label for included columns.")
             ColumnFilter m_hasIncludedLabel;
 
             @Widget(title = "", description = "")
-            @ChoicesProvider(choicesProvider = TestChoicesProvider.class)
+            @ChoicesProvider(TestColumnChoicesProvider.class)
             @TwinlistWidget(excludedLabel = "Label for excluded columns.")
             ColumnFilter m_hasExcludedLabel;
 
             @Widget(title = "", description = "")
-            @ChoicesProvider(choicesProvider = TestChoicesProvider.class)
+            @ChoicesProvider(TestColumnChoicesProvider.class)
             ColumnFilter m_bar;
 
         }
@@ -219,6 +240,40 @@ class ChoicesWidgetUiSchemaOptionsTest {
             .isEqualTo("Label for excluded columns.");
         assertThatJson(response).inPath("$.elements[2].scope").isString().contains("bar");
         assertThatJson(response).inPath("$.elements[2].options.includedLabel").isAbsent();
+    }
+
+    @Test
+    void testColumnFilterWithWrongChoicesProviderThrows() {
+        class TestSettings implements DefaultNodeSettings {
+            @ChoicesProvider(TestChoicesProvider.class)
+            @Widget(title = "", description = "")
+            ColumnFilter m_columnFilter;
+        }
+
+        assertThat(
+            assertThrows(UiSchemaGenerationException.class, () -> buildTestUiSchema(TestSettings.class)).getMessage())
+                .isEqualTo("Error when generating the options of #/properties/model/properties/columnFilter.: "
+                    + "The field columnFilter is a ColumnFilter and the provided choicesProvider "
+                    + "'TestChoicesProvider' is not a ColumnChoicesProvider. "
+                    + "To prevent this from happening in a type-safe way, "
+                    + "use the @ColumnFilterWidget annotation instead");
+    }
+
+    @Test
+    void testFlowVariableFilterWithWrongChoicesProviderThrows() {
+        class TestSettings implements DefaultNodeSettings {
+            @ChoicesProvider(TestChoicesProvider.class)
+            @Widget(title = "", description = "")
+            FlowVariableFilter m_flowVariableFilter;
+        }
+
+        assertThat(
+            assertThrows(UiSchemaGenerationException.class, () -> buildTestUiSchema(TestSettings.class)).getMessage())
+                .isEqualTo("Error when generating the options of #/properties/model/properties/flowVariableFilter.: "
+                    + "The field flowVariableFilter is a FlowVariableFilter and the provided choicesProvider "
+                    + "'TestChoicesProvider' is not a FlowVariableChoicesProvider. "
+                    + "To prevent this from happening in a type-safe way, "
+                    + "use the @FlowVariableFilterWidget annotation instead");
     }
 
 }

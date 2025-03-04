@@ -44,75 +44,51 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   7 Feb 2023 (Paul Bärnreuther): created
+ *   15 Dec 2022 Paul Bärnreuther: created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple;
 
-import static java.util.stream.Collectors.toMap;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes;
 
-import java.util.Map;
-import java.util.Optional;
-
-import org.knime.core.data.DataType;
-import org.knime.core.data.DataTypeRegistry;
-import org.knime.core.data.ExtensibleUtilityFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.PatternFilter.PatternMode;
 
 /**
+ * This enum lists the possibilities of how to choose from a set of table columns
  *
  * @author Paul Bärnreuther
  */
-class ColumnTypeDisplay implements PersistableSettings {
-
-    private static final Map<String, String> PREFERRED_VALUE_CLASS_TO_DISPLAY =
-        DataTypeRegistry.getInstance().availableDataTypes().stream()//
-            .collect(toMap(t -> t.getPreferredValueClass().getName(), DataType::getName, (l, r) -> l));
+public enum TypedNameFilterMode {
+        /**
+         * manual selection, i.e. a stored list of manually selected columns
+         */
+        MANUAL,
+        /**
+         * selection by matching to a regex pattern
+         */
+        REGEX,
+        /**
+         * selection by matching to a wildcard pattern
+         */
+        WILDCARD,
+        /**
+         * selection by filtering by the types of the table columns with respect to a list of selected types
+         */
+        TYPE;
 
     /**
-     * The measure derived from the type with respect to which columns are identified.
+     * @return the corresponding {@link PatternMode}
      */
-    String m_id; //NOSONAR
+    public PatternMode toPatternMode() {
+        return this == REGEX ? PatternMode.REGEX : PatternMode.WILDCARD;
+    }
 
     /**
-     * The displayed text
-     */
-    String m_text; //NOSONAR
-
-    /**
-     * Creates the ColumnTypeDisplay from the preferred value class.
+     * Converts a {@link PatternMode} to a {@link TypedNameFilterMode}
      *
-     * @param preferredValueClass the name of the {@link DataType#getPreferredValueClass()}
-     * @return the display for the given preferredValueClass
+     * @param mode
+     * @return the corresponding {@link TypedNameFilterMode}
      */
-    static Optional<ColumnTypeDisplay> fromPreferredValueClass(final String preferredValueClass) {
-        return getText(preferredValueClass).map(t -> createDisplay(preferredValueClass, t));
-    }
-
-    private static ColumnTypeDisplay createDisplay(final String id, final String text) {
-        var display = new ColumnTypeDisplay();
-        display.m_id = id;
-        display.m_text = text;
-        return display;
-    }
-
-    private static Optional<String> getText(final String preferredValueClass) {
-        var text = PREFERRED_VALUE_CLASS_TO_DISPLAY.get(preferredValueClass);
-        if (text == null) {
-            // some (old) DataTypes may not be registered via ExtensionPoint -> go through the utility factory
-            return getNameFromUtilityFactory(preferredValueClass);
-        }
-        return Optional.of(text);
-    }
-
-    private static Optional<String> getNameFromUtilityFactory(final String preferredValueClass) {
-        var valueClass = DataTypeRegistry.getInstance().getValueClass(preferredValueClass);
-        if (valueClass.isPresent()) {
-            var utilityFactory = DataType.getUtilityFor(valueClass.get());
-            if (utilityFactory instanceof ExtensibleUtilityFactory) {
-                return Optional.of(((ExtensibleUtilityFactory)utilityFactory).getName());
-            }
-        }
-        return Optional.empty();
+    public static TypedNameFilterMode toTypedNameFilterMode(final PatternMode mode) {
+        return mode == PatternMode.REGEX ? REGEX : WILDCARD;
     }
 
 }

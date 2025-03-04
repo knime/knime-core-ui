@@ -57,11 +57,10 @@ import org.knime.core.data.DataValue;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.NameChoicesProvider;
 
 /**
- * A {@link StringChoicesProvider} which can be given one or multiple classes extending {@link DataValue} and provides
+ * A {@link NameChoicesProvider} which can be given one or multiple classes extending {@link DataValue} and provides
  * the compatible columns of a given spec at the first input port.
  *
  * @author Paul Bärnreuther

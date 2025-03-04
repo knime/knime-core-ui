@@ -46,7 +46,7 @@
  * History
  *   9 Nov 2021 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -58,9 +58,7 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilterMode;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.TypeFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.TypedNameFilterMode;
 import org.knime.testing.util.TableTestUtil;
 
 /**
@@ -94,7 +92,7 @@ class ColumnFilterTest {
         selection.m_manualFilter.m_manuallyDeselected = new String[]{choices[0]};
         selection.m_manualFilter.m_includeUnknownColumns = true;
         assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(new String[]{"Old selected"});
-        assertThat(selection.getSelected(choices, TABLE_SPEC)).isEqualTo(new String[0]);
+        assertThat(selection.getNonMissingSelected(choices, TABLE_SPEC)).isEqualTo(new String[0]);
     }
 
     @Test
@@ -109,31 +107,31 @@ class ColumnFilterTest {
     @Test
     void testGetSelectedByType() {
         final var selection = new ColumnFilter(CONTEXT);
-        selection.m_mode = ColumnFilterMode.TYPE;
+        selection.m_mode = TypedNameFilterMode.TYPE;
         final var choices = new String[]{COL_SPEC.getName()};
         assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(new String[]{});
 
-        selection.m_typeFilter.m_selectedTypes = new String[]{TypeFilter.typeToString(COL_SPEC.getType())};
+        selection.m_typeFilter = new ColumnTypeFilter(new String[]{ColumnTypeFilter.columnToTypeString(COL_SPEC)});
         assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(choices);
-        assertThat(selection.getSelected(choices, TABLE_SPEC)).isEqualTo(choices);
+        assertThat(selection.getNonMissingSelected(choices, TABLE_SPEC)).isEqualTo(choices);
     }
 
     @Test
     void testGetSelectedByRegex() {
         final var selection = new ColumnFilter(CONTEXT);
-        selection.m_mode = ColumnFilterMode.REGEX;
+        selection.m_mode = TypedNameFilterMode.REGEX;
         final var choices = new String[]{COL_SPEC.getName()};
         assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(new String[]{});
 
         selection.m_patternFilter.m_pattern = ".*";
         assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(choices);
-        assertThat(selection.getSelected(choices, TABLE_SPEC)).isEqualTo(choices);
+        assertThat(selection.getNonMissingSelected(choices, TABLE_SPEC)).isEqualTo(choices);
     }
 
     @Test
     void testGetSelectedByInvertedRegex() {
         final var selection = new ColumnFilter(CONTEXT);
-        selection.m_mode = ColumnFilterMode.REGEX;
+        selection.m_mode = TypedNameFilterMode.REGEX;
         selection.m_patternFilter.m_isInverted = true;
         final var choices = new String[]{COL_SPEC.getName()};
         assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(choices);
@@ -145,7 +143,7 @@ class ColumnFilterTest {
     @Test
     void testGetSelectedByWildcard() {
         final var selection = new ColumnFilter(CONTEXT);
-        selection.m_mode = ColumnFilterMode.WILDCARD;
+        selection.m_mode = TypedNameFilterMode.WILDCARD;
         final var choices = new String[]{COL_SPEC.getName()};
         assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(new String[]{});
 
@@ -156,7 +154,7 @@ class ColumnFilterTest {
     @Test
     void testGetSelectedByInvertedWildcard() {
         final var selection = new ColumnFilter(CONTEXT);
-        selection.m_mode = ColumnFilterMode.WILDCARD;
+        selection.m_mode = TypedNameFilterMode.WILDCARD;
         selection.m_patternFilter.m_isInverted = true;
         final var choices = new String[]{COL_SPEC.getName()};
         assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(choices);
@@ -168,7 +166,7 @@ class ColumnFilterTest {
     @Test
     void testGetSelectedByCaseSensitiveWildcard() {
         final var selection = new ColumnFilter(CONTEXT);
-        selection.m_mode = ColumnFilterMode.WILDCARD;
+        selection.m_mode = TypedNameFilterMode.WILDCARD;
         selection.m_patternFilter.m_pattern = COL_SPEC.getName().toUpperCase();
         final var choices = new String[]{COL_SPEC.getName()};
         assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(choices);
