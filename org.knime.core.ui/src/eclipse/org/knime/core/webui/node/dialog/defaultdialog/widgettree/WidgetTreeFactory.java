@@ -83,6 +83,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
@@ -120,12 +122,14 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
     private static final Collection<Class<? extends Annotation>> POSSIBLE_LEAF_ANNOTATIONS = List.of(//
         ButtonWidget.class, //
         ChoicesProvider.class, //
+        ColumnFilterWidget.class, //
         CredentialsWidget.class, //
         DateTimeFormatPickerWidget.class, //
         DateWidget.class, //
         Effect.class, //
         FileReaderWidget.class, //
         FileWriterWidget.class, //
+        FlowVariableFilterWidget.class, //
         InternalArrayWidget.ElementCheckboxWidget.class, //
         IntervalWidget.class, //
         Layout.class, //

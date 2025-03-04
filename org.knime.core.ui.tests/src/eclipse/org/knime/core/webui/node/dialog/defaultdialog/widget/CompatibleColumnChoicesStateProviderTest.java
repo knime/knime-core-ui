@@ -68,10 +68,10 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.PossibleTypedNameValue;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.PossibleColumnValue;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.testing.node.dialog.updates.DialogUpdateSimulator;
@@ -115,7 +115,7 @@ class CompatibleColumnChoicesStateProviderTest {
 
             @Widget(title = "Test colum choices with only compatible column data types", description = "")
             @Persistor(ColSelectPersistor.class)
-            @ChoicesProvider(choicesProvider = ColumnProvider.class)
+            @ChoicesProvider(ColumnProvider.class)
             ColumnFilter m_columnFilter = new ColumnFilter();
         }
 
@@ -137,7 +137,7 @@ class CompatibleColumnChoicesStateProviderTest {
 
     private static void assertColumnChoices(final UpdateSimulatorResult result, final String... expectedColumnNames) {
         var columnChoices = result.getUiStateUpdateAt(ColumnProvider.class);
-        assertThat(columnChoices.stream().map(PossibleColumnValue::id).toList())
+        assertThat(columnChoices.stream().map(PossibleTypedNameValue::id).toList())
             .isEqualTo(List.of(expectedColumnNames));
     }
 

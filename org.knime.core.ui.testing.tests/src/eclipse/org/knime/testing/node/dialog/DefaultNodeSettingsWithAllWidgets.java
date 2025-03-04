@@ -60,12 +60,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ColumnChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
@@ -88,8 +90,11 @@ class DefaultNodeSettingsWithAllWidgets implements DefaultNodeSettings {
     @Widget(title = "Dynamic Values Input", description = "")
     DynamicValuesInput m_dynamicValuesInput = DynamicValuesInput.emptySingle();
 
-
     static final class MyColumnChoicesProvider implements ColumnChoicesProvider {
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeAfterOpenDialog();
+        }
     }
 
     @Widget(title = "Column Selection", description = "")
@@ -98,6 +103,9 @@ class DefaultNodeSettingsWithAllWidgets implements DefaultNodeSettings {
 
     @Widget(title = "Column Filter", description = "")
     ColumnFilter m_columnFilter = new ColumnFilter();
+
+    @Widget(title = "Flow Variable Filter", description = "")
+    FlowVariableFilter m_flowVariableFilter = new FlowVariableFilter();
 
     interface SimpleButtonWidgetRef extends ButtonReference {
     }
@@ -169,4 +177,3 @@ class DefaultNodeSettingsWithAllWidgets implements DefaultNodeSettings {
     NestedSettings m_nestedSettingsWithCustomPersistor;
 
 }
-

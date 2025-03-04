@@ -61,8 +61,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.StringArrayToColumnFilterMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.StringArrayToColumnFilterMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.selection.SelectionCheckboxesToSelectionModeMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.selection.SelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -129,7 +129,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
      * The selected columns to be displayed.
      */
     @Widget(title = "Displayed columns", description = "Select the columns that should be displayed in the table")
-    @ChoicesProvider(choicesProvider = AllColumnsProvider.class)
+    @ChoicesProvider(AllColumnsProvider.class)
     @Migration(DisplayedColumnsMigrator.class)
     @Layout(DataSection.class)
     @Persist(configKey = "displayedColumnsV2") // V2 Required for migration

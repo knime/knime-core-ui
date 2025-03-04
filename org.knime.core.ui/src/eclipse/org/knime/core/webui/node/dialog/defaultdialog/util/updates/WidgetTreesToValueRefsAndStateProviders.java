@@ -79,6 +79,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBooleanProvider;
@@ -278,8 +280,18 @@ final class WidgetTreesToValueRefsAndStateProviders {
             ), //
             new UiStateProviderAnnotationSpec<>( //
                 ChoicesProvider.class, //
-                ChoicesProvider::choicesProvider, //
+                ChoicesProvider::value, //
                 null //
+            ), //
+            new UiStateProviderSpec<>(//
+                ColumnFilterWidget.class, //
+                ColumnFilterWidget::choicesProvider, //
+                null//
+            ), //
+            new UiStateProviderSpec<>(//
+                FlowVariableFilterWidget.class, //
+                FlowVariableFilterWidget::choicesProvider, //
+                null//
             ), //
             new UiStateProviderAnnotationSpec<>( //
                 DateTimeFormatPickerWidget.class, //

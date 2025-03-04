@@ -62,7 +62,7 @@
                 }
               ],
               "title": "Column filter",
-              "description": "Column filter description  (inputFormat: \"columnFilter\")"
+              "description": "Column filter description"
             },
             "showColumnSelect": {
               "type": "boolean",

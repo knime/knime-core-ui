@@ -52,6 +52,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataTableSpec;
@@ -65,31 +66,33 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistabl
 public class ManualFilter implements PersistableSettings {
 
     /**
-     * the manually selected columns in case of m_mode = "MANUAL"
+     * the manually selected values in case of m_mode = "MANUAL".
      *
      * public for tests
      */
     public String[] m_manuallySelected; //NOSONAR
 
     /**
-     * the (last) deselected columns. It is necessary to store these in order to know which colums of a new input
-     * {@link DataTableSpec} are unknown.
+     * the (last) deselected values. It is necessary to store these in order to know which values of a new input
+     * {@link DataTableSpec} are unknown in case unknown values are included.
      *
      * public for tests
      */
     public String[] m_manuallyDeselected; //NOSONAR
 
     /**
-     * A column is unknown if it is was not present in the last executed input table. If this setting is true, these
-     * columns will be selected/included when the selected columns are updated after a reconfiguration of the input
-     * table.
+     * A value is unknown if it is not present in the available choices depending on the current context. If this
+     * setting is true, these values will be selected/included when the selected values are updated after a
+     * reconfiguration.
      *
      * public for tests
+     *
+     * Not renamed to "includeUnknownValues" due to backwards compatibility
      */
     public boolean m_includeUnknownColumns; //NOSONAR
 
     /**
-     * @param initialSelected the initially manually selected columns
+     * @param initialSelected the initially manually selected values
      */
     public ManualFilter(final String[] initialSelected) {
         m_manuallySelected = initialSelected;
@@ -100,43 +103,31 @@ public class ManualFilter implements PersistableSettings {
     }
 
     /**
-     * Returns the manually selected columns which are not missing plus any unknown columns if these are included. Note
-     * that the manually selected and manually deselected do not get updated by this method. The only place where these
-     * get altered is if the dialog gets opened and new settings get saved. This way, excluded columns stay marked as
-     * excluded when a view is executed without opening the dialog.
-     *
-     * @param choices for selected values from which previously unknown ones are either selected or deselected.
-     * @return the manually selected columns plus the new previously unknown ones if these are included.
+     * @return a predicate which tests for a value being manually selected of not manually deselected
      */
-    public List<String> getUpdatedManuallySelected(final String[] choices) {
-        return m_includeUnknownColumns //
-            ? filterExcludingDeselected(choices) //
-            : getManuallySelectedIn(choices);
+    public Predicate<String> getIsSelectedPredicate() {
+        if (m_includeUnknownColumns) {
+            final var manuallyDeselectedSet = Set.of(m_manuallyDeselected);
+            return ((Predicate<String>)manuallyDeselectedSet::contains).negate();
+        }
+        final var manuallySelectedSet = Set.of(m_manuallySelected);
+        return manuallySelectedSet::contains;
     }
 
     /**
-     * Returns the manually selected columns plus any unknown columns if these are included. Note that the manually
-     * selected and manually deselected do not get updated by this method. The only place where these get altered is if
-     * the dialog gets opened and new settings get saved. This way, excluded columns stay marked as excluded when a view
-     * is executed without opening the dialog.
+     * Returns the manually selected (also missing ones, i.e. not present in the choices) columns plus any unknown
+     * columns if these are included. Note that the manually selected and manually deselected do not get updated by this
+     * method. The only place where these get altered is if the dialog gets opened and new settings get saved. This way,
+     * excluded columns stay marked as excluded when a view is executed without opening the dialog.
      *
      * @param choices for selected values from which previously unknown ones are either selected or deselected.
      * @return the manually selected columns plus the new previously unknown ones if these are included.
      */
     public String[] getUpdatedManuallySelectedIncludingMissing(final String[] choices) {
-        final List<String> validSelectedValues = getUpdatedManuallySelected(choices);
+        final List<String> validSelectedValues =
+            Arrays.asList(choices).stream().filter(getIsSelectedPredicate()::test).toList();
         final var missingManuallySelected = getMissingManuallySelected(new HashSet<>(validSelectedValues));
         return Stream.concat(missingManuallySelected, validSelectedValues.stream()).toArray(String[]::new);
-    }
-
-    private List<String> filterExcludingDeselected(final String[] choices) {
-        final var manuallyDeselectedSet = new HashSet<>(Arrays.asList(m_manuallyDeselected));
-        return Arrays.asList(choices).stream().filter(item -> !manuallyDeselectedSet.contains(item)).toList();
-    }
-
-    private List<String> getManuallySelectedIn(final String[] choices) {
-        final var manuallySelectedSet = new HashSet<>(Arrays.asList(m_manuallySelected));
-        return Arrays.asList(choices).stream().filter(manuallySelectedSet::contains).toList();
     }
 
     private Stream<String> getMissingManuallySelected(final Set<String> validSelectedValues) {

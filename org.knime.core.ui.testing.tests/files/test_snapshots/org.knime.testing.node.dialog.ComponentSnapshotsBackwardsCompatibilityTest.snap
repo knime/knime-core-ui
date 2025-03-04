@@ -20,8 +20,25 @@
         "values" : [ ],
         "inputKind" : "SINGLE"
       },
-      "columnSelection" : { },
       "columnFilter" : {
+        "selected" : [ ],
+        "mode" : "MANUAL",
+        "patternFilter" : {
+          "pattern" : "",
+          "isCaseSensitive" : false,
+          "isInverted" : false
+        },
+        "manualFilter" : {
+          "manuallySelected" : [ ],
+          "manuallyDeselected" : [ ],
+          "includeUnknownColumns" : false
+        },
+        "typeFilter" : {
+          "selectedTypes" : [ ],
+          "typeDisplays" : [ ]
+        }
+      },
+      "flowVariableFilter" : {
         "selected" : [ ],
         "mode" : "MANUAL",
         "patternFilter" : {
@@ -132,21 +149,6 @@
                     "items" : {
                       "type" : "string"
                     }
-                  },
-                  "typeDisplays" : {
-                    "default" : [ ],
-                    "type" : "array",
-                    "items" : {
-                      "type" : "object",
-                      "properties" : {
-                        "id" : {
-                          "type" : "string"
-                        },
-                        "text" : {
-                          "type" : "string"
-                        }
-                      }
-                    }
                   }
                 },
                 "default" : {
@@ -176,20 +178,8 @@
             }
           },
           "columnSelection" : {
-            "type" : "object",
-            "properties" : {
-              "compatibleTypes" : {
-                "type" : "array",
-                "items" : {
-                  "type" : "string"
-                }
-              },
-              "selected" : {
-                "type" : "string"
-              }
-            },
-            "title" : "Column Selection",
-            "default" : { }
+            "type" : "string",
+            "title" : "Column Selection"
           },
           "credentials" : {
             "type" : "object",
@@ -269,6 +259,117 @@
               }
             }
           },
+          "flowVariableFilter" : {
+            "type" : "object",
+            "properties" : {
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "includeUnknownColumns" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "manuallyDeselected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  },
+                  "manuallySelected" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "manuallySelected" : [ ],
+                  "manuallyDeselected" : [ ],
+                  "includeUnknownColumns" : false
+                }
+              },
+              "mode" : {
+                "oneOf" : [ {
+                  "const" : "MANUAL",
+                  "title" : "Manual"
+                }, {
+                  "const" : "REGEX",
+                  "title" : "Regex"
+                }, {
+                  "const" : "WILDCARD",
+                  "title" : "Wildcard"
+                }, {
+                  "const" : "TYPE",
+                  "title" : "Type"
+                } ],
+                "default" : "MANUAL"
+              },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "isCaseSensitive" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "isInverted" : {
+                    "type" : "boolean",
+                    "default" : false
+                  },
+                  "pattern" : {
+                    "type" : "string",
+                    "default" : ""
+                  }
+                },
+                "default" : {
+                  "pattern" : "",
+                  "isCaseSensitive" : false,
+                  "isInverted" : false
+                }
+              },
+              "selected" : {
+                "default" : [ ],
+                "type" : "array",
+                "items" : {
+                  "type" : "string"
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : {
+                    "default" : [ ],
+                    "type" : "array",
+                    "items" : {
+                      "type" : "string"
+                    }
+                  }
+                },
+                "default" : {
+                  "selectedTypes" : [ ],
+                  "typeDisplays" : [ ]
+                }
+              }
+            },
+            "title" : "Flow Variable Filter",
+            "default" : {
+              "selected" : [ ],
+              "mode" : "MANUAL",
+              "patternFilter" : {
+                "pattern" : "",
+                "isCaseSensitive" : false,
+                "isInverted" : false
+              },
+              "manualFilter" : {
+                "manuallySelected" : [ ],
+                "manuallyDeselected" : [ ],
+                "includeUnknownColumns" : false
+              },
+              "typeFilter" : {
+                "selectedTypes" : [ ],
+                "typeDisplays" : [ ]
+              }
+            }
+          },
           "nested" : {
             "type" : "object",
             "properties" : {
@@ -316,8 +417,8 @@
       "scope" : "#/properties/model/properties/fileSelection",
       "options" : {
         "format" : "fileChooser",
-        "mountId" : "Local space",
-        "isLocal" : true
+        "isLocal" : true,
+        "mountId" : "Local space"
       }
     }, {
       "type" : "Control",
@@ -335,13 +436,24 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/columnSelection",
       "options" : {
-        "format" : "columnSelection"
+        "choicesProvider" : "org.knime.testing.node.dialog.DefaultNodeSettingsWithAllWidgets$MyColumnChoicesProvider",
+        "format" : "dropDown"
       }
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/columnFilter",
       "options" : {
-        "format" : "columnFilter"
+        "format" : "typedNameFilter",
+        "unknownValuesText" : "Any unknown column",
+        "emptyStateLabel" : "No columns in this list."
+      }
+    }, {
+      "type" : "Control",
+      "scope" : "#/properties/model/properties/flowVariableFilter",
+      "options" : {
+        "format" : "typedNameFilter",
+        "unknownValuesText" : "Any unknown variable",
+        "emptyStateLabel" : "No variables in this list."
       }
     }, {
       "type" : "Control",
@@ -389,15 +501,7 @@
               "inputKind" : { }
             }
           },
-          "columnSelection" : {
-            "type" : "object",
-            "properties" : {
-              "selected" : { },
-              "compatibleTypes" : {
-                "configPaths" : [ ]
-              }
-            }
-          },
+          "columnSelection" : { },
           "columnFilter" : {
             "type" : "object",
             "properties" : {
@@ -424,10 +528,38 @@
               "typeFilter" : {
                 "type" : "object",
                 "properties" : {
-                  "selectedTypes" : { },
-                  "typeDisplays" : {
-                    "configPaths" : [ ]
-                  }
+                  "selectedTypes" : { }
+                }
+              }
+            }
+          },
+          "flowVariableFilter" : {
+            "type" : "object",
+            "properties" : {
+              "selected" : {
+                "configPaths" : [ ]
+              },
+              "mode" : { },
+              "patternFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "pattern" : { },
+                  "isCaseSensitive" : { },
+                  "isInverted" : { }
+                }
+              },
+              "manualFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "manuallySelected" : { },
+                  "manuallyDeselected" : { },
+                  "includeUnknownColumns" : { }
+                }
+              },
+              "typeFilter" : {
+                "type" : "object",
+                "properties" : {
+                  "selectedTypes" : { }
                 }
               }
             }

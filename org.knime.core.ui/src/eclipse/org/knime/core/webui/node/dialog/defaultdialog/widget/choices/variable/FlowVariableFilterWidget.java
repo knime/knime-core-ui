@@ -44,9 +44,9 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2023 (Paul Bärnreuther): created
+ *   Mar 5, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -54,23 +54,24 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.variable.FlowVariableFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 
 /**
- * Some widgets require choices for a selection (e.g. a dropdown). Use this interface to provide an array of possible
- * values.
+ * Annotation on a {@link FlowVariableFilter} which in contrast to the generic {@link ChoicesProvider} annotation
+ * restricts the possible providers to {@link FlowVariableChoicesProvider}.
  *
- * @author Paul Bärnreuther
+ * @author Paul Baernreuther
  */
 @Retention(RUNTIME)
 @Target(FIELD)
-public @interface ChoicesProvider {
+public @interface FlowVariableFilterWidget {
 
     /**
-     * @return the provider for the list of possible values. Make the choices provider asynchronous or depend on other
-     *         settings by overriding its {@link StateProvider#init} method appropriately.
+     * Since flow variable filters filter by type, we need to be able to associate types to the names.
+     *
+     * @return a provider for column names with associated types.
      */
-    @SuppressWarnings("rawtypes")
-    Class<? extends ChoicesStateProvider> value();
+    Class<? extends FlowVariableChoicesProvider> choicesProvider();
 
 }

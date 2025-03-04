@@ -65,6 +65,8 @@ import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple.NameFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
@@ -94,6 +96,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
@@ -144,6 +148,7 @@ public final class WidgetImplementationUtil {
             DATE_INTERVAL, //
             DYNAMIC_VALUE, //
             FILE_CHOOSER, //
+            FLOW_VARIABLE_FILTER, //
             INTERVAL, //
             LEGACY_CREDENTIALS, //
             LOCAL_DATE, //
@@ -175,6 +180,8 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(Enum.class), RadioButtonsWidget.class), //
         new WidgetAnnotation(List.of(Enum.class), ValueSwitchWidget.class), //
         new WidgetAnnotation(ChoicesProvider.class), //
+        new WidgetAnnotation(List.of(ColumnFilter.class), ColumnFilterWidget.class), //
+        new WidgetAnnotation(List.of(FlowVariableFilter.class), FlowVariableFilterWidget.class), //
         new WidgetAnnotation(List.of(String[].class), SortListWidget.class), //
         new WidgetAnnotation(ButtonWidget.class), //
         new WidgetAnnotation(List.of(LocalDate.class), DateWidget.class), //
@@ -206,8 +213,9 @@ public final class WidgetImplementationUtil {
      */
     private static DefaultWidget[] defaultWidgets = new DefaultWidget[]{//
         new DefaultWidget(List.of(boolean.class, Boolean.class), DefaultWidgetType.CHECKBOX), //
-        new DefaultWidget(List.of(ColumnFilter.class), DefaultWidgetType.COLUMN_FILTER), //
         new DefaultWidget(List.of(NameFilter.class), DefaultWidgetType.NAME_FILTER), //
+        new DefaultWidget(List.of(ColumnFilter.class), DefaultWidgetType.COLUMN_FILTER), //
+        new DefaultWidget(List.of(FlowVariableFilter.class), DefaultWidgetType.FLOW_VARIABLE_FILTER), //
         new DefaultWidget(List.of(SingleSelection.class), DefaultWidgetType.SINGLE_SELECTION), //
         new DefaultWidget(List.of(LocalTime.class), DefaultWidgetType.LOCAL_TIME), //
         new DefaultWidget(List.of(LocalDate.class), DefaultWidgetType.LOCAL_DATE), //

@@ -54,11 +54,11 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.column.multiple.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple.NameFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.TypedNameFilter;
 
 /**
- * Configure the labels used in a widget including a twin-list, i.e. e.g. for a {@link ColumnFilter} or a
+ * Configure the labels used in a widget including a twin-list, i.e. e.g. for a {@link TypedNameFilter} or a
  * {@link NameFilter}.
  *
  * @author Paul Bärnreuther

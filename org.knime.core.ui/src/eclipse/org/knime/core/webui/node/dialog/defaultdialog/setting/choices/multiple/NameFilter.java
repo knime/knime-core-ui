@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
@@ -56,8 +57,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.ManualFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.util.PatternFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.NameChoicesProvider;
 
 /**
+ * A class used for filtering a list of strings. The included strings can be chosen manually or by pattern matching. Use a
+ * {@link ChoicesProvider} annotation with a {@link NameChoicesProvider} to define the choices.
  *
  * @author Paul Bärnreuther
  */
@@ -122,12 +127,11 @@ public class NameFilter implements PersistableSettings {
      * @param allCurrentChoices the non-null list of all possible names
      * @return the array of currently selected names with respect to the mode
      */
-    public String[] getSelected(final String[] allCurrentChoices) {
-        return switch (m_mode) {
-            case MANUAL -> m_manualFilter
-                .getUpdatedManuallySelectedIncludingMissing(Objects.requireNonNull(allCurrentChoices));
-            default -> m_patternFilter.getSelected(m_mode.toPatternMode(), allCurrentChoices);
-        };
+    public String[] getSelectedIncludingMissing(final String[] allCurrentChoices) {
+        if (m_mode == NameFilterMode.MANUAL) {
+            return m_manualFilter.getUpdatedManuallySelectedIncludingMissing(Objects.requireNonNull(allCurrentChoices));
+        }
+        return getNonMissingSelected(allCurrentChoices);
     }
 
     /**
@@ -137,10 +141,10 @@ public class NameFilter implements PersistableSettings {
      */
     public String[] getNonMissingSelected(final String[] allCurrentChoices) {
         if (m_mode == NameFilterMode.MANUAL) {
-            return m_manualFilter.getUpdatedManuallySelected(Objects.requireNonNull(allCurrentChoices))
-                .toArray(String[]::new);
+            final var predicate = m_manualFilter.getIsSelectedPredicate();
+            return Arrays.stream(allCurrentChoices).filter(predicate::test).toArray(String[]::new);
         } else {
-            return getSelected(allCurrentChoices);
+            return m_patternFilter.getSelected(m_mode.toPatternMode(), allCurrentChoices);
         }
     }
 }
