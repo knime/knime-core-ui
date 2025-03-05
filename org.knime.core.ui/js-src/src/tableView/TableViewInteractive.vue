@@ -1,6 +1,7 @@
 <!-- eslint-disable max-lines -->
 <script lang="ts">
 import { type PropType, inject } from "vue";
+import { consola } from "consola";
 
 import {
   type FilterConfig,
