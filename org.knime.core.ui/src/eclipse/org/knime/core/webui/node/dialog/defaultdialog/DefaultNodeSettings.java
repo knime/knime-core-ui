@@ -98,7 +98,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComboBoxWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
@@ -181,7 +180,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <td>Text Input</td>
  * <td>{@link ChoicesWidget} (twin-list)<br>
  * {@link TextInputWidget}<br>
- * {@link DateTimeWidget}<br>
  * {@link LocalFileReaderWidget}<br>
  * {@link LocalFileWriterWidget}<br>
  * {@link RichTextInputWidget}<br>

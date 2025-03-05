@@ -91,7 +91,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComboBoxWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
@@ -249,10 +248,12 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[14].scope").isString().contains("zonedDateTime");
         assertThatJson(response).inPath("$.elements[14].options.format").isString().isEqualTo("zonedDateTime");
         assertThatJson(response).inPath("$.elements[14].options.possibleValues").isArray();
+        assertThatJson(response).inPath("$.elements[15].options.showMilliseconds").isBoolean().isTrue();
 
         // tests for local date time
         assertThatJson(response).inPath("$.elements[15].scope").isString().contains("localDateTime");
         assertThatJson(response).inPath("$.elements[15].options.format").isString().isEqualTo("dateTime");
+        assertThatJson(response).inPath("$.elements[15].options.showMilliseconds").isBoolean().isTrue();
     }
 
     @Test
@@ -924,43 +925,6 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[1]").isObject().containsKey("options");
         assertThatJson(response).inPath("$.elements[1].options.icon").isString().isEqualTo("reload");
 
-    }
-
-    @Test
-    void testDateTimeWidgetDefaultOptions() {
-        class DateTimeDefaultTestSettings implements DefaultNodeSettings {
-
-            @Widget(title = "", description = "")
-            @DateTimeWidget
-            String m_dateTime;
-        }
-
-        var response = buildTestUiSchema(DateTimeDefaultTestSettings.class);
-        assertThatJson(response).inPath("$.elements[0]").isObject().containsKey("options");
-        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dateTime");
-        assertThatJson(response).inPath("$.elements[0].options.showSeconds").isBoolean().isFalse();
-        assertThatJson(response).inPath("$.elements[0].options.showMilliseconds").isBoolean().isFalse();
-        assertThatJson(response).inPath("$.elements[0].options").isObject().doesNotContainKey("timezone");
-        assertThatJson(response).inPath("$.elements[0].options").isObject().doesNotContainKey("minimum");
-        assertThatJson(response).inPath("$.elements[0].options").isObject().doesNotContainKey("maximum");
-    }
-
-    @Test
-    void testDateTimeWidgetCustomOptions() {
-        class DateTimeDefaultTestSettings implements DefaultNodeSettings {
-
-            @Widget(title = "", description = "")
-            @DateTimeWidget(showSeconds = true, showMilliseconds = true, minDate = "2023-06-12", maxDate = "2023-06-14")
-            String m_dateTime;
-        }
-
-        var response = buildTestUiSchema(DateTimeDefaultTestSettings.class);
-        assertThatJson(response).inPath("$.elements[0]").isObject().containsKey("options");
-        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dateTime");
-        assertThatJson(response).inPath("$.elements[0].options.showSeconds").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[0].options.showMilliseconds").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[0].options.minimum").isString().isEqualTo("2023-06-12");
-        assertThatJson(response).inPath("$.elements[0].options.maximum").isString().isEqualTo("2023-06-14");
     }
 
     @Test

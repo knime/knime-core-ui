@@ -116,7 +116,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesStateProvide
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComboBoxWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
@@ -236,9 +235,11 @@ final class UiSchemaOptionsGenerator {
                     break;
                 case LOCAL_DATE_TIME:
                     options.put(TAG_FORMAT, Format.LOCAL_DATE_TIME);
+                    options.put("showMilliseconds", true);
                     break;
                 case ZONED_DATE_TIME:
                     options.put(TAG_FORMAT, Format.ZONED_DATE_TIME);
+                    options.put("showMilliseconds", true);
                     setPossibleValuesForZoneIds(options);
                     break;
                 case ZONE_ID:
@@ -295,14 +296,6 @@ final class UiSchemaOptionsGenerator {
             final var textMessageProvider = m_node.getAnnotation(TextMessage.class).orElseThrow().value();
             options.put(TAG_FORMAT, Format.TEXT_MESSAGE);
             options.put("messageProvider", textMessageProvider.getName());
-        }
-
-        if (annotatedWidgets.contains(DateTimeWidget.class)) {
-
-            final var dateTimeWidget = m_node.getAnnotation(DateTimeWidget.class).orElseThrow();
-            options.put(TAG_FORMAT, Format.LOCAL_DATE_TIME);
-            selectTimeFields(options, dateTimeWidget.showSeconds(), dateTimeWidget.showMilliseconds());
-            setMinAndMaxDate(options, dateTimeWidget.minDate(), dateTimeWidget.maxDate());
         }
 
         if (annotatedWidgets.contains(DateWidget.class)) {
@@ -725,13 +718,6 @@ final class UiSchemaOptionsGenerator {
             state.put("nextState", nextState);
         }
         state.put("text", buttonState.text());
-    }
-
-    private static void selectTimeFields(final ObjectNode options, final boolean showSeconds,
-        final boolean showMilliseconds) {
-        options.put("showTime", true);
-        options.put("showSeconds", showSeconds);
-        options.put("showMilliseconds", showMilliseconds);
     }
 
     private static void setMinAndMaxDate(final ObjectNode options, final String minDate, final String maxDate) {

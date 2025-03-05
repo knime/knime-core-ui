@@ -75,7 +75,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.Tem
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComboBoxWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
@@ -175,7 +174,6 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(String[].class), ComboBoxWidget.class), //
         new WidgetAnnotation(List.of(String[].class), SortListWidget.class), //
         new WidgetAnnotation(ButtonWidget.class), //
-        new WidgetAnnotation(List.of(String.class), DateTimeWidget.class), //
         new WidgetAnnotation(List.of(LocalDate.class), DateWidget.class), //
         new WidgetAnnotation(List.of(LocalTime.class), TimeWidget.class), //
         new WidgetAnnotation(List.of(Interval.class), IntervalWidget.class), //
