@@ -1003,6 +1003,58 @@ public class UpdatesUtilTest {
 
         }
 
+        @Test
+        void testInitialTriggerWithDependenciesInAndOutsideTheArrayWithEmptyArray() {
+            class TestSettings implements DefaultNodeSettings {
+
+                static final class ElementSettings implements DefaultNodeSettings {
+                    static final class DependencyInsideArray implements Reference<String> {
+                    }
+
+                    @ValueReference(DependencyInsideArray.class)
+                    String m_dependencyInsideArray;
+
+                    static final class MyProvider implements StateProvider<String> {
+
+                        private Supplier<String> m_valueSupplier;
+
+                        @Override
+                        public void init(final StateProviderInitializer initializer) {
+                            initializer.computeBeforeOpenDialog();
+                            m_valueSupplier = initializer.getValueSupplier(DependencyInsideArray.class);
+                            initializer.getValueSupplier(DependencyOutsideArray.class);
+
+                        }
+
+                        @Override
+                        public String computeState(final DefaultNodeSettingsContext context) {
+                            return m_valueSupplier.get();
+                        }
+
+                    }
+
+                    @ValueProvider(MyProvider.class)
+                    String m_effectField;
+
+                }
+
+                static final class DependencyOutsideArray implements Reference<String> {
+                }
+
+                @ValueReference(DependencyOutsideArray.class)
+                String m_depenencyOutsideArray;
+
+                @SuppressWarnings("unused")
+                ElementSettings[] m_array = new ElementSettings[0];
+
+            }
+
+            final var settings = new TestSettings();
+            final var response = buildUpdates(settings);
+            assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
+            assertThatJson(response).inPath("$.initialUpdates[0].values").isArray().hasSize(0);
+        }
+
     }
 
     @Test

@@ -58,6 +58,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
@@ -155,13 +156,19 @@ final class InvokeTrigger<I> {
     private static record ValuesWithLevelOfNesting<I>(List<IndexedValue<I>> indexedValues, int levelsOfNesting) {
 
         static <I> ValuesWithLevelOfNesting<I> from(final List<IndexedValue<I>> values) {
-            final var levelsOfNesting =
-                values.stream().map(IndexedValue::indices).findAny().map(Collection::size).orElse(0);
+            if (values.isEmpty()) {
+                return undefinedEmptyState();
+            }
+            final var levelsOfNesting = values.get(0).indices().size();
             return new ValuesWithLevelOfNesting<>(values, levelsOfNesting);
         }
 
-        static <I> ValuesWithLevelOfNesting<I> empty() {
-            return new ValuesWithLevelOfNesting<>(List.of(new IndexedValue<I>(List.of(), null)), 0);
+        static <I> ValuesWithLevelOfNesting<I> undefinedEmptyState() {
+            return new ValuesWithLevelOfNesting<>(List.of(), 0);
+        }
+
+        boolean isUndefined() {
+            return indexedValues.isEmpty();
         }
     }
 
@@ -251,12 +258,16 @@ final class InvokeTrigger<I> {
         private ValuesWithLevelOfNesting<I> computeStateVertexState(final StateVertex stateVertex) {
             final var parentValues = stateVertex.getParents().stream().map(v -> new Pair<>(v, v.visit(this)))
                 .filter(pair -> pair.getSecond() != null).collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));
+            if (parentValues.values().stream().anyMatch(ValuesWithLevelOfNesting::isUndefined)) {
+                return ValuesWithLevelOfNesting.undefinedEmptyState();
+            }
             final var maximalParent =
-                parentValues.values().stream().max(Comparator.comparing(ValuesWithLevelOfNesting::levelsOfNesting))
-                    .orElse(ValuesWithLevelOfNesting.empty());
-
-            return new ValuesWithLevelOfNesting<>(maximalParent.indexedValues.stream().map(IndexedValue::indices)
-                .map(computeIndexedValue(stateVertex, parentValues)).toList(), maximalParent.levelsOfNesting);
+                parentValues.values().stream().max(Comparator.comparing(ValuesWithLevelOfNesting::levelsOfNesting));
+            final var indicesStream = maximalParent.map(ValuesWithLevelOfNesting::indexedValues)
+                .map(values -> values.stream().map(IndexedValue::indices)).orElseGet(() -> Stream.of(List.of()));
+            final var levelsOfNesting = maximalParent.map(ValuesWithLevelOfNesting::levelsOfNesting).orElse(0);
+            return new ValuesWithLevelOfNesting<>(
+                indicesStream.map(computeIndexedValue(stateVertex, parentValues)).toList(), levelsOfNesting);
         }
 
         private Function<List<I>, IndexedValue<I>> computeIndexedValue(final StateVertex stateVertex,
