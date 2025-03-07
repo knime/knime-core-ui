@@ -17,19 +17,19 @@ import type { allControls } from "../renderers";
 
 export const dirty = <D>(
   component: VueControl<D>,
-  valueComparator?: NoInfer<SettingComparator<D | undefined>>,
+  valueComparator?: NoInfer<() => SettingComparator<D | undefined>>,
 ): VueControl<D> =>
   defineControl((props, ctx) => {
     useDirtySetting({
       dataPath: computed(() => props.control.path),
       value: computed(() => props.control.data),
-      valueComparator,
+      valueComparator: valueComparator?.(),
     });
     return () => h(component, props, ctx.slots);
   });
 
 type ValueComparators<T extends Record<string, VueControlRenderer>> = Partial<{
-  [K in keyof T]: SettingComparator<ExtractData<T[K]> | undefined>;
+  [K in keyof T]: () => SettingComparator<ExtractData<T[K]> | undefined>;
 }>;
 
 type TwinlistData = ExtractData<typeof allControls.twinlistRenderer>;
@@ -73,8 +73,8 @@ class ColumnSelectValueComparator extends DefaultSettingComparator<
 }
 
 export const valueComparators: ValueComparators<typeof allControls> = {
-  twinlistRenderer: new TwinlistValueComparator(),
-  columnSelectRenderer: new ColumnSelectValueComparator(),
+  twinlistRenderer: () => new TwinlistValueComparator(),
+  columnSelectRenderer: () => new ColumnSelectValueComparator(),
 };
 
 export const mapDirty = mapControls((c, k) =>
