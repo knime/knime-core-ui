@@ -139,7 +139,8 @@ describe("dirty array layout", () => {
 
   it("becomes dirty when removing an element", async () => {
     await clickLastTrashButton(wrapper);
-    expect(getCurrentValues()).toStrictEqual([2, "1", "2", undefined]);
+    // We can keep the removed state since dirtyness is ensured by the array length
+    expect(getCurrentValues()).toStrictEqual([2, "1", "2", "3"]);
     expect(isClean()).toBeFalsy();
   });
 
