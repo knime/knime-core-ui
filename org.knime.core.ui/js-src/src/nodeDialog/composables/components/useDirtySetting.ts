@@ -1,11 +1,4 @@
-import {
-  type MaybeRef,
-  type Ref,
-  onMounted,
-  onUnmounted,
-  unref,
-  watch,
-} from "vue";
+import { type MaybeRef, type Ref, onMounted, unref, watch } from "vue";
 
 import type { SettingComparator } from "@knime/ui-extension-service";
 
@@ -37,12 +30,14 @@ export const useDirtySetting = <ValueType>({
     const setValue = constructSettingState<ValueType | undefined>(
       unref(dataPath),
       {
-        // eslint-disable-next-line no-undefined
-        initialValue: isInsideAnAddedArrayItem ? undefined : initialValue,
+        initialValue: isInsideAnAddedArrayItem.isAdded
+          ? // eslint-disable-next-line no-undefined
+            undefined
+          : initialValue,
         valueComparator,
       },
     );
-    if (isInsideAnAddedArrayItem) {
+    if (isInsideAnAddedArrayItem.isAdded) {
       setValue(initialValue);
       updateData(unref(dataPath));
     }
@@ -52,7 +47,7 @@ export const useDirtySetting = <ValueType>({
   const getExistingSettingStateAndSetCurrentValue = () => {
     const setValue = getSettingState<ValueType | undefined>(unref(dataPath));
     setValue?.(initialValue);
-    if (isInsideAnAddedArrayItem) {
+    if (isInsideAnAddedArrayItem.isAdded) {
       updateData(unref(dataPath));
     }
     return setValue;
@@ -71,8 +66,10 @@ export const useDirtySetting = <ValueType>({
     () => value.value,
     (newValue) => setValue?.(newValue),
   );
-  onUnmounted(() => {
-    // eslint-disable-next-line no-undefined
-    setValue?.(undefined);
-  });
+  if (isInsideAnAddedArrayItem.isAdded) {
+    isInsideAnAddedArrayItem.registerDirtyStateReset(() => {
+      // eslint-disable-next-line no-undefined
+      setValue?.(undefined);
+    });
+  }
 };

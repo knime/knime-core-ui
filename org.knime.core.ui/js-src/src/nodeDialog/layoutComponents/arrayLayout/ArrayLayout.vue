@@ -158,6 +158,7 @@ const ArrayLayout = defineComponent({
       arrayElementTitleKey: "arrayElementTitle" as const,
       editResetButtonFormat,
       elementCountBeforeAddingOne: -1,
+      clearStateMethods: new Map<string, () => void>(),
     };
   },
   computed: {
@@ -231,7 +232,22 @@ const ArrayLayout = defineComponent({
     moveItemDown(index: number) {
       this.moveDown?.(this.control.path, index)();
     },
+    clearElement(id: string | undefined) {
+      if (id) {
+        this.clearStateMethods.get(id)?.();
+        this.clearStateMethods.delete(id);
+      }
+    },
+    registerElement(id: string | undefined) {
+      return (instance: null | { clearState: () => void }) => {
+        if (id) {
+          this.clearStateMethods.set(id, () => instance?.clearState());
+        }
+      };
+    },
     deleteItem(index: number) {
+      const id = this.control.data[index]._id;
+      this.clearElement(id);
       this.removeItems?.(composePaths(this.control.path, ""), [index])();
     },
   },
@@ -248,6 +264,7 @@ export default ArrayLayout;
     >
       <ArrayLayoutItem
         :id="obj._id"
+        :ref="registerElement(obj._id)"
         :ids-record="idsRecord"
         :elements="elements"
         :array-element-title="arrayElementTitle"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, provide } from "vue";
+import { computed, onMounted, provide } from "vue";
 import { composePaths } from "@jsonforms/core";
 
 import { provideForAddedArrayLayoutElements } from "../../composables/components/useAddedArrayLayoutItem";
@@ -29,9 +29,9 @@ const props = defineProps<{
   idsRecord: IdsRecord;
 }>();
 
-if (props.hasBeenAdded) {
-  provideForAddedArrayLayoutElements();
-}
+const resetElementDirtyState = props.hasBeenAdded
+  ? provideForAddedArrayLayoutElements().resetElementDirtyState
+  : null;
 
 addIndexToStateProviders(props.id, props.index);
 addIndexToTriggers(props.id);
@@ -53,8 +53,11 @@ onMounted(() => {
   }
 });
 
-onUnmounted(() => {
-  deleteArrayItem(props.idsRecord, props.id);
+defineExpose({
+  clearState: () => {
+    deleteArrayItem(props.idsRecord, props.id);
+    resetElementDirtyState?.();
+  },
 });
 </script>
 
