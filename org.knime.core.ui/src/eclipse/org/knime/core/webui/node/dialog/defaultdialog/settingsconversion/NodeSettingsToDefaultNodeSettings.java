@@ -52,13 +52,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
+import org.knime.core.webui.node.dialog.internal.LoadWarningsUtil;
 
 /**
  * This class can be used to transform {@link NodeSettings} first to {@link DefaultNodeSettings} and then further to
@@ -68,8 +68,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSetting
  * @author Paul Bärnreuther
  */
 public final class NodeSettingsToDefaultNodeSettings {
-
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(NodeSettingsToDefaultNodeSettings.class);
 
     private final DefaultNodeSettingsContext m_context;
 
@@ -136,8 +134,7 @@ public final class NodeSettingsToDefaultNodeSettings {
         try {
             return fromNodeSettingsToDefaultNodeSettings(type, nodeSettings);
         } catch (InvalidSettingsException ex) {
-            LOGGER.error(String.format("Failed to load settings ('%s'). New settings are created for the dialog.",
-                ex.getMessage()), ex);
+            LoadWarningsUtil.warnAboutDefaultSettingsBeingUsedInstead(ex);
             return DefaultNodeSettings.createSettings(m_settingsClasses.get(type), m_context);
         }
     }
