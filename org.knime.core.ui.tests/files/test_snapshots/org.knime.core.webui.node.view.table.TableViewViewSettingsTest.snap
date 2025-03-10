@@ -432,7 +432,9 @@
         "type" : "Control",
         "scope" : "#/properties/view/properties/pageSize",
         "options" : {
-          "min" : 1.0
+          "min" : 1.0,
+          "minIsExclusive" : false,
+          "minErrorMessage" : "The value must be at least 1."
         },
         "rule" : {
           "effect" : "SHOW",
@@ -460,7 +462,11 @@
         "scope" : "#/properties/view/properties/customRowHeight",
         "options" : {
           "min" : 24.0,
-          "max" : 1000000.0
+          "minIsExclusive" : false,
+          "minErrorMessage" : "The value must be at least 24.",
+          "max" : 1000000.0,
+          "maxIsExclusive" : false,
+          "maxErrorMessage" : "The value must be less than 1000000."
         },
         "rule" : {
           "effect" : "SHOW",
@@ -479,7 +485,11 @@
         "options" : {
           "isAdvanced" : true,
           "min" : 24.0,
-          "max" : 1000000.0
+          "minIsExclusive" : false,
+          "minErrorMessage" : "The value must be at least 24.",
+          "max" : 1000000.0,
+          "maxIsExclusive" : false,
+          "maxErrorMessage" : "The value must be less than 1000000."
         },
         "rule" : {
           "effect" : "SHOW",

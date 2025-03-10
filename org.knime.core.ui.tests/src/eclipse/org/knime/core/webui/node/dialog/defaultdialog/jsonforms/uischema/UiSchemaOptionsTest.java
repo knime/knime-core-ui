@@ -102,7 +102,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget.DoubleProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
@@ -130,6 +129,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.Effe
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.BasicValidation.DynamicValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.DynamicMaxValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.DynamicMinValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.StaticMaxValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.StaticMinValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MaxLengthValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MinLengthValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.RegExValidation;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.port.FileSystemPortObject;
@@ -1381,6 +1388,27 @@ class UiSchemaOptionsTest {
 
     }
 
+    private static final class MinLenValidation implements MinLengthValidation {
+        @Override
+        public int getMinLength() {
+            return -42;
+        }
+    }
+
+    private static final class MaxLenValidation implements MaxLengthValidation {
+        @Override
+        public int getMaxLength() {
+            return 42;
+        }
+    }
+
+    private static final class CustomPatternValidation implements RegExValidation {
+        @Override
+        public String getPattern() {
+            return "a.*";
+        }
+    }
+
     @Test
     void testTextInputWidget() {
         class TextInputWidgetTestSettings implements DefaultNodeSettings {
@@ -1396,6 +1424,23 @@ class UiSchemaOptionsTest {
             @Widget(title = "", description = "")
             @TextInputWidget(optional = true)
             String m_textInputOptional;
+
+            @Widget(title = "", description = "")
+            @TextInputWidget(validations = {MinLenValidation.class})
+            String m_minLength;
+
+            @Widget(title = "", description = "")
+            @TextInputWidget(validations = {MaxLenValidation.class})
+            String m_maxLength;
+
+            @Widget(title = "", description = "")
+            @TextInputWidget(validations = {CustomPatternValidation.class})
+            String m_pattern;
+
+            @Widget(title = "", description = "")
+            @TextInputWidget(
+                validations = {MinLenValidation.class, MaxLenValidation.class, CustomPatternValidation.class})
+            String m_multipleValidations;
         }
 
         var response = buildTestUiSchema(TextInputWidgetTestSettings.class);
@@ -1408,6 +1453,22 @@ class UiSchemaOptionsTest {
 
         assertThatJson(response).inPath("$.elements[2].scope").isString().contains("textInputOptional");
         assertThatJson(response).inPath("$.elements[2].options.hideOnNull").isBoolean().isTrue();
+
+        assertThatJson(response).inPath("$.elements[3].scope").isString().contains("minLength");
+        assertThatJson(response).inPath("$.elements[3].options.minLength").isNumber()
+            .isEqualTo(BigDecimal.valueOf(-42));
+
+        assertThatJson(response).inPath("$.elements[4].scope").isString().contains("maxLength");
+        assertThatJson(response).inPath("$.elements[4].options.maxLength").isNumber().isEqualTo(BigDecimal.valueOf(42));
+
+        assertThatJson(response).inPath("$.elements[5].scope").isString().contains("pattern");
+        assertThatJson(response).inPath("$.elements[5].options.pattern").isString().isEqualTo("a.*");
+
+        assertThatJson(response).inPath("$.elements[6].scope").isString().contains("multipleValidations");
+        assertThatJson(response).inPath("$.elements[6].options.minLength").isNumber()
+            .isEqualTo(BigDecimal.valueOf(-42));
+        assertThatJson(response).inPath("$.elements[6].options.maxLength").isNumber().isEqualTo(BigDecimal.valueOf(42));
+        assertThatJson(response).inPath("$.elements[6].options.pattern").isString().isEqualTo("a.*");
     }
 
     @Test
@@ -1483,7 +1544,37 @@ class UiSchemaOptionsTest {
 
     }
 
-    static final class TestProvider implements DoubleProvider {
+    static final class CustomStaticMinValidation implements StaticMinValidation {
+
+        @Override
+        public Double getMin() {
+            return -42.0;
+        }
+    }
+
+    static final class CustomStaticMaxValidation implements StaticMaxValidation {
+
+        @Override
+        public boolean isExclusive() {
+            return true;
+        }
+
+        @Override
+        public Double getMax() {
+            return 42.0;
+        }
+    }
+
+    interface TestProvider extends DynamicValidation<Double> {
+
+    }
+
+    static final class CustomDynamicMinValidation implements DynamicMinValidation {
+
+        @Override
+        public boolean isExclusive() {
+            return true;
+        }
 
         @Override
         public void init(final StateProviderInitializer initializer) {
@@ -1492,7 +1583,22 @@ class UiSchemaOptionsTest {
         }
 
         @Override
-        public Double computeState(final DefaultNodeSettingsContext context) {
+        public Double computeStateValue(final DefaultNodeSettingsContext context) {
+            throw new IllegalStateException("This method should never be called");
+        }
+
+    }
+
+    static final class CustomDynamicMaxValidation implements DynamicMaxValidation {
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            throw new IllegalStateException("This method should never be called");
+
+        }
+
+        @Override
+        public Double computeStateValue(final DefaultNodeSettingsContext context) {
             throw new IllegalStateException("This method should never be called");
         }
 
@@ -1500,22 +1606,23 @@ class UiSchemaOptionsTest {
 
     @Test
     void testNumberInputWidget() {
+
         class NumberInputWidgetTestSettings implements DefaultNodeSettings {
 
             @Widget(title = "", description = "")
-            @NumberInputWidget(min = -42)
+            @NumberInputWidget(validations = {CustomStaticMinValidation.class})
             double m_numberInputMin;
 
             @Widget(title = "", description = "")
-            @NumberInputWidget(max = 42)
+            @NumberInputWidget(validations = {CustomStaticMaxValidation.class})
             int m_numberInputMax;
 
             @Widget(title = "", description = "")
-            @NumberInputWidget(minProvider = TestProvider.class)
+            @NumberInputWidget(validations = {CustomDynamicMinValidation.class})
             double m_numberInputMinProvider;
 
             @Widget(title = "", description = "")
-            @NumberInputWidget(maxProvider = TestProvider.class)
+            @NumberInputWidget(validations = {CustomDynamicMaxValidation.class})
             int m_numberInputMaxProvider;
         }
 
@@ -1523,17 +1630,25 @@ class UiSchemaOptionsTest {
 
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("numberInputMin");
         assertThatJson(response).inPath("$.elements[0].options.min").isNumber().isEqualTo(BigDecimal.valueOf(-42.0));
+        assertThatJson(response).inPath("$.elements[0].options.minIsExclusive").isBoolean().isFalse();
+        assertThatJson(response).inPath("$.elements[0].options.minErrorMessage").isString()
+            .isEqualTo("The value must be at least -42.");
 
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("numberInputMax");
         assertThatJson(response).inPath("$.elements[1].options.max").isNumber().isEqualTo(BigDecimal.valueOf(42.0));
+        assertThatJson(response).inPath("$.elements[1].options.maxIsExclusive").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[1].options.maxErrorMessage").isString()
+            .isEqualTo("The value must not exceed 42.");
 
         assertThatJson(response).inPath("$.elements[2].scope").isString().contains("numberInputMinProvider");
         assertThatJson(response).inPath("$.elements[2].options.minProvider").isString()
-            .isEqualTo(TestProvider.class.getName());
+            .isEqualTo(CustomDynamicMinValidation.class.getName());
+        assertThatJson(response).inPath("$.elements[2].options.minIsExclusive").isBoolean().isTrue();
 
         assertThatJson(response).inPath("$.elements[3].scope").isString().contains("numberInputMaxProvider");
         assertThatJson(response).inPath("$.elements[3].options.maxProvider").isString()
-            .isEqualTo(TestProvider.class.getName());
+            .isEqualTo(CustomDynamicMaxValidation.class.getName());
+        assertThatJson(response).inPath("$.elements[3].options.maxIsExclusive").isBoolean().isFalse();
     }
 
 }

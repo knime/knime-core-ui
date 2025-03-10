@@ -44,36 +44,64 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2023 (Paul Bärnreuther): created
+ *   7 Mar 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.validation;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.DynamicMinValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.StaticMinValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
- * Annotate a number setting with this in order to provide validation instructions.
  *
- * @author Paul Bärnreuther
+ * This interface is used to define a common root for validations and their respective error messages.
+ *
+ * @author Robin Gerling
+ * @param <T> The type of the value used for the validation
+ * @noimplement This interface is not intended to be implemented by clients.
+ * @noextend This interface is not intended to be extended by clients.
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface NumberInputWidget {
+public interface BasicValidation<T> {
 
     /**
-     * Add this field to define validation instructions for the number setting. See {@link NumberInputWidgetValidation}
-     * for possible validations such as validating the input against a static/dynamic minimum
-     * ({@link StaticMinValidation}, {@link DynamicMinValidation}).
-     *
-     * @return the validations to apply to the input
+     * @param value the value against which the input value is validated
+     * @return the error message shown if the validation fails
      */
-    Class<? extends NumberInputWidgetValidation>[] validations() default {};
+    String getErrorMessage(T value);
+
+    /**
+     * @param <S> The type of the value provided against which the input value is validated
+     * @param value the value provided against which the input value is validated
+     * @param errorMessage the error message shown in the ui when the validation fails
+     */
+    public record ProvidedValidationState<S>(S value, String errorMessage) {
+    }
+
+    /**
+     * This interface is used to define a common root for dynamic validations and their respective error messages. For
+     * dynamic validations, the value to validate against depends on the current context of the node. an optional
+     *
+     * @param <U> The type of the value used for the validation
+     * @noimplement This interface is not intended to be implemented by clients.
+     * @noextend This interface is not intended to be extended by clients.
+     */
+    interface DynamicValidation<U> extends BasicValidation<U>, StateProvider<ProvidedValidationState<U>> {
+
+        /**
+         * Do not override this default implementation, use {@link #computeStateValue(DefaultNodeSettingsContext)}
+         * instead to provide the value to validate against based on the context.
+         */
+        @Override
+        default ProvidedValidationState<U> computeState(final DefaultNodeSettingsContext context) {
+            final var value = computeStateValue(context);
+            return new ProvidedValidationState<>(value, getErrorMessage(value));
+        }
+
+        /**
+         * @param context the current context of the dialog
+         * @return the provided value to validate against
+         */
+        U computeStateValue(DefaultNodeSettingsContext context);
+
+    }
 
 }

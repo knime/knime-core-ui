@@ -77,7 +77,6 @@ import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetI
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.partitionWidgetAnnotationsByApplicability;
 
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collection;
@@ -126,7 +125,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget.DoubleProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
@@ -154,6 +152,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBoolean
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.WidgetAnnotation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.DynamicMaxValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.DynamicMinValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.StaticMaxValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.StaticMinValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MaxLengthValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MinLengthValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.RegExValidation;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
@@ -547,14 +554,14 @@ final class UiSchemaOptionsGenerator {
             if (textInputWidget.placeholderProvider() != NoopStringProvider.class) {
                 options.put("placeholderProvider", textInputWidget.placeholderProvider().getName());
             }
+            Stream.of(textInputWidget.validations())
+                .forEach(validationClass -> addTextInputWidgetValidationOptions(validationClass, options));
         }
 
         if (annotatedWidgets.contains(NumberInputWidget.class)) {
             final var numberInputWidget = m_node.getAnnotation(NumberInputWidget.class).orElseThrow();
-            addDoubleOption(options, numberInputWidget.min(), "min");
-            addDoubleOption(options, numberInputWidget.max(), "max");
-            addDoubleProviderOption(options, numberInputWidget.minProvider(), "minProvider");
-            addDoubleProviderOption(options, numberInputWidget.maxProvider(), "maxProvider");
+            Stream.of(numberInputWidget.validations())
+                .forEach(validationClass -> addNumberInputWidgetValidationOptions(validationClass, options));
         }
 
         if (m_node instanceof ArrayParentNode<WidgetGroup> arrayWidgetNode) {
@@ -795,19 +802,6 @@ final class UiSchemaOptionsGenerator {
         return partitionedWidgetAnnotations.get(true).stream().map(WidgetAnnotation::widgetAnnotation).toList();
     }
 
-    private static void addDoubleOption(final ObjectNode options, final double value, final String key) {
-        if (!Double.isNaN(value)) {
-            options.put(key, BigDecimal.valueOf(value));
-        }
-    }
-
-    private static void addDoubleProviderOption(final ObjectNode options,
-        final Class<? extends DoubleProvider> doubleProvider, final String key) {
-        if (!doubleProvider.equals(DoubleProvider.class)) {
-            options.put(key, doubleProvider.getName());
-        }
-    }
-
     private void applyArrayLayoutOptions(final ObjectNode options, final Tree<WidgetGroup> elementTree) {
         /**
          * We need a persistent async choices adder in case of settings nested inside an array layout, since the
@@ -882,5 +876,45 @@ final class UiSchemaOptionsGenerator {
     static boolean hasElementCheckboxWidgetAnnotation(final TreeNode<WidgetGroup> field) {
         return field.getPossibleAnnotations().contains(InternalArrayWidget.ElementCheckboxWidget.class)
             && field.getAnnotation(InternalArrayWidget.ElementCheckboxWidget.class).isPresent();
+    }
+
+    private static void addNumberInputWidgetValidationOptions(
+        final Class<? extends NumberInputWidgetValidation> validationClass, final ObjectNode options) {
+        final var validationInstance = InstantiationUtil.createInstance(validationClass);
+        if (validationInstance instanceof StaticMinValidation staticMinVal) {
+            final var min = staticMinVal.getMin();
+            options.put("min", min);
+            options.put("minIsExclusive", staticMinVal.isExclusive());
+            options.put("minErrorMessage", staticMinVal.getErrorMessage(min));
+        } else if (validationInstance instanceof StaticMaxValidation staticMaxVal) {
+            final var max = staticMaxVal.getMax();
+            options.put("max", max);
+            options.put("maxIsExclusive", staticMaxVal.isExclusive());
+            options.put("maxErrorMessage", staticMaxVal.getErrorMessage(max));
+        } else if (validationInstance instanceof DynamicMinValidation dynMinVal) {
+            options.put("minIsExclusive", dynMinVal.isExclusive());
+            options.put("minProvider", validationClass.getName());
+        } else if (validationInstance instanceof DynamicMaxValidation dynMaxVal) {
+            options.put("maxIsExclusive", dynMaxVal.isExclusive());
+            options.put("maxProvider", validationClass.getName());
+        }
+    }
+
+    private static void addTextInputWidgetValidationOptions(
+        final Class<? extends TextInputWidgetValidation> validationClass, final ObjectNode options) {
+        final var validationInstance = InstantiationUtil.createInstance(validationClass);
+        if (validationInstance instanceof RegExValidation regexValidation) {
+            final var pattern = regexValidation.getPattern();
+            options.put("pattern", pattern);
+            options.put("patternErrorMessage", regexValidation.getErrorMessage(pattern));
+        } else if (validationInstance instanceof MinLengthValidation minLengthValidation) {
+            final var minLength = minLengthValidation.getMinLength();
+            options.put("minLength", minLength);
+            options.put("minLengthErrorMessage", minLengthValidation.getErrorMessage(minLength));
+        } else if (validationInstance instanceof MaxLengthValidation maxLengthValidation) {
+            final var maxLength = maxLengthValidation.getMaxLength();
+            options.put("maxLength", maxLength);
+            options.put("maxLengthErrorMessage", maxLengthValidation.getErrorMessage(maxLength));
+        }
     }
 }
