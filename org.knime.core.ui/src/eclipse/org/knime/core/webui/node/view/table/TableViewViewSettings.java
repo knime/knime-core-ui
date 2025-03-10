@@ -79,6 +79,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 import org.knime.core.webui.node.view.table.TableViewLayout.DataSection;
 import org.knime.core.webui.node.view.table.TableViewLayout.InteractivitySection;
 import org.knime.core.webui.node.view.table.TableViewLayout.ViewSection;
@@ -209,7 +212,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
      * The page size, i.e., number of rows to be displayed.
      */
     @Widget(title = "Page size", description = "Select the amount of rows shown per page")
-    @NumberInputWidget(min = 1)
+    @NumberInputWidget(validations = {IsPositiveIntegerValidation.class})
     @Migrate(loadDefaultIfAbsent = true)
     @Layout(ViewSection.class)
     @Effect(predicate = EnablePagination.class, type = EffectType.SHOW)
@@ -308,11 +311,25 @@ public class TableViewViewSettings implements DefaultNodeSettings {
         }
     }
 
+    static final class RowHeightMinValidation implements MinValidation {
+        @Override
+        public Double getMin() {
+            return 24.0;
+        }
+    }
+
+    static final class RowHeightMaxValidation implements MaxValidation {
+        @Override
+        public Double getMax() {
+            return 1000000.0;
+        }
+    }
+
     /**
      * The custom row height used when m_rowHeightMode is custom
      */
     @Widget(title = "Custom row height", description = "Set the initial height of the rows.")
-    @NumberInputWidget(min = 24, max = 1000000)
+    @NumberInputWidget(validations = {RowHeightMinValidation.class, RowHeightMaxValidation.class})
     @Layout(ViewSection.class)
     @Migration(CustomRowHeightPersistor.class)
     @Effect(predicate = RowHeightMode.IsCustom.class, type = EffectType.SHOW)
@@ -342,7 +359,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
      */
     @Widget(title = "Maximum auto row height",
         description = "Set the maximum height of the rows while using row height “Auto”.", advanced = true)
-    @NumberInputWidget(min = 24, max = 1000000)
+    @NumberInputWidget(validations = {RowHeightMinValidation.class, RowHeightMaxValidation.class})
     @Layout(ViewSection.class)
     @Migrate(loadDefaultIfAbsent = true)
     @Effect(predicate = RowHeightMode.IsAuto.class, type = EffectType.SHOW)

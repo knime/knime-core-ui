@@ -432,7 +432,14 @@
         "type" : "Control",
         "scope" : "#/properties/view/properties/pageSize",
         "options" : {
-          "min" : 1.0
+          "validations" : [ {
+            "id" : "min",
+            "parameters" : {
+              "value" : 1.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 1."
+          } ]
         },
         "rule" : {
           "effect" : "SHOW",
@@ -459,8 +466,21 @@
         "type" : "Control",
         "scope" : "#/properties/view/properties/customRowHeight",
         "options" : {
-          "min" : 24.0,
-          "max" : 1000000.0
+          "validations" : [ {
+            "id" : "min",
+            "parameters" : {
+              "value" : 24.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 24."
+          }, {
+            "id" : "max",
+            "parameters" : {
+              "value" : 1000000.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be less than 1000000."
+          } ]
         },
         "rule" : {
           "effect" : "SHOW",
@@ -478,8 +498,21 @@
         "scope" : "#/properties/view/properties/maxAutoRowHeight",
         "options" : {
           "isAdvanced" : true,
-          "min" : 24.0,
-          "max" : 1000000.0
+          "validations" : [ {
+            "id" : "min",
+            "parameters" : {
+              "value" : 24.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be at least 24."
+          }, {
+            "id" : "max",
+            "parameters" : {
+              "value" : 1000000.0,
+              "isExclusive" : false
+            },
+            "errorMessage" : "The value must be less than 1000000."
+          } ]
         },
         "rule" : {
           "effect" : "SHOW",

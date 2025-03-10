@@ -76,7 +76,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modific
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.WidgetGroupModifier;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 
@@ -338,32 +337,6 @@ class JsonFormsSchemaUtilTest {
         }
 
         testSettings(EnumTestSettingDescription.class);
-    }
-
-    private static class ValidatedStringSetting implements WidgetGroup {
-        private static String SNAPSHOT = "{"//
-            + "\"testMinLength\":{\"type\":\"string\",\"minLength\":0},"//
-            + "\"testMaxLength\":{\"type\":\"string\",\"maxLength\":100},"//
-            + "\"testPattern\":{\"type\":\"string\",\"pattern\":\"a.*\"},"//
-            + "\"testAll\":{\"type\":\"string\",\"minLength\":0,\"maxLength\":100,\"pattern\":\"a.*\"}"//
-            + "}";
-
-        @TextInputWidget(minLength = 0)
-        public String testMinLength;
-
-        @TextInputWidget(maxLength = 100)
-        public String testMaxLength;
-
-        @TextInputWidget(pattern = "a.*")
-        public String testPattern;
-
-        @TextInputWidget(minLength = 0, maxLength = 100, pattern = "a.*")
-        public String testAll;
-    }
-
-    @Test
-    void testStringValidationSetting() throws JsonProcessingException {
-        testSettings(ValidatedStringSetting.class);
     }
 
     private static class ContainerSetting implements WidgetGroup {

@@ -94,6 +94,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -893,7 +894,7 @@ public class UpdatesUtilTest {
 
         }
 
-        static final class MyDoubleProvider implements NumberInputWidget.DoubleProvider {
+        static final class MyDynamicMinValidation implements StateProvider<MinValidation> {
 
             @Override
             public void init(final StateProviderInitializer initializer) {
@@ -901,7 +902,7 @@ public class UpdatesUtilTest {
             }
 
             @Override
-            public Double computeState(final DefaultNodeSettingsContext context) {
+            public MinValidation computeState(final DefaultNodeSettingsContext context) {
                 throw new IllegalStateException("Should not be called in this test");
             }
 
@@ -911,7 +912,7 @@ public class UpdatesUtilTest {
         void testNumberInputProvider() {
             class TestSettings implements DefaultNodeSettings {
 
-                @NumberInputWidget(minProvider = MyDoubleProvider.class)
+                @NumberInputWidget(validationProviders = {MyDynamicMinValidation.class})
                 double m_numberInput = 5;
             }
 

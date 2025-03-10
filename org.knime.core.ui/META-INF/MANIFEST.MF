@@ -53,6 +53,7 @@ Export-Package: org.knime.core.ui;x-internal:=true,
  org.knime.core.webui.node.dialog.defaultdialog.widget.handler;x-internal=true,
  org.knime.core.webui.node.dialog.defaultdialog.widget.internal;x-internal=true,
  org.knime.core.webui.node.dialog.defaultdialog.widget.updates;x-internal=true,
+ org.knime.core.webui.node.dialog.defaultdialog.widget.validation;x-internal=true,
  org.knime.core.webui.node.dialog.internal;x-friends:="org.knime.ai.assistant.java",
  org.knime.core.webui.node.dialog.kai;
   x-friends:="org.knime.python3.nodes,
