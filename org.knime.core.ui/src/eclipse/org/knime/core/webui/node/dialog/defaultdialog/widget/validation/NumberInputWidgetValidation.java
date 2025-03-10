@@ -44,71 +44,92 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2023 (Paul Bärnreuther): created
+ *   7 Mar 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.validation;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.BasicValidation;
+import java.math.BigDecimal;
 
 /**
- * Annotate a number setting with this in order to provide settings and validation instructions.
  *
- * @author Paul Bärnreuther
+ *
+ * @author Robin Gerling
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
+ * @noextend This interface is not intended to be extended by clients.
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface NumberInputWidget {
+public interface NumberInputWidgetValidation extends BasicValidation<Double> {
 
     /**
-     * Use {@link #minProvider()} if the minimum value depends on the context of the node.
      *
-     * @return an optional minimum value for a numeric field
+     * @return true when the validation should use an exclusive bound, else an inclusive bound is used
      */
-    double min() default Double.NaN;
-
-    /**
-     * Takes precedence over {@link #min()} if provided. No minimum is set if the DoubleProvider returns
-     * {@code Double.NaN}.
-     *
-     * @return an optional DoubleProvider that provides the min value given the current context of the node
-     */
-    Class<? extends DoubleProvider> minProvider() default DoubleProvider.class;
-
-    /**
-     * Use {@link #maxProvider()} if the maximum value depends on the context of the node.
-     *
-     * @return an optional maximum value for a numeric field
-     */
-    double max() default Double.NaN;
-
-    /**
-     * Takes precedence over {@link #max()} if provided. No maximum is set if the DoubleProvider returns
-     * {@code Double.NaN}.
-     *
-     * @return an optional DoubleProvider that provides the max value given the current context of the node
-     */
-    Class<? extends DoubleProvider> maxProvider() default DoubleProvider.class;
-
-    /**
-     * Provides a double value given the context of the node.
-     *
-     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
-     */
-    interface DoubleProvider extends StateProvider<Double> {
+    default boolean isExclusive() {
+        return false;
     }
 
     /**
-     * Add this field to define validation instructions for the number setting.
      *
-     * @return the validations to apply to the input
+     * @noimplement This interface is not intended to be implemented by clients.
+     * @noextend This interface is not intended to be extended by clients.
      */
-    Class<? extends BasicValidation>[] validations() default {};
+    interface MinValidation extends NumberInputWidgetValidation {
 
+        @Override
+        default String getErrorMessage(final Double value) {
+            return String.format(
+                isExclusive() ? "The value must be greater than %s." : "The value must be at least %s.",
+                new BigDecimal(value).stripTrailingZeros().toPlainString());
+        }
+
+    }
+
+    /**
+     *
+     * @noimplement This interface is not intended to be implemented by clients.
+     * @noextend This interface is not intended to be extended by clients.
+     */
+    interface MaxValidation extends NumberInputWidgetValidation {
+
+        @Override
+        default String getErrorMessage(final Double value) {
+            return String.format(isExclusive() ? "The value must not exceed %s." : "The value must be less than %s.",
+                new BigDecimal(value).stripTrailingZeros().toPlainString());
+        }
+
+    }
+
+    /**
+    *
+    *
+    */
+    interface StaticMinValidation extends MinValidation {
+
+        Double getMin();
+
+    }
+
+    /**
+    *
+    *
+    */
+    interface DynamicMinValidation extends MinValidation, DynamicValidation<Double> {
+    }
+
+    /**
+    *
+    *
+    */
+    interface StaticMaxValidation extends MaxValidation {
+
+        Double getMax();
+
+    }
+
+    /**
+    *
+    *
+    */
+    interface DynamicMaxValidation extends MaxValidation, DynamicValidation<Double> {
+    }
 }

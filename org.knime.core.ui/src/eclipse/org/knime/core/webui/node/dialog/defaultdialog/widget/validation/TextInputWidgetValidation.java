@@ -44,71 +44,101 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2023 (Paul Bärnreuther): created
+ *   7 Mar 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget;
-
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.BasicValidation;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.validation;
 
 /**
- * Annotate a number setting with this in order to provide settings and validation instructions.
  *
- * @author Paul Bärnreuther
+ *
+ * @author Robin Gerling
+ * @param <T>
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
+ * @noextend This interface is not intended to be extended by clients.
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface NumberInputWidget {
+public interface TextInputWidgetValidation<T> extends BasicValidation<T> {
 
     /**
-     * Use {@link #minProvider()} if the minimum value depends on the context of the node.
      *
-     * @return an optional minimum value for a numeric field
+     *
      */
-    double min() default Double.NaN;
+    interface PatternValidation extends TextInputWidgetValidation<String> {
 
-    /**
-     * Takes precedence over {@link #min()} if provided. No minimum is set if the DoubleProvider returns
-     * {@code Double.NaN}.
-     *
-     * @return an optional DoubleProvider that provides the min value given the current context of the node
-     */
-    Class<? extends DoubleProvider> minProvider() default DoubleProvider.class;
+        /**
+         *
+         * @return the pattern that the value of the input field must conform to
+         */
+        String getPattern();
 
-    /**
-     * Use {@link #maxProvider()} if the maximum value depends on the context of the node.
-     *
-     * @return an optional maximum value for a numeric field
-     */
-    double max() default Double.NaN;
-
-    /**
-     * Takes precedence over {@link #max()} if provided. No maximum is set if the DoubleProvider returns
-     * {@code Double.NaN}.
-     *
-     * @return an optional DoubleProvider that provides the max value given the current context of the node
-     */
-    Class<? extends DoubleProvider> maxProvider() default DoubleProvider.class;
-
-    /**
-     * Provides a double value given the context of the node.
-     *
-     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
-     */
-    interface DoubleProvider extends StateProvider<Double> {
+        @Override
+        default String getErrorMessage(final String value) {
+            return String.format("The string must match the pattern: %s", value);
+        }
     }
 
     /**
-     * Add this field to define validation instructions for the number setting.
      *
-     * @return the validations to apply to the input
+     *
      */
-    Class<? extends BasicValidation>[] validations() default {};
+    static final class IsNotBlankValidation implements PatternValidation {
 
+        @Override
+        public String getErrorMessage(final String value) {
+            return "The field cannot be blank (it must contain at least one non-space character).";
+        }
+
+        @Override
+        public String getPattern() {
+            return ".*\\S+.*";
+        }
+
+    }
+
+    /**
+     *
+     *
+     */
+    static final class IsNotEmptyValidation implements PatternValidation {
+
+        @Override
+        public String getErrorMessage(final String value) {
+            return "The field cannot be empty (it must contain at least one character).";
+        }
+
+        @Override
+        public String getPattern() {
+            return ".+";
+        }
+    }
+
+    /**
+     *
+     *
+     */
+    interface MinLengthValidation extends TextInputWidgetValidation<Integer> {
+
+        int getMinLength();
+
+        @Override
+        default String getErrorMessage(final Integer value) {
+            return String.format("The string must be at least %d characters long.", value);
+        }
+
+    }
+
+    /**
+     *
+     *
+     */
+    interface MaxLengthValidation extends TextInputWidgetValidation<Integer> {
+
+        int getMaxLength();
+
+        @Override
+        default String getErrorMessage(final Integer value) {
+            return String.format("The string must not exceed %d characters.", value);
+        }
+
+    }
 }

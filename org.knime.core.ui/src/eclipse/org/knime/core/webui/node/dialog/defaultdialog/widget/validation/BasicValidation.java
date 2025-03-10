@@ -44,71 +44,55 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2023 (Paul Bärnreuther): created
+ *   7 Mar 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.validation;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.BasicValidation;
 
 /**
- * Annotate a number setting with this in order to provide settings and validation instructions.
  *
- * @author Paul Bärnreuther
+ * @author Robin Gerling
+ * @param <T> The type of the value used for the validation
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface NumberInputWidget {
+public interface BasicValidation<T> {
 
     /**
-     * Use {@link #minProvider()} if the minimum value depends on the context of the node.
      *
-     * @return an optional minimum value for a numeric field
+     *
+     * @param value the value used for the validation
+     * @return the error message shown below the input
      */
-    double min() default Double.NaN;
+    String getErrorMessage(T value);
 
     /**
-     * Takes precedence over {@link #min()} if provided. No minimum is set if the DoubleProvider returns
-     * {@code Double.NaN}.
      *
-     * @return an optional DoubleProvider that provides the min value given the current context of the node
+     * @param <S> The type of the value provided by the state provider
+     * @param value the value provided by the state provider
+     * @param errorMessage the error message provided by the state provider
      */
-    Class<? extends DoubleProvider> minProvider() default DoubleProvider.class;
-
-    /**
-     * Use {@link #maxProvider()} if the maximum value depends on the context of the node.
-     *
-     * @return an optional maximum value for a numeric field
-     */
-    double max() default Double.NaN;
-
-    /**
-     * Takes precedence over {@link #max()} if provided. No maximum is set if the DoubleProvider returns
-     * {@code Double.NaN}.
-     *
-     * @return an optional DoubleProvider that provides the max value given the current context of the node
-     */
-    Class<? extends DoubleProvider> maxProvider() default DoubleProvider.class;
-
-    /**
-     * Provides a double value given the context of the node.
-     *
-     * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
-     */
-    interface DoubleProvider extends StateProvider<Double> {
+    public record ProvidedValidationState<S>(S value, String errorMessage) {
     }
 
     /**
-     * Add this field to define validation instructions for the number setting.
      *
-     * @return the validations to apply to the input
+     * @param <U> The type of the value used for the validation
      */
-    Class<? extends BasicValidation>[] validations() default {};
+    interface DynamicValidation<U> extends BasicValidation<U>, StateProvider<ProvidedValidationState<U>> {
+
+        @Override
+        default ProvidedValidationState<U> computeState(final DefaultNodeSettingsContext context) {
+            final var value = computeStateValue(context);
+            return new ProvidedValidationState<>(value, getErrorMessage(value));
+        }
+
+        /**
+         * @param context
+         * @return
+         */
+        U computeStateValue(DefaultNodeSettingsContext context);
+
+    }
 
 }

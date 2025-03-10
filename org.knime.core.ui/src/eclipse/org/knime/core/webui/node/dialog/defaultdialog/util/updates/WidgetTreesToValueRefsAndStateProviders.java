@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ClassUtils;
@@ -88,6 +89,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.BasicValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.BasicValidation.DynamicValidation;
 
 final class WidgetTreesToValueRefsAndStateProviders {
 
@@ -138,7 +141,7 @@ final class WidgetTreesToValueRefsAndStateProviders {
     }
 
     interface UiStateProviderSpec {
-        Optional<Class<? extends StateProvider>> getUiStateProvider(TreeNode<WidgetGroup> node);
+        Optional<List<Class<? extends StateProvider>>> getUiStateProviders(TreeNode<WidgetGroup> node);
     }
 
     /**
@@ -160,7 +163,7 @@ final class WidgetTreesToValueRefsAndStateProviders {
     ) implements UiStateProviderSpec {
 
         @Override
-        public Optional<Class<? extends StateProvider>> getUiStateProvider(final TreeNode<WidgetGroup> node) {
+        public Optional<List<Class<? extends StateProvider>>> getUiStateProviders(final TreeNode<WidgetGroup> node) {
             if (!fieldType.isAssignableFrom(node.getType())) {
                 return Optional.empty();
             }
@@ -168,7 +171,7 @@ final class WidgetTreesToValueRefsAndStateProviders {
                 && node.getAnnotation(ignoreIfThisAnnotationIsPresent).isPresent()) {
                 return Optional.empty();
             }
-            return Optional.of(uiStateProvider);
+            return Optional.of(List.of(uiStateProvider));
         }
 
     }
@@ -192,7 +195,7 @@ final class WidgetTreesToValueRefsAndStateProviders {
     ) implements UiStateProviderSpec {
 
         @Override
-        public Optional<Class<? extends StateProvider>> getUiStateProvider(final TreeNode<WidgetGroup> node) {
+        public Optional<List<Class<? extends StateProvider>>> getUiStateProviders(final TreeNode<WidgetGroup> node) {
             if (!node.getPossibleAnnotations().contains(annotationClass)) {
                 return Optional.empty();
             }
@@ -204,7 +207,43 @@ final class WidgetTreesToValueRefsAndStateProviders {
             if (ignoredDefaultParameter != null && stateProvider.equals(ignoredDefaultParameter)) {
                 return Optional.empty();
             }
-            return Optional.of(stateProvider);
+            return Optional.of(List.of(stateProvider));
+
+        }
+
+    }
+
+    /**
+     * A class that defines a ui state which is given by an annotation.
+     */
+    private record UiStateProviderListAnnotationSpec<T extends Annotation, V extends BasicValidation>( //
+        /**
+         * The annotation class that defines the ui state
+         */
+        Class<T> annotationClass, //
+        /**
+         * The parameter of the provider that needs to be instantiated to retrieve the state
+         */
+        Function<T, Class<? extends V>[]> getValidationParameter
+
+    ) implements UiStateProviderSpec {
+
+        @Override
+        public Optional<List<Class<? extends StateProvider>>> getUiStateProviders(final TreeNode<WidgetGroup> node) {
+            if (!node.getPossibleAnnotations().contains(annotationClass)) {
+                return Optional.empty();
+            }
+            final var annotation = node.getAnnotation(annotationClass);
+            if (annotation.isEmpty()) {
+                return Optional.empty();
+            }
+            final var validationClasses = getValidationParameter.apply(annotation.get());
+
+            final List<Class<? extends StateProvider>> validationStateProviderClasses = Stream.of(validationClasses)
+                .filter(validationClass -> DynamicValidation.class.isAssignableFrom(validationClass))
+                .map(validationClass -> (Class<? extends StateProvider>)validationClass).collect(Collectors.toList());
+            return validationStateProviderClasses.isEmpty() ? Optional.empty()
+                : Optional.of(validationStateProviderClasses);
 
         }
 
@@ -291,13 +330,21 @@ final class WidgetTreesToValueRefsAndStateProviders {
                 DoubleProvider.class //
             ));
 
-    static final List<UiStateProviderSpec> uiStateProviderSpecs = Stream.<UiStateProviderSpec> concat(//
+    private static List<UiStateProviderListAnnotationSpec<? extends Annotation, ? extends BasicValidation>> uiStateProviderListAnnotationSpecs =
+        List.of( //
+            new UiStateProviderListAnnotationSpec<>(NumberInputWidget.class, NumberInputWidget::validations), //
+            new UiStateProviderListAnnotationSpec<>(TextInputWidget.class, TextInputWidget::validations) //
+        );
+
+    static final List<UiStateProviderSpec> uiStateProviderSpecs = Stream.<UiStateProviderSpec> concat(Stream.concat(//
         uiStateProviderFieldTypeSpecs.stream(), //
-        uiStateProviderAnnotationSpecs.stream()//
+        uiStateProviderAnnotationSpecs.stream()), //
+        uiStateProviderListAnnotationSpecs.stream() //
     ).toList();
 
     private void addUiStateProviderForNode(final TreeNode<WidgetGroup> node) {
-        uiStateProviderSpecs.stream().forEach(spec -> spec.getUiStateProvider(node).ifPresent(m_uiStateProviders::add));
+        uiStateProviderSpecs.stream()
+            .forEach(spec -> spec.getUiStateProviders(node).ifPresent(m_uiStateProviders::addAll));
     }
 
     private void addWidgetValueAnnotationValueRefAndValueProviderForNode(final TreeNode<WidgetGroup> node) {

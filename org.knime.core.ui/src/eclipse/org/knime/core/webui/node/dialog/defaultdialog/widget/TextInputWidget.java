@@ -56,9 +56,10 @@ import java.lang.annotation.Target;
 
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.BasicValidation;
 
 /**
- * Annotate a {@link String} setting with this in order to provide validation instructions.
+ * Annotate a {@link String} setting with this in order to provide settings and validation instructions.
  *
  * @author Paul Bärnreuther
  */
@@ -81,8 +82,9 @@ public @interface TextInputWidget {
     String pattern() default "";
 
     /**
-     * With this field set to true, the input also has a checkbox which indicates whether the value is null.
-     * If so, the input is hidden.
+     * With this field set to true, the input also has a checkbox which indicates whether the value is null. If so, the
+     * input is hidden.
+     *
      * @return whether the input should be hidden in case the value is null.
      */
     boolean optional() default false;
@@ -90,4 +92,11 @@ public @interface TextInputWidget {
     String placeholder() default "";
 
     Class<? extends StateProvider<String>> placeholderProvider() default NoopStringProvider.class;
+
+    /**
+     * Add this field to define validation instructions for the string setting.
+     *
+     * @return the validations to apply to the input
+     */
+    Class<? extends BasicValidation>[] validations() default {};
 }

@@ -154,6 +154,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBoolean
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.WidgetAnnotation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.DynamicMaxValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.DynamicMinValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.StaticMaxValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.StaticMinValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MaxLengthValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MinLengthValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
@@ -547,14 +554,44 @@ final class UiSchemaOptionsGenerator {
             if (textInputWidget.placeholderProvider() != NoopStringProvider.class) {
                 options.put("placeholderProvider", textInputWidget.placeholderProvider().getName());
             }
+            Stream.of(textInputWidget.validations()).forEach(validationClass -> {
+                final var validationInstance = InstantiationUtil.createInstance(validationClass);
+                if (validationInstance instanceof PatternValidation patternValidation) {
+                    options.put("pattern", patternValidation.getPattern());
+                    options.put("patternErrorMessage",
+                        patternValidation.getErrorMessage(patternValidation.getPattern()));
+                } else if (validationInstance instanceof MinLengthValidation minLengthValidation) {
+                    options.put("minLength", minLengthValidation.getMinLength());
+                    options.put("minLengthErrorMessage",
+                        minLengthValidation.getErrorMessage(minLengthValidation.getMinLength()));
+                } else if (validationInstance instanceof MaxLengthValidation maxLengthValidation) {
+                    options.put("maxLength", maxLengthValidation.getMaxLength());
+                    options.put("maxLengthErrorMessage",
+                        maxLengthValidation.getErrorMessage(maxLengthValidation.getMaxLength()));
+                }
+            });
         }
 
         if (annotatedWidgets.contains(NumberInputWidget.class)) {
             final var numberInputWidget = m_node.getAnnotation(NumberInputWidget.class).orElseThrow();
-            addDoubleOption(options, numberInputWidget.min(), "min");
-            addDoubleOption(options, numberInputWidget.max(), "max");
-            addDoubleProviderOption(options, numberInputWidget.minProvider(), "minProvider");
-            addDoubleProviderOption(options, numberInputWidget.maxProvider(), "maxProvider");
+            Stream.of(numberInputWidget.validations()).forEach(validationClass -> {
+                final var validationInstance = InstantiationUtil.createInstance(validationClass);
+                if (validationInstance instanceof StaticMinValidation staticMinVal) {
+                    options.put("min", staticMinVal.getMin());
+                    options.put("minIsExclusive", staticMinVal.isExclusive());
+                    options.put("minErrorMessage", staticMinVal.getErrorMessage(staticMinVal.getMin()));
+                } else if (validationInstance instanceof StaticMaxValidation staticMaxVal) {
+                    options.put("max", staticMaxVal.getMax());
+                    options.put("maxIsExclusive", staticMaxVal.isExclusive());
+                    options.put("maxErrorMessage", staticMaxVal.getErrorMessage(staticMaxVal.getMax()));
+                } else if (validationInstance instanceof DynamicMinValidation dynMinVal) {
+                    options.put("minIsExclusive", dynMinVal.isExclusive());
+                    options.put("minProvider", dynMinVal.getClass().getName());
+                } else if (validationInstance instanceof DynamicMaxValidation dynMaxVal) {
+                    options.put("maxIsExclusive", dynMaxVal.isExclusive());
+                    options.put("maxProvider", dynMaxVal.getClass().getName());
+                }
+            });
         }
 
         if (m_node instanceof ArrayParentNode<WidgetGroup> arrayWidgetNode) {
