@@ -210,27 +210,6 @@ public final class JsonFormsSchemaUtil {
 
         builder.forFields().withDescriptionResolver(field -> resolveDescription(field, widgetTree));
 
-        builder.forFields()
-            .withStringMinLengthResolver(field -> retrieveAnnotation(field, TextInputWidget.class, widgetTree)//
-                .filter(textInput -> !field.isFakeContainerItemScope())//
-                .map(textInput -> textInput.minLength())//
-                .filter(length -> length >= 0)//
-                .orElse(null));
-
-        builder.forFields()
-            .withStringMaxLengthResolver(field -> retrieveAnnotation(field, TextInputWidget.class, widgetTree)//
-                .filter(textInput -> !field.isFakeContainerItemScope())//
-                .map(textInput -> textInput.maxLength())//
-                .filter(length -> length >= 0)//
-                .orElse(null));
-
-        builder.forFields()
-            .withStringPatternResolver(field -> retrieveAnnotation(field, TextInputWidget.class, widgetTree)//
-                .filter(textInput -> !field.isFakeContainerItemScope())//
-                .map(textInput -> textInput.pattern())//
-                .filter(pattern -> !pattern.isEmpty())//
-                .orElse(null));
-
         builder.forFields().withPropertyNameOverrideResolver(field -> StringUtils.removeStart(field.getName(), "m_"));
 
         builder.forFields().withTargetTypeOverridesResolver(JsonFormsSchemaUtil::overrideClass);

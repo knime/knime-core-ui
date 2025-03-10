@@ -44,49 +44,39 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2023 (Paul Bärnreuther): created
+ *   7 Mar 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.validation;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
- * Annotate a number setting with this in order to provide validation instructions.
+ * This interface is used to define the structure for built in validations.
  *
- * @author Paul Bärnreuther
+ * @author Robin Gerling
+ * @noimplement This interface is not intended to be implemented by clients.
+ * @noextend This interface is not intended to be extended by clients.
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface NumberInputWidget {
+@JsonSerialize(as = BuiltinValidation.class)
+public interface BuiltinValidation {
 
     /**
-     * Add this field to define validation instructions for the number input. Validation instructions specified should
-     * be constant, i.e. the value to validate against does not depend on the context of the node. To validate against a
-     * dynamic value which depends on the context of the node use {@link #validationProviders()}. See
-     * {@link NumberInputWidgetValidation} for possible validation instructions such as validating the input against a
-     * minimum ({@link MinValidation}).
+     * Override this method to specify a custom error message. When specifying a custom error message stay as concise as
+     * possible. Long messages will be cut off.
      *
-     * @return the validations to apply to the input
+     * @return the error message shown if the validation fails
      */
-    Class<? extends NumberInputWidgetValidation>[] validations() default {};
+    String getErrorMessage();
 
     /**
-     * Add this field to define validation instructions for the number input. Validation instructions specified should
-     * be dynamic, i.e. the values to validate against depend on the context of the node. To validate against a constant
-     * value which does not depend on the context of the node use {@link #validations()}. See
-     * {@link NumberInputWidgetValidation} for possible validation instructions such as validating the input against a
-     * minimum ({@link MinValidation}).
      *
-     * @return the providers specifying validations to apply to the input that depend on the context of the node
+     * @return an id to uniquely identify this validation
      */
-    Class<? extends StateProvider<? extends NumberInputWidgetValidation>>[] validationProviders() default {};
+    String getId();
 
+    /**
+     *
+     * @return the parameters needed for the validation
+     */
+    Object getParameters();
 }

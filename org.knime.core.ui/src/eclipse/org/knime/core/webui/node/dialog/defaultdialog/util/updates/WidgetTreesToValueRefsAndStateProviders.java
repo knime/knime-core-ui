@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -77,7 +78,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget.DoubleProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
@@ -138,7 +138,7 @@ final class WidgetTreesToValueRefsAndStateProviders {
     }
 
     interface UiStateProviderSpec {
-        Optional<Class<? extends StateProvider>> getUiStateProvider(TreeNode<WidgetGroup> node);
+        Optional<List<Class<? extends StateProvider>>> getUiStateProviders(TreeNode<WidgetGroup> node);
     }
 
     /**
@@ -160,7 +160,7 @@ final class WidgetTreesToValueRefsAndStateProviders {
     ) implements UiStateProviderSpec {
 
         @Override
-        public Optional<Class<? extends StateProvider>> getUiStateProvider(final TreeNode<WidgetGroup> node) {
+        public Optional<List<Class<? extends StateProvider>>> getUiStateProviders(final TreeNode<WidgetGroup> node) {
             if (!fieldType.isAssignableFrom(node.getType())) {
                 return Optional.empty();
             }
@@ -168,7 +168,7 @@ final class WidgetTreesToValueRefsAndStateProviders {
                 && node.getAnnotation(ignoreIfThisAnnotationIsPresent).isPresent()) {
                 return Optional.empty();
             }
-            return Optional.of(uiStateProvider);
+            return Optional.of(List.of(uiStateProvider));
         }
 
     }
@@ -192,7 +192,7 @@ final class WidgetTreesToValueRefsAndStateProviders {
     ) implements UiStateProviderSpec {
 
         @Override
-        public Optional<Class<? extends StateProvider>> getUiStateProvider(final TreeNode<WidgetGroup> node) {
+        public Optional<List<Class<? extends StateProvider>>> getUiStateProviders(final TreeNode<WidgetGroup> node) {
             if (!node.getPossibleAnnotations().contains(annotationClass)) {
                 return Optional.empty();
             }
@@ -204,7 +204,39 @@ final class WidgetTreesToValueRefsAndStateProviders {
             if (ignoredDefaultParameter != null && stateProvider.equals(ignoredDefaultParameter)) {
                 return Optional.empty();
             }
-            return Optional.of(stateProvider);
+            return Optional.of(List.of(stateProvider));
+
+        }
+
+    }
+
+    /**
+     * A list of classes that define ui states which are given by an annotation.
+     */
+    private record UiStateProvidersAnnotationSpec<T extends Annotation, S extends StateProvider>( //
+        /**
+         * The annotation class that defines the ui state
+         */
+        Class<T> annotationClass, //
+        /**
+         * The parameter of the provider that needs to be instantiated to retrieve the states
+         */
+        Function<T, Class<? extends S>[]> getProvidersParameter
+
+    ) implements UiStateProviderSpec {
+
+        @Override
+        public Optional<List<Class<? extends StateProvider>>> getUiStateProviders(final TreeNode<WidgetGroup> node) {
+            if (!node.getPossibleAnnotations().contains(annotationClass)) {
+                return Optional.empty();
+            }
+            final var annotation = node.getAnnotation(annotationClass);
+            if (annotation.isEmpty()) {
+                return Optional.empty();
+            }
+            final var stateProviders = getProvidersParameter.apply(annotation.get());
+
+            return stateProviders.length == 0 ? Optional.empty() : Optional.of(Arrays.asList(stateProviders));
 
         }
 
@@ -279,25 +311,22 @@ final class WidgetTreesToValueRefsAndStateProviders {
                 ArrayWidget.class, //
                 ArrayWidget::elementDefaultValueProvider, //
                 StateProvider.class //
-            ), //
-            new UiStateProviderAnnotationSpec<>( //
-                NumberInputWidget.class, //
-                NumberInputWidget::minProvider, //
-                DoubleProvider.class //
-            ), //
-            new UiStateProviderAnnotationSpec<>( //
-                NumberInputWidget.class, //
-                NumberInputWidget::maxProvider, //
-                DoubleProvider.class //
             ));
 
-    static final List<UiStateProviderSpec> uiStateProviderSpecs = Stream.<UiStateProviderSpec> concat(//
+    private static List<UiStateProvidersAnnotationSpec<? extends Annotation, ? extends StateProvider>> //
+    uiStateProvidersAnnotationSpecs = List.of( //
+        new UiStateProvidersAnnotationSpec<>(NumberInputWidget.class, NumberInputWidget::validationProviders), //
+        new UiStateProvidersAnnotationSpec<>(TextInputWidget.class, TextInputWidget::validationProviders));
+
+    static final List<UiStateProviderSpec> uiStateProviderSpecs = Stream.<UiStateProviderSpec> concat(Stream.concat(//
         uiStateProviderFieldTypeSpecs.stream(), //
-        uiStateProviderAnnotationSpecs.stream()//
+        uiStateProviderAnnotationSpecs.stream()), //
+        uiStateProvidersAnnotationSpecs.stream() //
     ).toList();
 
     private void addUiStateProviderForNode(final TreeNode<WidgetGroup> node) {
-        uiStateProviderSpecs.stream().forEach(spec -> spec.getUiStateProvider(node).ifPresent(m_uiStateProviders::add));
+        uiStateProviderSpecs.stream()
+            .forEach(spec -> spec.getUiStateProviders(node).ifPresent(m_uiStateProviders::addAll));
     }
 
     private void addWidgetValueAnnotationValueRefAndValueProviderForNode(final TreeNode<WidgetGroup> node) {

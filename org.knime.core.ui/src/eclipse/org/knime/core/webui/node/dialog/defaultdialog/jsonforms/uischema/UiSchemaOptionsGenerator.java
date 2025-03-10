@@ -77,7 +77,6 @@ import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetI
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.partitionWidgetAnnotationsByApplicability;
 
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collection;
@@ -126,7 +125,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget.DoubleProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
@@ -155,6 +153,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBoolean
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.WidgetAnnotation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.BuiltinValidation;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
@@ -554,14 +553,12 @@ final class UiSchemaOptionsGenerator {
             if (textInputWidget.placeholderProvider() != NoopStringProvider.class) {
                 options.put("placeholderProvider", textInputWidget.placeholderProvider().getName());
             }
+            addValidationOptions(options, textInputWidget.validations(), textInputWidget.validationProviders());
         }
 
         if (annotatedWidgets.contains(NumberInputWidget.class)) {
             final var numberInputWidget = m_node.getAnnotation(NumberInputWidget.class).orElseThrow();
-            addDoubleOption(options, numberInputWidget.min(), "min");
-            addDoubleOption(options, numberInputWidget.max(), "max");
-            addDoubleProviderOption(options, numberInputWidget.minProvider(), "minProvider");
-            addDoubleProviderOption(options, numberInputWidget.maxProvider(), "maxProvider");
+            addValidationOptions(options, numberInputWidget.validations(), numberInputWidget.validationProviders());
         }
 
         if (m_node instanceof ArrayParentNode<WidgetGroup> arrayWidgetNode) {
@@ -570,6 +567,19 @@ final class UiSchemaOptionsGenerator {
 
         if (options.isEmpty()) {
             control.remove(TAG_OPTIONS);
+        }
+    }
+
+    private static <T extends BuiltinValidation> void addValidationOptions(final ObjectNode options,
+        final Class<? extends T>[] validations,
+        final Class<? extends StateProvider<? extends T>>[] validationProviders) {
+
+        if (validations.length != 0) {
+            final var validationInstances = Stream.of(validations).map(InstantiationUtil::createInstance).toList();
+            options.set("validations", JsonFormsUiSchemaUtil.getMapper().valueToTree(validationInstances));
+        }
+        if (validationProviders.length != 0) {
+            options.set("validationProviders", JsonFormsUiSchemaUtil.getMapper().valueToTree(validationProviders));
         }
     }
 
@@ -800,19 +810,6 @@ final class UiSchemaOptionsGenerator {
         }
 
         return partitionedWidgetAnnotations.get(true).stream().map(WidgetAnnotation::widgetAnnotation).toList();
-    }
-
-    private static void addDoubleOption(final ObjectNode options, final double value, final String key) {
-        if (!Double.isNaN(value)) {
-            options.put(key, BigDecimal.valueOf(value));
-        }
-    }
-
-    private static void addDoubleProviderOption(final ObjectNode options,
-        final Class<? extends DoubleProvider> doubleProvider, final String key) {
-        if (!doubleProvider.equals(DoubleProvider.class)) {
-            options.put(key, doubleProvider.getName());
-        }
     }
 
     private void applyArrayLayoutOptions(final ObjectNode options, final Tree<WidgetGroup> elementTree) {

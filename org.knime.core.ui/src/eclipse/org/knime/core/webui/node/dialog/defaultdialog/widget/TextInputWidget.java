@@ -56,33 +56,22 @@ import java.lang.annotation.Target;
 
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation;
 
 /**
- * Annotate a {@link String} setting with this in order to provide validation instructions.
+ * Annotate a {@link String} setting with this in order to provide settings and validation instructions.
  *
  * @author Paul Bärnreuther
  */
 @Retention(RUNTIME)
 @Target(FIELD)
 public @interface TextInputWidget {
-    /**
-     * @return an optional minimum length for a nominal field
-     */
-    int minLength() default -1;
 
     /**
-     * @return an optional maximum length for a nominal field
-     */
-    int maxLength() default -1;
-
-    /**
-     * @return an optional regular expression pattern for a nominal field
-     */
-    String pattern() default "";
-
-    /**
-     * With this field set to true, the input also has a checkbox which indicates whether the value is null.
-     * If so, the input is hidden.
+     * With this field set to true, the input also has a checkbox which indicates whether the value is null. If so, the
+     * input is hidden.
+     *
      * @return whether the input should be hidden in case the value is null.
      */
     boolean optional() default false;
@@ -90,4 +79,26 @@ public @interface TextInputWidget {
     String placeholder() default "";
 
     Class<? extends StateProvider<String>> placeholderProvider() default NoopStringProvider.class;
+
+    /**
+     * Add this field to define validation instructions for the text input. Validation instructions specified should be
+     * constant, i.e. the value to validate against does not depend on the context of the node. To validate against a
+     * dynamic value which depends on the context of the node use {@link #validationProviders()}. See
+     * {@link TextInputWidgetValidation} for possible validation instructions such as validating the input against a
+     * pattern ({@link PatternValidation}).
+     *
+     * @return the validations to apply to the input
+     */
+    Class<? extends TextInputWidgetValidation>[] validations() default {};
+
+    /**
+     * Add this field to define validation instructions for the text input. Validation instructions specified should be
+     * dynamic, i.e. the values to validate against depend on the context of the node. To validate against a constant
+     * value which does not depend on the context of the node use {@link #validations()}. See
+     * {@link TextInputWidgetValidation} for possible validation instructions such as validating the input against a
+     * pattern ({@link PatternValidation}).
+     *
+     * @return the providers specifying validations to apply to the input that depend on the context of the node
+     */
+    Class<? extends StateProvider<? extends TextInputWidgetValidation>>[] validationProviders() default {};
 }
