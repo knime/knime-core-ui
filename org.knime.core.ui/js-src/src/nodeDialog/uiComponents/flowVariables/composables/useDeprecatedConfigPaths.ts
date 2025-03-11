@@ -9,8 +9,9 @@ export default () => {
   const flowVariablesMap = getFlowVariablesMap();
 
   const getFlowVariablePathsStartingWithKey = (key: string) =>
-    Object.keys(flowVariablesMap).filter((flowVariablePath) =>
-      flowVariablePath.startsWith(key),
+    Object.keys(flowVariablesMap).filter(
+      (flowVariablePath) =>
+        flowVariablePath === key || flowVariablePath.startsWith(`${key}.`),
     );
 
   const deprecatedConfigPaths = computed(() => {
