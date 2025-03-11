@@ -56,6 +56,7 @@ import static org.knime.core.webui.node.dialog.SettingsType.MODEL;
 import static org.knime.core.webui.node.dialog.SettingsType.VIEW;
 import static org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogTest.ModelSettings.MODEL_SETTING;
 import static org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogTest.ModelSettings.MODEL_SETTING_CFG;
+import static org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogTest.ModelSettings.MODEL_SETTING_INVALID_VALUE;
 import static org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogTest.ViewSettings.DEFAULT_VIEW_SETTING;
 import static org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogTest.ViewSettings.NESTED_VIEW_SETTING_CFG_PATH;
 import static org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogTest.ViewSettings.NESTED_VIEW_SETTING_CFG_PATH_2;
@@ -64,6 +65,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogTe
 import static org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogTest.ViewSettings.VIEW_SETTING;
 import static org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogTest.ViewSettings.VIEW_SETTING_CFG;
 import static org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogTest.ViewSettings.VIEW_SETTING_INVALID_VALUE;
+import static org.knime.testing.node.dialog.NodeDialogNodeModel.VALIDATION_ERROR_MESSAGE;
 import static org.knime.testing.node.ui.NodeDialogTestUtil.createNodeDialog;
 
 import java.io.File;
@@ -116,6 +118,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesHolder;
 import org.knime.core.webui.node.dialog.internal.VariableSettings;
 import org.knime.core.webui.page.Page;
+import org.knime.testing.node.dialog.NodeDialogNodeModel;
 import org.knime.testing.util.WorkflowManagerUtil;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -144,15 +147,22 @@ public class DefaultNodeDialogTest {
 
     static class ModelSettings implements DefaultNodeSettings {
 
-        static final String MODEL_SETTING_CFG = "model setting";
+        static final String MODEL_SETTING_CFG = NodeDialogNodeModel.VALIDATED_MODEL_SETTING_CFG;
 
         static final String MODEL_SETTING = "modelSetting";
+
+        /**
+         * When this value is set for m_modelSetting, model validation will fail (see
+         * {@link NodeDialogNodeModel#validateSettings}).
+         */
+        static final String MODEL_SETTING_INVALID_VALUE = NodeDialogNodeModel.INVALID_VALUE;
 
         static final String DEFAULT_MODEL_SETTING = "1";
 
         @Widget(title = "", description = "")
         @Persist(configKey = MODEL_SETTING_CFG)
         String m_modelSetting = DEFAULT_MODEL_SETTING;
+
     }
 
     static class ViewSettings implements DefaultNodeSettings {
@@ -344,10 +354,10 @@ public class DefaultNodeDialogTest {
         m_wfm.executeAllAndWaitUntilDone();
     }
 
+    static final ObjectMapper TEST_MAPPER = new ObjectMapper();
+
     @Nested
     class InitialDataTest {
-
-        static final ObjectMapper TEST_MAPPER = new ObjectMapper();
 
         final static FlowVariable validFlowVariable1 = new FlowVariable("flow variable 1", "foo");
 
@@ -755,7 +765,7 @@ public class DefaultNodeDialogTest {
         }
 
         @Test
-        void testApplyDataResetsNodeOnFlawedViewVariables() throws IOException, InvalidSettingsException {
+        void testApplyDataResetsNodeOnFlawedViewVariables() throws IOException {
 
             final var flowVariable = new FlowVariable("flow variable", "B");
             makeFlowVariablesAvailable(flowVariable);
@@ -775,7 +785,7 @@ public class DefaultNodeDialogTest {
         }
 
         @Test
-        void testApplyDataResetsNodeOnExposedVariableChange() throws IOException, InvalidSettingsException {
+        void testApplyDataResetsNodeOnExposedVariableChange() throws IOException {
 
             new TestNodeSettingsBuilder()//
                 .modifyAt(VIEW, VIEW_SETTING_CFG, b -> b.withExposedFlowVariableName("previous name").build())//
@@ -793,8 +803,7 @@ public class DefaultNodeDialogTest {
         }
 
         @Test
-        void testApplyDataResetsNodeOnSettingsUnderlyingExposedVariableChange()
-            throws IOException, InvalidSettingsException {
+        void testApplyDataResetsNodeOnSettingsUnderlyingExposedVariableChange() throws IOException {
 
             final var previousViewSettings = createPreviousViewSettings();
 
@@ -817,9 +826,88 @@ public class DefaultNodeDialogTest {
             assertFalse(m_nnc.getNodeContainerState().isExecuted());
         }
 
-        private void callApplyData(final JsonNode applyData) throws IOException {
-            NodeDialogManager.getInstance().getDataServiceManager().callApplyDataService(NodeWrapper.of(m_nnc),
-                applyData.toString());
+        @Test
+        void testApplyDataWithInvalidSettings() throws IOException {
+
+            final var applyData = new ApplyDataBuilder()//
+                .withNonDefaultModelSettings(PREVIOUS_MODEL_SETTINGS)//
+                .withNonDefaultViewSettings(PREVIOUS_VIEW_SETTINGS)//
+                .modifyAt(MODEL, MODEL_SETTING, b -> b.setStringValue(MODEL_SETTING_INVALID_VALUE).build())//
+                .build();
+
+            final var response = callApplyData(applyData);
+
+            assertTrue(m_nnc.getNodeContainerState().isExecuted()); // i.e. not applied
+            assertThatJson(response).inPath("$.error").isString().contains(VALIDATION_ERROR_MESSAGE);
+
+        }
+
+        @Test
+        void testApplyDataWithInvalidFlowVariableSettings() throws IOException {
+
+            final var inValidFlowVariable = new FlowVariable("flow variable", MODEL_SETTING_INVALID_VALUE);
+            makeFlowVariablesAvailable(inValidFlowVariable);
+
+            final var applyData = new ApplyDataBuilder()//
+                .withNonDefaultModelSettings(PREVIOUS_MODEL_SETTINGS)//
+                .withNonDefaultViewSettings(PREVIOUS_VIEW_SETTINGS)//
+                .modifyAt(MODEL, MODEL_SETTING_CFG,
+                    b -> b.withControllingFlowVariableName(inValidFlowVariable.getName()).build())//
+                .build();
+
+            final var response = callApplyData(applyData);
+
+            assertFalse(m_nnc.getNodeContainerState().isExecuted()); // i.e. applied
+            assertThatJson(response).inPath("$.warningMessages[0]").isString().contains("flow variable",
+                VALIDATION_ERROR_MESSAGE);
+
+        }
+
+        @Test
+        void testApplyDataWithInvalidSettingsButValidFlowVariables() throws IOException, InvalidSettingsException {
+            clearPreviousNodeSettings();
+
+            final var validFlowVariable = new FlowVariable("flow variable", "Something valid");
+            makeFlowVariablesAvailable(validFlowVariable);
+
+            final var applyData = new ApplyDataBuilder()//
+                .modifyAt(MODEL, MODEL_SETTING, b -> b.setStringValue(MODEL_SETTING_INVALID_VALUE).build())//
+                .modifyAt(MODEL, MODEL_SETTING_CFG,
+                    b -> b.withControllingFlowVariableName(validFlowVariable.getName()).build())//
+                .build();
+
+            final var response = callApplyData(applyData);
+
+            assertFalse(m_nnc.getNodeContainerState().isExecuted()); // i.e. applied
+            assertThatJson(response).inPath("$.warningMessages[0]").isString()
+                .contains("overridden settings were applied as underlying settings");
+        }
+
+        @Test
+        void testApplyDataWithInvalidSettingsAndInvalidFlowVariables() throws IOException, InvalidSettingsException {
+            clearPreviousNodeSettings();
+
+            final var inValidFlowVariable = new FlowVariable("flow variable", MODEL_SETTING_INVALID_VALUE);
+            makeFlowVariablesAvailable(inValidFlowVariable);
+
+            final var applyData = new ApplyDataBuilder()//
+                .withNonDefaultModelSettings(PREVIOUS_MODEL_SETTINGS)//
+                .withNonDefaultViewSettings(PREVIOUS_VIEW_SETTINGS)//
+                .modifyAt(MODEL, MODEL_SETTING_CFG,
+                    b -> b.withControllingFlowVariableName(inValidFlowVariable.getName()).build())//
+                .modifyAt(MODEL, MODEL_SETTING, b -> b.setStringValue(MODEL_SETTING_INVALID_VALUE).build())//
+                .build();
+
+            final var response = callApplyData(applyData);
+
+            assertTrue(m_nnc.getNodeContainerState().isExecuted()); // i.e. not applied
+            assertThatJson(response).inPath("$.error").isString().contains(VALIDATION_ERROR_MESSAGE);
+        }
+
+        private JsonNode callApplyData(final JsonNode applyData) throws IOException {
+            final var result = NodeDialogManager.getInstance().getDataServiceManager()
+                .callApplyDataService(NodeWrapper.of(m_nnc), applyData.toString());
+            return TEST_MAPPER.readTree(result);
         }
 
         private void assertSubNodeSettingsForKey(final NodeSettings expected, final String key)
@@ -827,6 +915,13 @@ public class DefaultNodeDialogTest {
             assertThat(m_nnc.getNodeSettings().getNodeSettings(key)).isEqualTo(expected.getNodeSettings(key));
         }
 
+    }
+
+    private void clearPreviousNodeSettings() throws InvalidSettingsException {
+        final var existingSettings = m_nnc.getNodeSettings();
+        existingSettings.addNodeSettings(SettingsType.MODEL.getConfigKey());
+        existingSettings.addNodeSettings(SettingsType.VIEW.getConfigKey());
+        TestNodeSettingsBuilder.loadSettingsIntoNode(existingSettings, m_nnc);
     }
 
     private abstract static class SettingsDocumentBuilder<T extends SettingsDocumentBuilder<T>> {
@@ -995,7 +1090,8 @@ public class DefaultNodeDialogTest {
         }
 
         private static String toJsonPointer(final SettingsType settingsType, final List<String> path) {
-            return "/" + settingsType.getConfigKey() + "/" + String.join("/", path);
+            final var segments = Stream.concat(Stream.of(settingsType.getConfigKey()), path.stream()).toList();
+            return "/" + String.join("/", segments);
         }
 
     }

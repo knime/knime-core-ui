@@ -70,6 +70,23 @@ import org.knime.core.webui.node.dialog.NodeDialog;
  */
 public class NodeDialogNodeModel extends NodeModel {
 
+    /**
+     * Value that is considered invalid for {@link #VALIDATED_MODEL_SETTING_CFG}.
+     */
+    public static final String INVALID_VALUE = "INVALID";
+
+    /**
+     * If validated settings contain this key and its value is {@Link #INVALID_VALUE}, the validation is expected to
+     * fail.
+     */
+    public static final String VALIDATED_MODEL_SETTING_CFG = "model setting";
+
+    /**
+     * A constant to signal that the validation is expected to fail. Either because the settings contain the key "ERROR"
+     * or the key "model setting" is set to {@link #INVALID_VALUE}.
+     */
+    public static final String VALIDATION_ERROR_MESSAGE = "validation expected to fail";
+
     private NodeSettingsRO m_loadNodeSettings;
 
     /**
@@ -144,9 +161,16 @@ public class NodeDialogNodeModel extends NodeModel {
      */
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        if (settings.containsKey("ERROR")) {
-            throw new InvalidSettingsException("validation expected to fail");
+        if (settings.containsKey("ERROR") //
+            || hasInvalidStringField(settings, VALIDATED_MODEL_SETTING_CFG)//
+        ) {
+            throw new InvalidSettingsException(VALIDATION_ERROR_MESSAGE);
         }
+    }
+
+    private static boolean hasInvalidStringField(final NodeSettingsRO settings, final String key)
+        throws InvalidSettingsException {
+        return settings.containsKey(key) && INVALID_VALUE.equals(settings.getString(key));
     }
 
     /**

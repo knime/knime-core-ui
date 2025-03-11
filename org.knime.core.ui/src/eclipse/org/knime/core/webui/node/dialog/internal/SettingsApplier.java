@@ -57,13 +57,17 @@ import java.util.function.BooleanSupplier;
 import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.config.ConfigEditTreeModel;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeID;
 import org.knime.core.node.workflow.NodeTimer;
+import org.knime.core.node.workflow.VariableTypeRegistry;
 import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.core.webui.data.DataServiceContext;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier;
@@ -83,6 +87,8 @@ import com.google.common.base.Objects;
  */
 @SuppressWarnings("java:S3553") // accept Optionals as parameters as it is much more readable this way
 public final class SettingsApplier {
+
+    static final NodeLogger LOGGER = NodeLogger.getLogger(SettingsApplier.class);
 
     private final NodeContainer m_nc;
 
@@ -217,21 +223,134 @@ public final class SettingsApplier {
         throws InvalidSettingsException {
 
         if (changedViewSettings.isPresent()) {
-            validateViewSettings(changedViewSettings.get());
+            final var changedView = changedViewSettings.get();
+            try {
+                validateViewSettings(m_nc, changedView.getSettings());
+                setWarningOnInvalidFlowVariables(SettingsType.VIEW, changedViewSettings.get());
+            } catch (InvalidSettingsException ex) {
+                if (m_nc instanceof NativeNodeContainer nnc) {
+                    overwriteSettingsToMakeThemValid(SettingsType.VIEW, nnc, nodeSettings, changedView, ex);
+                } else {
+                    throw ex;
+                }
+            }
+
         }
 
         if (changedModelSettings.isPresent()) {
-            /**
-             * validate and 'persist' settings and load model settings into the node model
-             */
-            wfm.loadNodeSettings(nodeID, nodeSettings);
+            final var changedModel = changedModelSettings.get();
+            try {
+                validateAndPersistNodeSettings(wfm, nodeID, nodeSettings);
+                setWarningOnInvalidFlowVariables(SettingsType.MODEL, changedModel);
+            } catch (InvalidSettingsException ex) {
+                if (m_nc instanceof NativeNodeContainer nnc) {
+                    overwriteSettingsToMakeThemValid(SettingsType.MODEL, nnc, nodeSettings, changedModel, ex);
+                    validateAndPersistNodeSettings(wfm, nodeID, nodeSettings);
+                } else {
+                    throw ex;
+                }
+            }
         } else if (changedViewSettings.isPresent()) {
             loadViewSettingsIntoNode(wfm, nodeID, changedViewSettings.get(), nodeSettings);
         }
     }
 
-    private void validateViewSettings(final ApplyDataSettings changedView) throws InvalidSettingsException {
-        NodeViewManager.getInstance().validateSettings(m_nc, changedView.getSettings());
+    private static void overwriteSettingsToMakeThemValid(final SettingsType settingsType, final NativeNodeContainer nnc,
+        final NodeSettings nodeSettings, final ApplyDataSettings changedModel, final InvalidSettingsException ex)
+        throws InvalidSettingsException {
+        final var variables = changedModel.getVariables()//
+            .orElseThrow(() -> ex);
+        final var underlyingSettings = changedModel.getSettings();
+        final var settingsDescription = getSettingsDescription(settingsType);
+        final var message = String.format("Could not apply settings for node %s due to invalid %s. "
+            + "Trying to apply the settings with the flow variables instead.", settingsDescription, nnc.getID());
+        LOGGER.warn(() -> message, ex);
+        try {
+            overwriteSettings(settingsType, nodeSettings, nnc, underlyingSettings, variables);
+        } catch (InvalidSettingsException exForFlowVariables) {
+            LOGGER.error(() -> String.format("Could not apply %s for node %s with overwritten settings either.",
+                settingsDescription, nnc.getID()), exForFlowVariables);
+            throw new InvalidSettingsException(
+                String.format("The %s could not be applied since both underlying and overwritten settings are invalid. "
+                    + "Exception for underlying settins: %s", settingsDescription, ex.getMessage()),
+                ex);
+
+        }
+        DataServiceContext.get()
+            .addWarningMessage(String.format("Without the set flow variables, the %s would be invalid. "
+                + "So instead, the overridden %s were applied as underlying %s. " + "Invalid settings exception: %s",
+                settingsDescription, settingsDescription, settingsDescription, ex.getMessage()));
+    }
+
+    private static Object getSettingsDescription(final SettingsType settingsType) {
+        return settingsType == SettingsType.MODEL ? "settings" : "view settings";
+    }
+
+    private void setWarningOnInvalidFlowVariables(final SettingsType settingsType, final ApplyDataSettings applyData) {
+        final var variables = applyData.getVariables();
+        if (variables.isEmpty()) {
+            return;
+        }
+        try {
+            final var overwrittenSettings = getOverwrittenSettings(m_nc, applyData.getSettings(), variables.get());
+            if (m_nc instanceof NativeNodeContainer nnc) {
+                validateSettings(settingsType, nnc, overwrittenSettings);
+            }
+        } catch (InvalidSettingsException ex) {
+            final var message = "Settings overwritten with flow variables are invalid";
+            LOGGER.warn(() -> message, ex);
+            DataServiceContext.get().addWarningMessage(String.format("%s: %s", message, ex.getMessage()));
+        }
+
+    }
+
+    private static void overwriteSettings(final SettingsType settingsType, final NodeSettings nodeSettings,
+        final NativeNodeContainer nnc, final NodeSettings underlyingModelSettings, final NodeSettings modelVariables)
+        throws InvalidSettingsException {
+        final var overwrittenSettings = getOverwrittenSettings(nnc, underlyingModelSettings, modelVariables);
+        validateSettings(settingsType, nnc, overwrittenSettings);
+        setAsNewSettings(settingsType, nodeSettings, overwrittenSettings);
+    }
+
+    private static void validateSettings(final SettingsType settingsType, final NativeNodeContainer nnc,
+        final NodeSettings settings) throws InvalidSettingsException {
+        if (settingsType == SettingsType.MODEL) {
+            validateModelSettings(nnc, settings);
+        } else {
+            validateViewSettings(nnc, settings);
+        }
+    }
+
+    private static void validateModelSettings(final NativeNodeContainer nnc, final NodeSettings overwrittenSettings)
+        throws InvalidSettingsException {
+        nnc.getNode().validateModelSettings(overwrittenSettings);
+    }
+
+    private static NodeSettings getOverwrittenSettings(final NodeContainer nc, final NodeSettings underlyingSettings,
+        final NodeSettings variables) throws InvalidSettingsException {
+        final var configEdit = ConfigEditTreeModel.create(underlyingSettings, variables);
+        final var flowVariables =
+            nc.getFlowObjectStack().getAvailableFlowVariables(VariableTypeRegistry.getInstance().getAllTypes());
+        final var overwrittenSettings = new NodeSettings("overwritten");
+        underlyingSettings.copyTo(overwrittenSettings);
+        configEdit.overwriteSettings(overwrittenSettings, flowVariables);
+        return overwrittenSettings;
+    }
+
+    private static void setAsNewSettings(final SettingsType settingsType, final NodeSettings nodeSettings,
+        final NodeSettings newSettings) throws InvalidSettingsException {
+        nodeSettings.addNodeSettings(settingsType.getConfigKey());
+        newSettings.copyTo(nodeSettings.getNodeSettings(settingsType.getConfigKey()));
+    }
+
+    private static void validateAndPersistNodeSettings(final WorkflowManager wfm, final NodeID nodeID,
+        final NodeSettings nodeSettings) throws InvalidSettingsException {
+        wfm.loadNodeSettings(nodeID, nodeSettings);
+    }
+
+    private static void validateViewSettings(final NodeContainer nc, final NodeSettings viewSettings)
+        throws InvalidSettingsException {
+        NodeViewManager.getInstance().validateSettings(nc, viewSettings);
     }
 
     private void loadViewSettingsIntoNode(final WorkflowManager wfm, final NodeID nodeID, final ApplyDataSettings view,
@@ -246,8 +365,7 @@ public final class SettingsApplier {
          * </ul>
          */
         if (m_nc.getNodeContainerState().isIdle() || variablesInduceReset(view)) {
-            /** 'persist' settings and reset the node (i.e., do as if model settings had changed) */
-            wfm.loadNodeSettings(nodeID, nodeSettings);
+            validateAndPersistNodeSettings(wfm, nodeID, nodeSettings);
         } else {
             /** 'persist' view settings only (without resetting the node) */
             wfm.loadNodeViewSettings(nodeID, nodeSettings);
