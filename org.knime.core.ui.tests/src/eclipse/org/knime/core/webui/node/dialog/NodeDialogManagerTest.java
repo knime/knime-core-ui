@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.dialog;
 
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.knime.core.webui.page.PageTest.BUNDLE_ID;
 import static org.knime.testing.node.ui.NodeDialogTestUtil.createNodeDialog;
@@ -87,7 +88,9 @@ import org.knime.core.node.workflow.SubnodeContainerConfigurationStringProvider;
 import org.knime.core.node.workflow.WorkflowAnnotationID;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.node.workflow.virtual.subnode.VirtualSubNodeInputNodeFactory;
+import org.knime.core.webui.data.DataServiceContext;
 import org.knime.core.webui.data.RpcDataService;
+import org.knime.core.webui.data.rpc.json.impl.ObjectMapperUtil;
 import org.knime.core.webui.node.NodeWrapper;
 import org.knime.core.webui.node.view.NodeViewManager;
 import org.knime.core.webui.node.view.NodeViewManagerTest;
@@ -315,6 +318,8 @@ public class NodeDialogManagerTest {
                 var split = s.split(",");
                 settings.get(SettingsType.MODEL).addString(split[0], split[1]);
                 settings.get(SettingsType.VIEW).addString(split[0], split[1]);
+                DataServiceContext.get().addWarningMessage("test warning");
+                DataServiceContext.get().addWarningMessage("another test warning");
             }
 
             @Override
@@ -328,6 +333,7 @@ public class NodeDialogManagerTest {
 
         var nc = NodeDialogManagerTest.createNodeWithNodeDialog(m_wfm, nodeDialogSupplier);
         var nncWrapper = NodeWrapper.of(nc);
+        var objectMapper = ObjectMapperUtil.getInstance().getObjectMapper();
 
         var dataServiceManager = NodeDialogManager.getInstance().getDataServiceManager();
         assertThat(dataServiceManager.callInitialDataService(nncWrapper))
@@ -336,7 +342,14 @@ public class NodeDialogManagerTest {
             dataServiceManager.callRpcDataService(nncWrapper, RpcDataService.jsonRpcRequest("method", "test param")))
                 .contains("\"result\":\"test param\"");
         // apply data, i.e. settings
-        dataServiceManager.callApplyDataService(nncWrapper, "key,node settings value");
+        final var validResult = dataServiceManager.callApplyDataService(nncWrapper, "key,node settings value");
+        final var validJsonResult = objectMapper.readTree(validResult);
+
+        assertThatJson(validJsonResult).inPath("$.isApplied").isBoolean().isTrue();
+
+        // check warning messages
+        assertThatJson(validJsonResult).inPath("$.warningMessages").isArray().containsExactly("test warning",
+            "another test warning");
 
         // check node model settings
         var modelSettings = ((NodeDialogNodeModel)nc.getNode().getNodeModel()).getLoadNodeSettings();
@@ -352,8 +365,12 @@ public class NodeDialogManagerTest {
         assertThat(nc.getNodeSettings().getNodeSettings("view").getString("key")).isEqualTo("node settings value");
 
         // check error on apply settings
-        Assertions.assertThatThrownBy(() -> dataServiceManager.callApplyDataService(nncWrapper, "ERROR,invalid"))
-            .isInstanceOf(IOException.class).hasMessage("Invalid node settings: validation expected to fail");
+        final var errorMessage = "ERROR,invalid";
+        final var invalidResult = dataServiceManager.callApplyDataService(nncWrapper, errorMessage);
+        final var invalidJsonResult = objectMapper.readTree(invalidResult);
+        assertThatJson(invalidJsonResult).inPath("$.isApplied").isBoolean().isFalse();
+        assertThatJson(invalidJsonResult).inPath("$.error").isString()
+            .isEqualTo("Invalid node settings: validation expected to fail");
     }
 
     /**

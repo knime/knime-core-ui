@@ -125,38 +125,15 @@ describe("NodeDialog.vue", () => {
     it("calls apply data with successful response", async () => {
       const applyListener = setApplyListenerSpy.mock.calls[0][0];
 
+      const result = { isApplied: true };
       const applyDataSpy = vi
         .spyOn(wrapper.vm.jsonDataService, "applyData")
-        .mockReturnValue({});
+        .mockReturnValue(result);
       await flushPromises();
 
-      expect(await applyListener()).toStrictEqual({ isApplied: true });
+      expect(await applyListener()).toStrictEqual(result);
 
       expect(applyDataSpy).toHaveBeenCalled();
-    });
-
-    it("calls apply data with erroneous response", async () => {
-      const applyListener = setApplyListenerSpy.mock.calls[0][0];
-
-      const applyDataSpy = vi
-        .spyOn(wrapper.vm.jsonDataService, "applyData")
-        .mockReturnValue({ result: "Settings are bad!" });
-      await flushPromises();
-
-      expect(await applyListener()).toStrictEqual({ isApplied: false });
-      expect(applyDataSpy).toHaveBeenCalled();
-      expect(sendAlert).toHaveBeenCalledWith({
-        message: "Settings are bad!",
-        type: "error",
-      });
-    });
-
-    it("logs error that apply data been thrown", () => {
-      vi.spyOn(JsonDataService.prototype, "applyData").mockRejectedValue(
-        new Error(),
-      );
-
-      expect(wrapper.vm.applySettings()).rejects.toThrowError();
     });
   });
 

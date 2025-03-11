@@ -48,7 +48,6 @@
  */
 package org.knime.core.webui.node;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -178,18 +177,16 @@ public final class DataServiceManager<N extends NodeWrapper> {
      *
      * @param nodeWrapper the node to call the data service for
      * @param request the data service request representing the data to apply
-     * @throws IOException if applying the data failed
+     * @return the apply data service response. This does not entail a result from the data service but might be used to
+     *         signal warnings or an error.
      * @throws IllegalStateException if there is no text apply data service
      */
-    public void callApplyDataService(final N nodeWrapper, final String request) throws IOException {
+    public String callApplyDataService(final N nodeWrapper, final String request) {
         var service = getApplyDataService(nodeWrapper).orElse(null);
         if (service == null) {
             throw new IllegalStateException("No apply data service available");
-        } else if (service.shallReExecute()) {
-            service.reExecute(request);
-        } else {
-            service.applyData(request);
         }
+        return service.applyData(request);
     }
 
     private Optional<ApplyDataService<Object>> getApplyDataService(final N nodeWrapper) {
@@ -236,7 +233,7 @@ public final class DataServiceManager<N extends NodeWrapper> {
     }
 
     private Stream<DataService> dataServices(final N nodeWrapper) {
-        return Stream.<DataService>of( //
+        return Stream.<DataService> of( //
             m_initialDataServices.get(nodeWrapper), //
             m_dataServices.get(nodeWrapper), //
             m_applyDataServices.get(nodeWrapper) //

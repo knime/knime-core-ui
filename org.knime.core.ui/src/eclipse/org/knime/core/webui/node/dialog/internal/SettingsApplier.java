@@ -124,7 +124,6 @@ public final class SettingsApplier {
             ? new OnApplyNodeModiferWrapper(onApplyModifier, nnc) : null;
     }
 
-
     /**
      * Applies the given data.
      *

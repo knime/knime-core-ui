@@ -390,7 +390,7 @@ public class NodeViewManagerTest {
             assertThat(dataServiceManager.callInitialDataService(m_nc)).isEqualTo("{\"result\":\"init service\"}");
             assertRpcDataServiceCall(dataServiceManager, m_nc, "test param", 1);
             Assertions.assertThatThrownBy(() -> dataServiceManager.callApplyDataService(m_nc, "ERROR,test"))
-                .isInstanceOf(IllegalArgumentException.class).hasMessage("Can't reexecute executing nodes.");
+                .isInstanceOf(UnsupportedOperationException.class).hasMessage("re-execute data service");
         }
 
         @Test

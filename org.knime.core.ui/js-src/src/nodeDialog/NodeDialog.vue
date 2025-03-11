@@ -265,14 +265,7 @@ const onSettingsChanged = ({ data }: { data: SettingsData }) => {
   }
 };
 
-const applySettings = async () => {
-  const { result } = await jsonDataService!.applyData(getData());
-  if (result) {
-    sendAlert({ message: result, type: "error" });
-    return { isApplied: false };
-  }
-  return { isApplied: true };
-};
+const applySettings = () => jsonDataService!.applyData(getData());
 
 const changeAdvancedSettings = () => {
   if (schema.value === null) {

@@ -52,12 +52,15 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.interactive.ReExecutable;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.webui.data.rpc.json.impl.ObjectMapperUtil;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * A data service that applies the data to the underlying model (usually the {@link NodeModel}). Applying the data often
@@ -123,35 +126,55 @@ public final class ApplyDataService<D> extends AbstractDataService {
      * Applies the data from a string.
      *
      * @param dataString the data to apply
-     * @throws IOException
+     * @return the apply data service response. This does not entail a result from the data service but might be used to
+     *         signal warnings or an error.
      */
-    public void applyData(final String dataString) throws IOException {
+    public String applyData(final String dataString) {
+        return applyDataAndListWarningsAndErrors(dataString).toString();
+    }
+
+    private static final String IS_APPLIED = "isApplied";
+
+    private static final String WARNINGS = "warningMessages";
+
+    private static final String ERROR = "error";
+
+    private JsonNode applyDataAndListWarningsAndErrors(final String dataString) {
         if (m_nc != null) {
             NodeContext.pushContext(m_nc);
+            DataServiceContext.init(m_nc);
         }
+        final var mapper = ObjectMapperUtil.getInstance().getObjectMapper();
+        final var root = mapper.createObjectNode();
         try {
-            applyDataWithContext(dataString);
+            applyDataWithContexts(dataString);
+            root.put(IS_APPLIED, true);
+            // We have to get the DataServiceContext again here, since the context may have changed since (or as a
+            // consequence of) clearing it
+            final var warningMessages = DataServiceContext.get().getWarningMessages();
+            if (warningMessages != null && warningMessages.length > 0) {
+                root.set(WARNINGS, mapper.valueToTree(warningMessages));
+            }
+            return root;
+        } catch (IOException ex) {
+            NodeLogger.getLogger(ApplyDataService.class).error("Error applying data", ex);
+            return root.put(IS_APPLIED, false).put(ERROR, ex.getMessage());
         } finally {
             if (m_nc != null) {
+                DataServiceContext.remove();
                 NodeContext.removeLastContext();
             }
         }
     }
 
-    private void applyDataWithContext(final String dataString) throws IOException {
+    private void applyDataWithContexts(final String dataString) throws IOException {
         var data = m_deserializer.deserialize(dataString);
         if (m_dataApplier != null) {
             m_dataApplier.apply(data);
         } else if (m_reExecutable != null) {
             m_reExecutable.preReExecute(data, false);
+            reExecute(dataString);
         }
-    }
-
-    /**
-     * @return whether a re-execution of the respective node is required on apply
-     */
-    public boolean shallReExecute() {
-        return m_reExecutable != null;
     }
 
     /**
@@ -160,7 +183,7 @@ public final class ApplyDataService<D> extends AbstractDataService {
      * @param data the data to execute the node with
      * @throws IOException
      */
-    public void reExecute(final String data) throws IOException {
+    private void reExecute(final String data) throws IOException {
         if (m_reExecutable != null) {
             m_wfm.reExecuteNode(m_nc.getID(), m_deserializer.deserialize(data), false);
         }
