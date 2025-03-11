@@ -4,18 +4,20 @@ import flushPromises from "flush-promises";
 
 import { TabBar } from "@knime/components";
 
+import DialogFileExplorer from "../../DialogFileExplorer.vue";
 import type {
   FileChooserProps,
   FileChooserValue,
 } from "../../types/FileChooserProps";
 import { FSCategory } from "../../types/FileChooserProps";
 import ConnectionPreventsTab from "../ConnectionPreventsTab.vue";
-import FileExplorerTab from "../FileExplorerTab.vue";
 import SideDrawerContent from "../SideDrawerContent.vue";
 import UrlTab from "../url/UrlTab.vue";
 
 describe("SideDrawerContent.vue", () => {
-  let props: FileChooserProps;
+  let props: FileChooserProps & {
+    selectionMode: "FILE" | "FOLDER";
+  };
 
   const testSpaceName = "testSpaceName";
 
@@ -31,6 +33,7 @@ describe("SideDrawerContent.vue", () => {
       options: {
         mountId: testSpaceName,
       },
+      selectionMode: "FILE",
     };
   });
 
@@ -74,11 +77,11 @@ describe("SideDrawerContent.vue", () => {
     const wrapper = mountSideDrawerContent();
     expect(wrapper.findComponent(TabBar).props().modelValue).toBe("LOCAL");
     await flushPromises();
-    const fileExplorerTab = wrapper.findComponent(FileExplorerTab);
+    const fileExplorerTab = wrapper.findComponent(DialogFileExplorer);
     expect(fileExplorerTab.exists()).toBeTruthy();
     expect(fileExplorerTab.props().backendType).toBe("local");
     const updatedPath = "updatedPath";
-    await fileExplorerTab.vm.$emit("chooseFile", updatedPath);
+    await fileExplorerTab.vm.$emit("chooseItem", updatedPath);
     expect(wrapper.emitted("update:modelValue")![0][0]).toStrictEqual({
       ...props.modelValue,
       path: updatedPath,
@@ -94,7 +97,7 @@ describe("SideDrawerContent.vue", () => {
       "relative-to-current-hubspace",
     );
     await flushPromises();
-    const fileExplorerTab = wrapper.findComponent(FileExplorerTab);
+    const fileExplorerTab = wrapper.findComponent(DialogFileExplorer);
     expect(fileExplorerTab.exists()).toBeTruthy();
     expect(fileExplorerTab.props().backendType).toBe(
       "relativeToCurrentHubSpace",
@@ -112,7 +115,7 @@ describe("SideDrawerContent.vue", () => {
         "update:modelValue",
       )![0][0] as FileChooserValue,
     });
-    const fileExplorerTab = wrapper.findComponent(FileExplorerTab);
+    const fileExplorerTab = wrapper.findComponent(DialogFileExplorer);
     expect(fileExplorerTab.exists()).toBeTruthy();
     expect(fileExplorerTab.props().backendType).toBe("embedded");
     expect(fileExplorerTab.props().breadcrumbRoot).toBe("Data");
@@ -166,11 +169,11 @@ describe("SideDrawerContent.vue", () => {
           "update:modelValue",
         )![0][0] as FileChooserValue,
       });
-      const fileExplorerTab = wrapper.findComponent(FileExplorerTab);
+      const fileExplorerTab = wrapper.findComponent(DialogFileExplorer);
       expect(fileExplorerTab.exists()).toBeTruthy();
       expect(fileExplorerTab.props().backendType).toBe("connected1");
       const updatedPath = "updatedPath";
-      await fileExplorerTab.vm.$emit("chooseFile", updatedPath);
+      await fileExplorerTab.vm.$emit("chooseItem", updatedPath);
       expect(wrapper.emitted("update:modelValue")![1][0]).toStrictEqual({
         path: updatedPath,
         timeout: props.modelValue.timeout,

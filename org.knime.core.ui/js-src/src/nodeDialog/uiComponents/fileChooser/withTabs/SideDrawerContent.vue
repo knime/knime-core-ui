@@ -8,6 +8,7 @@ import LinkIcon from "@knime/styles/img/icons/link.svg";
 import LocalSpaceIcon from "@knime/styles/img/icons/local-space.svg";
 import PluginInputIcon from "@knime/styles/img/icons/plugin-input.svg";
 
+import DialogFileExplorer from "../DialogFileExplorer.vue";
 import { getBackendType } from "../composables/useFileChooserBackend";
 import { useFileChooserBrowseOptions } from "../composables/useFileChooserBrowseOptions";
 import useFileChooserStateChange from "../composables/useFileChooserStateChange";
@@ -19,11 +20,14 @@ import type {
 } from "../types/FileChooserProps";
 
 import ConnectionPreventsTab from "./ConnectionPreventsTab.vue";
-import FileExplorerTab from "./FileExplorerTab.vue";
 import KnimeIcon from "./knime.svg";
 import UrlTab from "./url/UrlTab.vue";
 
-const props = withDefaults(defineProps<FileChooserProps>(), {
+type PropType = FileChooserProps & {
+  selectionMode: "FILE" | "FOLDER";
+};
+
+const props = withDefaults(defineProps<PropType>(), {
   options: () => ({}),
 });
 const emit = defineEmits(["update:modelValue"]);
@@ -141,7 +145,7 @@ const browseAction: Record<
         @update:path="onPathUpdate"
         @update:timeout="onTimeoutUpdate"
       />
-      <FileExplorerTab
+      <DialogFileExplorer
         v-else-if="isLoaded"
         :id="id"
         :filtered-extensions="filteredExtensions"
@@ -150,7 +154,8 @@ const browseAction: Record<
         :backend-type="backendType"
         :initial-file-path="modelValue.path"
         :breadcrumb-root="breadcrumbRoot"
-        @choose-file="onPathUpdate"
+        :selection-mode="selectionMode"
+        @choose-item="onPathUpdate"
       />
     </div>
   </div>
@@ -165,6 +170,8 @@ const browseAction: Record<
   & .flex-grow {
     flex-grow: 1;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
 }
 </style>

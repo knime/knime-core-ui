@@ -58,6 +58,7 @@ describe("DeferredTableView.vue", () => {
     expect(wrapper.findComponent(SubMenu).props()).toEqual({
       allowOverflowMainAxis: false,
       buttonTitle: "",
+      compact: false,
       disabled: false,
       id: "",
       items: [
@@ -101,6 +102,7 @@ describe("DeferredTableView.vue", () => {
     expect(wrapper.findComponent(SubMenu).props()).toEqual({
       allowOverflowMainAxis: false,
       buttonTitle: "",
+      compact: false,
       disabled: false,
       id: "",
       items: [

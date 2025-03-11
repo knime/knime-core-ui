@@ -44,78 +44,82 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 26, 2023 (Paul Bärnreuther): created
+ *   Apr 15, 2025 (david): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection;
 
 import java.io.IOException;
-import java.nio.file.FileSystem;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
 
-import org.knime.core.webui.data.DataServiceContext;
-import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters.FilterResult;
 
 /**
- * An instance of this class manages the open file connections of the {@link FileChooserDataService} and provides the
- * respective functionality depending on a String id per file system.
  *
- * @author Paul Bärnreuther
+ * @author david
  */
-public final class FileSystemConnector {
+final class FileChooserFilterFileVisitor extends SimpleFileVisitor<Path> {
 
-    final Map<String, FileChooserBackend> m_fileChooserBackends = new HashMap<>();
+    private final Predicate<Path> m_pathFilter;
 
-    interface FileChooserBackend {
-        FileSystem getFileSystem();
+    private final int m_limitToAcceptedFiles;
 
-        Object pathToObject(Path path);
+    private final List<Path> m_acceptedFilePaths;
 
-        default boolean isAbsoluteFileSystem() {
-            return true;
-        }
+    private int m_numEncounteredFiles;
 
-        void close() throws IOException;
+    private boolean m_wereAnySubtreesSkipped;
+
+    FileChooserFilterFileVisitor(final Predicate<Path> pathFilter, final int limitToAcceptedFiles) {
+        m_pathFilter = pathFilter;
+        m_limitToAcceptedFiles = limitToAcceptedFiles;
+
+        m_acceptedFilePaths = new ArrayList<>();
+        m_numEncounteredFiles = 0;
+        m_wereAnySubtreesSkipped = false;
     }
 
-    FileChooserBackend getFileChooserBackend(final String fileSystemId) {
-        return m_fileChooserBackends.computeIfAbsent(fileSystemId, FileSystemConnector::createFileChooserBackend);
+    @Override
+    public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+        boolean isFileLike = attrs.isRegularFile();
+
+        if (isFileLike) {
+            ++m_numEncounteredFiles;
+        }
+
+        boolean passesFilter = m_pathFilter.test(file);
+        boolean limitNotHit = m_acceptedFilePaths.size() < m_limitToAcceptedFiles;
+
+        if (isFileLike && passesFilter && limitNotHit) {
+            m_acceptedFilePaths.add(file);
+        }
+
+        return super.visitFile(file, attrs);
     }
 
-    private static final Pattern PORT_PATTERN = Pattern.compile("connected(\\d+)");
+    @Override
+    public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
+        boolean shouldSkipSubtree = m_acceptedFilePaths.size() >= m_limitToAcceptedFiles || !m_pathFilter.test(dir);
 
-    private static FileChooserBackend createFileChooserBackend(final String fileSystemId) {
-        if (fileSystemId.equals("local")) {
-            return new LocalFileChooserBackend();
-        }
-        if (fileSystemId.equals("relativeToCurrentHubSpace")) {
-            return new HubFileChooserBackend();
-        }
-        if (fileSystemId.equals("embedded")) {
-            return new DataAreaFileChooserBackend();
-        }
-        final var matcher = PORT_PATTERN.matcher(fileSystemId);
-        if (matcher.matches()) {
-            final var portIndex = Integer.parseInt(matcher.group(1));
-            final var portObjectSpec = (FileSystemPortObjectSpec)DataServiceContext.get().getInputSpecs()[portIndex];
-            return new ConnectedFileChooserBackend(portObjectSpec);
-        }
-        throw new IllegalArgumentException(String.format("%s is not a valid file system id", fileSystemId));
+        m_wereAnySubtreesSkipped |= shouldSkipSubtree;
+
+        return shouldSkipSubtree //
+            ? FileVisitResult.SKIP_SUBTREE //
+            : super.preVisitDirectory(dir, attrs);
     }
 
-    /**
-     * Closes all connections and clears the state.
-     */
-    public void clear() {
-        for (final var backend : m_fileChooserBackends.values()) {
-            try {
-                backend.close();
-            } catch (IOException ex) {
-                throw new IllegalStateException(ex);
-            }
-        }
-        m_fileChooserBackends.clear();
+    FilterResult getFilterResult() {
+        return new FilterResult( //
+            m_acceptedFilePaths, //
+            m_numEncounteredFiles, //
+            m_wereAnySubtreesSkipped, //
+            m_acceptedFilePaths.size() >= m_limitToAcceptedFiles //
+        );
     }
+
 }

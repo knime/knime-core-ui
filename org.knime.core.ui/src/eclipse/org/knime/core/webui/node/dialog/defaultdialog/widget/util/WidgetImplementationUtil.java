@@ -66,6 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
@@ -154,11 +155,12 @@ public final class WidgetImplementationUtil {
             LOCAL_DATE, //
             LOCAL_TIME, //
             LOCAL_DATE_TIME, //
-            ZONED_DATE_TIME, //
+            MULTI_FILE_CHOOSER, //
             NAME_FILTER, //
             SINGLE_SELECTION, //
             STRING_ARRAY, //
             TIME_INTERVAL, //
+            ZONED_DATE_TIME, //
             ZONE_ID;
     }
 
@@ -180,7 +182,7 @@ public final class WidgetImplementationUtil {
      *
      * !!! WHEN ADDING A NEW ELEMENT HERE, ALSO ADD TO THE DOCUMENTATION OF {@link DefaultNodeSettings} !!!
      */
-    private static WidgetAnnotation[] widgetAnnotations = new WidgetAnnotation[]{//
+    private static final WidgetAnnotation[] WIDGET_ANNOTATIONS = new WidgetAnnotation[]{//
         new WidgetAnnotation(Widget.class), //
         new WidgetAnnotation(OverwriteDialogTitle.class), //
         new WidgetAnnotation(List.of(Enum.class), RadioButtonsWidget.class), //
@@ -198,7 +200,7 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), CredentialsWidget.class), //
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), PasswordWidget.class), //
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), UsernameWidget.class), //
-        new WidgetAnnotation(List.of(FileSelection.class), FileReaderWidget.class), //
+        new WidgetAnnotation(List.of(FileSelection.class, MultiFileSelection.class), FileReaderWidget.class), //
         new WidgetAnnotation(List.of(FileSelection.class), FileWriterWidget.class), //
         new WidgetAnnotation(List.of(String.class), LocalFileReaderWidget.class), //
         new WidgetAnnotation(List.of(String.class), LocalFileWriterWidget.class), //
@@ -216,7 +218,7 @@ public final class WidgetImplementationUtil {
      * Extend this for every fields type which has default format set. !!! WHEN ADDING A NEW ELEMENT HERE, ALSO ADD TO
      * THE DOCUMENTATION OF {@link DefaultNodeSettings} !!!
      */
-    private static DefaultWidget[] defaultWidgets = new DefaultWidget[]{//
+    private static final DefaultWidget[] DEFAULT_WIDGETS = new DefaultWidget[]{//
         new DefaultWidget(List.of(boolean.class, Boolean.class), DefaultWidgetType.CHECKBOX), //
         new DefaultWidget(List.of(StringFilter.class), DefaultWidgetType.NAME_FILTER), //
         new DefaultWidget(List.of(ColumnFilter.class), DefaultWidgetType.COLUMN_FILTER), //
@@ -231,6 +233,7 @@ public final class WidgetImplementationUtil {
         new DefaultWidget(List.of(Credentials.class), DefaultWidgetType.CREDENTIALS), //
         new DefaultWidget(List.of(LegacyCredentials.class), DefaultWidgetType.LEGACY_CREDENTIALS), //
         new DefaultWidget(List.of(FileSelection.class), DefaultWidgetType.FILE_CHOOSER), //
+        new DefaultWidget(List.of(MultiFileSelection.class), DefaultWidgetType.MULTI_FILE_CHOOSER), //
         new DefaultWidget(List.of(Interval.class), DefaultWidgetType.INTERVAL), //
         new DefaultWidget(List.of(DateInterval.class), DefaultWidgetType.DATE_INTERVAL), //
         new DefaultWidget(List.of(TimeInterval.class), DefaultWidgetType.TIME_INTERVAL), //
@@ -254,13 +257,13 @@ public final class WidgetImplementationUtil {
      * @return the default widget formats
      */
     public static List<DefaultWidget> getApplicableDefaults(final Class<?> fieldType) {
-        return Arrays.asList(defaultWidgets).stream()
+        return Arrays.asList(DEFAULT_WIDGETS).stream()
             .filter(defaultWidget -> isApplicable(fieldType, defaultWidget.applicableFields)).toList();
     }
 
     private static List<WidgetAnnotation>
         getPresentWidgetAnnotations(final Predicate<Class<? extends Annotation>> annotationIsPresent) {
-        return Arrays.asList(widgetAnnotations).stream().filter(ann -> annotationIsPresent.test(ann.widgetAnnotation))
+        return Arrays.asList(WIDGET_ANNOTATIONS).stream().filter(ann -> annotationIsPresent.test(ann.widgetAnnotation))
             .toList();
     }
 

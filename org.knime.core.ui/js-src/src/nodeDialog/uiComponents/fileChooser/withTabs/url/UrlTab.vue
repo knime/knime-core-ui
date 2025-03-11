@@ -9,7 +9,8 @@ export type { Props };
 <script setup lang="ts">
 import { computed, onMounted, watch } from "vue";
 
-import { useApplyButton } from "../../settingsSubPanel";
+import { GO_INTO_FOLDER_INJECTION_KEY } from "../../settingsSubPanel/SettingsSubPanelForFileChooser.vue";
+import { useApplyButton } from "../../settingsSubPanel/useApplyButton";
 
 import CustomUrlFileChooser from "./CustomUrlFileChooser.vue";
 import { startsWithSchemeRegex } from "./urlUtil";
@@ -19,9 +20,13 @@ const props = defineProps<Props>();
 const emit = defineEmits(["update:path", "update:timeout"]);
 
 const { text: applyText, disabled: applyDisabled, onApply } = useApplyButton();
+const { shown: expandFolderButtonIsVisible } = useApplyButton(
+  GO_INTO_FOLDER_INJECTION_KEY,
+);
 
 onMounted(() => {
   applyText.value = "Set Url";
+  expandFolderButtonIsVisible.value = false;
   onApply.value = () => Promise.resolve();
 });
 

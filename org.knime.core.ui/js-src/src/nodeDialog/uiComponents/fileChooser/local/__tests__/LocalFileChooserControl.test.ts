@@ -8,8 +8,8 @@ import {
   mountJsonFormsControlLabelContent,
 } from "@knime/jsonforms/testing";
 
+import DialogFileExplorer from "../../DialogFileExplorer.vue";
 import FileBrowserButton from "../../FileBrowserButton.vue";
-import FileExplorerTab from "../../withTabs/FileExplorerTab.vue";
 import LabeledLocalFileChooserControl from "../LocalFileChooserControl.vue";
 import type LocalFileChooserControl from "../LocalFileChooserControl.vue";
 
@@ -58,7 +58,7 @@ describe("LabeledLocalFileChooserControl.vue", () => {
         props,
         // @ts-expect-error
         provide: providedForSubPanel,
-        stubs: { FileExplorerTab: true },
+        stubs: { DialogFileExplorer: true },
       },
     );
     wrapper = component.wrapper;
@@ -71,7 +71,7 @@ describe("LabeledLocalFileChooserControl.vue", () => {
   it("renders", () => {
     expect(wrapper.findComponent(InputField).exists()).toBe(true);
     expect(wrapper.findComponent(FileBrowserButton).exists()).toBe(true);
-    expect(wrapper.findComponent(FileExplorerTab).exists()).toBe(false);
+    expect(wrapper.findComponent(DialogFileExplorer).exists()).toBe(false);
   });
 
   it("sets labelForId", () => {
@@ -85,7 +85,7 @@ describe("LabeledLocalFileChooserControl.vue", () => {
         props,
         // @ts-expect-error
         provide: providedForSubPanel,
-        stubs: { FileExplorerTab: true },
+        stubs: { DialogFileExplorer: true },
       },
     );
     const changedTextInput = "Shaken not stirred";
@@ -103,9 +103,9 @@ describe("LabeledLocalFileChooserControl.vue", () => {
 
   it("sets correct initial value", async () => {
     await clickFileBrowserButton(wrapper);
-    expect(wrapper.findComponent(FileExplorerTab).vm.initialFilePath).toBe(
-      props.control.data,
-    );
+    expect(
+      wrapper.findComponent(DialogFileExplorer).props().initialFilePath,
+    ).toBe(props.control.data);
   });
 
   it("sets correct browsing options", async () => {
@@ -118,11 +118,11 @@ describe("LabeledLocalFileChooserControl.vue", () => {
         props,
         // @ts-expect-error
         provide: providedForSubPanel,
-        stubs: { FileExplorerTab: true },
+        stubs: { DialogFileExplorer: true },
       },
     );
     await clickFileBrowserButton(wrapper);
-    expect(wrapper.findComponent(FileExplorerTab).props()).toMatchObject({
+    expect(wrapper.findComponent(DialogFileExplorer).props()).toMatchObject({
       filteredExtensions: ["pdf"],
       appendedExtension: "pdf",
       isWriter: true,

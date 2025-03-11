@@ -26,9 +26,9 @@ const isDisabled = computed(
     props.control.uischema.options?.fileSystemConnectionMissing,
 );
 
-const browseOptions = computed(() => {
-  return props.control.uischema.options as FileChooserOptions;
-});
+const browseOptions = computed(
+  () => props.control.uischema.options as FileChooserOptions,
+);
 
 const { validCategories } = useFileChooserFileSystemsOptions(browseOptions);
 const getDefaultData = () => {
@@ -115,6 +115,7 @@ const { onApply, sideDrawerValue } = useSideDrawerContent<FileChooserValue>({
         v-model="sideDrawerValue"
         :disabled="isDisabled"
         :options="browseOptions"
+        selection-mode="FILE"
       />
     </FileBrowserButton>
   </div>

@@ -5,10 +5,10 @@ import { InputField } from "@knime/components";
 import type { VueControlPropsForLabelContent } from "@knime/jsonforms";
 
 import { type FileChooserOptions } from "../../../types/FileChooserUiSchema";
+import DialogFileExplorer from "../DialogFileExplorer.vue";
 import FileBrowserButton from "../FileBrowserButton.vue";
 import { useFileChooserBrowseOptions } from "../composables/useFileChooserBrowseOptions";
 import useSideDrawerContent from "../composables/useSideDrawerContent";
-import FileExplorerTab from "../withTabs/FileExplorerTab.vue";
 
 const props = defineProps<VueControlPropsForLabelContent<string>>();
 
@@ -40,7 +40,7 @@ const { appendedExtension, filteredExtensions, isLoaded, isWriter } =
       @update:model-value="changeValue"
     />
     <FileBrowserButton :disabled="disabled" @apply="onApply">
-      <FileExplorerTab
+      <DialogFileExplorer
         v-if="isLoaded"
         :backend-type="'local'"
         :disabled="disabled"

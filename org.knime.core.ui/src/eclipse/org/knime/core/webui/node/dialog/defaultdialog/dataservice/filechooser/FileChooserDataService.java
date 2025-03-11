@@ -81,20 +81,15 @@ public final class FileChooserDataService {
     /**
      * This data service is used in the DefaultNodeDialog and can be accessed by the frontend using the name
      * "fileChooser".
+     *
+     * @param fsConnector the file system connector to use. It is the responsibility of the caller to ensure that the
+     *            connector is closed once it is no longer needed.
      */
-    public FileChooserDataService() {
-        m_fsConnector = new FileSystemConnector();
-    }
-
-    /**
-     * Closes all current file connections. To be called on deactivation of the service.
-     */
-    public void clear() {
-        m_fsConnector.clear();
+    public FileChooserDataService(final FileSystemConnector fsConnector) {
+        m_fsConnector = fsConnector;
     }
 
     record ParentFolder(String path, String name) {
-
     }
 
     record Folder(List<Object> items, String path, List<ParentFolder> parentFolders) {
@@ -374,7 +369,8 @@ public final class FileChooserDataService {
     private static List<Path> listFilteredAndSortedItems(final Path folder, final FileSystem fileSystem,
         final ListItemsConfig listItemConfig) throws IOException {
 
-        final Predicate<Path> filterPredicate = getFilterPredicate(fileSystem, listItemConfig);
+        final Predicate<Path> filterPredicate =
+            FileBackendUtils.getFilterPredicate(fileSystem, listItemConfig.extensions, listItemConfig.isWriter);
 
         return Files.list(folder) //
             .filter(t -> {
@@ -388,26 +384,6 @@ public final class FileChooserDataService {
             .sorted(
                 Comparator.comparingInt(FileChooserDataService::getFileTypeOrdinal).thenComparing(Path::getFileName))
             .toList();
-    }
-
-    private static Predicate<Path> getFilterPredicate(final FileSystem fileSystem,
-        final ListItemsConfig listItemConfig) {
-        final var extensionsPredicate = getExtensionPredicate(fileSystem, listItemConfig.extensions());
-        final var readerOrWriterPredicate = getReaderOrWriterPredicate(listItemConfig.isWriter());
-        return extensionsPredicate.and(readerOrWriterPredicate);
-    }
-
-    private static Predicate<Path> getReaderOrWriterPredicate(final boolean isWriter) {
-        return isWriter ? Files::isWritable : Files::isReadable;
-    }
-
-    private static Predicate<Path> getExtensionPredicate(final FileSystem fileSystem, final List<String> extensions) {
-        if (extensions != null && !extensions.isEmpty()) {
-            final var endingsMatcher =
-                fileSystem.getPathMatcher(String.format("glob:**.{%s}", String.join(",", extensions)));
-            return endingsMatcher::matches;
-        }
-        return path -> true;
     }
 
     private static int getFileTypeOrdinal(final Path file) {

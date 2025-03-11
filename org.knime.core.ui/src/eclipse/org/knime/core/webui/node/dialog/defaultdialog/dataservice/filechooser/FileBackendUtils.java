@@ -44,78 +44,39 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 26, 2023 (Paul Bärnreuther): created
+ *   Apr 10, 2025 (david): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser;
 
-import java.io.IOException;
 import java.nio.file.FileSystem;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
-
-import org.knime.core.webui.data.DataServiceContext;
-import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
+import java.util.List;
+import java.util.function.Predicate;
 
 /**
- * An instance of this class manages the open file connections of the {@link FileChooserDataService} and provides the
- * respective functionality depending on a String id per file system.
+ * Utilities for {@link FileChooserDataService} and {@link FileFilterPreviewDataService}.
  *
- * @author Paul Bärnreuther
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-public final class FileSystemConnector {
+final class FileBackendUtils {
 
-    final Map<String, FileChooserBackend> m_fileChooserBackends = new HashMap<>();
-
-    interface FileChooserBackend {
-        FileSystem getFileSystem();
-
-        Object pathToObject(Path path);
-
-        default boolean isAbsoluteFileSystem() {
-            return true;
-        }
-
-        void close() throws IOException;
+    static Predicate<Path> getFilterPredicate(final FileSystem fileSystem, final List<String> extensions, final boolean isWriter) {
+        final var extensionsPredicate = getExtensionPredicate(fileSystem, extensions);
+        final var readerOrWriterPredicate = getReaderOrWriterPredicate(isWriter);
+        return extensionsPredicate.and(readerOrWriterPredicate);
     }
 
-    FileChooserBackend getFileChooserBackend(final String fileSystemId) {
-        return m_fileChooserBackends.computeIfAbsent(fileSystemId, FileSystemConnector::createFileChooserBackend);
+    static Predicate<Path> getReaderOrWriterPredicate(final boolean isWriter) {
+        return isWriter ? Files::isWritable : Files::isReadable;
     }
 
-    private static final Pattern PORT_PATTERN = Pattern.compile("connected(\\d+)");
-
-    private static FileChooserBackend createFileChooserBackend(final String fileSystemId) {
-        if (fileSystemId.equals("local")) {
-            return new LocalFileChooserBackend();
+    static Predicate<Path> getExtensionPredicate(final FileSystem fileSystem, final List<String> extensions) {
+        if (extensions != null && !extensions.isEmpty()) {
+            final var endingsMatcher =
+                fileSystem.getPathMatcher(String.format("glob:**.{%s}", String.join(",", extensions)));
+            return endingsMatcher::matches;
         }
-        if (fileSystemId.equals("relativeToCurrentHubSpace")) {
-            return new HubFileChooserBackend();
-        }
-        if (fileSystemId.equals("embedded")) {
-            return new DataAreaFileChooserBackend();
-        }
-        final var matcher = PORT_PATTERN.matcher(fileSystemId);
-        if (matcher.matches()) {
-            final var portIndex = Integer.parseInt(matcher.group(1));
-            final var portObjectSpec = (FileSystemPortObjectSpec)DataServiceContext.get().getInputSpecs()[portIndex];
-            return new ConnectedFileChooserBackend(portObjectSpec);
-        }
-        throw new IllegalArgumentException(String.format("%s is not a valid file system id", fileSystemId));
-    }
-
-    /**
-     * Closes all connections and clears the state.
-     */
-    public void clear() {
-        for (final var backend : m_fileChooserBackends.values()) {
-            try {
-                backend.close();
-            } catch (IOException ex) {
-                throw new IllegalStateException(ex);
-            }
-        }
-        m_fileChooserBackends.clear();
+        return path -> true;
     }
 }

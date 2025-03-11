@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, toRefs, watch } from "vue";
+import { computed, ref, toRef, toRefs, watch } from "vue";
 
 import {
   Breadcrumb,
@@ -18,6 +18,7 @@ import type {
   ParentFolder,
 } from "./types";
 import { toFileExplorerItem } from "./utils";
+import { useDialogFileExplorerButtons } from "./withTabs/useDialogFileExplorerButtons";
 
 export interface DialogFileExplorerProps {
   initialFilePath?: string;
@@ -25,24 +26,42 @@ export interface DialogFileExplorerProps {
   filteredExtensions?: string[];
   appendedExtension?: string | null;
   backendType: BackendType;
-  clickOutsideException?: null | HTMLElement;
   openFileByExplorer?: boolean;
   breadcrumbRoot?: string | null;
+  selectionMode?: "FILE" | "FOLDER";
 }
 
 const currentPath = ref<string | null>(null);
 const currentParents = ref<ParentFolder[]>([]);
 
-const items = ref<FileExplorerItem[]>([]);
 const props = withDefaults(defineProps<DialogFileExplorerProps>(), {
   initialFilePath: "",
   isWriter: false,
   filteredExtensions: () => [],
   appendedExtension: null,
-  clickOutsideException: null,
+  clickOutsideExceptions: () => [],
   openFileByExplorer: false,
   breadcrumbRoot: null,
+  selectionMode: "FILE",
 });
+
+export type SelectedItem = {
+  name: string;
+  selectionType: "FILE" | "FOLDER";
+} | null;
+
+const selectedItem = ref<SelectedItem>(null);
+
+const allItemsInCurrentFolder = ref<FileExplorerItem[]>([]);
+
+// TODO(UIEXT-2660): we need to make these items disabled, not hidden. Currently
+// this isn't nicely supported by the WAC component, so we will push
+// it to a follow-up ticket.
+const displayedItemsInCurrentFolder = computed(() =>
+  allItemsInCurrentFolder.value.filter(
+    (item) => props.selectionMode === "FILE" || item.isDirectory,
+  ),
+);
 
 const breadcrumbItems = computed(() =>
   currentParents.value.map((parent, index) => {
@@ -70,8 +89,7 @@ const breadcrumbItems = computed(() =>
 );
 
 const emit = defineEmits<{
-  fileIsSelected: [boolean];
-  chooseFile: [
+  chooseItem: [
     /**
      * The full path of the chosen file
      */
@@ -85,7 +103,8 @@ const setNextItems = (folder: Folder) => {
   isLoading.value = false;
   currentPath.value = folder.path;
   currentParents.value = folder.parentFolders;
-  items.value = folder.items.map(toFileExplorerItem);
+
+  allItemsInCurrentFolder.value = folder.items.map(toFileExplorerItem);
 };
 
 const displayedError = ref<string | null>(null);
@@ -93,16 +112,12 @@ const setErrorMessage = (errorMessage: string | undefined) => {
   displayedError.value = errorMessage ?? null;
 };
 
-const selectedFileName = ref("");
-
-watch(
-  () => selectedFileName.value,
-  (file) => emit("fileIsSelected", file !== ""),
-);
-
 const setRelativeFilePathFromBackend = (filePathRelativeToFolder: string) => {
-  if (props.isWriter) {
-    selectedFileName.value = filePathRelativeToFolder;
+  if (props.isWriter && props.selectionMode === "FILE") {
+    selectedItem.value = {
+      name: filePathRelativeToFolder,
+      selectionType: "FILE",
+    };
   }
 };
 
@@ -122,20 +137,15 @@ const { listItems, getFilePath } = useFileChooserBackend({
   backendType,
 });
 
-watch(
-  () => backendType.value,
-  () => listItems(null, props.initialFilePath).then(handleListItemsResult),
-  { immediate: true },
+const selectedFileName = computed(() =>
+  selectedItem.value?.selectionType === "FILE" ? selectedItem.value?.name : "",
 );
-
-const selectedDirectoryName = ref("");
 
 const loadNewFolder = (
   path: string | null,
   folderName: string | null = null,
 ) => {
-  selectedDirectoryName.value = "";
-  selectedFileName.value = "";
+  selectedItem.value = null;
   isLoading.value = true;
   listItems(path, folderName).then(handleListItemsResult);
 };
@@ -146,42 +156,73 @@ const changeDirectory = (nextFolder: string) =>
 const onBreadcrumbItemClick = ({ path }: { path?: string | null }) =>
   loadNewFolder(path ?? null);
 
-const onOpenFile = async (name: string) => {
+const onChooseItem = async (name: string) => {
   const { path, errorMessage } = await getFilePath(currentPath.value, name);
   if (path === null) {
     setErrorMessage(errorMessage);
     return Promise.reject(errorMessage);
   } else {
-    emit("chooseFile", path);
+    emit("chooseItem", path);
     return Promise.resolve();
   }
 };
 
-defineExpose({
-  openFile: () => onOpenFile(selectedFileName.value),
-});
-
 const onChangeSelectedItemIds = (itemIds: string[]) => {
   if (itemIds.length === 0) {
-    selectedDirectoryName.value = "";
-    if (!props.isWriter) {
-      selectedFileName.value = "";
-    }
+    selectedItem.value = null;
     return;
   }
-  const newSelectedItem = items.value.find(({ id }) => id === itemIds[0])!;
+  const newSelectedItem = displayedItemsInCurrentFolder.value.find(
+    ({ id }) => id === itemIds[0],
+  )!;
   if (newSelectedItem.isDirectory) {
-    selectedDirectoryName.value = newSelectedItem.name;
-    selectedFileName.value = "";
+    selectedItem.value = {
+      name: newSelectedItem.name,
+      selectionType: "FOLDER",
+    };
   } else {
-    selectedDirectoryName.value = "";
-    selectedFileName.value = newSelectedItem.name;
+    selectedItem.value = {
+      name: newSelectedItem.name,
+      selectionType: "FILE",
+    };
   }
 };
+
+// this is fine since we only render the field when isWriter and selectionMode is FILE
+const inputFieldFileName = computed({
+  get: () => selectedFileName.value,
+  set: (value) => {
+    selectedItem.value = {
+      name: value,
+      selectionType: "FILE",
+    };
+  },
+});
+
+const { clickOutsideExceptions } = useDialogFileExplorerButtons({
+  actions: {
+    chooseSelectedItem: () => onChooseItem(selectedItem.value?.name ?? ""),
+    goIntoSelectedFolder: () => {
+      if (selectedItem.value?.selectionType === "FOLDER") {
+        changeDirectory(selectedItem.value.name);
+      }
+      return Promise.resolve();
+    },
+  },
+  selectionMode: toRef(props, "selectionMode"),
+  selectedItem,
+  isRootParent: computed(() => currentPath.value === null),
+});
+
+watch(
+  () => backendType.value,
+  () => listItems(null, props.initialFilePath).then(handleListItemsResult),
+  { immediate: true },
+);
 </script>
 
 <template>
-  <div v-if="isLoading" class="loading-animaton">
+  <div v-if="isLoading" class="loading-animation">
     <LoadingIcon class="icon" />
   </div>
   <template v-else>
@@ -197,27 +238,32 @@ const onChangeSelectedItemIds = (itemIds: string[]) => {
         >({{ displayedError }})</span
       >
     </div>
-    <div v-if="isWriter" class="name-input-wrapper">
+    <div
+      v-if="isWriter && props.selectionMode === 'FILE'"
+      class="name-input-wrapper"
+    >
       <span>Name:</span>
-      <InputField v-model="selectedFileName" />
+      <InputField v-model="inputFieldFileName" />
     </div>
     <FileExplorer
       class="explorer"
       :is-root-folder="currentPath === null"
-      :items="items"
+      :items="displayedItemsInCurrentFolder"
       :disable-context-menu="true"
       :disable-multi-select="true"
       :disable-dragging="true"
-      :click-outside-exception="clickOutsideException"
+      :click-outside-exception="clickOutsideExceptions"
       @change-directory="changeDirectory"
-      @open-file="openFileByExplorer && onOpenFile($event.name).catch(() => {})"
+      @open-file="
+        openFileByExplorer && onChooseItem($event.name).catch(() => {})
+      "
       @update:selected-item-ids="onChangeSelectedItemIds"
     />
   </template>
 </template>
 
 <style scoped lang="postcss">
-.loading-animaton {
+.loading-animation {
   align-items: center;
   flex: 1;
   display: flex;
@@ -257,6 +303,7 @@ const onChangeSelectedItemIds = (itemIds: string[]) => {
 }
 
 .explorer {
+  height: 100%;
   min-height: 0;
   overflow-y: auto;
   flex: 1;
