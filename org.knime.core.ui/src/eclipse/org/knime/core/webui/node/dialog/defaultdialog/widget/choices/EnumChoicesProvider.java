@@ -44,29 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 19, 2025 (paulbaernreuther): created
+ *   Mar 18, 2024 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
 
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.EnumUtil;
 
 /**
- * Interface for state providers that provide a list of choices used in the {@link ChoicesProvider} annotation.
+ * A class that provides an array of possible values of a {@link ChoicesProvider} based on the current
+ * {@link DefaultNodeSettingsContext}. Use this for an enum field.
  *
- * The following options are available:
- * <ul>
- * <li>{@link NameChoicesProvider} for choosing a string</li>
- * <li>{@link TypedNameChoicesProvider} for choosing a column or a flow variable</li>
- * </ul>
+ * @param <E> the enum type. This has to match the annotated field
  *
- * See {@link DefaultNodeSettings} for further information which state provider is to be used for which setting.
- *
- * @author paulbaernreuther
+ * @author Paul Bärnreuther
  */
-public sealed interface ChoicesStateProvider<S> extends StateProvider<List<S>>
-    permits NameChoicesProvider, TypedNameChoicesProvider, EnumChoicesProvider {
+public non-sealed interface EnumChoicesProvider<E extends Enum<E>> extends ChoicesStateProvider<PossibleValue> {
+
+    /**
+     * {@inheritDoc}
+     *
+     * Here, the state provider is already configured to compute the state initially before the dialog is opened. If
+     * this is desired but other initial configurations (like dependencies) are desired, override this method and call
+     * super.init within it. If choices should instead be asynchronously loaded once the dialog is opened, override this
+     * method without calling super.init to configure the initializer to do so.
+     */
+    @Override
+    default void init(final StateProviderInitializer initializer) {
+        initializer.computeBeforeOpenDialog();
+
+    }
+
+    /**
+     * Computes the array of possible values based on the {@link DefaultNodeSettingsContext}.
+     *
+     * @param context the context that holds any available information that might be relevant for determining available
+     *            choices
+     * @return array of possible values, never {@code null}
+     */
+    default List<E> choices(final DefaultNodeSettingsContext context) {
+        throw new IllegalStateException("At least one method must be implemented: "
+            + "EnumChoicesProvider.choices or EnumChoicesProvider.computeState");
+    }
+
+    @Override
+    default List<PossibleValue> computeState(final DefaultNodeSettingsContext context) {
+        return choices(context).stream().map(EnumChoicesProvider::enumConstToPossibleValue).toList();
+    }
+
+    private static <E extends Enum<E>> PossibleValue enumConstToPossibleValue(final E enumConst) {
+        final var titleAndDescription = EnumUtil.createConstantEntry(enumConst);
+        return new PossibleValue(enumConst.name(), titleAndDescription.title());
+    }
 
 }
