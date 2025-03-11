@@ -48,6 +48,7 @@ const {
   isConnected,
   portFileSystemName,
   portIndex,
+  selectionMode,
 } = useFileChooserBrowseOptions(options);
 
 type TabSpec = {
@@ -150,6 +151,7 @@ const browseAction: Record<
         :backend-type="backendType"
         :initial-file-path="modelValue.path"
         :breadcrumb-root="breadcrumbRoot"
+        :selection-mode="selectionMode"
         @choose-file="onPathUpdate"
       />
     </div>

@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
+import { Label, ValueSwitch } from "@knime/components";
 import type { VueControlPropsForLabelContent } from "@knime/jsonforms";
 
 import type { FileChooserOptions } from "@/nodeDialog/types/FileChooserUiSchema";
 import { useFlowSettings } from "../../../composables/components/useFlowVariables";
 import FileBrowserButton from "../FileBrowserButton.vue";
+import FileSelectionPreview from "../FileSelectionPreview.vue";
 import { useFileChooserFileSystemsOptions } from "../composables/useFileChooserBrowseOptions";
 import useFileChooserStateChange from "../composables/useFileChooserStateChange";
 import useSideDrawerContent from "../composables/useSideDrawerContent";
@@ -26,27 +28,6 @@ const isDisabled = computed(
     props.control.uischema.options?.fileSystemConnectionMissing,
 );
 
-const browseOptions = computed(() => {
-  return props.control.uischema.options as FileChooserOptions;
-});
-
-const { validCategories } = useFileChooserFileSystemsOptions(browseOptions);
-const getDefaultData = () => {
-  return {
-    path: "",
-    timeout: 10000,
-    fsCategory: validCategories.value[0],
-    context: {
-      fsToString: "",
-      fsSpecifier: browseOptions.value.fileSystemSpecifier,
-    },
-  };
-};
-
-const data = computed(() => {
-  return props.control.data?.path ?? getDefaultData();
-});
-
 const onChangePath = (value: FileChooserValue) =>
   props.changeValue({ path: value });
 
@@ -58,23 +39,22 @@ const isOverwritten = computed(() =>
   Boolean(flowSettings.value?.controllingFlowVariableName),
 );
 
-/**
- * Reset to default data when flow variable is cleared
- */
-watch(
-  () => isOverwritten.value,
-  (value) => {
-    if (!value) {
-      onChangePath(getDefaultData());
-    }
-  },
-);
+const selectionMode = ref<"file" | "folder">("file");
+
+const browseOptions = computed(() => {
+  return {
+    ...props.control.uischema.options,
+    selectionMode: selectionMode.value,
+  } as FileChooserOptions;
+});
 
 const { onFsCategoryUpdate } = useFileChooserStateChange(
   computed(() => props.control.data?.path),
   onChangePath,
   browseOptions,
 );
+
+const { validCategories } = useFileChooserFileSystemsOptions(browseOptions);
 
 /**
  * This currently can happen in case a node implementation sets the default value to one that is not supported in this frontend.
@@ -90,33 +70,101 @@ onMounted(() => {
   }
 });
 
+const getDefaultData = () => {
+  return {
+    path: "",
+    timeout: 10000,
+    fsCategory: validCategories.value[0],
+    context: {
+      fsToString: "",
+      fsSpecifier: browseOptions.value.fileSystemSpecifier,
+    },
+  };
+};
+
+/**
+ * Reset to default data when flow variable is cleared
+ */
+watch(
+  () => isOverwritten.value,
+  (value) => {
+    if (!value) {
+      onChangePath(getDefaultData());
+    }
+  },
+);
+
+const data = computed(() => {
+  return props.control.data?.path ?? getDefaultData();
+});
+
 const { onApply, sideDrawerValue } = useSideDrawerContent<FileChooserValue>({
   onChange: onChangePath,
   initialValue: data,
 });
+
+const possibleValueSwitchValues = [
+  {
+    id: "file",
+    text: "File",
+  },
+  {
+    id: "folder",
+    text: "Folder",
+  },
+];
+
+const dummyItems = [
+  "test1.csv",
+  "test2.csv",
+  "test3.csv",
+  "According to all known laws of aviation, there is no way a bee should be able to fly. Its wings are too small to get its fat little body off the ground. The bee, of course, flies anyway because bees don't care what humans think is impossible.csv",
+  "test5.csv",
+  "test6.csv",
+  "test7.csv",
+  "test8.csv",
+  "test9.csv",
+  "test10.csv",
+  "test11.csv",
+  "test12.csv",
+];
 </script>
 
 <template>
-  <div class="flex-row">
-    <FSLocationTextControl
-      :id="labelForId"
-      class="flex-grow"
-      :model-value="data"
-      :disabled="isDisabled"
-      :is-local="browseOptions.isLocal"
-      :is-valid
-      :port-index="browseOptions.portIndex"
-      :file-system-specifier="browseOptions.fileSystemSpecifier"
-      @update:model-value="onChangePath"
-    />
-    <FileBrowserButton :disabled="isDisabled" @apply="onApply">
-      <SideDrawerContent
-        :id="labelForId ?? null"
-        v-model="sideDrawerValue"
-        :disabled="isDisabled"
-        :options="browseOptions"
+  <div :id="labelForId" class="flex-column">
+    <Label text="Type">
+      <ValueSwitch
+        v-model="selectionMode"
+        compact
+        :possible-values="possibleValueSwitchValues"
       />
-    </FileBrowserButton>
+    </Label>
+    <Label text="Source" class="flex-column">
+      <div class="flex-row">
+        <FSLocationTextControl
+          class="flex-grow"
+          :model-value="data"
+          :disabled="isDisabled"
+          :is-local="browseOptions.isLocal"
+          :is-valid
+          :port-index="browseOptions.portIndex"
+          :file-system-specifier="browseOptions.fileSystemSpecifier"
+          @update:model-value="onChangePath"
+        />
+        <FileBrowserButton :disabled="isDisabled" @apply="onApply">
+          <SideDrawerContent
+            :id="labelForId ?? null"
+            v-model="sideDrawerValue"
+            :disabled="isDisabled"
+            :options="browseOptions"
+          />
+        </FileBrowserButton>
+      </div>
+      <FileSelectionPreview
+        v-if="selectionMode === 'folder'"
+        :items="dummyItems"
+      />
+    </Label>
   </div>
 </template>
 
@@ -134,5 +182,11 @@ const { onApply, sideDrawerValue } = useSideDrawerContent<FileChooserValue>({
   & .fit-content {
     height: fit-content;
   }
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 </style>
