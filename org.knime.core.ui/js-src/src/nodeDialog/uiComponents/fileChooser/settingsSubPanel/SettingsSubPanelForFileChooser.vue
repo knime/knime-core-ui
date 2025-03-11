@@ -1,10 +1,14 @@
+<script lang="ts">
+export const GO_INTO_FOLDER_INJECTION_KEY = "goIntoFolderInjectionKey";
+</script>
+
 <script setup lang="ts">
 import { ref } from "vue";
 
 import { Button } from "@knime/components";
 import { SettingsSubPanel } from "@knime/jsonforms";
 
-import { setUpApplyButton } from ".";
+import { setUpApplyButton } from "./useApplyButton";
 
 export interface Props {
   showBackArrow?: boolean;
@@ -33,6 +37,15 @@ const {
   onApply,
 } = setUpApplyButton();
 
+const {
+  text: enterFolderButtonText,
+  disabled: enterFolderButtonDisabled,
+  shown: enterFolderButtonShown,
+  element: goIntoFolderButton,
+  onApply: onEnterFolderButtonClicked,
+} = setUpApplyButton(GO_INTO_FOLDER_INJECTION_KEY);
+enterFolderButtonText.value = "Open folder";
+
 const apply = () =>
   onApply
     .value?.()
@@ -55,15 +68,27 @@ const apply = () =>
     <template #bottom-content>
       <div class="bottom-buttons">
         <Button with-border compact @click="close"> Cancel </Button>
-        <Button
-          ref="applyButton"
-          compact
-          primary
-          :disabled="applyDisabled"
-          @click="apply"
-        >
-          {{ applyText }}
-        </Button>
+        <div>
+          <Button
+            v-if="enterFolderButtonShown"
+            ref="goIntoFolderButton"
+            with-border
+            compact
+            :disabled="enterFolderButtonDisabled"
+            @click="onEnterFolderButtonClicked"
+          >
+            {{ enterFolderButtonText }}
+          </Button>
+          <Button
+            ref="applyButton"
+            compact
+            primary
+            :disabled="applyDisabled"
+            @click="apply"
+          >
+            {{ applyText }}
+          </Button>
+        </div>
       </div>
     </template>
   </SettingsSubPanel>
@@ -75,5 +100,11 @@ const apply = () =>
   justify-content: space-between;
   height: 60px;
   padding: 14px 20px;
+
+  & > div {
+    display: flex;
+    gap: var(--space-8);
+    flex-direction: row;
+  }
 }
 </style>

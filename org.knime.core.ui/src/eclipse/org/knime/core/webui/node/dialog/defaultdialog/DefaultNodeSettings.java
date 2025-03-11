@@ -88,6 +88,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsL
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
@@ -278,9 +279,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * </tr>
  * <tr>
  * <td>{@link FileSelection}</td>
- * <td>Path file chooser (currently with options "Local File System" and "Custom/KNIME URL")</td>
+ * <td>Path file chooser (with limited file system options)</td>
  * <td>{@link FileReaderWidget}<br>
  * {@link FileWriterWidget}</td>
+ * </tr>
+ * <tr>
+ * <td>{@link MultiFileSelection}</td>
+ * <td>Path file chooser which can also accept a folder.</td>
+ * <td>{@link FileReaderWidget}</td>
  * </tr>
  * <tr>
  * <td>{@link Void} (i.e. this is not a setting but only something that is displayed)</td>

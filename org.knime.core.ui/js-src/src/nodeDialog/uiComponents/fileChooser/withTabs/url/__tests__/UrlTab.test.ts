@@ -5,6 +5,8 @@ import { shallowMount } from "@vue/test-utils";
 import { ErrorMessages } from "@knime/jsonforms";
 
 import { applyButtonInjectionKey } from "../../../settingsSubPanel";
+import { GO_INTO_FOLDER_INJECTION_KEY } from "../../../settingsSubPanel/SettingsSubPanelForFileChooser.vue";
+import { createOrGetInjectionKey } from "../../../settingsSubPanel/useApplyButton";
 import CustomUrlFileChooser from "../CustomUrlFileChooser.vue";
 import UrlTab, { type Props as UrlTabProps } from "../UrlTab.vue";
 
@@ -32,6 +34,9 @@ describe("UrlTab.vue", () => {
             disabled: applyDisabled,
             text: ref("initialText"),
             onApply: ref(undefined),
+          },
+          [createOrGetInjectionKey(GO_INTO_FOLDER_INJECTION_KEY) as symbol]: {
+            shown: ref(false),
           },
         },
         stubs: {
@@ -70,7 +75,7 @@ describe("UrlTab.vue", () => {
     const errorMessage = wrapper
       .findComponent(CustomUrlFileChooser)
       .findComponent(ErrorMessages);
-    expect(errorMessage.exists()).toBeFalsy();
+    expect(errorMessage.props("errors")).toStrictEqual([]);
     expect(applyDisabled.value).toBeFalsy();
   });
 

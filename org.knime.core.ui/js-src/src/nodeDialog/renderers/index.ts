@@ -29,20 +29,26 @@ import { credentialsRenderer } from "./credentialsRenderer";
 import { dynamicValueRenderer } from "./dynamicValueRenderer";
 import { editResetButtonRenderer } from "./editResetButtonRenderer";
 import { elementCheckboxRenderer } from "./elementCheckboxRenderer";
-import { fileChooserRenderer } from "./fileChooserRenderer";
+import {
+  fileChooserForMultiFileRenderer,
+  fileChooserRenderer,
+} from "./fileChooserRenderer";
 import { legacyCredentialsRenderer } from "./legacyCredentialsRenderer";
 import { localFileChooserRenderer } from "./localFileChooserRenderer";
+import { multiFileChooserRenderer } from "./multiFileChooserRenderer";
 import { vennDiagramLayoutRenderer } from "./vennDiagramRenderer";
 
-const coreUIControls = {
+const coreUIControls: Record<string, VueControlRenderer> = {
   buttonRenderer, // since it will be removed soon and is based on the old update mechanism
   localFileChooserRenderer, // since it would require api calls
   fileChooserRenderer,
+  multiFileChooserRenderer,
+  fileChooserForMultiFileRenderer,
   dynamicValueRenderer, // since it will change a lot and is no use to the hub
   credentialsRenderer, // since it contains flowSettings logic (that a flow variable is set is important for the backend to resolve the value properly, since we do not load the password in the frontend in this case)
   legacyCredentialsRenderer,
   elementCheckboxRenderer,
-} satisfies Record<string, VueControlRenderer>;
+};
 
 const otherRenderers = [
   /* layout renderers */

@@ -62,8 +62,9 @@ import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
  * An instance of this class manages the open file connections of the {@link FileChooserDataService} and provides the
  * respective functionality depending on a String id per file system.
  *
+ * @author Paul Bärnreuther
  */
-final class FileSystemConnector {
+public final class FileSystemConnector {
 
     final Map<String, FileChooserBackend> m_fileChooserBackends = new HashMap<>();
 
@@ -117,5 +118,4 @@ final class FileSystemConnector {
         }
         m_fileChooserBackends.clear();
     }
-
 }

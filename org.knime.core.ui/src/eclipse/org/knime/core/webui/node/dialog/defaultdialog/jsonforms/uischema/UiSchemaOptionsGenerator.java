@@ -67,6 +67,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSION;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSIONS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSION_PROVIDER;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_FILTER_CLASS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FORMAT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_HIDE_CONTROL_HEADER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_IS_WRITER;
@@ -104,6 +105,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
@@ -162,6 +164,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplemen
 import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.WidgetAnnotation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.BuiltinValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
@@ -292,6 +295,13 @@ final class UiSchemaOptionsGenerator {
                     options.put(TAG_FORMAT, Format.FILE_CHOOSER);
                     addWorkflowContextInfo(options);
                     break;
+                case MULTI_FILE_CHOOSER:
+                    options.put(TAG_FORMAT, Format.MULTI_FILE_CHOOSER);
+                    addWorkflowContextInfo(options);
+                    var filtersClass = extractFileChooserFiltersClass();
+                    setFilterSchemaForMultiFileWidgetChooser(options, filtersClass);
+                    options.put(TAG_FILE_FILTER_CLASS, filtersClass.getName());
+                    break;
                 case DYNAMIC_VALUE:
                     options.put(TAG_FORMAT, Format.DYNAMIC_VALUE);
                     break;
@@ -349,11 +359,11 @@ final class UiSchemaOptionsGenerator {
             resolveFileExtensions(options, fileReaderWidget.fileExtensions());
             addFileSystemInformation(options);
         }
+
         if (annotatedWidgets.contains(FileWriterWidget.class)) {
             options.put(TAG_IS_WRITER, true);
             final var fileWriterWidget = m_node.getAnnotation(FileWriterWidget.class).orElseThrow();
             resolveFileExtension(options, fileWriterWidget.fileExtension(), fileWriterWidget.fileExtensionProvider());
-
         }
         if (annotatedWidgets.contains(LocalFileReaderWidget.class)) {
             if (annotatedWidgets.contains(LocalFileWriterWidget.class)) {
@@ -909,7 +919,6 @@ final class UiSchemaOptionsGenerator {
 
         if (internalArrayWidget.withEditAndReset()) {
             options.put(TAG_ARRAY_LAYOUT_WITH_EDIT_AND_RESET, true);
-
         }
 
         if (internalArrayWidget.withElementCheckboxes()) {
@@ -937,5 +946,24 @@ final class UiSchemaOptionsGenerator {
     static boolean hasElementCheckboxWidgetAnnotation(final TreeNode<WidgetGroup> field) {
         return field.getPossibleAnnotations().contains(InternalArrayWidget.ElementCheckboxWidget.class)
             && field.getAnnotation(InternalArrayWidget.ElementCheckboxWidget.class).isPresent();
+    }
+
+    @SuppressWarnings("unchecked")
+    private Class<? extends FileChooserFilters> extractFileChooserFiltersClass() {
+        // extract the first generic parameter type from the node. Since the node is
+        // a MultiFileSelection<? extends FileChooserFilters>, the first generic parameter
+        // is the FileChooserFilters.
+        var filtersClass = m_node.getType().containedType(0).getRawClass();
+        return (Class<? extends FileChooserFilters>)filtersClass;
+    }
+
+    private void setFilterSchemaForMultiFileWidgetChooser(final ObjectNode options,
+        final Class<? extends FileChooserFilters> cls) {
+        var elementTree = new WidgetTreeFactory().createTree(cls, null);
+
+        var filterSubUiSchema =
+            JsonFormsUiSchemaUtil.buildUISchema(List.of(elementTree), m_widgetTrees, m_defaultNodeSettingsContext);
+
+        options.set("filterSubUiSchema", filterSubUiSchema);
     }
 }

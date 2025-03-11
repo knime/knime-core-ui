@@ -54,6 +54,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.buildUiSchema;
 
 import java.math.BigDecimal;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -79,7 +80,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
@@ -210,6 +213,10 @@ class UiSchemaOptionsTest {
 
             @Widget(title = "", description = "")
             DataType m_dataType;
+
+            @Widget(title = "", description = "")
+            MultiFileSelection<MyVerySpecialTestFilterSettings> m_multiFileSelection =
+                new MultiFileSelection<>(new MyVerySpecialTestFilterSettings());
         }
 
         var response = buildTestUiSchema(DefaultStylesSettings.class);
@@ -257,6 +264,38 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[15].options.format").isString().isEqualTo("dropDown");
         assertThatJson(response).inPath("$.elements[15].options.choicesProvider").isString()
             .isEqualTo(DefaultDataTypeChoicesProvider.class.getName());
+
+        assertThatJson(response).inPath("$.elements[16].scope").isString().contains("multiFileSelection");
+        assertThatJson(response).inPath("$.elements[16].options.format").isString().isEqualTo("multiFileChooser");
+        assertThatJson(response).inPath("$.elements[16].options").isObject().doesNotContainKey("isWriter");
+        assertThatJson(response).inPath("$.elements[16].options.filterSubUiSchema").isObject().containsKey("elements");
+        // custom filter class has one field
+        assertThatJson(response).inPath("$.elements[16].options.filterSubUiSchema.elements").isArray().hasSize(1);
+        assertThatJson(response).inPath("$.elements[16].options.filterSubUiSchema.elements[0]") //
+            .isObject() //
+            .containsKey("scope");
+        assertThatJson(response).inPath("$.elements[16].options.filterSubUiSchema.elements[0].scope") //
+            .isString() //
+            .contains("someVeryImportantField"); // name of the field inside the filter class we're using for this test
+    }
+
+    /**
+     * Used for testing the default settings for a field of type {@link MultiFileSelection}.
+     */
+    class MyVerySpecialTestFilterSettings implements FileChooserFilters {
+
+        @Widget(title = "", description = "")
+        String m_someVeryImportantField;
+
+        @Override
+        public boolean passesFilter(final Path root, final Path path) throws IllegalStateException {
+            return false;
+        }
+
+        @Override
+        public boolean followSymlinks() {
+            return false;
+        }
     }
 
     @Test
@@ -1280,17 +1319,7 @@ class UiSchemaOptionsTest {
     }
 
     @SuppressWarnings("resource")
-    @Test
-    void testFileReaderWidget() {
-        class FileWriterWidgetTestSettings implements DefaultNodeSettings {
-
-            @Widget(title = "", description = "")
-            @FileReaderWidget(fileExtensions = {"txt", "csv"})
-            FileSelection m_fileReader;
-
-        }
-        final var fileSystemType = "myFileSystemType";
-        final var fileSystemSpecifier = "fileSystemSpecifier";
+    DefaultNodeSettingsContext setupFileSystemMocks(final String fileSystemType, final String fileSystemSpecifier) {
         final var context = Mockito.mock(DefaultNodeSettingsContext.class);
         final var spec = Mockito.mock(FileSystemPortObjectSpec.class);
         final var location = Mockito.mock(FSLocation.class);
@@ -1300,6 +1329,24 @@ class UiSchemaOptionsTest {
         Mockito.when(spec.getFileSystemConnection()).thenReturn(Optional.of(Mockito.mock(FSConnection.class)));
         Mockito.when(context.getPortObjectSpec(0)).thenReturn(Optional.of(spec));
         Mockito.when(context.getInPortTypes()).thenReturn(new PortType[]{FileSystemPortObject.TYPE});
+
+        return context;
+    }
+
+    @Test
+    void testFileReaderWidget() {
+        class FileWriterWidgetTestSettings implements DefaultNodeSettings {
+
+            @Widget(title = "", description = "")
+            @FileReaderWidget(fileExtensions = {"txt", "csv"})
+            FileSelection m_fileReader;
+
+        }
+
+        var fileSystemType = "myFileSystemType";
+        var fileSystemSpecifier = "fileSystemSpecifier";
+        var context = setupFileSystemMocks(fileSystemType, fileSystemSpecifier);
+
         var response = buildTestUiSchema(FileWriterWidgetTestSettings.class, context);
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("fileReader");
         assertThatJson(response).inPath("$.elements[0].options.fileExtensions").isArray().containsExactly("txt", "csv");
@@ -1390,6 +1437,44 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("textAreaIncreasedRows");
         assertThatJson(response).inPath("$.elements[1].options.rows").isNumber().isEqualTo(BigDecimal.valueOf(10));
         assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo(Format.TEXT_AREA);
+    }
+
+    @Test
+    void testMultiFileReader() {
+        class MultiFileChooserTestSettings implements DefaultNodeSettings {
+
+            @Widget(title = "", description = "")
+            @FileReaderWidget(fileExtensions = {"txt", "csv"})
+            MultiFileSelection<MyVerySpecialTestFilterSettings> m_myReader;
+        }
+
+        var fileSystemType = "myFileSystemType";
+        var fileSystemSpecifier = "fileSystemSpecifier";
+        var context = setupFileSystemMocks(fileSystemType, fileSystemSpecifier);
+
+        var response = buildTestUiSchema(MultiFileChooserTestSettings.class, context);
+
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("myReader");
+            assertThatJson(response).inPath("$.elements[0].options.format").isString()
+                .isEqualTo("multiFileChooser");
+            assertThatJson(response).inPath("$.elements[0].options.fileSystemType").isString()
+                .isEqualTo(fileSystemType);
+            assertThatJson(response).inPath("$.elements[0].options.fileExtensions").isArray().containsExactly("txt", "csv");
+            assertThatJson(response).inPath("$.elements[0].options.fileSystemSpecifier").isString()
+                .isEqualTo(fileSystemSpecifier);
+            assertThatJson(response).inPath("$.elements[0].options.filterSubUiSchema").isObject()
+                .containsKey("elements");
+            // custom filter class has one field
+            assertThatJson(response).inPath("$.elements[0].options.filterSubUiSchema.elements")
+                .isArray().hasSize(1);
+            assertThatJson(response).inPath("$.elements[0].options.filterSubUiSchema.elements[0]") //
+                .isObject() //
+                .containsKey("scope");
+            assertThatJson(response)
+                .inPath("$.elements[0].options.filterSubUiSchema.elements[0].scope") //
+                .isString() //
+                .contains("someVeryImportantField"); // name of the field inside the filter class we're using for this test
+
     }
 
     static final class TestStringProvider implements StateProvider<String> {

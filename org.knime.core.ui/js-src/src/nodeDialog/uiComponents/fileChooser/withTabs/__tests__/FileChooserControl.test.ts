@@ -31,7 +31,7 @@ import SideDrawerContent from "../SideDrawerContent.vue";
 describe("FileChooserControl.vue", () => {
   let props: VueControlTestProps<typeof FileChooserControl>,
     wrapper: VueWrapper<any, any>,
-    changeValue: Mock;
+    handleChange: Mock;
 
   const labelForId = "myLabelForId";
 
@@ -116,7 +116,7 @@ describe("FileChooserControl.vue", () => {
       props,
     });
     wrapper = component.wrapper;
-    changeValue = component.changeValue;
+    handleChange = component.handleChange;
   });
 
   afterEach(() => {
@@ -158,9 +158,7 @@ describe("FileChooserControl.vue", () => {
       .vm.$emit("update:modelValue", changedValue);
 
     wrapper.findComponent(SettingsSubPanelForFileChooser).vm.$emit("apply");
-    expect(changeValue).toHaveBeenCalledWith({
-      path: changedValue,
-    });
+    expect(handleChange).toHaveBeenCalledWith("test.path", changedValue);
   });
 
   const createPersistSchemaMock = () =>
@@ -184,7 +182,7 @@ describe("FileChooserControl.vue", () => {
       if (fsCategory === "LOCAL") {
         props.control.uischema.options!.isLocal = true;
       }
-      const { flowVariablesMap, wrapper, changeValue } =
+      const { flowVariablesMap, wrapper, handleChange } =
         await mountFileChooserControl({
           props,
           provide: {
@@ -199,15 +197,13 @@ describe("FileChooserControl.vue", () => {
       // @ts-ignore
       wrapper.vm.control = { ...wrapper.vm.control };
       await flushPromises();
-      expect(changeValue).toHaveBeenCalledWith({
-        path: {
-          path: "",
-          fsCategory,
-          timeout: 10000,
-          context: {
-            fsToString: "",
-            fsSpecifier: undefined,
-          },
+      expect(handleChange).toHaveBeenCalledWith("test.path", {
+        path: "",
+        fsCategory,
+        timeout: 10000,
+        context: {
+          fsToString: "",
+          fsSpecifier: undefined,
         },
       });
     },
@@ -216,30 +212,29 @@ describe("FileChooserControl.vue", () => {
   describe("switches to valid values when mounted", () => {
     it("does not switch to the first valid category if the current category is valid", () => {
       props.control.data.path.fsCategory = "relative-to-embedded-data";
-      const { changeValue } = mountFileChooserControl({
+      const { handleChange } = mountFileChooserControl({
         props,
         stubs: {
           FSLocationTextControl: true,
         },
       });
-      expect(changeValue).not.toHaveBeenCalled();
+      expect(handleChange).not.toHaveBeenCalled();
     });
 
     it("switches to current hub space if non-supported fsCategory is given", () => {
       props.control.data.path.fsCategory = "LOCAL";
       props.control.uischema.options!.isLocal = false;
-      const { changeValue } = mountFileChooserControl({
+      const { handleChange } = mountFileChooserControl({
         props,
         stubs: {
           FSLocationTextControl: true,
         },
       });
-      expect(changeValue).toHaveBeenCalledWith(
+      expect(handleChange).toHaveBeenCalledWith(
+        "test.path",
         expect.objectContaining({
-          path: {
-            ...props.control.data.path,
-            fsCategory: "relative-to-current-hubspace",
-          },
+          ...props.control.data.path,
+          fsCategory: "relative-to-current-hubspace",
         }),
       );
     });
@@ -247,18 +242,17 @@ describe("FileChooserControl.vue", () => {
     it("switches to LOCAL if non-supported fsCategory is given and isLocal is true", () => {
       props.control.data.path.fsCategory = "CONNECTED";
       props.control.uischema.options!.isLocal = true;
-      const { changeValue } = mountFileChooserControl({
+      const { handleChange } = mountFileChooserControl({
         props,
         stubs: {
           FSLocationTextControl: true,
         },
       });
-      expect(changeValue).toHaveBeenCalledWith(
+      expect(handleChange).toHaveBeenCalledWith(
+        "test.path",
         expect.objectContaining({
-          path: {
-            ...props.control.data.path,
-            fsCategory: "LOCAL",
-          },
+          ...props.control.data.path,
+          fsCategory: "LOCAL",
         }),
       );
     });
@@ -266,18 +260,17 @@ describe("FileChooserControl.vue", () => {
     it("switches to CONNECTED if any other fsCategory is given and ", () => {
       props.control.data.path.fsCategory = "relative-to-current-hubspace";
       props.control.uischema.options!.portIndex = 1;
-      const { changeValue } = mountFileChooserControl({
+      const { handleChange } = mountFileChooserControl({
         props,
         stubs: {
           FSLocationTextControl: true,
         },
       });
-      expect(changeValue).toHaveBeenCalledWith(
+      expect(handleChange).toHaveBeenCalledWith(
+        "test.path",
         expect.objectContaining({
-          path: {
-            ...props.control.data.path,
-            fsCategory: "CONNECTED",
-          },
+          ...props.control.data.path,
+          fsCategory: "CONNECTED",
         }),
       );
     });

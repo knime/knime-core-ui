@@ -1,3 +1,5 @@
+import type { FileChooserValue } from "./FileChooserProps";
+
 export interface Item {
   isDirectory: boolean;
   /**
@@ -44,3 +46,10 @@ export type BackendType =
   | "relativeToCurrentHubSpace"
   | "embedded"
   | `connected${number}`;
+
+export type MultiFileSelection = {
+  path: FileChooserValue;
+  fileOrFolder: "FILE" | "FOLDER";
+  includeSubfolders: boolean;
+  filters: Record<string, any>;
+};

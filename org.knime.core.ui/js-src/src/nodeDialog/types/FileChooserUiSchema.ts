@@ -13,6 +13,10 @@ export interface FileChooserOptions {
   fileExtensionProvider?: string;
   mountId?: string;
   spacePath?: string;
+  /**
+   * Wether a file or a folder is to be chosen. FILE is the default.
+   */
+  selectionMode?: "FILE" | "FOLDER";
 }
 
 export type FileChooserUiSchema = {

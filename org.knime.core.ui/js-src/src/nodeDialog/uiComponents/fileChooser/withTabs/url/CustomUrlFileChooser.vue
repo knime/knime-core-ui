@@ -18,22 +18,22 @@ defineEmits(["update:path", "update:timeout"]);
 </script>
 
 <template>
-  <InputField
-    :id="id"
-    :disabled="disabled"
-    :model-value="modelValue.path"
-    placeholder="URL"
-    @update:model-value="$emit('update:path', $event)"
-  />
-  <ErrorMessages
-    v-if="urlErrorMessage"
-    :style="{ display: 'unset' }"
-    :errors="[urlErrorMessage]"
-  />
+  <ErrorMessages :errors="urlErrorMessage === null ? [] : [urlErrorMessage]">
+    <InputField
+      :id="id"
+      compact
+      :is-valid="urlErrorMessage === null"
+      :disabled="disabled"
+      :model-value="modelValue.path"
+      placeholder="URL"
+      @update:model-value="$emit('update:path', $event)"
+    />
+  </ErrorMessages>
   <Label #default="{ labelForId }" class="timeout" text="Timeout">
     <NumberInput
       :id="labelForId"
       type="integer"
+      compact
       :min="0"
       :disabled="disabled"
       :model-value="modelValue.timeout"
@@ -44,6 +44,6 @@ defineEmits(["update:path", "update:timeout"]);
 
 <style scoped lang="postcss">
 .timeout.timeout {
-  margin-top: 10px;
+  margin-top: var(--error-message-min-reserved-space);
 }
 </style>

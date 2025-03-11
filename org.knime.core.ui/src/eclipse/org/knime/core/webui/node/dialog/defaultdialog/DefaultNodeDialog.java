@@ -60,6 +60,8 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultNodeDialogDataServiceImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDataServiceImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewDataService;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
 import org.knime.core.webui.page.Page;
 
 /**
@@ -160,15 +162,21 @@ public final class DefaultNodeDialog implements NodeDialog {
 
     @Override
     public Optional<RpcDataService> createRpcDataService() {
+        var fsConnector = new FileSystemConnector();
+
         final var dataService = new DefaultNodeDialogDataServiceImpl(m_settingsClasses);
         final var flowVariablesDataService =
             new FlowVariableDataServiceImpl(new DefaultDialogDataConverterImpl(m_settingsClasses));
-        final var fileChooserService = new FileChooserDataService();
+        final var fileChooserService = new FileChooserDataService(fsConnector);
+        final var fileFilterPreviewService = new FileFilterPreviewDataService(fsConnector);
         return Optional.of(RpcDataService.builder() //
             .addService("settings", dataService) //
             .addService("flowVariables", flowVariablesDataService) //
             .addService("fileChooser", fileChooserService) //
-            .onDeactivate(fileChooserService::clear).build());
+            .addService("fileFilterPreview", fileFilterPreviewService) //
+            .onDeactivate(fsConnector::clear) //
+            .build() //
+        );
     }
 
     @Override

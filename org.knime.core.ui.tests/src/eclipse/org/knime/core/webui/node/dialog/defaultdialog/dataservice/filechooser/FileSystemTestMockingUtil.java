@@ -44,70 +44,49 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 3, 2023 (Paul Bärnreuther): created
+ *   Apr 22, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection;
+package org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser;
 
-import java.util.Objects;
+import static org.mockito.Mockito.when;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSLocation;
+import java.nio.file.FileSystem;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector.FileChooserBackend;
+import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
+import org.mockito.ArgumentMatchers;
+import org.mockito.MockedConstruction;
+import org.mockito.Mockito;
 
 /**
- * This settings class can be used to display a path text input with associated browse button to select a single file
- * from one of the supported file systems.
+ * Since e.g. {@link DefaultFSConnectionFactory} throws an error in case no local file system is registered, we should
+ * make tests independent from such constructions and mock the file system.
  *
  * @author Paul Bärnreuther
  */
-public final class FileSelection implements PersistableSettings {
+final class FileSystemTestMockingUtil {
 
-    @JsonProperty("path")
-    public FSLocation m_path;
-
-    /**
-     * A local file chooser
-     */
-    public FileSelection() {
-        this(new FSLocation(FSCategory.LOCAL, ""));
+    private FileSystemTestMockingUtil() {
+        // prevent instantiation
     }
 
     /**
-     * @param fsLocation
+     * Mocks the construction of a file chooser backend. Make sure to close this mock after usage.
+     *
+     * @param <T> the type of the backend
+     * @param backendType the type of the backend
+     * @param fileSystem the file system to be used
+     * @param isAbsolute whether the file system is absolute or not
+     * @return the mocked construction
      */
-    public FileSelection(final FSLocation fsLocation) {
-        m_path = fsLocation;
-    }
+    static <T extends FileChooserBackend> MockedConstruction<T> mockLocalFileChooserBackend(final Class<T> backendType,
+        final FileSystem fileSystem, final boolean isAbsolute) {
+        return Mockito.mockConstruction(backendType, (mock, context) -> {
+            when(mock.getFileSystem()).thenReturn(fileSystem);
+            when(mock.pathToObject(ArgumentMatchers.any())).thenCallRealMethod();
+            when(mock.isAbsoluteFileSystem()).thenReturn(isAbsolute);
+        });
 
-    /**
-     * @return the underlying fsLocation of the chosen file
-     */
-    @JsonIgnore
-    public FSLocation getFSLocation() {
-        return m_path;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final var other = (FileSelection)obj;
-        return Objects.equals(m_path, other.m_path);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(m_path);
     }
 
 }

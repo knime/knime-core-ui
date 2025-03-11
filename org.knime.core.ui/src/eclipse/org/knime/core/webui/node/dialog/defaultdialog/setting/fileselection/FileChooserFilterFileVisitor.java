@@ -44,70 +44,80 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 3, 2023 (Paul Bärnreuther): created
+ *   Apr 15, 2025 (david): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection;
 
-import java.util.Objects;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSLocation;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters.FilterResult;
 
 /**
- * This settings class can be used to display a path text input with associated browse button to select a single file
- * from one of the supported file systems.
  *
- * @author Paul Bärnreuther
+ * @author david
  */
-public final class FileSelection implements PersistableSettings {
+final class FileChooserFilterFileVisitor extends SimpleFileVisitor<Path> {
 
-    @JsonProperty("path")
-    public FSLocation m_path;
+    private final Predicate<Path> m_pathFilter;
 
-    /**
-     * A local file chooser
-     */
-    public FileSelection() {
-        this(new FSLocation(FSCategory.LOCAL, ""));
-    }
+    private final int m_limitToAcceptedFiles;
 
-    /**
-     * @param fsLocation
-     */
-    public FileSelection(final FSLocation fsLocation) {
-        m_path = fsLocation;
-    }
+    private final List<Path> m_acceptedFilePaths;
 
-    /**
-     * @return the underlying fsLocation of the chosen file
-     */
-    @JsonIgnore
-    public FSLocation getFSLocation() {
-        return m_path;
+    private int m_numEncounteredFiles;
+
+    private boolean m_wereAnySubtreesSkipped;
+
+    FileChooserFilterFileVisitor(final Predicate<Path> pathFilter, final int limitToAcceptedFiles) {
+        m_pathFilter = pathFilter;
+        m_limitToAcceptedFiles = limitToAcceptedFiles;
+
+        m_acceptedFilePaths = new ArrayList<>();
+        m_numEncounteredFiles = 0;
+        m_wereAnySubtreesSkipped = false;
     }
 
     @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
+    public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+        boolean isFileLike = attrs.isRegularFile() || attrs.isOther();
+
+        if (isFileLike) {
+            ++m_numEncounteredFiles;
+            boolean passesFilter = m_pathFilter.test(file);
+            boolean limitNotHit = m_acceptedFilePaths.size() < m_limitToAcceptedFiles;
+            if (passesFilter && limitNotHit) {
+                m_acceptedFilePaths.add(file);
+            }
         }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final var other = (FileSelection)obj;
-        return Objects.equals(m_path, other.m_path);
+
+        return super.visitFile(file, attrs);
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(m_path);
+    public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
+        boolean shouldSkipSubtree = m_acceptedFilePaths.size() >= m_limitToAcceptedFiles || !m_pathFilter.test(dir);
+
+        m_wereAnySubtreesSkipped |= shouldSkipSubtree;
+
+        return shouldSkipSubtree //
+            ? FileVisitResult.SKIP_SUBTREE //
+            : super.preVisitDirectory(dir, attrs);
+    }
+
+    FilterResult getFilterResult() {
+        return new FilterResult( //
+            m_acceptedFilePaths, //
+            m_numEncounteredFiles, //
+            m_wereAnySubtreesSkipped, //
+            m_acceptedFilePaths.size() >= m_limitToAcceptedFiles //
+        );
     }
 
 }

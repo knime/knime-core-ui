@@ -73,7 +73,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.Fi
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.SimpleFileChooserBackend.Item;
 import org.mockito.ArgumentMatchers;
 import org.mockito.MockedConstruction;
-import org.mockito.Mockito;
 
 /**
  *
@@ -81,6 +80,21 @@ import org.mockito.Mockito;
  */
 @SuppressWarnings("java:S2698") // we accept assertions without messages
 class FileChooserDataServiceTest {
+
+    FileSystemConnector m_fsConnector;
+
+    FileChooserDataService m_service;
+
+    @BeforeEach
+    void setup() {
+        m_fsConnector = new FileSystemConnector();
+        m_service = new FileChooserDataService(m_fsConnector);
+    }
+
+    @AfterEach
+    void tearDown() {
+        m_fsConnector.clear();
+    }
 
     @Nested
     class AbsoluteFileSystemTest extends NestedFileChooserDataServiceTest {
@@ -137,8 +151,7 @@ class FileChooserDataServiceTest {
 
         @Test
         void testReusesFileSystem() throws IOException {
-            final var dataService = new FileChooserDataService();
-            final var performListItems = new PerformListItemsBuilder().fromDataService(dataService).build();
+            final var performListItems = new PerformListItemsBuilder().fromDataService(m_service).build();
             performListItems.performListItems();
             performListItems.performListItems();
             assertThat(fileChooserBackendMock.constructed()).hasSize(1);
@@ -146,10 +159,9 @@ class FileChooserDataServiceTest {
 
         @Test
         void testClosesAndClearsFileSystemOnClear() throws IOException {
-            final var dataService = new FileChooserDataService();
-            final var performListItems = new PerformListItemsBuilder().fromDataService(dataService).build();
+            final var performListItems = new PerformListItemsBuilder().fromDataService(m_service).build();
             performListItems.performListItems();
-            dataService.clear();
+            m_fsConnector.clear();
             verify(fileChooserBackendMock.constructed().get(0)).close();
             performListItems.performListItems();
             assertThat(fileChooserBackendMock.constructed()).hasSize(2);
@@ -227,11 +239,8 @@ class FileChooserDataServiceTest {
         void mockFileChooserBackend() throws IOException {
             m_subFolder = Files.createTempDirectory(getDefaultDirectory(), "directoryPath");
             m_fileSystem = getFileSystem();
-            fileChooserBackendMock = Mockito.mockConstruction(LocalFileChooserBackend.class, (mock, context) -> {
-                when(mock.getFileSystem()).thenReturn(m_fileSystem);
-                when(mock.pathToObject(ArgumentMatchers.any())).thenCallRealMethod();
-                when(mock.isAbsoluteFileSystem()).thenReturn(useAbsoluteFileSystem());
-            });
+            fileChooserBackendMock = FileSystemTestMockingUtil
+                .mockLocalFileChooserBackend(LocalFileChooserBackend.class, m_fileSystem, useAbsoluteFileSystem());
         }
 
         @AfterEach
@@ -399,7 +408,7 @@ class FileChooserDataServiceTest {
             final var path = relativizeIfNecessary(m_subFolder).toString();
             final var fileName = file.getFileName().toString();
             when(m_fileSystem.getPath(eq(path), eq(fileName))).thenReturn(file);
-            final var filePath = new FileChooserDataService().getFilePath("local", path, fileName, null);
+            final var filePath = m_service.getFilePath("local", path, fileName, null);
             assertThat(filePath.errorMessage()).isNull();
             assertThat(filePath.path()).isEqualTo(file.toString());
         }
@@ -410,7 +419,7 @@ class FileChooserDataServiceTest {
             final var path = relativizeIfNecessary(m_subFolder).toString();
             final var fileName = file.getFileName().toString();
             when(m_fileSystem.getPath(eq(path), eq(fileName))).thenThrow(InvalidPathException.class);
-            final var filePath = new FileChooserDataService().getFilePath("local", path, fileName, null);
+            final var filePath = m_service.getFilePath("local", path, fileName, null);
             assertThat(filePath.path()).isNull();
             assertThat(filePath.errorMessage()).isEqualTo("aFile is not a valid file name.");
         }
@@ -426,8 +435,7 @@ class FileChooserDataServiceTest {
                 final var path = relativizeIfNecessary(m_subFolder).toString();
                 final var fileName = file.getFileName().toString();
                 when(m_fileSystem.getPath(eq(path), eq(fileName))).thenReturn(file);
-                final var filePath =
-                    new FileChooserDataService().getFilePath("local", path, fileName, APPENDED_EXTENSION);
+                final var filePath = m_service.getFilePath("local", path, fileName, APPENDED_EXTENSION);
                 assertThat(filePath.path()).doesNotEndWith("." + APPENDED_EXTENSION);
             }
 
@@ -437,8 +445,7 @@ class FileChooserDataServiceTest {
                 final var path = relativizeIfNecessary(m_subFolder).toString();
                 final var fileName = directory.getFileName().toString();
                 when(m_fileSystem.getPath(eq(path), eq(fileName))).thenReturn(directory);
-                final var filePath =
-                    new FileChooserDataService().getFilePath("local", path, fileName, APPENDED_EXTENSION);
+                final var filePath = m_service.getFilePath("local", path, fileName, APPENDED_EXTENSION);
                 assertThat(filePath.path()).endsWith("." + APPENDED_EXTENSION);
             }
 
@@ -448,8 +455,7 @@ class FileChooserDataServiceTest {
                 final var path = relativizeIfNecessary(m_subFolder).toString();
                 final var fileName = file.getFileName().toString();
                 when(m_fileSystem.getPath(eq(path), eq(fileName))).thenReturn(file);
-                final var filePath =
-                    new FileChooserDataService().getFilePath("local", path, fileName, APPENDED_EXTENSION);
+                final var filePath = m_service.getFilePath("local", path, fileName, APPENDED_EXTENSION);
                 assertThat(filePath.path()).endsWith("." + APPENDED_EXTENSION);
             }
 
@@ -459,8 +465,7 @@ class FileChooserDataServiceTest {
                 final var path = relativizeIfNecessary(m_subFolder).toString();
                 final var fileName = file.getFileName().toString();
                 when(m_fileSystem.getPath(eq(path), eq(fileName))).thenReturn(file);
-                final var filePath =
-                    new FileChooserDataService().getFilePath("local", path, fileName, APPENDED_EXTENSION);
+                final var filePath = m_service.getFilePath("local", path, fileName, APPENDED_EXTENSION);
                 assertThat(filePath.path()).doesNotEndWith(APPENDED_EXTENSION + "." + APPENDED_EXTENSION);
             }
         }
@@ -498,7 +503,7 @@ class FileChooserDataServiceTest {
 
             PerformListItems build() {
                 if (m_dataService == null) {
-                    m_dataService = new FileChooserDataService();
+                    m_dataService = new FileChooserDataService(new FileSystemConnector());
                 }
                 final var config = new ListItemsConfig(m_isWriter, m_extensions);
                 return new PerformListItems() {
