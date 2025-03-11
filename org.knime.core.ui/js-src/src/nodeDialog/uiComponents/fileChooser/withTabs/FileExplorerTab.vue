@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 
 import DialogFileExplorer, {
   type DialogFileExplorerProps,
@@ -11,12 +11,13 @@ export type FileExplorerTabProps = Omit<
   "clickOutsideException" | "openFileByExplorer"
 >;
 
-const props = withDefaults(defineProps<DialogFileExplorerProps>(), {
+const props = withDefaults(defineProps<FileExplorerTabProps>(), {
   initialFilePath: "",
   isWriter: false,
   filteredExtensions: () => [],
   appendedExtension: null,
   spacePath: "",
+  allowMultiSelection: false,
 });
 
 const emit = defineEmits<{
@@ -38,11 +39,25 @@ const {
   onApply,
 } = useApplyButton();
 
+const {
+  element: otherApplyButton,
+  disabled: otherNoFileSelected,
+  text: otherApplyText,
+  onApply: otherOnApply,
+} = useApplyButton("goIntoSelectedFolder");
+
 onMounted(() => {
   applyText.value = "Choose File";
   noFileSelected.value = true;
   onApply.value = openFile;
+
+  otherOnApply.value = async () => {
+    explorer.value?.goIntoSelectedFolder();
+  };
+  otherNoFileSelected.value = false;
 });
+
+const clickOutsideExceptions = computed(() => [applyButton, otherApplyButton]);
 
 const onOpenFile = (name: string) => {
   emit("chooseFile", name);
@@ -54,7 +69,8 @@ const onOpenFile = (name: string) => {
     <DialogFileExplorer
       ref="explorer"
       v-bind="props"
-      :click-outside-exception="applyButton"
+      :click-outside-exceptions="clickOutsideExceptions"
+      :selection-mode="selectionMode"
       @choose-file="onOpenFile"
       @file-is-selected="
         (isSelected) => {

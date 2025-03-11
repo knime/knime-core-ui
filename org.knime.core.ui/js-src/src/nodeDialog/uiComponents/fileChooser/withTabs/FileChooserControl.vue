@@ -1,14 +1,36 @@
 <script setup lang="ts">
-import { computed, onMounted, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
-import type { VueControlPropsForLabelContent } from "@knime/jsonforms";
+import {
+  Checkbox,
+  FunctionButton,
+  Label,
+  ValueSwitch,
+  LoadingIcon,
+} from "@knime/components";
+import {
+  SettingsSubPanel,
+  type VueControlPropsForLabelContent,
+} from "@knime/jsonforms";
+import NextArrowIcon from "@knime/styles/img/icons/arrow-next.svg";
 
 import type { FileChooserOptions } from "@/nodeDialog/types/FileChooserUiSchema";
 import { useFlowSettings } from "../../../composables/components/useFlowVariables";
 import FileBrowserButton from "../FileBrowserButton.vue";
-import { useFileChooserFileSystemsOptions } from "../composables/useFileChooserBrowseOptions";
+import FileSelectionPreview from "../FileSelectionPreview.vue";
+import FilterSettings, { type ModelType } from "../FilterSettings.vue";
+import { getBackendType } from "../composables/useFileChooserBackend";
+import {
+  useFileChooserBrowseOptions,
+  useFileChooserFileSystemsOptions,
+} from "../composables/useFileChooserBrowseOptions";
 import useFileChooserStateChange from "../composables/useFileChooserStateChange";
+import useFileFilterPreviewBackend, {
+  type PreviewResult,
+  type FilterOptions,
+} from "../composables/useFileFilterPreviewBackend";
 import useSideDrawerContent from "../composables/useSideDrawerContent";
+import type { BackendType } from "../types";
 import { type FileChooserValue } from "../types/FileChooserProps";
 
 import FSLocationTextControl from "./FSLocationTextControl.vue";
@@ -26,27 +48,6 @@ const isDisabled = computed(
     props.control.uischema.options?.fileSystemConnectionMissing,
 );
 
-const browseOptions = computed(() => {
-  return props.control.uischema.options as FileChooserOptions;
-});
-
-const { validCategories } = useFileChooserFileSystemsOptions(browseOptions);
-const getDefaultData = () => {
-  return {
-    path: "",
-    timeout: 10000,
-    fsCategory: validCategories.value[0],
-    context: {
-      fsToString: "",
-      fsSpecifier: browseOptions.value.fileSystemSpecifier,
-    },
-  };
-};
-
-const data = computed(() => {
-  return props.control.data?.path ?? getDefaultData();
-});
-
 const onChangePath = (value: FileChooserValue) =>
   props.changeValue({ path: value });
 
@@ -58,23 +59,22 @@ const isOverwritten = computed(() =>
   Boolean(flowSettings.value?.controllingFlowVariableName),
 );
 
-/**
- * Reset to default data when flow variable is cleared
- */
-watch(
-  () => isOverwritten.value,
-  (value) => {
-    if (!value) {
-      onChangePath(getDefaultData());
-    }
-  },
-);
+const selectionMode = ref<"file" | "folder">("file");
+
+const browseOptions = computed(() => {
+  return {
+    ...props.control.uischema.options,
+    selectionMode: selectionMode.value,
+  } as FileChooserOptions;
+});
 
 const { onFsCategoryUpdate } = useFileChooserStateChange(
   computed(() => props.control.data?.path),
   onChangePath,
   browseOptions,
 );
+
+const { validCategories } = useFileChooserFileSystemsOptions(browseOptions);
 
 /**
  * This currently can happen in case a node implementation sets the default value to one that is not supported in this frontend.
@@ -90,33 +90,183 @@ onMounted(() => {
   }
 });
 
+const getDefaultData = () => {
+  return {
+    path: "",
+    timeout: 10000,
+    fsCategory: validCategories.value[0],
+    context: {
+      fsToString: "",
+      fsSpecifier: browseOptions.value.fileSystemSpecifier,
+    },
+  };
+};
+
+/**
+ * Reset to default data when flow variable is cleared
+ */
+watch(
+  () => isOverwritten.value,
+  (value) => {
+    if (!value) {
+      onChangePath(getDefaultData());
+    }
+  },
+);
+
+const data = computed(() => {
+  return props.control.data?.path ?? getDefaultData();
+});
+
 const { onApply, sideDrawerValue } = useSideDrawerContent<FileChooserValue>({
   onChange: onChangePath,
   initialValue: data,
 });
+
+const possibleValueSwitchValues = [
+  {
+    id: "file",
+    text: "File",
+  },
+  {
+    id: "folder",
+    text: "Folder",
+  },
+];
+
+const { filteredExtensions, isWriter, portIndex } =
+  useFileChooserBrowseOptions(browseOptions);
+const backendType = computed<BackendType>(() =>
+  getBackendType(data.value.fsCategory, portIndex.value),
+);
+
+const previewData = ref<PreviewResult>({
+  items: [],
+  totalItemsBeforeFiltering: 0,
+  isTotalItemsOnlyLowerBound: false,
+});
+const previewDataIsLoading = ref(true);
+
+const filterSettings = ref<ModelType>({
+  fileFormat: "all",
+  fileExtensions: [],
+  filenamePatternType: "all_pass",
+  filenamePattern: "",
+  filenamePatternCaseSensitive: true,
+  includeHiddenFiles: false,
+  folderNamePatternType: "all_pass",
+  folderNamePattern: "",
+  folderNamePatternCaseSensitive: true,
+  includeHiddenFolders: false,
+  followLinks: true,
+});
+const includeSubfolders = ref(false);
+
+const filterPanelRef = ref<typeof SettingsSubPanel | null>(null);
+const filterSettingsRef = ref<typeof FilterSettings | null>(null);
+
+const filterOptionsWithSubFolderOption = computed<FilterOptions>(() => ({
+  ...filterSettings.value,
+  includeSubFolders: includeSubfolders.value,
+}));
+
+const backendConnection = useFileFilterPreviewBackend({
+  filteredExtensions,
+  isWriter: ref(isWriter.value!),
+  backendType,
+  filterOptions: filterOptionsWithSubFolderOption,
+});
+
+watch(filterOptionsWithSubFolderOption, async (value) => {
+  previewDataIsLoading.value = true;
+  const path = props.control.data.path.path;
+  previewData.value = await backendConnection.listItemsForPreview(path);
+  previewDataIsLoading.value = false;
+});
+
+onMounted(() => {
+  previewDataIsLoading.value = true;
+  backendConnection
+    .listItemsForPreview(props.control.data.path.path)
+    .then((result) => {
+      previewData.value = result;
+      previewDataIsLoading.value = false;
+    });
+});
 </script>
 
 <template>
-  <div class="flex-row">
-    <FSLocationTextControl
-      :id="labelForId"
-      class="flex-grow"
-      :model-value="data"
-      :disabled="isDisabled"
-      :is-local="browseOptions.isLocal"
-      :is-valid
-      :port-index="browseOptions.portIndex"
-      :file-system-specifier="browseOptions.fileSystemSpecifier"
-      @update:model-value="onChangePath"
-    />
-    <FileBrowserButton :disabled="isDisabled" @apply="onApply">
-      <SideDrawerContent
-        :id="labelForId ?? null"
-        v-model="sideDrawerValue"
-        :disabled="isDisabled"
-        :options="browseOptions"
+  <div :id="labelForId" class="flex-column">
+    <Label text="Type">
+      <ValueSwitch
+        v-model="selectionMode"
+        compact
+        :possible-values="possibleValueSwitchValues"
       />
-    </FileBrowserButton>
+    </Label>
+    <Label text="Source" class="flex-column">
+      <div class="flex-row">
+        <FSLocationTextControl
+          class="flex-grow"
+          :model-value="data"
+          :disabled="isDisabled"
+          :is-local="browseOptions.isLocal"
+          :is-valid
+          :port-index="browseOptions.portIndex"
+          :file-system-specifier="browseOptions.fileSystemSpecifier"
+          @update:model-value="onChangePath"
+        />
+        <FileBrowserButton :disabled="isDisabled" @apply="onApply">
+          <SideDrawerContent
+            :id="labelForId ?? null"
+            v-model="sideDrawerValue"
+            :disabled="isDisabled"
+            :options="browseOptions"
+          />
+        </FileBrowserButton>
+      </div>
+      <Checkbox v-if="selectionMode === 'folder'" v-model="includeSubfolders">
+        Include subfolders
+      </Checkbox>
+      <FileSelectionPreview
+        v-if="selectionMode === 'folder'"
+        :items="previewData.items"
+        :total-items="previewData.totalItemsBeforeFiltering"
+        :total-items-is-lower-bound="previewData.isTotalItemsOnlyLowerBound"
+        :is-loading="previewDataIsLoading"
+      >
+        <template #header-buttons-right>
+          <FunctionButton
+            class="filter-button"
+            @click="filterPanelRef?.expand()"
+          >
+            Edit filters
+            <NextArrowIcon />
+          </FunctionButton>
+        </template>
+      </FileSelectionPreview>
+      <SettingsSubPanel ref="filterPanelRef" show-back-arrow>
+        <div class="filter-settings-drawer-content">
+          <FileSelectionPreview
+            :items="previewData.items"
+            :total-items="previewData.totalItemsBeforeFiltering"
+            :total-items-is-lower-bound="previewData.isTotalItemsOnlyLowerBound"
+            :is-loading="previewDataIsLoading"
+            expand-by-default
+          >
+            <template #header-buttons-right>
+              <FunctionButton
+                class="filter-button reset-button"
+                @click="filterSettingsRef?.resetFilters()"
+              >
+                Reset all filters
+              </FunctionButton>
+            </template>
+          </FileSelectionPreview>
+          <FilterSettings ref="filterSettingsRef" v-model="filterSettings" />
+        </div>
+      </SettingsSubPanel>
+    </Label>
   </div>
 </template>
 
@@ -125,7 +275,7 @@ const { onApply, sideDrawerValue } = useSideDrawerContent<FileChooserValue>({
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-8);
 
   & .flex-grow {
     flex-grow: 1;
@@ -133,6 +283,39 @@ const { onApply, sideDrawerValue } = useSideDrawerContent<FileChooserValue>({
 
   & .fit-content {
     height: fit-content;
+  }
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.filter-settings-drawer-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.filter-button {
+  display: flex;
+  text-wrap: nowrap;
+  flex-grow: 0;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: Roboto, sans-serif;
+  color: var(--color-primary);
+  cursor: pointer;
+
+  & svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &.reset-button {
+    color: var(--knime-coral-dark);
   }
 }
 </style>

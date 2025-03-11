@@ -413,5 +413,4 @@ public final class FileChooserDataService {
     private static int getFileTypeOrdinal(final Path file) {
         return Files.isDirectory(file) ? 0 : 1;
     }
-
 }

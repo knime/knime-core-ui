@@ -1,7 +1,11 @@
 import type { Ref } from "vue";
 
 import inject from "../../../utils/inject";
-import type { BackendType, FolderAndError, PathAndError } from "../types";
+import type {
+  BackendType,
+  FolderAndError,
+  PathAndError,
+} from "../types";
 import { FSCategory } from "../types/FileChooserProps";
 
 interface ListItemsConfig {
