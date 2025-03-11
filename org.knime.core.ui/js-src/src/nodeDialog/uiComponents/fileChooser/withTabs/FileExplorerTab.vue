@@ -11,12 +11,13 @@ export type FileExplorerTabProps = Omit<
   "clickOutsideException" | "openFileByExplorer"
 >;
 
-const props = withDefaults(defineProps<DialogFileExplorerProps>(), {
+const props = withDefaults(defineProps<FileExplorerTabProps>(), {
   initialFilePath: "",
   isWriter: false,
   filteredExtensions: () => [],
   appendedExtension: null,
   spacePath: "",
+  allowMultiSelection: false,
 });
 
 const emit = defineEmits<{
@@ -55,6 +56,7 @@ const onOpenFile = (name: string) => {
       ref="explorer"
       v-bind="props"
       :click-outside-exception="applyButton"
+      :selection-mode="selectionMode"
       @choose-file="onOpenFile"
       @file-is-selected="
         (isSelected) => {
