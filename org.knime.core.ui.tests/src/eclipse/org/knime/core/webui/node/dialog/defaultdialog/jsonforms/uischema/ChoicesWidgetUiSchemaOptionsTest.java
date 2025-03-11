@@ -72,6 +72,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.NameChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.PossibleValue;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
@@ -88,6 +89,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.Fl
  */
 @SuppressWarnings("java:S2698") // we accept assertions without messages
 class ChoicesWidgetUiSchemaOptionsTest {
+
+    enum MyEnum {
+            A, B, C
+    }
+
+    static final class TestEnumChoicesProvider implements EnumChoicesProvider<MyEnum> {
+
+        @Override
+        public List<MyEnum> choices(final DefaultNodeSettingsContext context) {
+            return List.of(MyEnum.A, MyEnum.B);
+        }
+    }
 
     @Test
     void testFormatForChoicesWidget() {
@@ -116,12 +129,8 @@ class ChoicesWidgetUiSchemaOptionsTest {
             @ChoicesProvider(TestChoicesProvider.class)
             String m_string;
 
-            enum MyEnum {
-                    A, B, C
-            }
-
             @Widget(title = "", description = "")
-            @ChoicesProvider(TestChoicesProvider.class)
+            @ChoicesProvider(TestEnumChoicesProvider.class)
             MyEnum m_foo;
         }
 
@@ -197,6 +206,10 @@ class ChoicesWidgetUiSchemaOptionsTest {
             @ChoicesProvider(TestChoicesProvider.class)
             String m_bar;
 
+            @Widget(title = "", description = "")
+            @ChoicesProvider(TestEnumChoicesProvider.class)
+            MyEnum m_enum;
+
         }
 
         DefaultNodeSettingsContext defaultNodeSettingsContext = createDefaultNodeSettingsContext();
@@ -209,6 +222,10 @@ class ChoicesWidgetUiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("bar");
         assertThatJson(response).inPath("$.elements[1].options.choicesProvider").isString()
             .isEqualTo(TestChoicesProvider.class.getName());
+
+        assertThatJson(response).inPath("$.elements[2].scope").isString().contains("enum");
+        assertThatJson(response).inPath("$.elements[2].options.choicesProvider").isString()
+            .isEqualTo(TestEnumChoicesProvider.class.getName());
 
     }
 
@@ -253,7 +270,7 @@ class ChoicesWidgetUiSchemaOptionsTest {
         assertThat(
             assertThrows(UiSchemaGenerationException.class, () -> buildTestUiSchema(TestSettings.class)).getMessage())
                 .isEqualTo("Error when generating the options of #/properties/model/properties/columnFilter.: "
-                    + "The field columnFilter is a ColumnFilter and the provided choicesProvider "
+                    + "The field is a ColumnFilter and the provided choicesProvider "
                     + "'TestChoicesProvider' is not a ColumnChoicesProvider. "
                     + "To prevent this from happening in a type-safe way, "
                     + "use the @ColumnFilterWidget annotation instead");
@@ -270,10 +287,45 @@ class ChoicesWidgetUiSchemaOptionsTest {
         assertThat(
             assertThrows(UiSchemaGenerationException.class, () -> buildTestUiSchema(TestSettings.class)).getMessage())
                 .isEqualTo("Error when generating the options of #/properties/model/properties/flowVariableFilter.: "
-                    + "The field flowVariableFilter is a FlowVariableFilter and the provided choicesProvider "
+                    + "The field is a FlowVariableFilter and the provided choicesProvider "
                     + "'TestChoicesProvider' is not a FlowVariableChoicesProvider. "
                     + "To prevent this from happening in a type-safe way, "
                     + "use the @FlowVariableFilterWidget annotation instead");
+    }
+
+    @Test
+    void testEnumWithWrongChoicesProviderThrows() {
+        class TestSettings implements DefaultNodeSettings {
+            @ChoicesProvider(TestChoicesProvider.class)
+            @Widget(title = "", description = "")
+            MyEnum m_flowVariableFilter;
+        }
+
+        assertThat(
+            assertThrows(UiSchemaGenerationException.class, () -> buildTestUiSchema(TestSettings.class)).getMessage())
+                .isEqualTo("Error when generating the options of #/properties/model/properties/flowVariableFilter.:"
+                    + " The field is an enum and the provided choicesProvider is not an EnumChoicesProvider.");
+    }
+
+    @Test
+    void testEnumChoicesProviderWithWrongEnumThrows() {
+        class TestSettings implements DefaultNodeSettings {
+
+            enum OtherEnum {
+                    A, X, W
+            }
+
+            @ChoicesProvider(TestEnumChoicesProvider.class)
+            @Widget(title = "", description = "")
+            OtherEnum m_enum;
+
+        }
+
+        assertThat(
+            assertThrows(UiSchemaGenerationException.class, () -> buildTestUiSchema(TestSettings.class)).getMessage())
+                .isEqualTo("Error when generating the options of #/properties/model/properties/enum.:"
+                    + " The field is an enum of type OtherEnum but the choicesProvider "
+                    + "TestEnumChoicesProvider is for type MyEnum.");
     }
 
 }

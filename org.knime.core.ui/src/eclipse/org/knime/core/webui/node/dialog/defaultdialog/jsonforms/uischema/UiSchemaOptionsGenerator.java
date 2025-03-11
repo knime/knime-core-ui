@@ -111,6 +111,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
@@ -139,6 +140,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.button.Icon;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.NoopButtonUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.PossibleValue;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
@@ -567,6 +569,7 @@ final class UiSchemaOptionsGenerator {
             choicesProvider);
         assertChoicesProviderIfNecessary(FlowVariableFilter.class, FlowVariableChoicesProvider.class,
             FlowVariableFilterWidget.class, choicesProvider);
+        assertEnumChoicesProviderIfNecessary(choicesProvider);
     }
 
     /**
@@ -579,11 +582,33 @@ final class UiSchemaOptionsGenerator {
         if (m_node.getRawClass().equals(expectedClass)
             && !expectedProviderClass.isAssignableFrom(choicesProvider.value())) {
             throw new UiSchemaGenerationException(String.format(
-                "The field %s is a %s and the provided choicesProvider '%s' is not a %s. "
+                "The field is a %s and the provided choicesProvider '%s' is not a %s. "
                     + "To prevent this from happening in a type-safe way, use the @%s annotation instead",
-                m_node.getName().orElseThrow(), expectedClass.getSimpleName(), choicesProvider.value().getSimpleName(),
+                expectedClass.getSimpleName(), choicesProvider.value().getSimpleName(),
                 expectedProviderClass.getSimpleName(), widgetClass.getSimpleName()));
         }
+    }
+
+    @SuppressWarnings("rawtypes")
+    private void assertEnumChoicesProviderIfNecessary(final ChoicesProvider choicesProvider) {
+        if (!m_fieldClass.isEnum()) {
+            return;
+        }
+        if (!EnumChoicesProvider.class.isAssignableFrom(choicesProvider.value())) {
+            throw new UiSchemaGenerationException(
+                "The field is an enum and the provided choicesProvider is not an EnumChoicesProvider.");
+        }
+        @SuppressWarnings({"unchecked"}) // Checked above
+        final var choicesProviderClass = (Class<? extends EnumChoicesProvider>)choicesProvider.value();
+        @SuppressWarnings("unchecked") // Ensured by the interface
+        final var enumType = (Class<? extends Enum>)GenericTypeFinderUtil.getFirstGenericType(choicesProviderClass,
+            EnumChoicesProvider.class);
+        if (!enumType.equals(m_fieldClass)) {
+            throw new UiSchemaGenerationException(
+                String.format("The field is an enum of type %s but the choicesProvider %s is for type %s.",
+                    m_fieldClass.getSimpleName(), choicesProviderClass.getSimpleName(), enumType.getSimpleName()));
+        }
+
     }
 
     private void addSingleSelectionChoicesParams(final ObjectNode options) {

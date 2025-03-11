@@ -86,6 +86,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DataTypeChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
@@ -94,6 +95,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.Message
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.NameChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
@@ -828,6 +830,46 @@ public class UpdatesUtilTest {
                 assertThatJson(response).inPath(String.format("$.initialUpdates[0].values[0].value[%s].text", i))
                     .isString().isEqualTo(TestStringChoicesProvider.RESULT.get(i));
             });
+
+        }
+
+        enum MyEnum {
+                A, //
+                @Label("B_title")
+                B, //
+                C;
+        }
+
+        static final class MyEnumProvider implements EnumChoicesProvider<MyEnum> {
+
+            @Override
+            public List<MyEnum> choices(final DefaultNodeSettingsContext context) {
+                return List.of(MyEnum.A, MyEnum.B);
+            }
+
+        }
+
+        @Test
+        void testEnumChoicesProvider() {
+            class TestSettings implements DefaultNodeSettings {
+
+                @ChoicesProvider(MyEnumProvider.class)
+                MyEnum m_enum;
+
+            }
+
+            final var settings = new TestSettings();
+            final var response = buildUpdates(settings);
+
+            assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
+            assertThatJson(response).inPath("$.initialUpdates[0].id").isString()
+                .isEqualTo(MyEnumProvider.class.getName());
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isArray().hasSize(2);
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].id").isString().isEqualTo("A");
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].text").isString().isEqualTo("A");
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[1].id").isString().isEqualTo("B");
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[1].text").isString()
+                .isEqualTo("B_title");
 
         }
 

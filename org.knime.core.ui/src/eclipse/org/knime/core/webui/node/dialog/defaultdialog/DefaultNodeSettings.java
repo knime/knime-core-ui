@@ -119,6 +119,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.NameChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
@@ -231,8 +232,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <td>Drop Down</td>
  * <td>{@link ValueSwitchWidget}<br>
  * {@link RadioButtonsWidget}<br>
- * {@link ChoicesProvider} with a {@link NameChoicesProvider} (Drop Down; Can be used to set dynamic values. This will
- * be replaced with a different annotation with UIEXT-1681)</td>
+ * {@link ChoicesProvider} with an {@link EnumChoicesProvider} (Drop Down)</td>
  * </tr>
  * <tr>
  * <td>{@link SingleSelection}</td>
