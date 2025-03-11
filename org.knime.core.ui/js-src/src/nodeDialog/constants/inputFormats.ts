@@ -6,6 +6,7 @@ export const inputFormats = {
   legacyCredentials: "legacyCredentials",
   localFileChooser: "localFileChooser",
   fileChooser: "fileChooser",
+  multiFileChooser: "multiFileChooser",
   dynamicValue: "dynamicValue",
 } as const;
 

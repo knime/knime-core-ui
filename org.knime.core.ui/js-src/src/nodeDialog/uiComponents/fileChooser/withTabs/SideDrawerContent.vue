@@ -23,7 +23,9 @@ import FileExplorerTab from "./FileExplorerTab.vue";
 import KnimeIcon from "./knime.svg";
 import UrlTab from "./url/UrlTab.vue";
 
-const props = withDefaults(defineProps<FileChooserProps>(), {
+type PropType = FileChooserProps;
+
+const props = withDefaults(defineProps<PropType>(), {
   options: () => ({}),
 });
 const emit = defineEmits(["update:modelValue"]);
@@ -48,6 +50,7 @@ const {
   isConnected,
   portFileSystemName,
   portIndex,
+  selectionMode,
 } = useFileChooserBrowseOptions(options);
 
 type TabSpec = {
@@ -150,6 +153,7 @@ const browseAction: Record<
         :backend-type="backendType"
         :initial-file-path="modelValue.path"
         :breadcrumb-root="breadcrumbRoot"
+        :selection-mode="selectionMode"
         @choose-file="onPathUpdate"
       />
     </div>

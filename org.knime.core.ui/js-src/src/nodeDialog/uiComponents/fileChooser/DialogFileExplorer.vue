@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, toRefs, watch } from "vue";
+import { type Ref, computed, ref, toRefs, watch } from "vue";
 
 import {
   Breadcrumb,
@@ -25,24 +25,46 @@ export interface DialogFileExplorerProps {
   filteredExtensions?: string[];
   appendedExtension?: string | null;
   backendType: BackendType;
-  clickOutsideException?: null | HTMLElement;
+  clickOutsideExceptions?: Ref<null | HTMLElement>[];
   openFileByExplorer?: boolean;
   breadcrumbRoot?: string | null;
+  selectionMode?: "FILE" | "FOLDER";
 }
 
 const currentPath = ref<string | null>(null);
 const currentParents = ref<ParentFolder[]>([]);
 
-const items = ref<FileExplorerItem[]>([]);
 const props = withDefaults(defineProps<DialogFileExplorerProps>(), {
   initialFilePath: "",
   isWriter: false,
   filteredExtensions: () => [],
   appendedExtension: null,
-  clickOutsideException: null,
+  clickOutsideExceptions: () => [],
   openFileByExplorer: false,
   breadcrumbRoot: null,
+  selectionMode: "FILE",
 });
+
+export type SelectedItem = {
+  name: string;
+  selectionType: DialogFileExplorerProps["selectionMode"];
+} | null;
+
+const selectedItem = defineModel<SelectedItem>("selectedItem", {
+  required: false,
+  default: null,
+});
+
+const allItemsInCurrentFolder = ref<FileExplorerItem[]>([]);
+
+// TODO(UIEXT-2660): we need to make these items disabled, not hidden. Currently
+// this isn't nicely supported by the WAC component, so we will push
+// it to a follow-up ticket.
+const displayedItemsInCurrentFolder = computed(() =>
+  allItemsInCurrentFolder.value.filter(
+    (item) => props.selectionMode === "FILE" || item.isDirectory,
+  ),
+);
 
 const breadcrumbItems = computed(() =>
   currentParents.value.map((parent, index) => {
@@ -70,7 +92,6 @@ const breadcrumbItems = computed(() =>
 );
 
 const emit = defineEmits<{
-  fileIsSelected: [boolean];
   chooseFile: [
     /**
      * The full path of the chosen file
@@ -85,7 +106,8 @@ const setNextItems = (folder: Folder) => {
   isLoading.value = false;
   currentPath.value = folder.path;
   currentParents.value = folder.parentFolders;
-  items.value = folder.items.map(toFileExplorerItem);
+
+  allItemsInCurrentFolder.value = folder.items.map(toFileExplorerItem);
 };
 
 const displayedError = ref<string | null>(null);
@@ -94,11 +116,6 @@ const setErrorMessage = (errorMessage: string | undefined) => {
 };
 
 const selectedFileName = ref("");
-
-watch(
-  () => selectedFileName.value,
-  (file) => emit("fileIsSelected", file !== ""),
-);
 
 const setRelativeFilePathFromBackend = (filePathRelativeToFolder: string) => {
   if (props.isWriter) {
@@ -130,6 +147,27 @@ watch(
 
 const selectedDirectoryName = ref("");
 
+watch([selectedFileName, selectedDirectoryName], (selectedItems) => {
+  // Only one of the two can be selected at a time
+  const somethingIsSelected = selectedItems.some((item) => item !== "");
+
+  if (somethingIsSelected) {
+    selectedItem.value = {
+      name: selectedItems[0] || selectedItems[1],
+      selectionType: selectedItems[0] ? "FILE" : "FOLDER",
+    };
+  } else {
+    selectedItem.value = null;
+  }
+});
+watch(
+  () => props.selectionMode,
+  () => {
+    selectedDirectoryName.value = "";
+    selectedFileName.value = "";
+  },
+);
+
 const loadNewFolder = (
   path: string | null,
   folderName: string | null = null,
@@ -157,8 +195,17 @@ const onOpenFile = async (name: string) => {
   }
 };
 
+// called by FileExplorerTab when apply button is clicked
 defineExpose({
-  openFile: () => onOpenFile(selectedFileName.value),
+  openFile: () =>
+    onOpenFile(
+      props.selectionMode === "FILE"
+        ? selectedFileName.value
+        : selectedDirectoryName.value,
+    ),
+  goIntoSelectedFolder: () => {
+    changeDirectory(selectedDirectoryName.value);
+  },
 });
 
 const onChangeSelectedItemIds = (itemIds: string[]) => {
@@ -169,7 +216,9 @@ const onChangeSelectedItemIds = (itemIds: string[]) => {
     }
     return;
   }
-  const newSelectedItem = items.value.find(({ id }) => id === itemIds[0])!;
+  const newSelectedItem = displayedItemsInCurrentFolder.value.find(
+    ({ id }) => id === itemIds[0],
+  )!;
   if (newSelectedItem.isDirectory) {
     selectedDirectoryName.value = newSelectedItem.name;
     selectedFileName.value = "";
@@ -204,11 +253,11 @@ const onChangeSelectedItemIds = (itemIds: string[]) => {
     <FileExplorer
       class="explorer"
       :is-root-folder="currentPath === null"
-      :items="items"
+      :items="displayedItemsInCurrentFolder"
       :disable-context-menu="true"
       :disable-multi-select="true"
       :disable-dragging="true"
-      :click-outside-exception="clickOutsideException"
+      :click-outside-exception="clickOutsideExceptions"
       @change-directory="changeDirectory"
       @open-file="openFileByExplorer && onOpenFile($event.name).catch(() => {})"
       @update:selected-item-ids="onChangeSelectedItemIds"

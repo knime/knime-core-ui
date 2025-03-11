@@ -181,6 +181,11 @@ public final class JsonFormsConsts {
         public static final String TAG_ACTION_HANDLER = "actionHandler";
 
         /**
+         * The {@link ChoicesUpdateHandler} of a {@link ChoicesWidget}
+         */
+        public static final String TAG_CHOICES_UPDATE_HANDLER = "choicesUpdateHandler";
+
+        /**
          * The choices provider of a choices widget
          */
         public static final String TAG_CHOICES_PROVIDER = "choicesProvider";
@@ -271,6 +276,8 @@ public final class JsonFormsConsts {
             public static final String LOCAL_FILE_CHOOSER = "localFileChooser";
 
             public static final String FILE_CHOOSER = "fileChooser";
+
+            public static final String MULTI_FILE_CHOOSER = "multiFileChooser";
 
             public static final String CREDENTIALS = "credentials";
 

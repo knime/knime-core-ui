@@ -154,7 +154,7 @@ public final class FileChooserDataService {
 
     /**
      * @param folder a representation of the path and the to be displayed items
-     * @param errorMessage which if present explains why the folder is not the requested one (e.g. when the requested
+     * @param m_errorMessage which if present explains why the folder is not the requested one (e.g. when the requested
      *            one does not exist)
      * @param filePathRelativeToFolder this is the rest of path given by the input of {@link #listItems}. It might be an
      *            empty string if this input consisted only of the returned folder.
@@ -413,5 +413,4 @@ public final class FileChooserDataService {
     private static int getFileTypeOrdinal(final Path file) {
         return Files.isDirectory(file) ? 0 : 1;
     }
-
 }
