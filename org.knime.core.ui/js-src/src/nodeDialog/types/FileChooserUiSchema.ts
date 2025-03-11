@@ -13,6 +13,7 @@ export interface FileChooserOptions {
   fileExtensionProvider?: string;
   mountId?: string;
   spacePath?: string;
+  selectionMode?: "FILE" | "FOLDER";
 }
 
 export type FileChooserUiSchema = {

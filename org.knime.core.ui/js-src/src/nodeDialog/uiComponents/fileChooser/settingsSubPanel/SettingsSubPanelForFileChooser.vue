@@ -33,6 +33,15 @@ const {
   onApply,
 } = setUpApplyButton();
 
+const {
+  text: enterFolderButtonText,
+  disabled: enterFolderButtonDisabled,
+  hidden: enterFolderButtonHidden,
+  element: goIntoFolderButton,
+  onApply: onEnterFolderButtonClicked,
+} = setUpApplyButton("goIntoSelectedFolder");
+enterFolderButtonText.value = "Open folder";
+
 const apply = () =>
   onApply
     .value?.()
@@ -51,15 +60,27 @@ const apply = () =>
     <template #bottom-content>
       <div class="bottom-buttons">
         <Button with-border compact @click="close"> Cancel </Button>
-        <Button
-          ref="applyButton"
-          compact
-          primary
-          :disabled="applyDisabled"
-          @click="apply"
-        >
-          {{ applyText }}
-        </Button>
+        <div>
+          <Button
+            v-if="!enterFolderButtonHidden"
+            ref="goIntoFolderButton"
+            with-border
+            compact
+            :disabled="enterFolderButtonDisabled"
+            @click="onEnterFolderButtonClicked"
+          >
+            {{ enterFolderButtonText }}
+          </Button>
+          <Button
+            ref="applyButton"
+            compact
+            primary
+            :disabled="applyDisabled"
+            @click="apply"
+          >
+            {{ applyText }}
+          </Button>
+        </div>
       </div>
     </template>
   </SettingsSubPanel>
@@ -71,5 +92,11 @@ const apply = () =>
   justify-content: space-between;
   height: 60px;
   padding: 14px 20px;
+
+  & > div {
+    display: flex;
+    gap: var(--space-8);
+    flex-direction: row;
+  }
 }
 </style>

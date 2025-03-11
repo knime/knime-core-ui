@@ -267,21 +267,28 @@ describe("DialogFileExplorer.vue", () => {
       expect(wrapper.emitted("chooseFile")).toStrictEqual([[filePath]]);
     });
 
-    it("emits whether a file is selected", async () => {
+    it("sets its v-model to whether a file is selected", async () => {
       const wrapper = shallowMountFileChooser();
       await flushPromises();
       await wrapper
         .findComponent(FileExplorer)
         .vm.$emit("update:selectedItemIds", [fileName]);
       await flushPromises();
-      expect(wrapper.emitted("fileIsSelected")).toStrictEqual([[true]]);
+      expect(wrapper.vm.selectedItem).toStrictEqual({
+        name: fileName,
+        selectionType: "FILE",
+      });
       await wrapper
         .findComponent(FileExplorer)
         .vm.$emit("update:selectedItemIds", []);
-      expect(wrapper.emitted("fileIsSelected")).toStrictEqual([
-        [true],
-        [false],
-      ]);
+      expect(wrapper.vm.selectedItem).toBeNull();
+      await wrapper
+        .findComponent(FileExplorer)
+        .vm.$emit("update:selectedItemIds", [directoryName]);
+      expect(wrapper.vm.selectedItem).toStrictEqual({
+        name: directoryName,
+        selectionType: "FOLDER",
+      });
     });
 
     it("does not choose files via FileExplorer event pre default", async () => {

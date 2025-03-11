@@ -69,6 +69,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.MultiFileReaderWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.MultiFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.OptionalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
@@ -136,6 +138,8 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         LocalFileReaderWidget.class, //
         LocalFileWriterWidget.class, //
         Modification.WidgetReference.class, //
+        MultiFileReaderWidget.class, //
+        MultiFileWriterWidget.class, //
         NumberInputWidget.class, //
         OptionalWidget.class, //
         OverwriteDialogTitle.class, //

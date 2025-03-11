@@ -90,7 +90,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
-final class WidgetTreesToValueRefsAndStateProviders {
+public final class WidgetTreesToValueRefsAndStateProviders {
 
     record ValueRefWrapper(Class<? extends Reference> valueRef, PathsWithSettingsType fieldLocation) {
     }
@@ -128,7 +128,7 @@ final class WidgetTreesToValueRefsAndStateProviders {
         tree.getChildren().forEach(this::traverseWidgetTreeNode);
     }
 
-    private void traverseWidgetTreeNode(final TreeNode<WidgetGroup> node) {
+    public void traverseWidgetTreeNode(final TreeNode<WidgetGroup> node) {
         addWidgetValueAnnotationValueRefAndValueProviderForNode(node);
         addUiStateProviderForNode(node);
         if (node instanceof Tree<WidgetGroup> widgetTree) {

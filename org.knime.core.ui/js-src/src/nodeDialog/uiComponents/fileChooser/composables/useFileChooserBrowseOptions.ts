@@ -36,6 +36,7 @@ export const useFileChooserBrowseOptions = (
   const mountId = computed(() => options.value.mountId ?? "Current space");
   const spacePath = computed(() => options.value.spacePath);
   const portIndex = computed(() => options.value.portIndex);
+  const selectionMode = computed(() => options.value.selectionMode);
   const portFileSystemName = computed(
     () => options.value.fileSystemType ?? "Connected File System",
   );
@@ -77,5 +78,6 @@ export const useFileChooserBrowseOptions = (
     isConnected,
     portIndex,
     portFileSystemName,
+    selectionMode,
   };
 };

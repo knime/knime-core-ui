@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 import DialogFileExplorer, {
   type DialogFileExplorerProps,
+  type SelectedItem,
 } from "../DialogFileExplorer.vue";
 import { useApplyButton } from "../settingsSubPanel";
 
@@ -11,12 +12,13 @@ export type FileExplorerTabProps = Omit<
   "clickOutsideException" | "openFileByExplorer"
 >;
 
-const props = withDefaults(defineProps<DialogFileExplorerProps>(), {
+const props = withDefaults(defineProps<FileExplorerTabProps>(), {
   initialFilePath: "",
   isWriter: false,
   filteredExtensions: () => [],
   appendedExtension: null,
   spacePath: "",
+  allowMultiSelection: false,
 });
 
 const emit = defineEmits<{
@@ -33,20 +35,64 @@ const openFile = () => explorer.value?.openFile();
 
 const {
   element: applyButton,
-  disabled: noFileSelected,
+  disabled: applyButtonDisabled,
   text: applyText,
   onApply,
 } = useApplyButton();
 
+const {
+  element: goIntoFolderButton,
+  disabled: goIntoFolderButtonDisabled,
+  onApply: onGoIntoFolderButtonClicked,
+  hidden: goIntoFolderButtonHidden,
+} = useApplyButton("goIntoSelectedFolder") ?? {
+  element: ref(null),
+  disabled: ref(true),
+  onApply: ref(() => {}),
+  hidden: ref(false),
+};
+
 onMounted(() => {
   applyText.value = "Choose File";
-  noFileSelected.value = true;
+  applyButtonDisabled.value = true;
   onApply.value = openFile;
+
+  goIntoFolderButtonDisabled.value = true;
+  onGoIntoFolderButtonClicked.value = () =>
+    explorer.value?.goIntoSelectedFolder();
+  goIntoFolderButtonHidden.value = props.selectionMode !== "FOLDER";
 });
+
+const clickOutsideExceptions = computed(() => [
+  applyButton,
+  goIntoFolderButton,
+]);
 
 const onOpenFile = (name: string) => {
   emit("chooseFile", name);
 };
+
+watch(
+  () => props.selectionMode,
+  (newSelectionMode: DialogFileExplorerProps["selectionMode"]) => {
+    goIntoFolderButtonHidden.value = newSelectionMode !== "FOLDER";
+  },
+);
+
+const selectedItem = ref<SelectedItem>(null);
+
+watch(selectedItem, (newSelectedItem) => {
+  if (!newSelectedItem) {
+    applyButtonDisabled.value = true;
+    goIntoFolderButtonDisabled.value = true;
+  } else if (newSelectedItem.selectionType === "FILE") {
+    applyButtonDisabled.value = props.selectionMode !== "FILE";
+    goIntoFolderButtonDisabled.value = true;
+  } else if (newSelectedItem.selectionType === "FOLDER") {
+    applyButtonDisabled.value = props.selectionMode !== "FOLDER";
+    goIntoFolderButtonDisabled.value = false;
+  }
+});
 </script>
 
 <template>
@@ -54,13 +100,10 @@ const onOpenFile = (name: string) => {
     <DialogFileExplorer
       ref="explorer"
       v-bind="props"
-      :click-outside-exception="applyButton"
+      v-model:selected-item="selectedItem"
+      :click-outside-exceptions="clickOutsideExceptions"
+      :selection-mode="selectionMode"
       @choose-file="onOpenFile"
-      @file-is-selected="
-        (isSelected) => {
-          noFileSelected = !isSelected;
-        }
-      "
     />
   </div>
 </template>

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { type Ref, ref } from "vue";
+import { type Ref, nextTick, ref } from "vue";
 import { shallowMount } from "@vue/test-utils";
 
 import DialogFileExplorer from "../../DialogFileExplorer.vue";
@@ -18,6 +18,7 @@ describe("FileExplorerTab.vue", () => {
     onApply = ref(undefined);
     props = {
       backendType: "relativeToCurrentHubSpace",
+      selectionMode: "FILE",
     };
   });
 
@@ -30,6 +31,7 @@ describe("FileExplorerTab.vue", () => {
             element: ref(null),
             disabled: applyDisabled,
             text: ref("initialText"),
+            hidden: ref(false),
             onApply,
           },
         },
@@ -51,21 +53,22 @@ describe("FileExplorerTab.vue", () => {
     });
   });
 
-  it("enables applying if file is selected", () => {
+  it("disables applying if no file is selected, enables when file is selected", async () => {
     const wrapper = mountFileExplorerTab();
     expect(applyDisabled.value).toBeTruthy();
 
-    wrapper.findComponent(DialogFileExplorer).vm.$emit("fileIsSelected", true);
+    wrapper.findComponent(DialogFileExplorer).vm.$emit("update:selectedItem", {
+      name: "myFile",
+      selectionType: "FILE",
+    });
+    await nextTick();
 
     expect(applyDisabled.value).toBeFalsy();
-  });
 
-  it("disables applying if no file is selected", () => {
-    const wrapper = mountFileExplorerTab();
-    expect(applyDisabled.value).toBeTruthy();
-
-    wrapper.findComponent(DialogFileExplorer).vm.$emit("fileIsSelected", true);
-    wrapper.findComponent(DialogFileExplorer).vm.$emit("fileIsSelected", false);
+    wrapper
+      .findComponent(DialogFileExplorer)
+      .vm.$emit("update:selectedItem", null);
+    await nextTick();
 
     expect(applyDisabled.value).toBeTruthy();
   });
