@@ -30,11 +30,13 @@ const headerText = computed(() => {
 
 const showAll = ref(false);
 
-const filtersShown = ref(false);
+const showFilters = defineModel("showFilters", {
+  default: false,
+});
 
 const showFiltersButtonClickHandler = () => {
   // TODO this should reset filters when toggling to not show all
-  filtersShown.value = !filtersShown.value;
+  showFilters.value = !showFilters.value;
 };
 
 const showAllButtonClickHandler = () => {
@@ -49,10 +51,10 @@ const showAllButtonClickHandler = () => {
       <span class="header-text">{{ headerText }}</span>
       <FunctionButton
         class="filter-button"
-        :class="{ 'show-mode': filtersShown }"
+        :class="{ 'show-mode': showFilters }"
         @click="showFiltersButtonClickHandler"
       >
-        {{ filtersShown ? "Remove filters" : "Set filter" }}
+        {{ showFilters ? "Remove filters" : "Set filter" }}
         <NextArrowIcon />
       </FunctionButton>
     </div>

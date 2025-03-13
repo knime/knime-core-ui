@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 
-import { Label, ValueSwitch } from "@knime/components";
+import { Checkbox, Label, ValueSwitch } from "@knime/components";
 import type { VueControlPropsForLabelContent } from "@knime/jsonforms";
 
 import type { FileChooserOptions } from "@/nodeDialog/types/FileChooserUiSchema";
@@ -128,6 +128,10 @@ const dummyItems = [
   "test11.csv",
   "test12.csv",
 ];
+
+const includeSubfolders = ref(false);
+
+const showFilters = ref(false);
 </script>
 
 <template>
@@ -160,10 +164,17 @@ const dummyItems = [
           />
         </FileBrowserButton>
       </div>
+      <Checkbox v-if="selectionMode === 'folder'" v-model="includeSubfolders">
+        Include subfolders
+      </Checkbox>
       <FileSelectionPreview
         v-if="selectionMode === 'folder'"
+        v-model:show-filters="showFilters"
         :items="dummyItems"
       />
+      <div v-if="showFilters">
+        <p>Placeholder - filters will go here</p>
+      </div>
     </Label>
   </div>
 </template>
