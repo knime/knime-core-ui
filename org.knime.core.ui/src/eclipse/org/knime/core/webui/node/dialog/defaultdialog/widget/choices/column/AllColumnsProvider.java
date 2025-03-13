@@ -56,14 +56,14 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 
 /**
- * Offers all column from the first input table as options.
+ * Offers all column from an input table as options. By default, the first input table is used.
  *
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
-public final class AllColumnsProvider implements ColumnChoicesProvider {
+public class AllColumnsProvider implements ColumnChoicesProvider, InputTableIndexHolder {
     @Override
     public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-        return context.getDataTableSpec(0) //
+        return context.getDataTableSpec(getInputTableIndex()) //
             .map(DataTableSpec::stream) //
             .orElseGet(Stream::empty) //
             .toList();

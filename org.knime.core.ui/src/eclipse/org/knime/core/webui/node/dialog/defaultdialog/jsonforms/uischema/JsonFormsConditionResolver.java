@@ -65,8 +65,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ConditionVisitor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.FalseCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.HasMultipleItemsCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsRegularChoiceCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsSpecialChoiceCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsStringChoiceCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsEnumChoiceCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsSpecificStringCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.PatternCondition;
@@ -146,20 +146,20 @@ class JsonFormsConditionResolver implements ConditionVisitor<ObjectNode> {
     }
 
     @Override
-    public ObjectNode visit(final IsSpecialChoiceCondition isSpecialChoiceCondition) {
+    public ObjectNode visit(final IsEnumChoiceCondition isSpecialChoiceCondition) {
         final var node = getMapper().createObjectNode();
-        node.putObject(TAG_PROPERTIES).set(IsSpecialChoiceCondition.PROPERTY_NAME,
+        node.putObject(TAG_PROPERTIES).set(IsEnumChoiceCondition.PROPERTY_NAME,
             isSpecialChoiceCondition.condition().accept(this));
         return node;
     }
 
     @Override
-    public ObjectNode visit(final IsRegularChoiceCondition isRegularStringCondition) {
+    public ObjectNode visit(final IsStringChoiceCondition isRegularStringCondition) {
         final var node = getMapper().createObjectNode();
         final var properties = node.putObject(TAG_PROPERTIES);
-        properties.putObject(IsRegularChoiceCondition.ENFORCE_SPECIAL_PROPERTY_NAME).putObject(TAG_NOT).put(TAG_CONST,
+        properties.putObject(IsStringChoiceCondition.ENFORCE_SPECIAL_PROPERTY_NAME).putObject(TAG_NOT).put(TAG_CONST,
             true);
-        properties.set(IsRegularChoiceCondition.REGULAR_CHOICE_PROPERTY_NAME,
+        properties.set(IsStringChoiceCondition.REGULAR_CHOICE_PROPERTY_NAME,
             isRegularStringCondition.condition().accept(this));
         return node;
     }

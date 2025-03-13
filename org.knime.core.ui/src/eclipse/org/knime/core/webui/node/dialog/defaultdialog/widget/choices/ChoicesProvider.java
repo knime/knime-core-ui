@@ -67,6 +67,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 public @interface ChoicesProvider {
 
     /**
+     * The choices provider class that provides the list of possible
+     *
      * @return the provider for the list of possible values. Make the choices provider asynchronous or depend on other
      *         settings by overriding its {@link StateProvider#init} method appropriately.
      */

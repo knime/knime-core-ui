@@ -76,16 +76,16 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TestButtonActionHandler.TestStates;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple.NameFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
@@ -115,8 +115,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.Icon;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.NameChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.PossibleValue;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
@@ -191,7 +191,7 @@ class UiSchemaOptionsTest {
             FileSelection m_fileSelection;
 
             @Widget(title = "", description = "")
-            NameFilter m_nameFilter;
+            StringFilter m_nameFilter;
 
             @Widget(title = "", description = "")
             Interval m_interval;
@@ -234,35 +234,28 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[8].options.format").isString().isEqualTo("fileChooser");
         assertThatJson(response).inPath("$.elements[9].scope").isString().contains("nameFilter");
         assertThatJson(response).inPath("$.elements[9].options.format").isString().isEqualTo("nameFilter");
-
-        // tests for interval default formats
         assertThatJson(response).inPath("$.elements[10].scope").isString().contains("interval");
         assertThatJson(response).inPath("$.elements[10].options.format").isString().isEqualTo("interval");
         assertThatJson(response).inPath("$.elements[10].options.intervalType").isString()
             .isEqualTo(IntervalWidget.IntervalType.DATE_OR_TIME.name());
-
-        assertThatJson(response).inPath("$.elements[11].scope").isString().contains("interval");
+        assertThatJson(response).inPath("$.elements[11].scope").isString().contains("variableLengthInterval");
         assertThatJson(response).inPath("$.elements[11].options.format").isString().isEqualTo("interval");
         assertThatJson(response).inPath("$.elements[11].options.intervalType").isString()
-            .isEqualTo(IntervalWidget.IntervalType.DATE_OR_TIME.name());
-        assertThatJson(response).inPath("$.elements[12].scope").isString().contains("variableLengthInterval");
+            .isEqualTo(IntervalWidget.IntervalType.DATE.name());
+        assertThatJson(response).inPath("$.elements[12].scope").isString().contains("fixedLengthInterval");
         assertThatJson(response).inPath("$.elements[12].options.format").isString().isEqualTo("interval");
         assertThatJson(response).inPath("$.elements[12].options.intervalType").isString()
-            .isEqualTo(IntervalWidget.IntervalType.DATE.name());
-        assertThatJson(response).inPath("$.elements[13].scope").isString().contains("fixedLengthInterval");
-        assertThatJson(response).inPath("$.elements[13].options.format").isString().isEqualTo("interval");
-        assertThatJson(response).inPath("$.elements[13].options.intervalType").isString()
             .isEqualTo(IntervalWidget.IntervalType.TIME.name());
-        assertThatJson(response).inPath("$.elements[14].scope").isString().contains("zonedDateTime");
-        assertThatJson(response).inPath("$.elements[14].options.format").isString().isEqualTo("zonedDateTime");
-        assertThatJson(response).inPath("$.elements[14].options.possibleValues").isArray();
-        assertThatJson(response).inPath("$.elements[15].options.showMilliseconds").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[15].scope").isString().contains("localDateTime");
-        assertThatJson(response).inPath("$.elements[15].options.format").isString().isEqualTo("dateTime");
-        assertThatJson(response).inPath("$.elements[15].options.showMilliseconds").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[16].scope").isString().contains("dataType");
-        assertThatJson(response).inPath("$.elements[16].options.format").isString().isEqualTo("dropDown");
-        assertThatJson(response).inPath("$.elements[16].options.choicesProvider").isString()
+        assertThatJson(response).inPath("$.elements[13].scope").isString().contains("zonedDateTime");
+        assertThatJson(response).inPath("$.elements[13].options.format").isString().isEqualTo("zonedDateTime");
+        assertThatJson(response).inPath("$.elements[13].options.possibleValues").isArray();
+        assertThatJson(response).inPath("$.elements[13].options.showMilliseconds").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[14].scope").isString().contains("localDateTime");
+        assertThatJson(response).inPath("$.elements[14].options.format").isString().isEqualTo("dateTime");
+        assertThatJson(response).inPath("$.elements[14].options.showMilliseconds").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[15].scope").isString().contains("dataType");
+        assertThatJson(response).inPath("$.elements[15].options.format").isString().isEqualTo("dropDown");
+        assertThatJson(response).inPath("$.elements[15].options.choicesProvider").isString()
             .isEqualTo(DefaultDataTypeChoicesProvider.class.getName());
     }
 
@@ -951,7 +944,7 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0]").isObject().containsKey("options");
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dropDown");
         assertThatJson(response).inPath("$.elements[0].options.possibleValues").isArray().isNotEmpty();
-        var elementForUtcTimeZone = new PossibleValue("UTC", "UTC");
+        var elementForUtcTimeZone = new StringChoice("UTC", "UTC");
         assertThatJson(response).inPath("$.elements[0].options.possibleValues").isArray()
             .contains(elementForUtcTimeZone);
     }
@@ -972,7 +965,7 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].options.hideOnNull").isBoolean().isTrue();
     }
 
-    static final class TimeZoneIdProvider implements NameChoicesProvider {
+    static final class TimeZoneIdProvider implements StringChoicesProvider {
         @Override
         public List<String> choices(final DefaultNodeSettingsContext context) {
             return List.of("UTC", "Europe/Berlin", "America/New_York");
@@ -1701,7 +1694,7 @@ class UiSchemaOptionsTest {
             .isEqualTo("The value must be at least 1.");
     }
 
-    static class RegularChoicesProvider implements NameChoicesProvider {
+    static class RegularChoicesProvider implements StringChoicesProvider {
 
         @Override
         public List<String> choices(final DefaultNodeSettingsContext context) {
@@ -1723,7 +1716,7 @@ class UiSchemaOptionsTest {
 
             @Widget(title = "", description = "")
             @ChoicesProvider(RegularChoicesProvider.class)
-            SingleSelection<TestSpecialChoices> m_singleSelection;
+            StringOrEnum<TestSpecialChoices> m_singleSelection;
         }
 
         final var response = buildTestUiSchema(SingleSelectionSettings.class);
@@ -1732,7 +1725,7 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("singleSelection");
 
         assertThatJson(response).inPath("$.elements[0].options.specialChoices").isArray()
-            .containsExactly(new PossibleValue("SPECIAL1", "Special 1"), new PossibleValue("SPECIAL2", "Special 2"));
+            .containsExactly(new StringChoice("SPECIAL1", "Special 1"), new StringChoice("SPECIAL2", "Special 2"));
 
         assertThatJson(response).inPath("$.elements[0].options.choicesProvider").isString()
             .isEqualTo(RegularChoicesProvider.class.getName());

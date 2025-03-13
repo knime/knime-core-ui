@@ -48,10 +48,12 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.datatype;
 
+import java.util.List;
+
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataTypeRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DataTypeChoicesStateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.DataTypeChoicesStateProvider;
 
 /**
  * Default provider for {@link DataType} choices. Provides all available data types.
@@ -61,8 +63,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.DataTypeChoicesStat
 public final class DefaultDataTypeChoicesProvider implements DataTypeChoicesStateProvider {
 
     @Override
-    public DataType[] choices(final DefaultNodeSettingsContext context) {
-        return DataTypeRegistry.getInstance().availableDataTypes().stream().toArray(DataType[]::new);
+    public List<DataType> choices(final DefaultNodeSettingsContext context) {
+        return DataTypeRegistry.getInstance().availableDataTypes().stream().toList();
     }
 
 }

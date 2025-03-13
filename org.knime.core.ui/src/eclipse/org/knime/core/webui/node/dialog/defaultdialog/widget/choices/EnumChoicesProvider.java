@@ -51,7 +51,6 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
 import java.util.List;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.EnumUtil;
 
 /**
  * A class that provides an array of possible values of a {@link ChoicesProvider} based on the current
@@ -61,7 +60,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.EnumUtil;
  *
  * @author Paul Bärnreuther
  */
-public non-sealed interface EnumChoicesProvider<E extends Enum<E>> extends ChoicesStateProvider<PossibleValue> {
+public non-sealed interface EnumChoicesProvider<E extends Enum<E>> extends ChoicesStateProvider<EnumChoice<E>> {
 
     /**
      * {@inheritDoc}
@@ -89,14 +88,13 @@ public non-sealed interface EnumChoicesProvider<E extends Enum<E>> extends Choic
             + "EnumChoicesProvider.choices or EnumChoicesProvider.computeState");
     }
 
+    /**
+     * Overwrite this method instead of {@link #choices(DefaultNodeSettingsContext)} to provide non-constant labels that
+     * have to be computed on runtime.
+     */
     @Override
-    default List<PossibleValue> computeState(final DefaultNodeSettingsContext context) {
-        return choices(context).stream().map(EnumChoicesProvider::enumConstToPossibleValue).toList();
-    }
-
-    private static <E extends Enum<E>> PossibleValue enumConstToPossibleValue(final E enumConst) {
-        final var titleAndDescription = EnumUtil.createConstantEntry(enumConst);
-        return new PossibleValue(enumConst.name(), titleAndDescription.title());
+    default List<EnumChoice<E>> computeState(final DefaultNodeSettingsContext context) {
+        return choices(context).stream().map(EnumChoice::fromEnumConst).toList();
     }
 
 }

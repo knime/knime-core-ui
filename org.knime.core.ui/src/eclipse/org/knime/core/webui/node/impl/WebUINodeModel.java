@@ -66,6 +66,9 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.core.node.property.hilite.HiLiteHandler;
+import org.knime.core.node.streamable.PartitionInfo;
+import org.knime.core.node.streamable.StreamableOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 
 /**
@@ -185,6 +188,50 @@ public abstract class WebUINodeModel<S extends DefaultNodeSettings> extends Node
         final S modelSettings) throws Exception {//NOSONAR
         throw new NotImplementedException("NodeModel.execute() implementation missing!");
     }
+
+
+    /**
+     * @noreference reference {@link #createStreamableOperator(PartitionInfo, PortObjectSpec[], S)} instead
+     */
+    @Override
+    public final StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
+        final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
+        return createStreamableOperator(partitionInfo, inSpecs, m_modelSettings);
+    }
+
+    /**
+     * @see NodeModel#createStreamableOperator(PartitionInfo, PortObjectSpec[])
+     *
+     * @param partitionInfo
+     * @param inSpecs
+     * @param modelSettings the current model settings
+     * @return the {@link StreamableOperator}
+     * @throws InvalidSettingsException
+     */
+    protected StreamableOperator createStreamableOperator(final PartitionInfo partitionInfo,
+        final PortObjectSpec[] inSpecs, final S modelSettings) throws InvalidSettingsException {
+        return super.createStreamableOperator(partitionInfo, inSpecs);
+    }
+
+    @Override
+    protected HiLiteHandler getOutHiLiteHandler(final int outIndex) {
+        // We have use default settings since this method can be called before the node is configured.
+        final var modelSettings = Optional.ofNullable(m_modelSettings)
+            .orElseGet(() -> DefaultNodeSettings.createSettings(m_modelSettingsClass));
+        return getOutHiLiteHandler(outIndex, modelSettings);
+    }
+
+    /**
+     * @see NodeModel#getOutHiLiteHandler(int)
+     * @param outIndex
+     * @param modelSettings the current model settings or default settings when called before settings have been loaded
+     *            (e.g. from the constructor of {@link Node})
+     * @return the {@link HiLiteHandler}
+     */
+    protected HiLiteHandler getOutHiLiteHandler(final int outIndex, final S modelSettings) {
+        return super.getOutHiLiteHandler(outIndex);
+    }
+
 
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)

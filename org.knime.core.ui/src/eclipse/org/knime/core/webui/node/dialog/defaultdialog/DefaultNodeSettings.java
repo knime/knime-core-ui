@@ -86,18 +86,17 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistabl
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigMappingsFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple.NameFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DataTypeChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
@@ -119,8 +118,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.DataTypeChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.NameChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableChoicesProvider;
@@ -223,7 +223,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * </tr>
  * <td>String[]</td>
  * <td>Combo Box</td>
- * <td>{@link ChoicesProvider} with a {@link NameChoicesProvider}.<br>
+ * <td>{@link ChoicesProvider} with a {@link StringChoicesProvider}.<br>
  * {@link SortListWidget} <br>
  * {@link TwinlistWidget}</td>
  * </tr>
@@ -235,7 +235,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * {@link ChoicesProvider} with an {@link EnumChoicesProvider} (Drop Down)</td>
  * </tr>
  * <tr>
- * <td>{@link SingleSelection}</td>
+ * <td>{@link StringOrEnum}</td>
  * <td></td>
  * <td>{@link ChoicesProvider} for setting the dynamic choices<br>
  * <tr>
@@ -244,9 +244,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <td>{@link ArrayWidget}</td>
  * </tr>
  * <tr>
- * <td>{@link NameFilter}</td>
+ * <td>{@link StringFilter}</td>
  * <td></td>
- * <td>{@link ChoicesProvider} with a {@link NameChoicesProvider}<br>
+ * <td>{@link ChoicesProvider} with a {@link StringChoicesProvider}<br>
  * {@link TwinlistWidget}
  * <td>
  * </tr>

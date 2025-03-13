@@ -57,7 +57,7 @@ import java.util.Optional;
 
 import org.knime.core.data.DataTable;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
@@ -167,10 +167,9 @@ public @interface TextMessage {
             }
 
             var spec = dt.get().getDataTableSpec();
-            var cols = spec.getColumnNames();
             var filter = getFilter();
 
-            var selectedCols = filter.isPresent() ? filter.get().getNonMissingSelected(cols, spec) : cols;
+            var selectedCols = filter.isPresent() ? filter.get().filterFromFullSpec(spec) : spec.getColumnNames();
 
             if (selectedCols.length == 0) {
                 return "Select a column to see a preview";

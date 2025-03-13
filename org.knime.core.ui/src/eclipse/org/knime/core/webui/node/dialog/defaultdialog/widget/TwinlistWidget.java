@@ -54,12 +54,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.multiple.NameFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.TypedNameFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilter;
 
 /**
- * Configure the labels used in a widget including a twin-list, i.e. e.g. for a {@link TypedNameFilter} or a
- * {@link NameFilter}.
+ * Configure the labels used in a widget including a twin-list, i.e. e.g. for a {@link TypedStringFilter} or a
+ * {@link StringFilter}.
  *
  * @author Paul Bärnreuther
  */
@@ -68,11 +68,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.
 public @interface TwinlistWidget {
 
     /**
+     * Set this parameter to change the default label of the right list of a twin list.
+     *
      * @return the label of the included values
      */
     String includedLabel() default "";
 
     /**
+     * Set this parameter to change the default label of the left list of a twin list.
+     *
      * @return the label of the excluded values
      */
     String excludedLabel() default "";

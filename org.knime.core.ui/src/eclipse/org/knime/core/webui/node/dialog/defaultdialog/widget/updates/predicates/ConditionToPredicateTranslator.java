@@ -55,7 +55,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicatePr
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.ArrayReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.BooleanReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.EnumReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.SingleSelectionReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.StringOrEnumReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.StringReference;
 
 /**
@@ -145,23 +145,22 @@ public class ConditionToPredicateTranslator {
 
     }
 
-    public static final class SingleSelectionFieldReference<E extends Enum<E>> extends ConditionToPredicateTranslator
-        implements SingleSelectionReference<E> {
+    public static final class StringOrEnumFieldReference<E extends Enum<E>> extends ConditionToPredicateTranslator
+        implements StringOrEnumReference<E> {
 
-        public SingleSelectionFieldReference(final Function<Condition, Predicate> conditionToPredicate) {
+        public StringOrEnumFieldReference(final Function<Condition, Predicate> conditionToPredicate) {
             super(conditionToPredicate);
         }
 
         @Override
-        public EnumReference<E> isSpecialChoice() {
-            return new EnumFieldReference<>(
-                condition -> this.<IsSpecialChoiceCondition> createPredicate(() -> condition));
+        public EnumReference<E> isEnumChoice() {
+            return new EnumFieldReference<>(condition -> this.<IsEnumChoiceCondition> createPredicate(() -> condition));
         }
 
         @Override
-        public StringReference isRegularChoice() {
+        public StringReference isStringChoice() {
             return new StringFieldReference(
-                condition -> this.<IsRegularChoiceCondition> createPredicate(() -> condition));
+                condition -> this.<IsStringChoiceCondition> createPredicate(() -> condition));
         }
 
     }

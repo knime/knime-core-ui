@@ -51,6 +51,7 @@ package org.knime.core.webui.node.view.table;
 import static org.knime.core.webui.node.view.table.RowHeightPersistorUtil.createDefaultConfigsDeprecations;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
@@ -61,8 +62,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.StringArrayToColumnFilterMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.StringArrayToColumnFilterMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.selection.SelectionCheckboxesToSelectionModeMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.selection.SelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -492,7 +493,9 @@ public class TableViewViewSettings implements DefaultNodeSettings {
 
     @SuppressWarnings("javadoc")
     public String[] getDisplayedColumns(final DataTableSpec spec) {
-        final var choices = spec.getColumnNames();
-        return m_displayedColumns.getSelectedIncludingMissing(choices, spec);
+        return Stream.concat(//
+            Stream.of(m_displayedColumns.getMissingSelectedFromFullSpec(spec)), //
+            Stream.of(m_displayedColumns.filterFromFullSpec(spec))//
+        ).toArray(String[]::new);
     }
 }

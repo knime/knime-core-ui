@@ -147,7 +147,8 @@ public final class TableViewInitialDataImpl implements TableViewInitialData {
 
     @Override
     public TableViewViewSettings getSettings() {
-        m_settings.m_displayedColumns.m_selected = m_settings.getDisplayedColumns(m_table.get().getDataTableSpec());
+        m_settings.m_displayedColumns
+            .setSelectedBeforeSerialization(m_settings.getDisplayedColumns(m_table.get().getDataTableSpec()));
         return m_settings;
     }
 }

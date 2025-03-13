@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable;
 import java.util.List;
 
 import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.node.workflow.FlowVariable.Scope;
 import org.knime.core.node.workflow.VariableTypeRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 
@@ -63,9 +64,9 @@ public final class AllFlowVariablesProvider implements FlowVariableChoicesProvid
 
     @Override
     public List<FlowVariable> flowVariableChoices(final DefaultNodeSettingsContext context) {
-        final var allFlowVariables =
-            context.getAvailableInputFlowVariables(VariableTypeRegistry.getInstance().getAllTypes());
-        return allFlowVariables.values().stream().toList();
+        return context.getAvailableInputFlowVariables(VariableTypeRegistry.getInstance().getAllTypes()) //
+            .values().stream() //
+            .filter(v -> Scope.Flow == v.getScope()) //
+            .toList();
     }
-
 }

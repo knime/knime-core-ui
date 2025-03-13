@@ -62,7 +62,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.InputPreviewMessageProvider;
 
 /**
@@ -143,7 +143,7 @@ public class TextMessageTest {
     @Test
     void testDefaultDescriptionWithFilter() {
         final var mockFilter = mock(ColumnFilter.class);
-        when(mockFilter.getNonMissingSelected(any(), any())).thenReturn(new String[0]);
+        when(mockFilter.filterFromFullSpec(any())).thenReturn(new String[0]);
         var provider = new DefaultTestInputPreviewMessageProvider(Optional.empty(), Optional.of(mockFilter));
         final var mockContext = mock(DefaultNodeSettingsContext.class);
         final var mockDataTable = mock(DataTable.class);
@@ -157,7 +157,7 @@ public class TextMessageTest {
         var description = provider.description(mockContext);
 
         assertEquals("Select a column to see a preview", description);
-        verify(mockFilter).getNonMissingSelected(any(), any());
+            verify(mockFilter).filterFromFullSpec(any());
     }
 
     @Test

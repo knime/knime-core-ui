@@ -324,8 +324,7 @@ public class DefaultNodeDialogTest {
         m_wfm = WorkflowManagerUtil.createEmptyWorkflow();
         final var settingsClasses =
             Map.of(SettingsType.MODEL, ModelSettings.class, SettingsType.VIEW, ViewSettings.class);
-        final var defaultNodeSettingsService =
-            new DefaultNodeSettingsService(settingsClasses);
+        final var defaultNodeSettingsService = new DefaultNodeSettingsService(settingsClasses);
         Supplier<NodeDialog> nodeDialogCreator =
             () -> createNodeDialog(Page.builder(() -> "page content", "page.html").build(), defaultNodeSettingsService,
                 null);

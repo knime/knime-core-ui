@@ -58,15 +58,17 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
  *
  * The following options are available:
  * <ul>
- * <li>{@link NameChoicesProvider} for choosing a string</li>
- * <li>{@link TypedNameChoicesProvider} for choosing a column or a flow variable</li>
+ * <li>{@link StringChoicesProvider} for choosing a string</li>
+ * <li>{@link TypedStringChoicesProvider} for choosing a column or a flow variable</li>
  * </ul>
  *
  * See {@link DefaultNodeSettings} for further information which state provider is to be used for which setting.
  *
- * @author paulbaernreuther
+ * @param <S> the type of the choices
+ *
+ * @author Paul Bärnreuther
  */
 public sealed interface ChoicesStateProvider<S> extends StateProvider<List<S>>
-    permits NameChoicesProvider, TypedNameChoicesProvider, EnumChoicesProvider {
+    permits StringChoicesProvider, TypedStringChoicesProvider, EnumChoicesProvider, DataTypeChoicesStateProvider {
 
 }

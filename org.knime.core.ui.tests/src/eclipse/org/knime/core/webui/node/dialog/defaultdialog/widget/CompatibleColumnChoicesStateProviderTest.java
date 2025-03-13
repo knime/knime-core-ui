@@ -68,10 +68,10 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.PossibleTypedNameValue;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.LegacyColumnFilterPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.testing.node.dialog.updates.DialogUpdateSimulator;
@@ -137,8 +137,7 @@ class CompatibleColumnChoicesStateProviderTest {
 
     private static void assertColumnChoices(final UpdateSimulatorResult result, final String... expectedColumnNames) {
         var columnChoices = result.getUiStateUpdateAt(ColumnProvider.class);
-        assertThat(columnChoices.stream().map(PossibleTypedNameValue::id).toList())
-            .isEqualTo(List.of(expectedColumnNames));
+        assertThat(columnChoices.stream().map(TypedStringChoice::id).toList()).isEqualTo(List.of(expectedColumnNames));
     }
 
     static final class ReferenceForSetting implements Reference<SettingsEnumThatDeterminesCompatibleColumnDataValues> {

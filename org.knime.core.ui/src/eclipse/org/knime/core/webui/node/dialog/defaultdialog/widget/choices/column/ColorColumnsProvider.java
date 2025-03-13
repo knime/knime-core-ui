@@ -48,26 +48,18 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column;
 
-import java.util.List;
-
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 
 /**
- * Offers all column from the first input table which have a color handler.
+ * Offers all column from an input table which have a color handler. By default, the first input table is used.
  *
  * @author Paul Bärnreuther
  */
-public final class ColorColumnsProvider implements ColumnChoicesProvider {
+public class ColorColumnsProvider implements FilteredInputTableColumnsProvider {
 
     @Override
-    public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-        return context.getDataTableSpec(0).map(spec -> getColumnsWithColorHandler(spec)).orElse(List.of());
-    }
-
-    private static List<DataColumnSpec> getColumnsWithColorHandler(final DataTableSpec spec) {
-        return spec.stream().filter(col -> col.getColorHandler() != null).toList();
+    public boolean isIncluded(final DataColumnSpec col) {
+        return col.getColorHandler() != null;
     }
 
 }

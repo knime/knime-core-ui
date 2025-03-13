@@ -57,6 +57,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
+ * Utils around extracting context information from enum constants.
+ *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 public final class EnumUtil {
@@ -71,7 +73,6 @@ public final class EnumUtil {
      * converts an enum constant to a title and description.
      *
      * @param constant the enum constant to convert
-     * @param <E> the type of enum
      * @return the converted enum constant
      */
     public static TitleAndDescription createConstantEntry(final Enum<?> constant) {

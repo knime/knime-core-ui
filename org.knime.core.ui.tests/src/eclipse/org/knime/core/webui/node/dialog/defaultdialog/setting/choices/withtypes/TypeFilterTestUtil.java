@@ -48,6 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes;
 
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypeFilter;
+
 /**
  * Utilities for testing subclasses {@link TypeFilter}.
  *

@@ -58,8 +58,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.WithNoneChoice;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -688,11 +688,11 @@ class JsonFormsUiSchemaUtilRuleTest {
 
         assertThat(assertThrows(UiSchemaGenerationException.class,
             () -> buildTestUiSchema(EffectWithoutReferenceSettings.class)).getMessage())
-            .isEqualTo(String.format(
-                "Error when resolving @Effect annotation for #/properties/model/properties/setting.: "
-                    + "Missing reference annotation: %s. If this is correct and desired, "
-                    + "check for that in advance using PredicateInitializer#isMissing.",
-                EffectWithoutReferenceSettings.UnmetReference.class.getName()));
+                .isEqualTo(String.format(
+                    "Error when resolving @Effect annotation for #/properties/model/properties/setting.: "
+                        + "Missing reference annotation: %s. If this is correct and desired, "
+                        + "check for that in advance using PredicateInitializer#isMissing.",
+                    EffectWithoutReferenceSettings.UnmetReference.class.getName()));
 
     }
 
@@ -768,26 +768,26 @@ class JsonFormsUiSchemaUtilRuleTest {
     void testSingleSelectionConditions() {
         final class SingleSelectionConditionSettings implements DefaultNodeSettings {
 
-            static final class SingleSelectionReference implements Reference<SingleSelection<WithNoneChoice>> {
+            static final class SingleSelectionReference implements Reference<StringOrEnum<NoneChoice>> {
             }
 
             @Widget(title = "Foo", description = "")
             @ChoicesProvider(TestChoicesProvider.class)
             @ValueReference(SingleSelectionReference.class)
-            SingleSelection<WithNoneChoice> singleSelection;
+            StringOrEnum<NoneChoice> singleSelection;
 
             static final class MySpecialChoiceCondition implements PredicateProvider {
 
                 @Override
                 public Predicate init(final PredicateInitializer i) {
-                    return i.getSingleSelection(SingleSelectionReference.class).isSpecialChoice(WithNoneChoice.NONE);
+                    return i.getStringOrEnum(SingleSelectionReference.class).isEnumChoice(NoneChoice.NONE);
                 }
             }
 
             static final class MyRegularChoiceCondition implements PredicateProvider {
                 @Override
                 public Predicate init(final PredicateInitializer i) {
-                    return i.getSingleSelection(SingleSelectionReference.class).isRegularChoice().matchesPattern("abc");
+                    return i.getStringOrEnum(SingleSelectionReference.class).isStringChoice().matchesPattern("abc");
                 }
             }
 

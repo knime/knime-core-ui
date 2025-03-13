@@ -52,15 +52,15 @@ import java.util.List;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.PossibleTypedNameValue;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedNameChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoicesProvider;
 
 /**
  * A class that provides an array of possible column choices based on the current {@link DefaultNodeSettingsContext}.
  *
  * @author Paul Bärnreuther
  */
-public interface ColumnChoicesProvider extends TypedNameChoicesProvider {
+public interface ColumnChoicesProvider extends TypedStringChoicesProvider {
 
     /**
      * {@inheritDoc}
@@ -85,12 +85,12 @@ public interface ColumnChoicesProvider extends TypedNameChoicesProvider {
      */
     default List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
         throw new IllegalStateException("At least one method must be implemented: "
-            + "ColumnChoicesStateProvider.columnChoices or ColumnChoicesStateProvider.computeState");
+            + "ColumnChoicesProvider.columnChoices or ColumnChoicesProvider.computeState");
     }
 
     @Override
-    default List<PossibleTypedNameValue> computeState(final DefaultNodeSettingsContext context) {
-        return columnChoices(context).stream().map(PossibleTypedNameValue::fromColSpec).toList();
+    default List<TypedStringChoice> computeState(final DefaultNodeSettingsContext context) {
+        return columnChoices(context).stream().map(TypedStringChoice::fromColSpec).toList();
 
     }
 

@@ -52,15 +52,15 @@ import java.util.List;
 
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.PossibleTypedNameValue;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedNameChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoicesProvider;
 
 /**
  * A class that provides an array of possible column choices based on the current {@link DefaultNodeSettingsContext}.
  *
  * @author Paul Bärnreuther
  */
-public interface FlowVariableChoicesProvider extends TypedNameChoicesProvider {
+public interface FlowVariableChoicesProvider extends TypedStringChoicesProvider {
 
     /**
      * {@inheritDoc}
@@ -85,12 +85,12 @@ public interface FlowVariableChoicesProvider extends TypedNameChoicesProvider {
      */
     default List<FlowVariable> flowVariableChoices(final DefaultNodeSettingsContext context) {
         throw new IllegalStateException("At least one method must be implemented: "
-            + "FlowVariableChoicesProvider.columnChoices or FlowVariableChoicesProvider.computeState");
+            + "FlowVariableChoicesProvider.flowVariableChoices or FlowVariableChoicesProvider.computeState");
     }
 
     @Override
-    default List<PossibleTypedNameValue> computeState(final DefaultNodeSettingsContext context) {
-        return flowVariableChoices(context).stream().map(PossibleTypedNameValue::fromFlowVariable).toList();
+    default List<TypedStringChoice> computeState(final DefaultNodeSettingsContext context) {
+        return flowVariableChoices(context).stream().map(TypedStringChoice::fromFlowVariable).toList();
     }
 
 }
