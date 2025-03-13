@@ -90,19 +90,33 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
     public enum AuthenticationType {
             /** No authentication required. */
             @Label(value = "None", description = "No authentication is required.")
-            NONE,
+            NONE("None"),
             /** Authentication with username. */
             @Label(value = "Username", description = "Username-based authentication. No password required.")
-            USER,
+            USER("Username"),
             /** Authentication with username and password. */
             @Label(value = "Username and Password", description = "Username and password based authentication.")
-            USER_PWD,
+            USER_PWD("Username and Password"),
             /** Authentication with password. */
             @Label(value = "Password", description = "Password based authentication. No username required.")
-            PWD,
+            PWD("Password"),
             /** Authentication with kerberos. */
             @Label(value = "Kerberos", description = "Kerberos ticket based authentication")
-            KERBEROS;
+            KERBEROS("Kerberos");
+
+        //Temporary label
+        String m_label;
+
+        AuthenticationType(final String label) {
+            this.m_label = label;
+        }
+
+        /**
+         * @return label
+         */
+        public String getLabel() {
+            return this.m_label;
+        }
 
         boolean requiresUsername() {
             return List.of(USER, USER_PWD).contains(this);
@@ -116,7 +130,12 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
 
     }
 
-    static final class AuthenticationTypeRef implements Reference<AuthenticationType> {
+    /**
+     * References the {@link AuthenticationType} selector.
+     *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
+     */
+    public static final class AuthenticationTypeRef implements Reference<AuthenticationType>, Modification.Reference {
         static class RequiresCredentials implements PredicateProvider {
 
             @Override
@@ -130,6 +149,7 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
     @Widget(title = "Authentication type", description = "The type of the used authentication.")
     @ValueReference(AuthenticationTypeRef.class)
     @RadioButtonsWidget(horizontal = true)
+    @Modification.WidgetReference(AuthenticationTypeRef.class)
     final AuthenticationType m_type;
 
     abstract static class AuthenticationTypeDependentProvider implements StateProvider<Boolean> {
@@ -169,6 +189,20 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
     final Credentials m_credentials;
 
     /**
+     * @return the type
+     */
+    public AuthenticationType getType() {
+        return m_type;
+    }
+
+    /**
+     * @return the credentials
+     */
+    public Credentials getCredentials() {
+        return m_credentials;
+    }
+
+    /**
      * NONE selected and empty credentials
      */
     public AuthenticationSettings() {
@@ -190,8 +224,7 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
      *
      * @author Paul Bärnreuther
      */
-    public static class SettingsModelAuthenticationMigrator
-        implements NodeSettingsMigration<AuthenticationSettings> {
+    public static class SettingsModelAuthenticationMigrator implements NodeSettingsMigration<AuthenticationSettings> {
 
         private final String m_configKey;
 
