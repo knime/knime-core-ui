@@ -57,7 +57,7 @@ import java.util.Optional;
 
 import org.knime.core.data.DataTable;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**

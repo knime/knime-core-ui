@@ -61,7 +61,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.EnumUtil;
  *
  * @author Paul Bärnreuther
  */
-public non-sealed interface EnumChoicesProvider<E extends Enum<E>> extends ChoicesStateProvider<PossibleValue> {
+public non-sealed interface EnumChoicesProvider<E extends Enum<E>> extends ChoicesStateProvider<StringChoice> {
 
     /**
      * {@inheritDoc}
@@ -90,13 +90,13 @@ public non-sealed interface EnumChoicesProvider<E extends Enum<E>> extends Choic
     }
 
     @Override
-    default List<PossibleValue> computeState(final DefaultNodeSettingsContext context) {
+    default List<StringChoice> computeState(final DefaultNodeSettingsContext context) {
         return choices(context).stream().map(EnumChoicesProvider::enumConstToPossibleValue).toList();
     }
 
-    private static <E extends Enum<E>> PossibleValue enumConstToPossibleValue(final E enumConst) {
+    private static <E extends Enum<E>> StringChoice enumConstToPossibleValue(final E enumConst) {
         final var titleAndDescription = EnumUtil.createConstantEntry(enumConst);
-        return new PossibleValue(enumConst.name(), titleAndDescription.title());
+        return new StringChoice(enumConst.name(), titleAndDescription.title());
     }
 
 }

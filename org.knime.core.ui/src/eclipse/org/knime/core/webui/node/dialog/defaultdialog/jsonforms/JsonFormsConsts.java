@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.TypedNameFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
@@ -166,12 +166,12 @@ public final class JsonFormsConsts {
         public static final String TAG_FORMAT = "format";
 
         /**
-         * The text for unknown values in a {@link TypedNameFilter}
+         * The text for unknown values in a {@link TypedStringFilter}
          */
         public static final String TAG_UNKNWON_VALUES_TEXT = "unknownValuesText";
 
         /**
-         * The text for empty lists in a {@link TypedNameFilter}
+         * The text for empty lists in a {@link TypedStringFilter}
          */
         public static final String TAG_EMPTY_STATE_LABEL = "emptyStateLabel";
 
