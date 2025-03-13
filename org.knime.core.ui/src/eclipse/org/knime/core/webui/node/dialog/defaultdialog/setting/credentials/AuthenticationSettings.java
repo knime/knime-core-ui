@@ -58,21 +58,14 @@ import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration.Builder;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 /**
  * A switch on the type of authentication that is to be used plus a {@link Credentials} widget that is shown
@@ -80,7 +73,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  *
  * @author Paul Bärnreuther
  */
-public final class AuthenticationSettings implements WidgetGroup, PersistableSettings {
+public final class AuthenticationSettings extends BaseAuthenticationSettings {
 
     /**
      * The types of authentications
@@ -116,21 +109,11 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
 
     }
 
-    static final class AuthenticationTypeRef implements Reference<AuthenticationType> {
-        static class RequiresCredentials implements PredicateProvider {
-
-            @Override
-            public Predicate init(final PredicateInitializer i) {
-                return i.getEnum(AuthenticationTypeRef.class).isOneOf(AuthenticationType.REQUIRE_CREDENTIALS);
-            }
-
-        }
-    }
-
-    @Widget(title = "Authentication type", description = "The type of the used authentication.")
-    @ValueReference(AuthenticationTypeRef.class)
-    @RadioButtonsWidget(horizontal = true)
-    final AuthenticationType m_type;
+    /**
+     * Allows user to modify the setting
+     *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
+     */
 
     abstract static class AuthenticationTypeDependentProvider implements StateProvider<Boolean> {
 
@@ -169,6 +152,20 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
     final Credentials m_credentials;
 
     /**
+     * @return the type
+     */
+    public AuthenticationType getType() {
+        return m_type;
+    }
+
+    /**
+     * @return the credentials
+     */
+    public Credentials getCredentials() {
+        return m_credentials;
+    }
+
+    /**
      * NONE selected and empty credentials
      */
     public AuthenticationSettings() {
@@ -190,8 +187,7 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
      *
      * @author Paul Bärnreuther
      */
-    public static class SettingsModelAuthenticationMigrator
-        implements NodeSettingsMigration<AuthenticationSettings> {
+    public static class SettingsModelAuthenticationMigrator implements NodeSettingsMigration<AuthenticationSettings> {
 
         private final String m_configKey;
 
