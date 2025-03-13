@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.credentials;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -62,9 +63,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.IdAndText;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
@@ -90,19 +93,33 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
     public enum AuthenticationType {
             /** No authentication required. */
             @Label(value = "None", description = "No authentication is required.")
-            NONE,
+            NONE("None"),
             /** Authentication with username. */
             @Label(value = "Username", description = "Username-based authentication. No password required.")
-            USER,
+            USER("Username"),
             /** Authentication with username and password. */
             @Label(value = "Username and Password", description = "Username and password based authentication.")
-            USER_PWD,
+            USER_PWD("Username and Password"),
             /** Authentication with password. */
             @Label(value = "Password", description = "Password based authentication. No username required.")
-            PWD,
+            PWD("Password"),
             /** Authentication with kerberos. */
             @Label(value = "Kerberos", description = "Kerberos ticket based authentication")
-            KERBEROS;
+            KERBEROS("Kerberos");
+
+        //TODO Remove: Temporary label until UIEXT-1491
+        String m_label;
+
+        AuthenticationType(final String label) {
+            this.m_label = label;
+        }
+
+        /**
+         * @return label
+         */
+        public String getLabel() {
+            return this.m_label;
+        }
 
         boolean requiresUsername() {
             return List.of(USER, USER_PWD).contains(this);
@@ -116,7 +133,7 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
 
     }
 
-    static final class AuthenticationTypeRef implements Reference<AuthenticationType> {
+    static final class AuthenticationTypeRef implements Reference<AuthenticationType>, Modification.Reference {
         static class RequiresCredentials implements PredicateProvider {
 
             @Override
@@ -129,8 +146,39 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
 
     @Widget(title = "Authentication type", description = "The type of the used authentication.")
     @ValueReference(AuthenticationTypeRef.class)
-    @RadioButtonsWidget(horizontal = true)
+    @ChoicesWidget(choices = AllAuthenticationTypesProvder.class)
+    @Modification.WidgetReference(AuthenticationTypeRef.class)
     final AuthenticationType m_type;
+
+    //TODO Remove: Should be unnecessary with UIEXT-1491
+    static final class AllAuthenticationTypesProvder implements ChoicesProvider {
+
+        @Override
+        public IdAndText[] choicesWithIdAndText(final DefaultNodeSettingsContext context) {
+            return Arrays.stream(AuthenticationType.values())
+                .map(choice -> new IdAndText(choice.name(), choice.getLabel())).toArray(IdAndText[]::new);
+        }
+    }
+
+    /**
+     * Allows user to modify the setting
+     *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
+     */
+    public abstract static class AuthenticationTypeModification implements WidgetGroup.Modifier {
+
+        @Override
+        public void modify(final WidgetGroupModifier group) {
+            group.find(AuthenticationTypeRef.class).modifyAnnotation(ChoicesWidget.class).withProperty("choices",
+                getAuthenticationTypeChoicesProvider()).modify();
+        }
+
+        /**
+         * @return
+         */
+        protected abstract Class<? extends ChoicesProvider> getAuthenticationTypeChoicesProvider();
+
+    }
 
     abstract static class AuthenticationTypeDependentProvider implements StateProvider<Boolean> {
 
@@ -169,6 +217,20 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
     final Credentials m_credentials;
 
     /**
+     * @return the type
+     */
+    public AuthenticationType getType() {
+        return m_type;
+    }
+
+    /**
+     * @return the credentials
+     */
+    public Credentials getCredentials() {
+        return m_credentials;
+    }
+
+    /**
      * NONE selected and empty credentials
      */
     public AuthenticationSettings() {
@@ -190,8 +252,7 @@ public final class AuthenticationSettings implements WidgetGroup, PersistableSet
      *
      * @author Paul Bärnreuther
      */
-    public static class SettingsModelAuthenticationMigrator
-        implements NodeSettingsMigration<AuthenticationSettings> {
+    public static class SettingsModelAuthenticationMigrator implements NodeSettingsMigration<AuthenticationSettings> {
 
         private final String m_configKey;
 
