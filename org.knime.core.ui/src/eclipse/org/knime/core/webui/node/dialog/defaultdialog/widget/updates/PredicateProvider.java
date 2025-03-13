@@ -51,7 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.updates;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.single.SingleSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.And;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.Not;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.Or;
@@ -97,7 +97,7 @@ public interface PredicateProvider {
      * <li>{@link #getString Strings}</li>
      * <li>{@link #getEnum Enums}</li>
      * <li>{@link #getArray Arrays of widget groups (Array widget)}</li>
-     * <li>{@link #getColumnSelection ColumnSelections}</li>
+     * <li>{@link #getStringOrEnum StringOrEnum}</li>
      * </ul>
      *
      * Note on array widgets:
@@ -155,11 +155,11 @@ public interface PredicateProvider {
         <T> ArrayReference getArray(Class<? extends Reference<T[]>> reference);
 
         /**
-         * @param reference bound to exactly one {@link SingleSelection} field via {@link ValueReference}
+         * @param reference bound to exactly one {@link StringOrEnum} field via {@link ValueReference}
          * @return an object that can be further transformed to a predicate using one of its methods
          */
-        <E extends Enum<E>> SingleSelectionReference<E>
-            getSingleSelection(Class<? extends Reference<SingleSelection<E>>> reference);
+        <E extends Enum<E>> StringOrEnumReference<E>
+            getStringOrEnum(Class<? extends Reference<StringOrEnum<E>>> reference);
 
         /**
          * @param reference bound to exactly one enum field via {@link ValueReference}
@@ -246,21 +246,21 @@ public interface PredicateProvider {
         }
 
         /**
-         * Returned by {@link PredicateInitializer#getSingleSelection}
+         * Returned by {@link PredicateInitializer#getStringOrEnum}
          *
          * @author Paul Bärnreuther
          * @param <E>
          */
-        interface SingleSelectionReference<E extends Enum<E>> {
+        interface StringOrEnumReference<E extends Enum<E>> {
 
-            EnumReference<E> isSpecialChoice();
+            EnumReference<E> isEnumChoice();
 
             @SuppressWarnings("unchecked")
-            default Predicate isSpecialChoice(final E specialChoice) {
-                return isSpecialChoice().isOneOf(specialChoice);
+            default Predicate isEnumChoice(final E specialChoice) {
+                return isEnumChoice().isOneOf(specialChoice);
             }
 
-            StringReference isRegularChoice();
+            StringReference isStringChoice();
 
         }
 

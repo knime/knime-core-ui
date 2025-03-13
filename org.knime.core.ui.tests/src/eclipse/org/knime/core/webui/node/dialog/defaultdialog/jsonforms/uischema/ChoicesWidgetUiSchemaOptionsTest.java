@@ -67,14 +67,14 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.variable.FlowVariableFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.NameChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.PossibleValue;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.AllFlowVariablesProvider;
@@ -166,7 +166,7 @@ class ChoicesWidgetUiSchemaOptionsTest {
         }
     }
 
-    static class TestChoicesProvider implements NameChoicesProvider {
+    static class TestChoicesProvider implements StringChoicesProvider {
 
         @Override
         public List<String> choices(final DefaultNodeSettingsContext context) {
@@ -174,11 +174,11 @@ class ChoicesWidgetUiSchemaOptionsTest {
         }
     }
 
-    static class TestChoicesProviderWithIdAndText implements NameChoicesProvider {
+    static class TestChoicesProviderWithIdAndText implements StringChoicesProvider {
 
         @Override
-        public List<PossibleValue> computeState(final DefaultNodeSettingsContext context) {
-            return List.of(new PossibleValue("id1", "text1"), new PossibleValue("id2", "text2"));
+        public List<StringChoice> computeState(final DefaultNodeSettingsContext context) {
+            return List.of(new StringChoice("id1", "text1"), new StringChoice("id2", "text2"));
         }
     }
 

@@ -61,9 +61,9 @@ public interface ConditionVisitor<T> {
 
     <E extends Enum<E>> T visit(OneOfEnumCondition<E> oneOfEnumCondition);
 
-    <E extends Enum<E>> T visit(IsSpecialChoiceCondition oneOfSinlgeSelectionCondition);
+    <E extends Enum<E>> T visit(IsEnumChoiceCondition oneOfSinlgeSelectionCondition);
 
-    T visit(IsRegularChoiceCondition isRegularStringCondition);
+    T visit(IsStringChoiceCondition isRegularStringCondition);
 
     T visit(TrueCondition trueCondition);
 

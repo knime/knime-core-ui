@@ -79,12 +79,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.Defaul
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DataTypeChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
@@ -95,8 +94,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.Message
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.DataTypeChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.NameChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableChoicesProvider;
@@ -797,7 +797,7 @@ public class UpdatesUtilTest {
 
         }
 
-        static final class TestStringChoicesProvider implements NameChoicesProvider {
+        static final class TestStringChoicesProvider implements StringChoicesProvider {
 
             static final List<String> RESULT = List.of("A", "B", "C");
 
@@ -979,14 +979,14 @@ public class UpdatesUtilTest {
 
                 static final class OnlyStringAndDoubleChoicesProvider implements DataTypeChoicesStateProvider {
                     @Override
-                    public DataType[] choices(final DefaultNodeSettingsContext context) {
-                        return new DataType[]{StringCell.TYPE, DoubleCell.TYPE};
+                    public List<DataType> choices(final DefaultNodeSettingsContext context) {
+                        return List.of(StringCell.TYPE, DoubleCell.TYPE);
                     }
                 }
 
                 @Widget(title = "Data type with limited choices",
                     description = "Select the data type to be displayed in the table")
-                @ChoicesWidget(choicesProvider = OnlyStringAndDoubleChoicesProvider.class)
+                @ChoicesProvider(OnlyStringAndDoubleChoicesProvider.class)
                 DataType m_limitedChoicesDataType = StringCell.TYPE;
             }
 

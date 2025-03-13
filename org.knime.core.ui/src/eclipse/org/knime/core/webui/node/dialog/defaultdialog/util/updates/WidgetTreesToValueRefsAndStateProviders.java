@@ -162,7 +162,7 @@ final class WidgetTreesToValueRefsAndStateProviders {
 
         @Override
         public Optional<Class<? extends StateProvider>> getUiStateProvider(final TreeNode<WidgetGroup> node) {
-            if (!fieldType.isAssignableFrom(node.getType())) {
+            if (!fieldType.isAssignableFrom(node.getRawClass())) {
                 return Optional.empty();
             }
             if (ignoreIfThisAnnotationIsPresent != null
@@ -251,12 +251,12 @@ final class WidgetTreesToValueRefsAndStateProviders {
                 ChoicesProvider::value, //
                 null //
             ), //
-            new UiStateProviderSpec<>(//
+            new UiStateProviderAnnotationSpec<>(//
                 ColumnFilterWidget.class, //
                 ColumnFilterWidget::choicesProvider, //
                 null//
             ), //
-            new UiStateProviderSpec<>(//
+            new UiStateProviderAnnotationSpec<>(//
                 FlowVariableFilterWidget.class, //
                 FlowVariableFilterWidget::choicesProvider, //
                 null//
