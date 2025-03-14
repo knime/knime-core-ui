@@ -1,13 +1,23 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 
-import { Checkbox, Label, ValueSwitch } from "@knime/components";
-import type { VueControlPropsForLabelContent } from "@knime/jsonforms";
+import {
+  Checkbox,
+  FunctionButton,
+  Label,
+  ValueSwitch,
+} from "@knime/components";
+import {
+  SettingsSubPanel,
+  type VueControlPropsForLabelContent,
+} from "@knime/jsonforms";
+import NextArrowIcon from "@knime/styles/img/icons/arrow-next.svg";
 
 import type { FileChooserOptions } from "@/nodeDialog/types/FileChooserUiSchema";
 import { useFlowSettings } from "../../../composables/components/useFlowVariables";
 import FileBrowserButton from "../FileBrowserButton.vue";
 import FileSelectionPreview from "../FileSelectionPreview.vue";
+import FilterSettings from "../FilterSettings.vue";
 import { useFileChooserFileSystemsOptions } from "../composables/useFileChooserBrowseOptions";
 import useFileChooserStateChange from "../composables/useFileChooserStateChange";
 import useSideDrawerContent from "../composables/useSideDrawerContent";
@@ -131,7 +141,8 @@ const dummyItems = [
 
 const includeSubfolders = ref(false);
 
-const showFilters = ref(false);
+const filterPanelRef = ref<typeof SettingsSubPanel | null>(null);
+const filterSettingsRef = ref<typeof FilterSettings | null>(null);
 </script>
 
 <template>
@@ -169,12 +180,34 @@ const showFilters = ref(false);
       </Checkbox>
       <FileSelectionPreview
         v-if="selectionMode === 'folder'"
-        v-model:show-filters="showFilters"
         :items="dummyItems"
-      />
-      <div v-if="showFilters">
-        <p>Placeholder - filters will go here</p>
-      </div>
+      >
+        <template #header-buttons-right>
+          <FunctionButton
+            class="filter-button"
+            @click="filterPanelRef?.expand()"
+          >
+            Edit filters
+            <NextArrowIcon />
+          </FunctionButton>
+        </template>
+      </FileSelectionPreview>
+      <SettingsSubPanel ref="filterPanelRef" show-back-arrow>
+        <div class="filter-settings-drawer-content">
+          <FileSelectionPreview :items="dummyItems" expand-by-default>
+            <template #header-buttons-right>
+              <FunctionButton
+                class="filter-button reset-button"
+                @click="filterSettingsRef?.resetFilters()"
+              >
+                Reset all filters
+              </FunctionButton>
+            </template>
+          </FileSelectionPreview>
+
+          <FilterSettings ref="filterSettingsRef" />
+        </div>
+      </SettingsSubPanel>
     </Label>
   </div>
 </template>
@@ -184,7 +217,7 @@ const showFilters = ref(false);
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-8);
 
   & .flex-grow {
     flex-grow: 1;
@@ -198,6 +231,33 @@ const showFilters = ref(false);
 .flex-column {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-8);
+}
+
+.filter-settings-drawer-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.filter-button {
+  display: flex;
+  text-wrap: nowrap;
+  flex-grow: 0;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: Roboto, sans-serif;
+  color: var(--color-primary);
+  cursor: pointer;
+
+  & svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &.reset-button {
+    color: var(--knime-coral-dark);
+  }
 }
 </style>
