@@ -2,14 +2,16 @@
 import { computed, ref } from "vue";
 
 import { FunctionButton } from "@knime/components";
-import NextArrowIcon from "@knime/styles/img/icons/arrow-next.svg";
 import FileIcon from "@knime/styles/img/icons/file.svg";
 
 type PropType = {
   items: string[];
+  expandByDefault?: boolean;
 };
 
-const props = defineProps<PropType>();
+const props = withDefaults(defineProps<PropType>(), {
+  expandByDefault: false,
+});
 
 const allItems = computed(() => props.items);
 
@@ -28,16 +30,7 @@ const headerText = computed(() => {
   }
 });
 
-const showAll = ref(false);
-
-const showFilters = defineModel("showFilters", {
-  default: false,
-});
-
-const showFiltersButtonClickHandler = () => {
-  // TODO this should reset filters when toggling to not show all
-  showFilters.value = !showFilters.value;
-};
+const showAll = ref(props.expandByDefault);
 
 const showAllButtonClickHandler = () => {
   showAll.value = !showAll.value;
@@ -49,17 +42,9 @@ const showAllButtonClickHandler = () => {
     <div class="visible-items-header">
       <div class="header-icon"><FileIcon /></div>
       <span class="header-text">{{ headerText }}</span>
-      <FunctionButton
-        class="filter-button"
-        :class="{ 'show-mode': showFilters }"
-        @click="showFiltersButtonClickHandler"
-      >
-        {{ showFilters ? "Remove filters" : "Set filter" }}
-        <NextArrowIcon />
-      </FunctionButton>
+      <slot name="header-buttons-right" />
     </div>
     <div v-if="showAll" class="visible-items-container">
-      <div v-if="visibleItems.length === 0">No files</div>
       <div v-for="item in visibleItems" class="visible-item">
         {{ item }}
       </div>
@@ -139,19 +124,23 @@ const showAllButtonClickHandler = () => {
 }
 
 .visible-items-container {
+  --visible-item-height: 26px;
+
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
   padding: var(--space-4) 0;
   background: white;
   overflow: hidden auto;
   width: 100%;
-  max-height: 300px;
+  max-height: calc(8 * var(--visible-item-height));
 
   & .visible-item {
-    padding: var(--space-4) var(--space-8);
-    font-size: 13px;
-    height: 22px;
+    padding: 0 var(--space-8);
+    font-size: 14px;
+    min-height: var(--visible-item-height);
+    height: var(--visible-item-height);
+    line-height: var(--visible-item-height);
+    width: 100%;
     font-weight: 300;
     text-overflow: ellipsis;
     text-wrap: nowrap;
