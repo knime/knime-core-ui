@@ -44,57 +44,36 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 31, 2023 (Paul Bärnreuther): created
+ *   Mar 21, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column;
+
+import java.util.List;
+import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnTypeToPossibleTypeValueUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableTypeToPossibleTypeValueUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 
 /**
- * This represents one of the possible values within a {@link ChoicesProvider} with a
- * {@link TypedStringChoicesProvider}.
+ * Convenience interface for providing columns from a single input table that satisfy a certain condition
  *
  * @author Paul Bärnreuther
- * @param id to be used as an identifier for the selection option
- * @param text to be displayed for the selection option
- * @param type the id and displayed text of the associated type
  */
-public record TypedStringChoice(String id, String text, PossibleTypeValue type) {
+public interface FilteredInputTableColumnsProvider extends InputTableIndexHolder, ColumnChoicesProvider {
 
-    /**
-     * Represents a type that can be associated with a value.
-     *
-     * @param id identifying a type
-     * @param text to be displayed for selecting the type
-     */
-    public static record PossibleTypeValue(String id, String text) {
+    @Override
+    default List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+        return context.getDataTableSpec(getInputTableIndex()) //
+            .map(spec -> spec.stream().filter(this::isIncluded)) //
+            .orElseGet(Stream::empty) //
+            .toList();
     }
 
     /**
-     * Construction for columns.
+     * The filter to be applied to the columns
      *
-     * @param colSpec the spec of the column to be represented
-     * @return the PossibleColumnValue associated to the given colSpec
+     * @param col the column spec to check
+     * @return whether the column should be included in the choices
      */
-    public static TypedStringChoice fromColSpec(final DataColumnSpec colSpec) {
-        final var colName = colSpec.getName();
-        final var colType = colSpec.getType();
-        return new TypedStringChoice(colName, colName, ColumnTypeToPossibleTypeValueUtil.fromVariableType(colType));
-    }
-
-    /**
-     * Construction for flow variables.
-     *
-     * @param flowVariable to be represented
-     * @return the PossibleColumnValue associated to the given flow variable
-     */
-    public static TypedStringChoice fromFlowVariable(final FlowVariable flowVariable) {
-        final var flowVarName = flowVariable.getName();
-        final var flowVarType = flowVariable.getVariableType();
-        return new TypedStringChoice(flowVarName, flowVarName,
-            FlowVariableTypeToPossibleTypeValueUtil.fromVariableType(flowVarType));
-    }
+    boolean isIncluded(DataColumnSpec col);
 }

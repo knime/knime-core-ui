@@ -85,7 +85,7 @@ public interface ColumnChoicesProvider extends TypedStringChoicesProvider {
      */
     default List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
         throw new IllegalStateException("At least one method must be implemented: "
-            + "ColumnChoicesStateProvider.columnChoices or ColumnChoicesStateProvider.computeState");
+            + "ColumnChoicesProvider.columnChoices or ColumnChoicesProvider.computeState");
     }
 
     @Override

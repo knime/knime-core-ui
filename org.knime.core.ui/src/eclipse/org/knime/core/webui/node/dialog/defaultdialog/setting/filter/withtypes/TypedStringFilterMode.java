@@ -75,6 +75,8 @@ public enum TypedStringFilterMode {
         TYPE;
 
     /**
+     * Transforms this enum to a {@link PatternMode}. Check that a pattern is used before using this method.
+     *
      * @return the corresponding {@link PatternMode}
      */
     public PatternMode toPatternMode() {
@@ -84,7 +86,7 @@ public enum TypedStringFilterMode {
     /**
      * Converts a {@link PatternMode} to a {@link TypedStringFilterMode}
      *
-     * @param mode
+     * @param mode the pattern mode
      * @return the corresponding {@link TypedStringFilterMode}
      */
     public static TypedStringFilterMode toTypedNameFilterMode(final PatternMode mode) {

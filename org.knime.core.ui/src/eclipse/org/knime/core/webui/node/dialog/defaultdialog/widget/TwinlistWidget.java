@@ -68,11 +68,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.T
 public @interface TwinlistWidget {
 
     /**
+     * Set this parameter to change the default label of the right list of a twin list.
+     *
      * @return the label of the included values
      */
     String includedLabel() default "";
 
     /**
+     * Set this parameter to change the default label of the left list of a twin list.
+     *
      * @return the label of the excluded values
      */
     String excludedLabel() default "";

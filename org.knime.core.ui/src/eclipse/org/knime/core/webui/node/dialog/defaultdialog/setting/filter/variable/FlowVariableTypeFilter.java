@@ -76,19 +76,17 @@ public final class FlowVariableTypeFilter extends TypeFilter {
     }
 
     /**
+     * Returns a predicate that checks whether a given flow variable is selected by this filter.
+     *
      * @param flowVariable a flow variable which is part of the choices of this filter.
      * @return whether the value is selected
      */
-    Predicate<FlowVariable> getIsFlowVariableSelectedPredicate() {
+    Predicate<FlowVariable> getFilterPredicate() {
         final var superPredicate = super.getIsSelectedPredicate();
         return flowVar -> superPredicate.test(flowVariableToTypeString(flowVar));
     }
 
-    /**
-     * @param flowVariable
-     * @return the string representation of the flow variables type
-     */
-    public static String flowVariableToTypeString(final FlowVariable flowVariable) {
+    private static String flowVariableToTypeString(final FlowVariable flowVariable) {
         return flowVariable.getVariableType().getIdentifier();
     }
 

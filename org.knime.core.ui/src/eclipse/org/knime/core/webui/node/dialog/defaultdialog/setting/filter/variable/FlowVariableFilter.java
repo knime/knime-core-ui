@@ -53,7 +53,6 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilterMode;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
@@ -70,13 +69,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.Fl
 public final class FlowVariableFilter extends TypedStringFilter<FlowVariableTypeFilter> {
 
     /**
-     * @param context settings creation context
-     */
-    public FlowVariableFilter(final DefaultNodeSettingsContext context) {
-        this();
-    }
-
-    /**
      * A filter with excluded unknown values and no included columns.
      */
     public FlowVariableFilter() {
@@ -86,7 +78,7 @@ public final class FlowVariableFilter extends TypedStringFilter<FlowVariableType
     /**
      * A filter with excluded unknown values and initially selected included flow variables.
      *
-     * @param selected
+     * @param selected the initially selected flow variable names
      */
     public FlowVariableFilter(final String[] selected) {
         super(selected, new FlowVariableTypeFilter());
@@ -95,7 +87,7 @@ public final class FlowVariableFilter extends TypedStringFilter<FlowVariableType
     /**
      * A filter with excluded unknown values and initially selected included flow variables.
      *
-     * @param selected
+     * @param selected the initially selected flow variable names
      */
     public FlowVariableFilter(final List<String> selected) {
         super(selected, new FlowVariableTypeFilter());
@@ -124,24 +116,38 @@ public final class FlowVariableFilter extends TypedStringFilter<FlowVariableType
     /**
      * @return a predicate on flow variables
      */
-    public Predicate<FlowVariable> getIsSelectedPredicate() {
+    public Predicate<FlowVariable> getFilterPredicate() {
         if (m_mode == TypedStringFilterMode.TYPE) {
-            return m_typeFilter.getIsFlowVariableSelectedPredicate();
+            return m_typeFilter.getFilterPredicate();
         }
-        final var namePredicate = super.getNameIsSelectedPredicate();
+        final var namePredicate = super.getStringFilterPredicate();
         return flowVar -> namePredicate.test(flowVar.getName());
     }
 
     /**
      * Get selected flow variables
      *
-     * @param flowVariables
+     * @param flowVariables the flow variables to filter
      * @return the array of currently selected flow variables with respect to the mode which are contained in the given
      *         input
      */
-    public List<FlowVariable> getSelected(final Collection<FlowVariable> flowVariables) {
-        final var predicate = getIsSelectedPredicate();
+    public List<FlowVariable> filter(final Collection<FlowVariable> flowVariables) {
+        final var predicate = getFilterPredicate();
         return flowVariables.stream().filter(predicate::test).toList();
+    }
+
+    /**
+     * Get the flow variables which are missing in the given input
+     *
+     * @param flowVariables the available flow variable choices
+     * @return the array of currently manually selected flow variables which are not contained in the given input
+     */
+    public String[] getMissingSelected(final Collection<FlowVariable> flowVariables) {
+        if (m_mode == TypedStringFilterMode.MANUAL) {
+            return getMissingSelected(flowVariables.stream().map(FlowVariable::getName).toArray(String[]::new));
+        } else {
+            return new String[0];
+        }
     }
 
 }

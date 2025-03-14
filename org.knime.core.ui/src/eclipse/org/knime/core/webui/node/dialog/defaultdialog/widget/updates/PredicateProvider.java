@@ -249,17 +249,34 @@ public interface PredicateProvider {
          * Returned by {@link PredicateInitializer#getStringOrEnum}
          *
          * @author Paul Bärnreuther
-         * @param <E>
+         * @param <E> the type of the enum
          */
         interface StringOrEnumReference<E extends Enum<E>> {
-
+            /**
+             * A {@link StringOrEnum} can be given by a string choice or an enum choice. This method does not yet return
+             * a predicate but a reference with which to create a predicate on an enum choice.
+             *
+             * @return a reference create a predicate on an enum choice.
+             */
             EnumReference<E> isEnumChoice();
 
+            /**
+             * To check whether the value is a specific enum choice.
+             *
+             * @param specialChoice the special choice to check for
+             * @return a predicate that is fulfilled if the value is the special choice
+             */
             @SuppressWarnings("unchecked")
             default Predicate isEnumChoice(final E specialChoice) {
                 return isEnumChoice().isOneOf(specialChoice);
             }
 
+            /**
+             * A {@link StringOrEnum} can be given by a string choice or an enum choice. This method does not yet return
+             * a predicate but a reference with which to create a predicate on a string choice.
+             *
+             * @return a reference create a predicate on a string choice.
+             */
             StringReference isStringChoice();
 
         }

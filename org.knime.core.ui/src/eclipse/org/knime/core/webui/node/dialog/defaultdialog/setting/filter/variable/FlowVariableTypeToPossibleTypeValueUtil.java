@@ -83,8 +83,10 @@ public final class FlowVariableTypeToPossibleTypeValueUtil {
     }
 
     /**
-     * @param <T>
-     * @param variableType
+     * Converts a {@link VariableType} to a {@link PossibleTypeValue} for use in the dialog.
+     *
+     * @param <T> the type of the variable type
+     * @param variableType the variable type to convert
      * @return the used possible type value
      */
     public static <T> PossibleTypeValue fromVariableType(final VariableType<T> variableType) {

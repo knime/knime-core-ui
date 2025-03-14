@@ -101,11 +101,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.EnumUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
@@ -470,7 +471,8 @@ final class UiSchemaOptionsGenerator {
         }
 
         final var hasChoices = annotatedWidgets.contains(ChoicesProvider.class);
-        final var isFilter = m_fieldClass.equals(ColumnFilter.class) || m_fieldClass.equals(StringFilter.class);
+        final var isFilter =
+            m_fieldClass.equals(StringFilter.class) || TypedStringFilter.class.isAssignableFrom(m_fieldClass);
         final var isSingleSelection = m_fieldClass.equals(StringOrEnum.class);
         if (hasChoices) {
             final var choicesProvider = m_node.getAnnotation(ChoicesProvider.class).orElseThrow();

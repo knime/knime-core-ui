@@ -44,57 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 31, 2023 (Paul Bärnreuther): created
+ *   Sep 18, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnTypeToPossibleTypeValueUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableTypeToPossibleTypeValueUtil;
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice.ROW_ID;
+
+import java.util.List;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 
 /**
- * This represents one of the possible values within a {@link ChoicesProvider} with a
- * {@link TypedStringChoicesProvider}.
+ * The {@link SettingsModelColumnName} is migrated to a {@link StringOrEnum} that can hold either a column name or the
+ * special choice {@link RowIDChoice#ROW_ID}.
  *
  * @author Paul Bärnreuther
- * @param id to be used as an identifier for the selection option
- * @param text to be displayed for the selection option
- * @param type the id and displayed text of the associated type
  */
-public record TypedStringChoice(String id, String text, PossibleTypeValue type) {
+public class SettingsModelColumnNameMigration implements NodeSettingsMigration<StringOrEnum<RowIDChoice>> {
+
+    private final String m_legacyConfigKey;
 
     /**
-     * Represents a type that can be associated with a value.
-     *
-     * @param id identifying a type
-     * @param text to be displayed for selecting the type
+     * @param legacyConfigKey the root config key that had been used by the settings model and is now deprecated
      */
-    public static record PossibleTypeValue(String id, String text) {
+    protected SettingsModelColumnNameMigration(final String legacyConfigKey) {
+        m_legacyConfigKey = legacyConfigKey;
     }
 
-    /**
-     * Construction for columns.
-     *
-     * @param colSpec the spec of the column to be represented
-     * @return the PossibleColumnValue associated to the given colSpec
-     */
-    public static TypedStringChoice fromColSpec(final DataColumnSpec colSpec) {
-        final var colName = colSpec.getName();
-        final var colType = colSpec.getType();
-        return new TypedStringChoice(colName, colName, ColumnTypeToPossibleTypeValueUtil.fromVariableType(colType));
+    private StringOrEnum<RowIDChoice> loadLegacy(final NodeSettingsRO settings) throws InvalidSettingsException {
+        final var model = new SettingsModelColumnName(m_legacyConfigKey, "");
+        model.loadSettingsFrom(settings);
+        return model.useRowID() ? new StringOrEnum<>(ROW_ID) : new StringOrEnum<>(model.getColumnName());
     }
 
-    /**
-     * Construction for flow variables.
-     *
-     * @param flowVariable to be represented
-     * @return the PossibleColumnValue associated to the given flow variable
-     */
-    public static TypedStringChoice fromFlowVariable(final FlowVariable flowVariable) {
-        final var flowVarName = flowVariable.getName();
-        final var flowVarType = flowVariable.getVariableType();
-        return new TypedStringChoice(flowVarName, flowVarName,
-            FlowVariableTypeToPossibleTypeValueUtil.fromVariableType(flowVarType));
+    @Override
+    public List<ConfigMigration<StringOrEnum<RowIDChoice>>> getConfigMigrations() {
+        return List.of(ConfigMigration.builder(this::loadLegacy).withDeprecatedConfigPath(m_legacyConfigKey).build());
     }
+
 }

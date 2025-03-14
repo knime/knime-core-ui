@@ -59,7 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.WithNoneChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -768,19 +768,19 @@ class JsonFormsUiSchemaUtilRuleTest {
     void testSingleSelectionConditions() {
         final class SingleSelectionConditionSettings implements DefaultNodeSettings {
 
-            static final class SingleSelectionReference implements Reference<StringOrEnum<WithNoneChoice>> {
+            static final class SingleSelectionReference implements Reference<StringOrEnum<NoneChoice>> {
             }
 
             @Widget(title = "Foo", description = "")
             @ChoicesProvider(TestChoicesProvider.class)
             @ValueReference(SingleSelectionReference.class)
-            StringOrEnum<WithNoneChoice> singleSelection;
+            StringOrEnum<NoneChoice> singleSelection;
 
             static final class MySpecialChoiceCondition implements PredicateProvider {
 
                 @Override
                 public Predicate init(final PredicateInitializer i) {
-                    return i.getStringOrEnum(SingleSelectionReference.class).isEnumChoice(WithNoneChoice.NONE);
+                    return i.getStringOrEnum(SingleSelectionReference.class).isEnumChoice(NoneChoice.NONE);
                 }
             }
 

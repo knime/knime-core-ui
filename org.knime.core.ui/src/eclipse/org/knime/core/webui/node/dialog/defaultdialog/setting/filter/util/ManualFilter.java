@@ -48,12 +48,11 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util;
 
+import static java.util.function.Predicate.not;
+
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
@@ -92,6 +91,8 @@ public class ManualFilter implements PersistableSettings {
     public boolean m_includeUnknownColumns; //NOSONAR
 
     /**
+     * Creates a new manual filter with the given initial values.
+     *
      * @param initialSelected the initially manually selected values
      */
     public ManualFilter(final String[] initialSelected) {
@@ -105,7 +106,7 @@ public class ManualFilter implements PersistableSettings {
     /**
      * @return a predicate which tests for a value being manually selected of not manually deselected
      */
-    public Predicate<String> getIsSelectedPredicate() {
+    public Predicate<String> getFilterPredicate() {
         if (m_includeUnknownColumns) {
             final var manuallyDeselectedSet = Set.of(m_manuallyDeselected);
             return ((Predicate<String>)manuallyDeselectedSet::contains).negate();
@@ -123,14 +124,12 @@ public class ManualFilter implements PersistableSettings {
      * @param choices for selected values from which previously unknown ones are either selected or deselected.
      * @return the manually selected columns plus the new previously unknown ones if these are included.
      */
-    public String[] getUpdatedManuallySelectedIncludingMissing(final String[] choices) {
-        final List<String> validSelectedValues =
-            Arrays.asList(choices).stream().filter(getIsSelectedPredicate()::test).toList();
-        final var missingManuallySelected = getMissingManuallySelected(new HashSet<>(validSelectedValues));
-        return Stream.concat(missingManuallySelected, validSelectedValues.stream()).toArray(String[]::new);
+    public String[] getUpdatedMissingValues(final String[] choices) {
+        if (m_includeUnknownColumns) {
+            return new String[0];
+        }
+        return Arrays.asList(m_manuallySelected).stream().filter(not(Set.of(choices)::contains)).toArray(String[]::new);
+
     }
 
-    private Stream<String> getMissingManuallySelected(final Set<String> validSelectedValues) {
-        return Arrays.asList(m_manuallySelected).stream().filter(item -> !validSelectedValues.contains(item));
-    }
 }

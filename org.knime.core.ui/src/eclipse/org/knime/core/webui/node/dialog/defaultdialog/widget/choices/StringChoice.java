@@ -58,7 +58,9 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
  */
 public record StringChoice(String id, String text) {
     /**
-     * @param id
+     * Creates a new choice with the given id as text.
+     *
+     * @param id to offer as choice.
      * @return a choice whose text matches the given id.
      */
     public static StringChoice fromId(final String id) {

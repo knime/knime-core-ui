@@ -49,9 +49,9 @@
 package org.knime.core.webui.node.dialog.defaultdialog.setting.filter;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
@@ -101,6 +101,15 @@ public class StringFilter implements PersistableSettings {
     }
 
     /**
+     * Use this to construct a string array filter with an initial array of columns which are manually selected
+     *
+     * @param initialSelected the initial manually selected non-null columns
+     */
+    public StringFilter(final List<String> initialSelected) {
+        this(initialSelected.toArray(String[]::new));
+    }
+
+    /**
      * Exclude the unknown columns while in manual mode
      */
     public void excludeUnknownColumn() {
@@ -115,36 +124,32 @@ public class StringFilter implements PersistableSettings {
     }
 
     /**
-     * Initializes the column selection with no initially selected columns.
+     * This method returns a non-empty array if manual selection is active, unknown values are excluded and there exist
+     * manually selected values that no longer exist in the choices.
      *
-     * @param context settings creation context
-     */
-    public StringFilter(final DefaultNodeSettingsContext context) {
-        this();
-    }
-
-    /**
-     * @param allCurrentChoices the non-null list of all possible names
+     * @param choices the non-null list of all possible names
      * @return the array of currently selected names with respect to the mode
      */
-    public String[] getSelectedIncludingMissing(final String[] allCurrentChoices) {
+    public String[] getMissingSelected(final String[] choices) {
         if (m_mode == StringFilterMode.MANUAL) {
-            return m_manualFilter.getUpdatedManuallySelectedIncludingMissing(Objects.requireNonNull(allCurrentChoices));
+            return m_manualFilter.getUpdatedMissingValues(Objects.requireNonNull(choices));
         }
-        return getNonMissingSelected(allCurrentChoices);
+        return filter(choices);
     }
 
     /**
-     * @param allCurrentChoices the non-null list of all possible names
+     * Filters the choices based on the current selection mode.
+     *
+     * @param choices the non-null list of all possible names
      * @return the array of currently selected names with respect to the mode which are contained in the given array of
      *         choices
      */
-    public String[] getNonMissingSelected(final String[] allCurrentChoices) {
+    public String[] filter(final String[] choices) {
         if (m_mode == StringFilterMode.MANUAL) {
-            final var predicate = m_manualFilter.getIsSelectedPredicate();
-            return Arrays.stream(allCurrentChoices).filter(predicate::test).toArray(String[]::new);
+            final var predicate = m_manualFilter.getFilterPredicate();
+            return Arrays.stream(choices).filter(predicate::test).toArray(String[]::new);
         } else {
-            return m_patternFilter.getSelected(m_mode.toPatternMode(), allCurrentChoices);
+            return m_patternFilter.getSelected(m_mode.toPatternMode(), choices);
         }
     }
 }

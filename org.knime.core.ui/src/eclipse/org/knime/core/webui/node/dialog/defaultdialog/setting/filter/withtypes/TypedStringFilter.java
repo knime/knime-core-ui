@@ -76,12 +76,12 @@ public abstract class TypedStringFilter<T extends TypeFilter> implements Persist
      * The setting representing the selected columns. This field is usually null and only needs to be set when
      * serializing the default node settings to be used within a view which expects the same json object as initial data
      * as it gets from the default node dialog. There, a field with key "selected" is added depending on the given
-     * possible values whenever the configuration changes in the dialog. So setting this field has to be repeated (using
-     * {@link #getSelected}) when creating these initial view data.
+     * possible values whenever the configuration changes in the dialog. So setting this field has to be repeated when
+     * creating these initial view data.
      */
     @Persist(hidden = true)
     @Migrate(loadDefaultIfAbsent = true)
-    public String[] m_selected;
+    String[] m_selected;
 
     /**
      * The way the selection is determined by
@@ -138,27 +138,19 @@ public abstract class TypedStringFilter<T extends TypeFilter> implements Persist
     }
 
     /**
-     * @param typeFilter the current type filter value
-     * @param choices the non-null list of all possible values
-     * @return the subset of the choices that are selected by the type filter
-     */
-
-    /**
-     * Get selected columns, including columns that were selected but are not in the provided column list. You likely
-     * want to use {@link #getSelected} instead.
+     * In case of manual selection, the selected values can become missing by the choices dynamically changing. This
+     * method returns the manually selected values that are missing in the list of choices.
      *
      * @see #getSelected
      * @param choices the non-null list of all possible names
-     * @param getSelectedFromTypeFilter the function to get the selected values when using the type filter
-     * @return the subset of the choices that are selected by the filter plus the ones that are selected but missing in
-     *         the list of choices in case manual selection is chosen.
+     * @return the manually selected values that are selected but missing in the list of choices in case manual
+     *         selection is chosen.
      */
-    protected String[] getSelectedIncludingMissing(final String[] choices,
-        final Function<T, String[]> getSelectedFromTypeFilter) {
+    protected String[] getMissingSelected(final String[] choices) {
         Objects.requireNonNull(choices);
         return switch (m_mode) {
-            case MANUAL -> m_manualFilter.getUpdatedManuallySelectedIncludingMissing(choices);
-            default -> getSelected(choices, getSelectedFromTypeFilter);
+            case MANUAL -> m_manualFilter.getUpdatedMissingValues(choices);
+            default -> new String[0];
 
         };
     }
@@ -167,7 +159,7 @@ public abstract class TypedStringFilter<T extends TypeFilter> implements Persist
      * Get selected columns, but only those that are available in the provided column list. This is likely the method
      * you want to use.
      *
-     * @see #getSelectedIncludingMissing
+     * @see #getMissingSelected
      * @param choices the non-null list of all possible column names
      * @param getSelectedFromTypeFilter the function to get the selected values when using the type filter
      * @return the subset of the choices that are selected by the filter.
@@ -177,27 +169,39 @@ public abstract class TypedStringFilter<T extends TypeFilter> implements Persist
         if (m_mode == TypedStringFilterMode.TYPE) {
             return getSelectedFromTypeFilter.apply(m_typeFilter);
         }
-        final var predicate = getNameIsSelectedPredicate();
+        final var predicate = getStringFilterPredicate();
         return Arrays.asList(choices).stream().filter(predicate::test).toArray(String[]::new);
     }
 
     /**
      * If the order of manually selected values or missing manually selected values matter, use {@link #getSelected} or
-     * {@link #getSelectedIncludingMissing} instead.
+     * {@link #getMissingSelected} instead.
      *
      * @throws IllegalStateException in case the mode is TYPE
      * @return a predicate on names
      */
-    protected Predicate<String> getNameIsSelectedPredicate() {
+    protected Predicate<String> getStringFilterPredicate() {
         CheckUtils.checkState(m_mode != TypedStringFilterMode.TYPE,
             "isSelected predicate on string is not possible for filtering by type.");
         return switch (m_mode) {
-            case MANUAL -> m_manualFilter.getIsSelectedPredicate();
+            case MANUAL -> m_manualFilter.getFilterPredicate();
             case REGEX -> m_patternFilter.getIsSelectedPredicate(PatternMode.REGEX);
             case WILDCARD -> m_patternFilter.getIsSelectedPredicate(PatternMode.WILDCARD);
             default -> throw new IllegalArgumentException("Unexpected value: " + m_mode);
         };
 
+    }
+
+    /**
+     * Only to be called right before serialization to enable using this setting in UI Extensions that don't have access
+     * to the choices nor the type information.
+     *
+     * @noreference
+     *
+     * @param selected
+     */
+    protected void setSelected(final String[] selected) {
+        m_selected = selected;
     }
 
 }

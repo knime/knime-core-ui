@@ -44,57 +44,26 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 31, 2023 (Paul Bärnreuther): created
+ *   Mar 21, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnTypeToPossibleTypeValueUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableTypeToPossibleTypeValueUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ToStringOrEnumMigration.ToStringWithNoneChoiceMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice;
 
 /**
- * This represents one of the possible values within a {@link ChoicesProvider} with a
- * {@link TypedStringChoicesProvider}.
+ * Migration from String to StringOrEnum with NoneChoice.
  *
  * @author Paul Bärnreuther
- * @param id to be used as an identifier for the selection option
- * @param text to be displayed for the selection option
- * @param type the id and displayed text of the associated type
  */
-public record TypedStringChoice(String id, String text, PossibleTypeValue type) {
+public class StringToStringWithNoneChoiceMigration extends StringToStringOrEnumMigration<NoneChoice>
+    implements ToStringWithNoneChoiceMigration {
 
     /**
-     * Represents a type that can be associated with a value.
-     *
-     * @param id identifying a type
-     * @param text to be displayed for selecting the type
+     * @param legacyStringKey the key that was previously used to persist the String
      */
-    public static record PossibleTypeValue(String id, String text) {
+    protected StringToStringWithNoneChoiceMigration(final String legacyStringKey) {
+        super(legacyStringKey);
     }
 
-    /**
-     * Construction for columns.
-     *
-     * @param colSpec the spec of the column to be represented
-     * @return the PossibleColumnValue associated to the given colSpec
-     */
-    public static TypedStringChoice fromColSpec(final DataColumnSpec colSpec) {
-        final var colName = colSpec.getName();
-        final var colType = colSpec.getType();
-        return new TypedStringChoice(colName, colName, ColumnTypeToPossibleTypeValueUtil.fromVariableType(colType));
-    }
-
-    /**
-     * Construction for flow variables.
-     *
-     * @param flowVariable to be represented
-     * @return the PossibleColumnValue associated to the given flow variable
-     */
-    public static TypedStringChoice fromFlowVariable(final FlowVariable flowVariable) {
-        final var flowVarName = flowVariable.getName();
-        final var flowVarType = flowVariable.getVariableType();
-        return new TypedStringChoice(flowVarName, flowVarName,
-            FlowVariableTypeToPossibleTypeValueUtil.fromVariableType(flowVarType));
-    }
 }

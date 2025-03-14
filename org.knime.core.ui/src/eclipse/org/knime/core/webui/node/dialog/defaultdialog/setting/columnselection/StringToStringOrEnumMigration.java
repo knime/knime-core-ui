@@ -44,57 +44,46 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 31, 2023 (Paul Bärnreuther): created
+ *   Mar 13, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnTypeToPossibleTypeValueUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableTypeToPossibleTypeValueUtil;
+import java.util.List;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 
 /**
- * This represents one of the possible values within a {@link ChoicesProvider} with a
- * {@link TypedStringChoicesProvider}.
+ * With 5.5. we introduced {@link StringOrEnum} to enable special choices in a dropdown. In case a string node setting
+ * needs to be migrated to this, since the encoding of special choices (e.g. row ids) as a string (e.g. "<row-keys>")
+ * has been removed with that change, use one an implementation of this class.
  *
+ * @param <E> the enum of the special choices
  * @author Paul Bärnreuther
- * @param id to be used as an identifier for the selection option
- * @param text to be displayed for the selection option
- * @param type the id and displayed text of the associated type
  */
-public record TypedStringChoice(String id, String text, PossibleTypeValue type) {
+public abstract class StringToStringOrEnumMigration<E extends Enum<E>>
+    implements NodeSettingsMigration<StringOrEnum<E>>, ToStringOrEnumMigration<E> {
+
+    private final String m_legacyStringKey;
 
     /**
-     * Represents a type that can be associated with a value.
-     *
-     * @param id identifying a type
-     * @param text to be displayed for selecting the type
+     * @param legacyStringKey the key that was previously used to persist the String
      */
-    public static record PossibleTypeValue(String id, String text) {
+    protected StringToStringOrEnumMigration(final String legacyStringKey) {
+        m_legacyStringKey = legacyStringKey;
     }
 
-    /**
-     * Construction for columns.
-     *
-     * @param colSpec the spec of the column to be represented
-     * @return the PossibleColumnValue associated to the given colSpec
-     */
-    public static TypedStringChoice fromColSpec(final DataColumnSpec colSpec) {
-        final var colName = colSpec.getName();
-        final var colType = colSpec.getType();
-        return new TypedStringChoice(colName, colName, ColumnTypeToPossibleTypeValueUtil.fromVariableType(colType));
+    @Override
+    public List<ConfigMigration<StringOrEnum<E>>> getConfigMigrations() {
+        return List.of(
+            ConfigMigration.builder(this::loadLegacyFromString).withDeprecatedConfigPath(m_legacyStringKey).build());
     }
 
-    /**
-     * Construction for flow variables.
-     *
-     * @param flowVariable to be represented
-     * @return the PossibleColumnValue associated to the given flow variable
-     */
-    public static TypedStringChoice fromFlowVariable(final FlowVariable flowVariable) {
-        final var flowVarName = flowVariable.getName();
-        final var flowVarType = flowVariable.getVariableType();
-        return new TypedStringChoice(flowVarName, flowVarName,
-            FlowVariableTypeToPossibleTypeValueUtil.fromVariableType(flowVarType));
+    private StringOrEnum<E> loadLegacyFromString(final NodeSettingsRO settings) throws InvalidSettingsException {
+        return loadFromLegacyString(settings.getString(m_legacyStringKey));
     }
+
 }

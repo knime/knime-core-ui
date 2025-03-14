@@ -77,7 +77,9 @@ public final class ColumnTypeToPossibleTypeValueUtil {
                 (l, r) -> l));
 
     /**
-     * @param dataType
+     * Converts the data type of a flow variable to representation fit to be serialized to the frontend.
+     *
+     * @param dataType of a flow variable
      * @return the corresponding used possible type value
      */
     public static PossibleTypeValue fromVariableType(final DataType dataType) {

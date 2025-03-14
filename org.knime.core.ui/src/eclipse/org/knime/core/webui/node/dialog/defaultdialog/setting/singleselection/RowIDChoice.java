@@ -44,57 +44,31 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 31, 2023 (Paul Bärnreuther): created
+ *   Mar 13, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnTypeToPossibleTypeValueUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableTypeToPossibleTypeValueUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 
 /**
- * This represents one of the possible values within a {@link ChoicesProvider} with a
- * {@link TypedStringChoicesProvider}.
  *
- * @author Paul Bärnreuther
- * @param id to be used as an identifier for the selection option
- * @param text to be displayed for the selection option
- * @param type the id and displayed text of the associated type
+ * Use this as static choices in a {@link StringOrEnum} field to allow selecting row keys. Usually the other options are
+ * defined by a {@link ColumnChoicesProvider} in this case.
+ *
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public record TypedStringChoice(String id, String text, PossibleTypeValue type) {
+public enum RowIDChoice {
+
+        /**
+         * Row ID selection
+         */
+        @Label(RowIDChoice.ROW_ID_LABEL)
+        ROW_ID;
 
     /**
-     * Represents a type that can be associated with a value.
-     *
-     * @param id identifying a type
-     * @param text to be displayed for selecting the type
+     * The user-visible label for the row id.
      */
-    public static record PossibleTypeValue(String id, String text) {
-    }
+    public static final String ROW_ID_LABEL = "RowID";
 
-    /**
-     * Construction for columns.
-     *
-     * @param colSpec the spec of the column to be represented
-     * @return the PossibleColumnValue associated to the given colSpec
-     */
-    public static TypedStringChoice fromColSpec(final DataColumnSpec colSpec) {
-        final var colName = colSpec.getName();
-        final var colType = colSpec.getType();
-        return new TypedStringChoice(colName, colName, ColumnTypeToPossibleTypeValueUtil.fromVariableType(colType));
-    }
-
-    /**
-     * Construction for flow variables.
-     *
-     * @param flowVariable to be represented
-     * @return the PossibleColumnValue associated to the given flow variable
-     */
-    public static TypedStringChoice fromFlowVariable(final FlowVariable flowVariable) {
-        final var flowVarName = flowVariable.getName();
-        final var flowVarType = flowVariable.getVariableType();
-        return new TypedStringChoice(flowVarName, flowVarName,
-            FlowVariableTypeToPossibleTypeValueUtil.fromVariableType(flowVarType));
-    }
 }

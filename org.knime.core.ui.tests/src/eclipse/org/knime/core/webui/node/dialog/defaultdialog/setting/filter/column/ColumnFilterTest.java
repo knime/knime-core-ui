@@ -51,6 +51,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -80,19 +82,19 @@ class ColumnFilterTest {
         final var selection = new ColumnFilter(new String[]{"Old selected"});
         selection.m_manualFilter.m_manuallyDeselected = new String[]{"Old deselected"};
         selection.m_manualFilter.m_includeUnknownColumns = true;
-        final var choices = new String[]{COL_SPEC.getName()};
-        assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC))
-            .isEqualTo(new String[]{"Old selected", choices[0]});
+        final var choices = List.of(COL_SPEC);
+        assertThat(selection.filter(choices)).isEqualTo(new String[]{COL_SPEC.getName()});
+        assertThat(selection.getMissingSelected(choices)).isEqualTo(new String[0]);
     }
 
     @Test
     void testGetSelectedByManualOnlyIncludeNewColumnsIfUnknown() {
         final var selection = new ColumnFilter(new String[]{"Old selected"});
-        final var choices = new String[]{COL_SPEC.getName()};
-        selection.m_manualFilter.m_manuallyDeselected = new String[]{choices[0]};
+        final var choices = List.of(COL_SPEC);
+        selection.m_manualFilter.m_manuallyDeselected = new String[]{COL_SPEC.getName()};
         selection.m_manualFilter.m_includeUnknownColumns = true;
-        assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(new String[]{"Old selected"});
-        assertThat(selection.getNonMissingSelected(choices, TABLE_SPEC)).isEqualTo(new String[0]);
+        assertThat(selection.getMissingSelected(choices)).isEqualTo(new String[0]);
+        assertThat(selection.filter(choices)).isEqualTo(new String[0]);
     }
 
     @Test
@@ -100,79 +102,78 @@ class ColumnFilterTest {
         final var selection = new ColumnFilter(new String[]{"Old selected"});
         selection.m_manualFilter.m_manuallyDeselected = new String[]{"Old deselected"};
         selection.m_manualFilter.m_includeUnknownColumns = false;
-        final var choices = new String[]{COL_SPEC.getName()};
-        assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(new String[]{"Old selected"});
+        final var choices = List.of(COL_SPEC);
+        assertThat(selection.getMissingSelected(choices)).isEqualTo(new String[]{"Old selected"});
+        assertThat(selection.filter(choices)).isEqualTo(new String[0]);
     }
 
     @Test
     void testGetSelectedByType() {
-        final var selection = new ColumnFilter(CONTEXT);
+        final var selection = new ColumnFilter();
         selection.m_mode = TypedStringFilterMode.TYPE;
-        final var choices = new String[]{COL_SPEC.getName()};
-        assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(new String[]{});
+        final var choices = List.of(COL_SPEC);
+        assertThat(selection.filter(choices)).isEqualTo(new String[]{});
 
         selection.m_typeFilter = new ColumnTypeFilter(new String[]{ColumnTypeFilter.columnToTypeString(COL_SPEC)});
-        assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(choices);
-        assertThat(selection.getNonMissingSelected(choices, TABLE_SPEC)).isEqualTo(choices);
+        assertThat(selection.filter(choices)).isEqualTo(getColumnNames(choices));
     }
 
     @Test
     void testGetSelectedByRegex() {
-        final var selection = new ColumnFilter(CONTEXT);
+        final var selection = new ColumnFilter();
         selection.m_mode = TypedStringFilterMode.REGEX;
-        final var choices = new String[]{COL_SPEC.getName()};
-        assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(new String[]{});
+        final var choices = List.of(COL_SPEC);
+        assertThat(selection.filter(choices)).isEqualTo(new String[]{});
 
         selection.m_patternFilter.m_pattern = ".*";
-        assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(choices);
-        assertThat(selection.getNonMissingSelected(choices, TABLE_SPEC)).isEqualTo(choices);
+        assertThat(selection.filter(choices)).isEqualTo(getColumnNames(choices));
     }
 
     @Test
     void testGetSelectedByInvertedRegex() {
-        final var selection = new ColumnFilter(CONTEXT);
+        final var selection = new ColumnFilter();
         selection.m_mode = TypedStringFilterMode.REGEX;
         selection.m_patternFilter.m_isInverted = true;
-        final var choices = new String[]{COL_SPEC.getName()};
-        assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(choices);
+        final var choices = List.of(COL_SPEC);
+        assertThat(selection.filter(choices)).isEqualTo(getColumnNames(choices));
 
         selection.m_patternFilter.m_pattern = ".*";
-        assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(new String[]{});
+        assertThat(selection.filter(choices)).isEqualTo(new String[]{});
     }
 
     @Test
     void testGetSelectedByWildcard() {
-        final var selection = new ColumnFilter(CONTEXT);
+        final var selection = new ColumnFilter();
         selection.m_mode = TypedStringFilterMode.WILDCARD;
-        final var choices = new String[]{COL_SPEC.getName()};
-        assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(new String[]{});
+        final var choices = List.of(COL_SPEC);
+        assertThat(selection.filter(choices)).isEqualTo(new String[]{});
 
         selection.m_patternFilter.m_pattern = "*";
-        assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(choices);
+        assertThat(selection.filter(choices)).isEqualTo(getColumnNames(choices));
     }
 
     @Test
     void testGetSelectedByInvertedWildcard() {
-        final var selection = new ColumnFilter(CONTEXT);
+        final var selection = new ColumnFilter();
         selection.m_mode = TypedStringFilterMode.WILDCARD;
         selection.m_patternFilter.m_isInverted = true;
-        final var choices = new String[]{COL_SPEC.getName()};
-        assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(choices);
+        final var choices = List.of(COL_SPEC);
+        assertThat(selection.filter(choices)).isEqualTo(getColumnNames(choices));
 
         selection.m_patternFilter.m_pattern = "*";
-        assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(new String[]{});
+        assertThat(selection.filter(choices)).isEqualTo(new String[]{});
     }
 
     @Test
     void testGetSelectedByCaseSensitiveWildcard() {
-        final var selection = new ColumnFilter(CONTEXT);
+        final var selection = new ColumnFilter();
         selection.m_mode = TypedStringFilterMode.WILDCARD;
         selection.m_patternFilter.m_pattern = COL_SPEC.getName().toUpperCase();
-        final var choices = new String[]{COL_SPEC.getName()};
-        assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(choices);
+        final var choices = List.of(COL_SPEC);
+        assertThat(selection.filter(choices)).isEqualTo(getColumnNames(choices));
 
         selection.m_patternFilter.m_isCaseSensitive = true;
-        assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(new String[]{});
+        assertThat(selection.filter(choices)).isEqualTo(new String[]{});
     }
 
     /**
@@ -182,8 +183,8 @@ class ColumnFilterTest {
     void testInitialSelectedEmpty() {
         final var empty = new String[0];
         final var selection = new ColumnFilter(empty);
-        final String[] choices = {COL_SPEC.getName()};
-        assertThat(selection.getSelectedIncludingMissing(choices, TABLE_SPEC)).isEqualTo(empty);
+        final var choices = List.of(COL_SPEC);
+        assertThat(selection.filter(choices)).isEqualTo(empty);
     }
 
     /**
@@ -193,6 +194,10 @@ class ColumnFilterTest {
     void testInitialSelectedNullThrows() {
         final String[] manuallySelected = null; // avoid ambiguous constructor call
         assertThrows(NullPointerException.class, () -> new ColumnFilter(manuallySelected));
+    }
+
+    static String[] getColumnNames(final List<DataColumnSpec> cols) {
+        return cols.stream().map(DataColumnSpec::getName).toArray(String[]::new);
     }
 
 }

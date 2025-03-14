@@ -50,9 +50,11 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilterMode;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
@@ -68,15 +70,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.Colu
 public final class ColumnFilter extends TypedStringFilter<ColumnTypeFilter> {
 
     /**
-     * Initializes the column selection based on the given context.
-     *
-     * @param context settings creation context
-     */
-    public ColumnFilter(final DefaultNodeSettingsContext context) {
-        this();
-    }
-
-    /**
      * A column filter with excluded unknown values and no included columns.
      */
     public ColumnFilter() {
@@ -86,7 +79,7 @@ public final class ColumnFilter extends TypedStringFilter<ColumnTypeFilter> {
     /**
      * A column filter with excluded unknown values and initially selected included columns.
      *
-     * @param selected
+     * @param selected the initially selected columns
      */
     public ColumnFilter(final String[] selected) {
         super(selected, new ColumnTypeFilter());
@@ -95,10 +88,10 @@ public final class ColumnFilter extends TypedStringFilter<ColumnTypeFilter> {
     /**
      * A column filter with excluded unknown values and initially selected included columns.
      *
-     * @param selected
+     * @param selectedColumns the initially selected columns
      */
-    public ColumnFilter(final List<String> selected) {
-        super(selected, new ColumnTypeFilter());
+    public ColumnFilter(final List<DataColumnSpec> selectedColumns) {
+        super(selectedColumns.stream().map(DataColumnSpec::getName).toList(), new ColumnTypeFilter());
     }
 
     /**
@@ -123,45 +116,104 @@ public final class ColumnFilter extends TypedStringFilter<ColumnTypeFilter> {
 
     /**
      * Get selected columns, including columns that were selected but are not in the provided column list. You likely
-     * want to use {@link #getNonMissingSelected(String[], DataTableSpec)} instead.
+     * want to use {@link #filter} instead.
      *
-     * @see #getNonMissingSelected(String[], DataTableSpec)
+     * @see #filter
      * @param choices the non-null list of all possible column names
-     * @param spec the spec of the input data table
      * @return the subset of the choices that are selected by the filter plus the ones that are selected but missing in
      *         the list of choices in case manual selection is chosen.
      */
-    public String[] getSelectedIncludingMissing(final String[] choices, final DataTableSpec spec) {
+    public String[] getMissingSelected(final List<DataColumnSpec> choices) {
         Objects.requireNonNull(choices);
-        return super.getSelectedIncludingMissing(choices, t -> t.getSelected(choices, spec));
+        return super.getMissingSelected(extractColumnNames(choices));
     }
 
     /**
      * Get selected columns, but only those that are available in the provided column list. This is likely the method
      * you want to use.
      *
-     * @see #getSelectedIncludingMissing(String[], DataTableSpec)
+     * @see #getMissingSelected
      * @param choices the non-null list of all possible column names
-     * @param spec the spec of the input data table
      * @return the subset of the choices that are selected by the filter.
      */
-    public String[] getNonMissingSelected(final String[] choices, final DataTableSpec spec) {
+    public String[] filter(final List<DataColumnSpec> choices) {
         Objects.requireNonNull(choices);
-        return super.getSelected(choices, t -> t.getSelected(choices, spec));
+        final var choicesColumnNames = extractColumnNames(choices);
+        return super.getSelected(choicesColumnNames, t -> t.filter(choices));
     }
 
     /**
-     * Get selected columns that appears in the given full spec.
+     * Get the filter predicate for the column filter. The predicate will return true for all columns that are selected
+     * by the current configuration.
      *
-     * @param spec
+     * @return the filter predicate
+     */
+    public Predicate<DataColumnSpec> getFilterPredicate() {
+        if (m_mode == TypedStringFilterMode.TYPE) {
+            return m_typeFilter.getFilterPredicate();
+        }
+        final var namePredicate = super.getStringFilterPredicate();
+        return col -> namePredicate.test(col.getName());
+    }
+
+    /**
+     * Use this method if every column in an input spec is possible
+     *
+     * @param spec to take all columns from
      * @return the array of currently selected columns with respect to the mode which are contained in the given array
      */
-    public String[] getSelectedFromFullSpec(final DataTableSpec spec) {
-        var choices = spec.getColumnNames();
-        if (choices == null) {
-            return new String[0];
-        }
-        return getNonMissingSelected(spec.getColumnNames(), spec);
+    public String[] filterFromFullSpec(final DataTableSpec spec) {
+        return filter(spec.stream().toList());
+    }
+
+    /**
+     * Use this method if every column in an input spec is possible
+     *
+     * @param spec to take all columns from
+     * @return the array of currently selected columns with respect to the mode which are contained in the given array
+     */
+    public String[] getMissingSelectedFromFullSpec(final DataTableSpec spec) {
+        return getMissingSelected(spec.stream().toList());
+    }
+
+    private static String[] extractColumnNames(final List<DataColumnSpec> choices) {
+        return choices.stream().map(DataColumnSpec::getName).toArray(String[]::new);
+    }
+
+    /**
+     * If this filter is used to convey a column selection in its serialized form (i.e. an object containing a parameter
+     * which is a string array; without access to the above methods), use this method to first set the selected values.
+     *
+     * Setting the selected values this way will not change the state of the filter itself, i.e. it will not have an
+     * impact on the returned values of the above methods.
+     *
+     * @param choices from which the selected columns are taken
+     * @return the selected choices as they will be serialized
+     *
+     * @noreference
+     */
+    public String[] updateSelectedColumnsBeforeSerialization(final List<DataColumnSpec> choices) {
+        final var missingSelected = getMissingSelected(choices);
+        final var nonMissingSelected = filter(choices);
+        final var newSelected = Stream.concat(//
+            Stream.of(nonMissingSelected), //
+            Stream.of(missingSelected)//
+        ).toArray(String[]::new);
+        setSelectedBeforeSerialization(newSelected);
+        return newSelected;
+    }
+
+    /**
+     * Only for serialization purposes. Do not use this method. Use
+     * {@link #updateSelectedColumnsBeforeSerialization(List)} if possible instead. This method is only added for the
+     * TableView whose displayed columns is controlled by non-ColumnFilter settings in the extending statistics view.
+     *
+     * @param selected the selected columns
+     *
+     * @noreference
+     */
+    public void setSelectedBeforeSerialization(final String[] selected) {
+        super.setSelected(selected);
     }
 
 }

@@ -69,11 +69,11 @@ enum StringFilterMode {
          */
         WILDCARD;
 
-    public PatternMode toPatternMode() {
+    PatternMode toPatternMode() {
         return this == REGEX ? PatternMode.REGEX : PatternMode.WILDCARD;
     }
 
-    public static StringFilterMode toNameFilterMode(final PatternMode mode) {
+    static StringFilterMode toNameFilterMode(final PatternMode mode) {
         return mode == PatternMode.REGEX ? REGEX : WILDCARD;
     }
 

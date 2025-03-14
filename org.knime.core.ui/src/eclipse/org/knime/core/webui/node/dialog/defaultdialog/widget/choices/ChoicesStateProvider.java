@@ -64,7 +64,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
  *
  * See {@link DefaultNodeSettings} for further information which state provider is to be used for which setting.
  *
- * @author paulbaernreuther
+ * @param <S> the type of the choices
+ *
+ * @author Paul Bärnreuther
  */
 public sealed interface ChoicesStateProvider<S> extends StateProvider<List<S>>
     permits StringChoicesProvider, TypedStringChoicesProvider, EnumChoicesProvider, DataTypeChoicesStateProvider {

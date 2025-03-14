@@ -51,6 +51,7 @@ package org.knime.core.webui.node.view.table;
 import static org.knime.core.webui.node.view.table.RowHeightPersistorUtil.createDefaultConfigsDeprecations;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
@@ -492,7 +493,9 @@ public class TableViewViewSettings implements DefaultNodeSettings {
 
     @SuppressWarnings("javadoc")
     public String[] getDisplayedColumns(final DataTableSpec spec) {
-        final var choices = spec.getColumnNames();
-        return m_displayedColumns.getSelectedIncludingMissing(choices, spec);
+        return Stream.concat(//
+            Stream.of(m_displayedColumns.getMissingSelectedFromFullSpec(spec)), //
+            Stream.of(m_displayedColumns.filterFromFullSpec(spec))//
+        ).toArray(String[]::new);
     }
 }

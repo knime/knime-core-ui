@@ -103,6 +103,8 @@ public class PatternFilter implements PersistableSettings {
     }
 
     /**
+     * Filter the given choices by the current pattern and mode.
+     *
      * @param mode of the filter (either REGEX or WILDCARD)
      * @param choices the list of all possible strings
      * @return the array of currently selected strings with respect to the mode
@@ -114,7 +116,9 @@ public class PatternFilter implements PersistableSettings {
     }
 
     /**
-     * @param mode
+     * Construct a predicate which tests whether a given string is selected by the current pattern and mode.
+     *
+     * @param mode of the filter (either REGEX or WILDCARD)
      * @return a predicate on names
      */
     public Predicate<String> getIsSelectedPredicate(final PatternMode mode) {

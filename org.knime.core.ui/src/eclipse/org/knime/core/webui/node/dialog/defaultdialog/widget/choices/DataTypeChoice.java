@@ -72,8 +72,10 @@ public record DataTypeChoice(//
 ) {
 
     /**
-     * @param dataType
-     * @return a new instance of {@link IdAndText} with with the name of the {@link DataType} as text.
+     * Creates a standard data type choice with the name of the data type as text.
+     *
+     * @param dataType to be offered as a choice
+     * @return a new choice with with the name of the {@link DataType} as text.
      */
     public static DataTypeChoice fromDataType(final DataType dataType) {
         return new DataTypeChoice(dataType, dataType.getName());

@@ -52,84 +52,75 @@ import java.util.Collection;
 import java.util.List;
 
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.StringValue;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 
 /**
- * A {@link StringChoicesProvider} which can be given one or multiple classes extending {@link DataValue} and provides
- * the compatible columns of a given spec at the first input port.
+ * A {@link ColumnChoicesProvider} which can be given one or multiple classes extending {@link DataValue} and provides
+ * the compatible columns of a given spec at an input port. Per default the first input port is used.
  *
  * @author Paul Bärnreuther
  */
-public class CompatibleColumnChoicesProvider implements ColumnChoicesProvider {
+public class CompatibleColumnsProvider implements FilteredInputTableColumnsProvider {
 
     private final Collection<Class<? extends DataValue>> m_valueClasses;
 
     /**
      * @param valueClass the class for which compatible columns should be provided
      */
-    protected CompatibleColumnChoicesProvider(final Class<? extends DataValue> valueClass) {
+    protected CompatibleColumnsProvider(final Class<? extends DataValue> valueClass) {
         m_valueClasses = List.of(valueClass);
     }
 
     /**
      * @param valueClasses a list of classes for which compatible columns should be provided
      */
-    protected CompatibleColumnChoicesProvider(final Collection<Class<? extends DataValue>> valueClasses) {
+    protected CompatibleColumnsProvider(final Collection<Class<? extends DataValue>> valueClasses) {
         m_valueClasses = valueClasses;
     }
 
-    /**
-     * @param spec
-     * @param valueClasses a list of classes for which compatible columns should be determined
-     * @return the columns of the spec which are compatible with any of the given value classes
-     */
-    public static List<DataColumnSpec> getCompatibleColumns(final DataTableSpec spec,
-        final Collection<Class<? extends DataValue>> valueClasses) {
-        return spec.stream()
-            .filter(s -> valueClasses.stream().anyMatch(valueClass -> s.getType().isCompatible(valueClass))).toList();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-        final var spec = context.getDataTableSpec(0);
-        if (spec.isEmpty()) {
-            return List.of();
-        } else {
-            return getCompatibleColumns(spec.get(), m_valueClasses);
-        }
+    public boolean isIncluded(final DataColumnSpec col) {
+        return hasCompatibleType(col, m_valueClasses);
+    }
+
+    private static boolean hasCompatibleType(final DataColumnSpec col,
+        final Collection<Class<? extends DataValue>> valueClasses) {
+        return valueClasses.stream().anyMatch(valueClass -> col.getType().isCompatible(valueClass));
     }
 
     /**
-     * ChoicesProvider providing all columns which are compatible with {@link StringValue}
+     * ChoicesProvider providing all columns which are compatible with {@link StringValue}. Per default, the first input
+     * port is used.
      *
      * @author Paul Bärnreuther
      */
-    public static final class StringColumnChoicesProvider extends CompatibleColumnChoicesProvider {
+    public static class StringColumnsProvider extends CompatibleColumnsProvider {
 
-        StringColumnChoicesProvider() {
+        /**
+         * Needed for reflection
+         */
+        protected StringColumnsProvider() {
             super(StringValue.class);
         }
 
     }
 
     /**
-     * ChoicesProvider providing all columns which are compatible with {@link DoubleValue}
+     * ChoicesProvider providing all columns which are compatible with {@link DoubleValue}. Per default, the first input
+     * port is used.
      *
      * @author Paul Bärnreuther
      */
-    public static final class DoubleColumnChoicesProvider extends CompatibleColumnChoicesProvider {
-
-        DoubleColumnChoicesProvider() {
+    public static class DoubleColumnsProvider extends CompatibleColumnsProvider {
+        /**
+         * Needed for reflection
+         */
+        protected DoubleColumnsProvider() {
             super(DoubleValue.class);
         }
 
     }
+
 }

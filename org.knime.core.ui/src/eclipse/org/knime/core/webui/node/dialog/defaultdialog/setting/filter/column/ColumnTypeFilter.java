@@ -48,15 +48,12 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Objects;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.IntStream;
+import java.util.function.Predicate;
 
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypeFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice.PossibleTypeValue;
 
@@ -81,31 +78,22 @@ public final class ColumnTypeFilter extends TypeFilter {
     }
 
     /**
-     * @param choices the list of all possible column names
-     * @param spec of the input data table (for type selection)
-     * @return the array of currently selected columns with respect to the mode
-     * @throws NullPointerException if {@code spec} is {@code null}
+     * Filter the columns based on the selected types
+     *
+     * @param choices the list of all possible columns
+     * @return the array of currently selected columns
      */
-    String[] getSelected(final String[] choices, final DataTableSpec spec) {
-        Objects.requireNonNull(spec);
-        final var types = getTypes(choices, spec);
-        var selectedTypes = Set.of(m_selectedTypes);
-        return IntStream.range(0, types.length)//
-            .filter(i -> selectedTypes.contains(types[i]))//
-            .mapToObj(i -> choices[i])//
-            .toArray(String[]::new);
+    String[] filter(final List<DataColumnSpec> choices) {
+        return choices.stream().filter(getFilterPredicate()).map(DataColumnSpec::getName).toArray(String[]::new);
     }
 
-    private static String[] getTypes(final String[] choices, final DataTableSpec spec) {
-        final var choicesSet = new HashSet<>(Arrays.asList(choices));
-        return spec.stream()//
-            .filter(colSpec -> choicesSet.contains(colSpec.getName())) //
-            .map(ColumnTypeFilter::columnToTypeString) //
-            .toArray(String[]::new);
+    Predicate<DataColumnSpec> getFilterPredicate() {
+        var selectedTypes = Set.of(m_selectedTypes);
+        return col -> selectedTypes.contains(columnToTypeString(col));
     }
 
     /**
-     * @param colSpec
+     * @param colSpec the column spec
      * @return the string representation of the data type
      */
     public static String columnToTypeString(final DataColumnSpec colSpec) {

@@ -94,7 +94,7 @@ public abstract class TypeFilter implements PersistableSettings {
     /**
      * Filter with no selected Types
      */
-    public TypeFilter() {
+    protected TypeFilter() {
         this(new String[0]);
     }
 

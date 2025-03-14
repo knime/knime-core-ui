@@ -930,7 +930,7 @@ public class UpdatesUtilTest {
             assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
             assertThatJson(response).inPath("$.initialUpdates[0].id").isString()
                 .isEqualTo(TestFlowVariableChoicesProvider.class.getName());
-            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isArray().hasSize(1);
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isArray().hasSize(2);
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].id").isString()
                 .isEqualTo("someInt");
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].text").isString()

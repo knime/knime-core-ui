@@ -52,8 +52,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilterMode;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -67,8 +65,8 @@ class StringFilterTest {
         selection.m_manualFilter.m_manuallyDeselected = new String[]{"Old deselected"};
         selection.m_manualFilter.m_includeUnknownColumns = true;
         final var choices = new String[]{"Choice1", "Choice2"};
-        assertThat(selection.getSelectedIncludingMissing(choices))
-            .isEqualTo(new String[]{"Old selected", choices[0], choices[1]});
+        assertThat(selection.filter(choices)).isEqualTo(new String[]{choices[0], choices[1]});
+        assertThat(selection.getMissingSelected(choices)).isEqualTo(new String[]{});
     }
 
     @Test
@@ -77,8 +75,8 @@ class StringFilterTest {
         final var choices = new String[]{"Choice1", "Choice2"};
         selection.m_manualFilter.m_manuallyDeselected = new String[]{choices[0]};
         selection.m_manualFilter.m_includeUnknownColumns = true;
-        assertThat(selection.getSelectedIncludingMissing(choices)).isEqualTo(new String[]{"Old selected", choices[1]});
-        assertThat(selection.getNonMissingSelected(choices)).isEqualTo(new String[]{choices[1]});
+        assertThat(selection.getMissingSelected(choices)).isEqualTo(new String[]{});
+        assertThat(selection.filter(choices)).isEqualTo(new String[]{choices[1]});
     }
 
     @Test
@@ -87,7 +85,8 @@ class StringFilterTest {
         selection.m_manualFilter.m_manuallyDeselected = new String[]{"Old deselected"};
         selection.m_manualFilter.m_includeUnknownColumns = false;
         final var choices = new String[]{"Choice1", "Choice2"};
-        assertThat(selection.getSelectedIncludingMissing(choices)).isEqualTo(new String[]{"Old selected"});
+        assertThat(selection.getMissingSelected(choices)).isEqualTo(new String[]{"Old selected"});
+        assertThat(selection.filter(choices)).isEqualTo(new String[]{});
     }
 
     @Test
@@ -95,11 +94,10 @@ class StringFilterTest {
         final var selection = new StringFilter();
         selection.m_mode = StringFilterMode.REGEX;
         final var choices = new String[]{"Choice1", "Choice2"};
-        assertThat(selection.getSelectedIncludingMissing(choices)).isEqualTo(new String[]{});
+        assertThat(selection.filter(choices)).isEqualTo(new String[]{});
 
         selection.m_patternFilter.m_pattern = ".*";
-        assertThat(selection.getSelectedIncludingMissing(choices)).isEqualTo(choices);
-        assertThat(selection.getNonMissingSelected(choices)).isEqualTo(choices);
+        assertThat(selection.filter(choices)).isEqualTo(choices);
     }
 
     @Test
@@ -108,10 +106,10 @@ class StringFilterTest {
         selection.m_mode = StringFilterMode.REGEX;
         selection.m_patternFilter.m_isInverted = true;
         final var choices = new String[]{"Choice1", "Choice2"};
-        assertThat(selection.getSelectedIncludingMissing(choices)).isEqualTo(choices);
+        assertThat(selection.filter(choices)).isEqualTo(choices);
 
         selection.m_patternFilter.m_pattern = ".*";
-        assertThat(selection.getSelectedIncludingMissing(choices)).isEqualTo(new String[]{});
+        assertThat(selection.filter(choices)).isEqualTo(new String[]{});
     }
 
     @Test
@@ -119,10 +117,10 @@ class StringFilterTest {
         final var selection = new StringFilter();
         selection.m_mode = StringFilterMode.WILDCARD;
         final var choices = new String[]{"Choice1", "Choice2"};
-        assertThat(selection.getSelectedIncludingMissing(choices)).isEqualTo(new String[]{});
+        assertThat(selection.filter(choices)).isEqualTo(new String[]{});
 
         selection.m_patternFilter.m_pattern = "*";
-        assertThat(selection.getSelectedIncludingMissing(choices)).isEqualTo(choices);
+        assertThat(selection.filter(choices)).isEqualTo(choices);
     }
 
     @Test
@@ -131,10 +129,10 @@ class StringFilterTest {
         selection.m_mode = StringFilterMode.WILDCARD;
         selection.m_patternFilter.m_isInverted = true;
         final var choices = new String[]{"Choice1", "Choice2"};
-        assertThat(selection.getSelectedIncludingMissing(choices)).isEqualTo(choices);
+        assertThat(selection.filter(choices)).isEqualTo(choices);
 
         selection.m_patternFilter.m_pattern = "*";
-        assertThat(selection.getSelectedIncludingMissing(choices)).isEqualTo(new String[]{});
+        assertThat(selection.filter(choices)).isEqualTo(new String[]{});
     }
 
     @Test
@@ -143,10 +141,10 @@ class StringFilterTest {
         selection.m_mode = StringFilterMode.WILDCARD;
         selection.m_patternFilter.m_pattern = "Choice*".toUpperCase();
         final var choices = new String[]{"Choice1", "Choice2"};
-        assertThat(selection.getSelectedIncludingMissing(choices)).isEqualTo(choices);
+        assertThat(selection.filter(choices)).isEqualTo(choices);
 
         selection.m_patternFilter.m_isCaseSensitive = true;
-        assertThat(selection.getSelectedIncludingMissing(choices)).isEqualTo(new String[]{});
+        assertThat(selection.filter(choices)).isEqualTo(new String[]{});
     }
 
     /**
@@ -157,7 +155,7 @@ class StringFilterTest {
         final var empty = new String[0];
         final var selection = new StringFilter(empty);
         final String[] choices = {"Choice1", "Choice2"};
-        assertThat(selection.getSelectedIncludingMissing(choices)).isEqualTo(empty);
+        assertThat(selection.filter(choices)).isEqualTo(empty);
     }
 
     /**

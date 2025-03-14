@@ -48,10 +48,14 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection;
 
+import java.util.Objects;
 import java.util.Optional;
 
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Use this class whenever a combination of static/special and dynamic/regular choices is required. If no special
@@ -66,18 +70,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProv
  */
 public final class StringOrEnum<E extends Enum<E>> implements PersistableSettings {
 
+    @JsonProperty("regularChoice")
     String m_regularChoice;
 
-    /**
-     * If set to true, the special choice is enforced, even if a regular choice is set. This option is only exposed to
-     * the user in the flow variable tab. It is needed to be able to dynamically switch between regular and special
-     * choices.
-     *
-     * If this value is set to true, but both the manual settings are a regular choice and the specialChoice is not
-     * overwritten as well, this boolean has no effect.
-     */
-    boolean m_preferSpecialChoice;
-
+    @JsonProperty("specialChoice")
+    @Persist(hidden = true)
     E m_specialChoice;
 
     StringOrEnum() {
@@ -85,6 +82,7 @@ public final class StringOrEnum<E extends Enum<E>> implements PersistableSetting
     }
 
     /**
+     * String constructor.
      *
      * @param regularChoice one of the dynamic choices as defined in the associated provider, which should be selected
      *            initially,
@@ -94,6 +92,8 @@ public final class StringOrEnum<E extends Enum<E>> implements PersistableSetting
     }
 
     /**
+     * Enum constructor.
+     *
      * @param specialChoice one of the special choices, which should be selected initially.
      */
     public StringOrEnum(final E specialChoice) {
@@ -101,10 +101,13 @@ public final class StringOrEnum<E extends Enum<E>> implements PersistableSetting
     }
 
     /**
+     * This method returns an empty optional, if no special choice is selected. Use {@link #getStringChoice()} to get
+     * the selected choice instead in this case.
+     *
      * @return the selected special choice if a special choice is selected.
      */
     public Optional<E> getEnumChoice() {
-        if (m_regularChoice == null || m_preferSpecialChoice) {
+        if (m_regularChoice == null) {
             return Optional.ofNullable(m_specialChoice);
         }
         return Optional.empty();
@@ -117,6 +120,24 @@ public final class StringOrEnum<E extends Enum<E>> implements PersistableSetting
      * @return the selected regular choices.
      */
     public String getStringChoice() {
-        return m_preferSpecialChoice ? null : m_regularChoice;
+        return m_regularChoice;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        StringOrEnum<?> other = (StringOrEnum<?>)obj;
+        return Objects.equals(m_regularChoice, other.m_regularChoice)
+            && Objects.equals(m_specialChoice, other.m_specialChoice);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(m_regularChoice, m_specialChoice);
     }
 }

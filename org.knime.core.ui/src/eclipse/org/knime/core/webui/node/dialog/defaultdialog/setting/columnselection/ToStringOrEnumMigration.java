@@ -44,57 +44,76 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 31, 2023 (Paul Bärnreuther): created
+ *   Mar 21, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnTypeToPossibleTypeValueUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableTypeToPossibleTypeValueUtil;
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice.NONE;
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice.ROW_ID;
 
-/**
- * This represents one of the possible values within a {@link ChoicesProvider} with a
- * {@link TypedStringChoicesProvider}.
- *
- * @author Paul Bärnreuther
- * @param id to be used as an identifier for the selection option
- * @param text to be displayed for the selection option
- * @param type the id and displayed text of the associated type
- */
-public record TypedStringChoice(String id, String text, PossibleTypeValue type) {
+import java.util.Optional;
+
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+
+interface ToStringOrEnumMigration<E extends Enum<E>> {
 
     /**
-     * Represents a type that can be associated with a value.
-     *
-     * @param id identifying a type
-     * @param text to be displayed for selecting the type
+     * the legacy identifier for none
      */
-    public static record PossibleTypeValue(String id, String text) {
+    String LEGACY_NONE_IDENTIFIER = "<none>";
+
+    /**
+     * the legacy identifier for RowIDs
+     */
+    String LEGACY_ROW_KEYS_IDENTIFIER = "<row-keys>";
+
+    /**
+     * the legacy identifier for row numbers
+     */
+    String LEGACY_ROW_NUMBERS_IDENTIFIER = "<row-numbers>";
+
+    /**
+     * Load the special choice from the legacy string.
+     *
+     * @param legacyString the string that was used as value before migration
+     * @return the special choice or empty if the string does not represent a special choice
+     */
+    default StringOrEnum<E> loadFromLegacyString(final String legacyString) {
+        return loadEnumFromLegacyString(legacyString).map(StringOrEnum::new).orElse(new StringOrEnum<>(legacyString));
     }
 
     /**
-     * Construction for columns.
-     *
-     * @param colSpec the spec of the column to be represented
-     * @return the PossibleColumnValue associated to the given colSpec
+     * @param legacyString that was used as value before migration
+     * @return the special choice or empty if the string does not represent a special choice
      */
-    public static TypedStringChoice fromColSpec(final DataColumnSpec colSpec) {
-        final var colName = colSpec.getName();
-        final var colType = colSpec.getType();
-        return new TypedStringChoice(colName, colName, ColumnTypeToPossibleTypeValueUtil.fromVariableType(colType));
+    Optional<E> loadEnumFromLegacyString(final String legacyString);
+
+    /**
+     * Resolves "<none>" to {@link NoneChoice#NONE}.
+     */
+    interface ToStringWithNoneChoiceMigration extends ToStringOrEnumMigration<NoneChoice> {
+        @Override
+        default Optional<NoneChoice> loadEnumFromLegacyString(final String legacyString) {
+            if (LEGACY_NONE_IDENTIFIER.equals(legacyString)) {
+                return Optional.of(NONE);
+            }
+            return Optional.empty();
+        }
     }
 
     /**
-     * Construction for flow variables.
-     *
-     * @param flowVariable to be represented
-     * @return the PossibleColumnValue associated to the given flow variable
+     * Resolves "<row-keys>" to {@link RowIDChoice#ROW_ID}.
      */
-    public static TypedStringChoice fromFlowVariable(final FlowVariable flowVariable) {
-        final var flowVarName = flowVariable.getName();
-        final var flowVarType = flowVariable.getVariableType();
-        return new TypedStringChoice(flowVarName, flowVarName,
-            FlowVariableTypeToPossibleTypeValueUtil.fromVariableType(flowVarType));
+    interface ToStringWithRowIDChoiceMigration extends ToStringOrEnumMigration<RowIDChoice> {
+        @Override
+        default Optional<RowIDChoice> loadEnumFromLegacyString(final String legacyString) {
+            if (LEGACY_ROW_KEYS_IDENTIFIER.equals(legacyString)) {
+                return Optional.of(ROW_ID);
+            }
+            return Optional.empty();
+        }
     }
+
 }
