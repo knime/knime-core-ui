@@ -44,54 +44,39 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 18, 2024 (Paul Bärnreuther): created
+ *   Mar 13, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column;
+package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
 
-import java.util.List;
-
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoicesProvider;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 
 /**
- * A class that provides an array of possible column choices based on the current {@link DefaultNodeSettingsContext}.
+ * Temporary workaround for not persisting boolean states that are just intermediate states for effects which depend on
+ * backend calls.
+ *
+ * @oreference
+ * @noimplement
+ *
  *
  * @author Paul Bärnreuther
  */
-public interface ColumnChoicesProvider extends TypedStringChoicesProvider {
+public class DoNotPersistBoolean implements NodeSettingsPersistor<Boolean> {
 
-    /**
-     * {@inheritDoc}
-     *
-     * Here, the state provider is already configured to compute the state initially before the dialog is opened. If
-     * this is desired but other initial configurations (like dependencies) are desired, override this method and call
-     * super.init within it. If choices should instead be asynchronously loaded once the dialog is opened, override this
-     * method without calling super.init to configure the initializer to do so.
-     */
     @Override
-    default void init(final StateProviderInitializer initializer) {
-        initializer.computeBeforeOpenDialog();
-
-    }
-
-    /**
-     * Computes the array of possible column choices based on the {@link DefaultNodeSettingsContext}.
-     *
-     * @param context the context that holds any available information that might be relevant for determining available
-     *            choices
-     * @return array of possible values, never {@code null}
-     */
-    default List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-        throw new IllegalStateException("At least one method must be implemented: "
-            + "ColumnChoicesProvider.columnChoices or ColumnChoicesProvider.computeState");
+    public Boolean load(final NodeSettingsRO settings) throws InvalidSettingsException {
+        return false;
     }
 
     @Override
-    default List<TypedStringChoice> computeState(final DefaultNodeSettingsContext context) {
-        return columnChoices(context).stream().map(TypedStringChoice::fromColSpec).toList();
+    public void save(final Boolean obj, final NodeSettingsWO settings) {
+        // do nothing
+    }
 
+    @Override
+    public String[][] getConfigPaths() {
+        return new String[0][0];
     }
 
 }

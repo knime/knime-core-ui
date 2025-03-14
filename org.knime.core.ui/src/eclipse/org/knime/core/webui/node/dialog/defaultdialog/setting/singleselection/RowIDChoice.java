@@ -44,54 +44,31 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 18, 2024 (Paul Bärnreuther): created
+ *   Mar 13, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection;
 
-import java.util.List;
-
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 
 /**
- * A class that provides an array of possible column choices based on the current {@link DefaultNodeSettingsContext}.
  *
- * @author Paul Bärnreuther
+ * Use this as static choices in a {@link StringOrEnum} field to allow selecting row keys. Usually the other options are
+ * defined by a {@link ColumnChoicesProvider} in this case.
+ *
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public interface ColumnChoicesProvider extends TypedStringChoicesProvider {
+public enum RowIDChoice {
+
+        /**
+         * No selection.
+         */
+        @Label(RowIDChoice.ROW_ID_LABEL)
+        ROW_ID;
 
     /**
-     * {@inheritDoc}
-     *
-     * Here, the state provider is already configured to compute the state initially before the dialog is opened. If
-     * this is desired but other initial configurations (like dependencies) are desired, override this method and call
-     * super.init within it. If choices should instead be asynchronously loaded once the dialog is opened, override this
-     * method without calling super.init to configure the initializer to do so.
+     * The user-visible label for the row id.
      */
-    @Override
-    default void init(final StateProviderInitializer initializer) {
-        initializer.computeBeforeOpenDialog();
-
-    }
-
-    /**
-     * Computes the array of possible column choices based on the {@link DefaultNodeSettingsContext}.
-     *
-     * @param context the context that holds any available information that might be relevant for determining available
-     *            choices
-     * @return array of possible values, never {@code null}
-     */
-    default List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-        throw new IllegalStateException("At least one method must be implemented: "
-            + "ColumnChoicesProvider.columnChoices or ColumnChoicesProvider.computeState");
-    }
-
-    @Override
-    default List<TypedStringChoice> computeState(final DefaultNodeSettingsContext context) {
-        return columnChoices(context).stream().map(TypedStringChoice::fromColSpec).toList();
-
-    }
+    public static final String ROW_ID_LABEL = "RowID";
 
 }

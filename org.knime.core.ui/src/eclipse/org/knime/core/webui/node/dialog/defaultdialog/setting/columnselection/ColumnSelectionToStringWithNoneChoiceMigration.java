@@ -44,54 +44,54 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 18, 2024 (Paul Bärnreuther): created
+ *   Mar 13, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection;
 
-import java.util.List;
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice.NONE;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoicesProvider;
+import java.util.Optional;
+
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice;
 
 /**
- * A class that provides an array of possible column choices based on the current {@link DefaultNodeSettingsContext}.
+ * @see ColumnSelectionToStringWithEnumMigration
  *
  * @author Paul Bärnreuther
  */
-public interface ColumnChoicesProvider extends TypedStringChoicesProvider {
+public abstract class ColumnSelectionToStringWithNoneChoiceMigration
+    extends ColumnSelectionToStringWithEnumMigration<NoneChoice> {
 
     /**
-     * {@inheritDoc}
+     * Use this constructor if the field has never been a String before it was a ColumnSelection.
      *
-     * Here, the state provider is already configured to compute the state initially before the dialog is opened. If
-     * this is desired but other initial configurations (like dependencies) are desired, override this method and call
-     * super.init within it. If choices should instead be asynchronously loaded once the dialog is opened, override this
-     * method without calling super.init to configure the initializer to do so.
+     * @param legacyConfigKey the key that was previously used to persist the ColumnSelection
      */
-    @Override
-    default void init(final StateProviderInitializer initializer) {
-        initializer.computeBeforeOpenDialog();
-
+    protected ColumnSelectionToStringWithNoneChoiceMigration(final String legacyConfigKey) {
+        super(null, legacyConfigKey);
     }
 
     /**
-     * Computes the array of possible column choices based on the {@link DefaultNodeSettingsContext}.
      *
-     * @param context the context that holds any available information that might be relevant for determining available
-     *            choices
-     * @return array of possible values, never {@code null}
+     * Use this constructor if the to be migrated field had been migrated from a String to a ColumnSelection in the
+     * past.
+     *
+     * @param legacyStringOrColumnSelectionConfigKey the key that was previously used to persist a String or a
+     *            ColumnSelection
+     * @param legacyColumnFilterConfigKey the key that was previously used to persist the ColumnSelection
      */
-    default List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-        throw new IllegalStateException("At least one method must be implemented: "
-            + "ColumnChoicesProvider.columnChoices or ColumnChoicesProvider.computeState");
+    protected ColumnSelectionToStringWithNoneChoiceMigration(final String legacyStringOrColumnSelectionConfigKey,
+        final String legacyColumnFilterConfigKey) {
+        super(legacyColumnFilterConfigKey, legacyStringOrColumnSelectionConfigKey);
+
     }
 
     @Override
-    default List<TypedStringChoice> computeState(final DefaultNodeSettingsContext context) {
-        return columnChoices(context).stream().map(TypedStringChoice::fromColSpec).toList();
-
+    Optional<NoneChoice> loadFromLegacyString(final String legacyString) {
+        if ("<none>".equals(legacyString)) {
+            return Optional.of(NONE);
+        }
+        return Optional.empty();
     }
 
 }

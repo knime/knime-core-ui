@@ -44,54 +44,29 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 18, 2024 (Paul Bärnreuther): created
+ *   Mar 13, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
 
 import java.util.List;
 
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoicesProvider;
 
 /**
- * A class that provides an array of possible column choices based on the current {@link DefaultNodeSettingsContext}.
+ * Used to provide the choices of the domain of a column within the table of the first port.
  *
  * @author Paul Bärnreuther
  */
-public interface ColumnChoicesProvider extends TypedStringChoicesProvider {
+public interface DomainChoicesProvider extends StringChoicesProvider {
 
     /**
-     * {@inheritDoc}
-     *
-     * Here, the state provider is already configured to compute the state initially before the dialog is opened. If
-     * this is desired but other initial configurations (like dependencies) are desired, override this method and call
-     * super.init within it. If choices should instead be asynchronously loaded once the dialog is opened, override this
-     * method without calling super.init to configure the initializer to do so.
+     * @return The column to extract the domain from. This can be null or a missing column.
      */
-    @Override
-    default void init(final StateProviderInitializer initializer) {
-        initializer.computeBeforeOpenDialog();
-
-    }
-
-    /**
-     * Computes the array of possible column choices based on the {@link DefaultNodeSettingsContext}.
-     *
-     * @param context the context that holds any available information that might be relevant for determining available
-     *            choices
-     * @return array of possible values, never {@code null}
-     */
-    default List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
-        throw new IllegalStateException("At least one method must be implemented: "
-            + "ColumnChoicesProvider.columnChoices or ColumnChoicesProvider.computeState");
-    }
+    String getColumnName();
 
     @Override
-    default List<TypedStringChoice> computeState(final DefaultNodeSettingsContext context) {
-        return columnChoices(context).stream().map(TypedStringChoice::fromColSpec).toList();
-
+    default List<String> choices(final DefaultNodeSettingsContext context) {
+        return DomainChoicesUtil.getChoicesByContextAndColumn(context, getColumnName());
     }
 
 }

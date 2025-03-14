@@ -200,4 +200,16 @@ public abstract class TypedStringFilter<T extends TypeFilter> implements Persist
 
     }
 
+    /**
+     * Only to be called right before serialization to enable using this setting in UI Extensions that don't have access
+     * to the choices nor the type information.
+     *
+     * @noreference
+     *
+     * @param selected
+     */
+    protected void setSelected(final String[] selected) {
+        m_selected = selected;
+    }
+
 }

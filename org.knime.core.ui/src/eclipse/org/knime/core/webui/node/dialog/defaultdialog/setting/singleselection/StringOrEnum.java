@@ -53,6 +53,8 @@ import java.util.Optional;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Use this class whenever a combination of static/special and dynamic/regular choices is required. If no special
  * choices are required, use a String field instead. If no dynamic choices are required, use an enum field instead.
@@ -66,6 +68,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProv
  */
 public final class StringOrEnum<E extends Enum<E>> implements PersistableSettings {
 
+    @JsonProperty("regularChoice")
     String m_regularChoice;
 
     /**
@@ -76,8 +79,10 @@ public final class StringOrEnum<E extends Enum<E>> implements PersistableSetting
      * If this value is set to true, but both the manual settings are a regular choice and the specialChoice is not
      * overwritten as well, this boolean has no effect.
      */
+    @JsonProperty("preferSpecialChoice")
     boolean m_preferSpecialChoice;
 
+    @JsonProperty("specialChoice")
     E m_specialChoice;
 
     StringOrEnum() {

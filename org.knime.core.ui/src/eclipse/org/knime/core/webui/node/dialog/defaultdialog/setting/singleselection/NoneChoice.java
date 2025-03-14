@@ -54,7 +54,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection;
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public enum WithNoneChoice {
+public enum NoneChoice {
 
         /**
          * No selection.

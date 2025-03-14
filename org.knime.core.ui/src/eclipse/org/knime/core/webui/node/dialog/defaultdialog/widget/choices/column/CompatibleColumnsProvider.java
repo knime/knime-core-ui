@@ -65,21 +65,21 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoic
  *
  * @author Paul Bärnreuther
  */
-public class CompatibleColumnChoicesProvider implements ColumnChoicesProvider {
+public class CompatibleColumnsProvider implements ColumnChoicesProvider {
 
     private final Collection<Class<? extends DataValue>> m_valueClasses;
 
     /**
      * @param valueClass the class for which compatible columns should be provided
      */
-    protected CompatibleColumnChoicesProvider(final Class<? extends DataValue> valueClass) {
+    protected CompatibleColumnsProvider(final Class<? extends DataValue> valueClass) {
         m_valueClasses = List.of(valueClass);
     }
 
     /**
      * @param valueClasses a list of classes for which compatible columns should be provided
      */
-    protected CompatibleColumnChoicesProvider(final Collection<Class<? extends DataValue>> valueClasses) {
+    protected CompatibleColumnsProvider(final Collection<Class<? extends DataValue>> valueClasses) {
         m_valueClasses = valueClasses;
     }
 
@@ -112,9 +112,9 @@ public class CompatibleColumnChoicesProvider implements ColumnChoicesProvider {
      *
      * @author Paul Bärnreuther
      */
-    public static final class StringColumnChoicesProvider extends CompatibleColumnChoicesProvider {
+    public static final class StringColumnsProvider extends CompatibleColumnsProvider {
 
-        StringColumnChoicesProvider() {
+        StringColumnsProvider() {
             super(StringValue.class);
         }
 
@@ -125,9 +125,9 @@ public class CompatibleColumnChoicesProvider implements ColumnChoicesProvider {
      *
      * @author Paul Bärnreuther
      */
-    public static final class DoubleColumnChoicesProvider extends CompatibleColumnChoicesProvider {
+    public static final class DoubleColumnsProvider extends CompatibleColumnsProvider {
 
-        DoubleColumnChoicesProvider() {
+        DoubleColumnsProvider() {
             super(DoubleValue.class);
         }
 

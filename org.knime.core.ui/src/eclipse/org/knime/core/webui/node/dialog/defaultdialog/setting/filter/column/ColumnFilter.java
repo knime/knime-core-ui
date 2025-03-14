@@ -164,4 +164,19 @@ public final class ColumnFilter extends TypedStringFilter<ColumnTypeFilter> {
         return getNonMissingSelected(spec.getColumnNames(), spec);
     }
 
+    /**
+     * If this filter is used to convey a column selection in its serialized form (i.e. an object containing a parameter
+     * which is a string array; without access to the above methods), use this method to first set the selected values.
+     *
+     * Setting the selected values this way will not change the state of the filter itself, i.e. it will not have an
+     * impact on the returned values of the above methods.
+     *
+     * @param selected the selected values (i.e. the array of columns that are currently selected by this filter)
+     *
+     * @noreference
+     */
+    public void setSelectedBeforeSerialization(final String[] selected) {
+        super.setSelected(selected);
+    }
+
 }
