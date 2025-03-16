@@ -109,10 +109,10 @@ final class KaiSchemaEnhancer {
             suffix += specialColumnSuffix(SpecialColumns.NONE, "no column");
         }
         if (choices.showRowKeysColumn()) {
-            suffix += specialColumnSuffix(SpecialColumns.ROWID, "the RowID");
+            suffix += specialColumnSuffix(SpecialColumns.ROWID, "the special \"RowID\" column");
         }
         if (choices.showRowNumbersColumn()) {
-            suffix += specialColumnSuffix(SpecialColumns.ROW_NUMBERS, "the row number");
+            suffix += specialColumnSuffix(SpecialColumns.ROW_NUMBERS, "the special \"Row number\"");
         }
         return suffix;
     }
