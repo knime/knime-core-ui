@@ -55,12 +55,12 @@ import java.util.Optional;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
 
 /**
- * @see ColumnSelectionToStringWithEnumMigration
+ * @see ColumnSelectionToStringOrEnumMigration
  *
  * @author Paul Bärnreuther
  */
 public abstract class ColumnSelectionToStringWithRowIDChoiceMigration
-    extends ColumnSelectionToStringWithEnumMigration<RowIDChoice> {
+    extends ColumnSelectionToStringOrEnumMigration<RowIDChoice> {
 
     /**
      * Use this constructor if the field has never been a String before it was a ColumnSelection.
@@ -87,8 +87,8 @@ public abstract class ColumnSelectionToStringWithRowIDChoiceMigration
     }
 
     @Override
-    Optional<RowIDChoice> loadFromLegacyString(final String legacyString) {
-        if ("<row-keys>".equals(legacyString)) {
+    protected Optional<RowIDChoice> loadFromLegacyString(final String legacyString) {
+        if (LEGACY_ROW_KEYS_IDENTIFIER.equals(legacyString)) {
             return Optional.of(ROW_ID);
         }
         return Optional.empty();

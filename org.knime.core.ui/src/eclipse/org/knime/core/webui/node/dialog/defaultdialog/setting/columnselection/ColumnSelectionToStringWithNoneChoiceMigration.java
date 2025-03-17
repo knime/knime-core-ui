@@ -55,12 +55,12 @@ import java.util.Optional;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice;
 
 /**
- * @see ColumnSelectionToStringWithEnumMigration
+ * @see ColumnSelectionToStringOrEnumMigration
  *
  * @author Paul Bärnreuther
  */
 public abstract class ColumnSelectionToStringWithNoneChoiceMigration
-    extends ColumnSelectionToStringWithEnumMigration<NoneChoice> {
+    extends ColumnSelectionToStringOrEnumMigration<NoneChoice> {
 
     /**
      * Use this constructor if the field has never been a String before it was a ColumnSelection.
@@ -87,8 +87,8 @@ public abstract class ColumnSelectionToStringWithNoneChoiceMigration
     }
 
     @Override
-    Optional<NoneChoice> loadFromLegacyString(final String legacyString) {
-        if ("<none>".equals(legacyString)) {
+    protected Optional<NoneChoice> loadFromLegacyString(final String legacyString) {
+        if (LEGACY_NONE_IDENTIFIER.equals(legacyString)) {
             return Optional.of(NONE);
         }
         return Optional.empty();

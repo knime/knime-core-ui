@@ -61,7 +61,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.Colu
 public enum RowIDChoice {
 
         /**
-         * No selection.
+         * Row ID selection
          */
         @Label(RowIDChoice.ROW_ID_LABEL)
         ROW_ID;

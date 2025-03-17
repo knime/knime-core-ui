@@ -67,8 +67,23 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.St
  * @param <E> the enum defining the special choices
  * @author Paul Bärnreuther
  */
-public abstract class ColumnSelectionToStringWithEnumMigration<E extends Enum<E>>
+public abstract class ColumnSelectionToStringOrEnumMigration<E extends Enum<E>>
     implements NodeSettingsMigration<StringOrEnum<E>> {
+
+    /**
+     * the legacy identifier for none
+     */
+    public static final String LEGACY_NONE_IDENTIFIER = "<none>";
+
+    /**
+     * the legacy identifier for row keys
+     */
+    public static final String LEGACY_ROW_KEYS_IDENTIFIER = "<row-keys>";
+
+    /**
+     * the legacy identifier for row numbers
+     */
+    public static final String LEGACY_ROW_NUMBERS_IDENTIFIER = "<row-numbers>";
 
     private final String m_legacyColumnSelectionConfigKey;
 
@@ -79,7 +94,7 @@ public abstract class ColumnSelectionToStringWithEnumMigration<E extends Enum<E>
      *
      * @param legacyConfigKey the key that was previously used to persist the ColumnSelection
      */
-    protected ColumnSelectionToStringWithEnumMigration(final String legacyConfigKey) {
+    protected ColumnSelectionToStringOrEnumMigration(final String legacyConfigKey) {
         this(null, legacyConfigKey);
 
     }
@@ -93,7 +108,7 @@ public abstract class ColumnSelectionToStringWithEnumMigration<E extends Enum<E>
      *            ColumnSelection
      * @param legacyColumnFilterConfigKey the key that was previously used to persist the ColumnSelection
      */
-    protected ColumnSelectionToStringWithEnumMigration(final String legacyStringOrColumnSelectionConfigKey,
+    protected ColumnSelectionToStringOrEnumMigration(final String legacyStringOrColumnSelectionConfigKey,
         final String legacyColumnFilterConfigKey) {
         m_legacyStringOrColumnSelectionConfigKey = Optional.ofNullable(legacyStringOrColumnSelectionConfigKey);
         m_legacyColumnSelectionConfigKey = legacyColumnFilterConfigKey;
@@ -115,6 +130,11 @@ public abstract class ColumnSelectionToStringWithEnumMigration<E extends Enum<E>
         return loadFromLegacyString(oldString).map(StringOrEnum::new).orElse(new StringOrEnum<>(oldString));
     }
 
-    abstract Optional<E> loadFromLegacyString(final String legacyString);
+    /**
+     * Load the special choice from the legacy string.
+     * @param legacyString
+     * @return the special choice or empty if the string does not represent a special choice
+     */
+    protected abstract Optional<E> loadFromLegacyString(final String legacyString);
 
 }
