@@ -106,6 +106,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget.D
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextAreaWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.MessageType;
@@ -1365,6 +1366,29 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[2].options.format").isString().isEqualTo("dateTimeFormatWithType");
         assertThatJson(response).inPath("$.elements[2].options.formatProvider").isString()
             .isEqualTo(ComprehensiveDateTimeFormatProvider.class.getName());
+    }
+
+    @Test
+    void testTextAreaWidget() {
+        class TextAreaWidgetTestSettings implements DefaultNodeSettings {
+
+            @Widget(title = "", description = "")
+            @TextAreaWidget
+            String m_textAreaDefault;
+
+            @Widget(title = "", description = "")
+            @TextAreaWidget(rows = 10)
+            String m_textAreaIncreasedRows;
+        }
+
+        var response = buildTestUiSchema(TextAreaWidgetTestSettings.class);
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("textAreaDefault");
+        assertThatJson(response).inPath("$.elements[0].options.rows").isNumber().isEqualTo(BigDecimal.valueOf(4));
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo(Format.TEXT_AREA);
+
+        assertThatJson(response).inPath("$.elements[1].scope").isString().contains("textAreaIncreasedRows");
+        assertThatJson(response).inPath("$.elements[1].options.rows").isNumber().isEqualTo(BigDecimal.valueOf(10));
+        assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo(Format.TEXT_AREA);
     }
 
     static final class TestStringProvider implements StateProvider<String> {

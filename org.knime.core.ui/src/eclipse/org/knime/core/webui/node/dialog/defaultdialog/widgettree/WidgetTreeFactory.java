@@ -75,6 +75,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextAreaWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
@@ -138,6 +139,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         RichTextInputWidget.class, //
         SimpleButtonWidget.class, //
         SortListWidget.class, //
+        TextAreaWidget.class, //
         TextInputWidget.class, //
         TextMessage.class, //
         UsernameWidget.class, //

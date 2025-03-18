@@ -111,6 +111,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextAreaWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
@@ -181,6 +182,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <td>String</td>
  * <td>Text Input</td>
  * <td>{@link ChoicesWidget} (twin-list)<br>
+ * {@link TextAreaWidget}<br>
  * {@link TextInputWidget}<br>
  * {@link LocalFileReaderWidget}<br>
  * {@link LocalFileWriterWidget}<br>

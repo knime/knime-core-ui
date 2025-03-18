@@ -274,6 +274,8 @@ public final class JsonFormsConsts {
 
             public static final String TEXT_MESSAGE = "textMessage";
 
+            public static final String TEXT_AREA = "textArea";
+
         }
 
         /**

@@ -130,6 +130,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget.D
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextAreaWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
@@ -536,6 +537,12 @@ final class UiSchemaOptionsGenerator {
             if (annotatedWidgets.contains(SortListWidget.class)) {
                 options.put(TAG_FORMAT, Format.SORT_LIST);
             }
+        }
+
+        if (annotatedWidgets.contains(TextAreaWidget.class)) {
+            final var textAreaWidget = m_node.getAnnotation(TextAreaWidget.class).orElseThrow();
+            options.put(TAG_FORMAT, Format.TEXT_AREA);
+            options.put("rows", textAreaWidget.rows());
         }
 
         if (annotatedWidgets.contains(TextInputWidget.class)) {
