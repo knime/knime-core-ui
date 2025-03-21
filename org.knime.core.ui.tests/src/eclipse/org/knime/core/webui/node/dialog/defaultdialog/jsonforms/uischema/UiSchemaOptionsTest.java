@@ -1387,21 +1387,21 @@ class UiSchemaOptionsTest {
 
     }
 
-    private static final class MinLenValidation implements MinLengthValidation {
+    private static final class MinLenValidation extends MinLengthValidation {
         @Override
         public int getMinLength() {
             return -42;
         }
     }
 
-    private static final class MaxLenValidation implements MaxLengthValidation {
+    private static final class MaxLenValidation extends MaxLengthValidation {
         @Override
         public int getMaxLength() {
             return 42;
         }
     }
 
-    private static final class CustomPatternValidation implements PatternValidation {
+    private static final class CustomPatternValidation extends PatternValidation {
         @Override
         public String getPattern() {
             return "a.*";
@@ -1455,21 +1455,21 @@ class UiSchemaOptionsTest {
 
         assertThatJson(response).inPath("$.elements[3].scope").isString().contains("minLength");
         assertThatJson(response).inPath("$.elements[3].options.validations[0].id").isString().isEqualTo("minLength");
-        assertThatJson(response).inPath("$.elements[3].options.validations[0].parameters.value").isNumber()
+        assertThatJson(response).inPath("$.elements[3].options.validations[0].parameters.minLength").isNumber()
             .isEqualTo(BigDecimal.valueOf(-42));
         assertThatJson(response).inPath("$.elements[3].options.validations[0].errorMessage").isString()
             .isEqualTo("The string must be at least -42 characters long.");
 
         assertThatJson(response).inPath("$.elements[4].scope").isString().contains("maxLength");
         assertThatJson(response).inPath("$.elements[4].options.validations[0].id").isString().isEqualTo("maxLength");
-        assertThatJson(response).inPath("$.elements[4].options.validations[0].parameters.value").isNumber()
+        assertThatJson(response).inPath("$.elements[4].options.validations[0].parameters.maxLength").isNumber()
             .isEqualTo(BigDecimal.valueOf(42));
         assertThatJson(response).inPath("$.elements[4].options.validations[0].errorMessage").isString()
             .isEqualTo("The string must not exceed 42 characters.");
 
         assertThatJson(response).inPath("$.elements[5].scope").isString().contains("pattern");
         assertThatJson(response).inPath("$.elements[5].options.validations[0].id").isString().isEqualTo("pattern");
-        assertThatJson(response).inPath("$.elements[5].options.validations[0].parameters.value").isString()
+        assertThatJson(response).inPath("$.elements[5].options.validations[0].parameters.pattern").isString()
             .isEqualTo("a.*");
         assertThatJson(response).inPath("$.elements[5].options.validations[0].errorMessage").isString()
             .isEqualTo("The string must match the pattern: a.*");
@@ -1553,15 +1553,15 @@ class UiSchemaOptionsTest {
 
     }
 
-    static final class CustomStaticMinValidation implements MinValidation {
+    static final class CustomStaticMinValidation extends MinValidation {
 
         @Override
-        public Double getMin() {
+        public double getMin() {
             return -42.0;
         }
     }
 
-    static final class CustomStaticMaxValidation implements MaxValidation {
+    static final class CustomStaticMaxValidation extends MaxValidation {
 
         @Override
         public boolean isExclusive() {
@@ -1569,7 +1569,7 @@ class UiSchemaOptionsTest {
         }
 
         @Override
-        public Double getMax() {
+        public double getMax() {
             return 42.0;
         }
     }
@@ -1638,7 +1638,7 @@ class UiSchemaOptionsTest {
 
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("numberInputMin");
         assertThatJson(response).inPath("$.elements[0].options.validations[0].id").isString().isEqualTo("min");
-        assertThatJson(response).inPath("$.elements[0].options.validations[0].parameters.value").isNumber()
+        assertThatJson(response).inPath("$.elements[0].options.validations[0].parameters.min").isNumber()
             .isEqualTo(BigDecimal.valueOf(-42.0));
         assertThatJson(response).inPath("$.elements[0].options.validations[0].parameters.isExclusive").isBoolean()
             .isFalse();
@@ -1647,7 +1647,7 @@ class UiSchemaOptionsTest {
 
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("numberInputMax");
         assertThatJson(response).inPath("$.elements[1].options.validations[0].id").isString().isEqualTo("max");
-        assertThatJson(response).inPath("$.elements[1].options.validations[0].parameters.value").isNumber()
+        assertThatJson(response).inPath("$.elements[1].options.validations[0].parameters.max").isNumber()
             .isEqualTo(BigDecimal.valueOf(42.0));
         assertThatJson(response).inPath("$.elements[1].options.validations[0].parameters.isExclusive").isBoolean()
             .isTrue();
@@ -1664,7 +1664,7 @@ class UiSchemaOptionsTest {
 
         assertThatJson(response).inPath("$.elements[4].scope").isString().contains("nonNegative");
         assertThatJson(response).inPath("$.elements[4].options.validations[0].id").isString().isEqualTo("min");
-        assertThatJson(response).inPath("$.elements[4].options.validations[0].parameters.value").isNumber()
+        assertThatJson(response).inPath("$.elements[4].options.validations[0].parameters.min").isNumber()
             .isEqualTo(BigDecimal.valueOf(0.0));
         assertThatJson(response).inPath("$.elements[4].options.validations[0].parameters.isExclusive").isBoolean()
             .isFalse();
@@ -1673,7 +1673,7 @@ class UiSchemaOptionsTest {
 
         assertThatJson(response).inPath("$.elements[5].scope").isString().contains("positiveInteger");
         assertThatJson(response).inPath("$.elements[5].options.validations[0].id").isString().isEqualTo("min");
-        assertThatJson(response).inPath("$.elements[5].options.validations[0].parameters.value").isNumber()
+        assertThatJson(response).inPath("$.elements[5].options.validations[0].parameters.min").isNumber()
             .isEqualTo(BigDecimal.valueOf(1.0));
         assertThatJson(response).inPath("$.elements[5].options.validations[0].parameters.isExclusive").isBoolean()
             .isFalse();
