@@ -433,12 +433,12 @@
         "scope" : "#/properties/view/properties/pageSize",
         "options" : {
           "validations" : [ {
+            "errorMessage" : "The value must be at least 1.",
             "id" : "min",
             "parameters" : {
-              "value" : 1.0,
+              "min" : 1.0,
               "isExclusive" : false
-            },
-            "errorMessage" : "The value must be at least 1."
+            }
           } ]
         },
         "rule" : {
@@ -467,19 +467,19 @@
         "scope" : "#/properties/view/properties/customRowHeight",
         "options" : {
           "validations" : [ {
+            "errorMessage" : "The value must be at least 24.",
             "id" : "min",
             "parameters" : {
-              "value" : 24.0,
+              "min" : 24.0,
               "isExclusive" : false
-            },
-            "errorMessage" : "The value must be at least 24."
+            }
           }, {
+            "errorMessage" : "The value must be less than 1000000.",
             "id" : "max",
             "parameters" : {
-              "value" : 1000000.0,
+              "max" : 1000000.0,
               "isExclusive" : false
-            },
-            "errorMessage" : "The value must be less than 1000000."
+            }
           } ]
         },
         "rule" : {
@@ -499,19 +499,19 @@
         "options" : {
           "isAdvanced" : true,
           "validations" : [ {
+            "errorMessage" : "The value must be at least 24.",
             "id" : "min",
             "parameters" : {
-              "value" : 24.0,
+              "min" : 24.0,
               "isExclusive" : false
-            },
-            "errorMessage" : "The value must be at least 24."
+            }
           }, {
+            "errorMessage" : "The value must be less than 1000000.",
             "id" : "max",
             "parameters" : {
-              "value" : 1000000.0,
+              "max" : 1000000.0,
               "isExclusive" : false
-            },
-            "errorMessage" : "The value must be less than 1000000."
+            }
           } ]
         },
         "rule" : {

@@ -218,6 +218,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
     @Effect(predicate = EnablePagination.class, type = EffectType.SHOW)
     public int m_pageSize = 10;
 
+    @SuppressWarnings("javadoc")
     public enum AUTO_SIZE_COLUMNS {
             @Label(value = "Fixed", description = "the column sizing is fixed")
             FIXED, //
@@ -311,16 +312,16 @@ public class TableViewViewSettings implements DefaultNodeSettings {
         }
     }
 
-    static final class RowHeightMinValidation implements MinValidation {
+    static final class RowHeightMinValidation extends MinValidation {
         @Override
-        public Double getMin() {
+        public double getMin() {
             return 24.0;
         }
     }
 
-    static final class RowHeightMaxValidation implements MaxValidation {
+    static final class RowHeightMaxValidation extends MaxValidation {
         @Override
-        public Double getMax() {
+        public double getMax() {
             return 1000000.0;
         }
     }

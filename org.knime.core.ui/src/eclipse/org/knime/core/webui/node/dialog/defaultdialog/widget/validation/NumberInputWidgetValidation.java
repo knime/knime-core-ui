@@ -67,37 +67,29 @@ public sealed interface NumberInputWidgetValidation extends BuiltinValidation {
     }
 
     /**
-     * The parameters needed for the {@link MinValidation} and {@link MaxValidation}
-     *
-     * @param value the value to validate against
-     * @param isExclusive whether to use an inclusive or an exclusive bound
-     */
-    record NumberValidationParams(Double value, boolean isExclusive) {
-    }
-
-    /**
      * Implement this interface to validate a numeric input against a given minimum.
      */
-    non-sealed interface MinValidation extends NumberInputWidgetValidation {
+    abstract non-sealed class MinValidation implements NumberInputWidgetValidation {
 
         @Override
-        /**
-         * Do not override
-         */
-        default String getId() {
+        public final String getId() {
             return "min";
         }
 
-        @Override
         /**
-         * Do not override
+         * @param min the minimum to validate against
+         * @param isExclusive whether to use an inclusive or an exclusive bound
          */
-        default NumberValidationParams getParameters() {
-            return new NumberValidationParams(getMin(), isExclusive());
+        record MinValidationParams(double min, boolean isExclusive) {
         }
 
         @Override
-        default String getErrorMessage() {
+        public final MinValidationParams getParameters() {
+            return new MinValidationParams(getMin(), isExclusive());
+        }
+
+        @Override
+        public String getErrorMessage() {
             return String.format(
                 isExclusive() ? "The value must be greater than %s." : "The value must be at least %s.",
                 BigDecimal.valueOf(getMin()).stripTrailingZeros().toPlainString());
@@ -106,15 +98,15 @@ public sealed interface NumberInputWidgetValidation extends BuiltinValidation {
         /**
          * @return the min value to validate against
          */
-        Double getMin();
+        protected abstract double getMin();
 
         /**
          * Validates whether the input is at least 0.
          */
-        final class IsNonNegativeValidation implements MinValidation {
+        public static final class IsNonNegativeValidation extends MinValidation {
 
             @Override
-            public Double getMin() {
+            public double getMin() {
                 return 0.0;
             }
         }
@@ -122,10 +114,10 @@ public sealed interface NumberInputWidgetValidation extends BuiltinValidation {
         /**
          * Validates whether the input is at least 1.
          */
-        final class IsPositiveIntegerValidation implements MinValidation {
+        public static final class IsPositiveIntegerValidation extends MinValidation {
 
             @Override
-            public Double getMin() {
+            public double getMin() {
                 return 1.0;
             }
         }
@@ -135,26 +127,27 @@ public sealed interface NumberInputWidgetValidation extends BuiltinValidation {
     /**
      * Implement this interface to validate a numeric input against a given maximum.
      */
-    non-sealed interface MaxValidation extends NumberInputWidgetValidation {
+    abstract non-sealed class MaxValidation implements NumberInputWidgetValidation {
 
         @Override
-        /**
-         * Do not override
-         */
-        default String getId() {
+        public final String getId() {
             return "max";
         }
 
-        @Override
         /**
-         * Do not override
+         * @param max the maximum to validate against
+         * @param isExclusive whether to use an inclusive or an exclusive bound
          */
-        default NumberValidationParams getParameters() {
-            return new NumberValidationParams(getMax(), isExclusive());
+        record MaxValidationParams(Double max, boolean isExclusive) {
         }
 
         @Override
-        default String getErrorMessage() {
+        public final MaxValidationParams getParameters() {
+            return new MaxValidationParams(getMax(), isExclusive());
+        }
+
+        @Override
+        public String getErrorMessage() {
             return String.format(isExclusive() ? "The value must not exceed %s." : "The value must be less than %s.",
                 BigDecimal.valueOf(getMax()).stripTrailingZeros().toPlainString());
         }
@@ -162,7 +155,7 @@ public sealed interface NumberInputWidgetValidation extends BuiltinValidation {
         /**
          * @return the max value to validate against
          */
-        Double getMax();
+        protected abstract double getMax();
 
     }
 

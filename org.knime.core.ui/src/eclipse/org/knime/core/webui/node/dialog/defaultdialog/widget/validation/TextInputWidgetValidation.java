@@ -60,46 +60,40 @@ public sealed interface TextInputWidgetValidation extends BuiltinValidation {
     /**
      * The parameters needed for the {@link PatternValidation}
      *
-     * @param value the pattern to validate against
+     * @param pattern to validate against
      */
-    record PatternValidationParams(String value) {
+    record PatternValidationParams(String pattern) {
     }
 
     /**
      * Implement this interface to validate the input against a given pattern.
      */
-    non-sealed interface PatternValidation extends TextInputWidgetValidation {
+    abstract non-sealed class PatternValidation implements TextInputWidgetValidation {
 
         @Override
-        /**
-         * Do not override
-         */
-        default String getId() {
+        public final String getId() {
             return "pattern";
         }
 
         @Override
-        /**
-         * Do not override
-         */
-        default PatternValidationParams getParameters() {
+        public final PatternValidationParams getParameters() {
             return new PatternValidationParams(getPattern());
+        }
+
+        @Override
+        public String getErrorMessage() {
+            return String.format("The string must match the pattern: %s", getPattern());
         }
 
         /**
          * @return the pattern that the value of the input field must conform to
          */
-        String getPattern();
-
-        @Override
-        default String getErrorMessage() {
-            return String.format("The string must match the pattern: %s", getPattern());
-        }
+        protected abstract String getPattern();
 
         /**
          * Validates whether the input is not blank, i.e. whether it contains at least one non-space character.
          */
-        final class IsNotBlankValidation implements PatternValidation {
+        public static final class IsNotBlankValidation extends PatternValidation {
 
             @Override
             public String getErrorMessage() {
@@ -116,7 +110,7 @@ public sealed interface TextInputWidgetValidation extends BuiltinValidation {
         /**
          * Validates whether the input is not empty, i.e. whether it contains at least one character.
          */
-        final class IsNotEmptyValidation implements PatternValidation {
+        public static final class IsNotEmptyValidation extends PatternValidation {
 
             @Override
             public String getErrorMessage() {
@@ -131,70 +125,62 @@ public sealed interface TextInputWidgetValidation extends BuiltinValidation {
     }
 
     /**
-     * The parameters needed for the {@link MinLengthValidation} and {@link MaxLengthValidation}
-     *
-     * @param value the length to validate against
-     */
-    record LengthValidationParams(int value) {
-    }
-
-    /**
      * Implement this interface to validate the length of the input against a given minLength.
      */
-    non-sealed interface MinLengthValidation extends TextInputWidgetValidation {
+    abstract non-sealed class MinLengthValidation implements TextInputWidgetValidation {
 
         @Override
-        /**
-         * Do not override
-         */
-        default String getId() {
+        public final String getId() {
             return "minLength";
         }
 
-        @Override
         /**
-         * Do not override
+         * @param minLength the length to validate against
          */
-        default LengthValidationParams getParameters() {
-            return new LengthValidationParams(getMinLength());
+        record MinLengthValidationParams(int minLength) {
         }
 
-        int getMinLength();
+        @Override
+        public final MinLengthValidationParams getParameters() {
+            return new MinLengthValidationParams(getMinLength());
+        }
 
         @Override
-        default String getErrorMessage() {
+        public String getErrorMessage() {
             return String.format("The string must be at least %d characters long.", getMinLength());
         }
+
+        protected abstract int getMinLength();
 
     }
 
     /**
      * Implement this interface to validate the length of the input against a given maxLength.
      */
-    non-sealed interface MaxLengthValidation extends TextInputWidgetValidation {
+    abstract non-sealed class MaxLengthValidation implements TextInputWidgetValidation {
 
         @Override
-        /**
-         * Do not override
-         */
-        default String getId() {
+        public final String getId() {
             return "maxLength";
         }
 
-        @Override
         /**
-         * Do not override
+         * @param maxLength the length to validate against
          */
-        default LengthValidationParams getParameters() {
-            return new LengthValidationParams(getMaxLength());
+        record MaxLengthValidationParams(int maxLength) {
         }
 
-        int getMaxLength();
+        @Override
+        public final MaxLengthValidationParams getParameters() {
+            return new MaxLengthValidationParams(getMaxLength());
+        }
 
         @Override
-        default String getErrorMessage() {
+        public String getErrorMessage() {
             return String.format("The string must not exceed %d characters.", getMaxLength());
         }
+
+        protected abstract int getMaxLength();
 
     }
 }
