@@ -33,6 +33,14 @@ const {
   onApply,
 } = setUpApplyButton();
 
+const {
+  text: otherApplyText,
+  disabled: otherApplyDisabled,
+  element: goIntoFolderButton,
+  onApply: otherOnApply,
+} = setUpApplyButton("goIntoSelectedFolder");
+otherApplyText.value = "Open folder";
+
 const apply = () =>
   onApply
     .value?.()
@@ -51,15 +59,25 @@ const apply = () =>
     <template #bottom-content>
       <div class="bottom-buttons">
         <Button with-border compact @click="close"> Cancel </Button>
-        <Button
-          ref="applyButton"
-          compact
-          primary
-          :disabled="applyDisabled"
-          @click="apply"
-        >
-          {{ applyText }}
-        </Button>
+        <div>
+          <Button
+            ref="applyButton"
+            compact
+            primary
+            :disabled="applyDisabled"
+            @click="apply"
+          >
+            {{ applyText }}
+          </Button>
+          <Button
+            ref="goIntoFolderButton"
+            compact
+            :disabled="otherApplyDisabled"
+            @click="otherOnApply"
+          >
+            {{ otherApplyText }}
+          </Button>
+        </div>
       </div>
     </template>
   </SettingsSubPanel>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, toRefs, watch } from "vue";
+import { computed, ref, toRefs, watch, type Ref } from "vue";
 
 import {
   Breadcrumb,
@@ -25,7 +25,7 @@ export interface DialogFileExplorerProps {
   filteredExtensions?: string[];
   appendedExtension?: string | null;
   backendType: BackendType;
-  clickOutsideException?: null | HTMLElement;
+  clickOutsideExceptions?: Ref<null | HTMLElement>[];
   openFileByExplorer?: boolean;
   breadcrumbRoot?: string | null;
   selectionMode?: "file" | "folder";
@@ -39,7 +39,7 @@ const props = withDefaults(defineProps<DialogFileExplorerProps>(), {
   isWriter: false,
   filteredExtensions: () => [],
   appendedExtension: null,
-  clickOutsideException: null,
+  clickOutsideExceptions: () => [],
   openFileByExplorer: false,
   breadcrumbRoot: null,
   selectionMode: "file",
@@ -156,6 +156,13 @@ const loadNewFolder = (
   path: string | null,
   folderName: string | null = null,
 ) => {
+  console.log("I have been asked to laod the folder:", path, folderName);
+  console.log(
+    "the currently selected files and direcrory names are",
+    selectedFileName.value,
+    selectedDirectoryName.value,
+  );
+
   selectedDirectoryName.value = "";
   selectedFileName.value = "";
   isLoading.value = true;
@@ -187,6 +194,13 @@ defineExpose({
         ? selectedFileName.value
         : selectedDirectoryName.value,
     ),
+  goIntoSelectedFolder: () => {
+    console.log(
+      "going into the selected folder, which is",
+      selectedDirectoryName.value,
+    );
+    changeDirectory(selectedDirectoryName.value);
+  },
 });
 
 const onChangeSelectedItemIds = (itemIds: string[]) => {
@@ -238,7 +252,7 @@ const onChangeSelectedItemIds = (itemIds: string[]) => {
       :disable-context-menu="true"
       :disable-multi-select="true"
       :disable-dragging="true"
-      :click-outside-exception="clickOutsideException"
+      :click-outside-exception="clickOutsideExceptions"
       @change-directory="changeDirectory"
       @open-file="openFileByExplorer && onOpenFile($event.name).catch(() => {})"
       @update:selected-item-ids="onChangeSelectedItemIds"
