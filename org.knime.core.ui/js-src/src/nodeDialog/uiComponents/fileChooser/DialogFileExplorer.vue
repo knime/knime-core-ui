@@ -179,8 +179,14 @@ const onOpenFile = async (name: string) => {
   }
 };
 
+// called by FileExplorerTab when apply button is clicked
 defineExpose({
-  openFile: () => onOpenFile(selectedFileName.value),
+  openFile: () =>
+    onOpenFile(
+      props.selectionMode === "file"
+        ? selectedFileName.value
+        : selectedDirectoryName.value,
+    ),
 });
 
 const onChangeSelectedItemIds = (itemIds: string[]) => {
