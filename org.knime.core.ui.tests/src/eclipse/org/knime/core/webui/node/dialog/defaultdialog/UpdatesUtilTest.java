@@ -912,7 +912,7 @@ public class UpdatesUtilTest {
         void testNumberInputProvider() {
             class TestSettings implements DefaultNodeSettings {
 
-                @NumberInputWidget(validationProviders = {MyDynamicMinValidation.class})
+                @NumberInputWidget(validationProvider = MyDynamicMinValidation.class)
                 double m_numberInput = 5;
             }
 

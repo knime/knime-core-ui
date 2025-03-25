@@ -70,23 +70,23 @@ public @interface NumberInputWidget {
     /**
      * Add this field to define validation instructions for the number input. Validation instructions specified should
      * be constant, i.e. the value to validate against does not depend on the context of the node. To validate against a
-     * dynamic value which depends on the context of the node use {@link #validationProviders()}. See
+     * dynamic value which depends on the context of the node use {@link #validationProvider()}. See
      * {@link NumberInputWidgetValidation} for possible validation instructions such as validating the input against a
      * minimum ({@link MinValidation}).
      *
      * @return the validations to apply to the input
      */
-    Class<? extends NumberInputWidgetValidation>[] validations() default {};
+    Class<? extends NumberInputWidgetValidation>[] validation() default {};
 
     /**
      * Add this field to define validation instructions for the number input. Validation instructions specified should
      * be dynamic, i.e. the values to validate against depend on the context of the node. To validate against a constant
-     * value which does not depend on the context of the node use {@link #validations()}. See
+     * value which does not depend on the context of the node use {@link #validation()}. See
      * {@link NumberInputWidgetValidation} for possible validation instructions such as validating the input against a
      * minimum ({@link MinValidation}).
      *
      * @return the providers specifying validations to apply to the input that depend on the context of the node
      */
-    Class<? extends StateProvider<? extends NumberInputWidgetValidation>>[] validationProviders() default {};
+    Class<? extends StateProvider<? extends NumberInputWidgetValidation>>[] validationProvider() default {};
 
 }

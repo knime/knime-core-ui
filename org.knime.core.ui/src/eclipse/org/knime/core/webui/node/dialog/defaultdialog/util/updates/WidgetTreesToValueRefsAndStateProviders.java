@@ -315,8 +315,8 @@ final class WidgetTreesToValueRefsAndStateProviders {
 
     private static List<UiStateProvidersAnnotationSpec<? extends Annotation, ? extends StateProvider>> //
     uiStateProvidersAnnotationSpecs = List.of( //
-        new UiStateProvidersAnnotationSpec<>(NumberInputWidget.class, NumberInputWidget::validationProviders), //
-        new UiStateProvidersAnnotationSpec<>(TextInputWidget.class, TextInputWidget::validationProviders));
+        new UiStateProvidersAnnotationSpec<>(NumberInputWidget.class, NumberInputWidget::validationProvider), //
+        new UiStateProvidersAnnotationSpec<>(TextInputWidget.class, TextInputWidget::validationProvider));
 
     static final List<UiStateProviderSpec> uiStateProviderSpecs = Stream.<UiStateProviderSpec> concat(Stream.concat(//
         uiStateProviderFieldTypeSpecs.stream(), //

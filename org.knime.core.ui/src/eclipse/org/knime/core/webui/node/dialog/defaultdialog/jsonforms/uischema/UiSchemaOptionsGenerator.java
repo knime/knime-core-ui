@@ -553,12 +553,12 @@ final class UiSchemaOptionsGenerator {
             if (textInputWidget.placeholderProvider() != NoopStringProvider.class) {
                 options.put("placeholderProvider", textInputWidget.placeholderProvider().getName());
             }
-            addValidationOptions(options, textInputWidget.validations(), textInputWidget.validationProviders());
+            addValidationOptions(options, textInputWidget.validation(), textInputWidget.validationProvider());
         }
 
         if (annotatedWidgets.contains(NumberInputWidget.class)) {
             final var numberInputWidget = m_node.getAnnotation(NumberInputWidget.class).orElseThrow();
-            addValidationOptions(options, numberInputWidget.validations(), numberInputWidget.validationProviders());
+            addValidationOptions(options, numberInputWidget.validation(), numberInputWidget.validationProvider());
         }
 
         if (m_node instanceof ArrayParentNode<WidgetGroup> arrayWidgetNode) {

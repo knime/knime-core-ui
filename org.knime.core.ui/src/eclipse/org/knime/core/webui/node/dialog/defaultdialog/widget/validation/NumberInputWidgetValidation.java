@@ -107,8 +107,9 @@ public sealed interface NumberInputWidgetValidation extends BuiltinValidation {
 
             @Override
             public double getMin() {
-                return 0.0;
+                return 0;
             }
+
         }
 
         /**
@@ -118,8 +119,26 @@ public sealed interface NumberInputWidgetValidation extends BuiltinValidation {
 
             @Override
             public double getMin() {
-                return 1.0;
+                return 1;
             }
+
+        }
+
+        /**
+         * Validates whether the input is greater than 0.
+         */
+        public static final class IsPositiveDoubleValidation extends MinValidation {
+
+            @Override
+            public double getMin() {
+                return 0;
+            }
+
+            @Override
+            public boolean isExclusive() {
+                return true;
+            }
+
         }
 
     }

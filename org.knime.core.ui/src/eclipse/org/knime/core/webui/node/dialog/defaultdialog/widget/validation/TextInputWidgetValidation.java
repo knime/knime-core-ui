@@ -91,18 +91,31 @@ public sealed interface TextInputWidgetValidation extends BuiltinValidation {
         protected abstract String getPattern();
 
         /**
+         * Validates whether the input is a valid column name, i.e. whether it either is empty or starts and ends with a
+         * non white-space character.
+         */
+        public static final class ColumnNameValidation extends PatternValidation {
+
+            @Override
+            protected String getPattern() {
+                return "^(\\S(.*\\S)?)?$";
+            }
+
+        }
+
+        /**
          * Validates whether the input is not blank, i.e. whether it contains at least one non-space character.
          */
         public static final class IsNotBlankValidation extends PatternValidation {
 
             @Override
             public String getErrorMessage() {
-                return "The field cannot be blank (it must contain at least one non-white-space character).";
+                return "The field cannot be blank (it must contain at least one non-whitespace character).";
             }
 
             @Override
             public String getPattern() {
-                return ".*\\S+.*";
+                return ".*\\S.*";
             }
 
         }
@@ -120,6 +133,22 @@ public sealed interface TextInputWidgetValidation extends BuiltinValidation {
             @Override
             public String getPattern() {
                 return ".+";
+            }
+        }
+
+        /**
+         * Validates whether the input is a single character.
+         */
+        public static final class IsSingleCharacterValidation extends PatternValidation {
+
+            @Override
+            public String getErrorMessage() {
+                return "The string must be a single character.";
+            }
+
+            @Override
+            public String getPattern() {
+                return "^.$";
             }
         }
     }
@@ -147,7 +176,9 @@ public sealed interface TextInputWidgetValidation extends BuiltinValidation {
 
         @Override
         public String getErrorMessage() {
-            return String.format("The string must be at least %d characters long.", getMinLength());
+            final var minLength = getMinLength();
+            return String.format("The string must be at least %d character%s long.", minLength,
+                minLength == 1 ? "" : "s");
         }
 
         protected abstract int getMinLength();
@@ -177,10 +208,23 @@ public sealed interface TextInputWidgetValidation extends BuiltinValidation {
 
         @Override
         public String getErrorMessage() {
-            return String.format("The string must not exceed %d characters.", getMaxLength());
+            final var maxLength = getMaxLength();
+            return String.format("The string must not exceed %d character%s.", maxLength, maxLength == 1 ? "" : "s");
         }
 
         protected abstract int getMaxLength();
+
+        /**
+         * Validates whether the input has at max 1 character.
+         */
+        public static final class HasAtMaxOneCharValidation extends MaxLengthValidation {
+
+            @Override
+            public int getMaxLength() {
+                return 1;
+            }
+
+        }
 
     }
 }

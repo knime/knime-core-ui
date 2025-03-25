@@ -1449,20 +1449,20 @@ class UiSchemaOptionsTest {
             String m_textInputOptional;
 
             @Widget(title = "", description = "")
-            @TextInputWidget(validations = {MinLenValidation.class})
+            @TextInputWidget(validation = MinLenValidation.class)
             String m_minLength;
 
             @Widget(title = "", description = "")
-            @TextInputWidget(validations = {MaxLenValidation.class})
+            @TextInputWidget(validation = MaxLenValidation.class)
             String m_maxLength;
 
             @Widget(title = "", description = "")
-            @TextInputWidget(validations = {CustomPatternValidation.class})
+            @TextInputWidget(validation = CustomPatternValidation.class)
             String m_pattern;
 
             @Widget(title = "", description = "")
             @TextInputWidget(
-                validations = {MinLenValidation.class, MaxLenValidation.class, CustomPatternValidation.class})
+                validation = {MinLenValidation.class, MaxLenValidation.class, CustomPatternValidation.class})
             String m_multipleValidations;
         }
 
@@ -1634,27 +1634,27 @@ class UiSchemaOptionsTest {
         class NumberInputWidgetTestSettings implements DefaultNodeSettings {
 
             @Widget(title = "", description = "")
-            @NumberInputWidget(validations = {CustomStaticMinValidation.class})
+            @NumberInputWidget(validation = CustomStaticMinValidation.class)
             double m_numberInputMin;
 
             @Widget(title = "", description = "")
-            @NumberInputWidget(validations = {CustomStaticMaxValidation.class})
+            @NumberInputWidget(validation = CustomStaticMaxValidation.class)
             int m_numberInputMax;
 
             @Widget(title = "", description = "")
-            @NumberInputWidget(validationProviders = {CustomDynamicMinValidation.class})
+            @NumberInputWidget(validationProvider = CustomDynamicMinValidation.class)
             double m_numberInputMinProvider;
 
             @Widget(title = "", description = "")
-            @NumberInputWidget(validationProviders = {CustomDynamicMaxValidation.class})
+            @NumberInputWidget(validationProvider = CustomDynamicMaxValidation.class)
             int m_numberInputMaxProvider;
 
             @Widget(title = "", description = "")
-            @NumberInputWidget(validations = {IsNonNegativeValidation.class})
+            @NumberInputWidget(validation = IsNonNegativeValidation.class)
             int m_nonNegative;
 
             @Widget(title = "", description = "")
-            @NumberInputWidget(validations = {IsPositiveIntegerValidation.class})
+            @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
             int m_positiveInteger;
         }
 

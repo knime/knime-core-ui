@@ -212,7 +212,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
      * The page size, i.e., number of rows to be displayed.
      */
     @Widget(title = "Page size", description = "Select the amount of rows shown per page")
-    @NumberInputWidget(validations = {IsPositiveIntegerValidation.class})
+    @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
     @Migrate(loadDefaultIfAbsent = true)
     @Layout(ViewSection.class)
     @Effect(predicate = EnablePagination.class, type = EffectType.SHOW)
@@ -330,7 +330,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
      * The custom row height used when m_rowHeightMode is custom
      */
     @Widget(title = "Custom row height", description = "Set the initial height of the rows.")
-    @NumberInputWidget(validations = {RowHeightMinValidation.class, RowHeightMaxValidation.class})
+    @NumberInputWidget(validation = {RowHeightMinValidation.class, RowHeightMaxValidation.class})
     @Layout(ViewSection.class)
     @Migration(CustomRowHeightPersistor.class)
     @Effect(predicate = RowHeightMode.IsCustom.class, type = EffectType.SHOW)
@@ -360,7 +360,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
      */
     @Widget(title = "Maximum auto row height",
         description = "Set the maximum height of the rows while using row height “Auto”.", advanced = true)
-    @NumberInputWidget(validations = {RowHeightMinValidation.class, RowHeightMaxValidation.class})
+    @NumberInputWidget(validation = {RowHeightMinValidation.class, RowHeightMaxValidation.class})
     @Layout(ViewSection.class)
     @Migrate(loadDefaultIfAbsent = true)
     @Effect(predicate = RowHeightMode.IsAuto.class, type = EffectType.SHOW)
