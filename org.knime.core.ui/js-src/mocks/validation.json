@@ -74,11 +74,47 @@
           "elements": [
             {
               "type": "Control",
-              "scope": "#/properties/model/properties/single"
+              "scope": "#/properties/model/properties/single",
+              "options": {
+                "validations": [
+                  {
+                    "id": "minLength",
+                    "parameters": {
+                      "minLength": 1
+                    },
+                    "errorMessage": "Value must have at least 1 character"
+                  }
+                ]
+              }
             },
             {
               "type": "Control",
-              "scope": "#/properties/model/properties/combined"
+              "scope": "#/properties/model/properties/combined",
+              "options": {
+                "validations": [
+                  {
+                    "id": "pattern",
+                    "parameters": {
+                      "pattern": "a.*"
+                    },
+                    "errorMessage": "Value must start with 'a'"
+                  },
+                  {
+                    "id": "minLength",
+                    "parameters": {
+                      "minLength": 1
+                    },
+                    "errorMessage": "Value must have at least 1 character"
+                  },
+                  {
+                    "id": "maxLength",
+                    "parameters": {
+                      "maxLength": 3
+                    },
+                    "errorMessage": "Value must have at most 3 characters"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -88,15 +124,48 @@
           "elements": [
             {
               "type": "Control",
-              "scope": "#/properties/model/properties/withPattern"
+              "scope": "#/properties/model/properties/withPattern",
+              "options": {
+                "validations": [
+                  {
+                    "id": "pattern",
+                    "parameters": {
+                      "pattern": "a.*"
+                    },
+                    "errorMessage": "Value must start with 'a'"
+                  }
+                ]
+              }
             },
             {
               "type": "Control",
-              "scope": "#/properties/model/properties/withMinLength"
+              "scope": "#/properties/model/properties/withMinLength",
+              "options": {
+                "validations": [
+                  {
+                    "id": "minLength",
+                    "parameters": {
+                      "minLength": 2
+                    },
+                    "errorMessage": "Value must have at least 2 characters"
+                  }
+                ]
+              }
             },
             {
               "type": "Control",
-              "scope": "#/properties/model/properties/withMaxLenght"
+              "scope": "#/properties/model/properties/withMaxLenght",
+              "options": {
+                "validations": [
+                  {
+                    "id": "maxLength",
+                    "parameters": {
+                      "maxLength": 4
+                    },
+                    "errorMessage": "Value must have at most 4 characters"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -106,19 +175,63 @@
           "elements": [
             {
               "type": "Control",
-              "scope": "#/properties/model/properties/withMin"
+              "scope": "#/properties/model/properties/withMin",
+              "options": {
+                "validations": [
+                  {
+                    "id": "min",
+                    "parameters": {
+                      "min": 1.5
+                    },
+                    "errorMessage": "Value must be greater than or equal to 1.5"
+                  }
+                ]
+              }
             },
             {
               "type": "Control",
-              "scope": "#/properties/model/properties/withMax"
+              "scope": "#/properties/model/properties/withMax",
+              "options": {
+                "validations": [
+                  {
+                    "id": "max",
+                    "parameters": {
+                      "max": 0.5
+                    },
+                    "errorMessage": "Value must be less than or equal to 0.5"
+                  }
+                ]
+              }
             },
             {
               "type": "Control",
-              "scope": "#/properties/model/properties/withMinInteger"
+              "scope": "#/properties/model/properties/withMinInteger",
+              "options": {
+                "validations": [
+                  {
+                    "id": "min",
+                    "parameters": {
+                      "min": 2
+                    },
+                    "errorMessage": "Value must be greater than or equal to 2"
+                  }
+                ]
+              }
             },
             {
               "type": "Control",
-              "scope": "#/properties/model/properties/withMaxInteger"
+              "scope": "#/properties/model/properties/withMaxInteger",
+              "options": {
+                "validations": [
+                  {
+                    "id": "max",
+                    "parameters": {
+                      "max": 0
+                    },
+                    "errorMessage": "Value must be less than or equal to 0"
+                  }
+                ]
+              }
             }
           ]
         }
