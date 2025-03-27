@@ -94,6 +94,23 @@ import java.lang.annotation.RetentionPolicy;
  * of that section, the section is displayed <u><b>inside each of the elements in addition to outside of it</b></u>.
  * </p>
  *
+ *
+ * <h2>Widget Groups</h2> Using a widget group to encapsulate multiple settings into one field is recommended for better
+ * organization of the code and for deduplication in case the same set of settings is needed in multiple places. There
+ * are two options for defining a layout when it comes to widget groups:
+ * <ul>
+ * <li>The layout within the widget group is "self-contained" (see what this means below), which means that the widget
+ * group will appear as one block in the outer layout.</li>
+ * <li>It is not "self-contained" and the widgets are arranged in the same way as if they were not in a widget group.
+ * This means that, e.g. when such a widget group defines a horizontal layout, and this widget group is used twice in
+ * the settings, only one horizontal layout with settings from both widget groups will be the result.</li>
+ * </ul>
+ * A widget group is considered "self-contained" if it itself can be chosen as the root of the layout (as defined
+ * above). I.e. either none of the widgets have a {@link Layout} annotation or all used {@link Layout Layouts} are
+ * nested types inside the widget group class (or one of its super-classes). Additionally, a widget group loses its
+ * self-contained property if the widget group class is annotated with a {@link Inside} an {@link After} or a
+ * {@link Before} annotation itself.
+ *
  * @see Before
  * @see After
  *

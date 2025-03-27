@@ -48,22 +48,18 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
-import java.lang.annotation.Annotation;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.WidgetTreeToLayoutTree.widgetTreesToLayoutTreeRoot;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -77,7 +73,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * <ol type="1">
  * <li>Create a tree representation of the provided {@link WidgetGroup} classes.</li>
  * <li>Use order annotations (see e.g. {@link After}) and class hierarchies to determine a tree structure (see
- * {@link LayoutTree})</li>
+ * {@link WidgetTreeToLayoutTree})</li>
  * <li>Generate the layout parts starting from the root and add the mapped controls (see
  * {@link LayoutNodesGenerator})</li>
  * </ol>
@@ -126,8 +122,21 @@ public final class JsonFormsUiSchemaUtil {
     static ObjectNode buildUISchema(final Collection<Tree<WidgetGroup>> widgetTrees,
         final Collection<Tree<WidgetGroup>> parentWidgetTrees, final DefaultNodeSettingsContext context
         ){
-        final var layoutSkeleton = resolveLayout(widgetTrees, parentWidgetTrees);
-        return new LayoutNodesGenerator(layoutSkeleton, context).build();
+        final var layoutTreeRoot = widgetTreesToLayoutTreeRoot(widgetTrees);
+        return new LayoutNodesGenerator(layoutTreeRoot, widgetTrees, parentWidgetTrees, context)
+            .build();
+    }
+
+    /**
+     * Resolves a map of default node settings classes to a tree structure representing the layout of the node dialog
+     *
+     * @param settingsClasses the map of settings classes
+     * @return the resolved tree structure
+     */
+    public static TraversableLayoutTreeNode<TreeNode<WidgetGroup>>
+        resolveLayout(final Map<SettingsType, Class<? extends WidgetGroup>> settingsClasses) {
+        final var widgetTrees = constructWidgetTrees(settingsClasses);
+        return widgetTreesToLayoutTreeRoot(widgetTrees);
     }
 
     private static List<Tree<WidgetGroup>>
@@ -137,50 +146,4 @@ public final class JsonFormsUiSchemaUtil {
             .toList();
     }
 
-    /**
-     * Resolves a map of default node settings classes to a tree structure representing the layout of the node dialog
-     *
-     * @param settingsClasses
-     * @return the resolved tree structure
-     */
-    public static LayoutSkeleton resolveLayout(final Map<SettingsType, Class<? extends WidgetGroup>> settingsClasses) {
-        final var widgetTrees = constructWidgetTrees(settingsClasses);
-        return resolveLayout(widgetTrees, List.of());
-    }
-
-    static LayoutSkeleton resolveLayout(final Collection<Tree<WidgetGroup>> widgetTrees,
-        final Collection<Tree<WidgetGroup>> parentWidgetTrees) {
-        final var layoutTreeRoot = widgetTreesToLayoutTreeRoot(widgetTrees);
-        return new LayoutSkeleton(layoutTreeRoot, widgetTrees, parentWidgetTrees);
-    }
-
-    private static LayoutTreeNode widgetTreesToLayoutTreeRoot(final Collection<Tree<WidgetGroup>> widgetTrees) {
-        final Map<Boolean, List<TreeNode<WidgetGroup>>> hasLayoutToWidgets =
-            widgetTrees.stream().flatMap(Tree<WidgetGroup>::getWidgetNodes).filter(node -> !isHidden(node))
-                .collect(Collectors.partitioningBy(node -> node.getAnnotation(Layout.class).isPresent()));
-
-        final Map<Class<?>, List<TreeNode<WidgetGroup>>> layoutPartsToWidgets = hasLayoutToWidgets.get(true).stream()
-            .collect(Collectors.groupingBy(node -> node.getAnnotation(Layout.class).orElseThrow().value()));
-
-        final var widgetsWithoutLayout = hasLayoutToWidgets.get(false);
-        return new LayoutTree(layoutPartsToWidgets, widgetsWithoutLayout).getRootNode();
-    }
-
-    private static final List<Class<? extends Annotation>> VISIBLE_WITHOUT_WIDGET_ANNOTATION =
-        List.of(TextMessage.class);
-
-    private static boolean isHidden(final TreeNode<WidgetGroup> node) {
-        return node.getAnnotation(Widget.class).isEmpty() && VISIBLE_WITHOUT_WIDGET_ANNOTATION.stream()
-            .filter(node.getPossibleAnnotations()::contains).map(node::getAnnotation).allMatch(Optional::isEmpty);
-    }
-
-    /**
-     * @param layoutTreeRoot a tree structure representation of the node dialogs layout. Its leafs represent controls
-     *            and other nodes can be visible layout elements or just structural placeholders.
-     * @param widgetTrees one ore multiple widget trees given by the annotated {@link WidgetGroup WidgetGroups}
-     * @param parentWidgetTrees of the fields of the "outside" layout. With UIEXT-1673 This can be removed again
-     */
-    public static record LayoutSkeleton(LayoutTreeNode layoutTreeRoot, Collection<Tree<WidgetGroup>> widgetTrees,
-        Collection<Tree<WidgetGroup>> parentWidgetTrees) {
-    }
 }

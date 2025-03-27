@@ -56,27 +56,29 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Inside;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 
 /**
  * A tree of layout parts. The tree has the structure that is needed to build a JSON Forms UI Schema from it. Its nodes
  * are {@link LayoutTreeNode}s and correspond to the layout parts classes.
  *
+ * @param <T> The type of a control that is associated with a leaf of this tree
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @author Paul Bärnreuther
  */
-final class LayoutTree {
+final class LayoutTree<T> {
 
-    private final Map<Class<?>, LayoutTreeNode> m_nodes = new HashMap<>();
+    private final Map<Class<?>, LayoutTreeNode<T>> m_nodes = new HashMap<>();
 
-    private final Deque<LayoutTreeNode> m_nodesStack = new ArrayDeque<>();
+    private final Deque<LayoutTreeNode<T>> m_nodesStack = new ArrayDeque<>();
 
-    private final LayoutTreeNode m_rootNode;
+    private final List<LayoutTreeNode<T>> m_roots;
+
+    private List<T> m_nodesWithoutLayout;
 
     /**
      * From the given map, we find an ordered hierarchical structure with controls as leaves. The order of siblings can
@@ -86,8 +88,9 @@ final class LayoutTree {
      * @param layoutClassesToControls mapping the values of {@link Layout} annotations to their widget nodes
      * @param nodesWithoutLayout i.e. nodes without a designated {@link Layout} annotation
      */
-    public LayoutTree(final Map<Class<?>, List<TreeNode<WidgetGroup>>> layoutClassesToControls,
-        final List<TreeNode<WidgetGroup>> nodesWithoutLayout) {
+    LayoutTree(final Map<Class<?>, List<T>> layoutClassesToControls, final List<T> nodesWithoutLayout) {
+
+        m_nodesWithoutLayout = nodesWithoutLayout;
 
         buildTreeFromContentMap(layoutClassesToControls);
 
@@ -95,9 +98,8 @@ final class LayoutTree {
 
         m_nodes.values().forEach(LayoutTreeNode::adaptParentFromPointers);
 
-        m_rootNode = shakeTreeAndFindRoot();
-        m_rootNode.addControls(nodesWithoutLayout);
-        prepareForTraversal(m_rootNode);
+        m_roots = shakeTreeAndFindRoots();
+
     }
 
     /**
@@ -108,15 +110,11 @@ final class LayoutTree {
      *
      * @return The unique root with content or an empty tree node if the tree is empty.
      */
-    private LayoutTreeNode shakeTreeAndFindRoot() {
-        var roots = m_nodes.values().stream().filter(n -> n.isRoot()).filter(LayoutTreeNode::hasContent).toList();
-        if (roots.size() > 1) {
-            throw new UiSchemaGenerationException("Multiple root layout nodes detected", roots);
-        }
-        return roots.stream().findFirst().orElse(new LayoutTreeNode(null));
+    private List<LayoutTreeNode<T>> shakeTreeAndFindRoots() {
+        return m_nodes.values().stream().filter(n -> n.isRoot()).filter(LayoutTreeNode::hasContent).toList();
     }
 
-    private void buildTreeFromContentMap(final Map<Class<?>, List<TreeNode<WidgetGroup>>> layoutClassesToControls) {
+    private void buildTreeFromContentMap(final Map<Class<?>, List<T>> layoutClassesToControls) {
         layoutClassesToControls.entrySet().stream().forEach(e -> constructNodeFromEntry(e.getKey(), e.getValue()));
 
     }
@@ -127,8 +125,7 @@ final class LayoutTree {
      * @param entry
      * @return
      */
-    private LayoutTreeNode constructNodeFromEntry(final Class<?> clazz,
-        final List<TreeNode<WidgetGroup>> widgetTreeNodes) {
+    private LayoutTreeNode<T> constructNodeFromEntry(final Class<?> clazz, final List<T> widgetTreeNodes) {
         var node = getOrConstructNode(clazz);
         node.addControls(widgetTreeNodes);
         return node;
@@ -140,10 +137,10 @@ final class LayoutTree {
      * @param clazz a class corresponding to a layout part
      * @return A node with value clazz
      */
-    private LayoutTreeNode getOrConstructNode(final Class<?> clazz) {
+    private LayoutTreeNode<T> getOrConstructNode(final Class<?> clazz) {
         var node = m_nodes.get(clazz);
         if (node == null) {
-            node = new LayoutTreeNode(clazz);
+            node = new LayoutTreeNode<>(clazz);
             m_nodes.put(clazz, node);
             m_nodesStack.push(node);
             constructParent(node);
@@ -156,7 +153,7 @@ final class LayoutTree {
      *
      * @param node
      */
-    private void constructParent(final LayoutTreeNode node) {
+    private void constructParent(final LayoutTreeNode<T> node) {
         var parentClass = node.getValue().getEnclosingClass();
         if (parentClass == null) {
             return;
@@ -167,12 +164,11 @@ final class LayoutTree {
 
     private void addHorizontalArrows() {
         while (!m_nodesStack.isEmpty()) {
-
             addArrowsAndPointers(m_nodesStack.pop());
         }
     }
 
-    private void addArrowsAndPointers(final LayoutTreeNode node) {
+    private void addArrowsAndPointers(final LayoutTreeNode<T> node) {
         getAnnotations(node, Before.class).forEach(before -> {
             var target = getOrConstructNode(before.value());
             node.addArrowTo(target); // node before target
@@ -189,26 +185,34 @@ final class LayoutTree {
         });
     }
 
-    private static <T extends Annotation> List<T> getAnnotations(final LayoutTreeNode node,
-        final Class<T> annotationsClass) {
+    private static <T, A extends Annotation> List<A> getAnnotations(final LayoutTreeNode<T> node,
+        final Class<A> annotationsClass) {
         return Arrays.asList(node.getValue().getAnnotationsByType(annotationsClass));
     }
 
-    /**
-     * We want to order the children of all nodes in the tree and then keep only those which contain content.
-     */
-    private static void prepareForTraversal(final LayoutTreeNode node) {
-        node.orderChildren();
-        node.filterChildren();
-        node.getChildren().forEach(LayoutTree::prepareForTraversal);
+    boolean hasMultipleRoots() {
+        return m_roots.size() > 1;
+    }
+
+    void assertSingleRoot() throws UiSchemaGenerationException {
+        if (hasMultipleRoots()) {
+            throw new UiSchemaGenerationException("Multiple root layout nodes detected", m_roots);
+        }
     }
 
     /**
+     * Only call this method if {@link #hasMultipleRoots()} returns false or {@link #assertSingleRoot()} has been
+     * called.
      *
      * @return the unique {@link LayoutTreeNode} which is the root of the layout.
      */
-    public LayoutTreeNode getRootNode() {
-        return m_rootNode;
+    TraversableLayoutTreeNode<T> getRootNode() {
+        CheckUtils.checkState(!hasMultipleRoots(),
+            "The tree has multiple roots. Calling this method is not allowed in this case");
+        final var rootNode = m_roots.stream().findFirst().orElseGet(() -> new LayoutTreeNode<>(null));
+        rootNode.addControls(m_nodesWithoutLayout);
+        return rootNode.toTraversable();
+
     }
 
 }

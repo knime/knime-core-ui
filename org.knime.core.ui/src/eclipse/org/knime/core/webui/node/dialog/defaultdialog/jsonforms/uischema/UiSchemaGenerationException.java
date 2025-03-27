@@ -50,7 +50,6 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 /**
  *
@@ -60,23 +59,36 @@ public final class UiSchemaGenerationException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
-    private final transient List<LayoutTreeNode> m_contextNodes;
-
     /**
+     * An exception with associated context nodes.
+     *
      * @param message which will be enriched with using contextNodes if any are provided
      * @param contextNodes the nodes causing this exception
      */
-    public UiSchemaGenerationException(final String message, final LayoutTreeNode... contextNodes) {
+    @SafeVarargs
+    public <T> UiSchemaGenerationException(final String message, final LayoutTreeNode<T>... contextNodes) {
         this(message, Arrays.asList(contextNodes));
     }
 
     /**
+     * An exception with associated context nodes.
+     *
      * @param message which will be enriched with using contextNodes if any are provided
      * @param contextNodes the nodes causing this exception
      */
-    public UiSchemaGenerationException(final String message, final Collection<LayoutTreeNode> contextNodes) {
-        super(message);
-        m_contextNodes = contextNodes.stream().toList();
+    public <T> UiSchemaGenerationException(final String message, final Collection<LayoutTreeNode<T>> contextNodes) {
+        super(constructMessage(message, contextNodes));
+
+    }
+
+    static <T> String constructMessage(final String message, final Collection<LayoutTreeNode<T>> contextNodes) {
+        if (contextNodes.isEmpty()) {
+            return message;
+        }
+        final var treeView = LayoutTreeViewUtil.getTreeView(contextNodes.stream().toList());
+        final var listOfContextNodes = String.join(", ",
+            contextNodes.stream().map(node -> node.getValue().getSimpleName()).toArray(String[]::new));
+        return String.format("%s: %s%n%s", message, listOfContextNodes, treeView);
     }
 
     /**
@@ -85,21 +97,13 @@ public final class UiSchemaGenerationException extends RuntimeException {
      */
     public UiSchemaGenerationException(final String message, final Throwable cause) {
         super(message, cause);
-        m_contextNodes = null;
     }
 
     /**
-     * @return the message of the exception together with a tree view of any attached node
+     * @param message
      */
-    @Override
-    public String getMessage() {
-        if (m_contextNodes == null || m_contextNodes.isEmpty()) {
-            return super.getMessage();
-        }
-        final var treeView = LayoutTreeViewUtil.getTreeView(m_contextNodes);
-        final var listOfContextNodes = String.join(", ",
-            m_contextNodes.stream().map(node -> node.getValue().getSimpleName()).toArray(String[]::new));
-        return String.format("%s: %s\n%s", super.getMessage(), listOfContextNodes, treeView);
+    public UiSchemaGenerationException(final String message) {
+        super(message);
     }
 
 }

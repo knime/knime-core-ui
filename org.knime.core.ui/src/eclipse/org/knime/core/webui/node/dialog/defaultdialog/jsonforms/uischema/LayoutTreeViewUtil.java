@@ -66,11 +66,11 @@ final class LayoutTreeViewUtil {
         // Util
     }
 
-    static String getTreeView(final List<LayoutTreeNode> contextNodes) {
+    static <T> String getTreeView(final List<LayoutTreeNode<T>> contextNodes) {
         return getCommonParent(contextNodes).toString();
     }
 
-    private static LayoutTreeNode getCommonParent(final List<LayoutTreeNode> contextNodes) {
+    private static <T> LayoutTreeNode<T> getCommonParent(final List<LayoutTreeNode<T>> contextNodes) {
         final var firstNode = contextNodes.get(0);
         final var otherNodes = contextNodes.subList(1, contextNodes.size());
         final var otherNodesParentsList = otherNodes.stream().map(LayoutTreeViewUtil::getParents).toList();
@@ -78,15 +78,15 @@ final class LayoutTreeViewUtil {
         return commonParent.orElseGet(() -> createCommonParent(contextNodes));
     }
 
-    private static Set<LayoutTreeNode> getParents(final LayoutTreeNode node) {
+    private static <T> Set<LayoutTreeNode<T>> getParents(final LayoutTreeNode<T> node) {
         if (node.isRoot()) {
             return Set.of(node);
         }
         return Stream.concat(Stream.of(node), getParents(node.getParent()).stream()).collect(Collectors.toSet());
     }
 
-    private static Optional<LayoutTreeNode> getCommonParent(final LayoutTreeNode node,
-        final Collection<Set<LayoutTreeNode>> parentsOfOtherNodes) {
+    private static <T> Optional<LayoutTreeNode<T>> getCommonParent(final LayoutTreeNode<T> node,
+        final Collection<Set<LayoutTreeNode<T>>> parentsOfOtherNodes) {
         if (parentsOfOtherNodes.stream().allMatch(parents -> parents.contains(node))) {
             return Optional.of(node);
         }
@@ -96,8 +96,8 @@ final class LayoutTreeViewUtil {
         return getCommonParent(node.getParent(), parentsOfOtherNodes);
     }
 
-    private static LayoutTreeNode createCommonParent(final List<LayoutTreeNode> contextNodes) {
-        final var artificialCommonParent = new LayoutTreeNode(null);
+    private static <T> LayoutTreeNode<T> createCommonParent(final List<LayoutTreeNode<T>> contextNodes) {
+        final LayoutTreeNode<T> artificialCommonParent = new LayoutTreeNode<>(null);
         artificialCommonParent.getChildren().addAll(contextNodes);
         return artificialCommonParent;
     }

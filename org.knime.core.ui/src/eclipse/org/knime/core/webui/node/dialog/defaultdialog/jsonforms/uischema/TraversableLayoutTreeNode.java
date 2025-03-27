@@ -44,57 +44,31 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 18, 2023 (Paul Bärnreuther): created
+ *   Mar 31, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.layout;
+package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 
 /**
- * An annotation for a layout part to ensure that the annotated element appears <b>nested inside</b> the referenced
- * layout part.
+ * This is the exposed tree structure of the layout of a dialog. It has a set of controls at the current level, which
+ * need to be processed first (i.e. appear first in the dialog) and a collection of children for further traversal.
  *
- * Note that this annotation is not meant to be used on a {@link WidgetGroup} to define where the contained widgets and
- * layouts should be placed. This is possible using a {@link Layout} annotation on the widget group field.
- * <p>
- * Example:
- *
- * <pre>
- * // "Horizontal layout" will be displayed inside "Section 2"
- *
- * interface MyLayout {
- *
- *     &#64;Section(title = "Horizontal layout")
- *     &#64;Inside(AnotherLayout.Section2.class)
- *     interface HorizontalLayout {
- *     }
- * }
- *
- * interface AnotherLayout {
- *
- *     &#64;Section(title = "Section 1")
- *     interface Section1 {
- *     }
- *
- *     &#64;Section(title = "Section 2")
- *     interface Section2 {
- *     }
- * }
- * </pre>
- *
+ * @param controls of type {@link T}
+ * @param children for nested layouts and further traversal
+ * @param layoutClass a class associated to this layout node. If it is non-empty, it might be used to extract layout
+ *            definitions (e.g. being a class annotated by {@link Section})
+ * @param <T> The type of a control that is associated with a leaf of this tree
  * @author Paul Bärnreuther
  */
-@Retention(RUNTIME)
-@Target(TYPE)
-public @interface Inside {
+public record TraversableLayoutTreeNode<T>(List<T> controls, Collection<TraversableLayoutTreeNode<T>> children,
+    Optional<Class<?>> layoutClass) {
 
-    /**
-     * @return the layout part that the annotated layout part should lie inside of
-     */
-    Class<?> value();
-
+    TraversableLayoutTreeNode(final List<T> controls, final Collection<TraversableLayoutTreeNode<T>> children) {
+        this(controls, children, Optional.empty());
+    }
 }
