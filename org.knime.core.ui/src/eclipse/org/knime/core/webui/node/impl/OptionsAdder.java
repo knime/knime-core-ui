@@ -62,6 +62,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.LayoutTreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.WidgetTreeToLayoutTree.IntermediateState;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.WidgetTreeToLayoutTree.IntermediateState.LeafState;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
@@ -107,14 +109,24 @@ final class OptionsAdder {
 
     private static void addOptions(final Consumer<TreeNode<WidgetGroup>> addField,
         final Map<SettingsType, Class<? extends WidgetGroup>> settings) {
-        final var layoutTree = JsonFormsUiSchemaUtil.resolveLayout(settings).layoutTreeRoot();
+        final var layoutTree = JsonFormsUiSchemaUtil.resolveLayout(settings);
         applyToAllLeaves(layoutTree, addField);
     }
 
-    private static void applyToAllLeaves(final LayoutTreeNode layoutTree,
+    private static void applyToAllLeaves(final LayoutTreeNode<IntermediateState.LeafState> layoutTree,
         final Consumer<TreeNode<WidgetGroup>> addField) {
-        layoutTree.getControls().stream().forEach(addField);
+        layoutTree.getControls().stream().forEach(resolveLeafState(addField));
         layoutTree.getChildren().forEach(childNode -> applyToAllLeaves(childNode, addField));
+    }
+
+    private static Consumer<LeafState> resolveLeafState(final Consumer<TreeNode<WidgetGroup>> addField) {
+        return leafState -> {
+            if (leafState instanceof LeafState.TreeNodeState treeNodeState) {
+                addField.accept(treeNodeState.getTreeNode());
+            } else {
+                applyToAllLeaves(((LeafState.LayoutTreeNodeState)leafState).getLayoutTreeNode(), addField);
+            }
+        };
     }
 
     private static void createOption(final TreeNode<WidgetGroup> field, final Element tab,

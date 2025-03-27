@@ -301,4 +301,9 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
         return m_type;
     }
 
+    @Override
+    public String toString() {
+        return String.format("%s at %s", m_type.getSimpleName(), getPath());
+    }
+
 }

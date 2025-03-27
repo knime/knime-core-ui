@@ -58,7 +58,7 @@ import java.util.stream.Stream;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil.LayoutSkeleton;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.WidgetTreeToLayoutTree.IntermediateState.LeafState;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
@@ -74,7 +74,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 final class LayoutNodesGenerator {
 
-    private final LayoutTreeNode m_rootLayoutTree;
+    private final LayoutTreeNode<LeafState> m_layoutTreeRoot;
 
     private final DefaultNodeSettingsContext m_defaultNodeSettingsContext;
 
@@ -85,16 +85,19 @@ final class LayoutNodesGenerator {
     private final UiSchemaRulesGenerator m_rulesGenerator;
 
     /**
-     * @param layout a record containing controls (as a mapping between layout parts and their contained settings
-     *            controls) and a ruleSourcesMap (the mapping between ids of rule sources to their conditions)
+     * @param layoutTreeRoot a record containing controls (as a mapping between layout parts and their contained
+     *            settings controls) and a ruleSourcesMap (the mapping between ids of rule sources to their conditions)
+     * @param widgetTrees one ore multiple widget trees given by the annotated {@link WidgetGroup WidgetGroups}
+     * @param parentWidgetTrees of the fields of the "outside" layout. With UIEXT-1673 This can be removed again
      * @param context the settings creation context with access to the input ports
      * @param asyncChoicesAdder used to start asynchronous computations of choices during the ui-schema generation.
      */
-    LayoutNodesGenerator(final LayoutSkeleton layout, final DefaultNodeSettingsContext context,
-        final AsyncChoicesAdder asyncChoicesAdder) {
-        m_rulesGenerator = new UiSchemaRulesGenerator(layout.widgetTrees(), context);
-        m_allWidgetTrees = Stream.concat(layout.widgetTrees().stream(), layout.parentWidgetTrees().stream()).toList();
-        m_rootLayoutTree = layout.layoutTreeRoot();
+    LayoutNodesGenerator(final LayoutTreeNode<LeafState> layoutTreeRoot,
+        final Collection<Tree<WidgetGroup>> widgetTrees, final Collection<Tree<WidgetGroup>> parentWidgetTrees,
+        final DefaultNodeSettingsContext context, final AsyncChoicesAdder asyncChoicesAdder) {
+        m_rulesGenerator = new UiSchemaRulesGenerator(widgetTrees, context);
+        m_allWidgetTrees = Stream.concat(widgetTrees.stream(), parentWidgetTrees.stream()).toList();
+        m_layoutTreeRoot = layoutTreeRoot;
         m_defaultNodeSettingsContext = context;
         m_asyncChoicesAdder = asyncChoicesAdder;
     }
@@ -105,18 +108,23 @@ final class LayoutNodesGenerator {
 
     ObjectNode build() {
         final var rootNode = JsonFormsUiSchemaUtil.getMapper().createObjectNode();
-        buildLayout(m_rootLayoutTree, rootNode.putArray(TAG_ELEMENTS));
+        buildLayout(m_layoutTreeRoot, rootNode.putArray(TAG_ELEMENTS));
         return rootNode;
     }
 
-    private void buildLayout(final LayoutTreeNode rootNode, final ArrayNode parentNode) {
+    private void buildLayout(final LayoutTreeNode<LeafState> rootNode, final ArrayNode parentNode) {
         final var layoutPart = LayoutPart.determineFromClassAnnotation(rootNode.getValue());
         final var layoutNode = layoutPart.create(parentNode, rootNode.getValue(), m_rulesGenerator);
-        rootNode.getControls().forEach(control -> addControlElement(layoutNode, control));
+        rootNode.getControls().forEach(control -> buildLayoutOrAddControlElement(layoutNode, control));
         rootNode.getChildren().forEach(childLayoutNode -> buildLayout(childLayoutNode, layoutNode));
     }
 
-    private void addControlElement(final ArrayNode root, final TreeNode<WidgetGroup> node) {
+    private void buildLayoutOrAddControlElement(final ArrayNode root, final LeafState leafState) {
+        if (leafState instanceof LeafState.LayoutTreeNodeState ltns) {
+            buildLayout(ltns.getLayoutTreeNode(), root);
+            return;
+        }
+        final var node = ((LeafState.TreeNodeState)leafState).getTreeNode();
         /**
          * Rendering the element checkbox widget of array layout elements is handled via the framework.
          */

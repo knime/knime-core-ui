@@ -57,6 +57,9 @@ import java.lang.annotation.Target;
 /**
  * An annotation for a layout part to ensure that the annotated element appears <b>nested inside</b> the referenced
  * layout part.
+ *
+ * Note that this annotation is not meant to be used on a {@link WidgetGroup} to define where the contained widgets and
+ * layouts should be placed. This is possible using a {@link Layout} annotation on the widget group field.
  * <p>
  * Example:
  *
