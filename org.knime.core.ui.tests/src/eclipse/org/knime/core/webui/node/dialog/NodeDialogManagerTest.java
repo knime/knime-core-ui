@@ -370,7 +370,7 @@ public class NodeDialogManagerTest {
         final var invalidJsonResult = objectMapper.readTree(invalidResult);
         assertThatJson(invalidJsonResult).inPath("$.isApplied").isBoolean().isFalse();
         assertThatJson(invalidJsonResult).inPath("$.error").isString()
-            .isEqualTo("Invalid node settings: validation expected to fail");
+            .isEqualTo(NodeDialogNodeModel.VALIDATION_ERROR_MESSAGE);
     }
 
     /**

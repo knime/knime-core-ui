@@ -880,7 +880,7 @@ public class DefaultNodeDialogTest {
 
             assertFalse(m_nnc.getNodeContainerState().isExecuted()); // i.e. applied
             assertThatJson(response).inPath("$.warningMessages[0]").isString()
-                .contains("overridden settings were applied as underlying settings");
+                .contains("settings overridden by flow variables have been saved as underlying manual settings");
         }
 
         @Test

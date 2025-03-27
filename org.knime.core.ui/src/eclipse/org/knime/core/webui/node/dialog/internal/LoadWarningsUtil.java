@@ -66,7 +66,7 @@ public final class LoadWarningsUtil {
     private static final NodeLogger LOGGER = NodeLogger.getLogger(LoadWarningsUtil.class);
 
     private static void warnWithFormattedMessage(final String baseMessage, final InvalidSettingsException ex) {
-        final var message = String.format("%s%nFirst error: %s.", baseMessage, ex.getMessage());
+        final var message = String.format("%s%nFirst error: %s", baseMessage, ex.getMessage());
         setMessage(message, ex);
     }
 
@@ -77,7 +77,7 @@ public final class LoadWarningsUtil {
 
     @SuppressWarnings("javadoc")
     public static void warnAboutDefaultSettingsBeingUsedInstead(final InvalidSettingsException ex) {
-        warnWithFormattedMessage("The loaded settings are default settings. Loading the saved settings failed.", ex);
+        warnWithFormattedMessage("Loading the saved settings failed. Falling back to default settings.", ex);
     }
 
     private static void setMessage(final String message, final InvalidSettingsException ex) {

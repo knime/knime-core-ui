@@ -140,7 +140,7 @@ public final class SettingsApplier {
         try {
             applySettingsOrThrow(settings);
         } catch (InvalidSettingsException ex) {
-            throw new IOException("Invalid node settings: " + ex.getMessage(), ex);
+            throw new IOException(ex.getMessage(), ex);
         }
     }
 
@@ -270,16 +270,13 @@ public final class SettingsApplier {
         } catch (InvalidSettingsException exForFlowVariables) {
             LOGGER.error(() -> String.format("Could not apply %s for node %s with overwritten settings either.",
                 settingsDescription, nnc.getID()), exForFlowVariables);
-            throw new InvalidSettingsException(
-                String.format("The %s could not be applied since both underlying and overwritten settings are invalid. "
-                    + "Exception for underlying settins: %s", settingsDescription, ex.getMessage()),
-                ex);
-
+            throw new InvalidSettingsException(String.format(
+                "The %s could not be applied since both underlying manual and overwritten flow variable settings are invalid: %s",
+                settingsDescription, ex.getMessage()), ex);
         }
         DataServiceContext.get()
-            .addWarningMessage(String.format("Without the set flow variables, the %s would be invalid. "
-                + "So instead, the overridden %s were applied as underlying %s. " + "Invalid settings exception: %s",
-                settingsDescription, settingsDescription, settingsDescription, ex.getMessage()));
+            .addWarningMessage("The settings overridden by flow variables have been saved as underlying manual settings"
+                + " to prevent an invalid settings exception if flow variables are unset.");
     }
 
     private static Object getSettingsDescription(final SettingsType settingsType) {
