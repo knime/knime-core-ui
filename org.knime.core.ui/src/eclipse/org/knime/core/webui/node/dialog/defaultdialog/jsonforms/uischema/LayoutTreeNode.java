@@ -62,23 +62,22 @@ import java.util.stream.Collectors;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Inside;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 
 /**
  * A representation of a layout part class which is used in {@link LayoutTree} to determine the structure between all
  * layout parts.
  *
  * @author Paul Bärnreuther
+ * @param <T> The type of a control that is associated with a leaf of this tree
  */
-public final class LayoutTreeNode {
+final class LayoutTreeNode<T> {
     private final Class<?> m_value;
 
-    private final Collection<LayoutTreeNode> m_isAfter = new HashSet<>();
+    private final Collection<LayoutTreeNode<T>> m_isAfter = new HashSet<>();
 
-    private final Collection<LayoutTreeNode> m_isBefore = new HashSet<>();
+    private final Collection<LayoutTreeNode<T>> m_isBefore = new HashSet<>();
 
-    private PointsToUpdater m_pointsToUpdater = new PointsToUpdater(new HashSet<>());
+    private PointsToUpdater<T> m_pointsToUpdater = new PointsToUpdater<>(new HashSet<>());
 
     /**
      * A wrapper class for a collection of layout tree nodes which the node points to. When any node pointed to by this
@@ -86,13 +85,13 @@ public final class LayoutTreeNode {
      *
      * @author Paul Bärnreuther
      */
-    private static class PointsToUpdater {
+    private static class PointsToUpdater<T> {
 
-        private Collection<LayoutTreeNode> m_pointers;
+        private Collection<LayoutTreeNode<T>> m_pointers;
 
-        private Collection<PointsToUpdater> m_synced;
+        private Collection<PointsToUpdater<T>> m_synced;
 
-        public PointsToUpdater(final Collection<LayoutTreeNode> value) {
+        public PointsToUpdater(final Collection<LayoutTreeNode<T>> value) {
             m_pointers = value;
             m_synced = new HashSet<>();
         }
@@ -103,7 +102,7 @@ public final class LayoutTreeNode {
          *
          * @param target
          */
-        void syncWith(final LayoutTreeNode target) {
+        void syncWith(final LayoutTreeNode<T> target) {
             var targetPointTo = target.getPointsToUpdater();
 
             // sync for the moment
@@ -115,7 +114,7 @@ public final class LayoutTreeNode {
             targetPointTo.addListener(this);
         }
 
-        private void addListener(final PointsToUpdater targetUpdater) {
+        private void addListener(final PointsToUpdater<T> targetUpdater) {
             m_synced.add(targetUpdater);
         }
 
@@ -124,11 +123,11 @@ public final class LayoutTreeNode {
          *
          * @param target
          */
-        void pointTo(final LayoutTreeNode target) {
+        void pointTo(final LayoutTreeNode<T> target) {
             addNewPointers(List.of(target));
         }
 
-        private void addNewPointers(final Collection<LayoutTreeNode> newValues) {
+        private void addNewPointers(final Collection<LayoutTreeNode<T>> newValues) {
             var valuesSize = m_pointers.size();
             m_pointers.addAll(newValues);
             if (valuesSize < m_pointers.size()) {
@@ -136,19 +135,19 @@ public final class LayoutTreeNode {
             }
         }
 
-        Collection<LayoutTreeNode> get() {
+        Collection<LayoutTreeNode<T>> get() {
             return m_pointers;
         }
 
     }
 
-    private final List<TreeNode<WidgetGroup>> m_controls = new ArrayList<>(0);
+    private final List<T> m_controls = new ArrayList<>(0);
 
-    private Collection<LayoutTreeNode> m_children;
+    private Collection<LayoutTreeNode<T>> m_children;
 
-    private LayoutTreeNode m_parent;
+    private LayoutTreeNode<T> m_parent;
 
-    private Collection<LayoutTreeNode> m_leaves;
+    private Collection<LayoutTreeNode<T>> m_leaves;
 
     LayoutTreeNode(final Class<?> value) {
         m_value = value;
@@ -158,7 +157,7 @@ public final class LayoutTreeNode {
     /**
      * @return the child layout nodes
      */
-    public Collection<LayoutTreeNode> getChildren() {
+    public Collection<LayoutTreeNode<T>> getChildren() {
         return m_children;
     }
 
@@ -170,13 +169,13 @@ public final class LayoutTreeNode {
     }
 
     /**
-     * @return the {@link TreeNode<WidgetGroup>}s that are associated with this layout part
+     * @return the controls that are associated with this layout part
      */
-    public List<TreeNode<WidgetGroup>> getControls() {
+    public List<T> getControls() {
         return m_controls;
     }
 
-    void addControls(final List<TreeNode<WidgetGroup>> controls) {
+    void addControls(final List<T> controls) {
         m_controls.addAll(controls);
     }
 
@@ -186,12 +185,12 @@ public final class LayoutTreeNode {
      *
      * @param inBack the node that comes after this node
      */
-    void addArrowTo(final LayoutTreeNode inBack) {
+    void addArrowTo(final LayoutTreeNode<T> inBack) {
         inBack.m_isAfter.add(this);
         this.m_isBefore.add(inBack);
     }
 
-    LayoutTreeNode getParent() {
+    LayoutTreeNode<T> getParent() {
         return m_parent;
     }
 
@@ -209,7 +208,7 @@ public final class LayoutTreeNode {
         return !getControls().isEmpty() || getChildren().stream().anyMatch(LayoutTreeNode::hasContent);
     }
 
-    private PointsToUpdater getPointsToUpdater() {
+    private PointsToUpdater<T> getPointsToUpdater() {
         return m_pointsToUpdater;
     }
 
@@ -219,7 +218,7 @@ public final class LayoutTreeNode {
      *
      * @param target
      */
-    void pointToAsSibling(final LayoutTreeNode target) {
+    void pointToAsSibling(final LayoutTreeNode<T> target) {
         var areNestSiblings = m_parent != null && target.getParent() == m_parent;
         if (areNestSiblings) {
             getPointsToUpdater().syncWith(target);
@@ -236,8 +235,8 @@ public final class LayoutTreeNode {
         }
     }
 
-    void pointToAsChild(final LayoutTreeNode target) {
-        var fakeSibling = new LayoutTreeNode(target.getValue());
+    void pointToAsChild(final LayoutTreeNode<T> target) {
+        LayoutTreeNode<T> fakeSibling = new LayoutTreeNode<>(target.getValue());
         fakeSibling.setParent(target);
         pointToAsSibling(fakeSibling);
     }
@@ -258,7 +257,7 @@ public final class LayoutTreeNode {
             parent -> pointsToLeaves.stream().filter(LayoutTreeNode::isRoot).forEach(leaf -> leaf.setParent(parent)));
     }
 
-    private Collection<LayoutTreeNode> getPointsToLeaves(final Collection<LayoutTreeNode> alreadyVisitedNodes) {
+    private Collection<LayoutTreeNode<T>> getPointsToLeaves(final Collection<LayoutTreeNode<T>> alreadyVisitedNodes) {
         if (m_leaves != null) {
             return m_leaves;
         }
@@ -267,7 +266,7 @@ public final class LayoutTreeNode {
         }
         alreadyVisitedNodes.add(this);
         var directPointsTo = getPointsToUpdater().get();
-        Collection<LayoutTreeNode> output;
+        Collection<LayoutTreeNode<T>> output;
         if (directPointsTo.isEmpty()) {
             output = Set.of(this);
         } else {
@@ -289,7 +288,7 @@ public final class LayoutTreeNode {
             String.format("Conflicting order annotations for layout part %s", getValue().getSimpleName()), this);
     }
 
-    void setParent(final LayoutTreeNode target) {
+    void setParent(final LayoutTreeNode<T> target) {
         if (m_parent != null) {
             m_parent.getChildren().remove(this);
         }
@@ -299,8 +298,14 @@ public final class LayoutTreeNode {
         }
     }
 
-    void orderChildren() {
-        m_children = sortByTopologicalOrder(m_children);
+    /**
+     * We want to order the children of all nodes in the tree and then keep only those which contain content.
+     */
+    TraversableLayoutTreeNode<T> toTraversable() {
+        final var orderedChildren = sortByTopologicalOrder(m_children);
+        final var filteredOrderedChildren = orderedChildren.stream().filter(LayoutTreeNode::hasContent).toList();
+        final var traversableChildren = filteredOrderedChildren.stream().map(LayoutTreeNode::toTraversable).toList();
+        return new TraversableLayoutTreeNode<>(m_controls, traversableChildren, Optional.ofNullable(m_value));
     }
 
     /**
@@ -312,24 +317,24 @@ public final class LayoutTreeNode {
      * @param nodes
      * @return a new object of sorted nodes.
      */
-    private static List<LayoutTreeNode> sortByTopologicalOrder(final Collection<LayoutTreeNode> nodes) {
-        return new DirectedGraph(nodes).sort();
+    private static <T> List<LayoutTreeNode<T>> sortByTopologicalOrder(final Collection<LayoutTreeNode<T>> nodes) {
+        return new DirectedGraph<>(nodes).sort();
 
     }
 
-    private static class DirectedGraph {
+    private static class DirectedGraph<T> {
 
-        private final Collection<LayoutTreeNode> m_nodes;
+        private final Collection<LayoutTreeNode<T>> m_nodes;
 
         /**
          * @param nodes
          */
-        public DirectedGraph(final Collection<LayoutTreeNode> nodes) {
+        public DirectedGraph(final Collection<LayoutTreeNode<T>> nodes) {
             m_nodes = new HashSet<>(nodes);
         }
 
-        List<LayoutTreeNode> sort() {
-            var sorted = new ArrayList<LayoutTreeNode>();
+        List<LayoutTreeNode<T>> sort() {
+            var sorted = new ArrayList<LayoutTreeNode<T>>();
             while (!m_nodes.isEmpty()) {
                 var nextChild = getNextChild();
                 removeChild(nextChild);
@@ -341,27 +346,20 @@ public final class LayoutTreeNode {
         /**
          * @return the next node without any incoming edges or the alphabetically first of such if there are multiple
          */
-        private LayoutTreeNode getNextChild() {
+        private LayoutTreeNode<T> getNextChild() {
             return m_nodes.stream() //
                 .filter(node -> node.m_isAfter.isEmpty()) //
                 .sorted(Comparator.comparing(node -> node.getValue().getSimpleName())) //
                 .findFirst().orElseThrow(() -> {
-                    throw new UiSchemaGenerationException("Circular ordering of layout parts", m_nodes);
+                    throw new UiSchemaGenerationException("Circular ordering of layout parts",
+                        m_nodes.stream().toArray(LayoutTreeNode<?>[]::new));
                 });
         }
 
-        private void removeChild(final LayoutTreeNode nextChild) {
+        private void removeChild(final LayoutTreeNode<T> nextChild) {
             nextChild.m_isBefore.forEach(o -> o.m_isAfter.remove(nextChild));
             m_nodes.remove(nextChild);
         }
-    }
-
-    /**
-     * Filters the children only keeping children with content but maintaining the order.
-     */
-    void filterChildren() {
-        final var emptyChildren = m_children.stream().filter(child -> !child.hasContent()).toList();
-        emptyChildren.forEach(child -> m_children.remove(child));
     }
 
     @Override
@@ -382,8 +380,7 @@ public final class LayoutTreeNode {
                     e.getValue().stream().map(LayoutTreeNode::getValue).map(Class::getSimpleName).toList()));
             }
         });
-        getControls().stream().map(TreeNode<WidgetGroup>::getPath)
-            .map(path -> String.format("%s| -> %s", indent, String.join(".", path))).forEach(lines::add); // NOSONAR
+        getControls().stream().map(control -> String.format("%s| -> %s", indent, control)).forEach(lines::add); // NOSONAR
         getChildren().stream().map(child -> child.toString(childIndent)).forEach(lines::add); // NOSONAR
 
         return String.join("\n", lines);

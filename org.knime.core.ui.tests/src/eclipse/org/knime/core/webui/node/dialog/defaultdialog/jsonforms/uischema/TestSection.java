@@ -56,8 +56,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
  */
 interface TestLayout {
     @Section(title = "First")
-    interface FirstSection {}
+    interface FirstSection {
+        interface WithinFirstSection {
+        }
+    }
 
     @Section(title = "Second")
-    interface SecondSection {}
+    interface SecondSection {
+    }
 }

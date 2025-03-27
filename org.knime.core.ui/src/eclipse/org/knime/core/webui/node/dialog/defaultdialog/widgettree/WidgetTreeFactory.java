@@ -114,7 +114,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
     );
 
     private static final Collection<ClassAnnotationSpec> POSSIBLE_TREE_CLASS_ANNOTATIONS = List.of( //
-        new ClassAnnotationSpec(Layout.class), //
+        new ClassAnnotationSpec(Layout.class, false), //
         new ClassAnnotationSpec(Effect.class), //
         new ClassAnnotationSpec(Modification.class) //
     );
@@ -191,11 +191,11 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
 
     private void propagateLayoutAndEffectAnnotationsToChildren(final Tree<WidgetGroup> tree) {
         tree.getChildren().forEach(child -> {
-            for (var annotationClass : List.of(Effect.class, Layout.class)) {
-                final var existingAnnotation = tree.getAnnotation(annotationClass);
-                if (existingAnnotation.isPresent()) {
-                    super.performAddAnnotation(child, annotationClass, existingAnnotation.get());
-                }
+            tree.getAnnotation(Effect.class)
+                .ifPresent(effect -> super.performAddAnnotation(child, Effect.class, effect));
+            if (tree.getAnnotation(Layout.class).isEmpty()) {
+                tree.getTypeAnnotation(Layout.class)
+                    .ifPresent(layout -> super.performAddAnnotation(child, Layout.class, layout));
             }
             getWidgetTreeFrom(child).ifPresent(this::propagateLayoutAndEffectAnnotationsToChildren);
         });

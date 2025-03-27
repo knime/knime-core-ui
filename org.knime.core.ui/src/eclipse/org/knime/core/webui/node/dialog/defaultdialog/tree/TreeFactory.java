@@ -173,18 +173,24 @@ public abstract class TreeFactory<S> {
     }
 
     private Tree<S> createTree(final JavaType rootType, final SettingsType settingsType) {
-        final Function<Class<? extends Annotation>, Annotation> getAnnotationFromClass =
-            getAnnotationMethodFromType(rootType);
+        final Function<Class<? extends Annotation>, Annotation> getFieldAnnotationFromClass =
+            getFieldAnnotationMethodFromType(rootType);
         @SuppressWarnings("unchecked")
         final var tree = new Tree<S>(null, settingsType, rootType, (Class<? extends S>)rootType.getRawClass(),
-            getAnnotationFromClass, m_possibleTreeAnnotations, getAnnotationFromClass, m_possibleTreeClassAnnotations,
+            getFieldAnnotationFromClass, m_possibleTreeAnnotations, rootType.getRawClass()::getAnnotation, m_possibleTreeClassAnnotations,
             null);
         populateTree(tree, rootType);
         return tree;
     }
 
-    private static Function<Class<? extends Annotation>, Annotation> getAnnotationMethodFromType(final JavaType type) {
-        return type.getRawClass()::getAnnotation;
+    private Function<Class<? extends Annotation>, Annotation> getFieldAnnotationMethodFromType(final JavaType type) {
+        return annotationClass -> {
+            if (m_possibleTreeClassAnnotationsInterpretedAsFieldAnnotations.contains(annotationClass)) {
+                return type.getRawClass().getAnnotation(annotationClass);
+            }
+            return null;
+        };
+
     }
 
     /**
@@ -377,27 +383,24 @@ public abstract class TreeFactory<S> {
         }
 
         private Tree<S> createIntermediateTree(final Tree<S> parent, final JavaType treeType) {
-            final var getAnnotationFromClass = getAnnotationMethodFromType(treeType);
+            final var getFieldAnnotationFromClass = getFieldAnnotationMethodFromType(treeType);
             @SuppressWarnings("unchecked")
             final var tree =
                 new Tree<S>(parent, parent.getSettingsType(), treeType, (Class<? extends S>)treeType.getRawClass(),
-                    getAnnotationFromFieldOrClass(getAnnotationFromClass), m_possibleTreeAnnotations,
+                    getAnnotationFromFieldOrClass(getFieldAnnotationFromClass), m_possibleTreeAnnotations,
                     treeType.getRawClass()::getAnnotation, m_possibleTreeClassAnnotations, m_underlyingField);
             populateTree(tree, treeType);
             return tree;
         }
 
         private Function<Class<? extends Annotation>, Annotation> getAnnotationFromFieldOrClass(
-            final Function<Class<? extends Annotation>, Annotation> getAnnotationFromClass) {
+            final Function<Class<? extends Annotation>, Annotation> getFieldAnnotationFromClass) {
             return annotationClass -> {
                 final var fieldAnnotation = m_fieldAnnotations.apply(annotationClass);
                 if (fieldAnnotation != null) {
                     return fieldAnnotation;
                 }
-                if (m_possibleTreeClassAnnotationsInterpretedAsFieldAnnotations.contains(annotationClass)) {
-                    return getAnnotationFromClass.apply(annotationClass);
-                }
-                return null;
+                return getFieldAnnotationFromClass.apply(annotationClass);
             };
         }
 
