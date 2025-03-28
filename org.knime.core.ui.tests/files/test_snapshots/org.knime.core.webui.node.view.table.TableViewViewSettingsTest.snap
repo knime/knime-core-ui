@@ -474,12 +474,12 @@
               "isExclusive" : false
             }
           }, {
-            "errorMessage" : "The value must be less than 1000000.",
             "id" : "max",
             "parameters" : {
               "max" : 1000000.0,
               "isExclusive" : false
-            }
+            },
+            "errorMessage" : "The value must not exceed 1000000."
           } ]
         },
         "rule" : {
@@ -506,12 +506,12 @@
               "isExclusive" : false
             }
           }, {
-            "errorMessage" : "The value must be less than 1000000.",
             "id" : "max",
             "parameters" : {
               "max" : 1000000.0,
               "isExclusive" : false
-            }
+            },
+            "errorMessage" : "The value must not exceed 1000000."
           } ]
         },
         "rule" : {

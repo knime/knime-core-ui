@@ -167,7 +167,7 @@ public sealed interface NumberInputWidgetValidation extends BuiltinValidation {
 
         @Override
         public String getErrorMessage() {
-            return String.format(isExclusive() ? "The value must not exceed %s." : "The value must be less than %s.",
+            return String.format(isExclusive() ? "The value must be less than %s." : "The value must not exceed %s.",
                 BigDecimal.valueOf(getMax()).stripTrailingZeros().toPlainString());
         }
 

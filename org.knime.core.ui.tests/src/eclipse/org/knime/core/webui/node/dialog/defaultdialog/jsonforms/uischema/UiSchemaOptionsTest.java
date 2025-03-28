@@ -1676,7 +1676,7 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[1].options.validations[0].parameters.isExclusive").isBoolean()
             .isTrue();
         assertThatJson(response).inPath("$.elements[1].options.validations[0].errorMessage").isString()
-            .isEqualTo("The value must not exceed 42.");
+            .isEqualTo("The value must be less than 42.");
 
         assertThatJson(response).inPath("$.elements[2].scope").isString().contains("numberInputMinProvider");
         assertThatJson(response).inPath("$.elements[2].options.validationProviders[0]").isString()
