@@ -70,6 +70,8 @@ public sealed interface TextInputWidgetValidation extends BuiltinValidation {
      */
     abstract non-sealed class PatternValidation implements TextInputWidgetValidation {
 
+        private static final String COLUMN_NAME_PATTERN = "\\S(.*\\S)?";
+
         @Override
         public final String getId() {
             return "pattern";
@@ -91,20 +93,45 @@ public sealed interface TextInputWidgetValidation extends BuiltinValidation {
         protected abstract String getPattern();
 
         /**
-         * Validates whether the input is a valid column name, i.e. whether it either is empty or starts and ends with a
-         * non white-space character.
+         * Validates whether the input is empty or a valid column name, i.e. whether it starts and ends with a
+         * non-whitespace character. {@link ColumnNameValidationV2Utils} provides a corresponding backend validation
+         * {@link ColumnNameValidationV2Utils#validatePossiblyEmptyColumnName(String)}.
          */
-        public static final class ColumnNameValidation extends PatternValidation {
+        public static final class EmptyOrColumnNameValidation extends PatternValidation {
 
             @Override
             protected String getPattern() {
-                return "^(\\S(.*\\S)?)?$";
+                return String.format("(%s)?", COLUMN_NAME_PATTERN);
+            }
+
+            @Override
+            public String getErrorMessage() {
+                return "The string must either be empty or start and end with a non-whitespace character.";
             }
 
         }
 
         /**
-         * Validates whether the input is not blank, i.e. whether it contains at least one non-space character.
+         * Validates whether the input is a valid column name, i.e. whether it starts and ends with a non-whitespace
+         * character. {@link ColumnNameValidationV2Utils} provides a corresponding backend validation
+         * {@link ColumnNameValidationV2Utils#validateColumnName(String)}.
+         */
+        public static final class ColumnNameValidationV2 extends PatternValidation {
+
+            @Override
+            protected String getPattern() {
+                return COLUMN_NAME_PATTERN;
+            }
+
+            @Override
+            public String getErrorMessage() {
+                return "The string must start and end with a non-whitespace character.";
+            }
+
+        }
+
+        /**
+         * Validates whether the input is not blank, i.e. whether it contains at least one non-whitespace character.
          */
         public static final class IsNotBlankValidation extends PatternValidation {
 
