@@ -85,7 +85,7 @@ public interface FlowVariableChoicesProvider extends TypedStringChoicesProvider 
      */
     default List<FlowVariable> flowVariableChoices(final DefaultNodeSettingsContext context) {
         throw new IllegalStateException("At least one method must be implemented: "
-            + "FlowVariableChoicesProvider.columnChoices or FlowVariableChoicesProvider.computeState");
+            + "FlowVariableChoicesProvider.flowVariableChoices or FlowVariableChoicesProvider.computeState");
     }
 
     @Override
