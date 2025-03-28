@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog;
 import static java.util.stream.Collectors.joining;
 import static org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMapUtil.map;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -59,7 +60,11 @@ import java.util.stream.IntStream;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
+import org.knime.core.node.workflow.ICredentials;
+import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.node.workflow.VariableType;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier;
@@ -71,6 +76,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFacto
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Default implementation of a KaiNodeInterface for nodes that use {@link DefaultNodeSettings}.
@@ -156,12 +162,23 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
 
     private static String stringify(final PortObjectSpec[] specs) {
         var nc = NodeContext.getContext().getNodeContainer();
-        return IntStream.range(1, nc.getNrInPorts())//
-            .mapToObj(i -> stringify(nc.getInPort(i).getPortType(), specs[i - 1]))//
+        String inputs = IntStream.range(1, nc.getNrInPorts())//
+            .mapToObj(i -> stringify(nc.getInPort(i).getPortType(), specs[i - 1], nc))//
             .collect(joining("\n"));
+
+        boolean hasFlowVarSpec = Arrays.stream(specs)
+                .anyMatch(spec -> spec instanceof FlowVariablePortObjectSpec);
+
+        if (hasFlowVarSpec) {
+            inputs += "\n\n# Flow Variables\n\n" + getFlowVariables(nc).toPrettyString();
+        }
+
+        return inputs;
+
     }
 
-    private static String stringify(final PortType portType, final PortObjectSpec spec) {
+    private static String stringify(final PortType portType, final PortObjectSpec spec, final NodeContainer nc) {
+
         if (spec instanceof DataTableSpec tableSpec) {
             return tableSpec.stream()//
                 .map(c -> "(%s, %s)".formatted(c.getName(), c.getType().getName()))//
@@ -171,6 +188,64 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
         return portType.getName();
 
     }
+
+    /**
+     * Returns a JSON representation of the flow variables from the given NodeContainer.
+     * <p>
+     * Schema of the returned JSON:
+     * <pre>
+     * {
+     *   "flow_variables": [
+     *     {
+     *       "name": "string",
+     *       "type": "string",
+     *       "value": "string"
+     *       // For CredentialsType variables:
+     *       "value": {"username": "placeholder", "password": "***"},
+     *     },
+     *     ...
+     *   ]
+     * }
+     * </pre>
+     *
+     * @param nc the NodeContainer holding flow variable information
+     * @return a JSON representation of the flow variables
+     */
+    static JsonNode getFlowVariables(final NodeContainer nc) {
+
+        var jsonNode = JsonFormsDataUtil.getMapper().createObjectNode();
+        var flowVariables = jsonNode.putArray("flow_variables");
+
+        // implicit flow variable output port that contains all the flow variables
+        var variableOutport = nc.getOutPort(0);
+
+        if (variableOutport.getFlowObjectStack() != null) {
+            try {
+                var flowVarStack = variableOutport.getFlowObjectStack();
+                var allFlowVariables = flowVarStack.getAllAvailableFlowVariables();
+                allFlowVariables.values().stream()
+                    .filter(var -> !"GLOBAL".equalsIgnoreCase(var.getScope().toString()))
+                    .forEach(var -> {
+                        var varJson = flowVariables.addObject();
+                        varJson.put("name", var.getName());
+                        varJson.put("type", var.getVariableType().toString());
+
+                        if (VariableType.CredentialsType.INSTANCE.equals(var.getVariableType())) {
+                            ICredentials credentials = var.getValue(VariableType.CredentialsType.INSTANCE);
+                            var valueNode = varJson.putObject("value");
+                            valueNode.put("username", credentials.getLogin());
+                            valueNode.put("password", "***");
+                        } else {
+                            varJson.put("value", var.getValueAsString());
+                        }
+                    });
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                throw new IllegalStateException("Failed to retrieve the flow variables.", ex);
+            }
+        }
+      return jsonNode;
+  }
 
     @Override
     public Set<SettingsType> getSettingsTypes() {
