@@ -59,7 +59,11 @@ import java.util.stream.IntStream;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.core.node.workflow.FlowObjectStack;
+import org.knime.core.node.workflow.ICredentials;
+import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.node.workflow.VariableType;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier;
@@ -71,6 +75,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFacto
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Default implementation of a KaiNodeInterface for nodes that use {@link DefaultNodeSettings}.
@@ -156,12 +161,19 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
 
     private static String stringify(final PortObjectSpec[] specs) {
         var nc = NodeContext.getContext().getNodeContainer();
-        return IntStream.range(1, nc.getNrInPorts())//
+        final var flowObjectStack = getInputFlowObjectStack(nc);
+        String inputs = IntStream.range(1, nc.getNrInPorts())//
             .mapToObj(i -> stringify(nc.getInPort(i).getPortType(), specs[i - 1]))//
             .collect(joining("\n"));
+
+        inputs += "\n\n# Flow Variables\n\n" + writeFlowVarsAsJson(flowObjectStack).toPrettyString();
+
+        return inputs;
+
     }
 
     private static String stringify(final PortType portType, final PortObjectSpec spec) {
+
         if (spec instanceof DataTableSpec tableSpec) {
             return tableSpec.stream()//
                 .map(c -> "(%s, %s)".formatted(c.getName(), c.getType().getName()))//
@@ -170,6 +182,125 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
 
         return portType.getName();
 
+    }
+
+    /**
+     * Returns a JSON representation of the flow variables from the given {@link NodeContainer}.
+     * <p>
+     * Schema of the returned JSON:
+     *
+     * <pre>
+     * type: object
+     * properties:
+     *     flow_variables:
+     *         type: array
+     *         items:
+     *             type: object
+     *             properties:
+     *                 name:
+     *                     type: string
+     *                 type:
+     *                     type: string
+     *                 value:
+     *                     oneOf:
+     *                         - type: string
+     *                         - type: object
+     *                           properties:
+     *                               username:
+     *                                   type: string
+     *                               password:
+     *                                   type: string
+     * </pre>
+     *
+     * @param flowObjectStack the {@link NodeContainer} holding flow variable information
+     * @return a {@link JsonNode} representing the flow variables
+     * @throws IllegalArgumentException if the provided {@code NodeContainer} is {@code null}
+     */
+    static JsonNode writeFlowVarsAsJson(final FlowObjectStack flowObjectStack) {
+        final var jsonNode = JsonFormsDataUtil.getMapper().createObjectNode();
+
+        if (flowObjectStack == null) {
+            return jsonNode;
+        }
+        
+        final var flowVariables = jsonNode.putArray("flow_variables");
+        final var allFlowVariables = flowObjectStack.getAllAvailableFlowVariables();
+        allFlowVariables.values().stream().forEach(flowVar -> {
+            final var varJson = flowVariables.addObject();
+            varJson.put("name", flowVar.getName());
+            varJson.put("type", flowVar.getVariableType().toString());
+            if (VariableType.CredentialsType.INSTANCE.equals(flowVar.getVariableType())) {
+                final ICredentials credentials = flowVar.getValue(VariableType.CredentialsType.INSTANCE);
+                final var valueNode = varJson.putObject("value");
+                valueNode.put("username", credentials.getLogin());
+                valueNode.put("password", "***");
+            } else {
+                varJson.put("value", flowVar.getValueAsString());
+            }
+        });
+
+        return jsonNode;
+    }
+
+
+    /**
+     * Extracts and serializes the input flow variables of the given {@link NodeContainer}
+     * into a JSON representation.
+     * <p>
+     * This method retrieves the {@link FlowObjectStack} representing input flow variables
+     * from the specified {@code NodeContainer} and converts it to a JSON object following
+     * the same schema as {@link #writeFlowVarsAsJson(FlowObjectStack)}.
+     *
+     * @param nc the {@link NodeContainer} from which to extract input flow variables
+     * @return a {@link JsonNode} containing the serialized input flow variables
+     * @throws IllegalArgumentException if the {@code NodeContainer} is {@code null}
+     */
+    @SuppressWarnings("javadoc")
+    public static JsonNode writeInputFlowVarsAsJson(final NodeContainer nc) {
+        final var inputFlowObjectStack = getInputFlowObjectStack(nc);
+        return writeFlowVarsAsJson(inputFlowObjectStack);
+    }
+
+
+    /**
+     * Extracts and serializes the output flow variables of the given {@link NodeContainer}
+     * into a JSON representation.
+     * <p>
+     * This method retrieves the {@link FlowObjectStack} representing output flow variables
+     * from the specified {@code NodeContainer} and converts it to a JSON object following
+     * the same schema as {@link #writeFlowVarsAsJson(FlowObjectStack)}.
+     *
+     * @param nc the {@link NodeContainer} from which to extract output flow variables
+     * @return a {@link JsonNode} containing the serialized output flow variables
+     * @throws IllegalArgumentException if the {@code NodeContainer} is {@code null}
+     */
+    @SuppressWarnings("javadoc")
+    public static JsonNode writeOutputFlowVarsAsJson(final NodeContainer nc) {
+        final var outputFlowObjectStack = getOutputFlowObjectStack(nc);
+        return writeFlowVarsAsJson(outputFlowObjectStack);
+    }
+
+
+    /**
+     * Retrieves the {@link FlowObjectStack} from the implicit flow variable output port (index 0)
+     * of the given {@link NodeContainer}. Implicit flow variable output port contains all flow variables
+     * (also the ones pushed by the node).
+     *
+     * @param nc the {@link NodeContainer} instance from which to get the output port's flow object stack
+     * @return the {@link FlowObjectStack} associated with the first output port of the given {@link NodeContainer}
+     */
+    private static FlowObjectStack getOutputFlowObjectStack(final NodeContainer nc) {
+        return nc.getOutPort(0).getFlowObjectStack();
+    }
+
+    /**
+     * Retrieves the {@link FlowObjectStack} directly associated with the given {@link NodeContainer}.
+     *
+     * @param nc the {@link NodeContainer} instance from which to get the input flow object stack
+     * @return the {@link FlowObjectStack} directly associated with the given {@link NodeContainer}
+     */
+    private static FlowObjectStack getInputFlowObjectStack(final NodeContainer nc) {
+        return nc.getFlowObjectStack();
     }
 
     @Override
