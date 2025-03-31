@@ -362,8 +362,10 @@ public final class PageResourceManager<N extends NodeWrapper> {
         if (segments == null) {
             return null;
         }
-        assert segments.pathPrefix().startsWith("uiext-" + m_pageType.toString())
-            || segments.pathPrefix().equals("uiext");
+        if (!(segments.pathPrefix().startsWith("uiext-" + m_pageType.toString())
+            || segments.pathPrefix().equals("uiext"))) {
+            return null;
+        }
         var page = m_pageCache.getPage(segments.pageId());
         return page == null ? null : Pair.create(page, segments.relativePagePath());
     }
