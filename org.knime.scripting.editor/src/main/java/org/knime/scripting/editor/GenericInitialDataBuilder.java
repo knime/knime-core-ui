@@ -52,7 +52,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.scripting.editor.ai.HubConnection;
 
 /**
  * A generic initial data service for the scripting editor, accessed on the frontend via the scripting editor's
@@ -99,8 +98,8 @@ public final class GenericInitialDataBuilder {
     }
 
     /**
-     * Create a default initial data service for a scripting editor. Includes: settings, input port configs,
-     * and K-AI-related configuration: hubId, isLoggedIntoHub, isKaiEnabled.
+     * Create a default initial data service for a scripting editor. Includes: settings, input port configs, and
+     * K-AI-related configuration: hubId, isLoggedIntoHub, isKaiEnabled.
      *
      * @param context the node context, used for getting the port configs
      * @return a new initial data service, which can be extended to include additional data suppliers
@@ -151,9 +150,11 @@ public final class GenericInitialDataBuilder {
         return () -> {
             Map<String, Object> result = new HashMap<>();
 
-            result.put("hubId", HubConnection.INSTANCE.isAvailable() ? HubConnection.INSTANCE.getHubId() : null);
-            result.put("loggedIntoHub", HubConnection.INSTANCE.isAvailable() && HubConnection.INSTANCE.isLoggedIn());
-            result.put("isKaiEnabled", HubConnection.INSTANCE.isAvailable() && HubConnection.INSTANCE.isKaiEnabled());
+            var kaiHandler = CodeKaiHandlerDependency.getCodeKaiHandler();
+            var projectId = CodeKaiHandlerDependency.getProjectId();
+            result.put("hubId", kaiHandler.map(h -> h.getHubId()).orElse(null));
+            result.put("loggedIntoHub", kaiHandler.map(h -> h.isLoggedIn(projectId)).orElse(false));
+            result.put("isKaiEnabled", kaiHandler.map(h -> h.isKaiEnabled()).orElse(false));
 
             return result;
         };
