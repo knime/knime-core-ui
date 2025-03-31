@@ -13,7 +13,6 @@ Require-Bundle: org.knime.core;bundle-version="[5.5.0,6.0.0)",
  com.fasterxml.jackson.core.jackson-annotations;bundle-version="2.13.2",
  com.fasterxml.jackson.core.jackson-core;bundle-version="2.13.2",
  com.fasterxml.jackson.core.jackson-databind;bundle-version="2.13.2",
- org.knime.scripting.editor.ai;bundle-version="[5.5.0,6.0.0)",
  org.knime.gateway.api;bundle-version="[5.5.0,6.0.0)",
  org.knime.gateway.impl;bundle-version="[5.5.0,6.0.0)"
 Bundle-ClassPath: knime-scripting-editor.jar
