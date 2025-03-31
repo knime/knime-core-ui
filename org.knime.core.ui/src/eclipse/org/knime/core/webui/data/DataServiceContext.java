@@ -112,6 +112,7 @@ public final class DataServiceContext {
      *
      * @param execSupplier
      * @param specsSupplier
+     * @param dependencies
      */
     static void initForTesting(final CachingSupplier<ExecutionContext> execSupplier,
         final CachingSupplier<PortObjectSpec[]> specsSupplier) {
@@ -173,6 +174,19 @@ public final class DataServiceContext {
             return m_specsSupplier.get();
         }
         throw new IllegalStateException("No spec supplier has been initialized within the data service context.");
+    }
+
+    /**
+     * Get the implementation of an additional dependency.
+     *
+     * @param <T> the type of the dependency interface
+     * @param clazz the class of the dependency interface
+     * @return an implementation of the dependency or <code>null</code> if there is no implementation of the dependency
+     *         in the current context
+     */
+    @SuppressWarnings("static-method") // non-static to be consistent with the other methods
+    public <T> T getOtherDependency(final Class<T> clazz) {
+        return DataServiceDependencies.getDependency(clazz);
     }
 
     /**
