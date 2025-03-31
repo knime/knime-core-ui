@@ -155,10 +155,10 @@ public final class DataServiceManager<N extends NodeWrapper> {
      * @return the data service response
      * @throws IllegalStateException if there is no text data service
      */
-    public String callRpcDataService(final N nodeWrapper, final String request) {
+    public String callRpcDataService(final N nodeWrapper, final String request, final Map<Class<?>, Object> dependencies) {
         var service = getRpcDataService(nodeWrapper).filter(RpcDataService.class::isInstance).orElse(null);
         if (service != null) {
-            return service.handleRpcRequest(request);
+            return service.handleRpcRequest(request, dependencies);
         } else {
             throw new IllegalStateException("No rpc data service available");
         }

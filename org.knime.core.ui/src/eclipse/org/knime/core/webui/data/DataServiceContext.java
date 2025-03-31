@@ -50,6 +50,7 @@ package org.knime.core.webui.data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
@@ -88,22 +89,22 @@ public final class DataServiceContext {
         }
     }
 
-    static void init(final NodeContainer nc) {
+    static void init(final NodeContainer nc, final Map<Class<?>, Object> dependencies) {
         if (nc instanceof SingleNodeContainer snc) {
             final var inputSpecsSupplier =
                 new CachingSupplier<>(() -> InputPortUtil.getInputSpecsExcludingVariablePort(nc));
-            init(new CachingSupplier<>(snc::createExecutionContext), inputSpecsSupplier);
+            init(new CachingSupplier<>(snc::createExecutionContext), inputSpecsSupplier, dependencies);
         } else {
-            init(null, null);
+            init(null, null, dependencies);
         }
     }
 
     static void init(final CachingSupplier<ExecutionContext> execSupplier,
-        final CachingSupplier<PortObjectSpec[]> specsSupplier) {
+        final CachingSupplier<PortObjectSpec[]> specsSupplier, final Map<Class<?>, Object> dependencies) {
         if (CONTEXT.get() != null && !allowOverwrite) {
             return;
         }
-        CONTEXT.set(new DataServiceContext(execSupplier, specsSupplier));
+        CONTEXT.set(new DataServiceContext(execSupplier, specsSupplier, dependencies));
     }
 
     /**
@@ -112,11 +113,12 @@ public final class DataServiceContext {
      *
      * @param execSupplier
      * @param specsSupplier
+     * @param dependencies
      */
     static void initForTesting(final CachingSupplier<ExecutionContext> execSupplier,
-        final CachingSupplier<PortObjectSpec[]> specsSupplier) {
+        final CachingSupplier<PortObjectSpec[]> specsSupplier, final Map<Class<?>, Object> dependencies) {
         allowOverwrite = false;
-        CONTEXT.set(new DataServiceContext(execSupplier, specsSupplier));
+        CONTEXT.set(new DataServiceContext(execSupplier, specsSupplier, dependencies));
     }
 
     private final List<String> m_warningMessages = new ArrayList<>();
@@ -125,10 +127,13 @@ public final class DataServiceContext {
 
     private final CachingSupplier<PortObjectSpec[]> m_specsSupplier;
 
+    private final Map<Class<?>, Object> m_dependencies;
+
     private DataServiceContext(final CachingSupplier<ExecutionContext> execSupplier,
-        final CachingSupplier<PortObjectSpec[]> specsSupplier) {
+        final CachingSupplier<PortObjectSpec[]> specsSupplier, final Map<Class<?>, Object> dependencies) {
         m_execSupplier = execSupplier;
         m_specsSupplier = specsSupplier;
+        m_dependencies = dependencies;
     }
 
     /**
@@ -173,6 +178,21 @@ public final class DataServiceContext {
             return m_specsSupplier.get();
         }
         throw new IllegalStateException("No spec supplier has been initialized within the data service context.");
+    }
+
+    /**
+     * Get the implementation of an additional dependency.
+     *
+     * @param <T> the type of the dependency interface
+     * @param clazz the class of the dependency interface
+     * @return an implementation of the dependency or <code>null</code> if there is no implementation of the dependency
+     *         in the current context
+     */
+    // TODO(martin) instead of using a Map we could use `interface DepProvider { T get(Class<T> clazz); }`
+    @SuppressWarnings("unchecked")
+    public <T> T getOtherDependency(final Class<T> clazz) {
+        // TODO noreference or something?
+        return (T)m_dependencies.get(clazz);
     }
 
     /**

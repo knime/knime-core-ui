@@ -53,6 +53,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -83,7 +84,7 @@ public class DataServiceContextTest {
 
     @Test
     void testDataServiceContext() throws IOException, CanceledExecutionException {
-        DataServiceContext.init((NativeNodeContainer)null);
+        DataServiceContext.init((NativeNodeContainer)null, Map.of());
         var dataServiceContext = DataServiceContext.get();
         assertThat(dataServiceContext).isNotNull();
         dataServiceContext.addWarningMessage("warning 1");
@@ -98,7 +99,7 @@ public class DataServiceContextTest {
         var nnc = WorkflowManagerUtil.createAndAddNode(m_wfm, new NodeViewNodeFactory(m -> createNodeView()));
 
         // test data service initialized with a node
-        DataServiceContext.init(nnc);
+        DataServiceContext.init(nnc, Map.of());
         var dataServiceContext2 = DataServiceContext.get();
         assertThat(dataServiceContext2).isNotNull();
         assertThat(dataServiceContext2.getExecutionContext()).isNotNull();
@@ -109,9 +110,11 @@ public class DataServiceContextTest {
             NodeViewManager.getInstance().getDataServiceManager().callInitialDataService(NodeWrapper.of(nnc));
         assertThat(InitialDataServiceTestUtil.parseResult(initialData, true)).isEqualTo("initial data");
         var rpcData = NodeViewManager.getInstance().getDataServiceManager().callRpcDataService(NodeWrapper.of(nnc),
-            RpcDataService.jsonRpcRequest("method"));
+            RpcDataService.jsonRpcRequest("method"), Map.of());
         assertThat(rpcData).isEqualTo("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":\"rpc data\"}\n");
     }
+
+    // TODO add test for passing the dependencies
 
     private static NodeView createNodeView() {
         Supplier<String> initialDataSupplier = () -> {
@@ -154,11 +157,13 @@ public class DataServiceContextTest {
      *
      * @param execSupplier
      * @param inputSpecsSupplier
+     * @param dependencies
      */
     public static void initDataServiceContext(final Supplier<ExecutionContext> execSupplier,
-        final Supplier<PortObjectSpec[]> inputSpecsSupplier) {
+        final Supplier<PortObjectSpec[]> inputSpecsSupplier, final Map<Class<?>, Object> dependencies) {
         DataServiceContext.initForTesting(execSupplier == null ? null : new CachingSupplier<>(execSupplier),
-            inputSpecsSupplier == null ? null : new CachingSupplier<>(inputSpecsSupplier));
+            inputSpecsSupplier == null ? null : new CachingSupplier<>(inputSpecsSupplier),
+            dependencies == null ? Map.of() : dependencies);
     }
 
     /**

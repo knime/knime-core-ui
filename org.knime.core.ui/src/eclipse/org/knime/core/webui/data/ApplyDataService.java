@@ -49,6 +49,7 @@
 package org.knime.core.webui.data;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -142,7 +143,7 @@ public final class ApplyDataService<D> extends AbstractDataService {
     private JsonNode applyDataAndListWarningsAndErrors(final String dataString) {
         if (m_nc != null) {
             NodeContext.pushContext(m_nc);
-            DataServiceContext.init(m_nc);
+            DataServiceContext.init(m_nc, Map.of()); // TODO add dependencies here
         }
         final var mapper = ObjectMapperUtil.getInstance().getObjectMapper();
         final var root = mapper.createObjectNode();

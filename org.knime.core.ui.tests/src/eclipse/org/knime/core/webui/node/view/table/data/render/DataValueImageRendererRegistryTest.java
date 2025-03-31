@@ -79,7 +79,7 @@ public class DataValueImageRendererRegistryTest {
 
     @BeforeEach
     void initDataServiceContext() {
-        DataServiceContextTest.initDataServiceContext(() -> TableTestUtil.getExec(), null);
+        DataServiceContextTest.initDataServiceContext(() -> TableTestUtil.getExec(), null, null);
     }
 
     @AfterEach

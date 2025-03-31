@@ -58,6 +58,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -405,7 +406,7 @@ public class NodeViewManagerTest {
 
         private static void assertRpcDataServiceCall(final DataServiceManager<NodeWrapper> dataServiceManager,
             final NodeWrapper nc, final String param, final int expectedNumberOfCalls) {
-            assertThat(dataServiceManager.callRpcDataService(nc, RpcDataService.jsonRpcRequest("method", param)))
+            assertThat(dataServiceManager.callRpcDataService(nc, RpcDataService.jsonRpcRequest("method", param), Map.of()))
                 .contains(
                     String.format("\"result\":\"%s\"", TestService.methodWithNumber(param, expectedNumberOfCalls)));
         }

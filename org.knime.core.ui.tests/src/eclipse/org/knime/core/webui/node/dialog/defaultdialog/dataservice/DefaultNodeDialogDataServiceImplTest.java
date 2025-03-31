@@ -107,7 +107,7 @@ class DefaultNodeDialogDataServiceImplTest {
 
     @BeforeAll
     static void initDataServiceContext() {
-        DataServiceContextTest.initDataServiceContext(null, () -> PORT_OBJECT_SPECS);
+        DataServiceContextTest.initDataServiceContext(null, () -> PORT_OBJECT_SPECS, null);
     }
 
     @AfterAll
