@@ -48,6 +48,9 @@
  */
 package org.knime.scripting.editor;
 
+import static org.knime.scripting.editor.CodeKaiHandlerDependency.getCodeKaiHandler;
+import static org.knime.scripting.editor.CodeKaiHandlerDependency.getProjectId;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
@@ -65,7 +68,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.VariableType;
-import org.knime.scripting.editor.ai.HubConnection;
+import org.knime.gateway.impl.webui.kai.CodeKaiHandler;
 import org.knime.scripting.editor.lsp.LanguageServerProxy;
 
 /**
@@ -276,8 +279,9 @@ public abstract class ScriptingService {
          * The login status will be sent to JS as event with identifier "hubLogin".
          */
         public void loginToHub() {
+            var codeKaiHandler = getCodeKaiHandler().orElseThrow();
             new Thread(() -> {
-                boolean status = HubConnection.INSTANCE.loginToHub();
+                boolean status = codeKaiHandler.loginToHub();
                 sendEvent("hubLogin", status);
             }).start();
         }
@@ -293,10 +297,14 @@ public abstract class ScriptingService {
          */
         public void suggestCode(final String userPrompt, final String currentCode,
             final InputOutputModel[] inputOutputModel) {
+            var kaiHandler = getCodeKaiHandler().orElseThrow(() -> new IllegalStateException(
+                "Triggered code suggestion but K-AI is not available. This is an implementation error."));
+            var projectId = getProjectId();
             var executorService = getExecutorService();
+            var request = getCodeSuggestionRequest(userPrompt, currentCode, inputOutputModel);
             m_lastCodeSuggestion = executorService.submit(() -> {
                 try {
-                    var response = getCodeSuggestion(userPrompt, currentCode, inputOutputModel);
+                    var response = kaiHandler.sendRequest(projectId, request.endpointPath(), request.body());
                     if (Thread.interrupted()) {
                         // Code suggestion cancelled - the event was already sent by the abortSuggestCodeRequest function
                         return;
@@ -318,10 +326,9 @@ public abstract class ScriptingService {
          * @param currentCode The current code
          * @param inputModels The inputs of the editor for which the code suggestion is requested
          * @return suggested code
-         * @throws IOException
          */
-        protected abstract String getCodeSuggestion(final String userPrompt, final String currentCode,
-            final InputOutputModel[] inputModels) throws IOException;
+        protected abstract CodeGenerationRequest getCodeSuggestionRequest(final String userPrompt,
+            final String currentCode, final InputOutputModel[] inputModels);
 
         /**
          * Interrupt currently running suggest code thread and ignore request response
@@ -339,21 +346,22 @@ public abstract class ScriptingService {
          * @return whether all K-AI-related features are enabled
          */
         public boolean isKaiEnabled() {
-            return HubConnection.INSTANCE.isKaiEnabled();
+            return getCodeKaiHandler().map(CodeKaiHandler::isKaiEnabled).orElse(false);
         }
 
         /**
          * @return true iff the user is logged in to the currently selected Hub end point
          */
         public boolean isLoggedIntoHub() {
-            return HubConnection.INSTANCE.isLoggedIn();
+            var projectId = getProjectId();
+            return getCodeKaiHandler().map(h -> h.isLoggedIn(projectId)).orElse(false);
         }
 
         /**
          * @return get the disclaimer text from the AI assistant
          */
         public String getAiDisclaimer() {
-            return HubConnection.INSTANCE.getDisclaimer();
+            return getCodeKaiHandler().map(CodeKaiHandler::getDisclaimer).orElseThrow();
         }
 
         /**
@@ -380,7 +388,6 @@ public abstract class ScriptingService {
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             }
         }
-
     }
 
     /**
