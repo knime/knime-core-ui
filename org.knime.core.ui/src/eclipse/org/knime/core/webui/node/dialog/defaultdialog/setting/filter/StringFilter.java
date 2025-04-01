@@ -52,9 +52,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.DoNotPersistSelected;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.ManualFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.PatternFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
@@ -70,8 +70,7 @@ public class StringFilter implements PersistableSettings {
     /**
      * The setting representing the selected strings
      */
-    @Persist(hidden = true)
-    @Migrate(loadDefaultIfAbsent = true)
+    @Persistor(DoNotPersistSelected.class)
     public String[] m_selected;
 
     /**
