@@ -141,7 +141,6 @@
                 }
               },
               "selected" : {
-                "default" : [ ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"

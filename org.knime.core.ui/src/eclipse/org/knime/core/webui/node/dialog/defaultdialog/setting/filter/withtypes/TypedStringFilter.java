@@ -55,10 +55,10 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.DoNotPersistSelected;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.ManualFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.PatternFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.PatternFilter.PatternMode;
@@ -79,8 +79,7 @@ public abstract class TypedStringFilter<T extends TypeFilter> implements Persist
      * possible values whenever the configuration changes in the dialog. So setting this field has to be repeated when
      * creating these initial view data.
      */
-    @Persist(hidden = true)
-    @Migrate(loadDefaultIfAbsent = true)
+    @Persistor(DoNotPersistSelected.class)
     String[] m_selected;
 
     /**
@@ -114,7 +113,6 @@ public abstract class TypedStringFilter<T extends TypeFilter> implements Persist
         m_manualFilter = new ManualFilter(Objects.requireNonNull(initialSelected));
         m_patternFilter = new PatternFilter();
         m_typeFilter = defaultTypeFilter;
-        m_selected = initialSelected;
     }
 
     /**

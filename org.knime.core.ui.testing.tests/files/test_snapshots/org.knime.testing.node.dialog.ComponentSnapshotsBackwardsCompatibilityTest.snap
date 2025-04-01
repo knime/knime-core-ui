@@ -134,7 +134,6 @@
                 }
               },
               "selected" : {
-                "default" : [ ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
@@ -327,7 +326,6 @@
                 }
               },
               "selected" : {
-                "default" : [ ],
                 "type" : "array",
                 "items" : {
                   "type" : "string"
