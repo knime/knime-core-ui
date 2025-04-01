@@ -149,8 +149,8 @@ public class NodeDialogManagerTest {
         assertThat(NodeDialogManager.getInstance().getPageResourceManager().getPageId(NodeWrapper.of(nc)))
             .isEqualTo(nc.getID().toString().replace(":", "_"));
 
-        assertThat(NodeDialogManager.getInstance().getDataServiceManager().callInitialDataService(NodeWrapper.of(nc)))
-            .isEqualTo("{\"result\":\"test settings\"}");
+        assertThat(NodeDialogManager.getInstance().getDataServiceManager().callInitialDataService(NodeWrapper.of(nc),
+            Map.of())).isEqualTo("{\"result\":\"test settings\"}");
         assertThat(nodeDialogManager.getPageResourceManager().getPage(NodeWrapper.of(nc)).isCompletelyStatic())
             .isFalse();
 
@@ -168,7 +168,7 @@ public class NodeDialogManagerTest {
         final var nodeDialogManager = NodeDialogManager.getInstance();
         final var dataServiceManager = nodeDialogManager.getDataServiceManager();
         final var nodeWrapper = NodeWrapper.of(nc);
-        dataServiceManager.callInitialDataService(nodeWrapper);
+        dataServiceManager.callInitialDataService(nodeWrapper, Map.of());
 
         doAnswer(new Answer() {
             @Override
@@ -247,7 +247,7 @@ public class NodeDialogManagerTest {
             // The jsonforms dialog cannot be built from our test node, because it is no valid/known DialogNodeRepresentation,
             // So we just check for the error here.
             var result = NodeDialogManager.getInstance().getDataServiceManager()
-                .callInitialDataService(NodeWrapper.of(component));
+                .callInitialDataService(NodeWrapper.of(component), Map.of());
             assertThat(result).contains(
                 "Could not read dialog node org.knime.core.webui.node.dialog.TestConfigurationNodeFactory$TestConfigNodeModel");
         } finally {
@@ -336,7 +336,7 @@ public class NodeDialogManagerTest {
         var objectMapper = ObjectMapperUtil.getInstance().getObjectMapper();
 
         var dataServiceManager = NodeDialogManager.getInstance().getDataServiceManager();
-        assertThat(dataServiceManager.callInitialDataService(nncWrapper))
+        assertThat(dataServiceManager.callInitialDataService(nncWrapper, Map.of()))
             .isEqualTo("{\"result\":\"the node settings\"}");
         assertThat(
             dataServiceManager.callRpcDataService(nncWrapper, RpcDataService.jsonRpcRequest("method", "test param"), Map.of()))
@@ -385,8 +385,8 @@ public class NodeDialogManagerTest {
             () -> createNodeDialog(Page.builder(() -> "page content", "index.html").build()), 1));
         metanode.addConnection(metanode.getID(), 0, nnc.getID(), 1);
 
-        assertThat(NodeDialogManager.getInstance().getDataServiceManager().callInitialDataService(NodeWrapper.of(nnc)))
-            .isEqualTo("{\"result\":\"test settings\"}");
+        assertThat(NodeDialogManager.getInstance().getDataServiceManager().callInitialDataService(NodeWrapper.of(nnc),
+            Map.of())).isEqualTo("{\"result\":\"test settings\"}");
     }
 
     private static NodeSettingsRO getNodeViewSettings(final NodeContainer nc) {

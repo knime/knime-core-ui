@@ -49,6 +49,7 @@
 package org.knime.core.webui.node.view;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.node.NodeFactory;
@@ -112,8 +113,9 @@ public interface NodeViewFactory<T extends NodeModel> extends WizardPageContribu
      */
     @Override
     default Optional<String> getInitialViewValue(final NativeNodeContainer nnc) {
+        // TODO(martin) Do we want to get the dependencies to here?
         return NodeViewManager.getInstance().getDataServiceManager()
             .getDataServiceOfType(NodeWrapper.of(nnc), InitialDataService.class)
-            .map(InitialDataService::getInitialData);
+            .map(initialDataService -> initialDataService.getInitialData(Map.of()));
     }
 }
