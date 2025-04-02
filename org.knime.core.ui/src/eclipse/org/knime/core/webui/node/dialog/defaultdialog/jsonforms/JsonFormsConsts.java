@@ -276,6 +276,8 @@ public final class JsonFormsConsts {
 
             public static final String TEXT_AREA = "textArea";
 
+            public static final String DYNAMIC_INPUT_TYPE = "dynamicInput";
+
         }
 
         /**

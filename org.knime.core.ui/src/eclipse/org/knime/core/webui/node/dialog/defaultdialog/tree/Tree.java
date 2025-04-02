@@ -58,6 +58,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DynamicDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 
@@ -158,7 +159,7 @@ public final class Tree<S> extends TreeNode<S> {
     }
 
     private static <S> Stream<TreeNode<S>> getWidgetNodes(final TreeNode<S> node) {
-        if (node instanceof Tree<S> treeNode) {
+        if (node instanceof Tree<S> treeNode && !treeNode.getType().equals(DynamicDefaultNodeSettings.class)) {
             return treeNode.getWidgetNodes();
         }
         return Stream.of(node);

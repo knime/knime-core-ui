@@ -273,10 +273,10 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
      */
     @SuppressWarnings("unchecked") // The m_annotations map is constructed as required
     public <T extends Annotation> Optional<T> getAnnotation(final Class<T> annotationClass) {
-        if (!m_possibleAnnotations.contains(annotationClass)) {
-            throw new IllegalArgumentException(String.format("Annotation %s should not be used on a %s.",
-                annotationClass.getSimpleName(), this.getClass().getSimpleName()));
-        }
+//        if (!m_possibleAnnotations.contains(annotationClass)) {
+//            throw new IllegalArgumentException(String.format("Annotation %s should not be used on a %s.",
+//                annotationClass.getSimpleName(), this.getClass().getSimpleName()));
+//        }
         return Optional.ofNullable((T)this.m_annotations.get(annotationClass));
     }
 

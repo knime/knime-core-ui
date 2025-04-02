@@ -74,6 +74,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
@@ -311,6 +312,11 @@ final class WidgetTreesToValueRefsAndStateProviders {
                 ArrayWidget.class, //
                 ArrayWidget::elementDefaultValueProvider, //
                 StateProvider.class //
+            ), //
+            new UiStateProviderAnnotationSpec<>( //
+                DynamicSettingsWidget.class, //
+                DynamicSettingsWidget::dynamicSettingsProvider, //
+                NoopStringProvider.class //
             ));
 
     private static List<UiStateProvidersAnnotationSpec<? extends Annotation, ? extends StateProvider>> //

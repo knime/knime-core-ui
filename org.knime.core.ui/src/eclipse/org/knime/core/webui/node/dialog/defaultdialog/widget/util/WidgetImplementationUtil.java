@@ -63,6 +63,7 @@ import java.util.stream.Collectors;
 
 import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.DynamicDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnfilter.NameFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ColumnSelection;
@@ -77,6 +78,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComboBoxWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
@@ -191,6 +193,7 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(String.class), LocalFileWriterWidget.class), //
         new WidgetAnnotation(List.of(String.class), TextAreaWidget.class), //
         new WidgetAnnotation(List.of(String.class), TextInputWidget.class), //
+        new WidgetAnnotation(List.of(DynamicDefaultNodeSettings.class), DynamicSettingsWidget.class), //
         new WidgetAnnotation(List.of(Void.class), SimpleButtonWidget.class), //
         new WidgetAnnotation(List.of(Void.class), TextMessage.class), //
         new WidgetAnnotation(List.of(byte.class, double.class, float.class, int.class, long.class, Duration.class),

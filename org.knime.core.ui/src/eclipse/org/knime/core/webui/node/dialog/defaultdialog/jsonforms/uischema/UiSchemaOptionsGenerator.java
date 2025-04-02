@@ -118,6 +118,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ChoicesWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComboBoxWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
@@ -559,6 +560,12 @@ final class UiSchemaOptionsGenerator {
         if (annotatedWidgets.contains(NumberInputWidget.class)) {
             final var numberInputWidget = m_node.getAnnotation(NumberInputWidget.class).orElseThrow();
             addValidationOptions(options, numberInputWidget.validation(), numberInputWidget.validationProvider());
+        }
+
+        if (annotatedWidgets.contains(DynamicSettingsWidget.class)) {
+            final var dynamicSettingsWidget = m_node.getAnnotation(DynamicSettingsWidget.class).orElseThrow();
+            options.put(TAG_FORMAT, Format.DYNAMIC_INPUT_TYPE);
+            options.put("provider", dynamicSettingsWidget.dynamicSettingsProvider().getName());
         }
 
         if (m_node instanceof ArrayParentNode<WidgetGroup> arrayWidgetNode) {

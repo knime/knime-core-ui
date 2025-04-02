@@ -62,6 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.impl.AsyncChoicesAdder;
@@ -168,7 +169,7 @@ public final class JsonFormsUiSchemaUtil {
     }
 
     private static final List<Class<? extends Annotation>> VISIBLE_WITHOUT_WIDGET_ANNOTATION =
-        List.of(TextMessage.class);
+        List.of(TextMessage.class, DynamicSettingsWidget.class);
 
     private static boolean isHidden(final TreeNode<WidgetGroup> node) {
         return node.getAnnotation(Widget.class).isEmpty() && VISIBLE_WITHOUT_WIDGET_ANNOTATION.stream()
