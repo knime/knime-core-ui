@@ -152,7 +152,7 @@ class TableViewTest {
 
     @BeforeEach
     void initDataServiceContext() {
-        DataServiceContextTest.initDataServiceContext(() -> getExec(), null, null);
+        DataServiceContextTest.initDataServiceContext(() -> getExec(), null);
     }
 
     @AfterEach
@@ -255,7 +255,7 @@ class TableViewTest {
         // request rows to create the 'image renderers' whose images are later access as 'page resources'
         var dataServiceResult =
             mapper.readTree(nodeViewManager.getDataServiceManager().callRpcDataService(NodeWrapper.of(nnc),
-                jsonRpcRequest("getTable", "image", "0", "2", "", "true", "true", "false", "false"), Map.of()));
+                jsonRpcRequest("getTable", "image", "0", "2", "", "true", "true", "false", "false")));
         var imgPath = dataServiceResult.get("result").get("rows").get(0).get(2).asText();
         var imgPath2 = dataServiceResult.get("result").get("rows").get(1).get(2).asText();
         assertThat(TableViewUtil.RENDERER_REGISTRY.numRegisteredRenderers(tableId)).isEqualTo(2);
@@ -377,19 +377,19 @@ class TableViewTest {
     private static void callDataServiceToRegisterRenderes(final NativeNodeContainer nnc,
         final NodeViewManager nodeViewManager, final ExecutionContext exec) {
         DataServiceContextTest.removeDataServiceContext();
-        DataServiceContextTest.initDataServiceContext(() -> exec, null, null);
+        DataServiceContextTest.initDataServiceContext(() -> exec, null);
         nodeViewManager.getDataServiceManager().callRpcDataService(NodeWrapper.of(nnc),
-            jsonRpcRequest("getTable", "image", "0", "2", "", "true", "true", "false", "false"), Map.of());
+            jsonRpcRequest("getTable", "image", "0", "2", "", "true", "true", "false", "false"));
         DataServiceContextTest.removeDataServiceContext();
     }
 
     private static void callDataServiceToSortTable(final NativeNodeContainer nnc, final NodeViewManager nodeViewManager,
         final ExecutionContext exec) {
         DataServiceContextTest.removeDataServiceContext();
-        DataServiceContextTest.initDataServiceContext(() -> exec, null, null);
+        DataServiceContextTest.initDataServiceContext(() -> exec, null);
         nodeViewManager.getDataServiceManager().callRpcDataService(NodeWrapper.of(nnc),
             jsonRpcRequest("getFilteredAndSortedTable", "string", "0", "2", "string", "true", "", "[[\"\"],[\"\"]]",
-                "true", "", "false", "false", "false", "true", "false"), Map.of());
+                "true", "", "false", "false", "false", "true", "false"));
         DataServiceContextTest.removeDataServiceContext();
     }
 

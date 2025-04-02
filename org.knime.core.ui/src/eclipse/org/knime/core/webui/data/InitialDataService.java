@@ -49,7 +49,6 @@
 package org.knime.core.webui.data;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.function.Supplier;
 
 import org.knime.core.node.NodeLogger;
@@ -111,7 +110,7 @@ public final class InitialDataService<D> extends AbstractDataService {
             final var root = m_mapper.createObjectNode();
             // Since the DataServiceContext is public API, warning messages could have been wrongfully added to it.
             // We clear the context here to make sure there are no "stale" warning messages.
-            DataServiceContext.init(m_nc, Map.of()); // TODO add dependencies here
+            DataServiceContext.init(m_nc);
             final var dataString = m_serializer.serialize(m_dataSupplier.get());
             try { // NOSONAR
                 root.set("result", m_mapper.readTree(dataString));

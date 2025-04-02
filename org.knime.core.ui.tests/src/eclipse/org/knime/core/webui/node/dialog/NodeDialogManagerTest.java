@@ -339,7 +339,7 @@ public class NodeDialogManagerTest {
         assertThat(dataServiceManager.callInitialDataService(nncWrapper))
             .isEqualTo("{\"result\":\"the node settings\"}");
         assertThat(
-            dataServiceManager.callRpcDataService(nncWrapper, RpcDataService.jsonRpcRequest("method", "test param"), Map.of()))
+            dataServiceManager.callRpcDataService(nncWrapper, RpcDataService.jsonRpcRequest("method", "test param")))
                 .contains("\"result\":\"test param\"");
         // apply data, i.e. settings
         final var validResult = dataServiceManager.callApplyDataService(nncWrapper, "key,node settings value");

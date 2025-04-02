@@ -56,7 +56,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.knime.core.webui.data.RpcDataService.jsonRpcRequest;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.AfterEach;
@@ -191,8 +190,6 @@ class RpcDataServiceTest {
         assertEquals("bar", data.get("details").asText());
     }
 
-    // TODO test dependency injection?
-
     public static class ServiceThrowingUserError {
         public String erroneusMethod(final String param1, final String param2) {
             throw new DataServiceException(param1, param2);
@@ -209,7 +206,7 @@ class RpcDataServiceTest {
 
     private static String sendRPCRequest(final NativeNodeContainer nnc, final String jsonRpcRequest) {
         return NodeViewManager.getInstance().getDataServiceManager().callRpcDataService(NodeWrapper.of(nnc),
-            jsonRpcRequest, Map.of());
+            jsonRpcRequest);
     }
 
 }

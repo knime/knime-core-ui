@@ -97,16 +97,15 @@ public final class RpcDataService extends AbstractDataService {
     }
 
     /**
-     * TODO(benny) update javadoc
      * @param request the rpc request (e.g. encoded in json-rpc)
      * @return the rpc-response (e.g. a json-rpc response)
      */
-    public String handleRpcRequest(final String request, final Map<Class<?>, Object> dependencies) {
+    public String handleRpcRequest(final String request) {
         if (m_nc != null) {
             NodeContext.pushContext(m_nc);
         }
         try {
-            DataServiceContext.init(m_nc, dependencies);
+            DataServiceContext.init(m_nc);
             final var response = RpcServerManager.doRpc(m_rpcServer, request);
             // We have to get the DataServiceContext again here, since the context may have changed since (or as a
             // consequence of) clearing it
