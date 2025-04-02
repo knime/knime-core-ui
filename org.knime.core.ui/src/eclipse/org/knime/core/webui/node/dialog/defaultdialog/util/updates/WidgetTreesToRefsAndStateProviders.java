@@ -77,6 +77,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil
 import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.Configuration;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
@@ -378,8 +379,13 @@ final class WidgetTreesToRefsAndStateProviders {
                 TextInputWidget.class, //
                 TextInputWidget::patternValidationProvider, //
                 NoopPatternValidationProvider.class//
-            ) //
-        );
+            ), //
+            new UiStateProviderAnnotationSpec<>( //
+                UiSchema.TAG_DYNAMIC_SETTINGS, //
+                DynamicSettingsWidget.class, //
+                DynamicSettingsWidget::value, //
+                null //
+            ));
 
     static final List<UiStateProviderSpec> uiStateProviderSpecs = Stream.of( //
         uiStateProviderFieldTypeSpecs, //

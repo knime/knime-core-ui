@@ -61,6 +61,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_WITH_EDIT_AND_RESET;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_DATE_TIME_FORMATS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_DEPENDENCIES;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_DYNAMIC_SETTINGS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ELEMENTS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_EMPTY_STATE_LABEL;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_EXTERNAL_VALIDATION_HANDLER;
@@ -86,6 +87,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
@@ -125,6 +127,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.MultiFileSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FolderSelectionWidget;
@@ -453,6 +456,14 @@ final class UiSchemaOptionsGenerator {
         if (m_node.isOptional()) {
             OptionalWidgetOptionsUtil.addOptionalWidgetOptions(m_node, options,
                 () -> getOrCreateProvidedOptions(control));
+        }
+
+        if (annotatedWidgets.contains(DynamicSettingsWidget.class)) {
+            options.put(TAG_FORMAT, Format.DYNAMIC_INPUT_TYPE);
+            getOrCreateProvidedOptions(control).add(TAG_DYNAMIC_SETTINGS);
+        } else if (m_node.getRawClass().equals(Map.class)) {
+            throw new UiSchemaGenerationException(String.format("Map fields are only supported with the %s annotation.",
+                DynamicSettingsWidget.class.getSimpleName()));
         }
 
         if (m_node instanceof ArrayParentNode<WidgetGroup> arrayWidgetNode) {

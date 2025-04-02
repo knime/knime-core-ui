@@ -9,6 +9,7 @@ export const inputFormats = {
   fileChooser: "fileChooser",
   multiFileChooser: "multiFileChooser",
   dynamicValue: "dynamicValue",
+  dynamicInput: "dynamicInput",
 } as const;
 
 // union type of the values of the inputFormats object:

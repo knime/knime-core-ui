@@ -257,6 +257,11 @@ public final class JsonFormsConsts {
         public static final String TAG_POSSIBLE_VALUES = "possibleValues";
 
         /**
+         * Used for providing dynamic settings and dialog.
+         */
+        public static final String TAG_DYNAMIC_SETTINGS = "dynamicSettings";
+
+        /**
          * Several formats which are written to the options of the ui-schema of an ui element
          *
          * @author Paul Bärnreuther
@@ -277,7 +282,7 @@ public final class JsonFormsConsts {
 
             public static final String NAME_FILTER = "nameFilter";
 
-            public static final String MANUAL_TWINLIST= "manualTwinlist";
+            public static final String MANUAL_TWINLIST = "manualTwinlist";
 
             public static final String SINGLE_SELECTION = "singleSelection";
 
@@ -334,6 +339,8 @@ public final class JsonFormsConsts {
             public static final String MULTI_SELECT_LIST_BOX = "multiSelectListBox";
 
             public static final String SINGLE_SELECT_LIST_BOX = "singleSelectListBox";
+
+            public static final String DYNAMIC_INPUT_TYPE = "dynamicInput";
 
         }
 

@@ -75,6 +75,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection.D
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
@@ -145,7 +146,7 @@ final class WidgetTreeToLayoutTree {
     }
 
     private static final List<Class<? extends Annotation>> VISIBLE_WITHOUT_WIDGET_ANNOTATION =
-        List.of(TextMessage.class);
+        List.of(TextMessage.class, DynamicSettingsWidget.class);
 
     private static boolean isHidden(final TreeNode<WidgetGroup> node) {
         if (node instanceof Tree<WidgetGroup>) {

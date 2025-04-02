@@ -63,6 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FolderSelectionWidget;
@@ -114,7 +115,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         ValueReference.class, //
         ValueProvider.class, //
         Modification.class, //
-        Modification.WidgetReference.class //
+        Modification.WidgetReference.class//
     );
 
     private static final Collection<ClassAnnotationSpec> POSSIBLE_TREE_CLASS_ANNOTATIONS = List.of( //
@@ -156,7 +157,8 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         ValueProvider.class, //
         ValueReference.class, //
         ValueSwitchWidget.class, //
-        Widget.class //
+        Widget.class, //
+        DynamicSettingsWidget.class//
     );
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_ARRAY_ANNOTATIONS = List.of(//

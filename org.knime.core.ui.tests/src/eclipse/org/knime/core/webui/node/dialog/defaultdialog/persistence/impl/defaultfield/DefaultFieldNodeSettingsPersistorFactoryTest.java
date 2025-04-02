@@ -59,6 +59,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -426,6 +427,21 @@ class DefaultFieldNodeSettingsPersistorFactoryTest {
         testSaveLoad(FSLocation.class, new FSLocation(FSCategory.LOCAL, "path"));
     }
 
+    @Test
+    void testMap() throws InvalidSettingsException {
+        final Map<String, Object> map = Map.of("foo", "bar", "baz", 42, "qux", 3.14, "quux", true);
+        final var mapPersistor = new MapPersistor(KEY);
+        assertEquals(map, saveLoadUsingPersistor(map, mapPersistor));
+    }
+
+    @Test
+    void testMapThrowsOnInvalidValues() throws InvalidSettingsException {
+        final Map<String, Object> map = Map.of("invalid", 'c');
+        final var mapPersistor = new MapPersistor(KEY);
+        assertThat(assertThrows(IllegalArgumentException.class, () -> saveLoadUsingPersistor(map, mapPersistor)))
+            .hasMessageContaining(Character.class.getSimpleName());
+    }
+
     private static <T> void testSaveLoadNullable(final Class<T> type, final T value) throws InvalidSettingsException {
         testSaveLoad(type, value);
         testSaveLoad(type, null);
@@ -437,10 +453,14 @@ class DefaultFieldNodeSettingsPersistorFactoryTest {
 
     private static <T> T saveLoad(final Class<T> type, final T value) throws InvalidSettingsException {
         var persistor = createPersistor(type);
+        return saveLoadUsingPersistor(value, persistor);
+    }
+
+    private static <T> T saveLoadUsingPersistor(final T value, final DefaultFieldPersistor<T> persistor)
+        throws InvalidSettingsException {
         var nodeSettings = new NodeSettings(KEY);
         persistor.save(value, nodeSettings);
-        T loaded = persistor.load(nodeSettings);
-        return loaded;
+        return persistor.load(nodeSettings);
     }
 
     private static <T> DefaultFieldPersistor<T> createPersistor(final Class<T> type) {

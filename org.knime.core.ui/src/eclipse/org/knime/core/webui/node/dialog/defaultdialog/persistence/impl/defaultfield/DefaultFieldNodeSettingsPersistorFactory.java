@@ -130,6 +130,9 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
      */
     public static DefaultFieldPersistor<?> createPersistor(final LeafNode<PersistableSettings> node,
         final String configKey) {
+        if (node.getRawClass().equals(Map.class)) {
+            return createMapPersistor(configKey);
+        }
         final var fieldPersistor = createPersistor(node.getRawClass(), configKey, node::getParentType);
         if (node.isOptional()) {
             return new OptionalPersistor<>(fieldPersistor, configKey);
@@ -185,7 +188,6 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
                 String.format("No default persistor available for type '%s'.", fieldType));
         }
     }
-
 
     /**
      * When extending this enum only use lambdas if the definition fits a single line, otherwise use function references
@@ -274,11 +276,14 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static <T> OptionalContentPersistor<T> createEnumPersistor(final String configKey,
-        final Class<T> fieldType, final boolean allowNull) {
+    private static <T> OptionalContentPersistor<T> createEnumPersistor(final String configKey, final Class<T> fieldType,
+        final boolean allowNull) {
         return new EnumFieldPersistor<>(configKey, (Class)fieldType, allowNull);
     }
 
+    private static DefaultFieldPersistor<Map<String, Object>> createMapPersistor(final String configKey) {
+        return new MapPersistor(configKey);
+    }
 
     private static OptionalContentPersistor<LocalDate> createLocalDatePersistor(final String configKey) {
         return new LocalDatePersistor(configKey);

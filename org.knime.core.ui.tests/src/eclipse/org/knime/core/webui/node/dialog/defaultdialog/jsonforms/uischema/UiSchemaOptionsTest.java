@@ -71,10 +71,12 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.knime.core.data.DataType;
 import org.knime.core.node.port.PortType;
+import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TestButtonActionHandler.TestStates;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
@@ -91,9 +93,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FolderSelectionWidget;
@@ -1811,5 +1815,47 @@ class UiSchemaOptionsTest {
             .containsExactly(new StringChoice("SPECIAL1", "Special 1"), new StringChoice("SPECIAL2", "Special 2"));
 
         assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().containsExactly("possibleValues");
+    }
+
+    @Test
+    void testDynamicSettingsWidget() {
+        class TestSettings implements DefaultNodeSettings {
+
+            static final class SomeClass implements DynamicSettingsWidget.ImperativeDialogProvider {
+
+                @Override
+                public void init(final StateProviderInitializer initializer) {
+                    throw new UnsupportedOperationException("This method should not be called in this test");
+                }
+
+                @Override
+                public Pair<Map<String, Object>, DialogElementRendererSpec<?>> computeSettingsAndDialog(
+                    final DefaultNodeSettingsContext context) throws StateComputationFailureException {
+                    throw new UnsupportedOperationException("This method should not be called in this test");
+                }
+
+            }
+
+            @DynamicSettingsWidget(SomeClass.class)
+            Map<String, Object> m_dynamicSettingsField;
+
+        }
+
+        final var response = buildTestUiSchema(TestSettings.class);
+
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("dynamicSettingsField");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dynamicInput");
+        assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().containsExactly("dynamicSettings");
+    }
+
+    @Test
+    void testMapFieldThrowsIfWithoutDynamicSettingsWidget() {
+        class TestSettings implements DefaultNodeSettings {
+
+            @Widget(title = "", description = "")
+            Map<String, String> m_mapField;
+        }
+
+        assertThrows(UiSchemaGenerationException.class, () -> buildTestUiSchema(TestSettings.class));
     }
 }

@@ -74,15 +74,20 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType.BooleanType;
 import org.knime.core.node.workflow.VariableType.IntType;
+import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.CheckboxRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
@@ -1048,6 +1053,55 @@ public class UpdatesUtilTest {
             final var response = buildUpdates(settings);
             assertThatJson(response).inPath("$.globalUpdates").isArray().hasSize(1);
         }
+
+        @Test
+        void testDynamicSettingsWidgetUpdate() {
+
+            class TestSettings implements DefaultNodeSettings {
+
+                static final class MyUpdater implements DynamicSettingsWidget.ImperativeDialogProvider {
+
+                    @Override
+                    public void init(final StateProviderInitializer initializer) {
+                        initializer.computeBeforeOpenDialog();
+                    }
+
+                    @Override
+                    public Pair<Map<String, Object>, DialogElementRendererSpec<?>> computeSettingsAndDialog(
+                        final DefaultNodeSettingsContext context) throws StateComputationFailureException {
+                        final var checkbox = new CheckboxRendererSpec() {
+
+                            @Override
+                            public String getTitle() {
+                                return "My dynamic checkbox";
+                            }
+                        }.at("myCheckbox");
+
+                        return new Pair<>(Map.of("myCheckbox", true), checkbox);
+                    }
+
+                }
+
+                @DynamicSettingsWidget(MyUpdater.class)
+                Map<String, Object> m_dynamicSettings;
+            }
+
+            final var settings = new TestSettings();
+            final var response = buildUpdates(settings);
+
+            assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
+            assertThatJson(response).inPath("$.initialUpdates[0].scope").isString()
+                .isEqualTo("#/properties/model/properties/dynamicSettings");
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isObject().containsKeys("data",
+                "schema", "uiSchema");
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value.data").isObject()
+                .containsEntry("myCheckbox", true);
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value.schema").isString()
+                .contains("My dynamic checkbox");
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value.uiSchema").isString()
+                .contains("checkbox");
+        }
+
     }
 
     @Nested
