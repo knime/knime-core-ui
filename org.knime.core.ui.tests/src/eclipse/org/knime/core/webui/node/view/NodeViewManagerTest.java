@@ -148,7 +148,7 @@ public class NodeViewManagerTest {
         assertThat(nodeView.getPage() == page).isTrue();
 
         final var dataServiceManager = NodeViewManager.getInstance().getDataServiceManager();
-        Assertions.assertThatThrownBy(() -> dataServiceManager.callInitialDataService(NodeWrapper.of(nc), Map.of()))
+        Assertions.assertThatThrownBy(() -> dataServiceManager.callInitialDataService(NodeWrapper.of(nc)))
             .isInstanceOf(IllegalStateException.class).hasMessageContaining("No initial data service available");
         assertThat(nodeView.getPage().isCompletelyStatic()).isFalse();
         assertThat(NodeViewManager.getInstance().getPageResourceManager().getPageId(NodeWrapper.of(nc)))
@@ -388,8 +388,7 @@ public class NodeViewManagerTest {
         @Test
         void testCallDataServices() {
             var dataServiceManager = NodeViewManager.getInstance().getDataServiceManager();
-            assertThat(dataServiceManager.callInitialDataService(m_nc, Map.of()))
-                .isEqualTo("{\"result\":\"init service\"}");
+            assertThat(dataServiceManager.callInitialDataService(m_nc)).isEqualTo("{\"result\":\"init service\"}");
             assertRpcDataServiceCall(dataServiceManager, m_nc, "test param", 1);
             Assertions.assertThatThrownBy(() -> dataServiceManager.callApplyDataService(m_nc, "ERROR,test"))
                 .isInstanceOf(UnsupportedOperationException.class).hasMessage("re-execute data service");
@@ -398,10 +397,10 @@ public class NodeViewManagerTest {
         @Test
         void testResetsRpcDataServiceOnInitialDataServiceCall() {
             var dataServiceManager = NodeViewManager.getInstance().getDataServiceManager();
-            dataServiceManager.callInitialDataService(m_nc, Map.of());
+            dataServiceManager.callInitialDataService(m_nc);
             assertRpcDataServiceCall(dataServiceManager, m_nc, "test param", 1);
             assertRpcDataServiceCall(dataServiceManager, m_nc, "test param", 2);
-            dataServiceManager.callInitialDataService(m_nc, Map.of());
+            dataServiceManager.callInitialDataService(m_nc);
             assertRpcDataServiceCall(dataServiceManager, m_nc, "test param", 1);
         }
 

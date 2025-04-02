@@ -53,7 +53,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Map;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
@@ -88,7 +87,7 @@ class ImageViewUtilTest {
 
         var initialData = ImageViewUtil
             .createInitialDataService(() -> imageValue, () -> imageId,
-                () -> new ImageViewViewSettings()).getInitialData(Map.of());
+                () -> new ImageViewViewSettings()).getInitialData();
         assertThat(initialData).contains("\"imagePath\":\"uiext/imageview/img/" + imageId + ".png\"");
         assertThat(ImageViewUtil.IMAGE_DATA_MAP.size()).isEqualTo(1);
         assertThat(ImageViewUtil.IMAGE_DATA_MAP.get(imageId + ".png")).isEqualTo(pngImageData);

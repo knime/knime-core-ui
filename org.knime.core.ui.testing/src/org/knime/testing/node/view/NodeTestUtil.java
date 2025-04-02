@@ -51,7 +51,6 @@ package org.knime.testing.node.view;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -131,7 +130,7 @@ public final class NodeTestUtil {
             nodeViewManager.getDataServiceManager().getDataServiceOfType(nodeWrapper, InitialDataService.class);
         if (initialDataType != null) {
             assertThat(initialDataService).isNotEmpty();
-            assertThat(initialDataService.get().getInitialData(Map.of())).startsWith("{\"result\":");
+            assertThat(initialDataService.get().getInitialData()).startsWith("{\"result\":");
         } else {
             assertThat(initialDataService).isEmpty();
         }

@@ -101,10 +101,9 @@ public final class InitialDataService<D> extends AbstractDataService {
     }
 
     /**
-     * TODO(benny) update javadoc
      * @return the initial data serialized into a string
      */
-    public String getInitialData(final Map<Class<?>, Object> dependencies) {
+    public String getInitialData() {
         if (m_nc != null) {
             NodeContext.pushContext(m_nc);
         }
@@ -112,7 +111,7 @@ public final class InitialDataService<D> extends AbstractDataService {
             final var root = m_mapper.createObjectNode();
             // Since the DataServiceContext is public API, warning messages could have been wrongfully added to it.
             // We clear the context here to make sure there are no "stale" warning messages.
-            DataServiceContext.init(m_nc, dependencies);
+            DataServiceContext.init(m_nc, Map.of()); // TODO add dependencies here
             final var dataString = m_serializer.serialize(m_dataSupplier.get());
             try { // NOSONAR
                 root.set("result", m_mapper.readTree(dataString));

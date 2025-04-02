@@ -126,13 +126,12 @@ public final class DataServiceManager<N extends NodeWrapper> {
 
     /**
      * Helper to call the {@link InitialDataService}.
-     * TODO(benny) update javadoc
      *
      * @param nodeWrapper the node to call the data service for
      * @return the initial data
      * @throws IllegalStateException if there is not initial data service available
      */
-    public String callInitialDataService(final N nodeWrapper, final Map<Class<?>, Object> dependencies) {
+    public String callInitialDataService(final N nodeWrapper) {
         /**
          * TODO UIEXT-1525: Remove this
          */
@@ -140,7 +139,7 @@ public final class DataServiceManager<N extends NodeWrapper> {
         return getInitialDataService(nodeWrapper) //
             .filter(InitialDataService.class::isInstance) //
             .orElseThrow(() -> new IllegalStateException("No initial data service available")) //
-            .getInitialData(dependencies);
+            .getInitialData();
     }
 
     private Optional<InitialDataService<Object>> getInitialDataService(final N nodeWrapper) {

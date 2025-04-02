@@ -112,7 +112,7 @@ public class NodeDialogTest {
         var dataServiceManager = NodeDialogManager.getInstance().getDataServiceManager();
 
         // make sure that the default settings are properly provided with the initial settings
-        var initalDefaultSettings = dataServiceManager.callInitialDataService(nncWrapper, Map.of());
+        var initalDefaultSettings = dataServiceManager.callInitialDataService(nncWrapper);
         assertThat(initalDefaultSettings).contains("a default model setting").contains("a default view setting");
 
         // make sure that new settings (i.e. default settings are changed) are properly provided with
@@ -122,7 +122,7 @@ public class NodeDialogTest {
         modelSettings.addString("model_key1", "model_setting_value");
         viewSettings.addString("view_key1", "view_setting_value");
         dataServiceManager.callApplyDataService(nncWrapper, settingsToString(modelSettings, viewSettings));
-        var initialSettings = parseResult(dataServiceManager.callInitialDataService(nncWrapper, Map.of()), false);
+        var initialSettings = parseResult(dataServiceManager.callInitialDataService(nncWrapper), false);
         assertThat(initialSettings).contains("\"view_key1\":{\"type\":\"string\",\"value\":\"view_setting_value\"}")
             .contains("\"model_key1\":{\"type\":\"string\",\"value\":\"model_setting_value\"}");
     }
@@ -342,7 +342,7 @@ public class NodeDialogTest {
 
         // apply node settings that are controlled by a flow variable -> the flow variable must not end up in the settings
         wfm.loadNodeSettings(nnc.getID(), nodeSettings);
-        var initialSettings = parseResult(dataServiceManager.callInitialDataService(nncWrapper, Map.of()), false);
+        var initialSettings = parseResult(dataServiceManager.callInitialDataService(nncWrapper), false);
         assertThat(initialSettings).contains("\"view_key1\":{\"type\":\"string\",\"value\":\"view_setting_value\"}")
             .contains("\"model_key1\":{\"type\":\"string\",\"value\":\"model_setting_value\"}");
 
@@ -361,7 +361,7 @@ public class NodeDialogTest {
         nnc.getFlowObjectStack().push(new FlowVariable("model_variable", "model_variable_value"));
 
         // make sure that the flow variable value is part of the initial data
-        initialSettings = parseResult(dataServiceManager.callInitialDataService(nncWrapper, Map.of()), false);
+        initialSettings = parseResult(dataServiceManager.callInitialDataService(nncWrapper), false);
         assertThat(initialSettings).contains("\"view_key1\":{\"type\":\"string\",\"value\":\"view_variable_value\"}")
             .contains("\"model_key1\":{\"type\":\"string\",\"value\":\"model_variable_value\"}")
             .contains("\"modelVariables\":{\"model_key1\":{\"used\":\"model_variable\"}}")

@@ -564,7 +564,7 @@ public class DefaultNodeDialogTest {
 
         private JsonNode getInitialData() throws JsonProcessingException {
             final var dataServiceManager = NodeDialogManager.getInstance().getDataServiceManager();
-            return TEST_MAPPER.readTree(dataServiceManager.callInitialDataService(NodeWrapper.of(m_nnc), Map.of()));
+            return TEST_MAPPER.readTree(dataServiceManager.callInitialDataService(NodeWrapper.of(m_nnc)));
         }
 
         @SafeVarargs

@@ -107,7 +107,7 @@ public class DataServiceContextTest {
 
         // verify that the data service context is available within the data services
         var initialData =
-            NodeViewManager.getInstance().getDataServiceManager().callInitialDataService(NodeWrapper.of(nnc), Map.of());
+            NodeViewManager.getInstance().getDataServiceManager().callInitialDataService(NodeWrapper.of(nnc));
         assertThat(InitialDataServiceTestUtil.parseResult(initialData, true)).isEqualTo("initial data");
         var rpcData = NodeViewManager.getInstance().getDataServiceManager().callRpcDataService(NodeWrapper.of(nnc),
             RpcDataService.jsonRpcRequest("method"), Map.of());
