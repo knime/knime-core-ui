@@ -51,11 +51,13 @@ package org.knime.core.webui.data;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.NodeContainer;
+import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.SingleNodeContainer;
 import org.knime.core.webui.data.util.InputPortUtil;
 
@@ -76,6 +78,72 @@ public final class DataServiceContext {
 
     private static boolean allowOverwrite = true;
 
+    public interface ContextCallable<V, E extends Exception> {
+        V call() throws E;
+    }
+
+    /**
+     * TODO(benny) javadoc
+     *
+     * @param <V> the return type
+     * @param <E> the type of the exception TODO(benny) what if the function does not throw?
+     * @param nc the node container that the data service calls are associated with
+     * @param dependencies a map of additional dependencies that are provided to the data service implementation
+     * @param callableInContext the function that calls the data service
+     * @return the return value of the {@code functionToRunInContext}
+     * @throws E if the {@code callableInContext} throws
+     * @noreference this method must not be called by clients TODO(benny) describe why? TODO does this work?
+     */
+    public static <V, E extends Exception> V runWithContext(final NodeContainer nc,
+        final Map<Class<?>, Object> dependencies, final ContextCallable<V, E> callableInContext) throws E {
+        NodeContext.pushContext(nc); // TODO(benny) only if not null??
+        try {
+            init(nc, dependencies);
+            return callableInContext.call();
+        } finally {
+            remove();
+            NodeContext.removeLastContext(); // TODO(benny) only if not null?
+        }
+    }
+
+    private static void init(final NodeContainer nc, final Map<Class<?>, Object> dependencies) {
+        if (nc instanceof SingleNodeContainer snc) {
+            final var inputSpecsSupplier =
+                new CachingSupplier<>(() -> InputPortUtil.getInputSpecsExcludingVariablePort(nc));
+            init(new CachingSupplier<>(snc::createExecutionContext), inputSpecsSupplier, dependencies);
+        } else {
+            init(null, null, dependencies);
+        }
+    }
+
+    private static void init(final CachingSupplier<ExecutionContext> execSupplier,
+        final CachingSupplier<PortObjectSpec[]> specsSupplier, final Map<Class<?>, Object> dependencies) {
+        // TODO(benny) inline?
+        if (CONTEXT.get() != null && !allowOverwrite) {
+            return;
+        }
+        CONTEXT.set(new DataServiceContext(execSupplier, specsSupplier, dependencies));
+    }
+
+    /**
+     * Removes the entire context for the current thread.
+     */
+    private static void remove() {
+        CONTEXT.remove();
+        allowOverwrite = true;
+    }
+
+    /**
+     * @throws IllegalStateException if the method is not running in
+     *             {@link #runWithContext(NodeContainer, Map, Supplier)}.
+     */
+    static void assertRunningInContext() {
+        if (CONTEXT.get() == null) {
+            // TODO(martin) assert, so it won't happen in production?
+            throw new IllegalStateException("The DataServiceContext is required but not initialized.");
+        }
+    }
+
     /**
      * @return the {@link DataServiceContext} for the current thread, potentially creating a new one in the process.
      */
@@ -89,24 +157,6 @@ public final class DataServiceContext {
         }
     }
 
-    static void init(final NodeContainer nc, final Map<Class<?>, Object> dependencies) {
-        if (nc instanceof SingleNodeContainer snc) {
-            final var inputSpecsSupplier =
-                new CachingSupplier<>(() -> InputPortUtil.getInputSpecsExcludingVariablePort(nc));
-            init(new CachingSupplier<>(snc::createExecutionContext), inputSpecsSupplier, dependencies);
-        } else {
-            init(null, null, dependencies);
-        }
-    }
-
-    static void init(final CachingSupplier<ExecutionContext> execSupplier,
-        final CachingSupplier<PortObjectSpec[]> specsSupplier, final Map<Class<?>, Object> dependencies) {
-        if (CONTEXT.get() != null && !allowOverwrite) {
-            return;
-        }
-        CONTEXT.set(new DataServiceContext(execSupplier, specsSupplier, dependencies));
-    }
-
     /**
      * Inits the context state and fixes it until it's this method is called again (i.e. not other init-call except this
      * one will overwrite the context state (for the respective thread local) or it's cleared ({@link #remove()}.
@@ -117,6 +167,7 @@ public final class DataServiceContext {
      */
     static void initForTesting(final CachingSupplier<ExecutionContext> execSupplier,
         final CachingSupplier<PortObjectSpec[]> specsSupplier, final Map<Class<?>, Object> dependencies) {
+        // TODO(benny) switch to runWithContext???
         allowOverwrite = false;
         CONTEXT.set(new DataServiceContext(execSupplier, specsSupplier, dependencies));
     }
@@ -194,13 +245,4 @@ public final class DataServiceContext {
         // TODO noreference or something?
         return (T)m_dependencies.get(clazz);
     }
-
-    /**
-     * Removes the entire context for the current thread.
-     */
-    static void remove() {
-        CONTEXT.remove();
-        allowOverwrite = true;
-    }
-
 }

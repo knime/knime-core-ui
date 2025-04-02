@@ -112,6 +112,7 @@ public interface NodeViewFactory<T extends NodeModel> extends WizardPageContribu
      */
     @Override
     default Optional<String> getInitialViewValue(final NativeNodeContainer nnc) {
+        // TODO(benny) this should run in the data service context - but where do we add the context??
         return NodeViewManager.getInstance().getDataServiceManager()
             .getDataServiceOfType(NodeWrapper.of(nnc), InitialDataService.class)
             .map(InitialDataService::getInitialData);

@@ -52,8 +52,6 @@ import java.io.IOException;
 import java.util.function.Supplier;
 
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.workflow.NodeContainer;
-import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.webui.data.rpc.json.impl.ObjectMapperUtil;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -77,8 +75,6 @@ public final class InitialDataService<D> extends AbstractDataService {
 
     private Serializer<D> m_serializer;
 
-    private final NodeContainer m_nc;
-
     /**
      * @param dataSupplier
      */
@@ -96,21 +92,18 @@ public final class InitialDataService<D> extends AbstractDataService {
         } else {
             m_serializer = builder.m_serializer;
         }
-        m_nc = DataServiceUtil.getNodeContainerFromContext();
     }
 
     /**
      * @return the initial data serialized into a string
      */
     public String getInitialData() {
-        if (m_nc != null) {
-            NodeContext.pushContext(m_nc);
-        }
+        DataServiceContext.assertRunningInContext();
         try {
             final var root = m_mapper.createObjectNode();
             // Since the DataServiceContext is public API, warning messages could have been wrongfully added to it.
             // We clear the context here to make sure there are no "stale" warning messages.
-            DataServiceContext.init(m_nc);
+            DataServiceContext.get().clearWarningMessages(); // TODO(benny) this was done by calling "init(m_nc)" before, is it still okay?
             final var dataString = m_serializer.serialize(m_dataSupplier.get());
             try { // NOSONAR
                 root.set("result", m_mapper.readTree(dataString));
@@ -143,11 +136,6 @@ public final class InitialDataService<D> extends AbstractDataService {
                 .set("internalError", m_mapper.valueToTree(new InitialDataInternalError(t))).toString();
             NodeLogger.getLogger(getClass()).error(errorMessage);
             return errorMessage;
-        } finally {
-            DataServiceContext.remove();
-            if (m_nc != null) {
-                NodeContext.removeLastContext();
-            }
         }
     }
 
