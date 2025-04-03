@@ -1439,7 +1439,6 @@ class UiSchemaOptionsTest {
             @TextInputWidget(placeholderProvider = TestStringProvider.class)
             String m_textInputPlaceholderProvider;
 
-
             @Widget(title = "", description = "")
             @TextInputWidget(validation = MinLenValidation.class)
             String m_minLength;
@@ -1692,6 +1691,62 @@ class UiSchemaOptionsTest {
             .isFalse();
         assertThatJson(response).inPath("$.elements[5].options.validations[0].errorMessage").isString()
             .isEqualTo("The value must be at least 1.");
+    }
+
+    private static void assertNumericValidation(final ObjectNode response, final int elementIndex, final String scope,
+        final BigDecimal min, final BigDecimal max) {
+        final var optionsPath = String.format("$.elements[%d].options", elementIndex);
+        assertThatJson(response).inPath(String.format("$.elements[%d].scope", elementIndex)).isString().contains(scope);
+        assertThatJson(response).inPath(String.format("%s.validations", optionsPath)).isArray() //
+            .allSatisfy(v -> assertThatJson(v).inPath("$.parameters.isExclusive").isBoolean().isFalse());
+
+        assertThatJson(response).inPath(String.format("%s.validations[0].id", optionsPath)).isString().isEqualTo("min");
+        assertThatJson(response).inPath(String.format("%s.validations[0].parameters.min", optionsPath)).isNumber()
+            .isEqualTo(min);
+        assertThatJson(response).inPath(String.format("%s.validations[1].id", optionsPath)).isString().isEqualTo("max");
+        assertThatJson(response).inPath(String.format("%s.validations[1].parameters.max", optionsPath)).isNumber()
+            .isEqualTo(max);
+    }
+
+    @Test
+    void testNumericDefaultValidations() {
+
+        class NumberInputWidgetTestSettings implements DefaultNodeSettings {
+
+            @Widget(title = "", description = "")
+            byte m_byte;
+
+            @Widget(title = "", description = "")
+            int m_int;
+
+            @Widget(title = "", description = "")
+            long m_long;
+
+            @Widget(title = "", description = "")
+            @NumberInputWidget(validation = IsNonNegativeValidation.class)
+            int m_overwrittenIntValidation;
+        }
+
+        var response = buildTestUiSchema(NumberInputWidgetTestSettings.class);
+
+        assertNumericValidation(response, 0, "byte", BigDecimal.valueOf(-128.0), BigDecimal.valueOf(127.0));
+        assertNumericValidation(response, 1, "int", BigDecimal.valueOf(-2147483648.0),
+            BigDecimal.valueOf(2147483647.0));
+        assertNumericValidation(response, 2, "long", BigDecimal.valueOf(-9007199254740991.0),
+            BigDecimal.valueOf(9007199254740991.0));
+        assertThatJson(response).inPath("$.elements[2].options.validations").isArray() //
+            .anySatisfy(v -> {
+                assertThatJson(v).inPath("$.id").isEqualTo("min");
+                assertThatJson(v).inPath("$.errorMessage")
+                    .isEqualTo("Value too small to process without risking precision loss (< -9007199254740991).");
+            }) //
+            .anySatisfy(v -> {
+                assertThatJson(v).inPath("$.id").isEqualTo("max");
+                assertThatJson(v).inPath("$.errorMessage")
+                    .isEqualTo("Value too large to process without risking precision loss (> 9007199254740991).");
+            });
+        assertNumericValidation(response, 3, "overwrittenIntValidation", BigDecimal.valueOf(0.0),
+            BigDecimal.valueOf(2147483647.0));
     }
 
     static class RegularChoicesProvider implements StringChoicesProvider {

@@ -74,6 +74,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_OPTIONS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_UNKNWON_VALUES_TEXT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_USE_FLOW_VAR_TEMPLATES;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.DefaultNumberValidationUtil.getDefaultNumberValidations;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.getApplicableDefaults;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.partitionWidgetAnnotationsByApplicability;
 
@@ -84,6 +85,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -156,8 +158,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.OverwriteD
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBooleanProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.WidgetAnnotation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.BuiltinValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
@@ -527,12 +531,20 @@ final class UiSchemaOptionsGenerator {
             if (textInputWidget.placeholderProvider() != NoopStringProvider.class) {
                 options.put("placeholderProvider", textInputWidget.placeholderProvider().getName());
             }
-            addValidationOptions(options, textInputWidget.validation(), textInputWidget.validationProvider());
+            addValidationOptions(options, textInputWidget.validation(), List.of(),
+                textInputWidget.validationProvider());
         }
 
-        if (annotatedWidgets.contains(NumberInputWidget.class)) {
-            final var numberInputWidget = m_node.getAnnotation(NumberInputWidget.class).orElseThrow();
-            addValidationOptions(options, numberInputWidget.validation(), numberInputWidget.validationProvider());
+        if (WidgetImplementationUtil.NUMERIC_TYPES.contains(m_fieldClass)) {
+            Class<? extends StateProvider<? extends NumberInputWidgetValidation>>[] validationProviders = null;
+            Class<? extends NumberInputWidgetValidation>[] validations = null;
+
+            if (annotatedWidgets.contains(NumberInputWidget.class)) {
+                final var numberInputWidget = m_node.getAnnotation(NumberInputWidget.class).orElseThrow();
+                validations = numberInputWidget.validation();
+                validationProviders = numberInputWidget.validationProvider();
+            }
+            addValidationOptions(options, validations, getDefaultNumberValidations(m_fieldClass), validationProviders);
         }
 
         if (m_node instanceof ArrayParentNode<WidgetGroup> arrayWidgetNode) {
@@ -544,15 +556,38 @@ final class UiSchemaOptionsGenerator {
         }
     }
 
+    /**
+     * Record used to specify the interface a potential anonymous class implements.
+     *
+     * @param <T> the type of the validation
+     * @param clazz the class of the implemented validation interface
+     * @param instance a specific validation instance implementing the clazz interface
+     */
+    public record ValidationClassInstance<T extends BuiltinValidation>(Class<? extends T> clazz, T instance) {
+    }
+
     private static <T extends BuiltinValidation> void addValidationOptions(final ObjectNode options,
-        final Class<? extends T>[] validations,
+        final Class<? extends T>[] validations, final List<ValidationClassInstance<T>> defaultValidations,
         final Class<? extends StateProvider<? extends T>>[] validationProviders) {
 
-        if (validations.length != 0) {
-            final var validationInstances = Stream.of(validations).map(InstantiationUtil::createInstance).toList();
-            options.set("validations", JsonFormsUiSchemaUtil.getMapper().valueToTree(validationInstances));
+        final var hasValidations = validations != null && validations.length != 0;
+        if (hasValidations || !defaultValidations.isEmpty()) {
+            final List<T> combinedValidationInstances;
+            if (hasValidations) {
+                final var validationInstances = Arrays.stream(validations).map(InstantiationUtil::createInstance);
+                final var filteredDefaultValidationInstances = defaultValidations.stream() //
+                    .filter(defaultValidation -> Arrays.stream(validations)
+                        .noneMatch(defaultValidation.clazz()::isAssignableFrom))
+                    .map(ValidationClassInstance::instance);
+                combinedValidationInstances =
+                    Stream.concat(validationInstances, filteredDefaultValidationInstances).collect(Collectors.toList());
+            } else {
+                combinedValidationInstances =
+                    defaultValidations.stream().map(ValidationClassInstance::instance).toList();
+            }
+            options.set("validations", JsonFormsUiSchemaUtil.getMapper().valueToTree(combinedValidationInstances));
         }
-        if (validationProviders.length != 0) {
+        if (validationProviders != null && validationProviders.length != 0) {
             options.set("validationProviders", JsonFormsUiSchemaUtil.getMapper().valueToTree(validationProviders));
         }
     }

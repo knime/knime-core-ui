@@ -72,7 +72,9 @@ public @interface NumberInputWidget {
      * be constant, i.e. the value to validate against does not depend on the context of the node. To validate against a
      * dynamic value which depends on the context of the node use {@link #validationProvider()}. See
      * {@link NumberInputWidgetValidation} for possible validation instructions such as validating the input against a
-     * minimum ({@link MinValidation}).
+     * minimum ({@link MinValidation}). For byte and int fields, the MIN_VALUE and MAX_VALUE are used per default. For
+     * long fields, JavaScripts Number.MinSafeInteger and Number.MaxSafeInteger are used since larger values can not be
+     * exactly handled.
      *
      * @return the validations to apply to the input
      */
