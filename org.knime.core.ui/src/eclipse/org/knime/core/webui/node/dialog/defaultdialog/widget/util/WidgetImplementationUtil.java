@@ -170,6 +170,12 @@ public final class WidgetImplementationUtil {
     }
 
     /**
+     * List of supported numeric classes
+     */
+    public static final List<Class<?>> NUMERIC_TYPES =
+        List.of(byte.class, int.class, long.class, float.class, double.class, Duration.class);
+
+    /**
      * Extend this by every new annotation defining the format of the annotated ui element.
      *
      * !!! WHEN ADDING A NEW ELEMENT HERE, ALSO ADD TO THE DOCUMENTATION OF {@link DefaultNodeSettings} !!!
@@ -202,8 +208,7 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(Void.class), TextMessage.class), //
         new WidgetAnnotation(List.of(String.class, ZoneId.class), OptionalWidget.class), //
         new WidgetAnnotation(List.of(String[].class, ColumnFilter.class, StringFilter.class), TwinlistWidget.class), //
-        new WidgetAnnotation(List.of(byte.class, double.class, float.class, int.class, long.class, Duration.class),
-            NumberInputWidget.class) //
+        new WidgetAnnotation(NUMERIC_TYPES, NumberInputWidget.class) //
     };
 
     /**
