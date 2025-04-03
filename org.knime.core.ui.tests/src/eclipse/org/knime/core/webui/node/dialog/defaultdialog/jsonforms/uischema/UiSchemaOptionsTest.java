@@ -1694,6 +1694,44 @@ class UiSchemaOptionsTest {
             .isEqualTo("The value must be at least 1.");
     }
 
+    @Test
+    void testNumericDefaultValidations() {
+
+        class NumberInputWidgetTestSettings implements DefaultNodeSettings {
+
+            @Widget(title = "", description = "")
+            byte m_byte;
+
+            @Widget(title = "", description = "")
+            int m_int;
+
+            @Widget(title = "", description = "")
+            long m_long;
+
+            @Widget(title = "", description = "")
+            double m_double;
+
+            @Widget(title = "", description = "")
+            float m_float;
+        }
+
+        var response = buildTestUiSchema(NumberInputWidgetTestSettings.class);
+
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("byte");
+        assertThatJson(response).inPath("$.elements[0].options.validations").isArray() //
+            .allSatisfy(v -> assertThatJson(v).inPath("$.parameters.isExclusive").isBoolean().isFalse())
+            .anySatisfy(v -> {
+                assertThatJson(v).inPath("$.id").isEqualTo("min");
+                assertThatJson(v).inPath("$.parameters.min").isNumber().isEqualTo(BigDecimal.valueOf(-128.0));
+                assertThatJson(v).inPath("$.errorMessage").isString().isEqualTo("The value must be at least -128.");
+            }) //
+            .anySatisfy(v -> {
+                assertThatJson(v).inPath("$.id").isEqualTo("max");
+                assertThatJson(v).inPath("$.parameters.max").isNumber().isEqualTo(BigDecimal.valueOf(127.0));
+                assertThatJson(v).inPath("$.errorMessage").isString().isEqualTo("The value must not exceed 127.");
+            });
+    }
+
     static class RegularChoicesProvider implements StringChoicesProvider {
 
         @Override

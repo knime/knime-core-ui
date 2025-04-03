@@ -74,16 +74,22 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_OPTIONS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_UNKNWON_VALUES_TEXT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_USE_FLOW_VAR_TEMPLATES;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.DEFAULT_VALIDATION_NUMBER_FIELDS;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.getApplicableDefaults;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.partitionWidgetAnnotationsByApplicability;
 
 import java.lang.reflect.Field;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -158,6 +164,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringP
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.WidgetAnnotation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.BuiltinValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 
@@ -527,12 +536,23 @@ final class UiSchemaOptionsGenerator {
             if (textInputWidget.placeholderProvider() != NoopStringProvider.class) {
                 options.put("placeholderProvider", textInputWidget.placeholderProvider().getName());
             }
-            addValidationOptions(options, textInputWidget.validation(), textInputWidget.validationProvider());
+            addValidationOptions(options, textInputWidget.validation(), Map.of(),
+                textInputWidget.validationProvider());
         }
 
-        if (annotatedWidgets.contains(NumberInputWidget.class)) {
-            final var numberInputWidget = m_node.getAnnotation(NumberInputWidget.class).orElseThrow();
-            addValidationOptions(options, numberInputWidget.validation(), numberInputWidget.validationProvider());
+        if (DEFAULT_VALIDATION_NUMBER_FIELDS.keySet().contains(m_node.getRawClass())) {
+            @SuppressWarnings("unchecked")
+            Class<? extends StateProvider<? extends NumberInputWidgetValidation>>[] validationProviders = new Class[0];
+            @SuppressWarnings("unchecked")
+            Class<? extends NumberInputWidgetValidation>[] validations = new Class[0];
+
+            if (annotatedWidgets.contains(NumberInputWidget.class)) {
+                final var numberInputWidget = m_node.getAnnotation(NumberInputWidget.class).orElseThrow();
+                validations = numberInputWidget.validation();
+                validationProviders = numberInputWidget.validationProvider();
+            }
+
+            addValidationOptions(options, validations, getDefaultNumberValidations(), validationProviders);
         }
 
         if (m_node instanceof ArrayParentNode<WidgetGroup> arrayWidgetNode) {
@@ -546,15 +566,48 @@ final class UiSchemaOptionsGenerator {
 
     private static <T extends BuiltinValidation> void addValidationOptions(final ObjectNode options,
         final Class<? extends T>[] validations,
+        final Map<Class<? extends T>, Supplier<? extends T>> defaultValidationInstances,
         final Class<? extends StateProvider<? extends T>>[] validationProviders) {
 
-        if (validations.length != 0) {
-            final var validationInstances = Stream.of(validations).map(InstantiationUtil::createInstance).toList();
+        if (validations.length != 0 || !defaultValidationInstances.isEmpty()) {
+            Set<Class<? extends T>> validationSet = Set.of(validations);
+
+            List<T> validationInstances = Arrays.stream(validations) //
+                .map(InstantiationUtil::createInstance) //
+                .collect(Collectors.toCollection(ArrayList::new));
+
+            defaultValidationInstances.entrySet().stream()
+                .filter(entry -> validationSet.stream().noneMatch(entry.getKey()::isAssignableFrom)) //
+                .map(Map.Entry::getValue) //
+                .map(Supplier::get) //
+                .forEach(validationInstances::add);
             options.set("validations", JsonFormsUiSchemaUtil.getMapper().valueToTree(validationInstances));
         }
         if (validationProviders.length != 0) {
             options.set("validationProviders", JsonFormsUiSchemaUtil.getMapper().valueToTree(validationProviders));
         }
+    }
+
+    private Map<Class<? extends NumberInputWidgetValidation>, Supplier<? extends NumberInputWidgetValidation>>
+        getDefaultNumberValidations() {
+        return Map.of(MinValidation.class, () -> {
+            double min = DEFAULT_VALIDATION_NUMBER_FIELDS.get(m_node.getRawClass()).getFirst().doubleValue();
+            return new MinValidation() {
+                @Override
+                protected double getMin() {
+                    return min;
+                }
+            };
+        }, MaxValidation.class, () -> {
+            double max = DEFAULT_VALIDATION_NUMBER_FIELDS.get(m_node.getRawClass()).getSecond().doubleValue();
+            return new MaxValidation() {
+                @Override
+                protected double getMax() {
+                    return max;
+                }
+            };
+        });
+
     }
 
     private static void addTypedNameFilterOptions(final ObjectNode options, final String filteredObject) {

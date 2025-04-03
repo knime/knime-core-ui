@@ -72,7 +72,8 @@ public @interface NumberInputWidget {
      * be constant, i.e. the value to validate against does not depend on the context of the node. To validate against a
      * dynamic value which depends on the context of the node use {@link #validationProvider()}. See
      * {@link NumberInputWidgetValidation} for possible validation instructions such as validating the input against a
-     * minimum ({@link MinValidation}).
+     * minimum ({@link MinValidation}). Per default, the minimum and maximum of the type of the supported field are
+     * used.
      *
      * @return the validations to apply to the input
      */

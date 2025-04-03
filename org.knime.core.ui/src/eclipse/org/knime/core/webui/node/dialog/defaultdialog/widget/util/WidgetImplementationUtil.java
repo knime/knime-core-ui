@@ -60,8 +60,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.knime.core.data.DataType;
+import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
@@ -169,6 +171,19 @@ public final class WidgetImplementationUtil {
     public record DefaultWidget(List<Class<?>> applicableFields, DefaultWidgetType type) {
     }
 
+    private static final long MAX_SAFE_INTEGER_JS = 9007199254740991L;
+
+    /**
+     * Numeric fields that define a default min and max validation based on the minimum/maximum supported value
+     */
+    public static final Map<Class<?>, Pair<Number, Number>> DEFAULT_VALIDATION_NUMBER_FIELDS = Map.of( //
+        byte.class, new Pair<>(Byte.MIN_VALUE, Byte.MAX_VALUE), //
+        int.class, new Pair<>(Integer.MIN_VALUE, Integer.MAX_VALUE), //
+        // long is limited by safe integer range in JavaScript
+        long.class, new Pair<>(-MAX_SAFE_INTEGER_JS, MAX_SAFE_INTEGER_JS), //
+        float.class, new Pair<>(-Float.MAX_VALUE, Float.MAX_VALUE), //
+        double.class, new Pair<>(-Double.MAX_VALUE, Double.MAX_VALUE));
+
     /**
      * Extend this by every new annotation defining the format of the annotated ui element.
      *
@@ -202,7 +217,8 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(Void.class), TextMessage.class), //
         new WidgetAnnotation(List.of(String.class, ZoneId.class), OptionalWidget.class), //
         new WidgetAnnotation(List.of(String[].class, ColumnFilter.class, StringFilter.class), TwinlistWidget.class), //
-        new WidgetAnnotation(List.of(byte.class, double.class, float.class, int.class, long.class, Duration.class),
+        new WidgetAnnotation(
+            Stream.concat(DEFAULT_VALIDATION_NUMBER_FIELDS.keySet().stream(), Stream.of(Duration.class)).toList(),
             NumberInputWidget.class) //
     };
 
