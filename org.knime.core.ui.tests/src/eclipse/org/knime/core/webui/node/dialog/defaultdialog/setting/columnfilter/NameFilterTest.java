@@ -65,7 +65,7 @@ class NameFilterTest {
         selection.m_manualFilter.m_manuallyDeselected = new String[]{"Old deselected"};
         selection.m_manualFilter.m_includeUnknownColumns = true;
         final var choices = new String[]{"Choice1", "Choice2"};
-        assertThat(selection.getSelected(choices)).isEqualTo(new String[]{"Old selected", choices[0], choices[1]});
+        assertThat(selection.getSelected(choices)).isEqualTo(choices);
     }
 
     @Test
@@ -74,7 +74,7 @@ class NameFilterTest {
         final var choices = new String[]{"Choice1", "Choice2"};
         selection.m_manualFilter.m_manuallyDeselected = new String[]{choices[0]};
         selection.m_manualFilter.m_includeUnknownColumns = true;
-        assertThat(selection.getSelected(choices)).isEqualTo(new String[]{"Old selected", choices[1]});
+        assertThat(selection.getSelected(choices)).isEqualTo(new String[]{choices[1]});
         assertThat(selection.getNonMissingSelected(choices)).isEqualTo(new String[]{choices[1]});
     }
 
