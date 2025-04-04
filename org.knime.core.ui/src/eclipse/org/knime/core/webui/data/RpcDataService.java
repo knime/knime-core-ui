@@ -52,6 +52,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.knime.core.node.workflow.NodeContainer;
+import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.webui.data.rpc.RpcServer;
 import org.knime.core.webui.data.rpc.RpcServerManager;
 import org.knime.core.webui.data.rpc.json.impl.JsonRpcServer;
@@ -72,6 +74,8 @@ public final class RpcDataService extends AbstractDataService {
 
     private final RpcServer m_rpcServer;
 
+    private final NodeContainer m_nc;
+
     private RpcDataService(final RpcDataServiceBuilder builder) {
         super(builder);
         final var hasUnnamedHandler = builder.m_unnamedHandler != null;
@@ -89,6 +93,7 @@ public final class RpcDataService extends AbstractDataService {
         } else {
             throw new IllegalStateException("No handler was supplied to this RPCDataService");
         }
+        m_nc = DataServiceUtil.getNodeContainerFromContext();
     }
 
     /**
@@ -96,8 +101,11 @@ public final class RpcDataService extends AbstractDataService {
      * @return the rpc-response (e.g. a json-rpc response)
      */
     public String handleRpcRequest(final String request) {
-        DataServiceContext.assertRunningInContext();
+        if (m_nc != null) {
+            NodeContext.pushContext(m_nc);
+        }
         try {
+            DataServiceContext.init(m_nc);
             final var response = RpcServerManager.doRpc(m_rpcServer, request);
             // We have to get the DataServiceContext again here, since the context may have changed since (or as a
             // consequence of) clearing it
@@ -112,6 +120,11 @@ public final class RpcDataService extends AbstractDataService {
             return response;
         } catch (IOException ex) {
             throw new IllegalStateException("A problem occurred while making a rpc call.", ex);
+        } finally {
+            DataServiceContext.remove();
+            if (m_nc != null) {
+                NodeContext.removeLastContext();
+            }
         }
     }
 

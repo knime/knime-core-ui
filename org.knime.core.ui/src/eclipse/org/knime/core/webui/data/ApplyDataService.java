@@ -56,6 +56,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.interactive.ReExecutable;
 import org.knime.core.node.workflow.NodeContainer;
+import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.webui.data.rpc.json.impl.ObjectMapperUtil;
 
@@ -139,7 +140,10 @@ public final class ApplyDataService<D> extends AbstractDataService {
     private static final String ERROR = "error";
 
     private JsonNode applyDataAndListWarningsAndErrors(final String dataString) {
-        DataServiceContext.assertRunningInContext();
+        if (m_nc != null) {
+            NodeContext.pushContext(m_nc);
+            DataServiceContext.init(m_nc);
+        }
         final var mapper = ObjectMapperUtil.getInstance().getObjectMapper();
         final var root = mapper.createObjectNode();
         try {
@@ -155,6 +159,11 @@ public final class ApplyDataService<D> extends AbstractDataService {
         } catch (IOException ex) {
             NodeLogger.getLogger(ApplyDataService.class).error("Error applying data", ex);
             return root.put(IS_APPLIED, false).put(ERROR, ex.getMessage());
+        } finally {
+            if (m_nc != null) {
+                DataServiceContext.remove();
+                NodeContext.removeLastContext();
+            }
         }
     }
 
