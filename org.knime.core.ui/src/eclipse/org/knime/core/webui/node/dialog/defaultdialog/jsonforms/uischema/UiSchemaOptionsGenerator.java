@@ -223,11 +223,11 @@ final class UiSchemaOptionsGenerator {
                     options.put(TAG_FORMAT, Format.CHECKBOX);
                     break;
                 case COLUMN_FILTER:
-                    options.put(TAG_FORMAT, Format.TYPED_NAME_FILTER);
+                    options.put(TAG_FORMAT, Format.TYPED_STRING_FILTER);
                     addTypedNameFilterOptions(options, "column");
                     break;
                 case FLOW_VARIABLE_FILTER:
-                    options.put(TAG_FORMAT, Format.TYPED_NAME_FILTER);
+                    options.put(TAG_FORMAT, Format.TYPED_STRING_FILTER);
                     addTypedNameFilterOptions(options, "variable");
                     break;
                 case NAME_FILTER:
