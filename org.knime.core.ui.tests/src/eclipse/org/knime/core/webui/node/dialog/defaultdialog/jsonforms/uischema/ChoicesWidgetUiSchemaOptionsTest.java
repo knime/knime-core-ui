@@ -136,13 +136,13 @@ class ChoicesWidgetUiSchemaOptionsTest {
 
         var response = buildTestUiSchema(SeveralChoicesSettings.class, null);
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("columnFilter");
-        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("typedNameFilter");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("typedStringFilter");
         assertThatJson(response).inPath("$.elements[0].options.unknownValuesText").isString()
             .isEqualTo("Any unknown column");
         assertThatJson(response).inPath("$.elements[0].options.emptyStateLabel").isString()
             .isEqualTo("No columns in this list.");
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("flowVariableFilter");
-        assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo("typedNameFilter");
+        assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo("typedStringFilter");
         assertThatJson(response).inPath("$.elements[1].options.unknownValuesText").isString()
             .isEqualTo("Any unknown variable");
         assertThatJson(response).inPath("$.elements[1].options.emptyStateLabel").isString()

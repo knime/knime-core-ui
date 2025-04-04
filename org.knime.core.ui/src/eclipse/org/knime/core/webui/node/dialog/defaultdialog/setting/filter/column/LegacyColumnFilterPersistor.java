@@ -143,7 +143,7 @@ public abstract class LegacyColumnFilterPersistor implements NodeSettingsPersist
         } else if (PatternFilterConfiguration.TYPE.equals(filterType)) {
             var patternMatchingSettings = columnFilterSettings.getNodeSettings(PatternFilterConfiguration.TYPE);
             return TypedStringFilterMode
-                .toTypedNameFilterMode(LegacyPatternFilterPersistorUtil.loadPatternMode(patternMatchingSettings));
+                .toTypedStringFilterMode(LegacyPatternFilterPersistorUtil.loadPatternMode(patternMatchingSettings));
         } else if (OLD_FILTER_TYPE_DATATYPE.equals(filterType)) {
             return TypedStringFilterMode.TYPE;
         } else {

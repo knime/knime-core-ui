@@ -89,7 +89,7 @@ public enum TypedStringFilterMode {
      * @param mode the pattern mode
      * @return the corresponding {@link TypedStringFilterMode}
      */
-    public static TypedStringFilterMode toTypedNameFilterMode(final PatternMode mode) {
+    public static TypedStringFilterMode toTypedStringFilterMode(final PatternMode mode) {
         return mode == PatternMode.REGEX ? REGEX : WILDCARD;
     }
 

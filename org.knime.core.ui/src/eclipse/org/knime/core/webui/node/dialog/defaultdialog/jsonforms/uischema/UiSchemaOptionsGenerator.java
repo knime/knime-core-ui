@@ -223,12 +223,12 @@ final class UiSchemaOptionsGenerator {
                     options.put(TAG_FORMAT, Format.CHECKBOX);
                     break;
                 case COLUMN_FILTER:
-                    options.put(TAG_FORMAT, Format.TYPED_NAME_FILTER);
-                    addTypedNameFilterOptions(options, "column");
+                    options.put(TAG_FORMAT, Format.TYPED_STRING_FILTER);
+                    addTypedStringFilterOptions(options, "column");
                     break;
                 case FLOW_VARIABLE_FILTER:
-                    options.put(TAG_FORMAT, Format.TYPED_NAME_FILTER);
-                    addTypedNameFilterOptions(options, "variable");
+                    options.put(TAG_FORMAT, Format.TYPED_STRING_FILTER);
+                    addTypedStringFilterOptions(options, "variable");
                     break;
                 case NAME_FILTER:
                     options.put(TAG_FORMAT, Format.NAME_FILTER);
@@ -557,7 +557,7 @@ final class UiSchemaOptionsGenerator {
         }
     }
 
-    private static void addTypedNameFilterOptions(final ObjectNode options, final String filteredObject) {
+    private static void addTypedStringFilterOptions(final ObjectNode options, final String filteredObject) {
         options.put(TAG_UNKNWON_VALUES_TEXT, String.format("Any unknown %s", filteredObject));
         options.put(TAG_EMPTY_STATE_LABEL, String.format("No %ss in this list.", filteredObject));
     }

@@ -21,7 +21,6 @@
         "inputKind" : "SINGLE"
       },
       "columnFilter" : {
-        "selected" : [ ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -39,7 +38,6 @@
         }
       },
       "flowVariableFilter" : {
-        "selected" : [ ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -158,7 +156,6 @@
             },
             "title" : "Column Filter",
             "default" : {
-              "selected" : [ ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -350,7 +347,6 @@
             },
             "title" : "Flow Variable Filter",
             "default" : {
-              "selected" : [ ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -441,7 +437,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/columnFilter",
       "options" : {
-        "format" : "typedNameFilter",
+        "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown column",
         "emptyStateLabel" : "No columns in this list."
       }
@@ -449,7 +445,7 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/flowVariableFilter",
       "options" : {
-        "format" : "typedNameFilter",
+        "format" : "typedStringFilter",
         "unknownValuesText" : "Any unknown variable",
         "emptyStateLabel" : "No variables in this list."
       }

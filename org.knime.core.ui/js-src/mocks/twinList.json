@@ -222,7 +222,7 @@
           "type": "Control",
           "scope": "properties/ColumnFilter",
           "options": {
-            "format": "typedNameFilter",
+            "format": "typedStringFilter",
             "emptyStateLabel": "No columns in this list",
             "unknownValuesText": "Any unknown column",
             "possibleValues": [
@@ -249,7 +249,7 @@
           "type": "Control",
           "scope": "properties/ColumnFilterWithIncludedUnknownColumns",
           "options": {
-            "format": "typedNameFilter",
+            "format": "typedStringFilter",
             "emptyStateLabel": "No columns in this list",
             "unknownValuesText": "Any unknown column",
             "possibleValues": [
@@ -280,7 +280,7 @@
               "type": "Control",
               "scope": "properties/AsyncChoices",
               "options": {
-                "format": "typedNameFilter",
+                "format": "typedStringFilter",
                 "emptyStateLabel": "No columns in this list",
                 "unknownValuesText": "Any unknown column",
                 "choicesProviderClass": "successfulChoicesProvider"
@@ -290,7 +290,7 @@
               "type": "Control",
               "scope": "properties/AsyncChoicesFail",
               "options": {
-                "format": "typedNameFilter",
+                "format": "typedStringFilter",
                 "emptyStateLabel": "No columns in this list",
                 "unknownValuesText": "Any unknown column",
                 "choicesProviderClass": "failingChoicesProvider"

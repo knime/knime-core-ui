@@ -221,7 +221,7 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[2].scope").isString().contains("enum");
         assertThatJson(response).inPath("$.elements[2]").isObject().doesNotContainKey("options");
         assertThatJson(response).inPath("$.elements[3].scope").isString().contains("columnFilter");
-        assertThatJson(response).inPath("$.elements[3].options.format").isString().isEqualTo("typedNameFilter");
+        assertThatJson(response).inPath("$.elements[3].options.format").isString().isEqualTo("typedStringFilter");
         assertThatJson(response).inPath("$.elements[4].scope").isString().contains("localDate");
         assertThatJson(response).inPath("$.elements[4].options.format").isString().isEqualTo("localDate");
         assertThatJson(response).inPath("$.elements[5].scope").isString().contains("localTime");

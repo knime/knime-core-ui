@@ -230,7 +230,7 @@ public final class JsonFormsConsts {
 
             public static final String VALUE_SWITCH = "valueSwitch";
 
-            public static final String TYPED_NAME_FILTER = "typedNameFilter";
+            public static final String TYPED_STRING_FILTER = "typedStringFilter";
 
             public static final String NAME_FILTER = "nameFilter";
 

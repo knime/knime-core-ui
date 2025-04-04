@@ -2,7 +2,6 @@
   "data" : {
     "view" : {
       "displayedColumns" : {
-        "selected" : [ "test1", "test2" ],
         "mode" : "MANUAL",
         "patternFilter" : {
           "pattern" : "",
@@ -166,7 +165,6 @@
             "title" : "Displayed columns",
             "description" : "Select the columns that should be displayed in the table",
             "default" : {
-              "selected" : [ "test1", "test2" ],
               "mode" : "MANUAL",
               "patternFilter" : {
                 "pattern" : "",
@@ -343,7 +341,7 @@
         "type" : "Control",
         "scope" : "#/properties/view/properties/displayedColumns",
         "options" : {
-          "format" : "typedNameFilter",
+          "format" : "typedStringFilter",
           "unknownValuesText" : "Any unknown column",
           "emptyStateLabel" : "No columns in this list.",
           "choicesProvider" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider"

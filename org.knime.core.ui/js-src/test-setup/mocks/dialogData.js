@@ -410,7 +410,7 @@ export const dialogInitialData = {
             type: "Control",
             scope: "#/properties/view/properties/frequencyColumns",
             options: {
-              format: "typedNameFilter",
+              format: "typedStringFilter",
               emptyStateLabel: "No columns in this list",
               unknownValuesText: "Any unknown column",
               possibleValues: [
@@ -567,7 +567,7 @@ export const expectedRenderers = [
   },
   {
     scope: "#/properties/view/properties/frequencyColumns",
-    component: "TypedNameFilter",
+    component: "TypedStringFilter",
   },
   {
     scope: "#/properties/view/properties/simpleTwinlist",
