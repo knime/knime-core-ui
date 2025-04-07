@@ -44,58 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 24, 2025 (paulbaernreuther): created
+ *   Apr 7, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes;
 
-import java.util.List;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilterModeToTypedStringFilterModeUtil;
+import org.junit.jupiter.api.Test;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 
-/**
- * Use this migration whenever a {@link StringFilter} should be converted to a {@link FlowVariableFilter}.
- *
- * @author Paul Bärnreuther
- */
-public abstract class StringFilterToFlowVariableFilterMigration implements NodeSettingsMigration<FlowVariableFilter> {
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-    private final String m_legacyConfigKey;
+class TypeDisplaysTest {
+    static final ObjectMapper MAPPER = JsonFormsDataUtil.getMapper();
 
-    /**
-     * @param legacyConfigKey the config key by which the setting was stored as a string filter. It has to be different
-     *            to the current config key (i.e. it is deprecated).
-     */
-    protected StringFilterToFlowVariableFilterMigration(final String legacyConfigKey) {
-        m_legacyConfigKey = legacyConfigKey;
+    @Test
+    void testColumnFilterTypeDisplays() {
+
+        final var registeredTypeId = "org.knime.core.data.StringValue";
+        final var registeredTypeName = "String";
+        final var unregisteredTypeId = "org.knime.core.data.UnknownType";
+
+        final var selectedTypes = new String[]{registeredTypeId, unregisteredTypeId};
+
+        final var columnFilter = new ColumnFilter();
+        columnFilter.m_typeFilter.m_selectedTypes = selectedTypes;
+
+        final var result = MAPPER.valueToTree(columnFilter);
+
+        assertThatJson(result).inPath("$.typeFilter.typeDisplays").isArray().hasSize(1);
+        assertThatJson(result).inPath("$.typeFilter.typeDisplays[0].id").isEqualTo(registeredTypeId);
+        assertThatJson(result).inPath("$.typeFilter.typeDisplays[0].text").isEqualTo(registeredTypeName);
+
     }
 
-    @Override
-    public List<ConfigMigration<FlowVariableFilter>> getConfigMigrations() {
-        return List.of(
+    @Test
+    void testFlowVariableFilterTypeDisplays() {
+        final var registeredTypeId = "STRING";
+        final var registeredTypeName = "StringType";
+        final var unregisteredTypeId = "UNKNOWN";
 
-            ConfigMigration.builder(this::stringFilterSettingsToFlowVariableFilter)
-                .withDeprecatedConfigPath(m_legacyConfigKey).build());
-    }
+        final var selectedTypes = new String[]{registeredTypeId, unregisteredTypeId};
+        final var flowVarFilter = new FlowVariableFilter();
 
-    FlowVariableFilter stringFilterSettingsToFlowVariableFilter(final NodeSettingsRO settings)
-        throws InvalidSettingsException {
-        final var stringFilterSettings = settings.getNodeSettings(m_legacyConfigKey);
-        final var stringFilter = SettingsLoaderFactory.loadSettings(StringFilter.class, stringFilterSettings);
-        return fromStringFilter(stringFilter);
-    }
+        flowVarFilter.m_typeFilter.m_selectedTypes = selectedTypes;
 
-    private static FlowVariableFilter fromStringFilter(final StringFilter stringFilter) {
-        final var flowVariableFilter = new FlowVariableFilter();
-        flowVariableFilter.m_mode = StringFilterModeToTypedStringFilterModeUtil.convert(stringFilter.m_mode);
-        flowVariableFilter.m_manualFilter = stringFilter.m_manualFilter;
-        flowVariableFilter.m_patternFilter = stringFilter.m_patternFilter;
-        return flowVariableFilter;
+        final var result = MAPPER.valueToTree(flowVarFilter);
+
+        assertThatJson(result).inPath("$.typeFilter.typeDisplays").isArray().hasSize(1);
+        assertThatJson(result).inPath("$.typeFilter.typeDisplays[0].id").isEqualTo(registeredTypeId);
+        assertThatJson(result).inPath("$.typeFilter.typeDisplays[0].text").isEqualTo(registeredTypeName);
+
     }
 
 }

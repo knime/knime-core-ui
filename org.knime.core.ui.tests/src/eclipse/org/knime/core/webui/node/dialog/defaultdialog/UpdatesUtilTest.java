@@ -938,7 +938,7 @@ public class UpdatesUtilTest {
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].type.id").isString()
                 .isEqualTo(IntType.INSTANCE.getIdentifier());
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].type.text").isString()
-                .isEqualTo("Integer");
+                .isEqualTo("IntType");
         }
 
         static final class TestFlowVariableChoicesProvider implements FlowVariableChoicesProvider {

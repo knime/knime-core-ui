@@ -80,7 +80,17 @@ public abstract class TypeFilter implements PersistableSettings {
             throws IOException {
             serializers.defaultSerializeValue(value, gen);
             final var typeFilter = (TypeFilter)gen.getCurrentValue();
-            gen.writeObjectField("typeDisplays", typeFilter.getTypeDisplays());
+            /**
+             * Since the mapper ignores getters, we cannot use gen.writeObjectField to serialize the type displays.
+             */
+            gen.writeArrayFieldStart("typeDisplays");
+            for (var display : typeFilter.getTypeDisplays()) {
+                gen.writeStartObject();
+                gen.writeStringField("id", display.id());
+                gen.writeStringField("text", display.text());
+                gen.writeEndObject();
+            }
+            gen.writeEndArray();
         }
 
     }

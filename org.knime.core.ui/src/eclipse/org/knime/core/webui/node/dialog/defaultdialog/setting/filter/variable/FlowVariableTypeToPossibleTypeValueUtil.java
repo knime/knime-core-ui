@@ -49,15 +49,16 @@
 package org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable;
 
 import static java.util.stream.Collectors.toMap;
+import static org.knime.core.webui.node.view.flowvariable.FlowVariableDisplayUtil.getVariableTypeDisplay;
 
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
-import org.knime.core.data.DataType;
 import org.knime.core.node.workflow.VariableType;
 import org.knime.core.node.workflow.VariableTypeRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice.PossibleTypeValue;
+import org.knime.core.webui.node.view.flowvariable.FlowVariableDisplayUtil;
 
 /**
  * Used to construct possible type values used in the dialog to select types in the {@link FlowVariableTypeFilter}.
@@ -72,11 +73,7 @@ public final class FlowVariableTypeToPossibleTypeValueUtil {
 
     private static final Map<String, String> FLOW_VARIABLE_ID_TO_DISPLAY =
         Arrays.stream(VariableTypeRegistry.getInstance().getAllTypes())//
-            .collect(toMap(t -> t.getIdentifier(), t -> t.getSimpleType().getSimpleName(), (l, r) -> l));
-
-    private static <T> String getTypeName(final VariableType<T> variableType) {
-        return variableType.getSimpleType().getSimpleName();
-    }
+            .collect(toMap(t -> t.getIdentifier(), FlowVariableDisplayUtil::getVariableTypeDisplay, (l, r) -> l));
 
     private static <T> String getTypeId(final VariableType<T> variableType) {
         return variableType.getIdentifier();
@@ -90,17 +87,17 @@ public final class FlowVariableTypeToPossibleTypeValueUtil {
      * @return the used possible type value
      */
     public static <T> PossibleTypeValue fromVariableType(final VariableType<T> variableType) {
-        return new PossibleTypeValue(getTypeId(variableType), getTypeName(variableType));
+        return new PossibleTypeValue(getTypeId(variableType), getVariableTypeDisplay(variableType));
     }
 
     /**
      * Creates the ColumnTypeDisplay from the preferred value class.
      *
-     * @param preferredValueClass the name of the {@link DataType#getPreferredValueClass()}
+     * @param variableTypeId the identifier of a variable type
      * @return the display for the given preferredValueClass
      */
-    static Optional<PossibleTypeValue> fromVariableTypeId(final String preferredValueClass) {
-        return getText(preferredValueClass).map(t -> new PossibleTypeValue(preferredValueClass, t));
+    static Optional<PossibleTypeValue> fromVariableTypeId(final String variableTypeId) {
+        return getText(variableTypeId).map(t -> new PossibleTypeValue(variableTypeId, t));
     }
 
     private static Optional<String> getText(final String id) {

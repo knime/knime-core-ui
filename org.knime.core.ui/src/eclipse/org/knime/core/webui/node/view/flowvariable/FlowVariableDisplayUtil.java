@@ -44,58 +44,32 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 24, 2025 (paulbaernreuther): created
+ *   Apr 7, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable;
+package org.knime.core.webui.node.view.flowvariable;
 
-import java.util.List;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilterModeToTypedStringFilterModeUtil;
+import org.knime.core.node.workflow.VariableType;
 
 /**
- * Use this migration whenever a {@link StringFilter} should be converted to a {@link FlowVariableFilter}.
+ * Common methods for displaying aspects of a flow vairable.
  *
  * @author Paul Bärnreuther
  */
-public abstract class StringFilterToFlowVariableFilterMigration implements NodeSettingsMigration<FlowVariableFilter> {
+public final class FlowVariableDisplayUtil {
 
-    private final String m_legacyConfigKey;
+    private FlowVariableDisplayUtil() {
+        // utility class
+    }
 
     /**
-     * @param legacyConfigKey the config key by which the setting was stored as a string filter. It has to be different
-     *            to the current config key (i.e. it is deprecated).
+     * This method defines how flow variable types are displayed to the user
+     *
+     * @param <T>
+     * @param type of flow variable
+     * @return a human-readable description of the variable type
      */
-    protected StringFilterToFlowVariableFilterMigration(final String legacyConfigKey) {
-        m_legacyConfigKey = legacyConfigKey;
-    }
-
-    @Override
-    public List<ConfigMigration<FlowVariableFilter>> getConfigMigrations() {
-        return List.of(
-
-            ConfigMigration.builder(this::stringFilterSettingsToFlowVariableFilter)
-                .withDeprecatedConfigPath(m_legacyConfigKey).build());
-    }
-
-    FlowVariableFilter stringFilterSettingsToFlowVariableFilter(final NodeSettingsRO settings)
-        throws InvalidSettingsException {
-        final var stringFilterSettings = settings.getNodeSettings(m_legacyConfigKey);
-        final var stringFilter = SettingsLoaderFactory.loadSettings(StringFilter.class, stringFilterSettings);
-        return fromStringFilter(stringFilter);
-    }
-
-    private static FlowVariableFilter fromStringFilter(final StringFilter stringFilter) {
-        final var flowVariableFilter = new FlowVariableFilter();
-        flowVariableFilter.m_mode = StringFilterModeToTypedStringFilterModeUtil.convert(stringFilter.m_mode);
-        flowVariableFilter.m_manualFilter = stringFilter.m_manualFilter;
-        flowVariableFilter.m_patternFilter = stringFilter.m_patternFilter;
-        return flowVariableFilter;
+    public static <T> String getVariableTypeDisplay(final VariableType<T> type) {
+        return type.getClass().getSimpleName();
     }
 
 }
