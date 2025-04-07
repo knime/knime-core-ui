@@ -44,39 +44,45 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 13, 2025 (paulbaernreuther): created
+ *   7 Apr 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.api;
+package org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelpers;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 
 /**
- * Temporary workaround for not persisting boolean states that are just intermediate states for effects which depend on
- * backend calls.
+ * A node settings persistor for loading and saving a utility boolean. It allows for the addition of flags at specific
+ * points in time, helping to track whether other settings were saved before or after a specific point.
  *
- * @noreference
- * @noimplement
- *
- *
- * @author Paul Bärnreuther
+ * @author Robin Gerling
  */
-public class DoNotPersistBoolean implements NodeSettingsPersistor<Boolean> {
+public abstract class AlwaysSaveTrueBoolean implements NodeSettingsPersistor<Boolean> {
+
+    private final String m_configKey;
+
+    /**
+     * @param configKey the root config key used by the settings model
+     */
+    protected AlwaysSaveTrueBoolean(final String configKey) {
+        m_configKey = configKey + SettingsModel.CFGKEY_INTERNAL;
+    }
 
     @Override
     public Boolean load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return false;
+        return settings.containsKey(m_configKey);
     }
 
     @Override
     public void save(final Boolean obj, final NodeSettingsWO settings) {
-        // do nothing
+        settings.addBoolean(m_configKey, true);
     }
 
     @Override
     public String[][] getConfigPaths() {
-        return new String[0][0];
+        return new String[0][];
     }
-
 }
