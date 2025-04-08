@@ -33,6 +33,7 @@ export interface ProvidedByNodeDialog {
   getPanelsContainer: () => null | HTMLElement;
   createArrayAtPath: (path: string) => IdsRecord;
   getDialogPopoverTeleportDest: () => null | HTMLElement;
+  getSideDrawerTeleportDest: () => null | Element;
 }
 
 type ProvidedFlowVariablesApi = {

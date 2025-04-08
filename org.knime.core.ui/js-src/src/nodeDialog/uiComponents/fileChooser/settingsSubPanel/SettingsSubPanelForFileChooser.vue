@@ -41,7 +41,11 @@ const apply = () =>
 </script>
 
 <template>
-  <SettingsSubPanel ref="settingsSubPanelRef" :show-back-arrow="showBackArrow">
+  <SettingsSubPanel
+    ref="settingsSubPanelRef"
+    :show-back-arrow
+    hide-buttons-when-expanded
+  >
     <template #expand-button="{ expand }">
       <slot name="expand-button" :expand="expand" />
     </template>

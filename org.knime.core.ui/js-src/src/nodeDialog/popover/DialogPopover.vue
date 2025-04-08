@@ -213,6 +213,8 @@ const teleportDest = inject("getDialogPopoverTeleportDest")();
 </template>
 
 <style lang="postcss" scoped>
+@import url("../styles/z-indices.css");
+
 .popover-button-wrapper {
   margin-left: 5px;
 
@@ -234,7 +236,7 @@ const teleportDest = inject("getDialogPopoverTeleportDest")();
   --popover-oversize: 10px;
 
   position: absolute;
-  z-index: 3;
+  z-index: var(--z-index-dialog-popover);
   background: var(--knime-white);
   max-width: calc(100% + 2 * var(--popover-oversize));
 
