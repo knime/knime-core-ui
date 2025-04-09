@@ -56,16 +56,18 @@ import org.knime.core.node.workflow.VariableTypeRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 
 /**
- * Offers all flow variables of any {@link Scope} from the stack with a registered type.
+ * Offers all flow variables of {@link Scope#Flow} (i.e., ordinary, non-global, non-local, non-hidden flow variables)
+ * from the stack with a registered type.
  *
  * @author Paul Baernrether
  */
-public final class AllFlowVariablesProvider implements FlowVariableChoicesProvider {
+public final class AllFlowScopedFlowVariablesProvider implements FlowVariableChoicesProvider {
 
     @Override
     public List<FlowVariable> flowVariableChoices(final DefaultNodeSettingsContext context) {
         return context.getAvailableInputFlowVariables(VariableTypeRegistry.getInstance().getAllTypes()) //
             .values().stream() //
+            .filter(v -> Scope.Flow == v.getScope()) //
             .toList();
     }
 }
