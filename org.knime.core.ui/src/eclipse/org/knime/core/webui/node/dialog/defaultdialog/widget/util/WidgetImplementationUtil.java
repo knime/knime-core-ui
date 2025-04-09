@@ -49,7 +49,6 @@
 package org.knime.core.webui.node.dialog.defaultdialog.widget.util;
 
 import java.lang.annotation.Annotation;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -81,7 +80,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.OptionalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
@@ -140,7 +138,6 @@ public final class WidgetImplementationUtil {
      */
     @SuppressWarnings("javadoc")
     public enum DefaultWidgetType {
-            CHECKBOX, //
             COLUMN_FILTER, //
             COLUMN_SELECTION, //
             CREDENTIALS, //
@@ -202,8 +199,6 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(Void.class), TextMessage.class), //
         new WidgetAnnotation(List.of(String.class, ZoneId.class), OptionalWidget.class), //
         new WidgetAnnotation(List.of(String[].class, ColumnFilter.class, StringFilter.class), TwinlistWidget.class), //
-        new WidgetAnnotation(List.of(byte.class, double.class, float.class, int.class, long.class, Duration.class),
-            NumberInputWidget.class) //
     };
 
     /**
@@ -212,7 +207,6 @@ public final class WidgetImplementationUtil {
      * THE DOCUMENTATION OF {@link DefaultNodeSettings} !!!
      */
     private static DefaultWidget[] defaultWidgets = new DefaultWidget[]{//
-        new DefaultWidget(List.of(boolean.class, Boolean.class), DefaultWidgetType.CHECKBOX), //
         new DefaultWidget(List.of(StringFilter.class), DefaultWidgetType.NAME_FILTER), //
         new DefaultWidget(List.of(ColumnFilter.class), DefaultWidgetType.COLUMN_FILTER), //
         new DefaultWidget(List.of(FlowVariableFilter.class), DefaultWidgetType.FLOW_VARIABLE_FILTER), //
