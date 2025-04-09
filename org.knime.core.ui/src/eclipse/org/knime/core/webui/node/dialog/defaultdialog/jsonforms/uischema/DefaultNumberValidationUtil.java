@@ -51,7 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 import java.util.List;
 import java.util.Map;
 
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaOptionsGenerator.ValidationClassInstance;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.BuiltinValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation;
@@ -73,6 +73,17 @@ public final class DefaultNumberValidationUtil {
 
     private record NumberValidationMinMax(NumberValidation min, NumberValidation max) {
     }
+
+    /**
+     * Record used to specify the interface a potential anonymous class implements.
+     *
+     * @param <T> the type of the validation
+     * @param clazz the class of the implemented validation interface
+     * @param instance a specific validation instance implementing the clazz interface
+     */
+    public record ValidationClassInstance<T extends BuiltinValidation>(Class<? extends T> clazz, T instance) {
+    }
+
 
     private static final Map<Class<? extends Number>, NumberValidationMinMax> //
     NUMERIC_TYPES_WITH_BUILTIN_BOUND_VALIDATION = Map.of( //

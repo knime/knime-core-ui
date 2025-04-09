@@ -75,7 +75,6 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_OPTIONS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_UNKNWON_VALUES_TEXT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_USE_FLOW_VAR_TEMPLATES;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.DefaultNumberValidationUtil.getDefaultNumberValidations;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.getApplicableDefaults;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.partitionWidgetAnnotationsByApplicability;
 
@@ -86,7 +85,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -103,6 +101,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.Defaul
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.EnumUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree.WidgetTreeRenderers;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters;
@@ -127,13 +128,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.OptionalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextAreaWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
@@ -160,10 +159,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.OverwriteD
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBooleanProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.WidgetAnnotation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.BuiltinValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
@@ -190,6 +186,8 @@ final class UiSchemaOptionsGenerator {
 
     private final Collection<Tree<WidgetGroup>> m_widgetTrees;
 
+    private final ControlRendererSpec m_rendererSpec;
+
     /**
      *
      * @param node the node for which options are to be added from {@link Widget} annotations
@@ -208,6 +206,8 @@ final class UiSchemaOptionsGenerator {
         m_defaultNodeSettingsContext = context;
         m_scope = scope;
         m_widgetTrees = widgetTrees;
+        m_rendererSpec = WidgetTreeRenderers.getRendererSpec(node);
+
     }
 
     /*
@@ -216,19 +216,21 @@ final class UiSchemaOptionsGenerator {
      * @param control
      */
     void addOptionsTo(final ObjectNode control) {
+
+        if (m_rendererSpec != null) {
+            control.setAll(RendererToJsonFormsUtil.toUiSchemaElement(m_rendererSpec));
+        }
+
         final var defaultWidgets = getApplicableDefaults(m_fieldClass);
         final var annotatedWidgets = getAnnotatedWidgets();
         if (defaultWidgets.isEmpty() && annotatedWidgets.isEmpty()
             && !(m_node instanceof ArrayParentNode<WidgetGroup>)) {
             return;
         }
-        final var options = control.putObject(TAG_OPTIONS);
+        final var options = control.get(TAG_OPTIONS) instanceof ObjectNode op ? op : control.putObject(TAG_OPTIONS);
 
         for (var defaultWidget : defaultWidgets) {
             switch (defaultWidget.type()) {
-                case CHECKBOX:
-                    options.put(TAG_FORMAT, Format.CHECKBOX);
-                    break;
                 case COLUMN_FILTER:
                     options.put(TAG_FORMAT, Format.TYPED_STRING_FILTER);
                     addTypedStringFilterOptions(options, "column");
@@ -533,72 +535,12 @@ final class UiSchemaOptionsGenerator {
             options.put("rows", textAreaWidget.rows());
         }
 
-        if (annotatedWidgets.contains(TextInputWidget.class)) {
-            final var textInputWidget = m_node.getAnnotation(TextInputWidget.class).orElseThrow();
-            if (!textInputWidget.placeholder().equals("")) {
-                options.put("placeholder", textInputWidget.placeholder());
-            }
-            if (textInputWidget.placeholderProvider() != NoopStringProvider.class) {
-                options.put("placeholderProvider", textInputWidget.placeholderProvider().getName());
-            }
-            addValidationOptions(options, textInputWidget.validation(), List.of(),
-                textInputWidget.validationProvider());
-        }
-
-        if (WidgetImplementationUtil.NUMERIC_TYPES.contains(m_fieldClass)) {
-            Class<? extends StateProvider<? extends NumberInputWidgetValidation>>[] validationProviders = null;
-            Class<? extends NumberInputWidgetValidation>[] validations = null;
-
-            if (annotatedWidgets.contains(NumberInputWidget.class)) {
-                final var numberInputWidget = m_node.getAnnotation(NumberInputWidget.class).orElseThrow();
-                validations = numberInputWidget.validation();
-                validationProviders = numberInputWidget.validationProvider();
-            }
-            addValidationOptions(options, validations, getDefaultNumberValidations(m_fieldClass), validationProviders);
-        }
-
         if (m_node instanceof ArrayParentNode<WidgetGroup> arrayWidgetNode) {
             applyArrayLayoutOptions(options, arrayWidgetNode.getElementTree());
         }
 
         if (options.isEmpty()) {
             control.remove(TAG_OPTIONS);
-        }
-    }
-
-    /**
-     * Record used to specify the interface a potential anonymous class implements.
-     *
-     * @param <T> the type of the validation
-     * @param clazz the class of the implemented validation interface
-     * @param instance a specific validation instance implementing the clazz interface
-     */
-    public record ValidationClassInstance<T extends BuiltinValidation>(Class<? extends T> clazz, T instance) {
-    }
-
-    private static <T extends BuiltinValidation> void addValidationOptions(final ObjectNode options,
-        final Class<? extends T>[] validations, final List<ValidationClassInstance<T>> defaultValidations,
-        final Class<? extends StateProvider<? extends T>>[] validationProviders) {
-
-        final var hasValidations = validations != null && validations.length != 0;
-        if (hasValidations || !defaultValidations.isEmpty()) {
-            final List<T> combinedValidationInstances;
-            if (hasValidations) {
-                final var validationInstances = Arrays.stream(validations).map(InstantiationUtil::createInstance);
-                final var filteredDefaultValidationInstances = defaultValidations.stream() //
-                    .filter(defaultValidation -> Arrays.stream(validations)
-                        .noneMatch(defaultValidation.clazz()::isAssignableFrom))
-                    .map(ValidationClassInstance::instance);
-                combinedValidationInstances =
-                    Stream.concat(validationInstances, filteredDefaultValidationInstances).collect(Collectors.toList());
-            } else {
-                combinedValidationInstances =
-                    defaultValidations.stream().map(ValidationClassInstance::instance).toList();
-            }
-            options.set("validations", JsonFormsUiSchemaUtil.getMapper().valueToTree(combinedValidationInstances));
-        }
-        if (validationProviders != null && validationProviders.length != 0) {
-            options.set("validationProviders", JsonFormsUiSchemaUtil.getMapper().valueToTree(validationProviders));
         }
     }
 
