@@ -51,7 +51,6 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.validation;
 import java.util.function.Function;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationMessageBuilder.InvalidColumnNameState;
 
 /**
  * Utility class to provide a common implementation for the column name validation
@@ -98,6 +97,24 @@ public final class ColumnNameValidationUtils {
             throw new InvalidSettingsException(invalidStateToMessage.apply(InvalidColumnNameState.EMPTY));
         }
         validatePossiblyEmptyColumnName(columnName, invalidStateToMessage);
+    }
+
+    /**
+     * Specifies the different states of an invalid column name.
+     */
+    public enum InvalidColumnNameState {
+            /**
+             * column name is null/empty
+             */
+            EMPTY,
+            /**
+             * column name is blank, but not null/empty
+             */
+            BLANK,
+            /**
+             * column name starts and/or ends with whitespace
+             */
+            NOT_TRIMMED
     }
 
 }

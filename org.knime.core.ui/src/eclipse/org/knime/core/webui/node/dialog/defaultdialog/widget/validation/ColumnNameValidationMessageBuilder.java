@@ -50,7 +50,9 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.validation;
 
 import java.util.function.Function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ColumnNameValidationUtils.InvalidColumnNameState;
 
 /**
  * Builder to harmonize the error messages for invalid column names.
@@ -66,16 +68,16 @@ public class ColumnNameValidationMessageBuilder {
     private ColumnNameSettingContext m_columnNameSettingContext = ColumnNameSettingContext.OUTSIDE_ARRAY_LAYOUT;
 
     /**
-     * The value with which the setting responsible for the column name can be identified. Suitable is e.g. the name of
-     * the settings (in lower case).
+     * Construct a new message builder
      *
-     * @param columnNameSettingIdentifier the value with which the column name setting can be identified
-     * @return the builder
+     * @param columnNameSettingIdentifier the value with which the column name setting can be identified. Suitable is
+     *            e.g. the name of the setting (in lower case).
      */
-    public ColumnNameValidationMessageBuilder
-        withColumnNameSettingIdentifier(final String columnNameSettingIdentifier) {
+    public ColumnNameValidationMessageBuilder(final String columnNameSettingIdentifier) {
+        CheckUtils.checkArgumentNotNull(columnNameSettingIdentifier, "The settings identifier must not be null.");
+        CheckUtils.checkArgument(StringUtils.isNotBlank(columnNameSettingIdentifier),
+            "The settings identifier must not be blank.");
         m_columnNameSettingIdentifier = columnNameSettingIdentifier;
-        return this;
     }
 
     /**
@@ -99,26 +101,25 @@ public class ColumnNameValidationMessageBuilder {
      */
     public ColumnNameValidationMessageBuilder
         withSpecificSettingContext(final ColumnNameSettingContext columnNameSettingContext) {
+        CheckUtils.checkArgumentNotNull(columnNameSettingContext, "The settings context must not be null.");
         m_columnNameSettingContext = columnNameSettingContext;
         return this;
     }
 
     private String createTemplate() {
-        switch (m_columnNameSettingContext) {
-            case OUTSIDE_ARRAY_LAYOUT:
-                return m_columnNameSettingIdentifier;
-            case INSIDE_COMPACT_ARRAY_LAYOUT:
+        return switch (m_columnNameSettingContext) {
+            case OUTSIDE_ARRAY_LAYOUT -> m_columnNameSettingIdentifier;
+            case INSIDE_COMPACT_ARRAY_LAYOUT -> {
                 CheckUtils.checkArgumentNotNull(m_arrayItemIdentifier,
                     "The array item identifier cannot be null when the setting is inside a compact array layout.");
-                return String.format("%s for \"%s\"", m_columnNameSettingIdentifier, m_arrayItemIdentifier);
-            case INSIDE_NON_COMPACT_ARRAY_LAYOUT:
+                yield String.format("%s for \"%s\"", m_columnNameSettingIdentifier, m_arrayItemIdentifier);
+            }
+            case INSIDE_NON_COMPACT_ARRAY_LAYOUT -> {
                 CheckUtils.checkArgumentNotNull(m_arrayItemIdentifier,
                     "The array item identifier cannot be null when the setting is inside a non-compact array layout.");
-                return String.format("%s of \"%s\"", m_columnNameSettingIdentifier, m_arrayItemIdentifier);
-            default:
-                throw new IllegalArgumentException(
-                    String.format("Unexpected value: \"%s\"", m_columnNameSettingContext));
-        }
+                yield String.format("%s of \"%s\"", m_columnNameSettingIdentifier, m_arrayItemIdentifier);
+            }
+        };
     }
 
     /**
@@ -128,7 +129,6 @@ public class ColumnNameValidationMessageBuilder {
      * @return the function which is used during the validation to get the error message
      */
     public Function<InvalidColumnNameState, String> build() {
-        CheckUtils.checkArgumentNotNull(m_columnNameSettingIdentifier, "The settings identifier must not be null.");
         final var template = createTemplate();
         return icns -> switch (icns) {
             case EMPTY -> String.format("The %s must not be empty.", template);
@@ -154,24 +154,6 @@ public class ColumnNameValidationMessageBuilder {
              * Column name setting is inside a non-compact/card array layout
              */
             INSIDE_NON_COMPACT_ARRAY_LAYOUT
-    }
-
-    /**
-     * Specifies the different states of an invalid column name.
-     */
-    public enum InvalidColumnNameState {
-            /**
-             * column name is null/empty
-             */
-            EMPTY,
-            /**
-             * column name is blank, but not null/empty
-             */
-            BLANK,
-            /**
-             * column name starts and/or ends with whitespace
-             */
-            NOT_TRIMMED
     }
 
 }
