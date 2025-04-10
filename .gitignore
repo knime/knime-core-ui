@@ -2,7 +2,6 @@
 **/target/
 */build/
 *.jar
-*/.polyglot.build.properties 
 **/.flattened-pom.xml
 **/CHANGELOG.md
 
@@ -115,4 +114,6 @@ org.knime.core.ui/js-src/**/node/
 **/.flattened-pom.xml
 **/CHANGELOG.md
 .polyglot.build.properties
+.polyglot.META-INF
+.polyglot.feature.xml
 .stylelintcache
