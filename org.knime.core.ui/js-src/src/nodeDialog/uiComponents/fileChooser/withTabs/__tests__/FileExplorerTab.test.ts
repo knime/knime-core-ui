@@ -76,10 +76,11 @@ describe("FileExplorerTab.vue", () => {
   it("opens file on apply", async () => {
     const wrapper = mountFileExplorerTab();
     const file = "myFile";
-    const openFile = vi.fn().mockResolvedValue(file);
-    wrapper.findComponent(DialogFileExplorer).vm.openFile = openFile;
+    const chooseSelectedItem = vi.fn().mockResolvedValue(file);
+    wrapper.findComponent(DialogFileExplorer).vm.chooseSelectedItem =
+      chooseSelectedItem;
     await onApply.value!();
-    expect(openFile).toHaveBeenCalled();
+    expect(chooseSelectedItem).toHaveBeenCalled();
   });
 
   it("passes through emitted chooseFile events", () => {
@@ -87,8 +88,8 @@ describe("FileExplorerTab.vue", () => {
     const dialogFileExplorer = wrapper.findComponent(DialogFileExplorer);
     const path = "myPath";
 
-    dialogFileExplorer.vm.$emit("chooseFile", path);
+    dialogFileExplorer.vm.$emit("chooseItem", path);
 
-    expect(wrapper.emitted("chooseFile")).toStrictEqual([[path]]);
+    expect(wrapper.emitted("chooseItem")).toStrictEqual([[path]]);
   });
 });

@@ -59,12 +59,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
- * Additional filters for the file chooser dialog. Used when the selection mode is 'folder' to decide exactly what gets
- * displayed in the file chooser dialog.
+ * Additional filters for the file chooser dialog. Used when the selection mode is 'folder' to decide which files within
+ * the chosen folder get chosen.
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
-public abstract class FileChooserFilters implements DefaultNodeSettings {
+public interface FileChooserFilters extends DefaultNodeSettings {
 
     /**
      * Should accept any file or folder as argument. If a folder passes the filter, then its children will be evaluated.
@@ -88,8 +88,8 @@ public abstract class FileChooserFilters implements DefaultNodeSettings {
      *         filtering
      * @throws IOException
      */
-    public FilterResult getPassingFilesInFolder(final Path root, final boolean includeSubFolders, final int limit)
-        throws IOException {
+    public default FilterResult getPassingFilesInFolder(final Path root, final boolean includeSubFolders,
+        final int limit) throws IOException {
 
         if (!Files.isDirectory(root)) {
             throw new IllegalArgumentException("Root path must be a folder");
@@ -188,9 +188,10 @@ public abstract class FileChooserFilters implements DefaultNodeSettings {
     }
 
     /**
-     * Implementation of the {@link FileChooserFilters} for testing purposes. Could be deleted later.
+     * Implementation of the {@link FileChooserFilters} for testing purposes. Should be deleted later.
      */
-    public static class TestFileFilter extends FileChooserFilters {
+    // TODO(UIEXT-1803) delete this
+    public static class TestFileFilter implements FileChooserFilters {
 
         @Widget(title = "Do filtering?", description = "If checked, no files pass. If unchecked, all files pass.")
         boolean doFiltering;

@@ -128,7 +128,7 @@ public final class WidgetTreesToValueRefsAndStateProviders {
         tree.getChildren().forEach(this::traverseWidgetTreeNode);
     }
 
-    public void traverseWidgetTreeNode(final TreeNode<WidgetGroup> node) {
+    private void traverseWidgetTreeNode(final TreeNode<WidgetGroup> node) {
         addWidgetValueAnnotationValueRefAndValueProviderForNode(node);
         addUiStateProviderForNode(node);
         if (node instanceof Tree<WidgetGroup> widgetTree) {

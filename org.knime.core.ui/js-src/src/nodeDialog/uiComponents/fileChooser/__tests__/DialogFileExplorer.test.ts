@@ -250,21 +250,21 @@ describe("DialogFileExplorer.vue", () => {
   });
 
   describe("choose file", () => {
-    it("exposes a method to open the current file", async () => {
+    it("exposes a method to open the current item", async () => {
       const wrapper = shallowMountFileChooser();
       await flushPromises();
       await wrapper
         .findComponent(FileExplorer)
         .vm.$emit("update:selectedItemIds", [fileName]);
 
-      wrapper.vm.openFile();
+      wrapper.vm.chooseSelectedItem();
 
       expect(dataServiceSpy).toHaveBeenCalledWith({
         method: "fileChooser.getFilePath",
         options: ["local", null, fileName, null],
       });
       await flushPromises();
-      expect(wrapper.emitted("chooseFile")).toStrictEqual([[filePath]]);
+      expect(wrapper.emitted("chooseItem")).toStrictEqual([[filePath]]);
     });
 
     it("sets its v-model to whether a file is selected", async () => {
@@ -274,18 +274,18 @@ describe("DialogFileExplorer.vue", () => {
         .findComponent(FileExplorer)
         .vm.$emit("update:selectedItemIds", [fileName]);
       await flushPromises();
-      expect(wrapper.vm.selectedItem).toStrictEqual({
+      expect(wrapper.emitted("update:selectedItem")?.[0][0]).toStrictEqual({
         name: fileName,
         selectionType: "FILE",
       });
       await wrapper
         .findComponent(FileExplorer)
         .vm.$emit("update:selectedItemIds", []);
-      expect(wrapper.vm.selectedItem).toBeNull();
+      expect(wrapper.emitted("update:selectedItem")?.[1][0]).toBeNull();
       await wrapper
         .findComponent(FileExplorer)
         .vm.$emit("update:selectedItemIds", [directoryName]);
-      expect(wrapper.vm.selectedItem).toStrictEqual({
+      expect(wrapper.emitted("update:selectedItem")?.[2][0]).toStrictEqual({
         name: directoryName,
         selectionType: "FOLDER",
       });
@@ -302,7 +302,7 @@ describe("DialogFileExplorer.vue", () => {
         options: ["local", null, fileName, null],
       });
       await flushPromises();
-      expect(wrapper.emitted("chooseFile")).toBeUndefined();
+      expect(wrapper.emitted("chooseItem")).toBeUndefined();
     });
 
     it("chooses files via FileExplorer event if desired", async () => {
@@ -317,7 +317,7 @@ describe("DialogFileExplorer.vue", () => {
         options: ["local", null, fileName, null],
       });
       await flushPromises();
-      expect(wrapper.emitted("chooseFile")).toStrictEqual([[filePath]]);
+      expect(wrapper.emitted("chooseItem")).toStrictEqual([[filePath]]);
     });
 
     it("does not choose invalid files displaying an error instead", async () => {
@@ -334,7 +334,7 @@ describe("DialogFileExplorer.vue", () => {
         options: ["local", null, fileName, null],
       });
       await flushPromises();
-      expect(wrapper.emitted("chooseFile")).toBeUndefined();
+      expect(wrapper.emitted("chooseItem")).toBeUndefined();
       const errorMessageSpan = wrapper.find("span.error");
       expect(errorMessageSpan.text()).toBe(`(${errorMessage})`);
     });
@@ -412,13 +412,13 @@ describe("DialogFileExplorer.vue", () => {
       const inputText = "newFile.txt";
       await inputField.vm.$emit("update:model-value", inputText);
       expect(inputField.props().modelValue).toBe(inputText);
-      await wrapper.vm.openFile();
+      await wrapper.vm.chooseSelectedItem();
       expect(dataServiceSpy).toHaveBeenCalledWith({
         method: "fileChooser.getFilePath",
         options: ["local", null, inputText, null],
       });
       await flushPromises();
-      expect(wrapper.emitted("chooseFile")).toStrictEqual([[filePath]]);
+      expect(wrapper.emitted("chooseItem")).toStrictEqual([[filePath]]);
     });
 
     it("sets the value of the selected file as input", async () => {

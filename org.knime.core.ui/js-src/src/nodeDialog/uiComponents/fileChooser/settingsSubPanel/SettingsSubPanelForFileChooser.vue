@@ -1,3 +1,7 @@
+<script lang="ts">
+export const GO_INTO_FOLDER_INJECTION_KEY = "goIntoFolderInjectionKey";
+</script>
+
 <script setup lang="ts">
 import { ref } from "vue";
 
@@ -36,10 +40,9 @@ const {
 const {
   text: enterFolderButtonText,
   disabled: enterFolderButtonDisabled,
-  hidden: enterFolderButtonHidden,
   element: goIntoFolderButton,
   onApply: onEnterFolderButtonClicked,
-} = setUpApplyButton("goIntoSelectedFolder");
+} = setUpApplyButton(GO_INTO_FOLDER_INJECTION_KEY);
 enterFolderButtonText.value = "Open folder";
 
 const apply = () =>
@@ -66,7 +69,6 @@ const apply = () =>
         <Button with-border compact @click="close"> Cancel </Button>
         <div>
           <Button
-            v-if="!enterFolderButtonHidden"
             ref="goIntoFolderButton"
             with-border
             compact

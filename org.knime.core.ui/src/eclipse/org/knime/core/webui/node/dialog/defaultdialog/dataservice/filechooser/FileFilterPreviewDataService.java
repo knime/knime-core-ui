@@ -54,22 +54,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * A service that can provide a preview of the files within a folder on a file system, while applying additional filter
@@ -84,28 +78,30 @@ public final class FileFilterPreviewDataService {
     /**
      * This data service is used in the DefaultNodeDialog and can be accessed by the frontend using the name
      * "fileFilterPreview".
+     *
+     * @param fsConnector the file system connector to use. It is the responsibility of the caller to ensure that the
+     *            connector is closed once it is no longer needed.
      */
-    public FileFilterPreviewDataService() {
-        m_fsConnector = new FileSystemConnector();
-    }
-
-    /**
-     * Closes all current file connections. To be called on deactivation of the service.
-     */
-    public void clear() {
-        m_fsConnector.clear();
+    public FileFilterPreviewDataService(final FileSystemConnector fsConnector) {
+        m_fsConnector = fsConnector;
     }
 
     /**
      * Get the items of the specified file system at the specified path, while applying the additional filters for the
      * preview.
      *
-     * @param fileSystemId
-     * @param path
-     * @param extensions
-     * @param isWriter
-     * @param includeSubfolders
-     * @param listItemsConfig
+     * @param fileSystemId specifying the file system. Supported ids are:
+     *            <ul>
+     *            <li>"local": For the local file system</li>
+     *            <li>"relativeToCurrentHubSpace": For the current space</li>
+     *            <li>"embedded": For the current workflow data area</li>
+     *            <li>"connected${portIndex}": For the file system connected at portIndex.</li>
+     *            </ul>
+     * @param path the current path or null to reference the root level.
+     * @param extensions the extensions to accept. If null or empty, all extensions are accepted.
+     * @param isWriter setting this will impact whether non-readable or non-writable files are not displayed
+     * @param includeSubfolders if true, display files recursively in child directories
+     * @param listItemsConfig the additional filter configuration to use for the preview
      * @return the list of items together with the total number of items before filtering
      * @throws IOException
      */
@@ -127,7 +123,7 @@ public final class FileFilterPreviewDataService {
      * Input parameter for {@link #listFilteredAndSortedItemsForPreview}
      */
     @JsonDeserialize(using = AdditionalFilterConfiguration.Deserializer.class)
-    @JsonSerialize(using = AdditionalFilterConfiguration.Serializer.class)
+    //    @JsonSerialize(using = AdditionalFilterConfiguration.Serializer.class)
     static record AdditionalFilterConfiguration<T extends FileChooserFilters>( //
         /**
          * additional filter settings for the preview.
@@ -138,11 +134,10 @@ public final class FileFilterPreviewDataService {
          */
         Class<T> additionalFilterOptionsClassIdentifier //
     ) {
+        // TODO(UIEXT-2662): this approach to deserialization opens some security holes, as it allows
+        // to deserialize any compatible class, which will cause its default constructor
+        // to run. Find a better way to handle this.that
         final static class Deserializer<U extends FileChooserFilters>
-
-            // TODO(UIEXT-2662): this approach to deserialization opens some security holes, as it allows
-            // to deserialize any compatible class, which will cause its default constructor
-            // to run. Find a better way to handle this.
             extends JsonDeserializer<AdditionalFilterConfiguration<U>> {
 
             @SuppressWarnings("unchecked")
@@ -166,29 +161,12 @@ public final class FileFilterPreviewDataService {
                     throw new IOException("Class " + classId + " is not a subclass of FileChooserFilters");
                 }
 
-                U additionalFilterOptions;
-                try (var traversal = node.get("additionalFilterOptions").traverse(mapper)) {
-                    additionalFilterOptions = traversal.readValueAs(clazz);
-                }
+                U additionalFilterOptions = mapper.treeToValue(node.get("additionalFilterOptions"), clazz);
 
                 return new AdditionalFilterConfiguration<U>( //
                     additionalFilterOptions, //
                     clazz //
                 );
-            }
-        }
-
-        final static class Serializer<U extends FileChooserFilters>
-            extends JsonSerializer<AdditionalFilterConfiguration<U>> {
-
-            @Override
-            public void serialize(final AdditionalFilterConfiguration<U> value, final JsonGenerator gen,
-                final SerializerProvider serializers) throws IOException {
-
-                // most important field: the additional filter options class identifier
-                gen.writeStringField("additionalFilterOptionsClassIdentifier",
-                    value.additionalFilterOptionsClassIdentifier.getName());
-                gen.writeObjectField("additionalFilterOptions", value.additionalFilterOptions);
             }
         }
     }
@@ -200,14 +178,6 @@ public final class FileFilterPreviewDataService {
 
         PreviewResult(final ResultType resultType) {
             this.m_resultType = resultType;
-        }
-
-        /**
-         * This constructor only for deserialization. Don't use.
-         */
-        @SuppressWarnings("unused")
-        private PreviewResult() {
-            this(ResultType.SUCCESS);
         }
 
         enum ResultType {
@@ -256,14 +226,6 @@ public final class FileFilterPreviewDataService {
                 this.m_numFilesBeforeFilteringIsOnlyLowerBound = isTotalItemsBeforeFilteringOnlyLowerBound;
                 this.m_numFilesAfterFilteringIsOnlyLowerBound = isTotalItemsAfterFilteringOnlyLowerBound;
             }
-
-            /**
-             * This constructor only for deserialization. Don't use.
-             */
-            @SuppressWarnings("unused")
-            private Success() {
-                super(ResultType.SUCCESS);
-            }
         }
 
         @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.NON_PRIVATE)
@@ -275,14 +237,6 @@ public final class FileFilterPreviewDataService {
             Error(final String errorMessage) {
                 super(ResultType.ERROR);
                 this.m_errorMessage = errorMessage;
-            }
-
-            /**
-             * This constructor only for deserialization. Don't use.
-             */
-            @SuppressWarnings("unused")
-            private Error() {
-                super(ResultType.ERROR);
             }
         }
     }
@@ -306,23 +260,17 @@ public final class FileFilterPreviewDataService {
 
             // still need to apply the general filters though
             var matchingFiles = filterResult.passingFiles().stream() //
-                .filter(getFilterPredicate(fileSystem, extensions, isWriter)) //
+                .filter(FileBackendUtils.getFilterPredicate(fileSystem, extensions, isWriter)) //
                 .toList();
 
-            // and sort them
-            var sortedFiles = matchingFiles.stream() //
-                .sorted( //
-                    Comparator.comparing(Path::getNameCount) //
-                        .thenComparing(Function.identity()) //
-                ) //
-                .toList();
-
-            var fileNames = sortedFiles.stream() //
+            // and sort them by depth, then stringify the results
+            var sortedFileNames = matchingFiles.stream() //
+                .sorted(Comparator.comparingInt(Path::getNameCount)) //
                 .map(Path::toString) //
                 .toList();
 
             return new PreviewResult.Success( //
-                fileNames, //
+                sortedFileNames, //
                 filterResult.numFilesBeforeFiltering(), //
                 filterResult.numFilesBeforeFilteringIsOnlyLowerBound(), //
                 filterResult.numFilesAfterFilteringIsOnlyLowerBound() //
@@ -330,25 +278,5 @@ public final class FileFilterPreviewDataService {
         } catch (Exception e) {
             return new PreviewResult.Error(e.getMessage());
         }
-    }
-
-    private static Predicate<Path> getFilterPredicate(final FileSystem fileSystem, final List<String> extensions,
-        final boolean isWriter) {
-        final var extensionsPredicate = getExtensionPredicate(fileSystem, extensions);
-        final var readerOrWriterPredicate = getReaderOrWriterPredicate(isWriter);
-        return extensionsPredicate.and(readerOrWriterPredicate);
-    }
-
-    private static Predicate<Path> getReaderOrWriterPredicate(final boolean isWriter) {
-        return isWriter ? Files::isWritable : Files::isReadable;
-    }
-
-    private static Predicate<Path> getExtensionPredicate(final FileSystem fileSystem, final List<String> extensions) {
-        if (extensions != null && !extensions.isEmpty()) {
-            final var endingsMatcher =
-                fileSystem.getPathMatcher(String.format("glob:**.{%s}", String.join(",", extensions)));
-            return endingsMatcher::matches;
-        }
-        return path -> true;
     }
 }

@@ -269,7 +269,7 @@ class UiSchemaOptionsTest {
 
         assertThatJson(response).inPath("$.elements[16].scope").isString().contains("multiFileSelection");
         assertThatJson(response).inPath("$.elements[16].options.format").isString().isEqualTo("multiFileChooser");
-        assertThatJson(response).inPath("$.elements[16].options.isWriter").isBoolean().isFalse();
+        assertThatJson(response).inPath("$.elements[16].options").isObject().doesNotContainKey("isWriter");
         assertThatJson(response).inPath("$.elements[16].options.filterSubUiSchema").isObject().containsKey("elements");
         // custom filter class has one field
         assertThatJson(response).inPath("$.elements[16].options.filterSubUiSchema.elements").isArray().hasSize(1);
@@ -284,7 +284,7 @@ class UiSchemaOptionsTest {
     /**
      * Used for testing the default settings for a field of type {@link MultiFileSelection}.
      */
-    class MyVerySpecialTestFilterSettings extends FileChooserFilters {
+    class MyVerySpecialTestFilterSettings implements FileChooserFilters {
 
         @Widget(title = "", description = "")
         String m_someVeryImportantField;
@@ -1480,7 +1480,7 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("myWriter");
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("myReader");
         assertThatJson(response).inPath("$.elements[0].options.isWriter").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[1].options.isWriter").isBoolean().isFalse();
+        assertThatJson(response).inPath("$.elements[1].options").isObject().doesNotContainKey("isWriter");
     }
 
     static final class TestStringProvider implements StateProvider<String> {

@@ -48,7 +48,7 @@ export type BackendType =
   | `connected${number}`;
 
 export type MultiFileSelection = {
-  root: FileChooserValue;
+  path: FileChooserValue;
   fileOrFolder: "FILE" | "FOLDER";
   includeSubfolders: boolean;
   filters: Record<string, any>;

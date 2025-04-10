@@ -38,23 +38,20 @@ type ListItemsForPreview = (params: {
     /**
      * The id of the used file system.
      */
-    BackendType,
+    backendType: BackendType,
     /**
      * The current path or null to reference the root level
      */
-    string | null,
+    path: string | null,
     /**
      * The extensions by which files listed in a folder are filtered. If empty, no filters will be applied.
      */
-    string[],
-    /*
-     * Whether the user is a writer
-     */
-    boolean,
+    extensions: string[],
+    isWriter: boolean,
     /**
      * Whether to include items in subfolders recursively in the preview
      */
-    boolean,
+    includeSubFolders: boolean,
     /**
      *  additional configuration for the filters applied to the listed files
      */
@@ -67,15 +64,14 @@ export default ({
   isWriter,
   backendType,
   filterOptions,
+  additionalFilterOptionsClassIdentifier,
   includeSubFolders,
 }: {
   isWriter: Ref<boolean>;
   backendType: Ref<BackendType>;
-  /**
-   * The extensions by which files listed in a folder are filtered
-   */
   filteredExtensions: Ref<string[]>;
   filterOptions: Ref<FilterOptions>;
+  additionalFilterOptionsClassIdentifier: string;
   includeSubFolders: Ref<boolean>;
 }) => {
   const getData = inject("getData") as ListItemsForPreview;
@@ -89,9 +85,8 @@ export default ({
       includeSubFolders.value,
       {
         additionalFilterOptions: filterOptions.value,
-        additionalFilterOptionsClassIdentifier:
-          "org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserFilters$TestFileFilter",
-      },
+        additionalFilterOptionsClassIdentifier,
+      } satisfies PreviewItemsConfig,
     ];
 
     return getData({

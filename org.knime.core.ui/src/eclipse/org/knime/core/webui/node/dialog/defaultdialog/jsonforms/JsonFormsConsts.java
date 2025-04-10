@@ -181,11 +181,6 @@ public final class JsonFormsConsts {
         public static final String TAG_ACTION_HANDLER = "actionHandler";
 
         /**
-         * The {@link ChoicesUpdateHandler} of a {@link ChoicesWidget}
-         */
-        public static final String TAG_CHOICES_UPDATE_HANDLER = "choicesUpdateHandler";
-
-        /**
          * The choices provider of a choices widget
          */
         public static final String TAG_CHOICES_PROVIDER = "choicesProvider";
@@ -214,6 +209,11 @@ public final class JsonFormsConsts {
          * Used for providing a reference to a file extension provider to a file chooser/writer widget.
          */
         public static final String TAG_FILE_EXTENSION_PROVIDER = "fileExtensionProvider";
+
+        /**
+         * Used with multi file selection to specify the java class corresponding to the filter class
+         */
+        public static final String TAG_FILE_FILTER_CLASS = "additionalFilterOptionsClassIdentifier";
 
         /**
          * Used for rich text to adjust validations to incorporate the $$["flowVarName"] - Syntax

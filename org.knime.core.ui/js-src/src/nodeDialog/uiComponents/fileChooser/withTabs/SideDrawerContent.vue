@@ -154,7 +154,7 @@ const browseAction: Record<
         :initial-file-path="modelValue.path"
         :breadcrumb-root="breadcrumbRoot"
         :selection-mode="selectionMode"
-        @choose-file="onPathUpdate"
+        @choose-item="onPathUpdate"
       />
     </div>
   </div>

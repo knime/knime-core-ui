@@ -3,10 +3,9 @@ import { type InjectionKey, type Ref, inject, provide, ref } from "vue";
 type ProvidedType = {
   element: Ref<null | HTMLElement>;
   disabled: Ref<boolean>;
-  hidden: Ref<boolean>;
   text: Ref<string>;
   /**
-   * Triggered whenever the apply button is pressed. When the returned promise resolves, the sub panel is closed.
+   * Triggered whenever the apply button is pressed.
    */
   onApply: Ref<undefined | (() => Promise<void>)>;
 };
@@ -32,12 +31,10 @@ export const setUpApplyButton = (key?: string) => {
   const applyButton = ref(null);
   const applyText = ref("Apply");
   const applyDisabled = ref(false);
-  const applyHidden = ref(false);
   const onClick = ref<undefined | (() => Promise<void>)>();
   const provided: ProvidedType = {
     element: applyButton,
     disabled: applyDisabled,
-    hidden: applyHidden,
     text: applyText,
     onApply: onClick,
   };

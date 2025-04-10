@@ -6,6 +6,7 @@ import DialogFileExplorer, {
   type SelectedItem,
 } from "../DialogFileExplorer.vue";
 import { useApplyButton } from "../settingsSubPanel";
+import { GO_INTO_FOLDER_INJECTION_KEY } from "../settingsSubPanel/SettingsSubPanelForFileChooser.vue";
 
 export type FileExplorerTabProps = Omit<
   DialogFileExplorerProps,
@@ -22,7 +23,7 @@ const props = withDefaults(defineProps<FileExplorerTabProps>(), {
 });
 
 const emit = defineEmits<{
-  chooseFile: [
+  chooseItem: [
     /**
      * The full path of the chosen file
      */
@@ -31,7 +32,7 @@ const emit = defineEmits<{
 }>();
 
 const explorer = ref<typeof DialogFileExplorer | null>(null);
-const openFile = () => explorer.value?.openFile();
+const chooseSelectedItem = () => explorer.value?.chooseSelectedItem();
 
 const {
   element: applyButton,
@@ -44,8 +45,7 @@ const {
   element: goIntoFolderButton,
   disabled: goIntoFolderButtonDisabled,
   onApply: onGoIntoFolderButtonClicked,
-  hidden: goIntoFolderButtonHidden,
-} = useApplyButton("goIntoSelectedFolder") ?? {
+} = useApplyButton(GO_INTO_FOLDER_INJECTION_KEY) ?? {
   element: ref(null),
   disabled: ref(true),
   onApply: ref(() => {}),
@@ -53,14 +53,14 @@ const {
 };
 
 onMounted(() => {
-  applyText.value = "Choose File";
+  applyText.value =
+    props.selectionMode === "FILE" ? "Choose File" : "Choose Folder";
   applyButtonDisabled.value = true;
-  onApply.value = openFile;
+  onApply.value = chooseSelectedItem;
 
   goIntoFolderButtonDisabled.value = true;
   onGoIntoFolderButtonClicked.value = () =>
     explorer.value?.goIntoSelectedFolder();
-  goIntoFolderButtonHidden.value = props.selectionMode !== "FOLDER";
 });
 
 const clickOutsideExceptions = computed(() => [
@@ -68,16 +68,9 @@ const clickOutsideExceptions = computed(() => [
   goIntoFolderButton,
 ]);
 
-const onOpenFile = (name: string) => {
-  emit("chooseFile", name);
+const onChooseItem = (name: string) => {
+  emit("chooseItem", name);
 };
-
-watch(
-  () => props.selectionMode,
-  (newSelectionMode: DialogFileExplorerProps["selectionMode"]) => {
-    goIntoFolderButtonHidden.value = newSelectionMode !== "FOLDER";
-  },
-);
 
 const selectedItem = ref<SelectedItem>(null);
 
@@ -103,7 +96,7 @@ watch(selectedItem, (newSelectedItem) => {
       v-model:selected-item="selectedItem"
       :click-outside-exceptions="clickOutsideExceptions"
       :selection-mode="selectionMode"
-      @choose-file="onOpenFile"
+      @choose-item="onChooseItem"
     />
   </div>
 </template>

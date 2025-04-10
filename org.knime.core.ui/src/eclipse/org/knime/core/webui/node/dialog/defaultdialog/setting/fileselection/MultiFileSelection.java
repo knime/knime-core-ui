@@ -59,6 +59,7 @@ import org.knime.filehandling.core.connections.FSLocation;
  * A setting that represents a selection of a single or many files. This setting is used for multi file selection.
  *
  * @author David Hickey, TNG Technology Consulting GmbH
+ * @param <F> the type of the file chooser filters
  */
 public final class MultiFileSelection<F extends FileChooserFilters> implements PersistableSettings {
 
@@ -66,9 +67,20 @@ public final class MultiFileSelection<F extends FileChooserFilters> implements P
      * Constructor. An initial non-null filter must be provided.
      *
      * @param filters the filters to use initially, not null.
+     * @param path the path to the file or folder to select, not null.
+     */
+    public MultiFileSelection(final F filters, final FSLocation path) {
+        m_filters = Objects.requireNonNull(filters, "Filters must not be null");
+        m_path = Objects.requireNonNull(path, "Path must not be null");
+    }
+
+    /**
+     * Constructor. An initial non-null filter must be provided. The initial selected path is set to the default path.
+     *
+     * @param filters the filters to use initially, not null.
      */
     public MultiFileSelection(final F filters) {
-        m_filters = Objects.requireNonNull(filters, "Filters must not be null");
+        this(filters, new FSLocation(FSCategory.LOCAL, ""));
     }
 
     /**
@@ -81,7 +93,7 @@ public final class MultiFileSelection<F extends FileChooserFilters> implements P
      * The root location of the file selection (if the selection mode is FOLDER), or the file itself (if the selection
      * mode is FILE).
      */
-    public FSLocation m_root = new FSLocation(FSCategory.LOCAL, "");
+    public FSLocation m_path;
 
     /**
      * The filters to use when selecting files. Only relevant when the selection mode is FOLDER. If you set this to

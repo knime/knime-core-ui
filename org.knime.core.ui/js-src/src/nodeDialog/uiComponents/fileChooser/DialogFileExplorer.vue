@@ -92,7 +92,7 @@ const breadcrumbItems = computed(() =>
 );
 
 const emit = defineEmits<{
-  chooseFile: [
+  chooseItem: [
     /**
      * The full path of the chosen file
      */
@@ -184,21 +184,21 @@ const changeDirectory = (nextFolder: string) =>
 const onBreadcrumbItemClick = ({ path }: { path?: string | null }) =>
   loadNewFolder(path ?? null);
 
-const onOpenFile = async (name: string) => {
+const onChooseItem = async (name: string) => {
   const { path, errorMessage } = await getFilePath(currentPath.value, name);
   if (path === null) {
     setErrorMessage(errorMessage);
     return Promise.reject(errorMessage);
   } else {
-    emit("chooseFile", path);
+    emit("chooseItem", path);
     return Promise.resolve();
   }
 };
 
 // called by FileExplorerTab when apply button is clicked
 defineExpose({
-  openFile: () =>
-    onOpenFile(
+  chooseSelectedItem: () =>
+    onChooseItem(
       props.selectionMode === "FILE"
         ? selectedFileName.value
         : selectedDirectoryName.value,
@@ -259,7 +259,9 @@ const onChangeSelectedItemIds = (itemIds: string[]) => {
       :disable-dragging="true"
       :click-outside-exception="clickOutsideExceptions"
       @change-directory="changeDirectory"
-      @open-file="openFileByExplorer && onOpenFile($event.name).catch(() => {})"
+      @open-file="
+        openFileByExplorer && onChooseItem($event.name).catch(() => {})
+      "
       @update:selected-item-ids="onChangeSelectedItemIds"
     />
   </template>

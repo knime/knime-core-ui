@@ -83,6 +83,8 @@ final class FileFilterPreviewDataServiceTest {
 
     Path m_file4;
 
+    FileSystemConnector m_fsConnector;
+
     FileFilterPreviewDataService m_service;
 
     @BeforeEach
@@ -101,12 +103,13 @@ final class FileFilterPreviewDataServiceTest {
         Files.createFile(m_file3);
         Files.createFile(m_file4);
 
-        m_service = new FileFilterPreviewDataService();
+        m_fsConnector = new FileSystemConnector();
+        m_service = new FileFilterPreviewDataService(m_fsConnector);
     }
 
     @AfterEach
     public void tearDown() throws IOException {
-        m_service.clear();
+        m_fsConnector.clear();
     }
 
     @Test
@@ -297,7 +300,7 @@ final class FileFilterPreviewDataServiceTest {
         }
     }
 
-    static class FileFilters extends FileChooserFilters {
+    static class FileFilters implements FileChooserFilters {
 
         private final boolean m_allowAll;
 

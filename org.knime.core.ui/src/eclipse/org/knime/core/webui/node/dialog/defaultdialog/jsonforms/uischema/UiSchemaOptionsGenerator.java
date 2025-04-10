@@ -67,6 +67,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSION;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSIONS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSION_PROVIDER;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_FILTER_CLASS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FORMAT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_HIDE_CONTROL_HEADER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_IS_WRITER;
@@ -115,7 +116,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToValueRefsAndStateProviders;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
@@ -295,10 +295,10 @@ final class UiSchemaOptionsGenerator {
                     break;
                 case MULTI_FILE_CHOOSER:
                     options.put(TAG_FORMAT, Format.MULTI_FILE_CHOOSER);
-                    options.put(TAG_IS_WRITER, false);
                     addWorkflowContextInfo(options);
                     var filtersClass = extractFileChooserFiltersClass();
                     setFilterSchemaForMultiFileWidgetChooser(options, filtersClass);
+                    options.put(TAG_FILE_FILTER_CLASS, filtersClass.getName());
                     break;
                 case DYNAMIC_VALUE:
                     options.put(TAG_FORMAT, Format.DYNAMIC_VALUE);
@@ -353,7 +353,6 @@ final class UiSchemaOptionsGenerator {
         }
 
         if (annotatedWidgets.contains(FileReaderWidget.class)) {
-            options.put(TAG_IS_WRITER, false);
             final var fileReaderWidget = m_node.getAnnotation(FileReaderWidget.class).orElseThrow();
             resolveFileExtensions(options, fileReaderWidget.fileExtensions());
             addFileSystemInformation(options);
@@ -368,19 +367,20 @@ final class UiSchemaOptionsGenerator {
             }
 
             options.put(TAG_FORMAT, Format.MULTI_FILE_CHOOSER);
-            options.put(TAG_IS_WRITER, containsMultiWriter);
 
             if (containsMultiWriter) {
-                final var multiFileWidget = m_node.getAnnotation(MultiFileWriterWidget.class).orElseThrow();
-                resolveFileExtensions(options, multiFileWidget.fileExtensions());
-            } else {
-                final var multiFileWidget = m_node.getAnnotation(MultiFileReaderWidget.class).orElseThrow();
-                resolveFileExtensions(options, multiFileWidget.fileExtensions());
+                options.put(TAG_IS_WRITER, true);
             }
+
+            var fileExtensions = containsMultiWriter //
+                ? m_node.getAnnotation(MultiFileWriterWidget.class).orElseThrow().fileExtensions() //
+                : m_node.getAnnotation(MultiFileReaderWidget.class).orElseThrow().fileExtensions();
+            resolveFileExtensions(options, fileExtensions);
             addFileSystemInformation(options);
 
             var filtersClass = extractFileChooserFiltersClass();
             setFilterSchemaForMultiFileWidgetChooser(options, filtersClass);
+            options.put(TAG_FILE_FILTER_CLASS, filtersClass.getName());
         }
         if (annotatedWidgets.contains(FileWriterWidget.class)) {
             options.put(TAG_IS_WRITER, true);
@@ -939,20 +939,13 @@ final class UiSchemaOptionsGenerator {
             && field.getAnnotation(InternalArrayWidget.ElementCheckboxWidget.class).isPresent();
     }
 
+    @SuppressWarnings("unchecked")
     private Class<? extends FileChooserFilters> extractFileChooserFiltersClass() {
-        var typeOfNode = m_node.getType();
         // extract the first generic parameter type from the node. Since the node is
         // a MultiFileSelection<? extends FileChooserFilters>, the first generic parameter
         // is the FileChooserFilters.
-        var filtersClass = typeOfNode.containedType(0).getRawClass();
-
-        if (FileChooserFilters.class.isAssignableFrom(filtersClass)) {
-            @SuppressWarnings("unchecked")
-            var castGenericClass = (Class<? extends FileChooserFilters>)filtersClass;
-            return castGenericClass;
-        } else {
-            throw new IllegalStateException("Extracted generic type is not a FileChooserFilters");
-        }
+        var filtersClass = m_node.getType().containedType(0).getRawClass();
+        return (Class<? extends FileChooserFilters>)filtersClass;
     }
 
     private void setFilterSchemaForMultiFileWidgetChooser(final ObjectNode options,
@@ -961,7 +954,6 @@ final class UiSchemaOptionsGenerator {
 
         var filterSubUiSchema =
             JsonFormsUiSchemaUtil.buildUISchema(List.of(elementTree), m_widgetTrees, m_defaultNodeSettingsContext);
-        new WidgetTreesToValueRefsAndStateProviders().traverseWidgetTreeNode(m_node);
 
         options.set("filterSubUiSchema", filterSubUiSchema);
     }

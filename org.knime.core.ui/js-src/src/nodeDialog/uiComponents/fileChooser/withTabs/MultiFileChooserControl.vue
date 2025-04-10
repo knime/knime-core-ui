@@ -14,7 +14,6 @@ import {
 import NextArrowIcon from "@knime/styles/img/icons/arrow-next.svg";
 
 import type { FileChooserOptions } from "@/nodeDialog/types/FileChooserUiSchema";
-import { useFlowSettings } from "../../../composables/components/useFlowVariables";
 import FileBrowserButton from "../FileBrowserButton.vue";
 import FileSelectionPreview from "../FileSelectionPreview.vue";
 import FilterSettings from "../FilterSettings.vue";
@@ -23,7 +22,6 @@ import {
   useFileChooserBrowseOptions,
   useFileChooserFileSystemsOptions,
 } from "../composables/useFileChooserBrowseOptions";
-import useFileChooserStateChange from "../composables/useFileChooserStateChange";
 import useFileFilterPreviewBackend, {
   type PreviewResult,
 } from "../composables/useFileFilterPreviewBackend";
@@ -57,15 +55,7 @@ const includeSubFolders = computed({
 });
 
 const onChangePath = (value: FileChooserValue) =>
-  props.changeValue({ ...props.control.data, root: value });
-
-const { flowSettings } = useFlowSettings({
-  path: computed(() => props.control.path),
-});
-
-const isOverwritten = computed(() =>
-  Boolean(flowSettings.value?.controllingFlowVariableName),
-);
+  props.changeValue({ ...props.control.data, path: value });
 
 const browseOptions = computed(() => {
   return {
@@ -74,27 +64,7 @@ const browseOptions = computed(() => {
   } as FileChooserOptions;
 });
 
-const { onFsCategoryUpdate } = useFileChooserStateChange(
-  computed(() => props.control.data?.root),
-  onChangePath,
-  browseOptions,
-);
-
 const { validCategories } = useFileChooserFileSystemsOptions(browseOptions);
-
-/**
- * This currently can happen in case a node implementation sets the default value to one that is not supported in this frontend.
- * Or when there was a file system connected/removed since the last time the settings were saved.
- * In this case, we switch to a default.
- */
-onMounted(() => {
-  if (
-    !isOverwritten.value &&
-    !validCategories.value.includes(props.control.data?.root.fsCategory)
-  ) {
-    onFsCategoryUpdate(validCategories.value[0]);
-  }
-});
 
 const getDefaultData = () => {
   return {
@@ -108,20 +78,8 @@ const getDefaultData = () => {
   };
 };
 
-/**
- * Reset to default data when flow variable is cleared
- */
-watch(
-  () => isOverwritten.value,
-  (value) => {
-    if (!value) {
-      onChangePath(getDefaultData());
-    }
-  },
-);
-
 const data = computed(() => {
-  return props.control.data?.root ?? getDefaultData();
+  return props.control.data?.path ?? getDefaultData();
 });
 
 const { onApply, sideDrawerValue } = useSideDrawerContent<FileChooserValue>({
@@ -160,14 +118,16 @@ const filterPanelRef = ref<typeof SettingsSubPanel | null>(null);
 const filterOptions = computed(() => props.control.data?.filters);
 const backendConnection = useFileFilterPreviewBackend({
   filteredExtensions,
-  isWriter: ref(isWriter.value!),
+  isWriter: computed(() => isWriter.value ?? false),
   backendType,
   includeSubFolders,
   filterOptions,
+  additionalFilterOptionsClassIdentifier:
+    props.control.uischema.options?.additionalFilterOptionsClassIdentifier,
 });
 
 const selectedPath = computed(() => {
-  return props.control.data?.root.path;
+  return props.control.data?.path.path;
 });
 
 const refreshPreview = async () => {
@@ -265,12 +225,7 @@ const filterSettingsRef = ref<typeof FilterSettings | null>(null);
               </FunctionButton>
             </template>
           </FileSelectionPreview>
-          <FilterSettings
-            ref="filterSettingsRef"
-            :uischema="control.uischema.options?.filterSubUiSchema"
-            :control
-            :handle-change-function="handleChange"
-          />
+          <FilterSettings ref="filterSettingsRef" :control :handle-change />
         </div>
       </SettingsSubPanel>
     </Label>

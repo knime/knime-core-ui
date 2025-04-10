@@ -78,7 +78,7 @@ describe("SideDrawerContent.vue", () => {
     expect(fileExplorerTab.exists()).toBeTruthy();
     expect(fileExplorerTab.props().backendType).toBe("local");
     const updatedPath = "updatedPath";
-    await fileExplorerTab.vm.$emit("chooseFile", updatedPath);
+    await fileExplorerTab.vm.$emit("chooseItem", updatedPath);
     expect(wrapper.emitted("update:modelValue")![0][0]).toStrictEqual({
       ...props.modelValue,
       path: updatedPath,
@@ -170,7 +170,7 @@ describe("SideDrawerContent.vue", () => {
       expect(fileExplorerTab.exists()).toBeTruthy();
       expect(fileExplorerTab.props().backendType).toBe("connected1");
       const updatedPath = "updatedPath";
-      await fileExplorerTab.vm.$emit("chooseFile", updatedPath);
+      await fileExplorerTab.vm.$emit("chooseItem", updatedPath);
       expect(wrapper.emitted("update:modelValue")![1][0]).toStrictEqual({
         path: updatedPath,
         timeout: props.modelValue.timeout,

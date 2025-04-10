@@ -52,10 +52,6 @@ const showAllButtonClickHandler = () => {
 <template>
   <div class="container">
     <div class="everything-except-error-message">
-      <!-- This overlays everything else when it's enabled -->
-      <div v-if="props.isLoading" class="loading-overlay">
-        <LoadingIcon class="loading-spinner" />
-      </div>
       <div
         class="visible-items-header"
         :class="{ error: previewData.resultType === 'ERROR' }"
@@ -68,11 +64,20 @@ const showAllButtonClickHandler = () => {
         <slot name="header-buttons-right" />
       </div>
       <div v-if="showAll" class="visible-items-container">
+        <!-- This overlays everything else when it's enabled -->
+        <div v-if="props.isLoading" class="loading-overlay">
+          <LoadingIcon class="loading-spinner" />
+        </div>
         <template v-if="allItems.length === 0">
-          <span class="empty-list">No files</span>
+          <div class="empty-list">No files</div>
         </template>
         <template v-else>
-          <div v-for="item in allItems" :key="item" class="visible-item">
+          <div
+            v-for="item in allItems"
+            :key="item"
+            :title="item"
+            class="visible-item"
+          >
             {{ item }}
           </div>
         </template>
@@ -106,37 +111,6 @@ const showAllButtonClickHandler = () => {
   flex-direction: column;
   position: relative;
   min-height: 0;
-}
-
-.loading-overlay {
-  position: absolute;
-  inset: 0;
-  background-color: white;
-  opacity: 0.5;
-  pointer-events: fill;
-
-  & .loading-spinner {
-    --spinner-size: 32px;
-
-    position: absolute;
-    top: calc(50% - var(--spinner-size) / 2);
-    left: calc(50% - var(--spinner-size) / 2);
-    height: var(--spinner-size);
-    width: var(--spinner-size);
-  }
-
-  &.error {
-    color: var(--knime-coral-dark);
-
-    & span {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      font-size: 14px;
-      font-weight: 500;
-      font-family: Roboto, sans-serif;
-    }
-  }
 }
 
 .filter-button {
@@ -214,13 +188,45 @@ const showAllButtonClickHandler = () => {
   --visible-item-height: 26px;
   --max-visible-items: 8;
 
+  position: relative;
   display: flex;
   flex-direction: column;
   padding: var(--space-4) 0;
   background: white;
   overflow: hidden auto;
   width: 100%;
-  max-height: calc(var(--max-visible-items) * var(--visible-item-height));
+  height: calc(var(--max-visible-items) * var(--visible-item-height));
+
+  & .loading-overlay {
+    position: absolute;
+    inset: 0;
+    background-color: white;
+    opacity: 0.5;
+    pointer-events: fill;
+
+    & .loading-spinner {
+      --spinner-size: 32px;
+
+      position: absolute;
+      top: calc(50% - var(--spinner-size) / 2);
+      left: calc(50% - var(--spinner-size) / 2);
+      height: var(--spinner-size);
+      width: var(--spinner-size);
+    }
+
+    &.error {
+      color: var(--knime-coral-dark);
+
+      & span {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        font-size: 14px;
+        font-weight: 500;
+        font-family: Roboto, sans-serif;
+      }
+    }
+  }
 
   & .visible-item {
     padding: 0 var(--space-8);
@@ -239,7 +245,7 @@ const showAllButtonClickHandler = () => {
 
   & .empty-list {
     width: 100%;
-    height: calc(var(--max-visible-items) * var(--visible-item-height));
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
