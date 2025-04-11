@@ -9,7 +9,7 @@ const LegacyCredentialsControl = defineAsyncComponent(
   () => import("../uiComponents/credentials/LegacyCredentialsControl.vue"),
 );
 
-export const legacyCredentialsRenderer = withLabel({
+export const legacyCredentialsRenderer = withLabel()({
   name: "LegacyCredentialsControl",
   control: LegacyCredentialsControl,
   tester: rankWith(

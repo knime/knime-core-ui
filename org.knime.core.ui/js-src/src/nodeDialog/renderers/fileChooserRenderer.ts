@@ -8,7 +8,7 @@ import { hasFormat, inputFormats } from "../constants/inputFormats";
 const FileChooserControl = defineAsyncComponent(
   () => import("../uiComponents/fileChooser/withTabs/FileChooserControl.vue"),
 );
-export const fileChooserRenderer = withLabel({
+export const fileChooserRenderer = withLabel()({
   name: "FileChooserControl",
   control: FileChooserControl,
   tester: rankWith(priorityRanks.default, hasFormat(inputFormats.fileChooser)),
