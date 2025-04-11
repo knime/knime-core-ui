@@ -120,6 +120,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoic
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.customvalidation.CustomValidationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DeclaringDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
@@ -1332,13 +1333,21 @@ class UiSchemaOptionsTest {
             }
         }
 
+        class DateTimeFormatValidationHandler implements CustomValidationHandler<String> {
+            @Override
+            public Optional<String> validate(final String currentValue) {
+                throw new IllegalAccessError("Should not be called within this test");
+            }
+        }
+
         class DateTimeFormatPickerWidgetTestSettings implements DefaultNodeSettings {
             @Widget(title = "", description = "")
             @DateTimeFormatPickerWidget(formatProvider = DateTimeFormatProvider.class)
             String m_formatPickerField;
 
             @Widget(title = "", description = "")
-            @DateTimeFormatPickerWidget(formatProvider = DateTimeFormatProvider.class)
+            @DateTimeFormatPickerWidget(formatProvider = DateTimeFormatProvider.class,
+                customValidationHandler = DateTimeFormatValidationHandler.class)
             TemporalFormat m_formatPickerFieldWithTemporalFormat;
 
             @Widget(title = "", description = "")
@@ -1360,6 +1369,8 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo("dateTimeFormatWithType");
         assertThatJson(response).inPath("$.elements[1].options.formatProvider").isString()
             .isEqualTo(DateTimeFormatProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[1].options.customValidationHandler").isString()
+        .isEqualTo(DateTimeFormatValidationHandler.class.getName());
 
         // and the repeat with no format provider
         assertThatJson(response).inPath("$.elements[2].scope").isString()

@@ -11,7 +11,8 @@
         "withMin": 1.0,
         "withMax": 1.0,
         "withMinInteger": 1,
-        "withMaxInteger": 1
+        "withMaxInteger": 1,
+        "withCustomFormatValidation": "MM/DD/YYYY"
       }
     },
     "schema": {
@@ -61,6 +62,10 @@
               "type": "integer",
               "maximum": 0,
               "format": "int32"
+            },
+            "withCustomFormatValidation": {
+              "title": "With Custom Format Validation (appears on change)",
+              "type": "string"
             }
           }
         }
@@ -231,6 +236,21 @@
                     "errorMessage": "Value must be less than or equal to 0"
                   }
                 ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "Section",
+          "label": "Custom Validation",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/model/properties/withCustomFormatValidation",
+              "description": "Custom validation with custom format",
+              "options": {
+                "format": "dateTimeFormat",
+                "customValidationHandler": "customValidationHandlerFormat"
               }
             }
           ]

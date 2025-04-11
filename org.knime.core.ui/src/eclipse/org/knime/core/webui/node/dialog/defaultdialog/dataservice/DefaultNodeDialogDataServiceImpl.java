@@ -54,6 +54,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.ConvertVa
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import org.knime.core.webui.data.DataServiceContext;
@@ -65,6 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.UpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonActionHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.customvalidation.CustomValidationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.ErrorHandlingSingleton;
 
 /**
@@ -78,6 +80,8 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
     private final ButtonWidgetUpdateHandlerHolder m_buttonUpdateHandlers;
 
     private final ButtonWidgetActionHandlerHolder m_buttonActionHandlers;
+
+    private final CustomValidationHandlerHolder m_customValidationHandlers;
 
     private final DataServiceRequestHandler m_requestHandler;
 
@@ -94,6 +98,7 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         settingsClasses.forEach(m_keyToSettingsClassMap::put);
         m_buttonActionHandlers = new ButtonWidgetActionHandlerHolder(m_keyToSettingsClassMap.values());
         m_buttonUpdateHandlers = new ButtonWidgetUpdateHandlerHolder(m_keyToSettingsClassMap.values());
+        m_customValidationHandlers = new CustomValidationHandlerHolder(m_keyToSettingsClassMap.values());
         m_requestHandler = new DataServiceRequestHandler();
     }
 
@@ -172,6 +177,24 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         NoHandlerFoundException(final String widgetId) {
             super(String.format("No handler found for component %s. Most likely an implementation error.", widgetId));
         }
+    }
+
+    @Override
+    public Result<Optional<String>> executeCustomValidation(final String validatorClass, final Object currentValue)
+        throws InterruptedException, ExecutionException {
+        final var handler = getCustomValidationHandler(validatorClass);
+        final var resultType =
+            GenericTypeFinderUtil.getFirstGenericType(handler.getClass(), CustomValidationHandler.class);
+        final var convertedCurrentValue = convertValue(currentValue, resultType, null);
+        return m_requestHandler.handleRequest(validatorClass, () -> handler.castAndValidate(convertedCurrentValue));
+    }
+
+    private CustomValidationHandler<?> getCustomValidationHandler(final String handlerClassName) {
+        final var customValidationHandler = m_customValidationHandlers.getHandler(handlerClassName);
+        if (customValidationHandler == null) {
+            throw new NoHandlerFoundException(handlerClassName);
+        }
+        return customValidationHandler;
     }
 
 }
