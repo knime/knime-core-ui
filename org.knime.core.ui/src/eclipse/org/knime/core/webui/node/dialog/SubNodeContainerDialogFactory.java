@@ -73,6 +73,8 @@ import org.knime.core.util.ui.converter.UiComponentConverterRegistry;
 import org.knime.core.webui.data.DataServiceContext;
 import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil;
 import org.knime.core.webui.page.Page;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -91,7 +93,6 @@ public final class SubNodeContainerDialogFactory implements NodeDialogFactory {
     private static final NodeLogger LOGGER = NodeLogger.getLogger(SubNodeContainerDialogFactory.class);
 
     private static final String SUB_NODE_CONTAINER_UI_MODE_PROPERTY = "org.knime.component.ui.mode";
-
 
     private static final String SUB_NODE_CONTAINER_UI_MODE_SWING = "swing";
 
@@ -258,8 +259,33 @@ public final class SubNodeContainerDialogFactory implements NodeDialogFactory {
             for (var dialogNodeId : orderedNodeIDs) {
                 var dialogNode = m_dialogNodes.get(dialogNodeId);
                 try {
-                    var jsonStr = getWorkflowRepresentationJson(dialogNode);
-                    dialogBuilder.addUiComponent(jsonStr, "param_" + dialogNodeId.getIndex());
+
+                    final var paramName = "param_" + dialogNodeId.getIndex();
+                    if (dialogNode
+                        .getDialogRepresentation() instanceof DialogElementRendererProvider rendererProvider) {
+                        final var value = Optional.ofNullable(dialogNode.getDialogValue())
+                            .orElseGet(() -> dialogNode.getDefaultValue());
+                        if (value instanceof WebViewContent webViewContent) {
+                            final var stream = (ByteArrayOutputStream)webViewContent.saveToStream();
+                            final var json = new ObjectMapper().readTree(stream.toByteArray());
+                            System.out.println("data");
+                            System.out.println(json);
+
+                        }
+                        final var renderer = rendererProvider.getDialogElementRendererSpec(List.of(paramName));
+                        final var uischema = RendererToJsonFormsUtil.toUiSchemaElement(renderer);
+                        final var schema = RendererToJsonFormsUtil.constructSchema(renderer);
+                        System.out.println("ui Schema");
+                        System.out.println(uischema);
+                        System.out.println("Schema");
+                        System.out.println(schema);
+                        dialogBuilder.addUiComponent(paramName, uischema,
+                            RendererToJsonFormsUtil.toSchemaConstructor(renderer));
+                    } else {
+                        var jsonStr = getWorkflowRepresentationJson(dialogNode);
+                        dialogBuilder.addUiComponent(jsonStr, "param_" + dialogNodeId.getIndex());
+                    }
+
                 } catch (IOException | IllegalStateException e) {
                     final var msg = "Could not read dialog node " + dialogNode.toString();
                     LOGGER.error(msg, e);
