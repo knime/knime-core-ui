@@ -899,7 +899,26 @@ public class DefaultNodeDialogTest {
             final var response = callApplyData(applyData);
 
             assertTrue(m_nnc.getNodeContainerState().isExecuted()); // i.e. not applied
-            assertThatJson(response).inPath("$.error").isString().contains(VALIDATION_ERROR_MESSAGE);
+            assertThatJson(response).inPath("$.error").isString() //
+                .contains("flow variable") //
+                .contains(VALIDATION_ERROR_MESSAGE);
+        }
+
+        @Test
+        void testApplyDataWithInvalidSettingsAndNoControllingFlowVariables() throws IOException, IllegalStateException {
+            final var applyData = new ApplyDataBuilder()//
+                .withNonDefaultModelSettings(PREVIOUS_MODEL_SETTINGS)//
+                .withNonDefaultViewSettings(PREVIOUS_VIEW_SETTINGS)//
+                .modifyAt(MODEL, MODEL_SETTING_CFG, b -> b.withExposedFlowVariableName("only exposed").build())//
+                .modifyAt(MODEL, MODEL_SETTING, b -> b.setStringValue(MODEL_SETTING_INVALID_VALUE).build())//
+                .build();
+
+            final var response = callApplyData(applyData);
+
+            assertTrue(m_nnc.getNodeContainerState().isExecuted()); // i.e. not applied
+            assertThatJson(response).inPath("$.error").isString() //
+                .doesNotContain("flow variable") //
+                .contains(VALIDATION_ERROR_MESSAGE);
         }
 
         private JsonNode callApplyData(final JsonNode applyData) throws IOException {

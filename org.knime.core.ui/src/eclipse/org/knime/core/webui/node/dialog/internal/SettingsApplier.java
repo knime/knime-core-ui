@@ -258,8 +258,10 @@ public final class SettingsApplier {
     private static void overwriteSettingsToMakeThemValid(final SettingsType settingsType, final NativeNodeContainer nnc,
         final NodeSettings nodeSettings, final ApplyDataSettings changedModel, final InvalidSettingsException ex)
         throws InvalidSettingsException {
-        final var variables = changedModel.getVariables()//
-            .orElseThrow(() -> ex);
+        if (!hasControllingVariables(changedModel)) {
+            throw ex;
+        }
+        final var variables = changedModel.getVariables().orElseThrow(IllegalStateException::new);
         final var underlyingSettings = changedModel.getSettings();
         final var settingsDescription = getSettingsDescription(settingsType);
         final var message = String.format("Could not apply settings for node %s due to invalid %s. "
@@ -394,6 +396,15 @@ public final class SettingsApplier {
         final var isExposed = exposedVariableName != null;
         final var isNotControlled = getUsedVariable(leaf.variables()) == null;
         return isExposed && isNotControlled && !leaf.settings().isIdentical(leaf.previousSettings());
+    }
+
+    private static boolean hasControllingVariables(final ApplyDataSettings applyDataSettings) {
+        return SettingsTreeTraversalUtil.traverseSettingsTrees(new VariableSettingsTree(applyDataSettings),
+            SettingsApplier::hasControllingVariable);
+    }
+
+    private static boolean hasControllingVariable(final VariableSettingsTreeNode leaf) {
+        return getUsedVariable(leaf.variables()) != null;
     }
 
     private static String getUsedVariable(final NodeSettingsRO variable) {
