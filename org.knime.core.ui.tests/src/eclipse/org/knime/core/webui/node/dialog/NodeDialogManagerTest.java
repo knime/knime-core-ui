@@ -103,6 +103,10 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.osgi.framework.FrameworkUtil;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 /**
  * Tests for {@link NodeDialogManager}.
  *
@@ -234,7 +238,10 @@ public class NodeDialogManagerTest {
                     .getCollapsedMetanodeID();
             wfm.convertMetaNodeToSubNode(componentId);
 
-            var component = wfm.getNodeContainer(componentId);
+            SubNodeContainer component = (SubNodeContainer)wfm.getNodeContainer(componentId);
+            NativeNodeContainer configurationNode =
+                (NativeNodeContainer)component.getWorkflowManager().getNodeContainers().stream()
+                    .filter(nc -> nc.getName().equals("Configuration Node (used in tests)")).findFirst().orElseThrow();
 
             assertThat(NodeDialogManager.hasNodeDialog(component)).as("node expected to have a node dialog").isTrue();
             var nodeDialogManager = NodeDialogManager.getInstance();
@@ -246,10 +253,25 @@ public class NodeDialogManagerTest {
 
             // The jsonforms dialog cannot be built from our test node, because it is no valid/known DialogNodeRepresentation,
             // So we just check for the error here.
-            var result = NodeDialogManager.getInstance().getDataServiceManager()
+            var initialData = NodeDialogManager.getInstance().getDataServiceManager()
                 .callInitialDataService(NodeWrapper.of(component));
-            assertThat(result).contains(
-                "Could not read dialog node org.knime.core.webui.node.dialog.TestConfigurationNodeFactory$TestConfigNodeModel");
+            var resultAsJson = (ObjectNode)new ObjectMapper().readTree(initialData);
+            var nodeIndex = configurationNode.getID().getIndex();
+            assertInitialSubNodeContainerData(resultAsJson, nodeIndex);
+
+            final var toBeApplied = getObject(resultAsJson, "result");
+            setTestData(nodeIndex, toBeApplied, "test data");
+            final var toBeAppliedString = new ObjectMapper().writeValueAsString(toBeApplied);
+
+            NodeDialogManager.getInstance().getDataServiceManager().callApplyDataService(NodeWrapper.of(component),
+                toBeAppliedString);
+
+            // check node model settings
+            final var savedData = ((TestConfigurationNodeFactory.TestConfigNodeModel)configurationNode.getNodeModel())
+                .getDialogValue().m_data;
+
+            assertThat(savedData).isEqualTo("test data");
+
         } finally {
             if (componentUiMode != null) {
                 System.setProperty(uiModeProperty, componentUiMode);
@@ -258,6 +280,27 @@ public class NodeDialogManagerTest {
             }
             serviceRegistration.unregister();
         }
+    }
+
+    private static void assertInitialSubNodeContainerData(final JsonNode resultAsJson, final int nodeIndex) {
+        assertThatJson(resultAsJson).inPath("$.result.data.model.%s.data".formatted(nodeIndex))
+            .isEqualTo("default from model");
+        assertThatJson(resultAsJson)
+            .inPath("$.result.schema.properties.model.properties.%s.properties.data.title".formatted(nodeIndex))
+            .isEqualTo("Test Configuration Node");
+        assertThatJson(resultAsJson).inPath("$.result.ui_schema.elements[0].scope")
+            .isEqualTo("#/properties/model/properties/%s/properties/data".formatted(nodeIndex));
+    }
+
+    private static void setTestData(final int nodeIndex, final ObjectNode result, final String testData) {
+        final var resultData = getObject(result, "data");
+        final var modelSettings = getObject(resultData, "model");
+        final var configSettings = getObject(modelSettings, String.valueOf(nodeIndex));
+        configSettings.put("data", testData);
+    }
+
+    private static ObjectNode getObject(final ObjectNode node, final String key) {
+        return (ObjectNode)node.get(key);
     }
 
     /**

@@ -141,8 +141,7 @@ class DefaultNodeSettingsToJsonFormsTest {
                 }
                  """);
 
-        var schema = jsonForms.getSchema();
-        schema = mapper.readTree(mapper.writeValueAsString(schema));
+        final var schema = mapper.readTree(mapper.writeValueAsString(jsonForms.getSchema()));
         assertThatJson(schema).isEqualTo("""
                 {
                   "type" : "object",
@@ -190,8 +189,7 @@ class DefaultNodeSettingsToJsonFormsTest {
                 }
                 """);
 
-        var uiSchema = jsonForms.getUiSchema();
-        var uiSchemaJson = mapper.readTree(uiSchema.rawValue().toString());
+        var uiSchemaJson = mapper.readTree(mapper.writeValueAsString(jsonForms.getUiSchema()));
         assertThatJson(uiSchemaJson).isEqualTo("""
                 {
                   "elements": [

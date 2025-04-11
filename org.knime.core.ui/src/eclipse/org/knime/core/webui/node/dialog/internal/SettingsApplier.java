@@ -112,7 +112,7 @@ public final class SettingsApplier {
          * @param settings to be written
          */
         void toNodeSettings(final String textSettings, Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
-            Map<SettingsType, NodeAndVariableSettingsWO> settings);
+            Map<SettingsType, NodeAndVariableSettingsWO> settings) throws InvalidSettingsException;
     }
 
     /**

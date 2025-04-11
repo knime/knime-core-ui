@@ -50,11 +50,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
 import static org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMapUtil.map;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
@@ -65,7 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.util.RawValue;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Abstract implementation of JsonFormsSettings, where
@@ -111,29 +108,15 @@ public final class JsonFormsSettingsImpl implements JsonFormsSettings {
     }
 
     @Override
-    public JsonNode getSchema() {
+    public ObjectNode getSchema() {
         return JsonFormsSchemaUtil.buildCombinedSchema(map(m_settings, DefaultNodeSettings::getClass), m_widgetTrees,
             m_context, JsonFormsDataUtil.getMapper());
     }
 
     @Override
-    public RawValue getUiSchema() {
-        final var clazz = m_settings.containsKey(SettingsType.VIEW) ? m_settings.get(SettingsType.VIEW).getClass()
-            : m_settings.get(SettingsType.MODEL).getClass();
-        try (final var inputStream = clazz.getResourceAsStream("uischema.json")) {
-            if (inputStream == null) {
-                return generateUiSchema();
-            }
-            return new RawValue(IOUtils.toString(inputStream, StandardCharsets.UTF_8));
-        } catch (IOException ex) {
-            throw new IllegalStateException("Error when parsing uischema.json.", ex);
-        }
+    public ObjectNode getUiSchema() {
+        return JsonFormsUiSchemaUtil.buildUISchema(m_widgetTrees.values(), m_context);
 
-    }
-
-    private RawValue generateUiSchema() {
-        final var uiSchema = JsonFormsUiSchemaUtil.buildUISchema(m_widgetTrees.values(), m_context);
-        return new RawValue(uiSchema.toString());
     }
 
     @Override

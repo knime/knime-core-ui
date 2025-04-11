@@ -44,58 +44,27 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 24, 2023 (Paul Bärnreuther): created
+ *   Apr 14, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.settingsconversion;
+package org.knime.core.webui.node.dialog.defaultdialog;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.knime.core.webui.UIExtension;
+import org.knime.core.webui.page.Page;
 
 /**
- * Used to transform string parameters from the front-end to JSON in a consistent way
+ * The default node dialog UI extension. Currently based on jsonforms renderers.
  *
  * @author Paul Bärnreuther
  */
-public final class TextToJsonUtil {
-
-    private TextToJsonUtil() {
-        // Utility class
-    }
-
+public interface DefaultNodeDialogUIExtension extends UIExtension {
     /**
-     * Transforms text to JSON using the global {@link ObjectMapper} used for the {@link DefaultNodeDialog}
-     *
-     * @param textSettings
-     * @return a JSON representation.
+     * The page representing the default node dialog.
      */
-    public static JsonNode textToJson(final String textSettings) {
-        var mapper = JsonFormsDataUtil.getMapper();
-        try {
-            return mapper.readTree(textSettings);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException(
-                String.format("Exception when parsing JSON from text setting: %s", e.getMessage()), e);
-        }
-    }
+    Page PAGE = Page.builder(DefaultNodeDialogUIExtension.class, "js-src", "dist/NodeDialog.js")
+        .addResourceDirectory("dist").markAsReusable("defaultdialog").build();
 
-    /**
-     * Transforms JSON to text using the global {@link ObjectMapper} used for the {@link DefaultNodeDialog}
-     *
-     * @param json representation
-     * @return json as text.
-     */
-    public static String jsonToString(final ObjectNode json) {
-        var mapper = JsonFormsDataUtil.getMapper();
-        try {
-            return mapper.writeValueAsString(json);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException(
-                String.format("Exception when reading data from node settings: %s", e.getMessage()), e);
-        }
+    @Override
+    default Page getPage() {
+        return PAGE;
     }
 }

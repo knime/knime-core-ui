@@ -48,9 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.FIELD_NAME_DATA;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.FIELD_NAME_SCHEMA;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.FIELD_NAME_UI_SCHEMA;
+import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.TextToJsonUtil.jsonToString;
 import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil.addVariableSettingsToRootJson;
 import static org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMapUtil.map;
 
@@ -65,8 +63,6 @@ import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettingsImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
@@ -75,8 +71,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.NodeSet
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -114,24 +108,14 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
         var context = createContext(specs);
         final var loadedSettings = new NodeSettingsToDefaultNodeSettings(context, m_settingsClasses)
             .nodeSettingsToDefaultNodeSettingsOrDefault(map(settings));
-        final var mapper = JsonFormsDataUtil.getMapper();
 
         final var widgetTreeFactory = new WidgetTreeFactory();
         final var widgetTrees = map(loadedSettings, (type, s) -> widgetTreeFactory.createTree(s.getClass(), type));
 
         final var jsonFormsSettings = new JsonFormsSettingsImpl(loadedSettings, context, widgetTrees);
-        final var root = jsonFormsSettingsToJson(jsonFormsSettings, mapper);
+        final var root = new DefaultNodeDialogDataServiceUtil.InitialDataBuilder(jsonFormsSettings).buildJson();
         addAdditionalFieldsToRoot(root, settings, loadedSettings, context, widgetTrees);
-        return jsonToString(root, mapper);
-    }
-
-    private static ObjectNode jsonFormsSettingsToJson(final JsonFormsSettings jsonFormsSettings,
-        final ObjectMapper mapper) {
-        final var root = mapper.createObjectNode();
-        root.set(FIELD_NAME_DATA, jsonFormsSettings.getData());
-        root.set(FIELD_NAME_SCHEMA, jsonFormsSettings.getSchema());
-        root.putRawValue(FIELD_NAME_UI_SCHEMA, jsonFormsSettings.getUiSchema());
-        return root;
+        return jsonToString(root);
     }
 
     private static void addAdditionalFieldsToRoot(final ObjectNode root,
@@ -152,15 +136,6 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
         final var persistTreeFactory = new PersistTreeFactory();
         final var persistTrees = map(loadedSettings, (type, s) -> persistTreeFactory.createTree(s.getClass(), type));
         PersistUtil.addPersist(root, persistTrees);
-    }
-
-    private static String jsonToString(final ObjectNode root, final ObjectMapper mapper) {
-        try {
-            return mapper.writeValueAsString(root);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException(
-                String.format("Exception when reading data from node settings: %s", e.getMessage()), e);
-        }
     }
 
     @Override
