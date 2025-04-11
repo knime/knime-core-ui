@@ -9,7 +9,7 @@ const LocalFileChooserControl = defineAsyncComponent(
   () => import("../uiComponents/fileChooser/local/LocalFileChooserControl.vue"),
 );
 
-export const localFileChooserRenderer = withLabel({
+export const localFileChooserRenderer = withLabel()({
   name: "LocalFileChooserControl",
   control: LocalFileChooserControl,
   tester: rankWith(

@@ -57,7 +57,7 @@ describe("UrlTab.vue", () => {
       .findComponent(CustomUrlFileChooser)
       .findComponent(ErrorMessages);
     expect(errorMessage.exists()).toBeTruthy();
-    expect(errorMessage.props()).toStrictEqual({
+    expect(errorMessage.props()).toMatchObject({
       errors: ['The url needs to start with a scheme (e.g. "https://")'],
     });
     expect(applyDisabled.value).toBeTruthy();

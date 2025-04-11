@@ -13,7 +13,7 @@ export const credentialsTester: Tester = (uischema) => {
   return uischema.options?.format === inputFormats.credentials;
 };
 
-export const credentialsRenderer = withLabel({
+export const credentialsRenderer = withLabel()({
   name: "CredentialsControl",
   control: CredentialsControl,
   tester: rankWith(priorityRanks.default, credentialsTester),
