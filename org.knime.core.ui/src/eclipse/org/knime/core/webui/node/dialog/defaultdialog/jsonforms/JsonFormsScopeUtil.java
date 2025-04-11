@@ -50,11 +50,14 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.PathsWithSettingsType;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * The scope of a setting is its json schema path (i.e. #/properties/...) We use this scope whenever we need to point to
@@ -90,6 +93,8 @@ public final class JsonFormsScopeUtil {
         return toScope(node.getPath(), node.getSettingsType());
     }
 
+    private static final String PROPERTIES = "properties";
+
     /**
      * TODO UIEXT-1673 make this method private. We shouldn't need it to be public anymore.
      *
@@ -97,7 +102,7 @@ public final class JsonFormsScopeUtil {
      * @return the json schema scope
      */
     public static String toScope(final List<String> path) {
-        return String.join("/properties/", path);
+        return String.join("/" + PROPERTIES + "/", path);
     }
 
     /**
@@ -113,5 +118,63 @@ public final class JsonFormsScopeUtil {
             scopes.add(JsonFormsScopeUtil.toScope(location.paths().get(i), null));
         }
         return scopes;
+    }
+
+    /**
+     * Traverses a schema and returns the schema at the given path.
+     *
+     * @param jsonSchemaWithoutProperties the schema to traverse/add to
+     * @param path the path to the schema
+     * @return the schema at the given path or null if it does not exist
+     * @throws IllegalStateException if the path is not present in the schema
+     */
+    public static ObjectNode getSchemaAtOrFail(final ObjectNode jsonSchemaWithoutProperties, final List<String> path) {
+        return traverseSchemaPath(jsonSchemaWithoutProperties, path, JsonFormsScopeUtil::getObjectAtOrFail);
+    }
+
+    /**
+     * Traverses a schema and returns the schema at the given path. If at any step, the path cannot be traversed
+     * further, new object nodes are added to enable further traversal.
+     *
+     * @param jsonSchemaWithoutProperties the schema to traverse/add to
+     * @param path the path to the schema
+     * @return the schema at the given path or null if it does not exist
+     * @throws IllegalStateException if the path leads to a already present non-object node
+     */
+    public static ObjectNode getOrConstructSchemaAt(final ObjectNode jsonSchemaWithoutProperties,
+        final List<String> path) {
+        return traverseSchemaPath(jsonSchemaWithoutProperties, path, JsonFormsScopeUtil::getOrConstructObjectAt);
+    }
+
+    private static ObjectNode traverseSchemaPath(final ObjectNode root, final List<String> path,
+        final BiFunction<ObjectNode, String, ObjectNode> navigator) {
+        ObjectNode currentNode = root;
+        for (String pathElement : path) {
+            currentNode = navigator.apply(currentNode, PROPERTIES);
+            currentNode = navigator.apply(currentNode, pathElement);
+        }
+        return currentNode;
+    }
+
+    private static ObjectNode getObjectAtOrFail(final ObjectNode currentNode, final String key) {
+        if (!currentNode.has(key)) {
+            throw new IllegalStateException(String.format("Key %s not present in schema", key));
+        }
+        return getObjectAt(currentNode, key);
+    }
+
+    private static ObjectNode getOrConstructObjectAt(final ObjectNode currentNode, final String key) {
+        if (!currentNode.has(key)) {
+            return currentNode.putObject(key);
+        }
+        return getObjectAt(currentNode, key);
+    }
+
+    private static ObjectNode getObjectAt(final ObjectNode currentNode, final String key) {
+        final var atKey = currentNode.get(key);
+        if (atKey instanceof ObjectNode) {
+            return (ObjectNode)atKey;
+        }
+        throw new IllegalStateException(String.format("Node at key %s is not an object node", key));
     }
 }
