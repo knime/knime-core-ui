@@ -132,5 +132,7 @@ interface DefaultNodeDialogDataService {
     Result<?> update2(String widgetId, String triggerClass, Map<String, List<IndexedValue<String>>> rawDependencies)
         throws InterruptedException, ExecutionException;
 
+    Result<?> performCustomValueValidation(String validatorClass, Object currentValue)
+        throws InterruptedException, ExecutionException;
 
 }

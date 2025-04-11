@@ -330,6 +330,7 @@ final class UiSchemaOptionsGenerator {
 
             final var dateTimeFormatPickerWidget = m_node.getAnnotation(DateTimeFormatPickerWidget.class).orElseThrow();
             options.put("formatProvider", dateTimeFormatPickerWidget.formatProvider().getName());
+            options.put("customValidation", dateTimeFormatPickerWidget.customValidationHandler().getName());
         }
 
         if (annotatedWidgets.contains(RichTextInputWidget.class)) {

@@ -117,4 +117,23 @@ public @interface DateTimeFormatPickerWidget {
         String example //
     ) {
     }
+
+    public final class NoopValidationHandler implements CustomValidationHandler<Void> {
+        @Override
+        public String getErrorMessage(final Void currentValue) {
+            return null;
+        }
+    }
+
+    public interface CustomValidationHandler<T> {
+
+        String getErrorMessage(final T currentValue);
+
+    }
+
+    /**
+     *
+     * @return the validationHandler
+     */
+    Class<? extends CustomValidationHandler<?>> customValidationHandler() default NoopValidationHandler.class;
 }

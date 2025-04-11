@@ -79,6 +79,8 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
 
     private final ButtonWidgetActionHandlerHolder m_buttonActionHandlers;
 
+    private final CustomValidationHandlerHolder m_validationHandlers;
+
     private final DataServiceRequestHandler m_requestHandler;
 
     final Map<SettingsType, Class<? extends WidgetGroup>> m_keyToSettingsClassMap;
@@ -94,6 +96,7 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         settingsClasses.forEach(m_keyToSettingsClassMap::put);
         m_buttonActionHandlers = new ButtonWidgetActionHandlerHolder(m_keyToSettingsClassMap.values());
         m_buttonUpdateHandlers = new ButtonWidgetUpdateHandlerHolder(m_keyToSettingsClassMap.values());
+        m_validationHandlers = new CustomValidationHandlerHolder(m_keyToSettingsClassMap.values());
         m_requestHandler = new DataServiceRequestHandler();
     }
 
@@ -172,6 +175,14 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         NoHandlerFoundException(final String widgetId) {
             super(String.format("No handler found for component %s. Most likely an implementation error.", widgetId));
         }
+    }
+
+    @Override
+    public Result<?> performCustomValueValidation(final String validatorClass, final Object currentValue)
+        throws InterruptedException, ExecutionException {
+        return m_requestHandler.handleRequest(null, () -> {
+            return "Some static error message from the backend";
+        });
     }
 
 }
