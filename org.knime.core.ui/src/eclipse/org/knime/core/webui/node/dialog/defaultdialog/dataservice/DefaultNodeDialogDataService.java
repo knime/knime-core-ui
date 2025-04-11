@@ -50,6 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
@@ -57,6 +58,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.UpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.customvalidation.CustomValidationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
@@ -132,5 +134,16 @@ interface DefaultNodeDialogDataService {
     Result<?> update2(String widgetId, String triggerClass, Map<String, List<IndexedValue<String>>> rawDependencies)
         throws InterruptedException, ExecutionException;
 
+    /**
+     * This method is triggered whenever an input value changes and a custom validation is specified.
+     *
+     * @param validatorClass the class name of the {@link CustomValidationHandler} that is to be used.
+     * @param currentValue the current input value to validate against
+     * @return the error message if the validation fails, else an empty optional
+     * @throws InterruptedException if the used thread is interrupted
+     * @throws ExecutionException if an error is thrown during the invocation
+     */
+    Result<Optional<String>> executeCustomValidation(String validatorClass, Object currentValue)
+        throws InterruptedException, ExecutionException;
 
 }

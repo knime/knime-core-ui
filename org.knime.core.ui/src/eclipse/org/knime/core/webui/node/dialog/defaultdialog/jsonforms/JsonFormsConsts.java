@@ -49,9 +49,11 @@
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.customvalidation.CustomValidationHandler;
 
 import com.github.victools.jsonschema.generator.SchemaKeyword;
 import com.github.victools.jsonschema.generator.SchemaVersion;
@@ -221,6 +223,11 @@ public final class JsonFormsConsts {
          * Used for rich text to adjust validations to incorporate the $$["flowVarName"] - Syntax
          */
         public static final String TAG_USE_FLOW_VAR_TEMPLATES = "useFlowVarTemplates";
+
+        /**
+         * The {@link CustomValidationHandler} of a {@link DateTimeFormatPickerWidget}
+         */
+        public static final String TAG_CUSTOM_VALIDATION_HANDLER = "customValidationHandler";
 
         /**
          * Several formats which are written to the options of the ui-schema of an ui element

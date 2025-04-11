@@ -435,6 +435,14 @@ export default (rpcRequest: { method: string; params: any[] }) => {
       };
     case "fileChooser.getFilePath":
       return { path: `path/to/folder/${rpcRequest.params[2]}` };
+    case "settings.executeCustomValidation":
+      return {
+        result:
+          rpcRequest.params[1] === "MM/DD/YYYY"
+            ? null
+            : "The only valid format is: MM/DD/YYYY",
+        state: "SUCCESS",
+      };
     default:
       return null;
   }

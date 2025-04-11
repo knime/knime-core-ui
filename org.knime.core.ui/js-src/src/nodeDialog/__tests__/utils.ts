@@ -26,10 +26,5 @@ export const getOptions = ({
           : {}),
       },
     },
-    props: {
-      dialogSettings: {
-        nodeId: "test",
-      },
-    },
   };
 };

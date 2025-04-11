@@ -249,6 +249,18 @@ const clearControllingFlowVariable = (persistPath: string) => {
   possiblyFlawedControllingVariablePaths.value.delete(persistPath);
 };
 
+const executeCustomValidation = async (
+  id: string,
+  value: any,
+  callback: (error: string | null) => void,
+) => {
+  const receivedData = await callDataService({
+    method: "settings.executeCustomValidation",
+    options: [id, value],
+  });
+  callback(receivedData.result || null);
+};
+
 const onSettingsChanged = ({ data }: { data: SettingsData }) => {
   if (data) {
     setCurrentData(data);
@@ -338,6 +350,7 @@ defineExpose({
     @trigger="trigger"
     @update-data="updateData"
     @state-provider-listener="addStateProviderListener"
+    @execute-custom-validation="executeCustomValidation"
   >
     <template #top>
       <div ref="dialogPopoverTeleportDest" class="popover-container" />
