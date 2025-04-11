@@ -44,58 +44,31 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 24, 2023 (Paul Bärnreuther): created
+ *   Apr 10, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.settingsconversion;
+package org.knime.core.webui.node.dialog;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.knime.core.node.dialog.DialogNodeRepresentation;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.LocalizedControlRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
 
 /**
- * Used to transform string parameters from the front-end to JSON in a consistent way
+ * Let a dialog node representation implement this interface to enable being part of a WebUI component dialog.
  *
  * @author Paul Bärnreuther
+ * @param <VAL> the dialog node value type. It is part of this interface to enforce that the value can be serialized to
+ *            JSON being a WebViewContent.
  */
-public final class TextToJsonUtil {
-
-    private TextToJsonUtil() {
-        // Utility class
-    }
+public interface WebDialogNodeRepresentation<VAL extends WebDialogValue> extends DialogNodeRepresentation<VAL> {
 
     /**
-     * Transforms text to JSON using the global {@link ObjectMapper} used for the {@link DefaultNodeDialog}
+     * @return the specification of a control renderer that should be used in a WebUI dialog. It has to be localized to
+     *         a json path within the json generated from a value via {@link WebDialogValue#toDialogJson}.
      *
-     * @param textSettings
-     * @return a JSON representation.
+     *         E.g. if {@link WebDialogValue#toDialogJson} returns an object with a string property "value" and a
+     *         renderer spec operating on a string value is to be used (e.g. the {@link TextRendererSpec}), that has to
+     *         be localized to "value".
      */
-    public static JsonNode textToJson(final String textSettings) {
-        var mapper = JsonFormsDataUtil.getMapper();
-        try {
-            return mapper.readTree(textSettings);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException(
-                String.format("Exception when parsing JSON from text setting: %s", e.getMessage()), e);
-        }
-    }
+    LocalizedControlRendererSpec getWebUIDialogControlSpec();
 
-    /**
-     * Transforms JSON to text using the global {@link ObjectMapper} used for the {@link DefaultNodeDialog}
-     *
-     * @param json representation
-     * @return json as text.
-     */
-    public static String jsonToString(final ObjectNode json) {
-        var mapper = JsonFormsDataUtil.getMapper();
-        try {
-            return mapper.writeValueAsString(json);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException(
-                String.format("Exception when reading data from node settings: %s", e.getMessage()), e);
-        }
-    }
 }

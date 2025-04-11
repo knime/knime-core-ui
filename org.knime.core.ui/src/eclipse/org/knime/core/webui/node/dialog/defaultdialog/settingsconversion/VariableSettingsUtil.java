@@ -109,6 +109,7 @@ public final class VariableSettingsUtil {
         final var objectNode = mapper.createObjectNode();
         final var variableSettingsJson = VariableSettingsUtil.fromVariableSettingsToJson(settings,
             Set.of(context.getAvailableFlowVariableNames()), mapper);
+
         objectNode.set(FLOW_VARIABLE_SETTINGS_KEY, variableSettingsJson);
         root.setAll(objectNode);
     }

@@ -48,9 +48,6 @@
  */
 package org.knime.core.webui.node.dialog;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -58,26 +55,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.knime.core.node.NodeLogger;
 import org.knime.core.node.dialog.DialogNode;
 import org.knime.core.node.dialog.DialogNodeRepresentation;
-import org.knime.core.node.dialog.DialogNodeValue;
 import org.knime.core.node.dialog.util.ConfigurationLayoutUtil;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.web.WebViewContent;
 import org.knime.core.node.workflow.NodeID;
 import org.knime.core.node.workflow.SubNodeContainer;
 import org.knime.core.node.workflow.WorkflowManager.NodeModelFilter;
-import org.knime.core.util.ui.converter.JsonFormsDialogBuilder;
-import org.knime.core.util.ui.converter.UiComponentConverterRegistry;
-import org.knime.core.webui.data.DataServiceContext;
 import org.knime.core.webui.data.RpcDataService;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.page.Page;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.knime.core.webui.node.dialog.SubNodeContainerSettingsService.DialogSubNode;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogUIExtension;
 
 /**
  * The SubNodeContainerDialogFactory creates a {@link NodeDialog} for all the configuration nodes inside a
@@ -86,20 +72,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
  */
-public final class SubNodeContainerDialogFactory implements NodeDialogFactory {
-
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(SubNodeContainerDialogFactory.class);
+public final class SubNodeContainerDialogFactory {
 
     private static final String SUB_NODE_CONTAINER_UI_MODE_PROPERTY = "org.knime.component.ui.mode";
-
 
     private static final String SUB_NODE_CONTAINER_UI_MODE_SWING = "swing";
 
     private static final String SUB_NODE_CONTAINER_UI_MODE_JS = "js";
 
     private static final String SUB_NODE_CONTAINER_UI_MODE_DEFAULT = SUB_NODE_CONTAINER_UI_MODE_SWING;
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final SubNodeContainer m_snc;
 
@@ -129,22 +110,20 @@ public final class SubNodeContainerDialogFactory implements NodeDialogFactory {
         m_snc = snc;
     }
 
-    @Override
-    public boolean hasNodeDialog() {
-        return isSubNodeContainerNodeDialogEnabled() && !getConfigurationNodes().isEmpty();
+    boolean hasNodeDialog() {
+        return isSubNodeContainerNodeDialogEnabled() && !getConfigurationNodes(m_snc).isEmpty();
     }
 
     /**
      * @return Create the dialog containing all the dialog elements that were found in the {@link SubNodeContainer}
      */
-    @Override
-    public NodeDialog createNodeDialog() {
-        return new SubNodeContainerNodeDialog(getConfigurationNodes());
+    NodeDialog createNodeDialog() {
+        return new SubNodeContainerNodeDialog(m_snc);
     }
 
     @SuppressWarnings("rawtypes")
-    private Map<NodeID, DialogNode> getConfigurationNodes() {
-        var wfm = m_snc.getWorkflowManager();
+    private static Map<NodeID, DialogNode> getConfigurationNodes(final SubNodeContainer snc) {
+        var wfm = snc.getWorkflowManager();
         Map<NodeID, DialogNode> nodes = wfm.findNodes(DialogNode.class, new NodeModelFilter<DialogNode>() { // NOSONAR
             @Override
             public boolean include(final DialogNode nodeModel) {
@@ -154,120 +133,29 @@ public final class SubNodeContainerDialogFactory implements NodeDialogFactory {
         return nodes;
     }
 
-    @SuppressWarnings("rawtypes")
-    private static String getWorkflowRepresentationJson(final DialogNode node) throws IOException {
-        var dialogRepr = node.getDialogRepresentation();
-        if (!(dialogRepr instanceof WebViewContent)) {
-            throw new IOException("Configuration Dialogs only work with elements that extend WebViewContent");
-        }
-        var webDialogRepr = (WebViewContent)dialogRepr;
-        try (var stream = webDialogRepr.saveToStream()) {
-            if (!(stream instanceof ByteArrayOutputStream)) {
-                throw new IllegalStateException(
-                    "Cannot read json dialog representation from stream other than ByteArrayOutputStream");
-            }
-            return ((ByteArrayOutputStream)stream).toString(StandardCharsets.UTF_8);
-        }
-    }
+    private static class SubNodeContainerNodeDialog implements NodeDialog, DefaultNodeDialogUIExtension {
 
-    private class SubNodeContainerNodeDialog implements NodeDialog {
-        private final NodeSettingsService m_settingsService;
+        final NodeSettingsService m_settingsService;
 
-        @SuppressWarnings("rawtypes")
-        public SubNodeContainerNodeDialog(final Map<NodeID, DialogNode> dialogNodes) {
-            m_settingsService = new SubNodeContainerSettingsService(dialogNodes);
-        }
-
-        @Override
-        public Set<SettingsType> getSettingsTypes() {
-            return Set.of(SettingsType.MODEL);
-        }
-
-        @Override
-        public Optional<RpcDataService> createRpcDataService() {
-            return Optional.empty();
-        }
-
-        @Override
-        public Page getPage() {
-            return DefaultNodeDialog.PAGE;
+        SubNodeContainerNodeDialog(final SubNodeContainer snc) {
+            m_settingsService = new SubNodeContainerSettingsService(() -> getOrderedConfigurationNodes(snc));
         }
 
         @Override
         public NodeSettingsService getNodeSettingsService() {
             return m_settingsService;
         }
-    }
-
-    private class SubNodeContainerSettingsService implements NodeSettingsService {
-        @SuppressWarnings("rawtypes")
-        private final Map<NodeID, DialogNode> m_dialogNodes;
-
-        @SuppressWarnings("rawtypes")
-        public SubNodeContainerSettingsService(final Map<NodeID, DialogNode> dialogNodes) {
-            m_dialogNodes = dialogNodes;
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public void toNodeSettings(final String jsonSettings,
-            final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
-            final Map<SettingsType, NodeAndVariableSettingsWO> settings) {
-
-            JsonNode newSettingsJson;
-            try {
-                newSettingsJson = OBJECT_MAPPER.readTree(jsonSettings);
-            } catch (JsonProcessingException ex) {
-                throw new IllegalStateException("Error occurred when parsing the settings provided by the dialog", ex);
-            }
-
-            var modelSettings = settings.get(SettingsType.MODEL);
-            List<NodeID> orderedNodeIDs = getNodeOrder(m_dialogNodes);
-            for (var dialogNodeId : orderedNodeIDs) {
-                var dialogNode = m_dialogNodes.get(dialogNodeId);
-
-                try {
-                    DialogNodeValue value = dialogNode.createEmptyDialogValue();
-                    var jsonStr = getWorkflowRepresentationJson(dialogNode);
-                    String parameterName = "param_" + dialogNodeId.getIndex();
-                    value.loadFromJson(UiComponentConverterRegistry.getConverter(jsonStr, parameterName)
-                        .getDialogNodeValueJsonFromJsonFormsModel(newSettingsJson.get("data").get("model")));
-
-                    dialogNode.validateDialogValue(value);
-                    dialogNode.setDialogValue(value);
-                    String settingsParameterName = dialogNode.getParameterName();
-                    if (settingsParameterName == null || settingsParameterName.strip().isEmpty()) {
-                        throw new IllegalStateException("Dialog Node has no valid parameter name, can't save settings");
-                    }
-                    settingsParameterName += "-" + dialogNodeId.getIndex();
-                    value.saveToNodeSettings(modelSettings.addNodeSettings(settingsParameterName));
-                } catch (Exception e) { // We want to catch everything here, or settings won't be saved!
-                    final var msg = "Could not read dialog node " + dialogNode.toString();
-                    LOGGER.error(msg, e);
-                    DataServiceContext.get().addWarningMessage(msg);
-                }
-            }
-        }
 
         @Override
-        public String fromNodeSettings(final Map<SettingsType, NodeAndVariableSettingsRO> settings,
-            final PortObjectSpec[] specs) {
-            JsonFormsDialogBuilder dialogBuilder = new JsonFormsDialogBuilder();
+        public boolean canBeEnlarged() {
+            return false;
+        }
 
-            List<NodeID> orderedNodeIDs = getNodeOrder(m_dialogNodes);
-            for (var dialogNodeId : orderedNodeIDs) {
-                var dialogNode = m_dialogNodes.get(dialogNodeId);
-                try {
-                    var jsonStr = getWorkflowRepresentationJson(dialogNode);
-                    dialogBuilder.addUiComponent(jsonStr, "param_" + dialogNodeId.getIndex());
-                } catch (IOException | IllegalStateException e) {
-                    final var msg = "Could not read dialog node " + dialogNode.toString();
-                    LOGGER.error(msg, e);
-                    DataServiceContext.get().addWarningMessage(msg);
-                }
-            }
-
-            return dialogBuilder.build();
+        private static List<DialogSubNode> getOrderedConfigurationNodes(final SubNodeContainer snc) {
+            @SuppressWarnings("rawtypes")
+            Map<NodeID, DialogNode> nodes = getConfigurationNodes(snc);
+            return getNodeOrder(snc, nodes).stream().map(nodeId -> new DialogSubNode(nodes.get(nodeId), nodeId))
+                .toList();
         }
 
         /**
@@ -277,9 +165,9 @@ public final class SubNodeContainerDialogFactory implements NodeDialogFactory {
          * when the dialog was first created, because they are cached.
          */
         @SuppressWarnings("rawtypes")
-        private List<NodeID> getNodeOrder(final Map<NodeID, DialogNode> nodes) {
+        private static List<NodeID> getNodeOrder(final SubNodeContainer snc, final Map<NodeID, DialogNode> nodes) {
             List<Integer> order = ConfigurationLayoutUtil.getConfigurationOrder(
-                m_snc.getSubnodeConfigurationLayoutStringProvider(), nodes, m_snc.getWorkflowManager());
+                snc.getSubnodeConfigurationLayoutStringProvider(), nodes, snc.getWorkflowManager());
 
             // Will contain the nodes in the ordering given by `order`.
             // Nodes not mentioned in `order` will be placed at the end in arbitrary order.
@@ -298,5 +186,17 @@ public final class SubNodeContainerDialogFactory implements NodeDialogFactory {
             res.addAll(unorderedNodeIDs);
             return res;
         }
+
+        @Override
+        public Set<SettingsType> getSettingsTypes() {
+            return Set.of(SettingsType.MODEL);
+        }
+
+        @Override
+        public Optional<RpcDataService> createRpcDataService() {
+            return Optional.empty();
+        }
+
     }
+
 }

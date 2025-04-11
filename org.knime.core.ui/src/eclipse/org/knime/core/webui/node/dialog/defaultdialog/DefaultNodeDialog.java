@@ -62,7 +62,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDa
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
-import org.knime.core.webui.page.Page;
 
 /**
  * Default node dialog implementation where all the dialog widgets are defined through a
@@ -71,13 +70,7 @@ import org.knime.core.webui.page.Page;
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public final class DefaultNodeDialog implements NodeDialog {
-
-    /**
-     * The page representing the default node dialog.
-     */
-    public static final Page PAGE = Page.builder(DefaultNodeDialog.class, "js-src", "dist/NodeDialog.js")
-        .addResourceDirectory("dist").markAsReusable("defaultdialog").build();
+public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIExtension {
 
     private final DefaultNodeSettingsService m_settingsDataService;
 
@@ -105,7 +98,7 @@ public final class DefaultNodeDialog implements NodeDialog {
      * @param settingsClass the class which defining the dialog
      * @param onApplyModifier an {@link org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier} that will be
      *            invoked when cleaning up the {@link ApplyDataService} created in
-     *            {@link NodeDialogAdapter#createApplyDataService()}
+     *            {@link NodeContainerNodeDialogAdapter#createApplyDataService()}
      */
     public DefaultNodeDialog(final SettingsType settingsType, final Class<? extends DefaultNodeSettings> settingsClass,
         final OnApplyNodeModifier onApplyModifier) {
@@ -139,7 +132,7 @@ public final class DefaultNodeDialog implements NodeDialog {
      * @param settingsClass2 dialog definition for the second settings type
      * @param onApplyModifier an {@link org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier} that will be
      *            invoked when cleaning up the {@link ApplyDataService} created in
-     *            {@link NodeDialogAdapter#createApplyDataService()}
+     *            {@link NodeContainerNodeDialogAdapter#createApplyDataService()}
      */
     public DefaultNodeDialog(final SettingsType settingsType1,
         final Class<? extends DefaultNodeSettings> settingsClass1, final SettingsType settingsType2,
@@ -153,11 +146,6 @@ public final class DefaultNodeDialog implements NodeDialog {
     @Override
     public Set<SettingsType> getSettingsTypes() {
         return m_settingsTypes;
-    }
-
-    @Override
-    public Page getPage() {
-        return PAGE;
     }
 
     @Override

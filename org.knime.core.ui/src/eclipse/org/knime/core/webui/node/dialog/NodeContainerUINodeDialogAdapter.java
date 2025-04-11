@@ -44,58 +44,26 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 24, 2023 (Paul Bärnreuther): created
+ *   Apr 17, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.settingsconversion;
+package org.knime.core.webui.node.dialog;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.knime.core.webui.data.DataServiceProvider;
 
 /**
- * Used to transform string parameters from the front-end to JSON in a consistent way
- *
- * @author Paul Bärnreuther
+ * Only used when creating the dialog in the context of the remote workflow editor. In that case, e.g., no data
+ * services, e.g., {@link #createInitialDataService()} etc. are being used on the client side.
  */
-public final class TextToJsonUtil {
+final class NodeContainerUINodeDialogAdapter extends NodeDialogAdapter {
 
-    private TextToJsonUtil() {
-        // Utility class
+    NodeContainerUINodeDialogAdapter(final NodeDialog dialog) {
+        super(dialog);
     }
 
-    /**
-     * Transforms text to JSON using the global {@link ObjectMapper} used for the {@link DefaultNodeDialog}
-     *
-     * @param textSettings
-     * @return a JSON representation.
-     */
-    public static JsonNode textToJson(final String textSettings) {
-        var mapper = JsonFormsDataUtil.getMapper();
-        try {
-            return mapper.readTree(textSettings);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException(
-                String.format("Exception when parsing JSON from text setting: %s", e.getMessage()), e);
-        }
+    @Override
+    public DataServiceProvider getDataServiceProvider() {
+        throw new UnsupportedOperationException(
+            "The data services are not to be used in the context of the remote workflow editor.");
     }
 
-    /**
-     * Transforms JSON to text using the global {@link ObjectMapper} used for the {@link DefaultNodeDialog}
-     *
-     * @param json representation
-     * @return json as text.
-     */
-    public static String jsonToString(final ObjectNode json) {
-        var mapper = JsonFormsDataUtil.getMapper();
-        try {
-            return mapper.writeValueAsString(json);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException(
-                String.format("Exception when reading data from node settings: %s", e.getMessage()), e);
-        }
-    }
 }

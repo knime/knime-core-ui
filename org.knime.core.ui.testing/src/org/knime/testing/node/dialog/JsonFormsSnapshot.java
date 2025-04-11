@@ -129,7 +129,7 @@ final class JsonFormsSnapshot extends Snapshot {
         var objectNode = mapper.createObjectNode();
         objectNode.set(JsonFormsConsts.FIELD_NAME_DATA, jsonFormsSettings.getData());
         objectNode.set(JsonFormsConsts.FIELD_NAME_SCHEMA, jsonFormsSettings.getSchema());
-        objectNode.putRawValue(JsonFormsConsts.FIELD_NAME_UI_SCHEMA, jsonFormsSettings.getUiSchema());
+        objectNode.set(JsonFormsConsts.FIELD_NAME_UI_SCHEMA, jsonFormsSettings.getUiSchema());
         PersistUtil.constructTreesAndAddPersist(objectNode, instances);
         UpdatesUtil.constructTreesAndAddUpdates(objectNode, instances, context);
         return mapper.readTree(mapper.writeValueAsString(objectNode));

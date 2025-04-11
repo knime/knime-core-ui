@@ -49,7 +49,7 @@
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.util.RawValue;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Data service that provides all data that is necessary to generate a <a href="https://jsonforms.io/">JSON Forms</a>
@@ -62,13 +62,13 @@ public interface JsonFormsSettings {
     /**
      * @return the dialog's schema content
      */
-    JsonNode getSchema();
+    ObjectNode getSchema();
 
     /**
      * @param asyncChoicesHolder used to start asynchronous computations of choices during the ui-schema generation.
      * @return the dialog's UI schema content
      */
-    RawValue getUiSchema();
+    ObjectNode getUiSchema();
 
     /**
      * @return the dialog's data content

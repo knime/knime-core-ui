@@ -44,58 +44,71 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 24, 2023 (Paul Bärnreuther): created
+ *   Apr 15, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.settingsconversion;
+package org.knime.core.webui.node.dialog;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import org.knime.core.node.dialog.DialogNodeValue;
+import org.knime.core.node.web.WebViewContent;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * Used to transform string parameters from the front-end to JSON in a consistent way
+ * Value of a configuration node whose representation is a {@link WebDialogNodeRepresentation}. It allows translating to
+ * and from json.
  *
  * @author Paul Bärnreuther
  */
-public final class TextToJsonUtil {
-
-    private TextToJsonUtil() {
-        // Utility class
-    }
+public interface WebDialogValue extends DialogNodeValue {
 
     /**
-     * Transforms text to JSON using the global {@link ObjectMapper} used for the {@link DefaultNodeDialog}
+     * Transform the value to a json that is to be used in a web dialog.
      *
-     * @param textSettings
-     * @return a JSON representation.
+     * @return a json representation.
+     * @throws IOException Exception that can occur serializing the value.
      */
-    public static JsonNode textToJson(final String textSettings) {
-        var mapper = JsonFormsDataUtil.getMapper();
-        try {
-            return mapper.readTree(textSettings);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException(
-                String.format("Exception when parsing JSON from text setting: %s", e.getMessage()), e);
-        }
-    }
+    JsonNode toDialogJson() throws IOException;
 
     /**
-     * Transforms JSON to text using the global {@link ObjectMapper} used for the {@link DefaultNodeDialog}
+     * Inverse method to {@link #toDialogJson()}. Up until now this method does not need to be able to deserialize from
+     * previous versions of generated json in case {@link #toDialogJson()} changed.
      *
-     * @param json representation
-     * @return json as text.
+     * @param json a json representation from a web dialog which has the same structure as the returned value of
+     *            {@link #toDialogJson()}
+     *
+     * @throws IOException Exception that can occur on construction..
      */
-    public static String jsonToString(final ObjectNode json) {
-        var mapper = JsonFormsDataUtil.getMapper();
-        try {
-            return mapper.writeValueAsString(json);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException(
-                String.format("Exception when reading data from node settings: %s", e.getMessage()), e);
+    void fromDialogJson(JsonNode json) throws IOException;
+
+    /**
+     * Default implementation of {@link WebDialogValue} for a {@link WebViewContent}.
+     *
+     * @author Paul Bärnreuther
+     */
+    interface WebDialogContent extends WebViewContent, WebDialogValue {
+
+        ObjectMapper MAPPER = new ObjectMapper();
+
+        @Override
+        default JsonNode toDialogJson() throws IOException {
+            try (final var stream = (ByteArrayOutputStream)saveToStream()) {
+                return MAPPER.readTree(stream.toByteArray());
+            }
+
         }
+
+        @Override
+        default void fromDialogJson(final JsonNode json) throws IOException {
+            final var stream = new ByteArrayInputStream(json.toString().getBytes(StandardCharsets.UTF_8));
+            loadFromStream(stream);
+        }
+
     }
+
 }

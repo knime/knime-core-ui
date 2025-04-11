@@ -50,7 +50,9 @@ package org.knime.core.webui.node.dialog;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -64,8 +66,15 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.dialog.DialogNode;
-import org.knime.core.node.dialog.DialogNodeRepresentation;
-import org.knime.core.node.dialog.DialogNodeValue;
+import org.knime.core.node.dialog.DialogNodePanel;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.LocalizedControlRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+
+import jakarta.json.JsonException;
+import jakarta.json.JsonValue;
 
 /**
  * A configuration node to test whether "modern" NodeDialogs of Components work.
@@ -74,10 +83,13 @@ import org.knime.core.node.dialog.DialogNodeValue;
  */
 public class TestConfigurationNodeFactory extends NodeFactory<NodeModel> {
 
-    private static class TestConfigNodeModel extends NodeModel implements DialogNode {
+    static class TestConfigNodeModel extends NodeModel
+        implements DialogNode<TestConfigNodeRepresentation, TestConfigNodeValue> {
         protected TestConfigNodeModel() {
             super(0, 0);
         }
+
+        TestConfigNodeValue m_value;
 
         @Override
         protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -110,31 +122,32 @@ public class TestConfigurationNodeFactory extends NodeFactory<NodeModel> {
         }
 
         @Override
-        public DialogNodeRepresentation getDialogRepresentation() {
-            return null;
+        public TestConfigNodeRepresentation getDialogRepresentation() {
+            return new TestConfigNodeRepresentation();
         }
 
         @Override
-        public DialogNodeValue createEmptyDialogValue() {
-            return null;
+        public TestConfigNodeValue createEmptyDialogValue() {
+            return new TestConfigNodeValue();
         }
 
         @Override
-        public void setDialogValue(final DialogNodeValue value) {
+        public void setDialogValue(final TestConfigNodeValue value) {
+            m_value = value;
         }
 
         @Override
-        public DialogNodeValue getDefaultValue() {
-            return null;
+        public TestConfigNodeValue getDefaultValue() {
+            return new TestConfigNodeValue("default from model");
         }
 
         @Override
-        public DialogNodeValue getDialogValue() {
-            return null;
+        public TestConfigNodeValue getDialogValue() {
+            return m_value;
         }
 
         @Override
-        public void validateDialogValue(final DialogNodeValue value) throws InvalidSettingsException {
+        public void validateDialogValue(final TestConfigNodeValue value) throws InvalidSettingsException {
         }
 
         @Override
@@ -161,6 +174,92 @@ public class TestConfigurationNodeFactory extends NodeFactory<NodeModel> {
         protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
             return null;
         }
+    }
+
+    static final class TestConfigNodeValue implements WebDialogValue {
+
+        String m_data;
+
+        static final String CFG_KEY = "data_cfg";
+
+        static final String JSON_KEY = "data";
+
+        public TestConfigNodeValue(final String string) {
+            m_data = string;
+        }
+
+        public TestConfigNodeValue() {
+        }
+
+        @Override
+        public void saveToNodeSettings(final NodeSettingsWO settings) {
+            settings.addString(CFG_KEY, m_data);
+        }
+
+        @Override
+        public void loadFromNodeSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+            m_data = settings.getString(CFG_KEY);
+        }
+
+        @Override
+        public void loadFromNodeSettingsInDialog(final NodeSettingsRO settings) {
+            throw new NotImplementedException("Not implemented");
+        }
+
+        @Override
+        public void loadFromString(final String fromCmdLine) throws UnsupportedOperationException {
+            throw new NotImplementedException("Not implemented");
+        }
+
+        @Override
+        public void loadFromJson(final JsonValue json) throws JsonException {
+            throw new NotImplementedException("Not implemented");
+        }
+
+        @Override
+        public JsonValue toJson() {
+            throw new NotImplementedException("Not implemented");
+        }
+
+        static final JsonNodeFactory FACTORY = JsonNodeFactory.instance;
+
+        @Override
+        public JsonNode toDialogJson() throws IOException {
+            return FACTORY.objectNode().put(JSON_KEY, m_data);
+        }
+
+        @Override
+        public void fromDialogJson(final JsonNode json) throws IOException {
+            m_data = json.get(JSON_KEY).asText();
+        }
+
+    }
+
+    private static final class TestConfigNodeRepresentation
+        implements WebDialogNodeRepresentation<TestConfigNodeValue> {
+
+        @Override
+        public DialogNodePanel<TestConfigNodeValue> createDialogPanel() {
+            throw new NotImplementedException("Not implemented");
+        }
+
+        @Override
+        public LocalizedControlRendererSpec getWebUIDialogControlSpec() {
+            return new TextRendererSpec() {
+
+                @Override
+                public String getTitle() {
+                    return "Test Configuration Node";
+                }
+
+                @Override
+                public Optional<String> getDescription() {
+                    return Optional.empty();
+                }
+            }.at(TestConfigurationNodeFactory.TestConfigNodeValue.JSON_KEY);
+
+        }
+
     }
 
     @Override

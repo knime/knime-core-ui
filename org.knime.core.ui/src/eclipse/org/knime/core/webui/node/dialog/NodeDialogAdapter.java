@@ -31,7 +31,7 @@
  *
  *  Additional permission relating to nodes for KNIME that extend the Node
  *  Extension (and in particular that are based on subclasses of NodeModel,
- *  NodeDialog, and NodeDialog) and that only interoperate with KNIME through
+ *  NodeDialog, and NodeView) and that only interoperate with KNIME through
  *  standard APIs ("Nodes"):
  *  Nodes are deemed to be separate and independent programs and to not be
  *  covered works.  Notwithstanding anything to the contrary in the
@@ -43,183 +43,30 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
+ * History
+ *   Apr 17, 2025 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog;
 
-import static org.knime.core.webui.data.util.InputPortUtil.getInputSpecsExcludingVariablePort;
-
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.Node;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NotConfigurableException;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.core.node.workflow.CredentialsProvider;
-import org.knime.core.node.workflow.FlowObjectStack;
-import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.node.workflow.NodeID;
-import org.knime.core.node.workflow.SingleNodeContainer;
 import org.knime.core.webui.UIExtension;
-import org.knime.core.webui.data.ApplyDataService;
-import org.knime.core.webui.data.DataServiceProvider;
-import org.knime.core.webui.data.InitialDataService;
-import org.knime.core.webui.data.RpcDataService;
-import org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier;
-import org.knime.core.webui.node.dialog.internal.SettingsApplier;
-import org.knime.core.webui.node.dialog.internal.SettingsExtractor;
-import org.knime.core.webui.page.Page;
+import org.knime.core.webui.node.dialog.NodeDialogManager.DialogUIExtension;
 
-/**
- * Adapter for the {@link NodeDialog}-interface which 'adapts' it to the {@link DataServiceProvider}-interface. I.e. it
- * mostly provides the implementations of {@link DataServiceProvider#createInitialDataService()} and
- * {@link DataServiceProvider#createApplyDataService()} interface-methods.
- *
- * @author Martin Horn, KNIME GmbH, Konstanz, Germany
- *
- * @since 5.2
- */
-final class NodeDialogAdapter implements UIExtension, DataServiceProvider {
+abstract class NodeDialogAdapter implements DialogUIExtension {
 
-    private final SingleNodeContainer m_snc;
+    protected final NodeDialog m_nodeDialog;
 
-    private final NodeDialog m_dialog;
-
-    private final Set<SettingsType> m_settingsTypes;
-
-    private final OnApplyNodeModifier m_onApplyModifier;
-
-    private final NodeSettingsService m_nodeSettingsService;
-
-    NodeDialogAdapter(final SingleNodeContainer snc, final NodeDialog dialog) {
-        m_dialog = dialog;
-        m_settingsTypes = dialog.getSettingsTypes();
-        CheckUtils.checkState(!m_settingsTypes.isEmpty(), "At least one settings type must be provided");
-        m_snc = snc;
-        m_onApplyModifier = dialog.getOnApplyNodeModifier().orElse(null);
-        m_nodeSettingsService = dialog.getNodeSettingsService();
-    }
-
-    /**
-     * Constructor only used when creating the dialog in the context of the remote workflow editor. In that case, e.g.,
-     * no data services, e.g., {@link #createInitialDataService()} etc. are being used on the client side.
-     *
-     * @param dialog
-     */
-    NodeDialogAdapter(final NodeDialog dialog) {
-        m_dialog = dialog;
-        m_settingsTypes = dialog.getSettingsTypes();
-        CheckUtils.checkState(!m_settingsTypes.isEmpty(), "At least one settings type must be provided");
-        m_snc = null;
-        m_onApplyModifier = null;
-        m_nodeSettingsService = null;
+    NodeDialogAdapter(final NodeDialog nodeDialog) {
+        m_nodeDialog = nodeDialog;
     }
 
     @Override
-    public Page getPage() {
-        return m_dialog.getPage();
+    public UIExtension getUIExtension() {
+        return m_nodeDialog;
     }
 
     @Override
-    public Optional<InitialDataService<String>> createInitialDataService() {
-        return Optional.of(InitialDataService.builder(this::getInitialData).onDeactivate(this::deactivate).build());
-    }
-
-    private String getInitialData() {
-        var specs = getInputSpecsExcludingVariablePort(m_snc);
-        var settingsExtractor =
-            new SettingsExtractor(m_snc, m_settingsTypes, m_nodeSettingsService::validateNodeSettingsAndVariables);
-        var settings = settingsExtractor.getSettingsOverwrittenByVariables();
-        return m_nodeSettingsService.fromNodeSettings(settings, specs);
-    }
-
-    @Override
-    public Optional<RpcDataService> createRpcDataService() {
-        return m_dialog.createRpcDataService();
-    }
-
-    @Override
-    public Optional<ApplyDataService<String>> createApplyDataService() {
-        var applyData =
-            new SettingsApplier(m_snc, m_settingsTypes, m_nodeSettingsService::toNodeSettings, m_onApplyModifier);
-        return Optional.of(ApplyDataService.builder(applyData::applySettings) //
-            .onDeactivate(applyData::cleanUp) //
-            .build());
-    }
-
-    /**
-     * @return the original dialog this dialog adapter wraps
-     */
-    public NodeDialog getNodeDialog() {
-        return m_dialog;
-    }
-
-    /**
-     * @return a legacy flow variable node dialog
-     */
-    NodeDialogPane createLegacyFlowVariableNodeDialog() {
-        return new LegacyFlowVariableNodeDialog();
-    }
-
-    final class LegacyFlowVariableNodeDialog extends NodeDialogPane {
-
-        private static final String FLOW_VARIABLES_TAB_NAME = "Flow Variables";
-
-        private NodeSettingsRO m_modelSettings;
-
-        @Override
-        public void onOpen() {
-            setSelected(FLOW_VARIABLES_TAB_NAME);
-        }
-
-        @Override
-        protected boolean hasModelSettings() {
-            return m_settingsTypes.contains(SettingsType.MODEL);
-        }
-
-        @Override
-        protected boolean hasViewSettings() {
-            return m_settingsTypes.contains(SettingsType.VIEW);
-        }
-
-        @Override
-        protected void loadSettingsFrom(final NodeSettingsRO settings, final PortObjectSpec[] specs)
-            throws NotConfigurableException {
-            m_modelSettings = settings;
-        }
-
-        @Override
-        protected void saveSettingsTo(final NodeSettingsWO settings) throws InvalidSettingsException {
-            m_modelSettings.copyTo(settings);
-        }
-
-        /**
-         * For testing purposes only!
-         *
-         * @throws NotConfigurableException
-         */
-        void initDialogForTesting(final NodeSettingsRO settings, final PortObjectSpec[] spec)
-            throws NotConfigurableException {
-            Node.invokeDialogInternalLoad(this, settings, spec, null,
-                FlowObjectStack.createFromFlowVariableList(Collections.emptyList(), new NodeID(0)),
-                CredentialsProvider.EMPTY_CREDENTIALS_PROVIDER, false);
-            setSelected(FLOW_VARIABLES_TAB_NAME);
-        }
-
-    }
-
-    private void deactivate() {
-        NodeContext.pushContext(m_snc);
-        try {
-            m_nodeSettingsService.deactivate();
-        } finally {
-            NodeContext.removeLastContext();
-        }
+    public boolean canBeEnlarged() {
+        return m_nodeDialog.canBeEnlarged();
     }
 
 }

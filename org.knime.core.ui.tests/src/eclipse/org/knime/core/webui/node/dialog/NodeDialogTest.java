@@ -60,6 +60,7 @@ import java.awt.Container;
 import java.io.IOException;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.ExecutionMonitor;
@@ -76,7 +77,7 @@ import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.webui.node.NodeWrapper;
 import org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier;
-import org.knime.core.webui.node.dialog.NodeDialogAdapter.LegacyFlowVariableNodeDialog;
+import org.knime.core.webui.node.dialog.NodeContainerNodeDialogAdapter.LegacyFlowVariableNodeDialog;
 import org.knime.core.webui.node.dialog.internal.NodeAndVariableSettingsProxy;
 import org.knime.core.webui.node.dialog.internal.SettingsApplier;
 import org.knime.core.webui.node.dialog.internal.VariableSettings;
@@ -549,22 +550,22 @@ public class NodeDialogTest {
     @Test
     void testCreateLegacyFlowVariableNodeDialog() throws IOException, NotConfigurableException {
         var wfm = WorkflowManagerUtil.createEmptyWorkflow();
-        var nnc = WorkflowManagerUtil.createAndAddNode(wfm,
-            new NodeDialogNodeFactory(() -> createNodeDialog(Page.builder(() -> "test", "test.html").build(),
-                createNodeSettingsService(), null)));
+        Supplier<NodeDialog> dialogSupplier =
+            () -> createNodeDialog(Page.builder(() -> "test", "test.html").build(), createNodeSettingsService(), null);
+        var nnc = WorkflowManagerUtil.createAndAddNode(wfm, new NodeDialogNodeFactory(dialogSupplier));
 
-        openLegacyFlowVariableDialogAndCheckViewSettings(nnc, "a default view setting value");
+        openLegacyFlowVariableDialogAndCheckViewSettings(nnc, dialogSupplier, "a default view setting value");
 
         var newViewSettings = new NodeSettings("new_view_settings");
         newViewSettings.addString("new view setting", "new view setting value");
         NodeDialogManager.getInstance().getDataServiceManager().callApplyDataService(NodeWrapper.of(nnc),
             settingsToString(newViewSettings, newViewSettings));
-        openLegacyFlowVariableDialogAndCheckViewSettings(nnc, "new view setting value");
+        openLegacyFlowVariableDialogAndCheckViewSettings(nnc, dialogSupplier, "new view setting value");
     }
 
     private static void openLegacyFlowVariableDialogAndCheckViewSettings(final NativeNodeContainer nc,
-        final String viewSettingValue) throws NotConfigurableException {
-        LegacyFlowVariableNodeDialog legacyNodeDialog = initLegacyFlowVariableDialog(nc);
+        final Supplier<NodeDialog> dialogSupplier, final String viewSettingValue) throws NotConfigurableException {
+        LegacyFlowVariableNodeDialog legacyNodeDialog = initLegacyFlowVariableDialog(nc, dialogSupplier);
 
         var tabbedPane = getChild(legacyNodeDialog.getPanel(), 1);
         var flowVariablesTab = getChild(getChild(getChild(tabbedPane, 0), 0), 0);
@@ -580,13 +581,14 @@ public class NodeDialogTest {
         assertThat(firstViewConfigNode.getConfigEntry().toStringValue()).isEqualTo(viewSettingValue);
     }
 
-    private static LegacyFlowVariableNodeDialog initLegacyFlowVariableDialog(final NativeNodeContainer nc)
-        throws NotConfigurableException {
+    private static LegacyFlowVariableNodeDialog initLegacyFlowVariableDialog(final NativeNodeContainer nc,
+        final Supplier<NodeDialog> dialogSupplier) throws NotConfigurableException {
         NodeContext.pushContext(nc);
         LegacyFlowVariableNodeDialog legacyNodeDialog;
         try {
-            legacyNodeDialog = (LegacyFlowVariableNodeDialog)NodeDialogManager.getInstance().getNodeDialog(nc)
-                .createLegacyFlowVariableNodeDialog();
+            NodeDialogManager.getInstance();
+            legacyNodeDialog = (LegacyFlowVariableNodeDialog)NodeDialogManager
+                .createLegacyFlowVariableNodeDialog(dialogSupplier.get());
             var nodeSettings = new NodeSettings("node_settings");
             var modelSettings = nodeSettings.addNodeSettings("model");
             modelSettings.addString("default model setting", "default model setting value");
@@ -610,11 +612,11 @@ public class NodeDialogTest {
     void testLegacyFlowVariableDialogModelSettingsOnClose()
         throws IOException, InvalidSettingsException, NotConfigurableException {
         var wfm = WorkflowManagerUtil.createEmptyWorkflow();
-        var nc = WorkflowManagerUtil.createAndAddNode(wfm,
-            new NodeDialogNodeFactory(() -> createNodeDialog(Page.builder(() -> "test", "test.html").build(),
-                createNodeSettingsService(), null)));
+        Supplier<NodeDialog> nodeDialogSupplier =
+            () -> createNodeDialog(Page.builder(() -> "test", "test.html").build(), createNodeSettingsService(), null);
+        var nc = WorkflowManagerUtil.createAndAddNode(wfm, new NodeDialogNodeFactory(nodeDialogSupplier));
 
-        LegacyFlowVariableNodeDialog legacyNodeDialog = initLegacyFlowVariableDialog(nc);
+        LegacyFlowVariableNodeDialog legacyNodeDialog = initLegacyFlowVariableDialog(nc, nodeDialogSupplier);
 
         var settings = new NodeSettings("test");
         legacyNodeDialog.finishEditingAndSaveSettingsTo(settings);

@@ -90,7 +90,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 
 import com.fasterxml.classmate.ResolvedType;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.victools.jsonschema.generator.CustomPropertyDefinition;
@@ -131,13 +130,15 @@ public final class JsonFormsSchemaUtil {
     }
 
     /**
+     * Build a schema from the combination of view and model settings (if both are used).
+     *
      * @param settingsClasses the classes
      * @param widgetTrees from which annotations are taken into account
      * @param context the creation context with access to the input ports
      * @param mapper the object mapper to be used
      * @return a schema representation
      */
-    public static JsonNode buildCombinedSchema(
+    public static ObjectNode buildCombinedSchema(
         final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses,
         final Map<SettingsType, Tree<WidgetGroup>> widgetTrees, final DefaultNodeSettingsContext context,
         final ObjectMapper mapper) {
