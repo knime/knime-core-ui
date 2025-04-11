@@ -76,9 +76,14 @@ describe("deprecated flow variables", () => {
           controllingFlowVariableAvailable: true,
         },
         "model.iAmDeprecated.secondDeprecated": {
-          controllingFlowVariableName: "flowVar2",
-          exposedFlowVariableName: null,
+          controllingFlowVariableName: null,
+          exposedFlowVariableName: "exposedFlowVar2",
           controllingFlowVariableAvailable: true,
+        },
+        "model.iAmDeprecated.thirdDeprecated": {
+          controllingFlowVariableName: null,
+          exposedFlowVariableName: null,
+          controllingFlowVariableAvailable: false,
         },
       },
     };
@@ -102,6 +107,9 @@ describe("deprecated flow variables", () => {
     );
     expect(flowVarButton.text()).toContain(
       "model.iAmDeprecated.secondDeprecated",
+    );
+    expect(flowVarButton.text()).not.toContain(
+      "model.iAmDeprecated.thirdDeprecated",
     );
   });
 });

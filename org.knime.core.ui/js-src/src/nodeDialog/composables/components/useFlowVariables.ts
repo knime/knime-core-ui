@@ -25,11 +25,29 @@ export const injectionKey: InjectionKey<FlowVariableSettingsProvidedByControl> =
 export const getFlowVariableSettingsProvidedByControl = () =>
   inject(injectionKey)!;
 
-const getFlowSettingsFromMap =
-  (flowVariablesMap: Record<string, FlowSettings>) =>
-  (configPaths: string[]) => {
-    return configPaths.map((key) => flowVariablesMap[key]).filter(Boolean);
-  };
+const configPathStartsWith = (configPath: string, prefix: string) =>
+  configPath === prefix || configPath.startsWith(`${prefix}.`);
+
+export const getControlledOrExposedPathsStartingWith =
+  (flowVariablesMap: Record<string, FlowSettings>) => (key: string) =>
+    Object.keys(flowVariablesMap)
+      .filter((flowVariablePath) => configPathStartsWith(flowVariablePath, key))
+      .filter(
+        (key) =>
+          Boolean(flowVariablesMap[key].controllingFlowVariableName) ||
+          Boolean(flowVariablesMap[key].exposedFlowVariableName),
+      );
+
+const getFlowSettingsFromMap = (
+  flowVariablesMap: Record<string, FlowSettings>,
+) => {
+  const getPathsStartingWith =
+    getControlledOrExposedPathsStartingWith(flowVariablesMap);
+  return (configPaths: string[]) =>
+    configPaths
+      .flatMap(getPathsStartingWith)
+      .map((key) => flowVariablesMap[key]);
+};
 
 const toFlowSetting = (
   flowVariablesMap: Record<string, FlowSettings>,

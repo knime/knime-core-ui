@@ -205,5 +205,20 @@ describe("useFlowVariables", () => {
         ),
       ).toEqual(MERGED_FLOW_SETTINGS);
     });
+
+    it("respects flow settings at paths starting with a config path", () => {
+      flowVariablesMap = {
+        "path.to_2.my_setting": CONTROLLING_FLOW_SETTINGS,
+        "path.to_2.my_setting_2": EXPOSING_FLOW_SETTINGS,
+      };
+      expect(
+        getFlowSettings(
+          createProps({
+            path: "path.to",
+            configPaths: [["to_2"]],
+          }),
+        ),
+      ).toEqual(MERGED_FLOW_SETTINGS);
+    });
   });
 });
