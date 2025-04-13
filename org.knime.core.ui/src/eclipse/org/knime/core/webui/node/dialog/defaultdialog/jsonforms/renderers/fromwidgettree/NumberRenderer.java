@@ -70,7 +70,7 @@ class NumberRenderer extends WidgetTreeControlRendererSpec implements NumberRend
     @Override
     public Optional<NumberRendererOptions> getOptions() {
         if (m_annotation.isEmpty()) {
-            return null;
+            return Optional.empty();
         }
         final var annotation = m_annotation.get();
         return Optional.of(new NumberRendererOptions() {
