@@ -93,7 +93,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.Tem
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
@@ -1026,21 +1025,6 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("zoneId");
         assertThatJson(response).inPath("$.elements[0]").isObject().containsKey("options");
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dropDown");
-    }
-
-    @Test
-    void testDateWidgetOptions() {
-        class DateTimeDefaultTestSettings implements DefaultNodeSettings {
-
-            @Widget(title = "", description = "")
-            @DateWidget(minDate = "2023-06-12", maxDate = "2023-06-14")
-            LocalDate m_date;
-        }
-
-        var response = buildTestUiSchema(DateTimeDefaultTestSettings.class);
-        assertThatJson(response).inPath("$.elements[0]").isObject().containsKey("options");
-        assertThatJson(response).inPath("$.elements[0].options.minimum").isString().isEqualTo("2023-06-12");
-        assertThatJson(response).inPath("$.elements[0].options.maximum").isString().isEqualTo("2023-06-14");
     }
 
     @Test

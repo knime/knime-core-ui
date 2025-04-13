@@ -49,7 +49,6 @@
 package org.knime.core.webui.node.dialog.defaultdialog.widget.util;
 
 import java.lang.annotation.Annotation;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -75,7 +74,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInter
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
@@ -149,7 +147,6 @@ public final class WidgetImplementationUtil {
             FLOW_VARIABLE_FILTER, //
             INTERVAL, //
             LEGACY_CREDENTIALS, //
-            LOCAL_DATE, //
             LOCAL_TIME, //
             LOCAL_DATE_TIME, //
             MULTI_FILE_CHOOSER, //
@@ -183,7 +180,6 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(FlowVariableFilter.class), FlowVariableFilterWidget.class), //
         new WidgetAnnotation(List.of(String[].class), SortListWidget.class), //
         new WidgetAnnotation(ButtonWidget.class), //
-        new WidgetAnnotation(List.of(LocalDate.class), DateWidget.class), //
         new WidgetAnnotation(List.of(LocalTime.class), TimeWidget.class), //
         new WidgetAnnotation(List.of(Interval.class), IntervalWidget.class), //
         new WidgetAnnotation(List.of(TemporalFormat.class, String.class), DateTimeFormatPickerWidget.class), //
@@ -214,7 +210,6 @@ public final class WidgetImplementationUtil {
         new DefaultWidget(List.of(FlowVariableFilter.class), DefaultWidgetType.FLOW_VARIABLE_FILTER), //
         new DefaultWidget(List.of(StringOrEnum.class), DefaultWidgetType.SINGLE_SELECTION), //
         new DefaultWidget(List.of(LocalTime.class), DefaultWidgetType.LOCAL_TIME), //
-        new DefaultWidget(List.of(LocalDate.class), DefaultWidgetType.LOCAL_DATE), //
         new DefaultWidget(List.of(LocalDateTime.class), DefaultWidgetType.LOCAL_DATE_TIME), //
         new DefaultWidget(List.of(ZonedDateTime.class), DefaultWidgetType.ZONED_DATE_TIME), //
         new DefaultWidget(List.of(String[].class), DefaultWidgetType.STRING_ARRAY), //

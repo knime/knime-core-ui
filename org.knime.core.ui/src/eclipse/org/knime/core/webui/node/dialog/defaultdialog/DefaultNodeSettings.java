@@ -99,7 +99,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.Tem
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
@@ -200,7 +199,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <tr>
  * <td>{@link LocalDate}</td>
  * <td>Date Picker</td>
- * <td>{@link DateWidget}</td>
+ * <td></td>
  * </tr>
  * <tr>
  * <td>{@link LocalTime}</td>

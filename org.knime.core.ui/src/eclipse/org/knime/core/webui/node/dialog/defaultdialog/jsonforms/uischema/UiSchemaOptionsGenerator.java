@@ -121,7 +121,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
@@ -253,9 +252,6 @@ final class UiSchemaOptionsGenerator {
                     options.put(TAG_FORMAT, Format.DROP_DOWN);
                     options.put(TAG_CHOICES_PROVIDER, DefaultDataTypeChoicesProvider.class.getName());
                     break;
-                case LOCAL_DATE:
-                    options.put(TAG_FORMAT, Format.LOCAL_DATE);
-                    break;
                 case LOCAL_TIME:
                     options.put(TAG_FORMAT, Format.LOCAL_TIME);
                     break;
@@ -329,11 +325,6 @@ final class UiSchemaOptionsGenerator {
             final var textMessageProvider = m_node.getAnnotation(TextMessage.class).orElseThrow().value();
             options.put(TAG_FORMAT, Format.TEXT_MESSAGE);
             options.put("messageProvider", textMessageProvider.getName());
-        }
-
-        if (annotatedWidgets.contains(DateWidget.class)) {
-            final var dateWidget = m_node.getAnnotation(DateWidget.class).orElseThrow();
-            setMinAndMaxDate(options, dateWidget.minDate(), dateWidget.maxDate());
         }
 
         if (annotatedWidgets.contains(IntervalWidget.class)) {
@@ -757,15 +748,6 @@ final class UiSchemaOptionsGenerator {
             state.put("nextState", nextState);
         }
         state.put("text", buttonState.text());
-    }
-
-    private static void setMinAndMaxDate(final ObjectNode options, final String minDate, final String maxDate) {
-        if (!minDate.isEmpty()) {
-            options.put("minimum", minDate);
-        }
-        if (!maxDate.isEmpty()) {
-            options.put("maximum", maxDate);
-        }
     }
 
     private static void setPossibleValuesForZoneIds(final ObjectNode options) {

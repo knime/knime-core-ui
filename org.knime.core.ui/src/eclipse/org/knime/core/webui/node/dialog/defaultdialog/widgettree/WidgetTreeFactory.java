@@ -63,7 +63,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
@@ -125,7 +124,6 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         ColumnFilterWidget.class, //
         CredentialsWidget.class, //
         DateTimeFormatPickerWidget.class, //
-        DateWidget.class, //
         Effect.class, //
         FileReaderWidget.class, //
         FileWriterWidget.class, //
