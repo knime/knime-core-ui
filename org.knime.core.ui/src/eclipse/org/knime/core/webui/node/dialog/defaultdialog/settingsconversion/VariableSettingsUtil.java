@@ -61,6 +61,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.Defaul
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -181,6 +182,9 @@ public final class VariableSettingsUtil {
             var flowVariableSetting = mapper.convertValue(node, FlowVariableSetting.class);
             var keys = compositeKey.split("\\.");
 
+            if (flowVariableSetting.isEmpty()) {
+                return;
+            }
             for (SettingsType settingsType : variableSettings.keySet()) {
                 if (!settingsType.getConfigKey().equals(keys[0])) {
                     continue;
@@ -214,7 +218,6 @@ public final class VariableSettingsUtil {
         final boolean m_isControllingFlowVariableFlawed;
 
         @JsonProperty("controllingFlowVariableAvailable")
-        @SuppressWarnings("unused")
         final Boolean m_isControllingFlowVariableAvailable;
 
         @JsonCreator
@@ -237,6 +240,11 @@ public final class VariableSettingsUtil {
         private FlowVariableSetting(final String controllingFlowVariableName,
             final boolean isControllingFlowVariableAvailable, final String exposedFlowVariableName) {
             this(controllingFlowVariableName, isControllingFlowVariableAvailable, exposedFlowVariableName, false);
+        }
+
+        @JsonIgnore
+        boolean isEmpty() {
+            return m_controllingFlowVariableName == null && m_exposedFlowVariableName == null;
         }
 
     }

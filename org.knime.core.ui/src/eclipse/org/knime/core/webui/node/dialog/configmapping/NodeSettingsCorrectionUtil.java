@@ -55,6 +55,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.util.CheckUtils;
@@ -69,6 +70,8 @@ import org.knime.core.webui.node.dialog.configmapping.ConfigMappingConfigsResett
  * @author Paul Bärnreuther
  */
 public final class NodeSettingsCorrectionUtil {
+
+    static final NodeLogger LOGGER = NodeLogger.getLogger(NodeSettingsCorrectionUtil.class);
 
     private NodeSettingsCorrectionUtil() {
         // Utility
@@ -134,21 +137,30 @@ public final class NodeSettingsCorrectionUtil {
     private static void toCollections(final VariableSettingsRO variableSettings,
         final Collection<ConfigPath> controlledPaths, final Collection<ConfigPath> exposedAndNotControlledPaths,
         final ConfigPath path) {
-        try {
-            for (var key : variableSettings.getVariableSettingsIterable()) {
-                final var nextPath = path.plus(key);
+        for (var key : variableSettings.getVariableSettingsIterable()) {
+            final var nextPath = path.plus(key);
 
-                if (variableSettings.isVariableSetting(key)) {
+            if (variableSettings.isVariableSetting(key)) {
+                try {
                     addFlowVariablePath(variableSettings, key, controlledPaths, exposedAndNotControlledPaths, nextPath);
-                } else {
-                    toCollections(variableSettings.getVariableSettings(key), controlledPaths,
-                        exposedAndNotControlledPaths, nextPath);
+                } catch (InvalidSettingsException ex) {
+                    // Should never happen because we check appropriately
+                    throw new IllegalStateException("This catch block should not be reached", ex);
                 }
-
+            } else {
+                final VariableSettingsRO subVariableSettings;
+                try {
+                    subVariableSettings = variableSettings.getVariableSettings(key);
+                } catch (InvalidSettingsException ex) { // NOSONAR
+                    // This can happen if the variable settings contain keys that are not contained in the settings.
+                    LOGGER.warn(String.format(
+                        "Skipping config key '%s' because it is not possible to obtain child variable settings", key),
+                        ex);
+                    continue;
+                }
+                toCollections(subVariableSettings, controlledPaths, exposedAndNotControlledPaths, nextPath);
             }
-        } catch (InvalidSettingsException ex) {
-            // Should never happen because we check appropriately
-            throw new IllegalStateException("This catch block should not be reached", ex);
+
         }
     }
 

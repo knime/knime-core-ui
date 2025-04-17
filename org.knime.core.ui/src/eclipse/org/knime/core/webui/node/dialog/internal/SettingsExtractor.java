@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContainer;
@@ -66,6 +67,8 @@ import org.knime.core.webui.node.dialog.VariableSettingsRO;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class SettingsExtractor {
+
+    static final NodeLogger LOGGER = NodeLogger.getLogger(SettingsExtractor.class);
 
     private final NodeContainer m_nc;
 
@@ -242,22 +245,28 @@ public final class SettingsExtractor {
     }
 
     private static boolean hasControllingVariables(final VariableSettingsRO variableSettings) {
-        try {
-            for (var key : variableSettings.getVariableSettingsIterable()) {
-                if (variableSettings.isVariableSetting(key)) {
+        for (var key : variableSettings.getVariableSettingsIterable()) {
+            if (variableSettings.isVariableSetting(key)) {
+                try {
                     if (variableSettings.getUsedVariable(key) != null) {
                         return true;
                     }
-                } else if (hasControllingVariables(variableSettings.getVariableSettings(key))) {
-                    return true;
+                } catch (InvalidSettingsException ex) {
+                    // should not happen since we check for isVariableSetting before
+                    throw new IllegalStateException(ex);
+                }
+            } else {
+                try {
+                    if (hasControllingVariables(variableSettings.getVariableSettings(key))) {
+                        return true;
+                    }
+                } catch (InvalidSettingsException ex) { // NOSONAR
+                    LOGGER.warn(String.format("Unable to resolve variable settings for key '%s'.", key), ex);
+
                 }
             }
-        } catch (InvalidSettingsException ex) {
-            // should never happen since we only call the throwing methods with keys from the iterable
-            throw new IllegalStateException(ex);
         }
         return false;
-
     }
 
 }
