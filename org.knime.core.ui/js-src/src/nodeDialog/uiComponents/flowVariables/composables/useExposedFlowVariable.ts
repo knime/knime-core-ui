@@ -40,9 +40,18 @@ export default (persistPath: string) => {
       : null;
     setExposedVariableState(path, nonEmptyStringOrNull);
 
-    const flowVarAtPath = flowVariablesMap[path] || {};
-    flowVarAtPath.exposedFlowVariableName = nonEmptyStringOrNull;
-    flowVariablesMap[path] = flowVarAtPath;
+    if (
+      nonEmptyStringOrNull === null &&
+      !flowVariablesMap[path]?.controllingFlowVariableName
+    ) {
+      // If there is no controlling flow variable, we can remove the flow variable settings
+      // for this path.
+      delete flowVariablesMap[path];
+    } else {
+      const flowVarAtPath = flowVariablesMap[path] || {};
+      flowVarAtPath.exposedFlowVariableName = nonEmptyStringOrNull;
+      flowVariablesMap[path] = flowVarAtPath;
+    }
   };
   return { exposedFlowVariableName, setExposedFlowVariable };
 };

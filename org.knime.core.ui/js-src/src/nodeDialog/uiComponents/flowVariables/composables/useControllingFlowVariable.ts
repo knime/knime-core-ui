@@ -30,9 +30,13 @@ export const getControllingFlowVariablesMethods = ({
 
   const unsetControllingFlowVariable = ({ path }: { path: string }) => {
     if (flowVariablesMap[path]) {
-      delete flowVariablesMap[path].controllingFlowVariableFlawed;
-      flowVariablesMap[path].controllingFlowVariableAvailable = false;
-      flowVariablesMap[path].controllingFlowVariableName = null;
+      if (flowVariablesMap[path].exposedFlowVariableName) {
+        delete flowVariablesMap[path].controllingFlowVariableFlawed;
+        flowVariablesMap[path].controllingFlowVariableAvailable = false;
+        flowVariablesMap[path].controllingFlowVariableName = null;
+      } else {
+        delete flowVariablesMap[path];
+      }
     }
 
     getDirtyControllingFlowVariable(path)?.unset();

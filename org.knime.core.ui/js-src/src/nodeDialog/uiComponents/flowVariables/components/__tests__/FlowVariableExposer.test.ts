@@ -120,11 +120,7 @@ describe("FlowVariableExposer", () => {
       await wrapper
         .findComponent(InputField)
         .vm.$emit("update:model-value", unsettingFlowVarName);
-      expect(flowVariablesMap[props.persistPath]).toStrictEqual({
-        controllingFlowVariableAvailable: true,
-        controllingFlowVariableName: null,
-        exposedFlowVariableName: null,
-      });
+      expect(flowVariablesMap[props.persistPath]).toBeUndefined();
       expect(wrapper.findComponent(InputField).props().modelValue).toBe(
         unsettingFlowVarName,
       );

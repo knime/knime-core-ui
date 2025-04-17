@@ -223,12 +223,7 @@ describe("flow variables", () => {
     // Click back on none option
     listItems.at(0)?.trigger("click");
 
-    expect(flowVariablesMap).toStrictEqual({
-      "model.customConfigKey": {
-        controllingFlowVariableName: null,
-        controllingFlowVariableAvailable: false,
-      },
-    });
+    expect(flowVariablesMap).toStrictEqual({});
     await flushPromises();
 
     expect(controllingFlowVariableState.unset).toHaveBeenCalled();

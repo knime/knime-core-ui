@@ -456,6 +456,8 @@ public class DefaultNodeDialogTest {
             new TestNodeSettingsBuilder()//
                 .modifyAt(VIEW, "nonExistingSetting",
                     b -> b.withControllingFlowVariableName(flowVariable.getName()).build())
+                .modifyAt(VIEW, List.of("non", "existing", "path"),
+                    b -> b.withExposedFlowVariableName("exposed").build())
                 .buildAndSaveTo(m_nnc);
             makeFlowVariablesAvailable(flowVariable);
             var initialData = getInitialData();

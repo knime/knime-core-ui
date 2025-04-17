@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContainer;
@@ -66,6 +67,8 @@ import org.knime.core.webui.node.dialog.VariableSettingsRO;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class SettingsExtractor {
+
+    static final NodeLogger LOGGER = NodeLogger.getLogger(SettingsExtractor.class);
 
     private final NodeContainer m_nc;
 
@@ -242,22 +245,34 @@ public final class SettingsExtractor {
     }
 
     private static boolean hasControllingVariables(final VariableSettingsRO variableSettings) {
-        try {
-            for (var key : variableSettings.getVariableSettingsIterable()) {
-                if (variableSettings.isVariableSetting(key)) {
-                    if (variableSettings.getUsedVariable(key) != null) {
-                        return true;
-                    }
-                } else if (hasControllingVariables(variableSettings.getVariableSettings(key))) {
+        for (var key : variableSettings.getVariableSettingsIterable()) {
+            if (variableSettings.isVariableSetting(key)) {
+                if (isUsedVariable(variableSettings, key)) {
                     return true;
                 }
+            } else if (hasNestedUsedVariable(variableSettings, key)) {
+                return true;
             }
-        } catch (InvalidSettingsException ex) {
-            // should never happen since we only call the throwing methods with keys from the iterable
-            throw new IllegalStateException(ex);
         }
         return false;
+    }
 
+    private static boolean isUsedVariable(final VariableSettingsRO variableSettings, final String key) {
+        try {
+            return variableSettings.getUsedVariable(key) != null;
+        } catch (InvalidSettingsException ex) {
+            // should not happen since we check for isVariableSetting before
+            throw new IllegalStateException(ex);
+        }
+    }
+
+    private static boolean hasNestedUsedVariable(final VariableSettingsRO variableSettings, final String key) {
+        try {
+            return hasControllingVariables(variableSettings.getVariableSettings(key));
+        } catch (InvalidSettingsException ex) { // NOSONAR
+            LOGGER.warn(String.format("Unable to resolve variable settings for key '%s'.", key), ex);
+            return false;
+        }
     }
 
 }
