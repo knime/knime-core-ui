@@ -167,6 +167,33 @@ const browseAction: Record<
   flex-direction: column;
   height: 100%;
 
+  & :deep(.carousel) {
+    &::after {
+      bottom: 18px;
+    }
+
+    & .tab-bar {
+      padding-bottom: 16px;
+
+      & > .overflow {
+        height: 42px;
+
+        & span {
+          font-size: 13px;
+          height: 42px;
+          line-height: 42px;
+        }
+
+        & svg {
+          width: 13px;
+          height: 13px;
+          stroke-width: calc(32px / 13);
+          vertical-align: -2px;
+        }
+      }
+    }
+  }
+
   & .flex-grow {
     flex-grow: 1;
     min-height: 0;
