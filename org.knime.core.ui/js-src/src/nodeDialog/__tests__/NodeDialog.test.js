@@ -109,35 +109,6 @@ describe("NodeDialog.vue", () => {
     });
   });
 
-  it("executes custom backend validations", async () => {
-    const customValidationCallback = vi.fn();
-    const result = { result: "Some validation message" };
-    const customValidationHandler = "customValidationHandler";
-    const currentValue = "curr value";
-
-    const wrapper = shallowMount(NodeDialog, getOptions());
-    await flushPromises();
-
-    const dataSpy = vi
-      .spyOn(wrapper.vm.jsonDataService, "data")
-      .mockReturnValue(result);
-    wrapper
-      .findComponent(JsonFormsDialog)
-      .vm.$emit(
-        "executeCustomValidation",
-        customValidationHandler,
-        currentValue,
-        customValidationCallback,
-      );
-    await flushPromises();
-
-    expect(dataSpy).toHaveBeenCalledWith({
-      method: "settings.executeCustomValidation",
-      options: [customValidationHandler, currentValue],
-    });
-    expect(customValidationCallback).toHaveBeenCalledWith(result.result);
-  });
-
   describe("applySettings", () => {
     let wrapper, sendAlert;
 

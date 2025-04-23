@@ -56,7 +56,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
@@ -84,12 +83,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonAction
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonChange;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.customvalidation.CustomValidationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidation.DateTimeStringFormatValidation;
 
 import com.fasterxml.jackson.databind.node.TextNode;
 
@@ -538,31 +537,23 @@ class DefaultNodeDialogDataServiceImplTest {
     @Nested
     class ValidationDataServiceTest {
 
-        static final class MyCustomValidationHandler implements CustomValidationHandler<String> {
-            @Override
-            public Optional<String> validate(final String currentValue) {
-                return currentValue == "MM/DD/YYYY" ? Optional.empty()
-                    : Optional.of("The only valid format is: MM/DD/YYYY");
-            }
-        }
-
         @Test
         void testValidationExecution() throws ExecutionException, InterruptedException {
 
             class DateTimeFormatPickerSettings implements DefaultNodeSettings {
                 @Widget(title = "", description = "")
-                @DateTimeFormatPickerWidget(customValidationHandler = MyCustomValidationHandler.class)
+                @DateTimeFormatPickerWidget
                 String m_dateTimeFormat;
             }
 
             final var dataService = getDataService(DateTimeFormatPickerSettings.class);
-            final var resultValidFormat =
-                dataService.executeCustomValidation(MyCustomValidationHandler.class.getName(), "MM/DD/YYYY");
+            final var resultValidFormat = dataService
+                .performExternalValidation(DateTimeStringFormatValidation.class.getName(), "MM/DD/YYYY");
             assertThat(resultValidFormat.result()).isEmpty();
 
-            final var resultInvalidFormat =
-                dataService.executeCustomValidation(MyCustomValidationHandler.class.getName(), null);
-            assertThat(resultInvalidFormat.result().get()).isEqualTo("The only valid format is: MM/DD/YYYY");
+            final var resultInvalidFormat = dataService
+                .performExternalValidation(DateTimeStringFormatValidation.class.getName(), "MM/DDDD/YYYY");
+            assertThat(resultInvalidFormat.result().get()).isEqualTo("Invalid format: Too many pattern letters: D");
         }
     }
 

@@ -56,8 +56,6 @@ import java.lang.annotation.Target;
 import java.time.format.DateTimeFormatter;
 
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.customvalidation.CustomValidationHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.customvalidation.NoopValidationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
@@ -119,12 +117,4 @@ public @interface DateTimeFormatPickerWidget {
         String example //
     ) {
     }
-
-
-    /**
-     * Handler to validate the user input in the backend.
-     *
-     * @return the class handling the validation
-     */
-    Class<? extends CustomValidationHandler<?>> customValidationHandler() default NoopValidationHandler.class;
 }

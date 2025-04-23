@@ -58,9 +58,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.UpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.customvalidation.CustomValidationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ExternalValidation;
 
 /**
  * This is the interface for the rpc data service of the {@link DefaultNodeDialog}. Its use enables e.g. lazyloaded data
@@ -135,15 +135,15 @@ interface DefaultNodeDialogDataService {
         throws InterruptedException, ExecutionException;
 
     /**
-     * This method is triggered whenever an input value changes and a custom validation is specified.
+     * This method is triggered whenever an input value changes and an external validation is specified.
      *
-     * @param validatorClass the class name of the {@link CustomValidationHandler} that is to be used.
+     * @param validatorClass the class name of the {@link ExternalValidation} that is to be used.
      * @param currentValue the current input value to validate against
      * @return the error message if the validation fails, else an empty optional
      * @throws InterruptedException if the used thread is interrupted
      * @throws ExecutionException if an error is thrown during the invocation
      */
-    Result<Optional<String>> executeCustomValidation(String validatorClass, Object currentValue)
+    Result<Optional<String>> performExternalValidation(String validatorClass, Object currentValue)
         throws InterruptedException, ExecutionException;
 
 }

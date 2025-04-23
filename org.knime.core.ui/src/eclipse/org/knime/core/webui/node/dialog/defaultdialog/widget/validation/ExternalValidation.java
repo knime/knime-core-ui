@@ -46,20 +46,32 @@
  * History
  *   15 Apr 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.customvalidation;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.validation;
 
 import java.util.Optional;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 
 /**
- * Marker class that is only meant to serve as a default in {@link DateTimeFormatPickerWidget#customValidationHandler}.
+ * The abstract class defining external validations. It is used to validate the current input value in the backend
+ * whenever it changes.
  *
  * @author Robin Gerling
+ * @param <T> the type of the field in the node settings
  */
-public final class NoopValidationHandler implements CustomValidationHandler<Void> {
-    @Override
-    public Optional<String> validate(final Void currentValue) {
-        return Optional.empty();
+public abstract class ExternalValidation<T> {
+
+    /**
+     * Validate the value of an input when the value changes.
+     *
+     * @param currentValue the current value of the field
+     * @return the error message to show in the frontend if the validation fails, or else an empty optional
+     */
+    abstract Optional<String> validate(final T currentValue);
+
+    @SuppressWarnings({"javadoc", "unchecked"})
+    public final Optional<String> castAndValidate(final Object currentValue) throws WidgetHandlerException {
+        return validate((T)currentValue);
     }
+
 }

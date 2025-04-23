@@ -44,42 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   11 Apr 2025 (Robin Gerling): created
+ *   23 Apr 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.validation;
 
-import java.util.Collection;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.TraversedField;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.customvalidation.CustomValidationHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.customvalidation.NoopValidationHandler;
 
 /**
+ * Specifies the built-in external validation for date&time formats of fields using the
+ * {@link DateTimeFormatPickerWidget}.
  *
+ * @param <T> the type of the settings field
  * @author Robin Gerling
  */
-final class CustomValidationHandlerHolder extends HandlerHolder<CustomValidationHandler<?>> {
+public abstract sealed class DateTimeFormatValidation<T> extends ExternalValidation<T> {
 
     /**
-     * @param settingsClasses
+     *
+     * @return the format to validate as string
      */
-    CustomValidationHandlerHolder(final Collection<Class<? extends WidgetGroup>> settingsClasses) {
-        super(settingsClasses);
-    }
+    abstract String getFormatAsString(final T currentFormat);
 
     @Override
-    Optional<Class<? extends CustomValidationHandler<?>>> getHandlerClass(final TraversedField field) {
-        final var dateTimeFormatPickerWidget = field.propertyWriter().getAnnotation(DateTimeFormatPickerWidget.class);
-        if (dateTimeFormatPickerWidget == null) {
-            return Optional.empty();
+    public final Optional<String> validate(final T currentFormat) {
+        try {
+            DateTimeFormatter.ofPattern(getFormatAsString(currentFormat));
+        } catch (IllegalArgumentException ex) {
+            return Optional.of("Invalid format: %s".formatted(ex.getMessage()));
         }
-        final var updateHandlerClass = dateTimeFormatPickerWidget.customValidationHandler();
-        if (updateHandlerClass == NoopValidationHandler.class) {
-            return Optional.empty();
-        }
-        return Optional.of(updateHandlerClass);
+        return Optional.empty();
     }
+
+    /**
+     * The class used if the settings field uses the type {@link String}.
+     */
+    public static final class DateTimeStringFormatValidation extends DateTimeFormatValidation<String> {
+        @Override
+        String getFormatAsString(final String currentFormat) {
+            return currentFormat;
+        }
+    }
+
+    /**
+     * The class used if the settings field uses the type {@link TemporalFormat}.
+     *
+     */
+    public static final class DateTimeTemporalFormatValidation extends DateTimeFormatValidation<TemporalFormat> {
+        @Override
+        String getFormatAsString(final TemporalFormat currentFormat) {
+            return currentFormat.format();
+        }
+    }
+
 }

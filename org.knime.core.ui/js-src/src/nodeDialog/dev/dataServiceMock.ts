@@ -435,7 +435,7 @@ export default (rpcRequest: { method: string; params: any[] }) => {
       };
     case "fileChooser.getFilePath":
       return { path: `path/to/folder/${rpcRequest.params[2]}` };
-    case "settings.executeCustomValidation":
+    case "settings.performExternalValidation":
       return {
         result:
           rpcRequest.params[1] === "MM/DD/YYYY"

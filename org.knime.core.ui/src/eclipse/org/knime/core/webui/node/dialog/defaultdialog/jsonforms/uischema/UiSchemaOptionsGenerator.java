@@ -61,10 +61,10 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_SHOW_SORT_BUTTONS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_WITH_EDIT_AND_RESET;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_CHOICES_PROVIDER;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_CUSTOM_VALIDATION_HANDLER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_DEPENDENCIES;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ELEMENTS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_EMPTY_STATE_LABEL;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_EXTERNAL_VALIDATION_HANDLER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSION;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSIONS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSION_PROVIDER;
@@ -160,6 +160,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBoolean
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.WidgetAnnotation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ExternalBuiltInValidationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
@@ -338,7 +339,8 @@ final class UiSchemaOptionsGenerator {
 
             final var dateTimeFormatPickerWidget = m_node.getAnnotation(DateTimeFormatPickerWidget.class).orElseThrow();
             options.put("formatProvider", dateTimeFormatPickerWidget.formatProvider().getName());
-            options.put(TAG_CUSTOM_VALIDATION_HANDLER, dateTimeFormatPickerWidget.customValidationHandler().getName());
+            options.put(TAG_EXTERNAL_VALIDATION_HANDLER, ExternalBuiltInValidationUtil
+                .getValidationHandlerClass(DateTimeFormatPickerWidget.class, m_fieldClass).getName());
         }
 
         if (annotatedWidgets.contains(RichTextInputWidget.class)) {

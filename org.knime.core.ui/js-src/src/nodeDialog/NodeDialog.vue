@@ -249,16 +249,12 @@ const clearControllingFlowVariable = (persistPath: string) => {
   possiblyFlawedControllingVariablePaths.value.delete(persistPath);
 };
 
-const executeCustomValidation = async (
-  id: string,
-  value: any,
-  callback: (error: string | null) => void,
-) => {
+const performExternalValidation = async (id: string, value: any) => {
   const receivedData = await callDataService({
-    method: "settings.executeCustomValidation",
+    method: "settings.performExternalValidation",
     options: [id, value],
   });
-  callback(receivedData.result || null);
+  return receivedData.result || null;
 };
 
 const onSettingsChanged = ({ data }: { data: SettingsData }) => {
@@ -298,7 +294,11 @@ onMounted(async () => {
   registerGlobalUpdates(initialSettings.globalUpdates ?? []);
   dialogService.setApplyListener(applySettings);
   const hasNodeView = dialogService.hasNodeView();
-  renderers.value = initializeRenderers({ hasNodeView, showAdvancedSettings });
+  renderers.value = initializeRenderers({
+    hasNodeView,
+    showAdvancedSettings,
+    performExternalValidation,
+  });
   ready.value = true;
 });
 
@@ -350,7 +350,6 @@ defineExpose({
     @trigger="trigger"
     @update-data="updateData"
     @state-provider-listener="addStateProviderListener"
-    @execute-custom-validation="executeCustomValidation"
   >
     <template #top>
       <div ref="dialogPopoverTeleportDest" class="popover-container" />

@@ -12,7 +12,7 @@
         "withMax": 1.0,
         "withMinInteger": 1,
         "withMaxInteger": 1,
-        "withCustomFormatValidation": "MM/DD/YYYY"
+        "withExternalFormatValidation": "MM/DD/YYYY"
       }
     },
     "schema": {
@@ -63,8 +63,8 @@
               "maximum": 0,
               "format": "int32"
             },
-            "withCustomFormatValidation": {
-              "title": "With Custom Format Validation (appears on change)",
+            "withExternalFormatValidation": {
+              "title": "With External Format Validation (appears on change)",
               "type": "string"
             }
           }
@@ -242,15 +242,15 @@
         },
         {
           "type": "Section",
-          "label": "Custom Validation",
+          "label": "External Validation",
           "elements": [
             {
               "type": "Control",
-              "scope": "#/properties/model/properties/withCustomFormatValidation",
-              "description": "Custom validation with custom format",
+              "scope": "#/properties/model/properties/withExternalFormatValidation",
+              "description": "External validation with External format",
               "options": {
                 "format": "dateTimeFormat",
-                "customValidationHandler": "customValidationHandlerFormat"
+                "externalValidationHandler": "externalValidationHandlerFormat"
               }
             }
           ]

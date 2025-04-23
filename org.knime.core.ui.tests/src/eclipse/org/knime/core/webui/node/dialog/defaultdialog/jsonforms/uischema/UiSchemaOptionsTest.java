@@ -122,7 +122,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoic
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.customvalidation.CustomValidationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DeclaringDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
@@ -133,6 +132,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.Effe
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidation.DateTimeStringFormatValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidation.DateTimeTemporalFormatValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
@@ -1364,21 +1365,13 @@ class UiSchemaOptionsTest {
             }
         }
 
-        class DateTimeFormatValidationHandler implements CustomValidationHandler<String> {
-            @Override
-            public Optional<String> validate(final String currentValue) {
-                throw new IllegalAccessError("Should not be called within this test");
-            }
-        }
-
         class DateTimeFormatPickerWidgetTestSettings implements DefaultNodeSettings {
             @Widget(title = "", description = "")
             @DateTimeFormatPickerWidget(formatProvider = DateTimeFormatProvider.class)
             String m_formatPickerField;
 
             @Widget(title = "", description = "")
-            @DateTimeFormatPickerWidget(formatProvider = DateTimeFormatProvider.class,
-                customValidationHandler = DateTimeFormatValidationHandler.class)
+            @DateTimeFormatPickerWidget(formatProvider = DateTimeFormatProvider.class)
             TemporalFormat m_formatPickerFieldWithTemporalFormat;
 
             @Widget(title = "", description = "")
@@ -1393,6 +1386,8 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dateTimeFormat");
         assertThatJson(response).inPath("$.elements[0].options.formatProvider").isString()
             .isEqualTo(DateTimeFormatProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[0].options.externalValidationHandler").isString()
+            .isEqualTo(DateTimeStringFormatValidation.class.getName());
 
         // then the one of type TemporalFormat
         assertThatJson(response).inPath("$.elements[1].scope").isString()
@@ -1400,8 +1395,8 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo("dateTimeFormatWithType");
         assertThatJson(response).inPath("$.elements[1].options.formatProvider").isString()
             .isEqualTo(DateTimeFormatProvider.class.getName());
-        assertThatJson(response).inPath("$.elements[1].options.customValidationHandler").isString()
-        .isEqualTo(DateTimeFormatValidationHandler.class.getName());
+        assertThatJson(response).inPath("$.elements[1].options.externalValidationHandler").isString()
+            .isEqualTo(DateTimeTemporalFormatValidation.class.getName());
 
         // and the repeat with no format provider
         assertThatJson(response).inPath("$.elements[2].scope").isString()

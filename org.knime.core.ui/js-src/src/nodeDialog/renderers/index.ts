@@ -2,6 +2,7 @@ import type { MaybeRef } from "vue";
 
 import {
   type NamedRenderer,
+  type PerformExternalValidation,
   type VueControlRenderer,
   type VueLayout,
   type VueLayoutRenderer,
@@ -71,6 +72,10 @@ type InitializeRenderersProps = {
   showAdvancedSettings: MaybeRef<boolean>;
 };
 
+type ExternalValidationInitializeRendererProps = {
+  performExternalValidation: PerformExternalValidation<unknown>;
+};
+
 const processControls = ({
   hasNodeView,
   showAdvancedSettings,
@@ -92,13 +97,15 @@ const processControls = ({
 const allLayouts: VueLayoutRenderer[] = [...Object.values(layouts)];
 
 export const initializeRenderers = (
-  props: InitializeRenderersProps = {
+  props: InitializeRenderersProps &
+    ExternalValidationInitializeRendererProps = {
     hasNodeView: false,
     showAdvancedSettings: false,
+    performExternalValidation: () => Promise.resolve(null),
   },
 ) =>
-  toRenderers(
-    otherRenderers.map(({ name, tester, renderer }) => ({
+  toRenderers({
+    renderers: otherRenderers.map(({ name, tester, renderer }) => ({
       name,
       tester,
       renderer: handleIsAdvancedRenderer(props.showAdvancedSettings)(
@@ -106,8 +113,8 @@ export const initializeRenderers = (
         getAsyncSetupMethod(renderer),
       ),
     })),
-    Object.values(processControls(props)),
-    allLayouts.map(({ name, tester, layout }) => ({
+    controls: Object.values(processControls(props)),
+    layouts: allLayouts.map(({ name, tester, layout }) => ({
       name,
       tester,
       layout: handleIsAdvancedLayout(props.showAdvancedSettings)(
@@ -115,4 +122,7 @@ export const initializeRenderers = (
       ),
       __asyncSetup: getAsyncSetupMethod(layout),
     })),
-  );
+    config: {
+      performExternalValidation: props.performExternalValidation,
+    },
+  });
