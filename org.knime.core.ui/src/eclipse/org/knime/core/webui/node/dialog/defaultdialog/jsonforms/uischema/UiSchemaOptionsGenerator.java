@@ -120,6 +120,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.util.MultiFileSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
@@ -298,7 +299,8 @@ final class UiSchemaOptionsGenerator {
                 case MULTI_FILE_CHOOSER:
                     options.put(TAG_FORMAT, Format.MULTI_FILE_CHOOSER);
                     addWorkflowContextInfo(options);
-                    var filtersClass = extractFileChooserFiltersClass();
+                    var filtersClass = MultiFileSelectionUtil.extractFileChooserFiltersClass(m_node)
+                        .orElseThrow(IllegalStateException::new);
                     setFilterSchemaForMultiFileWidgetChooser(options, filtersClass);
                     options.put(TAG_FILE_FILTER_CLASS, filtersClass.getName());
                     break;
@@ -874,15 +876,6 @@ final class UiSchemaOptionsGenerator {
     static boolean hasElementCheckboxWidgetAnnotation(final TreeNode<WidgetGroup> field) {
         return field.getPossibleAnnotations().contains(InternalArrayWidget.ElementCheckboxWidget.class)
             && field.getAnnotation(InternalArrayWidget.ElementCheckboxWidget.class).isPresent();
-    }
-
-    @SuppressWarnings("unchecked")
-    private Class<? extends FileChooserFilters> extractFileChooserFiltersClass() {
-        // extract the first generic parameter type from the node. Since the node is
-        // a MultiFileSelection<? extends FileChooserFilters>, the first generic parameter
-        // is the FileChooserFilters.
-        var filtersClass = m_node.getType().containedType(0).getRawClass();
-        return (Class<? extends FileChooserFilters>)filtersClass;
     }
 
     private void setFilterSchemaForMultiFileWidgetChooser(final ObjectNode options,

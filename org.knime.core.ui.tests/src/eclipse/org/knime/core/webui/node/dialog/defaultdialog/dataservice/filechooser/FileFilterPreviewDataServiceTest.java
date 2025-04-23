@@ -48,10 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -59,15 +57,23 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewUtils.AdditionalFilterConfiguration;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewUtils.PreviewResult;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.MultiFileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.mockito.MockedConstruction;
 
 /**
@@ -122,7 +128,7 @@ final class FileFilterPreviewDataServiceTest {
         Files.createFile(m_file4);
 
         m_fsConnector = new FileSystemConnector();
-        m_service = new FileFilterPreviewDataService(m_fsConnector);
+        m_service = new FileFilterPreviewDataService(m_fsConnector, () -> Set.of(testSettingsTree));
 
         m_fileSystem = mock(FileSystem.class);
         m_fileChooserBackendMock =
@@ -143,20 +149,13 @@ final class FileFilterPreviewDataServiceTest {
             "local", //
             getStringResolvingTo(m_tempDir), //
             false, //
-            new AdditionalFilterConfiguration<>(new FileFilters(true), FileFilters.class) //
+            constructFilterParameter(new FileFilters(true)) //
         );
 
-        if (result instanceof PreviewResult.Error e) {
-            fail("Failed to list files with error message: " + e.m_errorMessage);
-        }
-
+        assertThat(result).isInstanceOf(PreviewResult.Success.class);
         var successResult = (PreviewResult.Success)result;
 
-        assertEquals( //
-            2, //
-            successResult.m_itemsAfterFiltering.size(), //
-            "Expected 2 items in the list" //
-        );
+        assertThat(successResult.m_itemsAfterFiltering).hasSize(2);
     }
 
     @Test
@@ -165,20 +164,13 @@ final class FileFilterPreviewDataServiceTest {
             "local", //
             getStringResolvingTo(m_tempDir), //
             true, //
-            new AdditionalFilterConfiguration<>(new FileFilters(true), FileFilters.class) //
+            constructFilterParameter(new FileFilters(true)) //
         );
 
-        if (result instanceof PreviewResult.Error e) {
-            fail("Failed to list files with error message: " + e.m_errorMessage);
-        }
-
+        assertThat(result).isInstanceOf(PreviewResult.Success.class);
         var successResult = (PreviewResult.Success)result;
 
-        assertEquals( //
-            4, //
-            successResult.m_itemsAfterFiltering.size(), //
-            "Expected 4 items in the list" //
-        );
+        assertThat(successResult.m_itemsAfterFiltering.size()).isEqualTo(4);
     }
 
     @Test
@@ -187,25 +179,20 @@ final class FileFilterPreviewDataServiceTest {
             "local", //
             getStringResolvingTo(m_tempDir), //
             true, //
-            new AdditionalFilterConfiguration<>(new FileFilters(true), FileFilters.class) //
+            constructFilterParameter(new FileFilters(true)) //
         );
 
-        if (result instanceof PreviewResult.Error e) {
-            fail("Failed to list files with error message: " + e.m_errorMessage);
-        }
-
+        assertThat(result).isInstanceOf(PreviewResult.Success.class);
         var successResult = (PreviewResult.Success)result;
 
         for (var item : successResult.m_itemsAfterFiltering) {
-            assertFalse( //
-                Path.of(item).startsWith(m_tempDir), //
-                "Expected the root of the file to be the temp directory" //
-            );
+            assertThat( //
+                Path.of(item).startsWith(m_tempDir)).isFalse()
+                    .as("Expected the root of the file to be the temp directory");
 
-            assertTrue( //
-                ArrayUtils.contains(new int[]{1, 2}, Path.of(item).getNameCount()),
-                "Expected either one or two levels of path" //
-            );
+            assertThat( //
+                ArrayUtils.contains(new int[]{1, 2}, Path.of(item).getNameCount())).isTrue()
+                    .as("Expected either one or two levels of path");
         }
 
         // and check again using the subdir as root
@@ -213,21 +200,14 @@ final class FileFilterPreviewDataServiceTest {
             "local", //
             getStringResolvingTo(m_subDir), //
             true, //
-            new AdditionalFilterConfiguration<>(new FileFilters(true), FileFilters.class) //
+            constructFilterParameter(new FileFilters(true)) //
         );
 
-        if (result instanceof PreviewResult.Error e) {
-            fail("Failed to list files with error message: " + e.m_errorMessage);
-        }
-
+        assertThat(result).isInstanceOf(PreviewResult.Success.class);
         successResult = (PreviewResult.Success)result;
 
         for (var item : successResult.m_itemsAfterFiltering) {
-            assertEquals( //
-                1, //
-                Path.of(item).getNameCount(), //
-                "Expected plain filenames" //
-            );
+            assertThat(Path.of(item).getNameCount()).isEqualTo(1).as("Expected plain filenames");
         }
     }
 
@@ -237,20 +217,13 @@ final class FileFilterPreviewDataServiceTest {
             "local", //
             getStringResolvingTo(m_tempDir), //
             true, //
-            new AdditionalFilterConfiguration<>(new FileFilters(false), FileFilters.class) //
+            constructFilterParameter(new FileFilters(false)) //
         );
 
-        if (result instanceof PreviewResult.Error e) {
-            fail("Failed to list files with error message: " + e.m_errorMessage);
-        }
-
+        assertThat(result).isInstanceOf(PreviewResult.Success.class);
         var successResult = (PreviewResult.Success)result;
 
-        assertEquals( //
-            0, //
-            successResult.m_itemsAfterFiltering.size(), //
-            "Expected 0 items in the list" //
-        );
+        assertThat(successResult.m_itemsAfterFiltering).isEmpty();
     }
 
     @Test
@@ -259,18 +232,12 @@ final class FileFilterPreviewDataServiceTest {
             "local", //
             getStringResolvingTo(m_file1), //
             true, //
-            new AdditionalFilterConfiguration<>(new FileFilters(true), FileFilters.class) //
+            constructFilterParameter(new FileFilters(true)) //
         );
+        assertThat(result).isInstanceOf(PreviewResult.Error.class);
+        var errorResult = (PreviewResult.Error)result;
 
-        if (result instanceof PreviewResult.Error e) {
-            assertEquals( //
-                "Root path is not a folder.", //
-                e.m_errorMessage, //
-                "Expected error message for file root" //
-            );
-        } else {
-            fail("Expected an error when the root is a file");
-        }
+        assertThat(errorResult.m_errorMessage).isEqualTo("Root path is not a folder.");
     }
 
     @Test
@@ -279,21 +246,28 @@ final class FileFilterPreviewDataServiceTest {
             "local", //
             getStringResolvingTo(m_tempDir.resolve("nonexistent")), //
             true, //
-            new AdditionalFilterConfiguration<>(new FileFilters(true), FileFilters.class) //
+            constructFilterParameter(new FileFilters(true)) //
         );
 
-        if (result instanceof PreviewResult.Error e) {
-            assertEquals( //
-                "Root path does not exist.", //
-                e.m_errorMessage, //
-                "Expected error message for non-existent root" //
-            );
-        } else {
-            fail("Expected an error when the root does not exist");
-        }
+        assertThat(result).isInstanceOf(PreviewResult.Error.class);
+        var errorResult = (PreviewResult.Error)result;
+
+        assertThat(errorResult.m_errorMessage).isEqualTo("Root path does not exist.");
     }
 
-    String getStringResolvingTo(final Path path) {
+    void testThrowsIfNoMultiFileSelectionIsPresent() {
+        final var wrongFileFilterParams = new AdditionalFilterConfiguration(
+            JsonFormsDataUtil.getMapper().valueToTree(new FileFilters(true)), EmptySettings.class.getName());
+        final var somePath = getStringResolvingTo(m_tempDir);
+        assertThrows(IllegalStateException.class,
+            () -> m_service.listItemsForPreview("local", somePath, false, wrongFileFilterParams));
+    }
+
+    static final class EmptySettings implements DefaultNodeSettings {
+
+    }
+
+    private String getStringResolvingTo(final Path path) {
         final var returnedString = path.toString();
         when(m_fileSystem.getPath(returnedString)).thenReturn(path);
         return returnedString;
@@ -302,7 +276,11 @@ final class FileFilterPreviewDataServiceTest {
 
     static class FileFilters implements FileChooserFilters {
 
-        private final boolean m_allowAll;
+        boolean m_allowAll;
+
+        FileFilters() {
+
+        }
 
         FileFilters(final boolean allowAll) {
             this.m_allowAll = allowAll;
@@ -318,4 +296,18 @@ final class FileFilterPreviewDataServiceTest {
             return false;
         }
     }
+
+    static private AdditionalFilterConfiguration constructFilterParameter(final FileFilters fileFilters) {
+        final var json = JsonFormsDataUtil.getMapper().valueToTree(fileFilters);
+        return new AdditionalFilterConfiguration(json, FileFilters.class.getName());
+    }
+
+    static final class TestSettings implements DefaultNodeSettings {
+
+        @Widget(title = "", description = "")
+        MultiFileSelection<FileFilters> m_testSetting;
+
+    }
+
+    static final Tree<WidgetGroup> testSettingsTree = new WidgetTreeFactory().createTree(TestSettings.class);
 }

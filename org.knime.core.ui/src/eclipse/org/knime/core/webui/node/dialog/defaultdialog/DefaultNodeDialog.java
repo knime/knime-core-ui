@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -62,6 +63,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDa
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
+import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 
 /**
  * Default node dialog implementation where all the dialog widgets are defined through a
@@ -156,7 +160,8 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
         final var flowVariablesDataService =
             new FlowVariableDataServiceImpl(new DefaultDialogDataConverterImpl(m_settingsClasses));
         final var fileChooserService = new FileChooserDataService(fsConnector);
-        final var fileFilterPreviewService = new FileFilterPreviewDataService(fsConnector);
+        final var fileFilterPreviewService =
+            new FileFilterPreviewDataService(fsConnector, () -> createWidgetTrees(m_settingsClasses.values()));
         return Optional.of(RpcDataService.builder() //
             .addService("settings", dataService) //
             .addService("flowVariables", flowVariablesDataService) //
@@ -165,6 +170,12 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
             .onDeactivate(fsConnector::clear) //
             .build() //
         );
+    }
+
+    private static Collection<Tree<WidgetGroup>>
+        createWidgetTrees(final Collection<Class<? extends DefaultNodeSettings>> settings) {
+        final var factory = new WidgetTreeFactory();
+        return settings.stream().map(factory::createTree).toList();
     }
 
     @Override

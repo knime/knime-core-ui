@@ -48,16 +48,27 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.util.MultiFileSelectionUtil.extractFileChooserFiltersClass;
+
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewUtils.AdditionalFilterConfiguration;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewUtils.PreviewResult;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters;
+import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
+import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
+import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 
 /**
  * A service that can provide a preview of the files within a folder on a file system, while applying additional filter
@@ -69,15 +80,42 @@ public final class FileFilterPreviewDataService {
 
     private final FileSystemConnector m_fsConnector;
 
+    private final Supplier<Collection<Tree<WidgetGroup>>> m_widgetTrees;
+
     /**
      * This data service is used in the DefaultNodeDialog and can be accessed by the frontend using the name
      * "fileFilterPreview".
      *
      * @param fsConnector the file system connector to use. It is the responsibility of the caller to ensure that the
      *            connector is closed once it is no longer needed.
+     * @param widgetTrees the widget trees to use for the file chooser filters
      */
-    public FileFilterPreviewDataService(final FileSystemConnector fsConnector) {
+    public FileFilterPreviewDataService(final FileSystemConnector fsConnector,
+        final Supplier<Collection<Tree<WidgetGroup>>> widgetTrees) {
         m_fsConnector = fsConnector;
+        m_widgetTrees = widgetTrees;
+    }
+
+    private List<Class<? extends FileChooserFilters>> m_filterClasses;
+
+    private List<Class<? extends FileChooserFilters>> getFilterClasses() {
+        if (m_filterClasses == null) {
+            m_filterClasses =
+                m_widgetTrees.get().stream().flatMap(FileFilterPreviewDataService::extractFilterClasses).toList();
+        }
+        return m_filterClasses;
+    }
+
+    private static Stream<Class<? extends FileChooserFilters>> extractFilterClasses(final Tree<WidgetGroup> tree) {
+        return tree.getWidgetNodes().flatMap(FileFilterPreviewDataService::extractFilterClassesFromWidget);
+    }
+
+    private static Stream<Class<? extends FileChooserFilters>>
+        extractFilterClassesFromWidget(final TreeNode<WidgetGroup> node) {
+        if (node instanceof ArrayParentNode<WidgetGroup> arrayParentNode) {
+            return extractFilterClasses(arrayParentNode.getElementTree());
+        }
+        return extractFileChooserFiltersClass(node).stream();
     }
 
     /**
@@ -93,7 +131,7 @@ public final class FileFilterPreviewDataService {
      *            </ul>
      * @param path the current path or null to reference the root level.
      * @param includeSubfolders if true, display files recursively in child directories
-     * @param listItemsConfig the additional filter configuration to use for the preview
+     * @param additionalFilterConfiguration the additional filter configuration to filter the files by
      * @return the list of items together with the total number of items before filtering
      * @throws IOException in case the file system could not be opened
      */
@@ -101,10 +139,13 @@ public final class FileFilterPreviewDataService {
         final String fileSystemId, //
         final String path, //
         final boolean includeSubfolders, //
-        final AdditionalFilterConfiguration<?> listItemsConfig //
+        final AdditionalFilterConfiguration additionalFilterConfiguration//
     ) throws IOException {
+        final var fileChooserFilters =
+            additionalFilterConfiguration.toFileChooserFilters(getFilterClasses(), JsonFormsDataUtil.getMapper());
+
         try (var fileSystem = m_fsConnector.getFileChooserBackend(fileSystemId).getFileSystem()) {
-            return listFilteredAndSortedItemsForPreview(fileSystem, path, includeSubfolders, listItemsConfig);
+            return listFilteredAndSortedItemsForPreview(fileSystem, path, includeSubfolders, fileChooserFilters);
         }
     }
 
@@ -113,8 +154,8 @@ public final class FileFilterPreviewDataService {
     private static final NodeLogger LOGGER = NodeLogger.getLogger(FileFilterPreviewDataService.class);
 
     private static PreviewResult listFilteredAndSortedItemsForPreview(final FileSystem fileSystem,
-        final String folderInput, final boolean includeSubfolders,
-        final AdditionalFilterConfiguration<?> listItemConfig) throws IOException {
+        final String folderInput, final boolean includeSubfolders, final FileChooserFilters listItemConfig)
+        throws IOException {
 
         final Path folder = fileSystem.getPath(folderInput);
 
@@ -125,7 +166,7 @@ public final class FileFilterPreviewDataService {
         }
         try {
             var filterResult = FileChooserFilters.getPassingFilesInFolder(listItemConfig //
-                .additionalFilterOptions(), folder, includeSubfolders, LIMIT_FILES_FOR_PREVIEW);
+                , folder, includeSubfolders, LIMIT_FILES_FOR_PREVIEW);
             return new PreviewResult.Success(filterResult, folder);
         } catch (AccessDeniedException e) { // NOSONAR logged in the frontend
             final var file = e.getFile();

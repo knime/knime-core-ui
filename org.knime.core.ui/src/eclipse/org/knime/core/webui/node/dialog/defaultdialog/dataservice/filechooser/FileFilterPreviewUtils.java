@@ -48,20 +48,14 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters.FilterResult;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Utility methods for {@link FileFilterPreviewDataService}.
@@ -77,52 +71,27 @@ final class FileFilterPreviewUtils {
     /**
      * Input parameter for {@link #listFilteredAndSortedItemsForPreview}
      */
-    @JsonDeserialize(using = AdditionalFilterConfiguration.Deserializer.class)
-    //    @JsonSerialize(using = AdditionalFilterConfiguration.Serializer.class)
-    static record AdditionalFilterConfiguration<T extends FileChooserFilters>( //
+    static record AdditionalFilterConfiguration( //
         /**
          * additional filter settings for the preview.
          */
-        T additionalFilterOptions, //
+        Object additionalFilterOptions, //
         /**
          * the class identifier of the additional filter. Required for deserialization
          */
-        Class<T> additionalFilterOptionsClassIdentifier //
+        String additionalFilterOptionsClassIdentifier //
     ) {
-        // TODO (UIEXT-2662): this approach to deserialization opens some security holes, as it allows
-        // to deserialize any compatible class, which will cause its default constructor
-        // to run. Find a better way to handle this.that
-        static final class Deserializer<U extends FileChooserFilters>
-            extends JsonDeserializer<AdditionalFilterConfiguration<U>> {
 
-            @SuppressWarnings("unchecked")
-            @Override
-            public AdditionalFilterConfiguration<U> deserialize(final JsonParser p, final DeserializationContext ctxt)
-                throws IOException {
-
-                final JsonNode node = p.readValueAsTree();
-                final var classId = node.get("additionalFilterOptionsClassIdentifier").asText();
-
-                final Class<U> clazz;
-                try {
-                    clazz = (Class<U>)Class.forName(classId);
-                } catch (ClassNotFoundException ex) {
-                    throw new IOException("Cannot find class with name " + classId, ex);
-                }
-
-                if (!FileChooserFilters.class.isAssignableFrom(clazz)) {
-                    throw new IOException("Class " + classId + " is not a subclass of FileChooserFilters");
-                }
-
-                final var mapper = JsonFormsDataUtil.getMapper();
-                final var additionalFilterOptions = mapper.treeToValue(node.get("additionalFilterOptions"), clazz);
-
-                return new AdditionalFilterConfiguration<>( //
-                    additionalFilterOptions, //
-                    clazz //
-                );
+        FileChooserFilters toFileChooserFilters(final List<Class<? extends FileChooserFilters>> filters,
+            final ObjectMapper mapper) {
+            final var filterClass = filters.stream()
+                .filter(cls -> cls.getName().equals(additionalFilterOptionsClassIdentifier)).findFirst();
+            if (filterClass.isEmpty()) {
+                throw new IllegalArgumentException("Unknown filter class: " + additionalFilterOptionsClassIdentifier);
             }
+            return mapper.convertValue(additionalFilterOptions, filterClass.get());
         }
+
     }
 
     static sealed class PreviewResult {
