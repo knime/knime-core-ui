@@ -54,12 +54,10 @@ describe("FileChooserControl.vue", () => {
         controllingFlowVariableAvailable: true,
       };
     }
-    const getPanelsContainer = vi.fn(() => "body");
     const component = mountJsonFormsControlLabelContent(FileChooserControl, {
       props,
       provide: {
         // @ts-expect-error
-        getPanelsContainer,
         setSubPanelExpanded: vi.fn(),
         getPersistSchema: () => ({}),
         [flowVariablesMapInjectionKey as symbol]: flowVariablesMap,

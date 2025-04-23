@@ -30,10 +30,8 @@ export interface ProvidedByNodeDialog {
   updateData: (path: string) => void;
   getData: getData;
   setSubPanelExpanded: (param: { isExpanded: boolean }) => void;
-  getPanelsContainer: () => null | HTMLElement;
   createArrayAtPath: (path: string) => IdsRecord;
   getDialogPopoverTeleportDest: () => null | HTMLElement;
-  getSideDrawerTeleportDest: () => null | Element;
 }
 
 type ProvidedFlowVariablesApi = {

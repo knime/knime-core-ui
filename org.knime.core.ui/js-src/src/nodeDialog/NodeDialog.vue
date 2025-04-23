@@ -291,8 +291,6 @@ onMounted(async () => {
 });
 
 const dialogPopoverTeleportDest = ref<null | HTMLElement>(null);
-const subPanelsTeleportDest = ref<null | HTMLElement>(null);
-const sideDrawerTeleportDest = ref<null | HTMLElement>(null);
 
 const provided: ProvidedByNodeDialog & ProvidedForFlowVariables = {
   isTriggerActive,
@@ -307,8 +305,6 @@ const provided: ProvidedByNodeDialog & ProvidedForFlowVariables = {
   createArrayAtPath: (path: string) =>
     createArrayAtPath(globalArrayIdsRecord, path),
   getDialogPopoverTeleportDest: () => dialogPopoverTeleportDest.value,
-  getSideDrawerTeleportDest: () => sideDrawerTeleportDest.value,
-  getPanelsContainer: () => subPanelsTeleportDest.value,
   setSubPanelExpanded,
   updateData,
 };
@@ -343,9 +339,6 @@ defineExpose({
     @update-data="updateData"
     @state-provider-listener="addStateProviderListener"
   >
-    <template #sideDrawerDest>
-      <div ref="sideDrawerTeleportDest" />
-    </template>
     <template #top>
       <div ref="dialogPopoverTeleportDest" class="popover-container" />
     </template>
@@ -359,7 +352,6 @@ defineExpose({
       </a>
     </template>
   </JsonFormsDialog>
-  <div ref="subPanelsTeleportDest" />
 </template>
 
 <style lang="postcss" scoped>

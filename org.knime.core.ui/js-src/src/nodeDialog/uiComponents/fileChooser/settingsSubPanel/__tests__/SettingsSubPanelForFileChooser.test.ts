@@ -16,6 +16,7 @@ import {
 } from "@vue/test-utils";
 
 import { Button } from "@knime/components";
+import { getGlobal } from "@knime/jsonforms/testing";
 
 import TestSettingsSubPanel, {
   type Props as TestComponentProps,
@@ -42,12 +43,12 @@ describe("SettingsSubPanelForFileChoooser", () => {
   const mountTestComponent = async () => {
     const wrapper = mount(TestSettingsSubPanel, {
       props,
-      global: {
+      global: getGlobal({
         provide: {
+          // @ts-expect-error
           setSubPanelExpanded,
-          getPanelsContainer: vi.fn(() => "body"),
         },
-      },
+      }),
       attachTo: document.body,
     });
     await flushPromises();
