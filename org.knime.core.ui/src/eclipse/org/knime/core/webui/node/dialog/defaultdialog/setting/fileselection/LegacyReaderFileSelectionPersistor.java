@@ -154,6 +154,6 @@ public abstract class LegacyReaderFileSelectionPersistor implements NodeSettings
 
     @Override
     public String[][] getConfigPaths() {
-        return new String[][]{{m_configKey}};
+        return new String[][]{{m_configKey, "path"}};
     }
 }
