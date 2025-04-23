@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.updates;
 import java.util.function.Supplier;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
 
@@ -182,8 +183,9 @@ public interface StateProvider<S> {
      * @param context the current context of the dialog
      * @return the provided state. It is either transformed directly to a specific update in the dialog or used as input
      *         for another {@link StateProvider}.
+     * @throws StateComputationFailureException when an error occurs during computation to prevent downstream updates
      */
-    S computeState(DefaultNodeSettingsContext context);
+    S computeState(DefaultNodeSettingsContext context) throws StateComputationFailureException;
 
     /**
      * Use within {@link StateProviderInitializer#getValueSupplier} to define the actual type of a referenced field.

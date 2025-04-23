@@ -76,8 +76,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.Defaul
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonChange;
@@ -224,6 +226,90 @@ class DefaultNodeDialogDataServiceImplTest {
             assertThat(result.get(0).values().get(0).value()).isEqualTo(testDepenencyValue);
             assertThat(result.get(0).scopes()).isNull();
             assertThat(result.get(0).id()).isEqualTo(UpdateSettings.MyFileExtensionProvider.class.getName());
+        }
+
+        @Test
+        void testAbortUiStateProviderExecution() throws ExecutionException, InterruptedException {
+
+            class UpdateSettings implements DefaultNodeSettings {
+
+                @Widget(title = "", description = "")
+                @ValueReference(MyValueRef.class)
+                String m_reference;
+
+                static final class ThrowingValueProvider implements StateProvider<String> {
+
+                    private Supplier<String> m_valueSupplier;
+
+                    @Override
+                    public void init(final StateProviderInitializer initializer) {
+                        m_valueSupplier = initializer.computeFromValueSupplier(MyValueRef.class);
+
+                    }
+
+                    @Override
+                    public String computeState(final DefaultNodeSettingsContext context)
+                        throws StateComputationFailureException {
+                        final var value = m_valueSupplier.get();
+                        if (value.contains("throw")) {
+                            throw new StateComputationFailureException("Value must not contain throw");
+                        }
+                        return m_valueSupplier.get();
+                    }
+
+                }
+
+                @Widget(title = "", description = "")
+                @ValueProvider(ThrowingValueProvider.class)
+                String m_valueUpdateField;
+
+                static final class MyPlaceholderProvider implements StateProvider<String> {
+
+                    private Supplier<String> valueSupplier;
+
+                    @Override
+                    public void init(final StateProviderInitializer initializer) {
+                        initializer.computeBeforeOpenDialog();
+                        valueSupplier = initializer.computeFromProvidedState(ThrowingValueProvider.class);
+                    }
+
+                    @Override
+                    public String computeState(final DefaultNodeSettingsContext context) {
+                        return String.format("%s", valueSupplier.get());
+                    }
+                }
+
+                @Widget(title = "Test3", description = "")
+                @TextInputWidget(placeholderProvider = MyPlaceholderProvider.class)
+                public String m_otherUpdateField;
+
+            }
+            final var dataService = getDataService(UpdateSettings.class);
+
+            final String testWorkingDependencyValue = "run";
+            final var testWorkingDependency = List.of(new IndexedValue<String>(List.of(), testWorkingDependencyValue));
+
+            var resultWrapper = dataService.update2("widgetId", MyValueRef.class.getName(),
+                Map.of(MyValueRef.class.getName(), testWorkingDependency));
+            var result = (List<UpdateResult<String>>)(resultWrapper.result());
+            assertThat(result).hasSize(2);
+
+            assertThat(((TextNode)result.get(0).values().get(0).value()).textValue())
+                .isEqualTo(testWorkingDependencyValue);
+            assertThat(result.get(0).scopes().get(0)).isEqualTo("#/properties/model/properties/valueUpdateField");
+            assertThat(result.get(0).id()).isNull();
+
+            assertThat(result.get(1).values().get(0).value()).isEqualTo(testWorkingDependencyValue);
+            assertThat(result.get(1).scopes()).isNull();
+            assertThat(result.get(1).id()).isEqualTo(UpdateSettings.MyPlaceholderProvider.class.getName());
+
+            final String testThrowingDependencyValue = "throw";
+            final var testThrowingDependency =
+                List.of(new IndexedValue<String>(List.of(), testThrowingDependencyValue));
+            resultWrapper = dataService.update2("widgetId", MyValueRef.class.getName(),
+                Map.of(MyValueRef.class.getName(), testThrowingDependency));
+            result = (List<UpdateResult<String>>)(resultWrapper.result());
+            assertThat(result).hasSize(0);
         }
 
         static final class MyFirstValueRef implements Reference<String> {
@@ -547,12 +633,12 @@ class DefaultNodeDialogDataServiceImplTest {
             }
 
             final var dataService = getDataService(DateTimeFormatPickerSettings.class);
-            final var resultValidFormat = dataService
-                .performExternalValidation(DateTimeStringFormatValidation.class.getName(), "MM/DD/YYYY");
+            final var resultValidFormat =
+                dataService.performExternalValidation(DateTimeStringFormatValidation.class.getName(), "MM/DD/YYYY");
             assertThat(resultValidFormat.result()).isEmpty();
 
-            final var resultInvalidFormat = dataService
-                .performExternalValidation(DateTimeStringFormatValidation.class.getName(), "MM/DDDD/YYYY");
+            final var resultInvalidFormat =
+                dataService.performExternalValidation(DateTimeStringFormatValidation.class.getName(), "MM/DDDD/YYYY");
             assertThat(resultInvalidFormat.result().get()).isEqualTo("Invalid format: Too many pattern letters: D");
         }
     }

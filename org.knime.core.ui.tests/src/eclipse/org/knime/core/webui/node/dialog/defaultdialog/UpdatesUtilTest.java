@@ -1213,8 +1213,7 @@ public class UpdatesUtilTest {
 
             final var settings = new TestSettings();
             final var response = buildUpdates(settings);
-            assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
-            assertThatJson(response).inPath("$.initialUpdates[0].values").isArray().hasSize(0);
+            assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(0);
         }
 
     }

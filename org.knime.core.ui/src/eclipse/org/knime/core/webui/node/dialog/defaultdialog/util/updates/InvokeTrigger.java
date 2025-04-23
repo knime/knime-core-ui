@@ -54,12 +54,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.knime.core.node.NodeLogger;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Vertex.VertexVisitor;
@@ -75,6 +77,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
  * @author Paul Bärnreuther
  */
 final class InvokeTrigger<I> {
+
+    static final NodeLogger LOGGER = NodeLogger.getLogger(InvokeTrigger.class);
 
     private Map<Vertex, ValuesWithLevelOfNesting<I>> m_cache = new HashMap<>();
 
@@ -267,25 +271,29 @@ final class InvokeTrigger<I> {
                 .map(values -> values.stream().map(IndexedValue::indices)).orElseGet(() -> Stream.of(List.of()));
             final var levelsOfNesting = maximalParent.map(ValuesWithLevelOfNesting::levelsOfNesting).orElse(0);
             return new ValuesWithLevelOfNesting<>(
-                indicesStream.map(computeIndexedValue(stateVertex, parentValues)).toList(), levelsOfNesting);
+                indicesStream.map(computeIndexedValue(stateVertex, parentValues)).flatMap(Optional::stream).toList(),
+                levelsOfNesting);
         }
 
-        private Function<List<I>, IndexedValue<I>> computeIndexedValue(final StateVertex stateVertex,
+        private Function<List<I>, Optional<IndexedValue<I>>> computeIndexedValue(final StateVertex stateVertex,
             final Map<Vertex, ValuesWithLevelOfNesting<I>> parentValues) {
-            return indices -> {
-                final var value = computeIndexedValue(indices, stateVertex, parentValues);
-                return new IndexedValue<>(indices, value);
-            };
+            return indices -> computeIndexedValue(indices, stateVertex, parentValues)
+                .map(val -> new IndexedValue<>(indices, val));
         }
 
-        private Object computeIndexedValue(final List<I> indices, final StateVertex stateVertex,
+        private Optional<Object> computeIndexedValue(final List<I> indices, final StateVertex stateVertex,
             final Map<Vertex, ValuesWithLevelOfNesting<I>> parentValues) {
             final Function<Vertex, Object> getParentValue =
                 vertex -> extractParentObject(parentValues.get(vertex), indices);
             final var initializer = new StateProviderInvocationInitializer(stateVertex, getParentValue);
             final var stateProvider = stateVertex.createStateProvider();
             stateProvider.init(initializer);
-            return stateProvider.computeState(m_context);
+            try {
+                return Optional.ofNullable(stateProvider.computeState(m_context));
+            } catch (StateComputationFailureException e) {
+                LOGGER.error(e);
+                return Optional.empty();
+            }
         }
 
         /**

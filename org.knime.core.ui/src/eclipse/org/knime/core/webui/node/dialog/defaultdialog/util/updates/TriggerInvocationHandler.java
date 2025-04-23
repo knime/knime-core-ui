@@ -116,15 +116,19 @@ public class TriggerInvocationHandler<I> {
 
         final Map<PathsWithSettingsType, List<IndexedValue<I>>> valueUpdates = new HashMap<>();
         for (var entry : partitionedResult.get(true)) {
-            valueUpdates.put(//
-                entry.getKey().getFieldLocation().get(), // NOSONAR isPresent() is checked during partitioning
-                entry.getValue()//
-            );
+            if (!entry.getValue().isEmpty()) {
+                valueUpdates.put(//
+                    entry.getKey().getFieldLocation().get(), // NOSONAR isPresent() is checked during partitioning
+                    entry.getValue()//
+                );
+            }
         }
 
         final Map<String, List<IndexedValue<I>>> otherUpdates = new HashMap<>();
         for (var entry : partitionedResult.get(false)) {
-            otherUpdates.put(entry.getKey().getStateProviderClass().getName(), entry.getValue());
+            if (!entry.getValue().isEmpty()) {
+                otherUpdates.put(entry.getKey().getStateProviderClass().getName(), entry.getValue());
+            }
         }
 
         return new TriggerResult<>(valueUpdates, otherUpdates);
