@@ -52,6 +52,8 @@ import org.knime.core.node.dialog.DialogNodeRepresentation;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.LocalizedControlRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Let a dialog node representation implement this interface to enable being part of a WebUI component dialog.
  *
@@ -69,6 +71,7 @@ public interface WebDialogNodeRepresentation<VAL extends WebDialogValue> extends
      *         renderer spec operating on a string value is to be used (e.g. the {@link TextRendererSpec}), that has to
      *         be localized to "value".
      */
+    @JsonIgnore // otherwise a cyclic dependency arises
     LocalizedControlRendererSpec getWebUIDialogControlSpec();
 
 }
