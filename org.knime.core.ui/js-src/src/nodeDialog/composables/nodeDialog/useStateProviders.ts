@@ -87,25 +87,34 @@ export default () => {
   const getStatesByIndicesInvoking = (key: IndicesKey) =>
     getValuesFromPredicate(statesByIndices)(invokes(indicesKeySpecifier)(key));
 
+  const register = <K, V>(map: Map<K, V[]>, key: K, callback: V) => {
+    if (map.has(key)) {
+      map.get(key)!.push(callback);
+    } else {
+      map.set(key, [callback]);
+    }
+  };
+
+  /**
+   * We prefer id-based state over index-based state since index-based state is only used for initial updates when no ids are present yet.
+   */
+  const getCachedStates = (key: Key, byIndicesKey: IndicesKey) => {
+    const cachedStates = getStatesInvoking(key);
+    if (cachedStates.length > 0) {
+      return cachedStates;
+    }
+    return getStatesByIndicesInvoking(byIndicesKey);
+  };
+
   const addStateProviderListener = (
     location: { id: string; indexIds?: string[]; indices?: number[] },
     callback: (value: any) => void,
   ) => {
     const key = toMapKey(location);
-    if (stateProviderListeners.has(key)) {
-      stateProviderListeners.get(key)!.push(callback);
-    } else {
-      stateProviderListeners.set(key, [callback]);
-    }
-    getStatesInvoking(key).forEach(callback);
-
+    register(stateProviderListeners, key, callback);
     const byIndicesKey = toByIndicesKey(location);
-    if (stateProviderListenersByIndices.has(byIndicesKey)) {
-      stateProviderListenersByIndices.get(byIndicesKey)!.push(callback);
-    } else {
-      stateProviderListenersByIndices.set(byIndicesKey, [callback]);
-    }
-    getStatesByIndicesInvoking(byIndicesKey).forEach(callback);
+    register(stateProviderListenersByIndices, byIndicesKey, callback);
+    getCachedStates(key, byIndicesKey).forEach(callback);
   };
 
   const callStateProviderListener = (

@@ -1,13 +1,24 @@
 /* eslint-disable vitest/max-nested-describe */
 /* eslint-disable max-lines */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  type MockInstance,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { ref } from "vue";
 import { VueWrapper, mount } from "@vue/test-utils";
 import flushPromises from "flush-promises";
 import { cloneDeep } from "lodash-es";
 
 import { Button, Checkbox, Dropdown } from "@knime/components";
-import { SimpleButtonControl, TextControl } from "@knime/jsonforms";
+import {
+  JsonFormsDialog,
+  SimpleButtonControl,
+  TextControl,
+} from "@knime/jsonforms";
 import { JsonDataService } from "@knime/ui-extension-service";
 
 import NodeDialog from "../../../NodeDialog.vue";
@@ -30,8 +41,11 @@ describe("updates in array layouts", () => {
     };
   };
 
+  let dataSpy: MockInstance<JsonDataService["data"]>;
+
   beforeEach(() => {
     mockRegisterSettings();
+    dataSpy = vi.spyOn(JsonDataService.prototype, "data");
   });
 
   const uiSchemaKey = "ui_schema";
@@ -119,19 +133,27 @@ describe("updates in array layouts", () => {
     return wrapper;
   };
 
+  const getSuccessResult = (result: UpdateResult[]) =>
+    Promise.resolve({
+      state: "SUCCESS",
+      result,
+    });
+
+  const getMockedImplementation = (getResult: () => UpdateResult[]) => () =>
+    getSuccessResult(getResult());
+
   const mockRPCResult = (getResult: () => UpdateResult[]) =>
-    vi.spyOn(JsonDataService.prototype, "data").mockImplementation(() =>
-      Promise.resolve({
-        state: "SUCCESS",
-        result: getResult(),
-      }),
-    );
+    dataSpy.mockImplementation(getMockedImplementation(getResult));
+
+  const mockRPCResultOnce = (getResult: () => UpdateResult[]) =>
+    dataSpy.mockImplementationOnce(getMockedImplementation(getResult));
 
   // Buttons
 
   const registerButtonTriggerInGlobalUpdates = (buttonId: string) => {
     const dependencies: ValueReference[] = [];
     initialDataJson.globalUpdates = [
+      ...initialDataJson.globalUpdates,
       {
         trigger: {
           id: buttonId,
@@ -275,6 +297,40 @@ describe("updates in array layouts", () => {
           .at(n)
           .props().possibleValues,
       possibleValues,
+    };
+  };
+
+  const hideFirstElementControl = () => {
+    initialDataJson[uiSchemaKey].elements[0].options.detail[0].rule = {
+      effect: "HIDE",
+      condition: {
+        scope: "#/properties/hideValue",
+        schema: {
+          const: true,
+        },
+      },
+    };
+
+    // @ts-expect-error since hideValue is new
+    initialDataJson.schema.properties.model.properties.values.items.properties.hideValue =
+      {
+        type: "boolean",
+      };
+
+    initialDataJson[uiSchemaKey].elements[0].options.detail.push({
+      type: "Control",
+      scope: "#/properties/hideValue",
+    });
+
+    // @ts-expect-error since hideValue is new
+    initialDataJson.data.model.values[0].hideValue = true;
+
+    const showFirstElementControl = (wrapper: Wrapper) =>
+      (wrapper
+        .findComponent(JsonFormsDialog)
+        .props("data").model.values[0].hideValue = false);
+    return {
+      showFirstElementControl,
     };
   };
 
@@ -633,7 +689,7 @@ describe("updates in array layouts", () => {
                 ],
               },
             ];
-            const rpcDataSpy = mockRPCResult(() => [updateResult]);
+            const rpcDataSpy = mockRPCResultOnce(() => [updateResult]);
             return {
               expectAfterMount: () =>
                 expect(rpcDataSpy).toHaveBeenCalledWith({
@@ -726,6 +782,7 @@ describe("updates in array layouts", () => {
           });
 
           return {
+            choicesProviderId,
             getNthDropdownChoices: (wrapper: Wrapper, n: number) =>
               wrapper
                 .find(".array")
@@ -759,6 +816,54 @@ describe("updates in array layouts", () => {
           arrayIndices.forEach((index) =>
             expect(getNthDropdownChoices(wrapper, index)).toStrictEqual(
               initialUpdateChoices[index],
+            ),
+          );
+        });
+
+        const prepareInitialAndSubsequentDropdownChoicesUpdatesForEachArrayElement =
+          async () => {
+            const { choicesProviderId, getNthDropdownChoices } =
+              defineInitialDropdownUpdates();
+
+            const {
+              triggerButton: triggerSubsequentDropdownUpdate,
+              addDependency,
+            } = addButtonAfterArray();
+            addDependency(createTextDependency("someDependencyId"));
+
+            const { possibleValues: subsequentUpdateChoices } =
+              mockRPCResultToUpdateElementDropdownChoices(choicesProviderId);
+
+            // We hide only one of the dropdowns. Otherwise we run into dynamicImportsSettled issues
+            const { showFirstElementControl } = hideFirstElementControl();
+
+            const wrapper = await mountNodeDialog();
+            return {
+              wrapper,
+              subsequentUpdateChoices,
+              triggerSubsequentDropdownUpdate,
+              showFirstElementControl,
+              getNthDropdownChoices,
+            };
+          };
+
+        it("does not reset to initial updates if a subsequent update is triggered before mounting the element", async () => {
+          const {
+            wrapper,
+            subsequentUpdateChoices,
+            triggerSubsequentDropdownUpdate,
+            showFirstElementControl,
+            getNthDropdownChoices,
+          } =
+            await prepareInitialAndSubsequentDropdownChoicesUpdatesForEachArrayElement();
+
+          await triggerSubsequentDropdownUpdate(wrapper);
+
+          await showFirstElementControl(wrapper);
+
+          arrayIndices.forEach((index) =>
+            expect(getNthDropdownChoices(wrapper, index)).toStrictEqual(
+              subsequentUpdateChoices.value,
             ),
           );
         });
