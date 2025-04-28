@@ -1,0 +1,117 @@
+{
+  "result": {
+    "name": "File Chooser Inputs",
+    "data": {
+      "view": {
+        "multiFile": {
+          "path": {
+            "path": "",
+            "fsCategory": "",
+            "timeout": 0
+          },
+          "fileOrFolder": "FOLDER",
+          "filters": {
+            "someFilterValue": "file"
+          },
+          "includeSubfolders": false
+        }
+      }
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "view": {
+          "type": "object",
+          "properties": {
+            "multiFile": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "title": "Source",
+                  "description": "In this demo, when selecting folders, every string that contains 'error' will lead to an <b>error result</b> while every other string will lead to a <b>success result</b>. In a success result case, the result is <b>empty</b> if the path contains 'empty'.",
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    },
+                    "fsCategory": {
+                      "type": "string"
+                    },
+                    "timeout": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "fileOrFolder": {
+                  "type": "string",
+                  "title": "Type",
+                  "oneOf": [
+                    {
+                      "const": "FILE",
+                      "title": "File"
+                    },
+                    {
+                      "const": "FOLDER",
+                      "title": "Folder"
+                    }
+                  ]
+                },
+                "filters": {
+                  "type": "object",
+                  "properties": {
+                    "someFilterValue": {
+                      "title": "Must be included in path string",
+                      "description": "E.g. set to 'file' to only show paths that include the string 'file'",
+                      "type": "string"
+                    }
+                  }
+                },
+                "includeSubfolders": {
+                  "title": "Include subfolders",
+                  "type": "boolean"
+                }
+              },
+              "default": {
+                "path": {
+                  "path": "",
+                  "fsCategory": "",
+                  "timeout": 0
+                },
+                "fileOrFolder": "FILE",
+                "filters": {
+                  "someFilterValue": "file"
+                },
+                "includeSubfolders": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "ui_schema": {
+      "type": "VerticalLayout",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/view/properties/multiFile",
+          "options": {
+            "format": "multiFileChooser",
+            "isLocal": true,
+            "filterSubUiSchema": {
+              "type": "Section",
+              "label": "My Filter",
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/someFilterValue"
+                }
+              ]
+            },
+            "additionalFilterOptionsClassIdentifier": "someClassIdentifier"
+          }
+        }
+      ]
+    },
+    "flowVariableSettings": {}
+  }
+}

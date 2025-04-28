@@ -2,6 +2,7 @@
 /* eslint-disable complexity */
 import type { Result } from "../api/types/Result";
 import type { IndicesValuePairs, UpdateResult } from "../types/Update";
+import type { PreviewResult } from "../uiComponents/fileChooser/composables/useFileFilterPreviewBackend";
 
 const errorFolder = "Open me to see an error message!";
 
@@ -306,6 +307,41 @@ const mockUpdate2 = (rpcRequest: {
   }
 };
 
+const mockFileFilterPreview = (rpcRequest: {
+  method: string;
+  params: any[];
+}): PreviewResult => {
+  const folder = rpcRequest.params[1] as string;
+  if (folder.includes("error")) {
+    return {
+      resultType: "ERROR",
+      errorMessage: "I am an error message",
+    };
+  }
+  if (folder.includes("empty")) {
+    return {
+      resultType: "SUCCESS",
+      itemsAfterFiltering: [],
+      numFilesAfterFilteringIsOnlyLowerBound: false,
+      numFilesBeforeFilteringIsOnlyLowerBound: false,
+      numItemsBeforeFiltering: 0,
+    };
+  }
+  const includeSubFolders = rpcRequest.params[2];
+  const filterValue =
+    rpcRequest.params[3].additionalFilterOptions.someFilterValue;
+  return {
+    resultType: "SUCCESS",
+    itemsAfterFiltering: [
+      ...(includeSubFolders ? ["some/path/to/file1.txt"] : []),
+      "file2.txt",
+    ].filter((item) => item.includes(filterValue)),
+    numFilesAfterFilteringIsOnlyLowerBound: false,
+    numFilesBeforeFilteringIsOnlyLowerBound: includeSubFolders,
+    numItemsBeforeFiltering: includeSubFolders ? 1000 : 1,
+  };
+};
+
 export default (rpcRequest: { method: string; params: any[] }) => {
   switch (rpcRequest.method) {
     case "flowVariables.getAvailableFlowVariables":
@@ -434,7 +470,15 @@ export default (rpcRequest: { method: string; params: any[] }) => {
           : {}),
       };
     case "fileChooser.getFilePath":
+      if ((rpcRequest.params[2] as string).includes("path/to/folder/")) {
+        return {
+          path: rpcRequest.params[2],
+        };
+      }
       return { path: `path/to/folder/${rpcRequest.params[2]}` };
+    case "fileFilterPreview.listItemsForPreview":
+      return mockFileFilterPreview(rpcRequest);
+
     case "settings.performExternalValidation":
       return {
         result:

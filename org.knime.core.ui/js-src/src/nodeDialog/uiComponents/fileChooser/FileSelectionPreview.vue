@@ -111,6 +111,7 @@ const showAllButtonClickHandler = () => {
 }
 
 .everything-except-error-message {
+  width: 100%;
   display: flex;
   flex-direction: column;
   position: relative;
