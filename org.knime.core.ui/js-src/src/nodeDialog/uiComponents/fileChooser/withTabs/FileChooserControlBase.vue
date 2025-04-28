@@ -107,13 +107,18 @@ const { onApply, sideDrawerValue } = useSideDrawerContent<FileChooserValue>({
       :file-system-specifier="browseOptions.fileSystemSpecifier"
       @update:model-value="changePath"
     />
-    <FileBrowserButton :disabled="isDisabled" @apply="onApply">
+    <FileBrowserButton
+      #default="{ applyAndClose }"
+      :disabled="isDisabled"
+      @apply="onApply"
+    >
       <SideDrawerContent
         :id="labelForId ?? null"
         v-model="sideDrawerValue"
         :disabled="isDisabled"
         :options="browseOptions"
         :selection-mode="browseOptions.selectionMode ?? 'FILE'"
+        @apply-and-close="applyAndClose"
       />
     </FileBrowserButton>
   </div>

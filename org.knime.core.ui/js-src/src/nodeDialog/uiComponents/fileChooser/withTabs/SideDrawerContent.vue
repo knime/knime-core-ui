@@ -30,7 +30,7 @@ type PropType = FileChooserProps & {
 const props = withDefaults(defineProps<PropType>(), {
   options: () => ({}),
 });
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(["update:modelValue", "applyAndClose"]);
 
 const options = toRef(props, "options");
 const { onFsCategoryUpdate, onPathUpdate, onTimeoutUpdate } =
@@ -156,6 +156,7 @@ const browseAction: Record<
         :breadcrumb-root="breadcrumbRoot"
         :selection-mode="selectionMode"
         @choose-item="onPathUpdate"
+        @apply-and-close="emit('applyAndClose')"
       />
     </div>
   </div>

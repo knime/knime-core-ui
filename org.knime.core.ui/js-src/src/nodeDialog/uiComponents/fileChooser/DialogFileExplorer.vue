@@ -26,7 +26,6 @@ export interface DialogFileExplorerProps {
   filteredExtensions?: string[];
   appendedExtension?: string | null;
   backendType: BackendType;
-  openFileByExplorer?: boolean;
   breadcrumbRoot?: string | null;
   selectionMode?: "FILE" | "FOLDER";
 }
@@ -40,7 +39,6 @@ const props = withDefaults(defineProps<DialogFileExplorerProps>(), {
   filteredExtensions: () => [],
   appendedExtension: null,
   clickOutsideExceptions: () => [],
-  openFileByExplorer: false,
   breadcrumbRoot: null,
   selectionMode: "FILE",
 });
@@ -95,6 +93,7 @@ const emit = defineEmits<{
      */
     filePath: string,
   ];
+  applyAndClose: [];
 }>();
 
 const isLoading = ref(true);
@@ -213,6 +212,10 @@ const { clickOutsideExceptions } = useDialogFileExplorerButtons({
   selectedItem,
   isRootParent: computed(() => currentPath.value === null),
 });
+const openFile = (item: FileExplorerItem) => {
+  onChangeSelectedItemIds([item.id]);
+  emit("applyAndClose");
+};
 
 watch(
   () => backendType.value,
@@ -254,9 +257,7 @@ watch(
       :disable-dragging="true"
       :click-outside-exception="clickOutsideExceptions"
       @change-directory="changeDirectory"
-      @open-file="
-        openFileByExplorer && onChooseItem($event.name).catch(() => {})
-      "
+      @open-file="openFile"
       @update:selected-item-ids="onChangeSelectedItemIds"
     />
   </template>

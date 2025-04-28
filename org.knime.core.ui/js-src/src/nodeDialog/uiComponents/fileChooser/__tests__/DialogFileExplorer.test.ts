@@ -288,30 +288,28 @@ describe("DialogFileExplorer.vue", () => {
       expect(wrapper.emitted("chooseItem")).toBeUndefined();
     });
 
-    it("chooses files via FileExplorer event if desired", async () => {
-      props.openFileByExplorer = true;
+    it("chooses files via FileExplorer event", async () => {
       const wrapper = shallowMountFileChooser();
       await flushPromises();
       await wrapper
         .findComponent(FileExplorer)
         .vm.$emit("openFile", toFileExplorerItem(folderFromBackend.items[1]));
-      expect(dataServiceSpy).toHaveBeenCalledWith({
-        method: "fileChooser.getFilePath",
-        options: ["local", null, fileName, null],
-      });
       await flushPromises();
-      expect(wrapper.emitted("chooseItem")).toStrictEqual([[filePath]]);
+      expect(wrapper.emitted("applyAndClose")).toBeDefined();
     });
 
     it("does not choose invalid files displaying an error instead", async () => {
-      props.openFileByExplorer = true;
       const wrapper = shallowMountFileChooser();
       const errorMessage = "myErrorMessage";
       getFilePathResult = { path: null, errorMessage };
       await flushPromises();
       await wrapper
         .findComponent(FileExplorer)
-        .vm.$emit("openFile", toFileExplorerItem(folderFromBackend.items[1]));
+        .vm.$emit("update:selectedItemIds", [
+          toFileExplorerItem(folderFromBackend.items[1]).id,
+        ]);
+      onApply.value!().catch(() => {});
+      await flushPromises();
       expect(dataServiceSpy).toHaveBeenCalledWith({
         method: "fileChooser.getFilePath",
         options: ["local", null, fileName, null],
@@ -359,12 +357,14 @@ describe("DialogFileExplorer.vue", () => {
 
     it("uses file extensions when requesting file name", async () => {
       props.appendedExtension = "pdf";
-      props.openFileByExplorer = true;
       const wrapper = shallowMountFileChooser();
       await flushPromises();
       await wrapper
         .findComponent(FileExplorer)
-        .vm.$emit("openFile", toFileExplorerItem(folderFromBackend.items[1]));
+        .vm.$emit("update:selectedItemIds", [
+          toFileExplorerItem(folderFromBackend.items[1]).id,
+        ]);
+      onApply.value!();
       expect(dataServiceSpy).toHaveBeenCalledWith({
         method: "fileChooser.getFilePath",
         options: ["local", null, fileName, props.appendedExtension],

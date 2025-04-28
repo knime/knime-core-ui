@@ -24,8 +24,8 @@ const emit = defineEmits(["apply"]);
         ><FolderLenseIcon
       /></FunctionButton>
     </template>
-    <template #default>
-      <slot />
+    <template #default="{ applyAndClose }">
+      <slot :apply-and-close />
     </template>
   </SettingsSubPanelForFileChooser>
 </template>
