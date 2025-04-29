@@ -1,0 +1,13 @@
+diff --git a/node_modules/@knime/knime-ui-table/node_modules/@knime/components/src/components/FileExplorer/components/FileExplorer.vue b/node_modules/@knime/knime-ui-table/node_modules/@knime/components/src/components/FileExplorer/components/FileExplorer.vue
+index abcdef1..abcdef2 100644
+--- a/node_modules/@knime/knime-ui-table/node_modules/@knime/components/src/components/FileExplorer/components/FileExplorer.vue
++++ b/node_modules/@knime/knime-ui-table/node_modules/@knime/components/src/components/FileExplorer/components/FileExplorer.vue
+@@ -575,7 +575,7 @@
+           :is-dragging-enabled="!disableDragging"
+           @dragstart="onDragStart($event, renderedIndices[vIndex])"
+           @dragenter="onDragEnter($event, renderedIndices[vIndex])"
+-          @dragover="onDragOver"
++          @dragover="onDragOver($event)"
+           @dragleave="onDragLeave($event, renderedIndices[vIndex])"
+           @dragend="forwardEmit('dragend', onDragEnd($event, item))"
+           @drag="forwardEmit('drag', onDrag($event, item))"

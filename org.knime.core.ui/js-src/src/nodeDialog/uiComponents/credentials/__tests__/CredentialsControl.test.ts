@@ -42,7 +42,6 @@ describe("CredentialsControl.vue", () => {
       props,
       provide: {
         ...provide,
-        // @ts-expect-error
         [flowVariablesMapInjectionKey]: flowVariablesMap,
         // @ts-expect-error
         getPersistSchema: () => ({}),

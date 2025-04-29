@@ -377,7 +377,7 @@ describe("DescriptionPopover.vue", () => {
       await wrapper.find(".function-button").trigger("mouseup");
       expect(wrapper.find(".floating").exists()).toBeFalsy();
       expect(
-        (dialogPopoverTeleportDest.firstChild as HTMLElement).className,
+        (dialogPopoverTeleportDest.firstElementChild as HTMLElement).className,
       ).toBe("floating");
     });
   });
