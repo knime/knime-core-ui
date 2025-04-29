@@ -48,9 +48,14 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.ValidationOptions;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.DefaultNumberValidationUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.DefaultNumberValidationUtil.ValidationClassInstance;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation;
 
 /**
@@ -60,10 +65,75 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberIn
  */
 public interface NumberRendererSpec extends ControlRendererSpec {
 
+    /**
+     * @noimplement implement {@link #getCustomOptions()} and {@link #getTypeBounds()} instead.
+     */
     @Override
     default Optional<NumberRendererOptions> getOptions() {
+        final var defaultValidations = DefaultNumberValidationUtil.getDefaultNumberValidations(getTypeBounds());
+        final var customOptions = getCustomOptions();
+        if (customOptions.isEmpty() && defaultValidations.isEmpty()) {
+            return Optional.empty();
+        }
+        final var validations =
+            customOptions.flatMap(NumberRendererOptions::getValidations).orElse(new NumberInputWidgetValidation[0]);
+
+        final var combinedValidations = getCombinedValidations(validations, defaultValidations);
+        return Optional.of(new NumberRendererOptions() {
+
+            @Override
+            public Optional<NumberInputWidgetValidation[]> getValidations() {
+                return Optional.of(combinedValidations);
+            }
+
+            @Override
+            public Optional<String[]> getValidationProviders() {
+                return customOptions.flatMap(NumberRendererOptions::getValidationProviders);
+            }
+
+        });
+
+    }
+
+    /**
+     * Type bound validations are to be defined via {@link #getTypeBounds()} and are added automatically to the options.
+     *
+     * @return the options of the number renderer.
+     */
+    default Optional<NumberRendererOptions> getCustomOptions() {
         return Optional.empty();
-    };
+    }
+
+    /**
+     * Returns the validations that should be applied to the number renderer due to the type of the underlying.
+     *
+     * @author Paul Bärnreuther
+     */
+    enum TypeBounds {
+            /**
+             * Bound using min/max save integer value to avoid precision loss.
+             */
+            LONG, //
+            /**
+             * Limit to {@link Integer} values.
+             */
+            INTEGER, //
+            /**
+             * Limit to {@link Byte} values.
+             */
+            BYTE, //
+            /**
+             * No bounds.
+             */
+            NONE;
+    }
+
+    /**
+     * @return the type bounds given by the type of the data of the number renderer.
+     */
+    default TypeBounds getTypeBounds() {
+        return TypeBounds.NONE;
+    }
 
     /**
      * Options for rendering a text input field.
@@ -75,6 +145,15 @@ public interface NumberRendererSpec extends ControlRendererSpec {
     @Override
     default JsonDataType getDataType() {
         return JsonDataType.NUMBER;
+    }
+
+    private static NumberInputWidgetValidation[] getCombinedValidations(final NumberInputWidgetValidation[] validations,
+        final List<ValidationClassInstance<NumberInputWidgetValidation>> defaultValidations) {
+        final var filteredDefaultValidationInstances = defaultValidations.stream() //
+            .filter(defaultValidation -> Arrays.stream(validations).noneMatch(defaultValidation.clazz()::isInstance))
+            .map(ValidationClassInstance::instance);
+        return Stream.concat(Arrays.stream(validations), filteredDefaultValidationInstances)
+            .toArray(NumberInputWidgetValidation[]::new);
     }
 
 }

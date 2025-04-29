@@ -48,13 +48,10 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.NumberRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.DefaultNumberValidationUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.DefaultNumberValidationUtil.ValidationClassInstance;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
@@ -65,30 +62,29 @@ class NumberRenderer extends WidgetTreeControlRendererSpec implements NumberRend
 
     private final Optional<NumberInputWidget> m_annotation;
 
-    private final List<ValidationClassInstance<NumberInputWidgetValidation>> m_defaultValidations;
+    private final TypeBounds m_typeBounds;
 
     NumberRenderer(final TreeNode<WidgetGroup> node) {
         super(node);
         m_annotation = node.getAnnotation(NumberInputWidget.class);
-        m_defaultValidations = DefaultNumberValidationUtil.getDefaultNumberValidations(node.getRawClass());
+        m_typeBounds = getTypeBounds(node);
     }
 
     @Override
-    public Optional<NumberRendererOptions> getOptions() {
-        if (m_annotation.isEmpty() && m_defaultValidations.isEmpty()) {
+    public Optional<NumberRendererOptions> getCustomOptions() {
+        if (m_annotation.isEmpty()) {
             return Optional.empty();
         }
-        final var validations = m_annotation.stream().flatMap(ann -> Stream.of(ann.validation())).toList();
+        final var validations = m_annotation.stream().flatMap(ann -> Stream.of(ann.validation()))
+            .map(InstantiationUtil::createInstance).toArray(NumberInputWidgetValidation[]::new);
         final var validationProviders =
             m_annotation.stream().flatMap(ann -> Stream.of(ann.validationProvider())).toList();
-
-        final var combinedBuiltinValidations = getCombinedValidations(validations, m_defaultValidations);
 
         return Optional.of(new NumberRendererOptions() {
 
             @Override
             public Optional<NumberInputWidgetValidation[]> getValidations() {
-                return Optional.of(combinedBuiltinValidations).filter(val -> val.length > 0);
+                return Optional.of(validations).filter(val -> val.length > 0);
             }
 
             @Override
@@ -100,15 +96,23 @@ class NumberRenderer extends WidgetTreeControlRendererSpec implements NumberRend
         });
     }
 
-    private static NumberInputWidgetValidation[] getCombinedValidations(
-        final List<Class<? extends NumberInputWidgetValidation>> validations,
-        final List<ValidationClassInstance<NumberInputWidgetValidation>> defaultValidations) {
-        final var validationInstances = validations.stream().map(InstantiationUtil::createInstance);
-        final var filteredDefaultValidationInstances = defaultValidations.stream() //
-            .filter(defaultValidation -> validations.stream().noneMatch(defaultValidation.clazz()::isAssignableFrom))
-            .map(ValidationClassInstance::instance);
-        return Stream.concat(validationInstances, filteredDefaultValidationInstances)
-            .toArray(NumberInputWidgetValidation[]::new);
+    private static TypeBounds getTypeBounds(final TreeNode<WidgetGroup> node) {
+        final var rawClass = node.getRawClass();
+        if (rawClass.equals(long.class)) {
+            return TypeBounds.LONG;
+        }
+        if (rawClass.equals(int.class)) {
+            return TypeBounds.INTEGER;
+        }
+        if (rawClass.equals(byte.class)) {
+            return TypeBounds.BYTE;
+        }
+        return TypeBounds.NONE;
+    }
+
+    @Override
+    public TypeBounds getTypeBounds() {
+        return m_typeBounds;
     }
 
 }

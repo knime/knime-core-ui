@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 import java.util.List;
 import java.util.Map;
 
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.NumberRendererSpec.TypeBounds;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.BuiltinValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
@@ -84,16 +85,15 @@ public final class DefaultNumberValidationUtil {
     public record ValidationClassInstance<T extends BuiltinValidation>(Class<? extends T> clazz, T instance) {
     }
 
-
-    private static final Map<Class<? extends Number>, NumberValidationMinMax> //
+    private static final Map<TypeBounds, NumberValidationMinMax> //
     NUMERIC_TYPES_WITH_BUILTIN_BOUND_VALIDATION = Map.of( //
-        byte.class, new NumberValidationMinMax( //
+        TypeBounds.BYTE, new NumberValidationMinMax( //
             new NumberValidation(Byte.MIN_VALUE, null), //
             new NumberValidation(Byte.MAX_VALUE, null)), //
-        int.class, new NumberValidationMinMax( //
+        TypeBounds.INTEGER, new NumberValidationMinMax( //
             new NumberValidation(Integer.MIN_VALUE, null), //
             new NumberValidation(Integer.MAX_VALUE, null)), //
-        long.class, new NumberValidationMinMax( //
+        TypeBounds.LONG, new NumberValidationMinMax( //
             new NumberValidation(-MAX_SAFE_INTEGER, String.format( //
                 "Value too small to process without risking precision loss (< %d).", -MAX_SAFE_INTEGER)), //
             new NumberValidation(MAX_SAFE_INTEGER, String.format( //
@@ -105,15 +105,15 @@ public final class DefaultNumberValidationUtil {
      * MIN_VALUE/MAX_VALUE. For long, the MIN_SAFE_INTEGER/MAX_SAFE_INTEGER are used since using MIN_VALUE/MAX_VALUE
      * would result in precision loss.
      *
-     * @param fieldClass the class of the field for which to get the default validations
+     * @param typeBounds for which to get the default validations
      * @return the default number validations
      */
     public static List<ValidationClassInstance<NumberInputWidgetValidation>>
-        getDefaultNumberValidations(final Class<?> fieldClass) {
-        if (!NUMERIC_TYPES_WITH_BUILTIN_BOUND_VALIDATION.containsKey(fieldClass)) {
+        getDefaultNumberValidations(final TypeBounds typeBounds) {
+        if (!NUMERIC_TYPES_WITH_BUILTIN_BOUND_VALIDATION.containsKey(typeBounds)) {
             return List.of();
         }
-        final var minMax = NUMERIC_TYPES_WITH_BUILTIN_BOUND_VALIDATION.get(fieldClass);
+        final var minMax = NUMERIC_TYPES_WITH_BUILTIN_BOUND_VALIDATION.get(typeBounds);
         final var min = minMax.min();
         final var max = minMax.max();
         return List.of( //
