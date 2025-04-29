@@ -54,7 +54,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
-import org.apache.commons.math3.exception.OutOfRangeException;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -82,8 +81,8 @@ class GenericTypeFinderUtilTest {
         final var second = getNthTypeInterface(SimpleImplementation.class, 1);
         final var third = getNthTypeInterface(SimpleImplementation.class, 2);
 
-        assertThrows(OutOfRangeException.class, () -> getNthTypeInterface(SimpleImplementation.class, 3));
-        assertThrows(OutOfRangeException.class, () -> getNthTypeInterface(SimpleImplementation.class, -1));
+        assertThrows(IndexOutOfBoundsException.class, () -> getNthTypeInterface(SimpleImplementation.class, 3));
+        assertThrows(IndexOutOfBoundsException.class, () -> getNthTypeInterface(SimpleImplementation.class, -1));
 
         assertThat(first).isEqualTo(String.class);
         assertThat(second).isEqualTo(Integer.class);
@@ -179,8 +178,8 @@ class GenericTypeFinderUtilTest {
         final var second = getNthTypeClass(SimpleImplementation.class, 1);
         final var third = getNthTypeClass(SimpleImplementation.class, 2);
 
-        assertThrows(OutOfRangeException.class, () -> getNthTypeClass(SimpleImplementation.class, 3));
-        assertThrows(OutOfRangeException.class, () -> getNthTypeClass(SimpleImplementation.class, -1));
+        assertThrows(IndexOutOfBoundsException.class, () -> getNthTypeClass(SimpleImplementation.class, 3));
+        assertThrows(IndexOutOfBoundsException.class, () -> getNthTypeClass(SimpleImplementation.class, -1));
 
         assertThat(first).isEqualTo(String.class);
         assertThat(second).isEqualTo(Integer.class);
@@ -222,6 +221,38 @@ class GenericTypeFinderUtilTest {
 
         assertThat(getNthTypeClass(Descendant1.class, 2)).isEqualTo(Boolean.class);
         assertThrows(ClassCastException.class, () -> getNthTypeClass(Descendant1.class, 1));
+    }
+
+    @SuppressWarnings("unused")
+    interface GenericInterface2<A> {
+    }
+
+    static final class GenericClass<B> implements GenericInterface2<B> {
+    }
+
+    @SuppressWarnings("unused")
+    static class AnotherGenericClass<C> {
+    }
+
+    static final class TestClass extends AnotherGenericClass<GenericClass<String>> {
+
+    }
+
+    @Test
+    void testFindGenericTypedFromParameterizedTypes() {
+
+        final var parameterizedType =
+            GenericTypeFinderUtil.getFirstGenericTypeFromType(TestClass.class, AnotherGenericClass.class);
+
+        final var genericTypeFromGenericClass =
+            GenericTypeFinderUtil.getFirstGenericTypeFromType(parameterizedType, GenericClass.class);
+
+        final var genericTypeFromGenericInterface =
+            GenericTypeFinderUtil.getFirstGenericTypeFromType(parameterizedType, GenericInterface2.class);
+
+        assertThat(genericTypeFromGenericClass).isEqualTo(String.class);
+        assertThat(genericTypeFromGenericInterface).isEqualTo(String.class);
+
     }
 
 }

@@ -53,8 +53,6 @@ import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Optional;
 
-import org.apache.commons.math3.exception.OutOfRangeException;
-
 /**
  *
  * @author Paul Bärnreuther
@@ -66,12 +64,25 @@ public class GenericTypeFinderUtil {
     }
 
     /**
-     * @param clazz
+     * Extract the first generic type of the generic super interface from the given class.
+     *
+     * @param clazz the given class
      * @param genericSuperInterface the interface of clazz from which to take the generic types from
      * @return the class of the first generic type of clazz with respect to the super interface
      */
     public static <T> Type getFirstGenericType(final Class<? extends T> clazz, final Class<T> genericSuperInterface) {
         return getNthGenericType(clazz, genericSuperInterface, 0);
+    }
+
+    /**
+     * Extract the first generic type of the generic super interface from the given type.
+     *
+     * @param type eithe a class or a parameterized type
+     * @param genericSuperInterface the interface of clazz from which to take the generic types from
+     * @return the class of the first generic type of clazz with respect to the super interface
+     */
+    public static Type getFirstGenericTypeFromType(final Type type, final Class<?> genericSuperInterface) {
+        return getNthGenericTypeFromType(type, genericSuperInterface, 0);
     }
 
     /**
@@ -82,13 +93,27 @@ public class GenericTypeFinderUtil {
      */
     public static <T> Type getNthGenericType(final Class<? extends T> clazz, final Class<T> genericSuperInterface,
         final int index) {
+        return getNthGenericTypeFromType(clazz, genericSuperInterface, index);
+    }
 
-        final var genericTypes = getGenericTypes(clazz, genericSuperInterface);
+    private static <T> Type getNthGenericTypeFromType(final Type clazz, final Class<T> genericSuperInterface,
+        final int index) {
+
+        final var genericTypes = getGenericTypesFromType(clazz, genericSuperInterface);
         if (index < 0 || index + 1 > genericTypes.length) {
-            throw new OutOfRangeException(index, 0, genericTypes.length);
+            throw new IndexOutOfBoundsException(index);
         }
         return genericTypes[index];
 
+    }
+
+    private static Type[] getGenericTypesFromType(final Type type, final Class<?> goalType) {
+        if (type instanceof ParameterizedType pt) {
+            return matchAndGetTypes(pt, goalType).orElseGet(() -> getGenericTypes(pt, goalType));
+        } else if (type instanceof Class<?> clazz) {
+            return getGenericTypes(clazz, goalType);
+        }
+        throw new IllegalArgumentException("Type is neither a parameterized type nor a class");
     }
 
     private static Type[] getGenericTypes(final Class<?> clazz, final Class<?> goalType) {
@@ -141,16 +166,6 @@ public class GenericTypeFinderUtil {
         return Optional.empty();
     }
 
-    private static Type[] repeatForSuperclass(final Class<?> clazz, final Class<?> goalType) {
-        final var superClass = clazz.getSuperclass();
-        final var superClassResult = getGenericTypes(superClass, goalType);
-        final var genericSuperClass = clazz.getGenericSuperclass();
-        if (genericSuperClass instanceof ParameterizedType pt) {
-            return replaceByActualType(superClass, superClassResult, pt);
-        }
-        return superClassResult;
-    }
-
     private static Optional<Type[]> repeatForSuperInterface(final Type superInterface, final Class<?> goalType) {
         if (superInterface instanceof ParameterizedType pt) {
             final var rawType = pt.getRawType();
@@ -166,6 +181,20 @@ public class GenericTypeFinderUtil {
             }
         }
         return Optional.empty();
+    }
+
+    private static Type[] repeatForSuperclass(final Class<?> clazz, final Class<?> goalType) {
+        if (clazz.getGenericSuperclass() instanceof ParameterizedType pt) {
+            return getGenericTypes(pt, goalType);
+        } else {
+            return getGenericTypes(clazz.getSuperclass(), goalType);
+        }
+    }
+
+    private static Type[] getGenericTypes(final ParameterizedType type, final Class<?> goalType) {
+        final var rawType = (Class<?>)type.getRawType();
+        final var extractedTypesWithTypeVariables = getGenericTypes(rawType, goalType);
+        return replaceByActualType(rawType, extractedTypesWithTypeVariables, type);
     }
 
     /**
