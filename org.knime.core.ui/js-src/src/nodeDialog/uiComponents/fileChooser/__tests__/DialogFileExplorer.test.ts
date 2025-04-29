@@ -131,7 +131,10 @@ describe("DialogFileExplorer.vue", () => {
     expect(wrapper.findComponent(FileExplorer).exists()).toBeTruthy();
     const explorerProps = wrapper.findComponent(FileExplorer).props();
     expect(explorerProps.items).toStrictEqual(
-      folderFromBackend.items.map(toFileExplorerItem),
+      folderFromBackend.items.map((i) => ({
+        ...toFileExplorerItem(i),
+        disabled: false,
+      })),
     );
     expect(explorerProps.isRootFolder).toBeTruthy();
   });

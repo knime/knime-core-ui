@@ -52,13 +52,11 @@ const selectedItem = ref<SelectedItem>(null);
 
 const allItemsInCurrentFolder = ref<FileExplorerItem[]>([]);
 
-// TODO(UIEXT-2660): we need to make these items disabled, not hidden. Currently
-// this isn't nicely supported by the WAC component, so we will push
-// it to a follow-up ticket.
 const displayedItemsInCurrentFolder = computed(() =>
-  allItemsInCurrentFolder.value.filter(
-    (item) => props.selectionMode === "FILE" || item.isDirectory,
-  ),
+  allItemsInCurrentFolder.value.map((item) => ({
+    ...item,
+    ...{ disabled: props.selectionMode === "FOLDER" && !item.isDirectory },
+  })),
 );
 
 const breadcrumbItems = computed(() =>
