@@ -56,8 +56,8 @@ import java.util.Optional;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidation.DateTimeStringFormatValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidation.DateTimeTemporalFormatValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil.DateTimeStringFormatValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil.DateTimeTemporalFormatValidation;
 
 /**
  * Utility class to retrieve the builtin external validation class name for the given annotation and field class, e.g.

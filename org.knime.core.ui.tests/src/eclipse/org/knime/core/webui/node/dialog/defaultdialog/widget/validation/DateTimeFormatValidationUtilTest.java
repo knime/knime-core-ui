@@ -44,60 +44,75 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   23 Apr 2025 (Robin Gerling): created
+ *   29 Apr 2025 (Robin Gerling): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.validation;
 
-import java.time.format.DateTimeFormatter;
-import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil.validateFormat;
 
+import java.util.stream.Stream;
+
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
 
 /**
- * Specifies the built-in external validation for date&time formats of fields using the
- * {@link DateTimeFormatPickerWidget}.
  *
- * @param <T> the type of the settings field
  * @author Robin Gerling
  */
-public abstract sealed class DateTimeFormatValidation<T> extends ExternalValidation<T> {
+public class DateTimeFormatValidationUtilTest {
 
-    /**
-     *
-     * @return the format to validate as string
-     */
-    abstract String getFormatAsString(final T currentFormat);
-
-    @Override
-    public final Optional<String> validate(final T currentFormat) {
-        try {
-            DateTimeFormatter.ofPattern(getFormatAsString(currentFormat));
-        } catch (IllegalArgumentException ex) {
-            return Optional.of("Invalid format: %s".formatted(ex.getMessage()));
-        }
-        return Optional.empty();
+    static Stream<String> getValidStringFormats() {
+        return Stream.of("yyyy-MM-dd", "HH:mm:ss", "yyyyyyyy-MM-dd");
     }
 
-    /**
-     * The class used if the settings field uses the type {@link String}.
-     */
-    public static final class DateTimeStringFormatValidation extends DateTimeFormatValidation<String> {
-        @Override
-        String getFormatAsString(final String currentFormat) {
-            return currentFormat;
-        }
+    static Stream<TemporalFormat> getValidTemporalFormats() {
+        return Stream.of( //
+            new TemporalFormat("yyyy-MM-dd", FormatTemporalType.DATE), //
+            new TemporalFormat("HH:mm:ss", FormatTemporalType.TIME), //
+            new TemporalFormat("yyyy-MM-dd HH:mm:ss", FormatTemporalType.DATE_TIME), //
+            new TemporalFormat("yyyyyyyyyy-MM-dd'T'HH:mm:ss.SSSVV", FormatTemporalType.ZONED_DATE_TIME) //
+        );
     }
 
-    /**
-     * The class used if the settings field uses the type {@link TemporalFormat}.
-     *
-     */
-    public static final class DateTimeTemporalFormatValidation extends DateTimeFormatValidation<TemporalFormat> {
-        @Override
-        String getFormatAsString(final TemporalFormat currentFormat) {
-            return currentFormat.format();
-        }
+    @ParameterizedTest
+    @MethodSource("getValidStringFormats")
+    void testValidateFormatValidString(final String format) {
+        assertDoesNotThrow(() -> validateFormat(format));
     }
 
+    @ParameterizedTest
+    @MethodSource("getValidTemporalFormats")
+    void testValidateFormatValidTemporals(final TemporalFormat temporalFormat) {
+        assertDoesNotThrow(() -> validateFormat(temporalFormat));
+    }
+
+    static Stream<String> getInvalidStringFormats() {
+        return Stream.of("b", "yyyy-MM-dddd", "yyyyyyyyyyyyyyy-MM-dd");
+    }
+
+    static Stream<TemporalFormat> getInvalidTemporalFormats() {
+        return Stream.of( //
+            new TemporalFormat("HH:mm:ss", FormatTemporalType.DATE), //
+            new TemporalFormat("yyyy-MM-dd", FormatTemporalType.TIME), //
+            new TemporalFormat("yyyy-MM-dd'T'HH:mm:ss.SSSVV", FormatTemporalType.DATE_TIME), //
+            new TemporalFormat("b", FormatTemporalType.ZONED_DATE_TIME) //
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("getInvalidStringFormats")
+    void testValidateFormatInvalidStrings(final String format) {
+        assertThrows(InvalidSettingsException.class, () -> validateFormat(format));
+    }
+
+    @ParameterizedTest
+    @MethodSource("getInvalidTemporalFormats")
+    void testValidateFormatInvalidTemporals(final TemporalFormat temporalFormat) {
+        assertThrows(InvalidSettingsException.class, () -> validateFormat(temporalFormat));
+    }
 }

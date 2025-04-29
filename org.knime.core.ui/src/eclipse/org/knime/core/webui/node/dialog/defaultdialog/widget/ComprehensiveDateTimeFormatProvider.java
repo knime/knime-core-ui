@@ -55,15 +55,11 @@ import static org.knime.core.webui.node.dialog.defaultdialog.setting.temporalfor
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory.AMERICAN;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory.EUROPEAN;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory.STANDARD;
+import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil.isTypeCompatibleWithPattern;
 
-import java.time.DateTimeException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.time.temporal.Temporal;
 import java.time.temporal.TemporalQuery;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -243,29 +239,6 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
         return Arrays.stream(FormatTemporalType.values()) //
             .filter(type -> isTypeCompatibleWithPattern(pattern, type)) //
             .toList();
-    }
-
-    /**
-     * Is a given type compatible with a given pattern?
-     *
-     * @param pattern the pattern like 'yyyy-MM-dd'.
-     * @param type the type with which to check compatibility.
-     * @return true if the type is compatible with the pattern, else false
-     */
-    private static boolean isTypeCompatibleWithPattern(final String pattern, final FormatTemporalType type) {
-        Temporal toFormat = switch (type) {
-            case DATE -> LocalDate.now();
-            case TIME -> LocalTime.now();
-            case DATE_TIME -> LocalDateTime.now();
-            case ZONED_DATE_TIME -> ZonedDateTime.now();
-        };
-
-        try {
-            DateTimeFormatter.ofPattern(pattern).format(toFormat);
-            return true;
-        } catch (DateTimeException ex) { // NOSONAR we are just using this for flow control
-            return false;
-        }
     }
 
     /**

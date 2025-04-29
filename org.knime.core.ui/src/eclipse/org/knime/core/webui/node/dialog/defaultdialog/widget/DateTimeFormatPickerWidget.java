@@ -57,9 +57,12 @@ import java.time.format.DateTimeFormatter;
 
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil;
 
 /**
- * A widget to pick a date/time/date-time format.
+ * A widget to pick a date/time/date-time format. Nodes using this widget should validate the setting via
+ * {@link DateTimeFormatValidationUtil#validateFormat} in the node model because the same validation is used to display
+ * an inline error in the frontend.
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
