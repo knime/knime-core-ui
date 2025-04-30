@@ -56,11 +56,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQuery;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.DefaultFieldPersistor;
 
 /**
  * A record representing a temporal format. The format is a string that can be used to format a temporal object using
@@ -134,37 +130,5 @@ public class TemporalFormat implements PersistableSettings {
         public TemporalQuery<TemporalAccessor> associatedQuery() {
             return m_associatedQuery;
         }
-    }
-
-    /**
-     * Default persistor for {@link TemporalFormat}.
-     */
-    public static class TemporalFormatPersistor implements DefaultFieldPersistor<TemporalFormat> {
-
-        private final String m_configKey;
-
-        private static final String CFG_KEY_FORMAT = "format";
-
-        private static final String CFG_KEY_TEMPORAL_TYPE = "temporalType";
-
-        public TemporalFormatPersistor(final String configKey) {
-            m_configKey = configKey;
-        }
-
-        @Override
-        public void save(final TemporalFormat value, final NodeSettingsWO nodeSettings) {
-            var config = nodeSettings.addConfig(m_configKey);
-            config.addString(CFG_KEY_FORMAT, value.format());
-            config.addString(CFG_KEY_TEMPORAL_TYPE, value.temporalType().name());
-        }
-
-        @Override
-        public TemporalFormat load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            var config = settings.getConfig(m_configKey);
-            var format = config.getString(CFG_KEY_FORMAT);
-            var temporalType = FormatTemporalType.valueOf(config.getString(CFG_KEY_TEMPORAL_TYPE));
-            return new TemporalFormat(format, temporalType);
-        }
-
     }
 }

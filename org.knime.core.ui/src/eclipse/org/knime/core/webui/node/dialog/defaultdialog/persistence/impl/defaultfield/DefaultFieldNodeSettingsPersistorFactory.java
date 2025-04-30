@@ -82,7 +82,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Creden
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.filehandling.core.connections.FSLocation;
 
@@ -161,8 +160,6 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
             return (DefaultFieldPersistor<T>)createCredentialsPersistor(configKey);
         } else if (fieldType.equals(FSLocation.class)) {
             return (DefaultFieldPersistor<T>)createFSLocationPersistor(configKey);
-        } else if (fieldType.equals(TemporalFormat.class)) {
-            return (DefaultFieldPersistor<T>)createTemporalFormatPersistor(configKey);
         } else {
             throw new IllegalArgumentException(
                 String.format("No default persistor available for type '%s'.", fieldType));
@@ -279,10 +276,6 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
 
     private static DefaultFieldPersistor<FSLocation> createFSLocationPersistor(final String configKey) {
         return new FSLocationPersistor(configKey);
-    }
-
-    private static DefaultFieldPersistor<TemporalFormat> createTemporalFormatPersistor(final String configKey) {
-        return new TemporalFormat.TemporalFormatPersistor(configKey);
     }
 
     private DefaultFieldNodeSettingsPersistorFactory() {
