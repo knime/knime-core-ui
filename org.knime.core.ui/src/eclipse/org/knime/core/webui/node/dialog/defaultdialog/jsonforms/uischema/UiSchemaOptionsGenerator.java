@@ -133,7 +133,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.OptionalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextAreaWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
@@ -524,12 +523,6 @@ final class UiSchemaOptionsGenerator {
 
         if (annotatedWidgets.contains(OptionalWidget.class)) {
             options.put("hideOnNull", true);
-        }
-
-        if (annotatedWidgets.contains(TextAreaWidget.class)) {
-            final var textAreaWidget = m_node.getAnnotation(TextAreaWidget.class).orElseThrow();
-            options.put(TAG_FORMAT, Format.TEXT_AREA);
-            options.put("rows", textAreaWidget.rows());
         }
 
         if (m_node instanceof ArrayParentNode<WidgetGroup> arrayWidgetNode) {

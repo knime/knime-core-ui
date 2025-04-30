@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
 
+import java.lang.annotation.Annotation;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.function.Function;
@@ -56,10 +57,14 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextAreaWidget;
 
 /**
+ * Responsible for creating the renderer specs for the widget tree leafes.
  *
  * @author Paul Bärnreuther
  */
@@ -72,6 +77,9 @@ public class WidgetTreeRenderers {
     }
 
     static final WidgetTreeNodeTester[] TESTERS = new WidgetTreeNodeTester[]{//
+        new WidgetTreeNodeTester(//
+            node -> new TextAreaRenderer(node, getPresentAnnotation(node, TextAreaWidget.class)), //
+            hasAnnotationAssertingType(TextAreaWidget.class, String.class)), //
         new WidgetTreeNodeTester(TextRenderer::new, //
             node -> String.class.equals(node.getRawClass())), //
         new WidgetTreeNodeTester(IntegerRenderer::new,
@@ -84,11 +92,47 @@ public class WidgetTreeRenderers {
             node -> LocalDate.class.equals(node.getRawClass())) //
     };
 
+    private static Predicate<TreeNode<WidgetGroup>> hasAnnotation(final Class<? extends Annotation> annotationClass) {
+        return node -> node.getAnnotation(annotationClass).isPresent();
+    }
+
+    private static Predicate<TreeNode<WidgetGroup>>
+        hasAnnotationAssertingType(final Class<? extends Annotation> annotationClass, final Class<?> expectedType) {
+        return node -> {
+            final var hasAnnotation = hasAnnotation(annotationClass).test(node);
+            if (hasAnnotation) {
+                throwIfWrongType(expectedType, node, annotationClass);
+            }
+            return hasAnnotation;
+        };
+    }
+
+    private static void throwIfWrongType(final Class<?> expectedType, final TreeNode<WidgetGroup> node,
+        final Class<? extends Annotation> annotationClass) {
+        final var fieldClass = node.getRawClass();
+        if (!fieldClass.equals(expectedType)) {
+            throw new UiSchemaGenerationException(
+                String.format("The annotation %s is not applicable for setting field %s with type %s",
+                    annotationClass.getSimpleName(), String.join(".", node.getPath()), fieldClass));
+        }
+    }
+
+    /**
+     * We assume that {@link hasAnnotation} is already checked.
+     */
+    private static <T extends Annotation> T getPresentAnnotation(final TreeNode<WidgetGroup> node,
+        final Class<T> annotationClass) {
+        return node.getAnnotation(annotationClass).orElseThrow(IllegalStateException::new);
+    }
+
     /**
      * @param node the node to check
      * @return the renderer spec for the given node or {@code null} if not supported
      */
     public static ControlRendererSpec getRendererSpec(final TreeNode<WidgetGroup> node) {
+        if (!(node instanceof LeafNode<WidgetGroup>)) {
+            return null;
+        }
         return Stream.of(TESTERS).filter(tester -> tester.tester().test(node))//
             .findFirst()//
             .map(tester -> tester.creator().apply(node))//
