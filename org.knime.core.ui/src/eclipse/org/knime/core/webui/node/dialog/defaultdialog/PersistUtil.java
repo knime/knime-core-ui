@@ -68,6 +68,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistabl
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigKeyUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.PersistenceFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.OptionalPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
@@ -141,15 +142,21 @@ public final class PersistUtil {
             final var configKey = ConfigKeyUtil.getConfigKey(node);
             final var defaultPersistor = DefaultFieldNodeSettingsPersistorFactory.createPersistor(node, configKey);
             final var subConfigPaths = defaultPersistor.getSubConfigPath();
-            return getNested(node, handleSubConfigPaths(objectNode, configKey, subConfigPaths));
+            return getNested(node, addConfigPathsIfPresent(objectNode, configKey, subConfigPaths, node.isOptional()));
         }
 
-        private static ObjectNode handleSubConfigPaths(final ObjectNode objectNode, final String configKey,
-            final Optional<List<String>> subConfigPaths) {
-            if (subConfigPaths.isPresent()) {
-                final var configPath =
-                    Stream.concat(Stream.of(configKey), subConfigPaths.get().stream()).toArray(String[]::new);
-                return addConfigPaths(objectNode, "configPaths", new String[][]{configPath});
+        private static ObjectNode addConfigPathsIfPresent(final ObjectNode objectNode, final String configKey,
+            final Optional<List<String>> subConfigPaths, final boolean isOptional) {
+            final var isPresentKey =
+                Optional.of(OptionalPersistor.toIsPresentCfgKey(configKey)).filter(path -> isOptional);
+            final var isPresentPath = isPresentKey.map(path -> new String[]{path});
+            final var subConfigPath =
+                subConfigPaths.map(sub -> Stream.concat(Stream.of(configKey), sub.stream()).toArray(String[]::new));
+            if (isPresentPath.isPresent() || subConfigPath.isPresent()) {
+                final var valueConfigPath = subConfigPath.or(() -> Optional.of(new String[]{configKey}));
+                final var configPaths =
+                    Stream.of(isPresentPath, valueConfigPath).flatMap(Optional::stream).toArray(String[][]::new);
+                return addConfigPaths(objectNode, "configPaths", configPaths);
             }
             return objectNode;
         }

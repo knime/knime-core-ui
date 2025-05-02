@@ -87,8 +87,6 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
 
     private final JavaType m_type;
 
-    private final Class<?> m_rawClass;
-
     private final SettingsType m_settingsType;
 
     final Map<Class<? extends Annotation>, Annotation> m_annotations;
@@ -101,18 +99,16 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
      * @param parent the parent widget tree or {@code null} if it's the root
      * @param settingsType
      * @param type the type this widget tree node represents
-     * @param rawClass the raw class of that type
      * @param annotations function to get get the 'annotation instance' for an annotation class; function returns
      *            {@code null} if there is none
      * @param possibleAnnotations all allowed annotations
      * @param underlyingField used to get or set parent values
      */
     protected TreeNode(final Tree<S> parent, final SettingsType settingsType, final JavaType type,
-        final Class<?> rawClass, final Function<Class<? extends Annotation>, Annotation> annotations,
+        final Function<Class<? extends Annotation>, Annotation> annotations,
         final Collection<Class<? extends Annotation>> possibleAnnotations, final Field underlyingField) {
         m_parent = parent;
         m_type = type;
-        m_rawClass = rawClass;
         m_settingsType = settingsType;
         m_annotations = toMap(annotations, possibleAnnotations);
         m_possibleAnnotations = possibleAnnotations;
@@ -311,19 +307,34 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
      * @return the type
      */
     public JavaType getType() {
+        if (isOptional()) {
+            return m_type.containedType(0);
+        }
         return m_type;
     }
 
     /**
-     * @return the type
+     * @return true if this node is an optional field
+     */
+    public boolean isOptional() {
+        return m_type.getRawClass() == Optional.class;
+    }
+
+    /**
+     * In most regards {@link Optional} fields are handled like their contained class. So this method allows to get the
+     * contained class in case the raw class is Optional.class.
+     *
+     * Use {@link #isOptional} to check if this is the case.
+     *
+     * @return the raw class or the contained class if the raw class is Optional.class
      */
     public Class<?> getRawClass() {
-        return m_rawClass;
+        return getType().getRawClass();
     }
 
     @Override
     public String toString() {
-        return String.format("%s at %s", m_rawClass.getSimpleName(), getPath());
+        return String.format("%s%s at %s", isOptional() ? "Optional " : "", getRawClass().getSimpleName(), getPath());
     }
 
 }

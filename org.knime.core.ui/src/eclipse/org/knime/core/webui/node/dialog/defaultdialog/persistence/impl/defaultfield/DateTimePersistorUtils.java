@@ -64,7 +64,7 @@ import java.util.function.Function;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.DefaultFieldPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.OptionalContentPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
@@ -81,7 +81,7 @@ final class DateTimePersistorUtils {
         // utility class
     }
 
-    static final class LocalDatePersistor implements DefaultFieldPersistor<LocalDate> {
+    static final class LocalDatePersistor implements OptionalContentPersistor<LocalDate> {
 
         private final String m_configKey;
 
@@ -110,9 +110,14 @@ final class DateTimePersistorUtils {
             return parseTemporal(s, List.of(ZonedDateTime::parse, LocalDateTime::parse, LocalDate::parse), "date");
         }
 
+        @Override
+        public void saveEmpty(final NodeSettingsWO settings) {
+            settings.addString(m_configKey, null);
+        }
+
     }
 
-    static final class LocalTimePersistor implements DefaultFieldPersistor<LocalTime> {
+    static final class LocalTimePersistor implements OptionalContentPersistor<LocalTime> {
 
         private final String m_configKey;
 
@@ -148,6 +153,11 @@ final class DateTimePersistorUtils {
             settings.addString(m_configKey, obj == null ? null : obj.format(TIME_FMT));
         }
 
+        @Override
+        public void saveEmpty(final NodeSettingsWO settings) {
+            settings.addString(m_configKey, null);
+        }
+
         private static Temporal parseTimeTemporal(final String s) throws InvalidSettingsException {
             // flow variables can have any format including the time for convenience
             return parseTemporal(s, List.of(ZonedDateTime::parse, LocalDateTime::parse, LocalTime::parse), "time");
@@ -155,7 +165,7 @@ final class DateTimePersistorUtils {
 
     }
 
-    static final class LocalDateTimePersistor implements DefaultFieldPersistor<LocalDateTime> {
+    static final class LocalDateTimePersistor implements OptionalContentPersistor<LocalDateTime> {
 
         private final String m_configKey;
 
@@ -180,9 +190,14 @@ final class DateTimePersistorUtils {
         public void save(final LocalDateTime obj, final NodeSettingsWO settings) {
             settings.addString(m_configKey, obj == null ? null : obj.format(DATE_TIME_FMT));
         }
+
+        @Override
+        public void saveEmpty(final NodeSettingsWO settings) {
+            settings.addString(m_configKey, null);
+        }
     }
 
-    static final class ZonedDateTimePersistor implements DefaultFieldPersistor<ZonedDateTime> {
+    static final class ZonedDateTimePersistor implements OptionalContentPersistor<ZonedDateTime> {
 
         private final String m_configKey;
 
@@ -207,9 +222,14 @@ final class DateTimePersistorUtils {
         public void save(final ZonedDateTime obj, final NodeSettingsWO settings) {
             settings.addString(m_configKey, obj == null ? null : obj.format(DATE_TIME_FMT));
         }
+
+        @Override
+        public void saveEmpty(final NodeSettingsWO settings) {
+            settings.addString(m_configKey, null);
+        }
     }
 
-    static final class TimeZonePersistor implements DefaultFieldPersistor<ZoneId> {
+    static final class TimeZonePersistor implements OptionalContentPersistor<ZoneId> {
 
         private final String m_configKey;
 
@@ -241,9 +261,14 @@ final class DateTimePersistorUtils {
             settings.addString(m_configKey, obj == null ? null : obj.getId());
         }
 
+        @Override
+        public void saveEmpty(final NodeSettingsWO settings) {
+            settings.addString(m_configKey, null);
+        }
+
     }
 
-    static final class IntervalPersistor implements DefaultFieldPersistor<Interval> {
+    static final class IntervalPersistor implements OptionalContentPersistor<Interval> {
 
         private final String m_configKey;
 
@@ -267,9 +292,14 @@ final class DateTimePersistorUtils {
             settings.addString(m_configKey, interval.toISOString());
         }
 
+        @Override
+        public void saveEmpty(final NodeSettingsWO settings) {
+            settings.addString(m_configKey, null);
+        }
+
     }
 
-    static final class DateIntervalPersistor implements DefaultFieldPersistor<DateInterval> {
+    static final class DateIntervalPersistor implements OptionalContentPersistor<DateInterval> {
 
         private final String m_configKey;
 
@@ -300,9 +330,14 @@ final class DateTimePersistorUtils {
             settings.addString(m_configKey, interval.toISOString());
         }
 
+        @Override
+        public void saveEmpty(final NodeSettingsWO settings) {
+            settings.addString(m_configKey, null);
+        }
+
     }
 
-    static final class TimeIntervalPersistor implements DefaultFieldPersistor<TimeInterval> {
+    static final class TimeIntervalPersistor implements OptionalContentPersistor<TimeInterval> {
 
         private final String m_configKey;
 
@@ -331,6 +366,11 @@ final class DateTimePersistorUtils {
         @Override
         public void save(final TimeInterval interval, final NodeSettingsWO settings) {
             settings.addString(m_configKey, interval.toISOString());
+        }
+
+        @Override
+        public void saveEmpty(final NodeSettingsWO settings) {
+            settings.addString(m_configKey, null);
         }
 
     }

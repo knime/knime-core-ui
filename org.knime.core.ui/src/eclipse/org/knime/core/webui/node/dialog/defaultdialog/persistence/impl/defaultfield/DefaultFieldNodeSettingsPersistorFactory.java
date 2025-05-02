@@ -60,7 +60,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.knime.core.data.DataType;
+import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -108,6 +110,17 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
     }
 
     /**
+     * In addition to {@link DefaultFieldPersistor} this interface is used to save empty settings in case the value is
+     * used as content type for an optional field and the optional is currently emtpy.
+     *
+     * @param <S> the type of the settings object
+     *
+     */
+    public interface OptionalContentPersistor<S> extends DefaultFieldPersistor<S>, EmptySettingsSaver {
+
+    }
+
+    /**
      *
      * @param node
      * @param configKey
@@ -115,7 +128,11 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
      */
     public static DefaultFieldPersistor<?> createPersistor(final LeafNode<PersistableSettings> node,
         final String configKey) {
-        return createPersistor(node.getRawClass(), configKey);
+        final var fieldPersistor = createPersistor(node.getRawClass(), configKey);
+        if (node.isOptional()) {
+            return new OptionalPersistor<>(fieldPersistor, configKey);
+        }
+        return fieldPersistor;
     }
 
     /**
@@ -127,39 +144,39 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
      * @return a new persistor
      * @throws IllegalArgumentException if there is no persistor available for the provided fieldType
      */
-    public static <T> DefaultFieldPersistor<T> createPersistor(final Class<T> fieldType, final String configKey) {
+    static <T> OptionalContentPersistor<T> createPersistor(final Class<T> fieldType, final String configKey) {
         @SuppressWarnings("unchecked") // Type-save since IMPL_MAP maps Class<T> to FieldPersistor<T>
-        var impl = (FieldPersistor<T>)IMPL_MAP.get(fieldType);
+        var impl = (FieldPersistor<T>)IMPL_MAP.get(ClassUtils.primitiveToWrapper(fieldType));
         return createPersistorFromImpl(fieldType, configKey, impl);
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> DefaultFieldPersistor<T> createPersistorFromImpl(final Class<T> fieldType,
+    private static <T> OptionalContentPersistor<T> createPersistorFromImpl(final Class<T> fieldType,
         final String configKey, final FieldPersistor<T> impl) {
         if (impl != null) {
             return new DefaultFieldNodeSettingsPersistor<>(configKey, impl);
         } else if (fieldType.isEnum()) {
             return createEnumPersistor(configKey, fieldType);
         } else if (fieldType.equals(LocalDate.class)) {
-            return (DefaultFieldPersistor<T>)createLocalDatePersistor(configKey);
+            return (OptionalContentPersistor<T>)createLocalDatePersistor(configKey);
         } else if (fieldType.equals(LocalTime.class)) {
-            return (DefaultFieldPersistor<T>)createLocalTimePersistor(configKey);
+            return (OptionalContentPersistor<T>)createLocalTimePersistor(configKey);
         } else if (fieldType.equals(LocalDateTime.class)) {
-            return (DefaultFieldPersistor<T>)createLocalDateTimePersistor(configKey);
+            return (OptionalContentPersistor<T>)createLocalDateTimePersistor(configKey);
         } else if (fieldType.equals(ZonedDateTime.class)) {
-            return (DefaultFieldPersistor<T>)createZonedDateTimePersistor(configKey);
+            return (OptionalContentPersistor<T>)createZonedDateTimePersistor(configKey);
         } else if (fieldType.equals(ZoneId.class)) {
-            return (DefaultFieldPersistor<T>)createTimeZonePersistor(configKey);
+            return (OptionalContentPersistor<T>)createTimeZonePersistor(configKey);
         } else if (fieldType.equals(Interval.class)) {
-            return (DefaultFieldPersistor<T>)createIntervalPersistor(configKey);
+            return (OptionalContentPersistor<T>)createIntervalPersistor(configKey);
         } else if (fieldType.equals(DateInterval.class)) {
-            return (DefaultFieldPersistor<T>)createDateIntervalPersistor(configKey);
+            return (OptionalContentPersistor<T>)createDateIntervalPersistor(configKey);
         } else if (fieldType.equals(TimeInterval.class)) {
-            return (DefaultFieldPersistor<T>)createTimeIntervalPersistor(configKey);
+            return (OptionalContentPersistor<T>)createTimeIntervalPersistor(configKey);
         } else if (fieldType.equals(Credentials.class)) {
-            return (DefaultFieldPersistor<T>)createCredentialsPersistor(configKey);
+            return (OptionalContentPersistor<T>)createCredentialsPersistor(configKey);
         } else if (fieldType.equals(FSLocation.class)) {
-            return (DefaultFieldPersistor<T>)createFSLocationPersistor(configKey);
+            return (OptionalContentPersistor<T>)createFSLocationPersistor(configKey);
         } else {
             throw new IllegalArgumentException(
                 String.format("No default persistor available for type '%s'.", fieldType));
@@ -174,35 +191,49 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
      */
     private enum PersistorImpl {
             VOID(Void.class, (s, k) -> null, (v, s, k) -> {
+            }, (s, k) -> {
             }), //
-            INT(int.class, ConfigBaseRO::getInt, (v, s, k) -> s.addInt(k, v)),
-            DOUBLE(double.class, ConfigBaseRO::getDouble, (v, s, k) -> s.addDouble(k, v)),
-            LONG(long.class, ConfigBaseRO::getLong, (v, s, k) -> s.addLong(k, v)),
-            STRING(String.class, ConfigBaseRO::getString, (v, s, k) -> s.addString(k, v)),
-            BOOLEAN(boolean.class, ConfigBaseRO::getBoolean, (v, s, k) -> s.addBoolean(k, v)),
-            FLOAT(float.class, ConfigBaseRO::getFloat, (v, s, k) -> s.addFloat(k, v)),
-            CHAR(char.class, ConfigBaseRO::getChar, (v, s, k) -> s.addChar(k, v)),
-            BYTE(byte.class, ConfigBaseRO::getByte, (v, s, k) -> s.addByte(k, v)),
-            INT_ARRAY(int[].class, ConfigBaseRO::getIntArray, (v, s, k) -> s.addIntArray(k, v)),
-            DOUBLE_ARRAY(double[].class, ConfigBaseRO::getDoubleArray, (v, s, k) -> s.addDoubleArray(k, v)),
-            LONG_ARRAY(long[].class, ConfigBaseRO::getLongArray, (v, s, k) -> s.addLongArray(k, v)),
-            STRING_ARRAY(String[].class, ConfigBaseRO::getStringArray, (v, s, k) -> s.addStringArray(k, v)),
-            BOOLEAN_ARRAY(boolean[].class, ConfigBaseRO::getBooleanArray, (v, s, k) -> s.addBooleanArray(k, v)),
-            FLOAT_ARRAY(float[].class, ConfigBaseRO::getFloatArray, (v, s, k) -> s.addFloatArray(k, v)),
-            CHAR_ARRAY(char[].class, ConfigBaseRO::getCharArray, (v, s, k) -> s.addCharArray(k, v)),
-            BYTE_ARRAY(byte[].class, ConfigBaseRO::getByteArray, (v, s, k) -> s.addByteArray(k, v)),
-            DATA_TYPE(DataType.class, ConfigRO::getDataType, (v, s, k) -> s.addDataType(k, v), List.of("cell_class"));
+            INT(Integer.class, ConfigBaseRO::getInt, (v, s, k) -> s.addInt(k, v), (s, k) -> s.addInt(k, 0)),
+            DOUBLE(Double.class, ConfigBaseRO::getDouble, (v, s, k) -> s.addDouble(k, v),
+                (s, k) -> s.addDouble(k, 0.0)),
+            LONG(Long.class, ConfigBaseRO::getLong, (v, s, k) -> s.addLong(k, v), (s, k) -> s.addLong(k, 0L)),
+            STRING(String.class, ConfigBaseRO::getString, (v, s, k) -> s.addString(k, v),
+                (s, k) -> s.addString(k, null)),
+            BOOLEAN(Boolean.class, ConfigBaseRO::getBoolean, (v, s, k) -> s.addBoolean(k, v),
+                (s, k) -> s.addBoolean(k, false)),
+            FLOAT(Float.class, ConfigBaseRO::getFloat, (v, s, k) -> s.addFloat(k, v), (s, k) -> s.addFloat(k, 0.0f)),
+            CHAR(Character.class, ConfigBaseRO::getChar, (v, s, k) -> s.addChar(k, v), (s, k) -> s.addChar(k, ' ')),
+            BYTE(Byte.class, ConfigBaseRO::getByte, (v, s, k) -> s.addByte(k, v), (s, k) -> s.addByte(k, (byte)0)),
+            INT_ARRAY(int[].class, ConfigBaseRO::getIntArray, (v, s, k) -> s.addIntArray(k, v),
+                (s, k) -> s.addIntArray(k, new int[0])),
+            DOUBLE_ARRAY(double[].class, ConfigBaseRO::getDoubleArray, (v, s, k) -> s.addDoubleArray(k, v),
+                (s, k) -> s.addDoubleArray(k, new double[0])),
+            LONG_ARRAY(long[].class, ConfigBaseRO::getLongArray, (v, s, k) -> s.addLongArray(k, v),
+                (s, k) -> s.addLongArray(k, new long[0])),
+            STRING_ARRAY(String[].class, ConfigBaseRO::getStringArray, (v, s, k) -> s.addStringArray(k, v),
+                (s, k) -> s.addStringArray(k, new String[0])),
+            BOOLEAN_ARRAY(boolean[].class, ConfigBaseRO::getBooleanArray, (v, s, k) -> s.addBooleanArray(k, v),
+                (s, k) -> s.addBooleanArray(k, new boolean[0])),
+            FLOAT_ARRAY(float[].class, ConfigBaseRO::getFloatArray, (v, s, k) -> s.addFloatArray(k, v),
+                (s, k) -> s.addFloatArray(k, new float[0])),
+            CHAR_ARRAY(char[].class, ConfigBaseRO::getCharArray, (v, s, k) -> s.addCharArray(k, v),
+                (s, k) -> s.addCharArray(k, new char[0])),
+            BYTE_ARRAY(byte[].class, ConfigBaseRO::getByteArray, (v, s, k) -> s.addByteArray(k, v),
+                (s, k) -> s.addByteArray(k, new byte[0])),
+            DATA_TYPE(DataType.class, ConfigRO::getDataType, (v, s, k) -> s.addDataType(k, v),
+                (s, k) -> s.addDataType(k, StringCell.TYPE), List.of("cell_class"));
 
         private final Class<?> m_type;
 
         private final FieldPersistor<?> m_fieldPersistor;
 
-        <T> PersistorImpl(final Class<T> type, final FieldLoader<T> loader, final FieldSaver<T> saver) {
-            this(type, loader, saver, null);
+        <T> PersistorImpl(final Class<T> type, final FieldLoader<T> loader, final FieldSaver<T> saver,
+            final EmptyFieldSaver emptySaver) {
+            this(type, loader, saver, emptySaver, null);
         }
 
         <T> PersistorImpl(final Class<T> type, final FieldLoader<T> loader, final FieldSaver<T> saver,
-            final List<String> subConfigPaths) {
+            final EmptyFieldSaver emptySaver, final List<String> subConfigPaths) {
             m_type = type;
             m_fieldPersistor = new FieldPersistor<T>() {
 
@@ -221,6 +252,11 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
                     return Optional.ofNullable(subConfigPaths);
                 }
 
+                @Override
+                public void saveEmpty(final NodeSettingsWO settings, final String configKey) {
+                    emptySaver.saveEmpty(settings, configKey);
+                }
+
             };
         }
 
@@ -234,47 +270,48 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static <T> DefaultFieldPersistor<T> createEnumPersistor(final String configKey, final Class<T> fieldType) {
+    private static <T> OptionalContentPersistor<T> createEnumPersistor(final String configKey,
+        final Class<T> fieldType) {
         return new EnumFieldPersistor<>(configKey, (Class)fieldType);
     }
 
-    private static DefaultFieldPersistor<LocalDate> createLocalDatePersistor(final String configKey) {
+    private static OptionalContentPersistor<LocalDate> createLocalDatePersistor(final String configKey) {
         return new LocalDatePersistor(configKey);
     }
 
-    private static DefaultFieldPersistor<LocalTime> createLocalTimePersistor(final String configKey) {
+    private static OptionalContentPersistor<LocalTime> createLocalTimePersistor(final String configKey) {
         return new LocalTimePersistor(configKey);
     }
 
-    private static DefaultFieldPersistor<LocalDateTime> createLocalDateTimePersistor(final String configKey) {
+    private static OptionalContentPersistor<LocalDateTime> createLocalDateTimePersistor(final String configKey) {
         return new LocalDateTimePersistor(configKey);
     }
 
-    private static DefaultFieldPersistor<ZonedDateTime> createZonedDateTimePersistor(final String configKey) {
+    private static OptionalContentPersistor<ZonedDateTime> createZonedDateTimePersistor(final String configKey) {
         return new ZonedDateTimePersistor(configKey);
     }
 
-    private static DefaultFieldPersistor<ZoneId> createTimeZonePersistor(final String configKey) {
+    private static OptionalContentPersistor<ZoneId> createTimeZonePersistor(final String configKey) {
         return new TimeZonePersistor(configKey);
     }
 
-    private static DefaultFieldPersistor<Interval> createIntervalPersistor(final String configKey) {
+    private static OptionalContentPersistor<Interval> createIntervalPersistor(final String configKey) {
         return new IntervalPersistor(configKey);
     }
 
-    private static DefaultFieldPersistor<DateInterval> createDateIntervalPersistor(final String configKey) {
+    private static OptionalContentPersistor<DateInterval> createDateIntervalPersistor(final String configKey) {
         return new DateIntervalPersistor(configKey);
     }
 
-    private static DefaultFieldPersistor<TimeInterval> createTimeIntervalPersistor(final String configKey) {
+    private static OptionalContentPersistor<TimeInterval> createTimeIntervalPersistor(final String configKey) {
         return new TimeIntervalPersistor(configKey);
     }
 
-    private static DefaultFieldPersistor<Credentials> createCredentialsPersistor(final String configKey) {
+    private static OptionalContentPersistor<Credentials> createCredentialsPersistor(final String configKey) {
         return new Credentials.CredentialsPersistor(configKey);
     }
 
-    private static DefaultFieldPersistor<FSLocation> createFSLocationPersistor(final String configKey) {
+    private static OptionalContentPersistor<FSLocation> createFSLocationPersistor(final String configKey) {
         return new FSLocationPersistor(configKey);
     }
 

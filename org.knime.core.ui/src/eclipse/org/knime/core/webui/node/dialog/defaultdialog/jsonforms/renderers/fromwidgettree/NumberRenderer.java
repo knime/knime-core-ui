@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromw
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.NumberRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
@@ -97,14 +98,14 @@ class NumberRenderer extends WidgetTreeControlRendererSpec implements NumberRend
     }
 
     private static TypeBounds getTypeBounds(final TreeNode<WidgetGroup> node) {
-        final var rawClass = node.getRawClass();
-        if (rawClass.equals(long.class)) {
+        final var rawClass = ClassUtils.primitiveToWrapper(node.getRawClass());
+        if (rawClass.equals(Long.class)) {
             return TypeBounds.LONG;
         }
-        if (rawClass.equals(int.class)) {
+        if (rawClass.equals(Integer.class)) {
             return TypeBounds.INTEGER;
         }
-        if (rawClass.equals(byte.class)) {
+        if (rawClass.equals(Byte.class)) {
             return TypeBounds.BYTE;
         }
         return TypeBounds.NONE;

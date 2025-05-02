@@ -44,47 +44,70 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 15, 2023 (Paul Bärnreuther): created
+ *   Apr 29, 2025 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield;
+
+import java.util.List;
+import java.util.Optional;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.DefaultFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.OptionalContentPersistor;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.data.location.FSLocationSerializationUtils;
-import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 
 /**
- * This is the default persistor used for the path field of the {@link FSLocation}. The persisted keys have to match the
- * ones recognized by {@link FSLocationVariableType}.
+ * Persistor for {@link Optional} values. In case the value is not present, we still save a dummy value to allow setting
+ * flow variables in this state.
  *
  * @author Paul Bärnreuther
+ * @param <T> the type of the value
  */
-final class FSLocationPersistor implements OptionalContentPersistor<FSLocation> {
+public class OptionalPersistor<T> implements DefaultFieldPersistor<Optional<T>> {
 
-    private final String m_configKey;
+    static final String IS_PRESENT_CFG_KEY_SUFFIX = "_is_present";
 
-    FSLocationPersistor(final String configKey) {
-        m_configKey = configKey;
+    /**
+     * We need to expose this method for the aforementioned reason that setting the value flow variable is only possible
+     * in case the value for this key is true.
+     *
+     * @param cfgKey the config key of the field
+     * @return the config key for the presence of the value
+     */
+    public static String toIsPresentCfgKey(final String cfgKey) {
+        return cfgKey + IS_PRESENT_CFG_KEY_SUFFIX;
+    }
+
+    private final OptionalContentPersistor<T> m_innerPersistor;
+
+    private final String m_isPresentCfgKey;
+
+    OptionalPersistor(final OptionalContentPersistor<T> innerPersistor, final String cfgKey) {
+        m_innerPersistor = innerPersistor;
+        m_isPresentCfgKey = toIsPresentCfgKey(cfgKey);
     }
 
     @Override
-    public FSLocation load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return FSLocationSerializationUtils.loadFSLocation(settings.getNodeSettings(m_configKey));
+    public void save(final Optional<T> value, final NodeSettingsWO nodeSettings) {
+        value.ifPresentOrElse(//
+            val -> m_innerPersistor.save(val, nodeSettings), //
+            () -> m_innerPersistor.saveEmpty(nodeSettings)//
+        );
+        nodeSettings.addBoolean(m_isPresentCfgKey, value.isPresent());
     }
 
     @Override
-    public void save(final FSLocation path, final NodeSettingsWO settings) {
-        FSLocationSerializationUtils.saveFSLocation(path, settings.addNodeSettings(m_configKey));
+    public Optional<T> load(final NodeSettingsRO settings) throws InvalidSettingsException {
+        if (settings.getBoolean(m_isPresentCfgKey, true)) {
+            return Optional.ofNullable(m_innerPersistor.load(settings));
+        }
+        return Optional.empty();
     }
 
     @Override
-    public void saveEmpty(final NodeSettingsWO settings) {
-        final var emptyLocation = new FSLocation(FSCategory.LOCAL, "");
-        save(emptyLocation, settings);
+    public Optional<List<String>> getSubConfigPath() {
+        return m_innerPersistor.getSubConfigPath();
     }
 
 }

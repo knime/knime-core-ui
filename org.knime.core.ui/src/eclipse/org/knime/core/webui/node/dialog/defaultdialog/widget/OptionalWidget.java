@@ -53,16 +53,56 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Optional;
 
 /**
- * TODO: UIEXT-1742 Remove this annotation in favor of using Optional<> types.
+ * When wrapping a widget field in an {@link Optional}, the control will offer a checkbox to use the setting in addition
+ * to the settings value (with few exceptions: E.g. this is not supported for boolean fields or array layouts).
  *
+ * This annotation can be used to determine the value that should be inserted when that checkbox is enabled and the
+ * control appears for configuration.
  *
- * With this field set to true, the input also has a checkbox which indicates whether the value is null. If so, the
- * control is hidden. This is currently only implemented for dropdowns and text controls.
+ * <p>
+ * Some field types offer defaults on their own in case this annotation is not provided. For all other types, there will
+ * be a runtime-exception in case this annotation is not set.
+ * </p>
+ * <table border="1" cellpadding="3" cellspacing="0">
+ * <caption>Types with defaults</caption>
+ * <tr>
+ * <th>Type</th>
+ * <th>Default</th>
+ * </tr>
+ * <tr>
+ * <td>{@link String}</td>
+ * <td>empty string</td>
+ * </tr>
+ * <tr>
+ * <td>Array</td>
+ * <td>empty array</td>
+ * </tr>
+ * <tr>
+ * <td>Number (e.g. {@link Integer})</td>
+ * <td>zero</td>
+ * </tr>
+ * <tr>
+ * <td>One of the supported {@link java.time} types (e.g. {@link LocalDate} or {@link ZoneId})</td>
+ * <td>now / here</td>
+ * </tr>
+ * </table>
+ *
  */
 @Retention(RUNTIME)
 @Target(FIELD)
 public @interface OptionalWidget {
+
+    /**
+     * Define a state provider to provide the default value dynamically. The wild-card generic of
+     * {@link DefaultValueProvider} needs to match the contained type of the field of type {@link Optional} .
+     *
+     * @return a provider that computes the default set when activating the optional widget.
+     */
+    Class<? extends DefaultValueProvider<?>> defaultProvider();
 
 }

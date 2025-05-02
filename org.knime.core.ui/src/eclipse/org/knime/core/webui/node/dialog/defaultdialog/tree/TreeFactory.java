@@ -175,10 +175,8 @@ public abstract class TreeFactory<S> {
     private Tree<S> createTree(final JavaType rootType, final SettingsType settingsType) {
         final Function<Class<? extends Annotation>, Annotation> getFieldAnnotationFromClass =
             getFieldAnnotationMethodFromType(rootType);
-        @SuppressWarnings("unchecked")
-        final var tree = new Tree<S>(null, settingsType, rootType, (Class<? extends S>)rootType.getRawClass(),
-            getFieldAnnotationFromClass, m_possibleTreeAnnotations, rootType.getRawClass()::getAnnotation, m_possibleTreeClassAnnotations,
-            null);
+        final var tree = new Tree<S>(null, settingsType, rootType, getFieldAnnotationFromClass,
+            m_possibleTreeAnnotations, rootType.getRawClass()::getAnnotation, m_possibleTreeClassAnnotations, null);
         populateTree(tree, rootType);
         return tree;
     }
@@ -374,8 +372,8 @@ public abstract class TreeFactory<S> {
         }
 
         LeafNode<S> buildLeaf(final JavaType type, final Class<?> contentType) {
-            return addedToParent(m_name, new LeafNode<>(m_parent, type, type.getRawClass(), contentType,
-                m_fieldAnnotations, m_possibleLeafNodeAnnotations, m_underlyingField));
+            return addedToParent(m_name, new LeafNode<>(m_parent, type, contentType, m_fieldAnnotations,
+                m_possibleLeafNodeAnnotations, m_underlyingField));
         }
 
         Tree<S> buildTree(final JavaType type) {
@@ -384,11 +382,9 @@ public abstract class TreeFactory<S> {
 
         private Tree<S> createIntermediateTree(final Tree<S> parent, final JavaType treeType) {
             final var getFieldAnnotationFromClass = getFieldAnnotationMethodFromType(treeType);
-            @SuppressWarnings("unchecked")
-            final var tree =
-                new Tree<S>(parent, parent.getSettingsType(), treeType, (Class<? extends S>)treeType.getRawClass(),
-                    getAnnotationFromFieldOrClass(getFieldAnnotationFromClass), m_possibleTreeAnnotations,
-                    treeType.getRawClass()::getAnnotation, m_possibleTreeClassAnnotations, m_underlyingField);
+            final var tree = new Tree<S>(parent, parent.getSettingsType(), treeType,
+                getAnnotationFromFieldOrClass(getFieldAnnotationFromClass), m_possibleTreeAnnotations,
+                treeType.getRawClass()::getAnnotation, m_possibleTreeClassAnnotations, m_underlyingField);
             populateTree(tree, treeType);
             return tree;
         }
@@ -405,8 +401,8 @@ public abstract class TreeFactory<S> {
         }
 
         ArrayParentNode<S> buildArray(final JavaType type, final Tree<S> elementWidgetTree) {
-            return addedToParent(m_name, new ArrayParentNode<>(m_parent, elementWidgetTree, type, type.getRawClass(),
-                m_fieldAnnotations, m_possibleArrayNodeAnnotations, m_underlyingField));
+            return addedToParent(m_name, new ArrayParentNode<>(m_parent, elementWidgetTree, type, m_fieldAnnotations,
+                m_possibleArrayNodeAnnotations, m_underlyingField));
         }
 
         private <T extends TreeNode<S>> T addedToParent(final String name, final T node) {

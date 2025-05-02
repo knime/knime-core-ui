@@ -76,6 +76,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.OptionalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
@@ -322,7 +323,13 @@ final class WidgetTreesToValueRefsAndStateProviders {
                 ArrayWidget.class, //
                 ArrayWidget::elementDefaultValueProvider, //
                 StateProvider.class //
-            ));
+            ), //
+            new UiStateProviderAnnotationSpec<>(//
+                OptionalWidget.class, //
+                OptionalWidget::defaultProvider, //
+                null//
+            )//
+        );
 
     private static List<UiStateProvidersAnnotationSpec<? extends Annotation, ? extends StateProvider>> //
     uiStateProvidersAnnotationSpecs = List.of( //
@@ -342,7 +349,7 @@ final class WidgetTreesToValueRefsAndStateProviders {
 
     private void addWidgetValueAnnotationValueRefAndValueProviderForNode(final TreeNode<WidgetGroup> node) {
         final var pathsWithSettingsKey = PathsWithSettingsType.fromTreeNode(node);
-        final var type = node.getRawClass();
+        final var type = node.isOptional() ? Optional.class : node.getRawClass();
         node.getAnnotation(ValueReference.class)
             .ifPresent(valueReference -> addValueRef(valueReference.value(), type, pathsWithSettingsKey));
         node.getAnnotation(ValueProvider.class)

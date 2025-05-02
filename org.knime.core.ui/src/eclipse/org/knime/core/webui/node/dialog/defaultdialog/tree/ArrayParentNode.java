@@ -77,10 +77,10 @@ public final class ArrayParentNode<S> extends TreeNode<S> {
 
     private final Tree<S> m_elementTree;
 
-    ArrayParentNode(final Tree<S> parent, final Tree<S> elementWidgetTree, final JavaType type, final Class<?> rawClass,
+    ArrayParentNode(final Tree<S> parent, final Tree<S> elementWidgetTree, final JavaType type,
         final Function<Class<? extends Annotation>, Annotation> annotations,
         final Collection<Class<? extends Annotation>> possibleAnnotations, final Field underlyingField) {
-        super(parent, parent.getSettingsType(), type, rawClass, annotations, possibleAnnotations, underlyingField);
+        super(parent, parent.getSettingsType(), type, annotations, possibleAnnotations, underlyingField);
         m_elementTree = elementWidgetTree;
         m_elementTree.m_arrayWidgetNodeParent = this; // NOSONAR doesn't need to be thread-safe
     }

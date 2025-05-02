@@ -101,7 +101,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.OptionalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
@@ -299,40 +298,7 @@ class UiSchemaOptionsTest {
         }
     }
 
-    @Test
-    void testHidableStringSetting() {
-        class HidableStringSettings implements DefaultNodeSettings {
 
-            @Widget(title = "", description = "")
-            @OptionalWidget
-            @TextInputWidget
-            String m_string;
-
-        }
-
-        var response = buildTestUiSchema(HidableStringSettings.class);
-
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("string");
-        assertThatJson(response).inPath("$.elements[0].options.hideOnNull").isBoolean().isTrue();
-
-    }
-
-    @Test
-    void testHidableChoicesWidgetSetting() {
-        class HidableStringSettings implements DefaultNodeSettings {
-
-            @Widget(title = "", description = "")
-            @ChoicesProvider(TestChoicesProvider.class)
-            @OptionalWidget
-            String m_string = "TestString";
-        }
-
-        var response = buildTestUiSchema(HidableStringSettings.class);
-
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("string");
-        assertThatJson(response).inPath("$.elements[0].options.hideOnNull").isBoolean().isTrue();
-
-    }
 
     @Test
     void testComboBoxFormat() {
@@ -989,21 +955,6 @@ class UiSchemaOptionsTest {
             .contains(elementForUtcTimeZone);
     }
 
-    @Test
-    void testTimeZoneWidgetOptionalChoicesOptions() {
-        class TimeZoneDefaultTestSettings implements DefaultNodeSettings {
-
-            @Widget(title = "", description = "")
-            @OptionalWidget
-            ZoneId m_zoneId;
-        }
-
-        var response = buildTestUiSchema(TimeZoneDefaultTestSettings.class);
-        assertThatJson(response).inPath("$.elements[0]").isObject().containsKey("scope");
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("zoneId");
-        assertThatJson(response).inPath("$.elements[0]").isObject().containsKey("options");
-        assertThatJson(response).inPath("$.elements[0].options.hideOnNull").isBoolean().isTrue();
-    }
 
     static final class TimeZoneIdProvider implements StringChoicesProvider {
         @Override
@@ -1445,25 +1396,20 @@ class UiSchemaOptionsTest {
         var response = buildTestUiSchema(MultiFileChooserTestSettings.class, context);
 
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("myReader");
-            assertThatJson(response).inPath("$.elements[0].options.format").isString()
-                .isEqualTo("multiFileChooser");
-            assertThatJson(response).inPath("$.elements[0].options.fileSystemType").isString()
-                .isEqualTo(fileSystemType);
-            assertThatJson(response).inPath("$.elements[0].options.fileExtensions").isArray().containsExactly("txt", "csv");
-            assertThatJson(response).inPath("$.elements[0].options.fileSystemSpecifier").isString()
-                .isEqualTo(fileSystemSpecifier);
-            assertThatJson(response).inPath("$.elements[0].options.filterSubUiSchema").isObject()
-                .containsKey("elements");
-            // custom filter class has one field
-            assertThatJson(response).inPath("$.elements[0].options.filterSubUiSchema.elements")
-                .isArray().hasSize(1);
-            assertThatJson(response).inPath("$.elements[0].options.filterSubUiSchema.elements[0]") //
-                .isObject() //
-                .containsKey("scope");
-            assertThatJson(response)
-                .inPath("$.elements[0].options.filterSubUiSchema.elements[0].scope") //
-                .isString() //
-                .contains("someVeryImportantField"); // name of the field inside the filter class we're using for this test
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("multiFileChooser");
+        assertThatJson(response).inPath("$.elements[0].options.fileSystemType").isString().isEqualTo(fileSystemType);
+        assertThatJson(response).inPath("$.elements[0].options.fileExtensions").isArray().containsExactly("txt", "csv");
+        assertThatJson(response).inPath("$.elements[0].options.fileSystemSpecifier").isString()
+            .isEqualTo(fileSystemSpecifier);
+        assertThatJson(response).inPath("$.elements[0].options.filterSubUiSchema").isObject().containsKey("elements");
+        // custom filter class has one field
+        assertThatJson(response).inPath("$.elements[0].options.filterSubUiSchema.elements").isArray().hasSize(1);
+        assertThatJson(response).inPath("$.elements[0].options.filterSubUiSchema.elements[0]") //
+            .isObject() //
+            .containsKey("scope");
+        assertThatJson(response).inPath("$.elements[0].options.filterSubUiSchema.elements[0].scope") //
+            .isString() //
+            .contains("someVeryImportantField"); // name of the field inside the filter class we're using for this test
 
     }
 

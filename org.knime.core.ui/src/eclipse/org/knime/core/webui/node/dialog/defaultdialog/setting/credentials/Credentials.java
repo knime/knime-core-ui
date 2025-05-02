@@ -64,7 +64,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.NodeID;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.DefaultFieldPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.OptionalContentPersistor;
 
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -270,7 +270,7 @@ public final class Credentials {
      *
      * @author Marc Bux, KNIME GmbH, Berlin, Germany
      */
-    public static final class CredentialsPersistor implements DefaultFieldPersistor<Credentials> {
+    public static final class CredentialsPersistor implements OptionalContentPersistor<Credentials> {
 
         private static final String CFG_PASSWORD = "weaklyEncryptedPassword";
 
@@ -330,6 +330,12 @@ public final class Credentials {
             if (secondFactor != null && !secondFactor.isEmpty()) {
                 credentialsConfig.addPassword(CFG_SECOND_FACTOR, SECOND_FACTOR_SECRET, secondFactor);
             }
+        }
+
+        @Override
+        public void saveEmpty(final NodeSettingsWO settings) {
+            final var emptyCredentials = new Credentials();
+            save(emptyCredentials, settings);
         }
 
     }

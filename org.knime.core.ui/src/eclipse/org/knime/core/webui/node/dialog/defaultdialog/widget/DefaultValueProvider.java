@@ -44,32 +44,23 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 28, 2024 (Paul Bärnreuther): created
+ *   Apr 30, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield;
+package org.knime.core.webui.node.dialog.defaultdialog.widget;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
-final class FieldPersistorLoaderSaverAdapter<T> implements FieldPersistor<T> {
-    private final FieldLoader<T> m_loader;
-
-    private final FieldSaver<T> m_saver;
-
-    FieldPersistorLoaderSaverAdapter(final FieldLoader<T> loader, final FieldSaver<T> saver) {
-        m_loader = loader;
-        m_saver = saver;
-    }
+/**
+ * Interface for {@link OptionalWidget} annotation to compute the default of an optional widget upon activation.
+ *
+ * @author Paul Bärnreuther
+ * @param <T> The type of the default value. I.e. the corresponding field needs to be of type {@code Optional<T>}.
+ */
+public interface DefaultValueProvider<T> extends StateProvider<T> {
 
     @Override
-    public T load(final NodeSettingsRO settings, final String configKey) throws InvalidSettingsException {
-        return m_loader.load(settings, configKey);
-    }
-
-    @Override
-    public void save(final T obj, final NodeSettingsWO settings, final String configKey) {
-        m_saver.save(obj, settings, configKey);
+    default void init(final StateProviderInitializer initializer) {
+        initializer.computeBeforeOpenDialog();
     }
 
 }

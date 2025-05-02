@@ -183,6 +183,7 @@ public final class JsonFormsSchemaUtil {
             Option.NONPUBLIC_NONSTATIC_FIELDS_WITHOUT_GETTERS, //
             Option.NONPUBLIC_NONSTATIC_FIELDS_WITH_GETTERS, //
             Option.INLINE_ALL_SCHEMAS, //
+            Option.FLATTENED_OPTIONALS, //
             Option.ALLOF_CLEANUP_AT_THE_END));
 
         /**
@@ -308,6 +309,14 @@ public final class JsonFormsSchemaUtil {
     private static List<ResolvedType> resolveCustomTypes(final FieldScope field) {
         final var ctx = field.getContext();
         final var fieldClass = field.getDeclaredType().getErasedType();
+        if (fieldClass.equals(Optional.class)) {
+            final var contentType = field.getDeclaredType().getTypeParameters().get(0).getErasedType();
+            return List.of(ctx.resolve(getClassToResolveWith(contentType).orElse(contentType)));
+        }
+        return getClassToResolveWith(fieldClass).map(ctx::resolve).stream().toList();
+    }
+
+    private static Optional<Class<?>> getClassToResolveWith(final Class<?> fieldClass) {
         // Make java.time types that are not supported out-of-the-box by JSONForms map to supported fallback types
         // explicitly, otherwise they get mapped to "object" and result in "No applicable renderer found".
         if (Duration.class.equals(fieldClass) || Year.class.equals(fieldClass)) {
@@ -316,14 +325,14 @@ public final class JsonFormsSchemaUtil {
             // on the mapper in the *DataUtil:
             //  mapper.configOverride(Duration.class)
             //    .setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER)); // NOSONAR
-            return List.of(ctx.resolve(int.class));
+            return Optional.of(int.class);
         }
         if (MonthDay.class.equals(fieldClass) || YearMonth.class.equals(fieldClass)
             || ZoneOffset.class.equals(fieldClass) || Period.class.equals(fieldClass)
             || DataType.class.equals(fieldClass)) {
             // make `{... "type":"object"}` become `{... "type":"string"}`
-            return List.of(ctx.resolve(String.class));
+            return Optional.of(String.class);
         }
-        return Collections.emptyList();
+        return Optional.empty();
     }
 }

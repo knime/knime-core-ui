@@ -88,14 +88,15 @@ public final class Tree<S> extends TreeNode<S> {
 
     private final Class<? extends S> m_treeClass;
 
+    @SuppressWarnings("unchecked")
     Tree(final Tree<S> parent, final SettingsType settingsType, final JavaType treeType,
-        final Class<? extends S> treeClass, final Function<Class<? extends Annotation>, Annotation> annotations,
+        final Function<Class<? extends Annotation>, Annotation> annotations,
         final Collection<Class<? extends Annotation>> possibleAnnotations,
         final Function<Class<? extends Annotation>, Annotation> treeClassAnnotations,
         final Collection<Class<? extends Annotation>> possibleTreeClassAnnotations, final Field underlyingField) {
-        super(parent, settingsType, treeType, treeClass, annotations, possibleAnnotations, underlyingField);
+        super(parent, settingsType, treeType, annotations, possibleAnnotations, underlyingField);
         m_treeClassAnnotations = toMap(treeClassAnnotations, possibleTreeClassAnnotations);
-        m_treeClass = treeClass;
+        m_treeClass = (Class<? extends S>)treeType.getRawClass();
     }
 
     @Override

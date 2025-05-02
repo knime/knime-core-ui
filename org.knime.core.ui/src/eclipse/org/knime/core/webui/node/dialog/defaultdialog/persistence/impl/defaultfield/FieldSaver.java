@@ -59,4 +59,5 @@ import org.knime.core.node.NodeSettingsWO;
 interface FieldSaver<T> {
 
     void save(T value, NodeSettingsWO settings, String configKey);
+
 }

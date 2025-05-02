@@ -53,6 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.knime.core.data.DataType;
@@ -341,5 +342,23 @@ public class PersistUtilTest {
             new Builder<T>(dummyLoader)//
                 .withDeprecatedConfigPath("K", "L")//
                 .build());
+    }
+
+    private static class SettingsWithOptionalField implements PersistableSettings {
+        @Persist(configKey = "optional_field")
+        public Optional<String> optionalField;
+
+        public Optional<DataType> optionalFieldWithSubKeys;
+    }
+
+    @Test
+    void testSetsConfigPathsForOptionalField() {
+        final var result = getPersistSchema(SettingsWithOptionalField.class);
+        assertThatJson(result).inPath("$.properties.model.properties.optionalField.configPaths").isArray()
+            .isEqualTo(new String[][]{{"optional_field_is_present"}, {"optional_field"}});
+        assertThatJson(result).inPath("$.properties.model.properties.optionalFieldWithSubKeys.configPaths").isArray()
+            .isEqualTo(
+                new String[][]{{"optionalFieldWithSubKeys_is_present"}, {"optionalFieldWithSubKeys", "cell_class"}});
+
     }
 }

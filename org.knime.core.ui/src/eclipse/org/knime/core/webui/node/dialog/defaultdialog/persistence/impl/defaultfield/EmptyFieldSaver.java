@@ -44,47 +44,17 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 15, 2023 (Paul Bärnreuther): created
+ *   May 2, 2025 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.OptionalContentPersistor;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.data.location.FSLocationSerializationUtils;
-import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 
 /**
- * This is the default persistor used for the path field of the {@link FSLocation}. The persisted keys have to match the
- * ones recognized by {@link FSLocationVariableType}.
+ * See {@link EmptySettingsSaver} for details.
  *
  * @author Paul Bärnreuther
  */
-final class FSLocationPersistor implements OptionalContentPersistor<FSLocation> {
-
-    private final String m_configKey;
-
-    FSLocationPersistor(final String configKey) {
-        m_configKey = configKey;
-    }
-
-    @Override
-    public FSLocation load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return FSLocationSerializationUtils.loadFSLocation(settings.getNodeSettings(m_configKey));
-    }
-
-    @Override
-    public void save(final FSLocation path, final NodeSettingsWO settings) {
-        FSLocationSerializationUtils.saveFSLocation(path, settings.addNodeSettings(m_configKey));
-    }
-
-    @Override
-    public void saveEmpty(final NodeSettingsWO settings) {
-        final var emptyLocation = new FSLocation(FSCategory.LOCAL, "");
-        save(emptyLocation, settings);
-    }
-
+interface EmptyFieldSaver {
+    void saveEmpty(NodeSettingsWO settings, String configKey);
 }

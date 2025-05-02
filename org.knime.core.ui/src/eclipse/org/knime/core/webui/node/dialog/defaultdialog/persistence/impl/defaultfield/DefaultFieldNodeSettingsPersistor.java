@@ -54,14 +54,14 @@ import java.util.Optional;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.DefaultFieldPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.OptionalContentPersistor;
 
 /**
  * Persistor for fields that composes the config key with the implementation of the field persistor.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-final class DefaultFieldNodeSettingsPersistor<T> implements DefaultFieldPersistor<T> {
+final class DefaultFieldNodeSettingsPersistor<T> implements OptionalContentPersistor<T> {
     private final String m_configKey;
 
     private final FieldPersistor<T> m_impl;
@@ -84,6 +84,11 @@ final class DefaultFieldNodeSettingsPersistor<T> implements DefaultFieldPersisto
     @Override
     public Optional<List<String>> getSubConfigPath() {
         return m_impl.getSubConfigPath();
+    }
+
+    @Override
+    public void saveEmpty(final NodeSettingsWO settings) {
+        m_impl.saveEmpty(settings, m_configKey);
     }
 
 }

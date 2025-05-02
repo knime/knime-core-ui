@@ -44,47 +44,27 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 15, 2023 (Paul Bärnreuther): created
+ *   May 2, 2025 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.OptionalContentPersistor;
-import org.knime.filehandling.core.connections.FSCategory;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.data.location.FSLocationSerializationUtils;
-import org.knime.filehandling.core.data.location.variable.FSLocationVariableType;
 
 /**
- * This is the default persistor used for the path field of the {@link FSLocation}. The persisted keys have to match the
- * ones recognized by {@link FSLocationVariableType}.
+ * Saves settings to a node settings object without a given value.
+ *
+ * This is used in the {@link OptionalPersistor} to save a default value in case none is present.
  *
  * @author Paul Bärnreuther
  */
-final class FSLocationPersistor implements OptionalContentPersistor<FSLocation> {
+interface EmptySettingsSaver {
 
-    private final String m_configKey;
-
-    FSLocationPersistor(final String configKey) {
-        m_configKey = configKey;
-    }
-
-    @Override
-    public FSLocation load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        return FSLocationSerializationUtils.loadFSLocation(settings.getNodeSettings(m_configKey));
-    }
-
-    @Override
-    public void save(final FSLocation path, final NodeSettingsWO settings) {
-        FSLocationSerializationUtils.saveFSLocation(path, settings.addNodeSettings(m_configKey));
-    }
-
-    @Override
-    public void saveEmpty(final NodeSettingsWO settings) {
-        final var emptyLocation = new FSLocation(FSCategory.LOCAL, "");
-        save(emptyLocation, settings);
-    }
+    /**
+     * Used within the {@link OptionalPersistor} to save a default value if the value is not present. This ensures that
+     * it is still possible to set flow variables in this case.
+     *
+     * @param settings the settings to save to
+     */
+    void saveEmpty(NodeSettingsWO settings);
 
 }
