@@ -60,6 +60,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.knime.core.node.dialog.DialogNode;
+import org.knime.core.node.dialog.DialogNodeRepresentation;
 import org.knime.core.node.dialog.DialogNodeValue;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
@@ -145,23 +146,16 @@ final class SubNodeContainerSettingsService implements NodeSettingsService {
     @SuppressWarnings("rawtypes")
     private static JsonNode getValueJson(final DialogNode dialogNode) {
         final var value = Optional.ofNullable(dialogNode.getDialogValue()).orElseGet(dialogNode::getDefaultValue);
-        return extractJsonFromWebDialogValue(value);
+        return extractJsonFromWebDialogValueAndDialogRepresentation(value, dialogNode.getDialogRepresentation());
     }
 
-    private static JsonNode extractJsonFromWebDialogValue(final DialogNodeValue value) {
+    @SuppressWarnings("rawtypes")
+    private static JsonNode extractJsonFromWebDialogValueAndDialogRepresentation(final DialogNodeValue value,
+        final DialogNodeRepresentation dialogRepresentation) {
         try {
-            return extractJsonFromWebDialogValueOrThrow(value);
+            return extractJsonOrThrow(value, dialogRepresentation);
         } catch (IOException ex) {
-            throw new IllegalStateException("Unable to extract json content from dialog value.", ex);
-        }
-    }
-
-    private static JsonNode extractJsonFromWebDialogValueOrThrow(final DialogNodeValue value) throws IOException {
-        if (value instanceof WebDialogValue webDialogValue) {
-            return webDialogValue.toDialogJson();
-        } else {
-            throw new IllegalStateException(String.format("value needs to be %s, but is %s",
-                WebDialogValue.class.getSimpleName(), value.getClass().getSimpleName()));
+            throw new IllegalStateException("Unable to extract json content from dialog value and representation.", ex);
         }
     }
 
@@ -195,15 +189,36 @@ final class SubNodeContainerSettingsService implements NodeSettingsService {
     @SuppressWarnings("rawtypes")
     private static DialogNodeValue loadValueFromJson(final DialogNode dialogNode, final JsonNode inputJson) {
         final var value = dialogNode.createEmptyDialogValue();
-        final var webDialogValue = CheckUtils.checkCast(value, WebDialogValue.class, IllegalStateException::new,
-            "Dialog node values for WebUI dialog controls are of type WebDialogValue. "
-                + "This is type-safe since the representation is a WebDialogNodeRepresentation.");
+        final var representation = dialogNode.getDialogRepresentation();
         try {
-            webDialogValue.fromDialogJson(inputJson);
+            setJsonOrThrow(inputJson, value, representation);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to parse the settings provided by the dialog", e);
         }
         return value;
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static WebDialogNodeRepresentation assertWebRepresentationOrThrow(final DialogNodeValue value,
+        final DialogNodeRepresentation dialogNodeRepresentation) {
+        if (dialogNodeRepresentation instanceof WebDialogNodeRepresentation webDialogRepresentation) {
+            return webDialogRepresentation;
+        } else {
+            throw new IllegalStateException(String.format("Representation needs to be %s, but is %s",
+                WebDialogNodeRepresentation.class.getSimpleName(), value.getClass().getSimpleName()));
+        }
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static JsonNode extractJsonOrThrow(final DialogNodeValue value,
+        final DialogNodeRepresentation dialogNodeRepresentation) throws IOException {
+        return assertWebRepresentationOrThrow(value, dialogNodeRepresentation).castAndTransformValueToDialogJson(value);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static void setJsonOrThrow(final JsonNode json, final DialogNodeValue value,
+        final DialogNodeRepresentation dialogNodeRepresentation) throws IOException {
+        assertWebRepresentationOrThrow(value, dialogNodeRepresentation).castAndSetValueFromDialogJson(json, value);
     }
 
     /**

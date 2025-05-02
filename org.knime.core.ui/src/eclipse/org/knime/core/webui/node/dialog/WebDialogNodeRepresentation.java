@@ -48,18 +48,20 @@
  */
 package org.knime.core.webui.node.dialog;
 
+import java.io.IOException;
+
 import org.knime.core.node.dialog.DialogNodeRepresentation;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.LocalizedControlRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Let a dialog node representation implement this interface to enable being part of a WebUI component dialog.
  *
  * @author Paul Bärnreuther
- * @param <VAL> the dialog node value type. It is part of this interface to enforce that the value can be serialized to
- *            JSON being a WebViewContent.
+ * @param <VAL> the dialog node value type.
  */
 public interface WebDialogNodeRepresentation<VAL extends WebDialogValue> extends DialogNodeRepresentation<VAL> {
 
@@ -73,5 +75,69 @@ public interface WebDialogNodeRepresentation<VAL extends WebDialogValue> extends
      */
     @JsonIgnore // otherwise a cyclic dependency arises
     LocalizedControlRendererSpec getWebUIDialogControlSpec();
+
+    /**
+     * This method transforms the value of this node to a JSON representation suitable to be rendered using the result
+     * of {@link #getWebUIDialogControlSpec()}.
+     *
+     * @param value the to be transformed value
+     * @return a json representation.
+     * @throws IOException Exception that can occur serializing the value.
+     */
+    JsonNode transformValueToDialogJson(VAL value) throws IOException;
+
+    /**
+     * Necessary, since we extract representation and value separately from the node.
+     *
+     * @noimplement
+     */
+    @SuppressWarnings({"javadoc", "unchecked"})
+    default JsonNode castAndTransformValueToDialogJson(final Object value) throws IOException {
+        return transformValueToDialogJson((VAL)value);
+    }
+
+    /**
+     * Inverse method to {@link #transformValueToDialogJson}. Up until now this method does not need to be able to
+     * deserialize from previous versions of generated json in case {@link #transformValueToDialogJson} changed.
+     *
+     * @param json a json representation from a web dialog which has the same structure as the returned value of
+     *            {@link #transformValueToDialogJson}
+     * @param value the value to be set
+     * @param dialogNodeRepresentation the node representation in the dialog
+     *
+     * @throws IOException Exception that can occur on construction..
+     */
+    void setValueFromDialogJson(JsonNode json, VAL value) throws IOException;
+
+    /**
+     * Necessary, since we extract representation and value separately from the node.
+     *
+     * @noimplement
+     */
+    @SuppressWarnings({"javadoc", "unchecked"})
+    default void castAndSetValueFromDialogJson(final JsonNode json, final Object value) throws IOException {
+        setValueFromDialogJson(json, (VAL)value);
+    }
+
+    /**
+     * Default implementation of {@link WebDialogNodeRepresentation} for a value whose json representation does not
+     * depend on the node representation.
+     *
+     * @param <T> the dialog node value type
+     */
+    interface DefaultWebDialogNodeRepresentation<T extends WebDialogValue>
+        extends WebDialogNodeRepresentation<T> {
+
+        @Override
+        default JsonNode transformValueToDialogJson(final T value) throws IOException {
+            return value.toDialogJson();
+        }
+
+        @Override
+        default void setValueFromDialogJson(final JsonNode json, final T value) throws IOException {
+            value.fromDialogJson(json);
+        }
+
+    }
 
 }

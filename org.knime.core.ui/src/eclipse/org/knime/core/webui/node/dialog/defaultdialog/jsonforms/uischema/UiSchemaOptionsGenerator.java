@@ -80,7 +80,6 @@ import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetI
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.partitionWidgetAnnotationsByApplicability;
 
 import java.lang.reflect.Field;
-import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -99,6 +98,7 @@ import org.knime.core.node.workflow.contextv2.ServerLocationInfo;
 import org.knime.core.node.workflow.contextv2.WorkflowContextV2.ExecutorType;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.DateTimeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.EnumUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
@@ -145,7 +145,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.button.NoopButtonUp
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableChoicesProvider;
@@ -250,21 +249,10 @@ final class UiSchemaOptionsGenerator {
                     options.put(TAG_FORMAT, Format.DROP_DOWN);
                     options.put(TAG_CHOICES_PROVIDER, DefaultDataTypeChoicesProvider.class.getName());
                     break;
-                case LOCAL_TIME:
-                    options.put(TAG_FORMAT, Format.LOCAL_TIME);
-                    break;
-                case LOCAL_DATE_TIME:
-                    options.put(TAG_FORMAT, Format.LOCAL_DATE_TIME);
-                    options.put("showMilliseconds", true);
-                    break;
-                case ZONED_DATE_TIME:
-                    options.put(TAG_FORMAT, Format.ZONED_DATE_TIME);
-                    options.put("showMilliseconds", true);
-                    setPossibleValuesForZoneIds(options);
-                    break;
                 case ZONE_ID:
                     options.put(TAG_FORMAT, Format.DROP_DOWN);
-                    setPossibleValuesForZoneIds(options);
+                    options.set("possibleValues",
+                        JsonFormsUiSchemaUtil.getMapper().valueToTree(DateTimeUtil.getPossibleZoneIdValues()));
                     break;
                 case DATE_INTERVAL:
                     options.put(TAG_FORMAT, Format.INTERVAL);
@@ -697,15 +685,6 @@ final class UiSchemaOptionsGenerator {
             state.put("nextState", nextState);
         }
         state.put("text", buttonState.text());
-    }
-
-    private static void setPossibleValuesForZoneIds(final ObjectNode options) {
-        options.set("possibleValues", JsonFormsUiSchemaUtil.getMapper().valueToTree( //
-            ZoneId.getAvailableZoneIds().stream() //
-                .sorted() //
-                .map(StringChoice::fromId) //
-                .toArray(StringChoice[]::new)) //
-        );
     }
 
     private void addDependencies(final ArrayNode dependencies,

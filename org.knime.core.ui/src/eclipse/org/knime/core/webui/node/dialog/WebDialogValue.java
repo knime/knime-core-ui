@@ -55,32 +55,38 @@ import java.nio.charset.StandardCharsets;
 
 import org.knime.core.node.dialog.DialogNodeValue;
 import org.knime.core.node.web.WebViewContent;
+import org.knime.core.webui.node.dialog.WebDialogNodeRepresentation.DefaultWebDialogNodeRepresentation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Value of a configuration node whose representation is a {@link WebDialogNodeRepresentation}. It allows translating to
- * and from json.
+ * Value of a configuration node whose representation is a {@link DefaultWebDialogNodeRepresentation}. It allows
+ * translating to and from json without depending on the representation. I.e. if the transformation has to depend on the
+ * representation, use a custom implementation of {@link WebDialogNodeRepresentation} instead.
  *
  * @author Paul Bärnreuther
  */
 public interface WebDialogValue extends DialogNodeValue {
 
     /**
-     * Transform the value to a json that is to be used in a web dialog.
+     * Transform the value to a json that is to be used in a web dialog. If this transformation has to depend on the
+     * dialog representation, this interface should not be used.
      *
+     * @param dialogNodeRepresentation the node representation in the dialog
      * @return a json representation.
      * @throws IOException Exception that can occur serializing the value.
      */
     JsonNode toDialogJson() throws IOException;
 
     /**
-     * Inverse method to {@link #toDialogJson()}. Up until now this method does not need to be able to deserialize from
-     * previous versions of generated json in case {@link #toDialogJson()} changed.
+     * Inverse method to {@link #toDialogJson}. Up until now this method does not need to be able to deserialize from
+     * previous versions of generated json in case {@link #toDialogJson} changed. If this transformation has to depend
+     * on the dialog representation, this interface should not be used.
      *
      * @param json a json representation from a web dialog which has the same structure as the returned value of
-     *            {@link #toDialogJson()}
+     *            {@link #toDialogJson}
+     * @param dialogNodeRepresentation the node representation in the dialog
      *
      * @throws IOException Exception that can occur on construction..
      */

@@ -50,6 +50,9 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromw
 
 import java.lang.annotation.Annotation;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -92,6 +95,12 @@ public class WidgetTreeRenderers {
             node -> Boolean.class.equals(ClassUtils.primitiveToWrapper(node.getRawClass()))), //
         new WidgetTreeNodeTester(DateRenderer::new, //
             node -> LocalDate.class.equals(node.getRawClass())),
+        new WidgetTreeNodeTester(TimeRenderer::new, //
+            node -> LocalTime.class.equals(node.getRawClass())),
+        new WidgetTreeNodeTester(LocalDateTimeRenderer::new, //
+            node -> LocalDateTime.class.equals(node.getRawClass())),
+        new WidgetTreeNodeTester(ZonedDateTimeRenderer::new, //
+            node -> ZonedDateTime.class.equals(node.getRawClass())),
         new WidgetTreeNodeTester(CredentialsRenderer::new,
             node -> Credentials.class.isAssignableFrom(node.getRawClass())), //
         new WidgetTreeNodeTester(LegacyCredentialsRenderer::new,

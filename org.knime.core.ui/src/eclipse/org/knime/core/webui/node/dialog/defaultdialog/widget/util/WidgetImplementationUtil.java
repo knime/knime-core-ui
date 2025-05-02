@@ -49,10 +49,8 @@
 package org.knime.core.webui.node.dialog.defaultdialog.widget.util;
 
 import java.lang.annotation.Annotation;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -144,14 +142,11 @@ public final class WidgetImplementationUtil {
             FILE_CHOOSER, //
             FLOW_VARIABLE_FILTER, //
             INTERVAL, //
-            LOCAL_TIME, //
-            LOCAL_DATE_TIME, //
             MULTI_FILE_CHOOSER, //
             NAME_FILTER, //
             SINGLE_SELECTION, //
             STRING_ARRAY, //
             TIME_INTERVAL, //
-            ZONED_DATE_TIME, //
             ZONE_ID;
     }
 
@@ -205,9 +200,6 @@ public final class WidgetImplementationUtil {
         new DefaultWidget(List.of(ColumnFilter.class), DefaultWidgetType.COLUMN_FILTER), //
         new DefaultWidget(List.of(FlowVariableFilter.class), DefaultWidgetType.FLOW_VARIABLE_FILTER), //
         new DefaultWidget(List.of(StringOrEnum.class), DefaultWidgetType.SINGLE_SELECTION), //
-        new DefaultWidget(List.of(LocalTime.class), DefaultWidgetType.LOCAL_TIME), //
-        new DefaultWidget(List.of(LocalDateTime.class), DefaultWidgetType.LOCAL_DATE_TIME), //
-        new DefaultWidget(List.of(ZonedDateTime.class), DefaultWidgetType.ZONED_DATE_TIME), //
         new DefaultWidget(List.of(String[].class), DefaultWidgetType.STRING_ARRAY), //
         new DefaultWidget(List.of(ZoneId.class), DefaultWidgetType.ZONE_ID), //
         new DefaultWidget(List.of(FileSelection.class), DefaultWidgetType.FILE_CHOOSER), //

@@ -67,6 +67,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.dialog.DialogNode;
 import org.knime.core.node.dialog.DialogNodePanel;
+import org.knime.core.webui.node.dialog.WebDialogNodeRepresentation.DefaultWebDialogNodeRepresentation;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.LocalizedControlRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
 
@@ -236,7 +237,7 @@ public class TestConfigurationNodeFactory extends NodeFactory<NodeModel> {
     }
 
     private static final class TestConfigNodeRepresentation
-        implements WebDialogNodeRepresentation<TestConfigNodeValue> {
+        implements DefaultWebDialogNodeRepresentation<TestConfigNodeValue> {
 
         @Override
         public DialogNodePanel<TestConfigNodeValue> createDialogPanel() {
