@@ -48,12 +48,21 @@ const backendConnection = useFileFilterPreviewBackend({
 
 const selectedPath = computed(() => props.control.data.path.path);
 
+const mostRecentPreviewQueryId = ref(0);
 const refreshPreview = async () => {
   previewDataIsLoading.value = true;
-  previewData.value = await backendConnection.listItemsForPreview(
+
+  ++mostRecentPreviewQueryId.value;
+  const currentQueryId = mostRecentPreviewQueryId.value;
+
+  const previewResult = await backendConnection.listItemsForPreview(
     selectedPath.value,
   );
-  previewDataIsLoading.value = false;
+
+  if (currentQueryId === mostRecentPreviewQueryId.value) {
+    previewData.value = previewResult;
+    previewDataIsLoading.value = false;
+  }
 };
 
 watch(

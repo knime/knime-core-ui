@@ -165,8 +165,12 @@ public final class FileFilterPreviewDataService {
             return new PreviewResult.Error("Root path is not a folder.");
         }
         try {
-            var filterResult = FileChooserFilters.getPassingFilesInFolder(listItemConfig //
-                , folder, includeSubfolders, LIMIT_FILES_FOR_PREVIEW);
+            var filterResult = FileChooserFilters.getPassingFilesInFolder( //
+                listItemConfig, //
+                folder, //
+                includeSubfolders, //
+                LIMIT_FILES_FOR_PREVIEW //
+            );
             return new PreviewResult.Success(filterResult, folder);
         } catch (AccessDeniedException e) { // NOSONAR logged in the frontend
             final var file = e.getFile();
