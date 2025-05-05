@@ -106,6 +106,10 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
     private static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_ANNOTATIONS = List.of( //
         Layout.class, //
         Effect.class, //
+        /**
+         * Since {@link MultiFileSelection} is a {@link WidgetGroup}.
+         */
+        FileReaderWidget.class, //
         ValueReference.class, //
         ValueProvider.class, //
         Modification.class, //

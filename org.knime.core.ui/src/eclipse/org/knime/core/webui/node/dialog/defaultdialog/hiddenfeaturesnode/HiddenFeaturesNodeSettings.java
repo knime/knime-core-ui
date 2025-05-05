@@ -98,8 +98,6 @@ class HiddenFeaturesNodeSettings implements DefaultNodeSettings {
 
     }
 
-    @Widget(title = "Currently still necessary title",
-        description = "Currently still necessary description. This will be removed in the future.")
     MultiFileSelection<TestFileChooserFilters> m_fileSelection = new MultiFileSelection<>(new TestFileChooserFilters());
 
 }

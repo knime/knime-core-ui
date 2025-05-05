@@ -107,7 +107,7 @@ public final class FileFilterPreviewDataService {
     }
 
     private static Stream<Class<? extends FileChooserFilters>> extractFilterClasses(final Tree<WidgetGroup> tree) {
-        return tree.getWidgetNodes().flatMap(FileFilterPreviewDataService::extractFilterClassesFromWidget);
+        return tree.getWidgetAndWidgetTreeNodes().flatMap(FileFilterPreviewDataService::extractFilterClassesFromWidget);
     }
 
     private static Stream<Class<? extends FileChooserFilters>>

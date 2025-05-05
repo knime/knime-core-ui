@@ -50,6 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection;
 
 import java.util.Objects;
 
+import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -59,10 +60,13 @@ import org.knime.filehandling.core.connections.FSLocation;
 /**
  * A setting that represents a selection of a single or many files. This setting is used for multi file selection.
  *
+ * Note that although this class implements {@link WidgetGroup} it has a custom renderer and thus is not just the sum of
+ * its widgets in the dialog. It additionally shows a preview of the selected files with the applied filters.
+ *
  * @author David Hickey, TNG Technology Consulting GmbH
  * @param <F> the type of the file chooser filters
  */
-public final class MultiFileSelection<F extends FileChooserFilters> implements PersistableSettings {
+public final class MultiFileSelection<F extends FileChooserFilters> implements PersistableSettings, WidgetGroup {
 
     /**
      * Constructor. An initial non-null filter must be provided.

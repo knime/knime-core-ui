@@ -183,7 +183,6 @@ describe("multi file selection", () => {
     expect(multiFileChooser.exists()).toBe(true);
     const labels = wrapper.findAllComponents(Label);
     expect(labels.map((label) => label.props("text"))).toStrictEqual([
-      "Value",
       "Type",
       "Source",
     ]);

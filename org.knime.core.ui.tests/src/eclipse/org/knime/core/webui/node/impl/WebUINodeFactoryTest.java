@@ -53,6 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Optional;
 
 import org.apache.xmlbeans.XmlException;
@@ -83,6 +84,9 @@ import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.MultiFileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.testing.util.TableTestUtil;
 import org.xml.sax.SAXException;
 
@@ -182,6 +186,58 @@ class WebUINodeFactoryTest {
         for (int i = 0; i < keywords.length; i++) {
             assertEquals(keywords[i], nodeKeywords[i], "Keyword " + i + " is not set correctly.");
         }
+
+    }
+
+    static final class TestWebUISettingsWithMultiFileSelection implements DefaultNodeSettings {
+
+        static final class TestFileChooserFilters implements FileChooserFilters {
+            @Override
+            public boolean passesFilter(final Path root, final Path path) {
+                return false;
+            }
+
+            @Override
+            public boolean followSymlinks() {
+                return false;
+            }
+
+            @Widget(title = "Some filter setting", description = "Some filter setting description")
+            String m_someFilterSetting = "some value";
+
+        }
+
+        @Widget(title = "Some file selection", description = "Some Description")
+        MultiFileSelection<TestFileChooserFilters> m_someFileSelection =
+            new MultiFileSelection<>(new TestFileChooserFilters());
+    }
+
+    /**
+     * {@link MultiFileSelection} is special in node descriptions, since it is composed of multiple widgets.
+     */
+    @Test
+    void testNodeDescriptionForMultiFileSelection() {
+        final var name = "Node name";
+        final var icon = "some/icon path.png";
+        final var shortDescription = "Short description";
+        final var longDescription = "Long description";
+        final Class<? extends DefaultNodeSettings> modelSettingsClass = TestWebUISettingsWithMultiFileSelection.class;
+
+        final var nodeDescription = WebUINodeFactory.createNodeDescription(WebUINodeConfiguration.builder()//
+            .name(name)//
+            .icon(icon)//
+            .shortDescription(shortDescription)//
+            .fullDescription(longDescription)//
+            .modelSettingsClass(modelSettingsClass)//
+            .build());
+
+        final var options = nodeDescription.getDialogOptionGroups().get(0).getOptions();
+        assertThat(options).hasSize(4);
+
+        assertThat(options.get(0).getName()).isEqualTo("Type");
+        assertThat(options.get(1).getName()).isEqualTo("Source");
+        assertThat(options.get(2).getName()).isEqualTo("Include Subfolders");
+        assertThat(options.get(3).getName()).isEqualTo("Some filter setting");
 
     }
 

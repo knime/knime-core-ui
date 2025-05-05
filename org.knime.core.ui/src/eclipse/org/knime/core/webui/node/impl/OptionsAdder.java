@@ -64,6 +64,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFor
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TraversableLayoutTreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
+import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.DescriptionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.DescriptionUtil.TitleAndDescription;
@@ -113,8 +114,17 @@ final class OptionsAdder {
 
     private static void applyToAllLeaves(final TraversableLayoutTreeNode<TreeNode<WidgetGroup>> layoutTree,
         final Consumer<TreeNode<WidgetGroup>> addField) {
-        layoutTree.controls().stream().forEach(addField);
+        layoutTree.controls().stream().forEach(control -> addControl(control, addField));
         layoutTree.children().forEach(childNode -> applyToAllLeaves(childNode, addField));
+    }
+
+    private static void addControl(final TreeNode<WidgetGroup> control,
+        final Consumer<TreeNode<WidgetGroup>> addField) {
+        if (control instanceof Tree<WidgetGroup> tree) {
+            tree.getChildren().forEach(child -> addControl(child, addField));
+        } else {
+            addField.accept(control);
+        }
     }
 
     private static void createOption(final TreeNode<WidgetGroup> field, final Element tab,

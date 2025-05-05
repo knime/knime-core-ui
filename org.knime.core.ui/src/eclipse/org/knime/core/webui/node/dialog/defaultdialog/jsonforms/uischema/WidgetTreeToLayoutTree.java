@@ -71,6 +71,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.BeforeAllOf;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Inside;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
@@ -135,7 +136,8 @@ final class WidgetTreeToLayoutTree {
      */
     private static IntermediateState processTreeNode(final TreeNode<WidgetGroup> treeNode) {
         final var state =
-            treeNode instanceof Tree<WidgetGroup> tree ? processGroup(tree) : new LeafState.TreeNodeState(treeNode);
+            (treeNode instanceof Tree<WidgetGroup> tree && !MultiFileSelection.class.equals(tree.getRawClass()))
+                ? processGroup(tree) : new LeafState.TreeNodeState(treeNode);
         final var layoutAnnotation = treeNode.getAnnotation(Layout.class);
         return layoutAnnotation.map(Layout::value).<IntermediateState> map(state::atLayout).orElse(state);
     }

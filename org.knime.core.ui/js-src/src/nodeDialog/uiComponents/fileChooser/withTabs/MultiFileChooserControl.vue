@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { type VueControlPropsForLabelContent } from "@knime/jsonforms";
+import { type VueControlProps } from "@knime/jsonforms";
 
 import { fileChooserForMultiFileFormat } from "@/nodeDialog/renderers/fileChooserRenderer";
 import type { FileChooserOptions } from "@/nodeDialog/types/FileChooserUiSchema";
@@ -10,7 +10,7 @@ import type { MultiFileSelection } from "../types";
 import FieldControl from "./FieldControl.vue";
 import FilterPreview from "./FilterPreview.vue";
 
-const props = defineProps<VueControlPropsForLabelContent<MultiFileSelection>>();
+const props = defineProps<VueControlProps<MultiFileSelection>>();
 const selectionMode = computed(() => props.control.data?.fileOrFolder);
 const browseOptions = computed(() => {
   return {
@@ -21,7 +21,7 @@ const browseOptions = computed(() => {
 </script>
 
 <template>
-  <div :id="labelForId" class="flex-column">
+  <div class="flex-column">
     <FieldControl field-name="fileOrFolder" format="valueSwitch" :control />
     <FieldControl
       field-name="path"

@@ -2,10 +2,7 @@
 import { computed, ref, watch } from "vue";
 
 import { FunctionButton } from "@knime/components";
-import {
-  SettingsSubPanel,
-  type VueControlPropsForLabelContent,
-} from "@knime/jsonforms";
+import { SettingsSubPanel, type VueControlProps } from "@knime/jsonforms";
 import NextArrowIcon from "@knime/styles/img/icons/arrow-next.svg";
 
 import FileSelectionPreview from "../FileSelectionPreview.vue";
@@ -17,7 +14,7 @@ import useFileFilterPreviewBackend, {
 } from "../composables/useFileFilterPreviewBackend";
 import type { BackendType, MultiFileSelection } from "../types";
 
-const props = defineProps<VueControlPropsForLabelContent<MultiFileSelection>>();
+const props = defineProps<VueControlProps<MultiFileSelection>>();
 const includeSubFolders = computed(() => props.control.data?.includeSubfolders);
 const browseOptions = computed(() => props.control.uischema.options!);
 
