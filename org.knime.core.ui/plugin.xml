@@ -15,5 +15,11 @@
             factory-class="org.knime.core.ui.workflowcoach.data.PrefsTripleProvider$Factory">
       </tripleprovider>
    </extension>
-
+   <extension
+         point="org.knime.workbench.repository.nodes">
+      <node
+            hidden="true"
+            factory-class="org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode.HiddenFeaturesNodeFactory">
+      </node>
+   </extension>
 </plugin>
