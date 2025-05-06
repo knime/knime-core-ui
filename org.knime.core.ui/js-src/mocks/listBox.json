@@ -1,0 +1,276 @@
+{
+  "result": {
+    "name": "ListBox (single and multi)",
+    "data": {
+      "singleSelection": "existing",
+      "singleSelectionMissing": "non-existing",
+      "singleSelectionManyChoice": "existing 2",
+      "singleSelectEmpty": null,
+      "multiSelection": ["existing", "non-existing", "existing 3"],
+      "multiSelectionEmpty": [],
+      "multiSelectionManyChoice": ["existing", "existing 2", "existing 3"]
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "singleSelection": {
+          "type": "string"
+        },
+        "singleSelectionMissing": {
+          "type": "string"
+        },
+        "singleSelectionManyChoice": {
+          "type": "string"
+        },
+        "singleSelectEmpty": {
+          "type": "string"
+        },
+        "multiSelection": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "multiSelectionEmpty": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "multiSelectionManyChoice": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ui_schema": {
+      "elements": [
+        {
+          "type": "Section",
+          "label": "Single Select List Box",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/singleSelection",
+              "options": {
+                "format": "singleSelectListBox",
+                "possibleValues": [
+                  {
+                    "id": "existing",
+                    "text": "Existing"
+                  },
+                  {
+                    "id": "existing 2",
+                    "text": "Existing 2"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/singleSelectionMissing",
+              "options": {
+                "format": "singleSelectListBox",
+                "possibleValues": [
+                  {
+                    "id": "existing",
+                    "text": "Existing"
+                  },
+                  {
+                    "id": "existing 2",
+                    "text": "Existing 2"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/singleSelectionManyChoice",
+              "options": {
+                "format": "singleSelectListBox",
+                "size": 5,
+                "possibleValues": [
+                  {
+                    "id": "existing",
+                    "text": "Existing"
+                  },
+                  {
+                    "id": "existing 2",
+                    "text": "Existing 2"
+                  },
+                  {
+                    "id": "existing 3",
+                    "text": "Existing 3"
+                  },
+                  {
+                    "id": "existing 4",
+                    "text": "Existing 4"
+                  },
+                  {
+                    "id": "existing 5",
+                    "text": "Existing 5"
+                  },
+                  {
+                    "id": "existing 6",
+                    "text": "Existing 6"
+                  },
+                  {
+                    "id": "existing 7",
+                    "text": "Existing 7"
+                  },
+                  {
+                    "id": "existing 8",
+                    "text": "Existing 8"
+                  },
+                  {
+                    "id": "existing 9",
+                    "text": "Existing 9"
+                  },
+                  {
+                    "id": "existing 10",
+                    "text": "Existing 10"
+                  },
+                  {
+                    "id": "existing 11",
+                    "text": "Existing 11"
+                  },
+                  {
+                    "id": "existing 12",
+                    "text": "Existing 12"
+                  },
+                  {
+                    "id": "existing 13",
+                    "text": "Existing 13"
+                  },
+                  {
+                    "id": "existing 14",
+                    "text": "Existing 14"
+                  },
+                  {
+                    "id": "existing 15",
+                    "text": "Existing 15"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/singleSelectionEmpty",
+              "options": {
+                "format": "singleSelectListBox",
+                "possibleValues": []
+              }
+            }
+          ]
+        },
+        {
+          "type": "Section",
+          "label": "Multi Select List Box",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/multiSelection",
+              "options": {
+                "format": "multiSelectListBox",
+                "possibleValues": [
+                  {
+                    "id": "existing",
+                    "text": "Existing"
+                  },
+                  {
+                    "id": "existing 2",
+                    "text": "Existing 2"
+                  },
+                  {
+                    "id": "existing 3",
+                    "text": "Existing 3"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/multiSelectionManyChoice",
+              "options": {
+                "format": "multiSelectListBox",
+                "size": 5,
+                "possibleValues": [
+                  {
+                    "id": "existing",
+                    "text": "Existing"
+                  },
+                  {
+                    "id": "existing 2",
+                    "text": "Existing 2"
+                  },
+                  {
+                    "id": "existing 3",
+                    "text": "Existing 3"
+                  },
+                  {
+                    "id": "existing 4",
+                    "text": "Existing 4"
+                  },
+                  {
+                    "id": "existing 5",
+                    "text": "Existing 5"
+                  },
+                  {
+                    "id": "existing 6",
+                    "text": "Existing 6"
+                  },
+                  {
+                    "id": "existing 7",
+                    "text": "Existing 7"
+                  },
+                  {
+                    "id": "existing 8",
+                    "text": "Existing 8"
+                  },
+                  {
+                    "id": "existing 9",
+                    "text": "Existing 9"
+                  },
+                  {
+                    "id": "existing 10",
+                    "text": "Existing 10"
+                  },
+                  {
+                    "id": "existing 11",
+                    "text": "Existing 11"
+                  },
+                  {
+                    "id": "existing 12",
+                    "text": "Existing 12"
+                  },
+                  {
+                    "id": "existing 13",
+                    "text": "Existing 13"
+                  },
+                  {
+                    "id": "existing 14",
+                    "text": "Existing 14"
+                  },
+                  {
+                    "id": "existing 15",
+                    "text": "Existing 15"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/multiSelectionEmpty",
+              "options": {
+                "format": "multiSelectListBox",
+                "possibleValues": []
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
