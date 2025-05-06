@@ -44,50 +44,83 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 7, 2025 (Paul Bärnreuther): created
+ *   Apr 7, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
+package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 
 /**
- * Common adapter logic from a TreeNode<WidgetGroup> to a ControlRendererSpec
+ * Renderer to input credentials.
  *
  * @author Paul Bärnreuther
  */
-abstract class WidgetTreeControlRendererSpec implements ControlRendererSpec {
+public interface CredentialsRendererSpec extends ControlRendererSpec {
 
-    protected final TreeNode<WidgetGroup> m_node;
-
-    protected WidgetTreeControlRendererSpec(final TreeNode<WidgetGroup> node) {
-        m_node = node;
+    @Override
+    default Optional<CredentialsRendererOptions> getOptions() {
+        return Optional.empty();
     }
 
     @Override
-    public List<String> getPathWithinValueJsonObject() {
-        return Stream.concat(//
-            Optional.ofNullable(m_node.getSettingsType()).map(SettingsType::getConfigKey).stream(),
-            m_node.getPath().stream()//
-        ).toList();
+    default Optional<String> getFormat() {
+        return Optional.of(UiSchema.Format.CREDENTIALS);
+    }
+
+    /**
+     * Options for rendering a credentials input.
+     */
+    interface CredentialsRendererOptions {
+
+        default Optional<Boolean> getHideUsername() {
+            return Optional.empty();
+        }
+
+        /**
+         * Use instead of {@link #getHideUsername()} to dynamically show/hide the username field.
+         *
+         * @return the id of a state provider
+         */
+        default Optional<String> getHasUsernameProvider() {
+            return Optional.empty();
+        }
+
+        default Optional<Boolean> getHidePassword() {
+            return Optional.empty();
+        }
+
+        /**
+         * Use instead of {@link #getHidePassword()} to dynamically show/hide the password field.
+         *
+         * @return the id of a state provider
+         */
+        default Optional<String> getHasPasswordProvider() {
+            return Optional.empty();
+        }
+
+        default Optional<Boolean> getShowSecondFactor() {
+            return Optional.empty();
+        }
+
+        default Optional<String> getUsernameLabel() {
+            return Optional.empty();
+        }
+
+        default Optional<String> getPasswordLabel() {
+            return Optional.empty();
+        }
+
+        default Optional<String> getSecondFactorLabel() {
+            return Optional.empty();
+        }
 
     }
 
     @Override
-    public String getTitle() {
-        return m_node.getAnnotation(Widget.class).map(Widget::title).orElse("");
-    }
-
-    @Override
-    public Optional<String> getDescription() {
-        return m_node.getAnnotation(Widget.class).map(Widget::description);
+    default JsonDataType getDataType() {
+        return JsonDataType.OBJECT;
     }
 
 }

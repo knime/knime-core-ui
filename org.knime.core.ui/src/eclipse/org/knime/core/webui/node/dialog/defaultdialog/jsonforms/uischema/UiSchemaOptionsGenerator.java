@@ -150,13 +150,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.Colu
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.OverwriteDialogTitle;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBooleanProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.WidgetAnnotation;
@@ -284,12 +280,6 @@ final class UiSchemaOptionsGenerator {
                     break;
                 case STRING_ARRAY:
                     options.put(TAG_FORMAT, Format.COMBO_BOX);
-                    break;
-                case CREDENTIALS:
-                    options.put(TAG_FORMAT, Format.CREDENTIALS);
-                    break;
-                case LEGACY_CREDENTIALS:
-                    options.put(TAG_FORMAT, Format.LEGACY_CREDENTIALS);
                     break;
                 case FILE_CHOOSER:
                     options.put(TAG_FORMAT, Format.FILE_CHOOSER);
@@ -439,46 +429,6 @@ final class UiSchemaOptionsGenerator {
                     final var disabledOptionsNode = options.putArray("disabledOptions");
                     disabledOptions.forEach(disabledOptionsNode::add);
                 }
-            }
-        }
-
-        final var hasCredentialsWidgetAnnotation = annotatedWidgets.contains(CredentialsWidget.class);
-        final var hasUsernameWidgetAnnotation = annotatedWidgets.contains(UsernameWidget.class);
-        final var hasPasswordWidgetAnnotation = annotatedWidgets.contains(PasswordWidget.class);
-        if (Stream.of(hasCredentialsWidgetAnnotation, hasUsernameWidgetAnnotation, hasPasswordWidgetAnnotation)
-            .filter(b -> b).count() > 1) {
-            throw new UiSchemaGenerationException(
-                "@UsernameWidget, @PasswordWidget and @CredentialsWidget should not be used together in one place.");
-        }
-        if (hasCredentialsWidgetAnnotation) {
-            final var credentialsWidget = m_node.getAnnotation(CredentialsWidget.class).orElseThrow();
-            options.put("usernameLabel", credentialsWidget.usernameLabel());
-            options.put("passwordLabel", credentialsWidget.passwordLabel());
-            if (credentialsWidget.hasSecondAuthenticationFactor()) {
-                options.put("showSecondFactor", true);
-                options.put("secondFactorLabel", credentialsWidget.secondFactorLabel());
-            }
-            final var hasPasswordProvider = credentialsWidget.hasPasswordProvider();
-            if (!hasPasswordProvider.equals(NoopBooleanProvider.class)) {
-                options.put("hasPasswordProvider", hasPasswordProvider.getName());
-            }
-            final var hasUsernameProvider = credentialsWidget.hasUsernameProvider();
-            if (!hasUsernameProvider.equals(NoopBooleanProvider.class)) {
-                options.put("hasUsernameProvider", hasUsernameProvider.getName());
-            }
-        }
-        if (hasUsernameWidgetAnnotation) {
-            final var usernameWidget = m_node.getAnnotation(UsernameWidget.class).orElseThrow();
-            options.put("hidePassword", true);
-            options.put("usernameLabel", usernameWidget.value());
-        }
-        if (hasPasswordWidgetAnnotation) {
-            final var passwordWidget = m_node.getAnnotation(PasswordWidget.class).orElseThrow();
-            options.put("hideUsername", true);
-            options.put("passwordLabel", passwordWidget.passwordLabel());
-            if (passwordWidget.hasSecondAuthenticationFactor()) {
-                options.put("showSecondFactor", true);
-                options.put("secondFactorLabel", passwordWidget.secondFactorLabel());
             }
         }
 

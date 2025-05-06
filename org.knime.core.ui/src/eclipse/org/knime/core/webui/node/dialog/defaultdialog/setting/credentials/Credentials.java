@@ -196,8 +196,11 @@ public final class Credentials {
 
         private static String toFieldId(final JsonStreamContext context) {
             final var parent = context.getParent();
+            if (parent == null) {
+                return "";
+            }
             String parentFieldId;
-            if (parent.inRoot()) {
+            if (parent.inRoot() && context.getCurrentValue() != null) {
                 parentFieldId = context.getCurrentValue().getClass().getName();
             } else {
                 parentFieldId = toFieldId(parent);

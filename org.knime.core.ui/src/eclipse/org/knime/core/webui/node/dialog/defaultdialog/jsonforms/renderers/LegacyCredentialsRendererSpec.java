@@ -44,50 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 7, 2025 (Paul Bärnreuther): created
+ *   May 6, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
+package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 
 /**
- * Common adapter logic from a TreeNode<WidgetGroup> to a ControlRendererSpec
+ * Renderer for {@link LegacyCredentials} that has the same options as the {@link CredentialsRendererSpec}.
  *
  * @author Paul Bärnreuther
  */
-abstract class WidgetTreeControlRendererSpec implements ControlRendererSpec {
-
-    protected final TreeNode<WidgetGroup> m_node;
-
-    protected WidgetTreeControlRendererSpec(final TreeNode<WidgetGroup> node) {
-        m_node = node;
-    }
+public interface LegacyCredentialsRendererSpec extends CredentialsRendererSpec {
 
     @Override
-    public List<String> getPathWithinValueJsonObject() {
-        return Stream.concat(//
-            Optional.ofNullable(m_node.getSettingsType()).map(SettingsType::getConfigKey).stream(),
-            m_node.getPath().stream()//
-        ).toList();
-
-    }
-
-    @Override
-    public String getTitle() {
-        return m_node.getAnnotation(Widget.class).map(Widget::title).orElse("");
-    }
-
-    @Override
-    public Optional<String> getDescription() {
-        return m_node.getAnnotation(Widget.class).map(Widget::description);
+    default Optional<String> getFormat() {
+        return Optional.of(UiSchema.Format.LEGACY_CREDENTIALS);
     }
 
 }

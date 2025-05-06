@@ -59,6 +59,8 @@ import org.apache.commons.lang3.ClassUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextAreaWidget;
@@ -89,7 +91,11 @@ public class WidgetTreeRenderers {
         new WidgetTreeNodeTester(CheckboxRenderer::new,
             node -> Boolean.class.equals(ClassUtils.primitiveToWrapper(node.getRawClass()))), //
         new WidgetTreeNodeTester(DateRenderer::new, //
-            node -> LocalDate.class.equals(node.getRawClass())) //
+            node -> LocalDate.class.equals(node.getRawClass())),
+        new WidgetTreeNodeTester(CredentialsRenderer::new,
+            node -> Credentials.class.isAssignableFrom(node.getRawClass())), //
+        new WidgetTreeNodeTester(LegacyCredentialsRenderer::new,
+            node -> LegacyCredentials.class.isAssignableFrom(node.getRawClass()))//
     };
 
     private static Predicate<TreeNode<WidgetGroup>> hasAnnotation(final Class<? extends Annotation> annotationClass) {

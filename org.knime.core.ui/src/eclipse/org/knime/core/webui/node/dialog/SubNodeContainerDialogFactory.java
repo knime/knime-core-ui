@@ -154,7 +154,8 @@ public final class SubNodeContainerDialogFactory {
         private static List<DialogSubNode> getOrderedConfigurationNodes(final SubNodeContainer snc) {
             @SuppressWarnings("rawtypes")
             Map<NodeID, DialogNode> nodes = getConfigurationNodes(snc);
-            return getNodeOrder(snc, nodes).stream().map(nodeId -> new DialogSubNode(nodes.get(nodeId), nodeId))
+            return getNodeOrder(snc, nodes).stream()
+                .map(nodeId -> new DialogSubNode(snc.getWorkflowManager().getNodeContainer(nodeId), nodes.get(nodeId)))
                 .toList();
         }
 

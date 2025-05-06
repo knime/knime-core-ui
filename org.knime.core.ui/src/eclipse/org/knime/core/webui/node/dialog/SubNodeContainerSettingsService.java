@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.dialog;
 
+import static org.knime.core.node.workflow.SubNodeContainer.getDialogNodeParameterName;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil.toSchemaConstructor;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil.toUiSchemaElement;
 import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.TextToJsonUtil.textToJson;
@@ -62,11 +63,12 @@ import org.knime.core.node.dialog.DialogNode;
 import org.knime.core.node.dialog.DialogNodeValue;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.node.workflow.NodeID;
-import org.knime.core.node.workflow.SubNodeContainer;
+import org.knime.core.node.workflow.NodeContainer;
+import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogDataServiceUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -75,10 +77,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 final class SubNodeContainerSettingsService implements NodeSettingsService {
 
     @SuppressWarnings("rawtypes")
-    record DialogSubNode(DialogNode dialogNode, String paramName) {
+    record DialogSubNode(NodeContainer nc, DialogNode dialogNode, String paramName) {
 
-        DialogSubNode(final DialogNode node, final NodeID nodeId) {
-            this(node, SubNodeContainer.getDialogNodeParameterName(node, nodeId));
+        DialogSubNode(final NodeContainer nc, final DialogNode node) {
+            this(nc, node, getDialogNodeParameterName(node, nc.getID()));
         }
 
     }
@@ -104,7 +106,8 @@ final class SubNodeContainerSettingsService implements NodeSettingsService {
             final var paramName = dialogSubNode.paramName;
             final var dialogNode = dialogSubNode.dialogNode;
 
-            modelSettingsJson.set(paramName, getValueJson(dialogNode));
+            final var valueJson = wrapWithContext(() -> getValueJson(dialogNode), dialogSubNode.nc);
+            modelSettingsJson.set(paramName, valueJson);
 
             final var renderer = getRepresentation(dialogNode).getWebUIDialogControlSpec()
                 .at(SettingsType.MODEL.getConfigKey(), paramName);
@@ -141,8 +144,7 @@ final class SubNodeContainerSettingsService implements NodeSettingsService {
 
     @SuppressWarnings("rawtypes")
     private static JsonNode getValueJson(final DialogNode dialogNode) {
-        final var value =
-            Optional.ofNullable(dialogNode.getDialogValue()).orElseGet(dialogNode::getDefaultValue);
+        final var value = Optional.ofNullable(dialogNode.getDialogValue()).orElseGet(dialogNode::getDefaultValue);
         return extractJsonFromWebDialogValue(value);
     }
 
@@ -174,9 +176,19 @@ final class SubNodeContainerSettingsService implements NodeSettingsService {
         var modelSettings = settings.get(SettingsType.MODEL);
         for (var dialogSubNode : m_orderedDialogNodes.get()) {
             final var inputJson = newSettingsJson.get("data").get("model").get(dialogSubNode.paramName);
-            final var dialogValue = loadValueFromJson(dialogSubNode.dialogNode, inputJson);
+            final var dialogValue =
+                wrapWithContext(() -> loadValueFromJson(dialogSubNode.dialogNode, inputJson), dialogSubNode.nc);
 
             dialogValue.saveToNodeSettings(modelSettings.addNodeSettings(dialogSubNode.paramName));
+        }
+    }
+
+    private static <T> T wrapWithContext(final Supplier<T> supplier, final NodeContainer nc) {
+        try {
+            NodeContext.pushContext(nc);
+            return supplier.get();
+        } finally {
+            NodeContext.removeLastContext();
         }
     }
 
@@ -192,6 +204,18 @@ final class SubNodeContainerSettingsService implements NodeSettingsService {
             throw new IllegalStateException("Unable to parse the settings provided by the dialog", e);
         }
         return value;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * We need to clean up the passwords which were stored during serialization in {@link #fromNodeSettings} for the
+     * credentials configuration.
+     */
+    @Override
+    public void deactivate() {
+        m_orderedDialogNodes.get().stream().map(DialogSubNode::nc).map(NodeContainer::getID)
+            .forEach(PasswordHolder::removeAllPasswordsOfDialog);
     }
 
 }

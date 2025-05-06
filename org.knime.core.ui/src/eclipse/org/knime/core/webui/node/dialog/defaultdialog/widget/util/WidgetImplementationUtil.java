@@ -138,14 +138,12 @@ public final class WidgetImplementationUtil {
     public enum DefaultWidgetType {
             COLUMN_FILTER, //
             COLUMN_SELECTION, //
-            CREDENTIALS, //
             DATA_TYPE, //
             DATE_INTERVAL, //
             DYNAMIC_VALUE, //
             FILE_CHOOSER, //
             FLOW_VARIABLE_FILTER, //
             INTERVAL, //
-            LEGACY_CREDENTIALS, //
             LOCAL_TIME, //
             LOCAL_DATE_TIME, //
             MULTI_FILE_CHOOSER, //
@@ -212,8 +210,6 @@ public final class WidgetImplementationUtil {
         new DefaultWidget(List.of(ZonedDateTime.class), DefaultWidgetType.ZONED_DATE_TIME), //
         new DefaultWidget(List.of(String[].class), DefaultWidgetType.STRING_ARRAY), //
         new DefaultWidget(List.of(ZoneId.class), DefaultWidgetType.ZONE_ID), //
-        new DefaultWidget(List.of(Credentials.class), DefaultWidgetType.CREDENTIALS), //
-        new DefaultWidget(List.of(LegacyCredentials.class), DefaultWidgetType.LEGACY_CREDENTIALS), //
         new DefaultWidget(List.of(FileSelection.class), DefaultWidgetType.FILE_CHOOSER), //
         new DefaultWidget(List.of(MultiFileSelection.class), DefaultWidgetType.MULTI_FILE_CHOOSER), //
         new DefaultWidget(List.of(Interval.class), DefaultWidgetType.INTERVAL), //
