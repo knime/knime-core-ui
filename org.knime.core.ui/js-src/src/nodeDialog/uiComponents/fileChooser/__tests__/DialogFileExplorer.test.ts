@@ -90,6 +90,7 @@ describe("DialogFileExplorer.vue", () => {
             element: null,
             disabled: ref(false),
             onApply: ref(undefined),
+            text: ref("Something"),
           },
         },
       },

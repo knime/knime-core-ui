@@ -33,7 +33,6 @@ export const useDialogFileExplorerButtons = ({
   } = useApplyButton(GO_INTO_FOLDER_INJECTION_KEY);
 
   onMounted(() => {
-    applyText.value = "Choose";
     onApply.value = chooseSelectedItem;
 
     goIntoFolderButtonShown.value = true;
@@ -59,6 +58,8 @@ export const useDialogFileExplorerButtons = ({
         applyButtonDisabled.value = mode !== "FOLDER";
         goIntoFolderButtonDisabled.value = false;
       }
+
+      applyText.value = `Choose ${mode === "FILE" ? "file" : "folder"}`;
     },
     { immediate: true },
   );

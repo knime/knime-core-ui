@@ -19,7 +19,6 @@ const emit = defineEmits(["apply"]);
         class="fit-content"
         :disabled="disabled"
         primary
-        compact
         @click="expand"
         ><FolderLenseIcon
       /></FunctionButton>
