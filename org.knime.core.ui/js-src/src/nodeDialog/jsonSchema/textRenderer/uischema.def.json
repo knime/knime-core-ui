@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json.schemastore.org/schema-draft-v4.json",
+  "title": "TextRenderer UiSchema schema",
+  "description": "Meta Schema for the UiSchema of the TextRenderer",
+  "allOf": [
+    {
+      "$ref": "../control.uischema.def.json"
+    },
+    {
+      "properties": {
+        "options": {
+          "type": "object",
+          "properties": {
+            "placeholder": {
+              "type": "string"
+            },
+            "placeholderProvider": {
+              "type": "string"
+            },
+            "validations": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "./validation/minLength.def.json"
+                  },
+                  {
+                    "$ref": "./validation/maxLength.def.json"
+                  },
+                  {
+                    "$ref": "./validation/pattern.def.json"
+                  }
+                ]
+              }
+            },
+            "validationProviders": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  ]
+}

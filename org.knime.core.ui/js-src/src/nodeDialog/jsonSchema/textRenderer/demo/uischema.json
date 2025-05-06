@@ -1,0 +1,17 @@
+{
+  "$schema": "../uischema.def.json",
+  "type": "Control",
+  "scope": "#/properties/text",
+  "options": {
+    "placeholder": "Enter text here",
+    "validations": [
+      {
+        "id": "minLength",
+        "parameters": {
+          "minLength": 1
+        },
+        "errorMessage": "This field is required"
+      }
+    ]
+  }
+}

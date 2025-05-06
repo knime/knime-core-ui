@@ -1,0 +1,17 @@
+{
+  "$schema": "../uischema.def.json",
+  "type": "Control",
+  "scope": "#/properties/text",
+  "options": {
+    "validations": [
+      {
+        "id": "min",
+        "parameters": {
+          "min": 1,
+          "isExclusive": false
+        },
+        "errorMessage": "The value must be at least 1."
+      }
+    ]
+  }
+}

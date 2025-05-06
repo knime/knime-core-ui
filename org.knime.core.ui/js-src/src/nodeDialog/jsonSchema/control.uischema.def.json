@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/schema-draft-v4.json",
+  "title": "UiSchema schema",
+  "description": "Meta Schema for all the UiSchema elements",
+  "type": "object",
+  "required": ["type", "scope"],
+  "additionalProperties": false,
+  "properties": {
+    "type": { "const": "Control" },
+    "scope": {
+      "type": "string"
+    },
+    "options": {
+      "type": "object"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "../../validation.def.def.json",
+  "type": "object",
+  "properties": {
+    "id": { "const": "maxLength" },
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "maxLength": {
+          "type": "integer"
+        }
+      },
+      "required": ["maxLength"],
+      "additionalProperties": false
+    },
+    "errorMessage": {
+      "type": "string"
+    }
+  }
+}

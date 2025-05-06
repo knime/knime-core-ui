@@ -1,0 +1,23 @@
+{
+  "$schema": "../../validation.def.def.json",
+  "type": "object",
+  "properties": {
+    "id": { "const": "min" },
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "min": {
+          "type": "number"
+        },
+        "isExclusive": {
+          "type": "boolean"
+        }
+      },
+      "required": ["min", "isExclusive"],
+      "additionalProperties": false
+    },
+    "errorMessage": {
+      "type": "string"
+    }
+  }
+}

@@ -7,7 +7,7 @@
         "combined": "",
         "withPattern": "",
         "withMinLength": "",
-        "withMaxLenght": "too long",
+        "withMaxLength": "too long",
         "withMin": 1.0,
         "withMax": 1.0,
         "withMinInteger": 1,
@@ -28,7 +28,7 @@
             "combined": {
               "type": "string",
               "minLength": 1,
-              "maxLenght": 3,
+              "maxLength": 3,
               "pattern": "a.*"
             },
             "withPattern": {
@@ -39,7 +39,7 @@
               "type": "string",
               "minLength": 2
             },
-            "withMaxLenght": {
+            "withMaxLength": {
               "type": "string",
               "maxLength": 4
             },
@@ -159,7 +159,7 @@
             },
             {
               "type": "Control",
-              "scope": "#/properties/model/properties/withMaxLenght",
+              "scope": "#/properties/model/properties/withMaxLength",
               "options": {
                 "validations": [
                   {

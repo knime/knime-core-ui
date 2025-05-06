@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json.schemastore.org/schema-draft-v4.json",
+  "title": "IntegerRenderer and NumberRenderer UiSchema schema",
+  "description": "Meta Schema for the UiSchema of the IntegerRenderer and NumberRenderer",
+  "allOf": [
+    {
+      "$ref": "../control.uischema.def.json"
+    },
+    {
+      "properties": {
+        "type": { "const": "Control" },
+        "scope": {
+          "type": "string"
+        },
+        "$schema": {
+          "type": "string"
+        },
+        "options": {
+          "type": "object",
+          "properties": {
+            "validations": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "./validation/min.def.json"
+                  },
+                  {
+                    "$ref": "./validation/max.def.json"
+                  }
+                ]
+              }
+            },
+            "validationProviders": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  ]
+}

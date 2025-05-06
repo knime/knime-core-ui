@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json.schemastore.org/schema-draft-v4.json",
+  "title": "TextRenderer Schema schema",
+  "description": "Meta Schema for the schema of the TextRenderer",
+  "allOf": [
+    {
+      "$ref": "../control.schema.def.json"
+    },
+    {
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["string"]
+        }
+      }
+    },
+    {
+      "not": {
+        "properties": {
+          "pattern": {
+            "description": "Use the pattern validation in the uischema instead"
+          }
+        },
+        "required": ["pattern"]
+      }
+    },
+    {
+      "not": {
+        "properties": {
+          "minLength": {
+            "description": "Use the minLength validation in the uischema instead"
+          }
+        },
+        "required": ["minLength"]
+      }
+    },
+    {
+      "not": {
+        "properties": {
+          "maxLength": {
+            "description": "Use the maxLength validation in the uischema instead"
+          }
+        },
+        "required": ["maxLength"]
+      }
+    }
+  ]
+}

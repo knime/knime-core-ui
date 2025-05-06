@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json.schemastore.org/schema-draft-v4.json",
+  "description": "This schema defines the structure for a schema for each builtin validation to be used in uischema schemas.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "object" },
+    "properties": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "object",
+          "properties": {
+            "const": { "type": "string" }
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "type": { "const": "object" },
+            "properties": {
+              "type": "object"
+            }
+          }
+        },
+        "errorMessage": {
+          "type": "object",
+          "properties": {
+            "type": { "const": "string" }
+          }
+        }
+      },
+      "required": ["id", "parameters", "errorMessage"]
+    }
+  }
+}

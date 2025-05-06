@@ -1,0 +1,20 @@
+{
+  "$schema": "../../validation.def.def.json",
+  "type": "object",
+  "properties": {
+    "id": { "const": "pattern" },
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "pattern": {
+          "type": "string"
+        }
+      },
+      "required": ["pattern"],
+      "additionalProperties": false
+    },
+    "errorMessage": {
+      "type": "string"
+    }
+  }
+}

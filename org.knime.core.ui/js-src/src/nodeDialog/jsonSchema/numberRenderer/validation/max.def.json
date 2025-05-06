@@ -1,0 +1,23 @@
+{
+  "$schema": "../../validation.def.def.json",
+  "type": "object",
+  "properties": {
+    "id": { "const": "max" },
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "max": {
+          "type": "number"
+        },
+        "isExclusive": {
+          "type": "boolean"
+        }
+      },
+      "required": ["max", "isExclusive"],
+      "additionalProperties": false
+    },
+    "errorMessage": {
+      "type": "string"
+    }
+  }
+}
