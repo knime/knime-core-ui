@@ -74,10 +74,22 @@ public interface TimeRendererSpec extends ControlRendererSpec {
      */
     interface TimeRendererOptions {
 
+        /**
+         * Whether to show seconds in the time renderer.
+         *
+         * @return Optional false if seconds should be hidden. If an empty optional is returned, seconds are shown per
+         *         default.
+         */
         default Optional<Boolean> getShowSeconds() {
             return Optional.empty();
         }
 
+        /**
+         * Whether to show milliseconds in the time renderer.
+         *
+         * @return Optional true if milliseconds should be shown. If an empty optional is returned, milliseconds are not
+         *         shown.
+         */
         default Optional<Boolean> getShowMilliseconds() {
             return Optional.empty();
         }

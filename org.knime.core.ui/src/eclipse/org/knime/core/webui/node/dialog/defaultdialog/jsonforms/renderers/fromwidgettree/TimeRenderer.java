@@ -65,11 +65,6 @@ final class TimeRenderer extends WidgetTreeControlRendererSpec implements TimeRe
         return Optional.of(new TimeRendererOptions() {
 
             @Override
-            public Optional<Boolean> getShowSeconds() {
-                return Optional.of(true);
-            }
-
-            @Override
             public Optional<Boolean> getShowMilliseconds() {
                 return Optional.of(true);
             }
