@@ -51,7 +51,7 @@
     "@jsonforms/vue": "3.4.0",
     "@jsonforms/vue-vanilla": "3.4.0",
     "@knime/components": "1.28.1",
-    "@knime/jsonforms": "1.11.0",
+    "@knime/jsonforms": "1.11.1",
     "@knime/knime-ui-table": "0.5.22",
     "@knime/rich-text-editor": "1.4.10",
     "@knime/styles": "1.2.0",
