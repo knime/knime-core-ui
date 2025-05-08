@@ -44,62 +44,34 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 7, 2025 (Paul Bärnreuther): created
+ *   7 May 2025 (Robin Gerling): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 
 import java.util.Optional;
 
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
+
 /**
- * The specification of a control, i.e. a widget that controls the value of one setting.
+ * Common options of choices renderers.
  *
- * @author Paul Bärnreuther
+ * @author Robin Gerling
  */
-public interface ControlRendererSpec extends LocalizedControlRendererSpec {
-
-    /**
-     * @noimplement only to be implemented by the provided sub-interfaces
-     * @return the unique id of this control renderer in case it is detected via the id (in contrast to e.g. the
-     *         settings type).
-     */
-    default Optional<String> getFormat() {
-        return Optional.empty();
-    }
-
-    /**
-     * @noimplement only to be implemented by the provided sub-interfaces
-     * @return the required data type of the control
-     */
-    JsonDataType getDataType();
-
-    /**
-     * @return the options for this control renderer
-     */
-    default Object getOptions() {
-        return null;
-    }
-
-    /**
-     * @return the title of the control
-     */
-    String getTitle();
-
-    /**
-     * @return the description of the control
-     */
-    Optional<String> getDescription();
+public interface StringChoicesRendererOptions {
 
     /**
      *
-     * @return the choices which should be transformed to oneOfChoices in the schema
+     * @return the possible static/initial choices displayed in the renderer
      */
-    default Optional<String[]> getOneOfChoices() {
+    default Optional<StringChoice[]> getPossibleValues() {
         return Optional.empty();
     }
 
-    @Override
-    default ControlRendererSpec getControlSpec() {
-        return this;
+    /**
+     *
+     * @return the possible dynamic choices displayed in the renderer
+     */
+    default Optional<String> getChoicesProvider() {
+        return Optional.empty();
     }
-
 }

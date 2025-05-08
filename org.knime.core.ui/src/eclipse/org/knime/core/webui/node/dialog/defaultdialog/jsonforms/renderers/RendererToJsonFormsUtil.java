@@ -163,7 +163,32 @@ public final class RendererToJsonFormsUtil {
         if (description != null) {
             putStringProperty(controlSchema, Schema.TAG_DESCRIPTION, description, actionOnPresentProperty);
         }
+        final var oneOfChoices = control.getOneOfChoices().orElse(null);
+        if (oneOfChoices != null) {
+            putOneOfChoices(controlSchema, oneOfChoices, actionOnPresentProperty);
+        }
         return jsonSchemaWithoutProperties;
+    }
+
+    private static void putOneOfChoices(final ObjectNode schema, final String[] oneOfChoices,
+        final ActionOnPresentProperty action) {
+        final var oneOf = MAPPER.createArrayNode();
+        for (var option : oneOfChoices) {
+            final var entry = oneOf.addObject();
+            entry.put(Schema.TAG_CONST, option);
+            entry.put(Schema.TAG_TITLE, option);
+        }
+        if (schema.has(Schema.TAG_ONEOF)) {
+            if (action == ActionOnPresentProperty.REPLACE) {
+                schema.set(Schema.TAG_ONEOF, oneOf);
+            } else {
+                validateProperty(JsonNode::asText, schema, Schema.TAG_ONEOF, oneOf.toString());
+            }
+        } else {
+            schema.set(Schema.TAG_ONEOF, oneOf);
+        }
+
+
     }
 
     private static void putStringProperty(final ObjectNode schema, final String propertyName, final String value,

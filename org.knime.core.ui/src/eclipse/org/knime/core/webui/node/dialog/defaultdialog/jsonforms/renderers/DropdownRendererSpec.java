@@ -44,62 +44,40 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 7, 2025 (Paul Bärnreuther): created
+ *   7 May 2025 (Robin Gerling): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 
 import java.util.Optional;
 
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
+
 /**
- * The specification of a control, i.e. a widget that controls the value of one setting.
+ * A dropdown renderer for a choices setting.
  *
- * @author Paul Bärnreuther
+ * @author Robin Gerling
  */
-public interface ControlRendererSpec extends LocalizedControlRendererSpec {
+public interface DropdownRendererSpec extends ControlRendererSpec {
 
-    /**
-     * @noimplement only to be implemented by the provided sub-interfaces
-     * @return the unique id of this control renderer in case it is detected via the id (in contrast to e.g. the
-     *         settings type).
-     */
-    default Optional<String> getFormat() {
-        return Optional.empty();
-    }
-
-    /**
-     * @noimplement only to be implemented by the provided sub-interfaces
-     * @return the required data type of the control
-     */
-    JsonDataType getDataType();
-
-    /**
-     * @return the options for this control renderer
-     */
-    default Object getOptions() {
-        return null;
-    }
-
-    /**
-     * @return the title of the control
-     */
-    String getTitle();
-
-    /**
-     * @return the description of the control
-     */
-    Optional<String> getDescription();
-
-    /**
-     *
-     * @return the choices which should be transformed to oneOfChoices in the schema
-     */
-    default Optional<String[]> getOneOfChoices() {
-        return Optional.empty();
+    @Override
+    default JsonDataType getDataType() {
+        return JsonDataType.STRING;
     }
 
     @Override
-    default ControlRendererSpec getControlSpec() {
-        return this;
+    default Optional<String> getFormat() {
+        return Optional.of(UiSchema.Format.DROP_DOWN);
+    }
+
+    /**
+     * Options for rendering a dropdown component.
+     */
+    interface DropdownRendererOptions extends StringChoicesRendererOptions {
+    }
+
+    @Override
+    default Optional<DropdownRendererOptions> getOptions() {
+        return Optional.empty();
     }
 
 }
