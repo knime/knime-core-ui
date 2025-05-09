@@ -44,70 +44,40 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 7, 2025 (Paul Bärnreuther): created
+ *   9 May 2025 (Robin Gerling): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 
 import java.util.Optional;
 
 /**
- * The specification of a control, i.e. a widget that controls the value of one setting.
+ * Options for rendering a twin list component.
  *
- * @author Paul Bärnreuther
+ * @author Robin Gerling
  */
-public interface ControlRendererSpec extends LocalizedControlRendererSpec {
-
-    /**
-     * @noimplement only to be implemented by the provided sub-interfaces
-     * @return the unique id of this control renderer in case it is detected via the id (in contrast to e.g. the
-     *         settings type).
-     */
-    default Optional<String> getFormat() {
-        return Optional.empty();
-    }
-
-    /**
-     * @noimplement only to be implemented by the provided sub-interfaces
-     * @return the required data type of the control
-     */
-    JsonDataType getDataType();
-
-    /**
-     * @return the options for this control renderer
-     */
-    default Object getOptions() {
-        return null;
-    }
-
-    /**
-     * @return the title of the control
-     */
-    String getTitle();
-
-    /**
-     * @return the description of the control
-     */
-    Optional<String> getDescription();
+public interface TwinlistRendererOptions {
 
     /**
      *
-     * @return the choices which should be transformed to oneOfChoices in the schema
+     * @return the label of the right list of a twin list
      */
-    default Optional<String[]> getOneOfChoices() {
+    default Optional<String> getIncludedLabel() {
         return Optional.empty();
     }
 
     /**
-    *
-    * @return the choices which should be transformed to anyOfChoices in the schema
-    */
-   default Optional<String[]> getAnyOfChoices() {
-       return Optional.empty();
-   }
-
-    @Override
-    default ControlRendererSpec getControlSpec() {
-        return this;
+     *
+     * @return the label of the left list of a twin list
+     */
+    default Optional<String> getExcludedLabel() {
+        return Optional.empty();
     }
 
+    /**
+     *
+     * @return the number of simultaneously shown element per list
+     */
+    default Optional<Integer> getTwinlistSize() {
+        return Optional.empty();
+    }
 }

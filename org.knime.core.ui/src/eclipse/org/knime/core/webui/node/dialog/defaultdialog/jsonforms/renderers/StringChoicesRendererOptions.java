@@ -57,21 +57,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoic
  *
  * @author Robin Gerling
  */
-public interface StringChoicesRendererOptions {
+public interface StringChoicesRendererOptions extends ChoicesProviderOptions {
 
     /**
      *
      * @return the possible static/initial choices displayed in the renderer
      */
     default Optional<StringChoice[]> getPossibleValues() {
-        return Optional.empty();
-    }
-
-    /**
-     *
-     * @return the possible dynamic choices displayed in the renderer
-     */
-    default Optional<String> getChoicesProvider() {
         return Optional.empty();
     }
 }

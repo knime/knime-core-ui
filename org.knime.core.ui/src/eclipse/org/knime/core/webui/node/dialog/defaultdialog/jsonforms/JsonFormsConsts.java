@@ -241,6 +241,8 @@ public final class JsonFormsConsts {
 
             public static final String CHECKBOX = "checkbox";
 
+            public static final String CHECKBOXES = "checkboxes";
+
             public static final String VALUE_SWITCH = "valueSwitch";
 
             public static final String TYPED_STRING_FILTER = "typedStringFilter";

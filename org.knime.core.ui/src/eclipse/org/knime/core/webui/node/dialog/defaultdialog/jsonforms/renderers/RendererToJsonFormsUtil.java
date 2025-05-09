@@ -165,29 +165,32 @@ public final class RendererToJsonFormsUtil {
         }
         final var oneOfChoices = control.getOneOfChoices().orElse(null);
         if (oneOfChoices != null) {
-            putOneOfChoices(controlSchema, oneOfChoices, actionOnPresentProperty);
+            putOneOfAnyOfChoices(controlSchema, Schema.TAG_ONEOF, oneOfChoices, actionOnPresentProperty);
+        }
+        final var anyOfChoices = control.getAnyOfChoices().orElse(null);
+        if (anyOfChoices != null) {
+            putOneOfAnyOfChoices(controlSchema, Schema.TAG_ANYOF, anyOfChoices, actionOnPresentProperty);
         }
         return jsonSchemaWithoutProperties;
     }
 
-    private static void putOneOfChoices(final ObjectNode schema, final String[] oneOfChoices,
+    private static void putOneOfAnyOfChoices(final ObjectNode schema, final String tag, final String[] choices,
         final ActionOnPresentProperty action) {
-        final var oneOf = MAPPER.createArrayNode();
-        for (var option : oneOfChoices) {
-            final var entry = oneOf.addObject();
+        final var oneOfAnyOf = MAPPER.createArrayNode();
+        for (var option : choices) {
+            final var entry = oneOfAnyOf.addObject();
             entry.put(Schema.TAG_CONST, option);
             entry.put(Schema.TAG_TITLE, option);
         }
-        if (schema.has(Schema.TAG_ONEOF)) {
+        if (schema.has(tag)) {
             if (action == ActionOnPresentProperty.REPLACE) {
-                schema.set(Schema.TAG_ONEOF, oneOf);
+                schema.set(tag, oneOfAnyOf);
             } else {
-                validateProperty(JsonNode::asText, schema, Schema.TAG_ONEOF, oneOf.toString());
+                validateProperty(JsonNode::asText, schema, tag, oneOfAnyOf.toString());
             }
         } else {
-            schema.set(Schema.TAG_ONEOF, oneOf);
+            schema.set(tag, oneOfAnyOf);
         }
-
 
     }
 
