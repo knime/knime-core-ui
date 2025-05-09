@@ -44,47 +44,41 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   8 May 2025 (Robin Gerling): created
+ *   15 May 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
+package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options;
 
-import java.util.Optional;
+import java.util.Locale;
 
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.Alignment;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.StringChoicesRendererOptions;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.CheckboxesRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RadioButtonRendererSpec;
+
+import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * A radio button renderer for a choices setting.
+ * This enum describes how to align the elements of a renderer, e.g. for the {@link CheckboxesRendererSpec} or
+ * {@link RadioButtonRendererSpec}.
  *
  * @author Robin Gerling
  */
-public interface RadioButtonRendererSpec extends ControlRendererSpec {
+public enum Alignment {
 
-    @Override
-    default JsonDataType getDataType() {
-        return JsonDataType.STRING;
-    }
+        /**
+         * Align the elements vertically.
+         */
+        VERTICAL,
 
-    @Override
-    default Optional<String> getFormat() {
-        return Optional.of(UiSchema.Format.RADIO);
-    }
+        /**
+         * Align the elements horizontally.
+         */
+        HORIZONTAL;
 
     /**
-     * Options for rendering a radio button component.
+     * @return the alignment as a lowercase string for JSON serialization
      */
-    interface RadioButtonRendererOptions extends StringChoicesRendererOptions {
-
-        default Optional<Alignment> getRadioLayout() {
-            return Optional.empty();
-        }
-
-    }
-
-    @Override
-    default Optional<RadioButtonRendererOptions> getOptions() {
-        return Optional.empty();
+    @JsonValue
+    public String getAlignment() {
+        return name().toLowerCase(Locale.getDefault());
     }
 
 }

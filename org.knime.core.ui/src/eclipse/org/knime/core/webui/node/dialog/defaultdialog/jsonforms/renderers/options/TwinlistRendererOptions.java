@@ -44,47 +44,40 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   8 May 2025 (Robin Gerling): created
+ *   9 May 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
+package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options;
 
 import java.util.Optional;
 
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.Alignment;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.StringChoicesRendererOptions;
-
 /**
- * A radio button renderer for a choices setting.
+ * Options for rendering a twin list component.
  *
  * @author Robin Gerling
  */
-public interface RadioButtonRendererSpec extends ControlRendererSpec {
-
-    @Override
-    default JsonDataType getDataType() {
-        return JsonDataType.STRING;
-    }
-
-    @Override
-    default Optional<String> getFormat() {
-        return Optional.of(UiSchema.Format.RADIO);
-    }
+public interface TwinlistRendererOptions {
 
     /**
-     * Options for rendering a radio button component.
+     *
+     * @return the label of the right list of a twin list
      */
-    interface RadioButtonRendererOptions extends StringChoicesRendererOptions {
-
-        default Optional<Alignment> getRadioLayout() {
-            return Optional.empty();
-        }
-
-    }
-
-    @Override
-    default Optional<RadioButtonRendererOptions> getOptions() {
+    default Optional<String> getIncludedLabel() {
         return Optional.empty();
     }
 
+    /**
+     *
+     * @return the label of the left list of a twin list
+     */
+    default Optional<String> getExcludedLabel() {
+        return Optional.empty();
+    }
+
+    /**
+     *
+     * @return the number of simultaneously shown element per list
+     */
+    default Optional<Integer> getTwinlistSize() {
+        return Optional.empty();
+    }
 }

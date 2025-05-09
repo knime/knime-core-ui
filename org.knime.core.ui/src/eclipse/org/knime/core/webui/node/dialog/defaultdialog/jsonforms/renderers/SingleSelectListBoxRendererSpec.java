@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.StringChoicesRendererOptions;
 
 /**
  * A single select listbox renderer for a choices setting.

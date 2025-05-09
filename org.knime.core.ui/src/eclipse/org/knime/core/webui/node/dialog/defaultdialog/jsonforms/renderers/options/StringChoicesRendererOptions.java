@@ -46,7 +46,7 @@
  * History
  *   7 May 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
+package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options;
 
 import java.util.Optional;
 

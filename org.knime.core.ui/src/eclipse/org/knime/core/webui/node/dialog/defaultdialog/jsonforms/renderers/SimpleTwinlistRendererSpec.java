@@ -51,40 +51,33 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.Alignment;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.StringChoicesRendererOptions;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.TwinlistRendererOptions;
 
 /**
- * A radio button renderer for a choices setting.
+ * A simple twinlist renderer spec for a choices setting.
  *
  * @author Robin Gerling
  */
-public interface RadioButtonRendererSpec extends ControlRendererSpec {
-
+public interface SimpleTwinlistRendererSpec extends ControlRendererSpec {
     @Override
     default JsonDataType getDataType() {
-        return JsonDataType.STRING;
+        return JsonDataType.ARRAY;
     }
 
     @Override
     default Optional<String> getFormat() {
-        return Optional.of(UiSchema.Format.RADIO);
+        return Optional.of(UiSchema.Format.TWIN_LIST);
     }
 
     /**
-     * Options for rendering a radio button component.
+     * Options for rendering a simple twinlist component.
      */
-    interface RadioButtonRendererOptions extends StringChoicesRendererOptions {
-
-        default Optional<Alignment> getRadioLayout() {
-            return Optional.empty();
-        }
-
+    interface SimpleTwinlistRendererOptions extends TwinlistRendererOptions, StringChoicesRendererOptions {
     }
 
     @Override
-    default Optional<RadioButtonRendererOptions> getOptions() {
+    default Optional<SimpleTwinlistRendererOptions> getOptions() {
         return Optional.empty();
     }
-
 }

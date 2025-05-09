@@ -74,7 +74,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_IS_WRITER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_LABEL;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_OPTIONS;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_UNKNWON_VALUES_TEXT;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_UNKNOWN_VALUES_TEXT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_USE_FLOW_VAR_TEMPLATES;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.getApplicableDefaults;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.partitionWidgetAnnotationsByApplicability;
@@ -475,7 +475,7 @@ final class UiSchemaOptionsGenerator {
     }
 
     private static void addTypedStringFilterOptions(final ObjectNode options, final String filteredObject) {
-        options.put(TAG_UNKNWON_VALUES_TEXT, String.format("Any unknown %s", filteredObject));
+        options.put(TAG_UNKNOWN_VALUES_TEXT, String.format("Any unknown %s", filteredObject));
         options.put(TAG_EMPTY_STATE_LABEL, String.format("No %ss in this list.", filteredObject));
     }
 

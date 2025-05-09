@@ -51,40 +51,35 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.Alignment;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.StringChoicesRendererOptions;
 
 /**
- * A radio button renderer for a choices setting.
+ * A multi select listbox renderer spec for a choices setting.
  *
  * @author Robin Gerling
  */
-public interface RadioButtonRendererSpec extends ControlRendererSpec {
-
+public interface MultiSelectListBoxRendererSpec extends ControlRendererSpec {
     @Override
     default JsonDataType getDataType() {
-        return JsonDataType.STRING;
+        return JsonDataType.ARRAY;
     }
 
     @Override
     default Optional<String> getFormat() {
-        return Optional.of(UiSchema.Format.RADIO);
+        return Optional.of(UiSchema.Format.MULTI_SELECT_LIST_BOX);
     }
 
     /**
-     * Options for rendering a radio button component.
+     * Options for rendering a multi select listbox component.
      */
-    interface RadioButtonRendererOptions extends StringChoicesRendererOptions {
-
-        default Optional<Alignment> getRadioLayout() {
+    interface MultiSelectListBoxRendererOptions extends StringChoicesRendererOptions {
+        default Optional<Integer> getSize() {
             return Optional.empty();
         }
-
     }
 
     @Override
-    default Optional<RadioButtonRendererOptions> getOptions() {
+    default Optional<MultiSelectListBoxRendererOptions> getOptions() {
         return Optional.empty();
     }
-
 }

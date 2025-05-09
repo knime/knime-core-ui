@@ -171,7 +171,7 @@ public final class JsonFormsConsts {
         /**
          * The text for unknown values in a {@link TypedStringFilter}
          */
-        public static final String TAG_UNKNWON_VALUES_TEXT = "unknownValuesText";
+        public static final String TAG_UNKNOWN_VALUES_TEXT = "unknownValuesText";
 
         /**
          * The text for empty lists in a {@link TypedStringFilter}
@@ -240,6 +240,8 @@ public final class JsonFormsConsts {
             }
 
             public static final String CHECKBOX = "checkbox";
+
+            public static final String CHECKBOXES = "checkboxes";
 
             public static final String VALUE_SWITCH = "valueSwitch";
 

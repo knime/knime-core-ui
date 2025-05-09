@@ -44,47 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   8 May 2025 (Robin Gerling): created
+ *   13 May 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
+package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options;
 
 import java.util.Optional;
 
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.Alignment;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.StringChoicesRendererOptions;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice;
 
 /**
- * A radio button renderer for a choices setting.
+ * Common options of a typed string choices renderer, e.g. a {@link TypedStringFilter}.
  *
  * @author Robin Gerling
  */
-public interface RadioButtonRendererSpec extends ControlRendererSpec {
-
-    @Override
-    default JsonDataType getDataType() {
-        return JsonDataType.STRING;
-    }
-
-    @Override
-    default Optional<String> getFormat() {
-        return Optional.of(UiSchema.Format.RADIO);
-    }
+public interface TypedStringChoicesRendererOptions {
 
     /**
-     * Options for rendering a radio button component.
+     *
+     * @return the possible static/initial choices displayed in the renderer
      */
-    interface RadioButtonRendererOptions extends StringChoicesRendererOptions {
-
-        default Optional<Alignment> getRadioLayout() {
-            return Optional.empty();
-        }
-
-    }
-
-    @Override
-    default Optional<RadioButtonRendererOptions> getOptions() {
+    default Optional<TypedStringChoice[]> getPossibleValues() {
         return Optional.empty();
     }
 
+    /**
+     *
+     * @return the text for unknown values in a {@link TypedStringFilter}.
+     */
+    default Optional<String> getUnknownValuesText() {
+        return Optional.empty();
+    }
+
+    /**
+     *
+     * @return the text for empty lists in a {@link TypedStringFilter}.
+     */
+    default Optional<String> getEmptyStateLabel() {
+        return Optional.empty();
+    }
 }

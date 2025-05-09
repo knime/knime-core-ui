@@ -55,36 +55,32 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.option
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.StringChoicesRendererOptions;
 
 /**
- * A radio button renderer for a choices setting.
+ * A checkboxes renderer for a choices setting.
  *
  * @author Robin Gerling
  */
-public interface RadioButtonRendererSpec extends ControlRendererSpec {
-
+public interface CheckboxesRendererSpec extends ControlRendererSpec {
     @Override
     default JsonDataType getDataType() {
-        return JsonDataType.STRING;
+        return JsonDataType.ARRAY;
     }
 
     @Override
     default Optional<String> getFormat() {
-        return Optional.of(UiSchema.Format.RADIO);
+        return Optional.of(UiSchema.Format.CHECKBOXES);
     }
 
     /**
-     * Options for rendering a radio button component.
+     * Options for rendering a checkboxes component.
      */
-    interface RadioButtonRendererOptions extends StringChoicesRendererOptions {
-
-        default Optional<Alignment> getRadioLayout() {
+    interface CheckboxesRendererOptions extends StringChoicesRendererOptions {
+        default Optional<Alignment> getCheckboxLayout() {
             return Optional.empty();
         }
-
     }
 
     @Override
-    default Optional<RadioButtonRendererOptions> getOptions() {
+    default Optional<CheckboxesRendererOptions> getOptions() {
         return Optional.empty();
     }
-
 }

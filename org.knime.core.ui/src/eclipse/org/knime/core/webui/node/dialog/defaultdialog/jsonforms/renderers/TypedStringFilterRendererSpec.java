@@ -51,40 +51,33 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.Alignment;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.StringChoicesRendererOptions;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.TwinlistRendererOptions;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.TypedStringChoicesRendererOptions;
 
 /**
- * A radio button renderer for a choices setting.
+ * A typed string filter renderer spec for a choices setting.
  *
  * @author Robin Gerling
  */
-public interface RadioButtonRendererSpec extends ControlRendererSpec {
-
+public interface TypedStringFilterRendererSpec extends ControlRendererSpec {
     @Override
     default JsonDataType getDataType() {
-        return JsonDataType.STRING;
+        return JsonDataType.OBJECT;
     }
 
     @Override
     default Optional<String> getFormat() {
-        return Optional.of(UiSchema.Format.RADIO);
+        return Optional.of(UiSchema.Format.TYPED_STRING_FILTER);
     }
 
     /**
-     * Options for rendering a radio button component.
+     * Options for rendering a column filter component.
      */
-    interface RadioButtonRendererOptions extends StringChoicesRendererOptions {
-
-        default Optional<Alignment> getRadioLayout() {
-            return Optional.empty();
-        }
-
+    interface TypedStringFilterRendererOptions extends TwinlistRendererOptions, TypedStringChoicesRendererOptions {
     }
 
     @Override
-    default Optional<RadioButtonRendererOptions> getOptions() {
+    default Optional<TypedStringFilterRendererOptions> getOptions() {
         return Optional.empty();
     }
-
 }
