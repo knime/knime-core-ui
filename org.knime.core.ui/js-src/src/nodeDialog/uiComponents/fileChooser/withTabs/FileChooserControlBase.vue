@@ -45,7 +45,10 @@ const getDefaultData = () => {
 };
 
 const data = computed(() => {
-  return props.toPath(props.control.data) ?? getDefaultData();
+  if (props.control.data) {
+    return props.toPath(props.control.data);
+  }
+  return getDefaultData();
 });
 
 const { flowSettings } = useFlowSettings({

@@ -50,7 +50,7 @@ const { appendedExtension, filteredExtensions, isLoaded, isWriter } =
         :filtered-extensions="filteredExtensions"
         :appended-extension="appendedExtension"
         :initial-file-path="sideDrawerValue"
-        @choose-file="updateSideDrawerValue"
+        @choose-item="updateSideDrawerValue"
       />
     </FileBrowserButton>
   </div>
