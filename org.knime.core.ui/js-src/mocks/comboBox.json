@@ -10,12 +10,14 @@
       "properties": {
         "comboBoxWithPossibleValues": {
           "type": "array",
+          "description": "Should show a combo box with two selected values: One normal value \"Foo\" and on red missing value \"foo2\". The options should be \"Foo\" and \"Bar\". It should not be possible to add new values.",
           "items": {
             "type": "string"
           }
         },
         "comboBoxWithoutPossibleValues": {
           "type": "array",
+          "description": "Should show a combo box with two selected normal (non-missing) values \"foo\" and \"foo2\". There should also be listed in the options but it should also be possible to add new values.",
           "items": {
             "type": "string"
           }
