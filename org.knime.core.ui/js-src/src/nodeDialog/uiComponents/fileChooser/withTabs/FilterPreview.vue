@@ -83,7 +83,11 @@ const filterSettingsRef = ref<typeof FilterSettings | null>(null);
       </FunctionButton>
     </template>
   </FileSelectionPreview>
-  <SettingsSubPanel ref="filterPanelRef" show-back-arrow>
+  <SettingsSubPanel
+    ref="filterPanelRef"
+    show-back-arrow
+    background-color-override="var(--knime-gray-ultra-light)"
+  >
     <div class="filter-settings-drawer-content">
       <FileSelectionPreview
         :preview-data
