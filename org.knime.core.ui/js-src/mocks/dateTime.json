@@ -1,4 +1,5 @@
 {
+  "$schema": "mock.def.json",
   "result": {
     "name": "Date & Time",
     "data": {
@@ -131,6 +132,7 @@
           }
         }
       ]
-    }
+    },
+    "flowVariableSettings": {}
   }
 }

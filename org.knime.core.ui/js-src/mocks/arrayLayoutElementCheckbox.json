@@ -1,4 +1,5 @@
 {
+  "$schema": "mock.def.json",
   "result": {
     "name": "Array Layout",
     "data": {
@@ -130,6 +131,7 @@
           ]
         }
       ]
-    }
+    },
+    "flowVariableSettings": {}
   }
 }

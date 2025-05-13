@@ -1,4 +1,5 @@
 {
+  "$schema": "mock.def.json",
   "result": {
     "name": "New Node Dialog",
     "data": {
@@ -256,6 +257,7 @@
           ]
         }
       ]
-    }
+    },
+    "flowVariableSettings": {}
   }
 }

@@ -388,7 +388,7 @@ describe("flow variables", () => {
       } satisfies PersistSchema,
       initialUpdates: [
         {
-          scopes: ["#/properties/model/properties/value"],
+          scope: "#/properties/model/properties/value",
           values: [
             {
               indices: [],

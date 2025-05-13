@@ -48,31 +48,17 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToValueRefsAndStateProviders.ValueRefWrapper;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
-
 /**
  * An object representing a reference to a value of a widget
  *
  * @author Paul Bärnreuther
  */
-final class DependencyVertex extends Vertex implements ValueAndTypeReference {
+final class DependencyVertex extends Vertex {
 
-    private final Class<? extends Reference> m_ref;
+    private final LocationAndType m_locationAndType;
 
-    private final PathsWithSettingsType m_fieldLocation;
-
-    private final TypeReference<?> m_typeReference;
-
-    DependencyVertex(final ValueRefWrapper valueRefWrapper) {
-        this(valueRefWrapper, null);
-    }
-
-    DependencyVertex(final ValueRefWrapper valueRefWrapper, final TypeReference<?> typeReference) {
-        m_ref = valueRefWrapper.valueRef();
-        m_typeReference = typeReference;
-        m_fieldLocation = valueRefWrapper.fieldLocation();
+    DependencyVertex(final LocationAndType locationAndType) {
+        m_locationAndType = locationAndType;
     }
 
     @Override
@@ -80,21 +66,28 @@ final class DependencyVertex extends Vertex implements ValueAndTypeReference {
         return visitor.accept(this);
     }
 
-    @Override
-    public Class<? extends Reference> getValueRef() {
-        return m_ref;
+    LocationAndType getLocationAndType() {
+        return m_locationAndType;
+    }
+
+    boolean isDependencyAt(final Location location) {
+        return m_locationAndType.location().equals(location);
     }
 
     @Override
-    public TypeReference getTypeReference() {
-        return m_typeReference;
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof DependencyVertex other) {
+            return m_locationAndType.location().equals(other.m_locationAndType.location());
+        }
+        return false;
     }
 
-    /**
-     * @return the scope of the field this dependency points to
-     */
-    PathsWithSettingsType getFieldLocation() {
-        return m_fieldLocation;
+    @Override
+    public int hashCode() {
+        return m_locationAndType.location().hashCode();
     }
 
 }

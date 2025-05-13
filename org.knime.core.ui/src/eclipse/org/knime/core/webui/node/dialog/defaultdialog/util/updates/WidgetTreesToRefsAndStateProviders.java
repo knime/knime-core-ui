@@ -91,17 +91,16 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
-final class WidgetTreesToValueRefsAndStateProviders {
+final class WidgetTreesToRefsAndStateProviders {
 
-    record ValueRefWrapper(Class<? extends Reference> valueRef, PathsWithSettingsType fieldLocation) {
+    record ValueRefWrapper(Class<? extends Reference> valueRef, Location fieldLocation) {
     }
 
-    record ValueProviderWrapper(Class<? extends StateProvider> stateProviderClass,
-        PathsWithSettingsType fieldLocation) {
+    record ValueProviderWrapper(Class<? extends StateProvider> stateProviderClass, Location fieldLocation) {
     }
 
-    record ValueRefsAndStateProviders(Collection<ValueRefWrapper> valueRefs,
-        Collection<ValueProviderWrapper> valueProviders, Collection<Class<? extends StateProvider>> uiStateProviders) {
+    record RefsAndStateProviders(Collection<ValueRefWrapper> valueRefs, Collection<ValueProviderWrapper> valueProviders,
+        Collection<Class<? extends StateProvider>> uiStateProviders) {
     }
 
     static final Configuration TRAVERSAL_CONFIG = new Configuration.Builder()//
@@ -116,12 +115,11 @@ final class WidgetTreesToValueRefsAndStateProviders {
 
     /**
      * @param widgetTrees a collection of widget trees derived from settings classes to collect annotated fields from
-     * @return the valueRef and updates annotations
+     * @return the parsed refs and updates from annotations
      */
-    ValueRefsAndStateProviders
-        widgetTreesToValueRefsAndStateProviders(final Collection<Tree<WidgetGroup>> widgetTrees) {
+    RefsAndStateProviders widgetTreesToRefsAndStateProviders(final Collection<Tree<WidgetGroup>> widgetTrees) {
         widgetTrees.forEach(this::traverseWidgetTree);
-        return new ValueRefsAndStateProviders(m_valueRefs, m_valueProviders, m_uiStateProviders);
+        return new RefsAndStateProviders(m_valueRefs, m_valueProviders, m_uiStateProviders);
 
     }
 
@@ -130,7 +128,7 @@ final class WidgetTreesToValueRefsAndStateProviders {
     }
 
     private void traverseWidgetTreeNode(final TreeNode<WidgetGroup> node) {
-        addWidgetValueAnnotationValueRefAndValueProviderForNode(node);
+        addWidgetValueAnnotationRefAndValueProviderForNode(node);
         addUiStateProviderForNode(node);
         if (node instanceof Tree<WidgetGroup> widgetTree) {
             traverseWidgetTree(widgetTree);
@@ -347,8 +345,8 @@ final class WidgetTreesToValueRefsAndStateProviders {
             .forEach(spec -> spec.getUiStateProviders(node).ifPresent(m_uiStateProviders::addAll));
     }
 
-    private void addWidgetValueAnnotationValueRefAndValueProviderForNode(final TreeNode<WidgetGroup> node) {
-        final var pathsWithSettingsKey = PathsWithSettingsType.fromTreeNode(node);
+    private void addWidgetValueAnnotationRefAndValueProviderForNode(final TreeNode<WidgetGroup> node) {
+        final var pathsWithSettingsKey = Location.fromTreeNode(node);
         final var type = node.isOptional() ? Optional.class : node.getRawClass();
         node.getAnnotation(ValueReference.class)
             .ifPresent(valueReference -> addValueRef(valueReference.value(), type, pathsWithSettingsKey));
@@ -357,7 +355,7 @@ final class WidgetTreesToValueRefsAndStateProviders {
     }
 
     private void addValueRef(final Class<? extends Reference> valueRef, final Class<?> type,
-        final PathsWithSettingsType pathWithSettingsKey) {
+        final Location pathWithSettingsKey) {
         if (!valueRef.equals(Reference.class)) {
             validateAgainstType(type, valueRef, Reference.class,
                 (field, annotationValue) -> annotationValue.isAssignableFrom(field));
@@ -366,7 +364,7 @@ final class WidgetTreesToValueRefsAndStateProviders {
     }
 
     private void addValueProvider(final Class<? extends StateProvider> valueProviderClass, final Class<?> fieldType,
-        final PathsWithSettingsType pathWithSettingsKey) {
+        final Location pathWithSettingsKey) {
         if (!valueProviderClass.equals(StateProvider.class)) {
             validateAgainstType(fieldType, valueProviderClass, StateProvider.class,
                 (field, annotationValue) -> field.isAssignableFrom(annotationValue));

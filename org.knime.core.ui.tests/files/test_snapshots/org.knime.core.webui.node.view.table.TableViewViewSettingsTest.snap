@@ -666,7 +666,7 @@
     }
   },
   "initialUpdates" : [ {
-    "scopes" : null,
+    "scope" : null,
     "id" : "org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider",
     "values" : [ {
       "indices" : [ ],

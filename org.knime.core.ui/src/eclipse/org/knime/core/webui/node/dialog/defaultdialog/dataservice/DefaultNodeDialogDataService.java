@@ -119,19 +119,20 @@ interface DefaultNodeDialogDataService {
      * eventually replace the {@link #update} method.
      *
      * @param widgetId identifying which pending requests came from the same widget and thus have to be canceled
-     * @param triggerClass
-     * @param rawDependencies a map from a {@link Reference} class names to a list of values. This list of values is
-     *            usually a one-element list with an indexed value without indices. Only if the dependency is nested
-     *            within an array layout element while the trigger is not, a list of dependency values indexed by unique
-     *            ids for each element in an array is supplied. Note that these are "raw" dependencies, since the
-     *            objects within the indexed values need to be converted to the correct type defined by the generic of
-     *            the {@link Reference} using a mapper
+     * @param trigger the trigger that is to be invoked. This can either be a {@link Trigger.ValueTrigger} induced from
+     *            a value update or a {@link Trigger.IdTrigger}.
+     * @param rawDependencies a map from jsonforms scope to a list of values. This list of values is usually a
+     *            one-element list with an indexed value without indices. Only if the dependency is nested within an
+     *            array layout element while the trigger is not, a list of dependency values indexed by unique ids for
+     *            each element in an array is supplied. Note that these are "raw" dependencies, since the objects within
+     *            the indexed values need to be converted to the correct type defined by the generic of the
+     *            {@link Reference} using a mapper
      * @return A list of instructions on what is to be updated. In case of indexed dependencies, the updates are also
      *         indexed by the same indices.
      * @throws InterruptedException
      * @throws ExecutionException
      */
-    Result<?> update2(String widgetId, String triggerClass, Map<String, List<IndexedValue<String>>> rawDependencies)
+    Result<?> update2(String widgetId, Trigger trigger, Map<String, List<IndexedValue<String>>> rawDependencies)
         throws InterruptedException, ExecutionException;
 
     /**

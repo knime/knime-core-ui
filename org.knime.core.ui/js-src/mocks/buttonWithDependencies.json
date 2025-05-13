@@ -1,4 +1,5 @@
 {
+  "$schema": "mock.def.json",
   "result": {
     "name": "Button With Dependencies Dialog",
     "data": {
@@ -73,6 +74,7 @@
           "type": "Control"
         }
       ]
-    }
+    },
+    "flowVariableSettings": {}
   }
 }

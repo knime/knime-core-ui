@@ -48,59 +48,12 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
-import java.util.Optional;
-
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToValueRefsAndStateProviders.ValueRefWrapper;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalButtonReferenceId;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-
-/**
- *
- * @author Paul Bärnreuther
- */
-final class TriggerVertex extends Vertex {
-
-    static final String BEFORE_OPEN_DIALOG_ID = "before-open-dialog";
-
-    static final String AFTER_OPEN_DIALOG_ID = "after-open-dialog";
-
-    private final String m_id;
-
-    private final Optional<PathsWithSettingsType> m_fieldLocation;
-
-    TriggerVertex(final String specialTriggerVertexId) {
-        m_id = specialTriggerVertexId;
-        m_fieldLocation = Optional.empty();
-    }
-
-    TriggerVertex(final Class<? extends ButtonReference> buttonRef) {
-        final var internalId = buttonRef.getAnnotation(InternalButtonReferenceId.class);
-        m_id = internalId == null ? buttonRef.getName() : internalId.value();
-        m_fieldLocation = Optional.empty();
-    }
-
-    TriggerVertex(final ValueRefWrapper valueRefWrapper) {
-        m_id = valueRefWrapper.valueRef().getName();
-        m_fieldLocation = Optional.of(valueRefWrapper.fieldLocation());
-    }
+abstract sealed class TriggerVertex extends Vertex implements Comparable<TriggerVertex>
+    permits ValueTriggerVertex, IdTriggerVertex {
 
     @Override
-    public <T> T visit(final VertexVisitor<T> visitor) {
+    <T> T visit(final VertexVisitor<T> visitor) {
         return visitor.accept(this);
-    }
-
-    /**
-     * @return a unique identifier
-     */
-    String getId() {
-        return m_id;
-    }
-
-    /**
-     * @return information about the associated field of the trigger if there is any
-     */
-    Optional<PathsWithSettingsType> getFieldLocation() {
-        return m_fieldLocation;
     }
 
 }

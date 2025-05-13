@@ -6,16 +6,78 @@ import type { PreviewResult } from "../uiComponents/fileChooser/composables/useF
 
 const errorFolder = "Open me to see an error message!";
 
+const scope_A = "#/properties/view/properties/a";
+const scope_updatedByA = "#/properties/view/properties/updatedByA";
+const scope_A_nested =
+  "#/properties/view/properties/myArray/items/properties/a";
+const scope_A_nested_nested =
+  "#/properties/view/properties/myArray/items/properties/nestedArray/items/properties/a";
+const scope_B = "#/properties/view/properties/b";
+const scope_updatedByB = "#/properties/view/properties/updatedByB";
+const scope_B_nested =
+  "#/properties/view/properties/myArray/items/properties/b";
+const scope_B_nested_nested =
+  "#/properties/view/properties/myArray/items/properties/nestedArray/items/properties/b";
+
+const scope_title =
+  "#/properties/view/properties/dummyArrayLayout/items/properties/title";
+const scope_subTitle =
+  "#/properties/view/properties/dummyArrayLayout/items/properties/subTitle";
+
+const scope_title_textMessage = "#/properties/title";
+const scope_description_textMessage = "#/properties/description";
+const scope_type_textMessage = "#/properties/type";
+const scope_show_textMessage = "#/properties/show";
+
 const mockUpdate2 = (rpcRequest: {
   method: string;
   params: any[];
 }): Result<UpdateResult[]> => {
-  if (rpcRequest.params[1] === "textMessage.json") {
+  if (rpcRequest.params[1].id === "ElementResetButton") {
+    return {
+      state: "SUCCESS",
+      result: [
+        {
+          id: null,
+          scope:
+            "#/properties/view/properties/dummyArrayLayout/items/properties/doubleInput",
+          values: [{ indices: [], value: 0 }],
+        },
+        {
+          id: null,
+          scope:
+            "#/properties/view/properties/dummyArrayLayout/items/properties/stringInput",
+          values: [{ indices: [], value: "" }],
+        },
+        {
+          id: null,
+          scope:
+            "#/properties/view/properties/dummyArrayLayout/items/properties/radioInput",
+          values: [{ indices: [], value: "OPTION1" }],
+        },
+      ],
+    };
+  }
+  if (
+    rpcRequest.params[1].id ===
+    "buttonTriggerId (from simpleButtonControl.json)"
+  ) {
+    window.alert("Button was clicked!");
+    return { state: "CANCELED" };
+  }
+  const dependencies = rpcRequest.params[2] as Record<
+    string,
+    IndicesValuePairs
+  >;
+  /**
+   * See textMessage.json
+   */
+  if (Object.keys(dependencies).includes(scope_title_textMessage)) {
     const {
-      title: [{ value: title }],
-      description: [{ value: description }],
-      type: [{ value: type }],
-      show: [{ value: show }],
+      [scope_title_textMessage]: [{ value: title }],
+      [scope_description_textMessage]: [{ value: description }],
+      [scope_type_textMessage]: [{ value: type }],
+      [scope_show_textMessage]: [{ value: show }],
     } = rpcRequest.params[2];
     return {
       state: "SUCCESS",
@@ -34,136 +96,96 @@ const mockUpdate2 = (rpcRequest: {
                 : null,
             },
           ],
-          scopes: null,
+          scope: null,
         },
       ],
     };
   }
-  if (rpcRequest.params[1] === "ElementResetButton") {
-    return {
-      state: "SUCCESS",
-      result: [
-        {
-          id: null,
-          scopes: [
-            "#/properties/view/properties/dummyArrayLayout",
-            "#/properties/doubleInput",
-          ],
-          values: [{ indices: [], value: 0 }],
-        },
-        {
-          id: null,
-          scopes: [
-            "#/properties/view/properties/dummyArrayLayout",
-            "#/properties/stringInput",
-          ],
-          values: [{ indices: [], value: "" }],
-        },
-        {
-          id: null,
-          scopes: [
-            "#/properties/view/properties/dummyArrayLayout",
-            "#/properties/radioInput",
-          ],
-          values: [{ indices: [], value: "OPTION1" }],
-        },
-      ],
-    };
-  }
-  if (
-    rpcRequest.params[1] === "buttonTriggerId (from simpleButtonControl.json)"
-  ) {
-    window.alert("Button was clicked!");
-    return { state: "CANCELED" };
-  }
-  const dependencies = rpcRequest.params[2] as Record<
-    string,
-    IndicesValuePairs
-  >;
+
   /**
    * See update.json
    */
-  if (Object.keys(dependencies).includes("UpdatedByA")) {
+  if (Object.keys(dependencies).includes(scope_updatedByA)) {
     const {
-      UpdatedByA: [{ value: UpdatedByA }],
+      [scope_updatedByA]: [{ value: UpdatedByA }],
     } = dependencies;
     return {
       state: "SUCCESS",
       result: [
         {
-          scopes: ["#/properties/view/properties/updatedByUpdatedByA"],
+          scope: "#/properties/view/properties/updatedByUpdatedByA",
           id: null,
           values: [{ indices: [], value: UpdatedByA }],
         },
       ],
     } satisfies Result<UpdateResult[]>;
   }
-  if (Object.keys(dependencies).includes("UpdatedByB")) {
+  if (Object.keys(dependencies).includes(scope_updatedByB)) {
     const {
-      UpdatedByB: [{ value: UpdatedByB }],
+      [scope_updatedByB]: [{ value: UpdatedByB }],
     } = dependencies;
     return {
       state: "SUCCESS",
       result: [
         {
-          scopes: ["#/properties/view/properties/updatedByUpdatedByB"],
+          scope: "#/properties/view/properties/updatedByUpdatedByB",
           id: null,
           values: [{ indices: [], value: UpdatedByB }],
         },
       ],
     } satisfies Result<UpdateResult[]>;
   }
-  if (Object.keys(dependencies).includes("A")) {
+  if (Object.keys(dependencies).includes(scope_A)) {
     const {
-      A: [{ value: A }],
-      B: [{ value: B }],
+      [scope_A]: [{ value: A }],
+      [scope_B]: [{ value: B }],
     } = dependencies;
     return {
       state: "SUCCESS",
       result: [
         {
-          scopes: ["#/properties/view/properties/sum"],
+          scope: "#/properties/view/properties/sum",
           id: null,
           // @ts-expect-error
           values: [{ indices: [], value: A + B }],
         },
         {
-          scopes: ["#/properties/view/properties/product"],
+          scope: "#/properties/view/properties/product",
           id: null,
           // @ts-expect-error
           values: [{ indices: [], value: A * B }],
         },
         {
-          scopes: ["#/properties/view/properties/updatedByA"],
+          scope: "#/properties/view/properties/updatedByA",
           id: null,
           values: [{ indices: [], value: A }],
         },
       ],
     } satisfies Result<UpdateResult[]>;
-  } else if (Object.keys(dependencies).includes("B")) {
+  } else if (Object.keys(dependencies).includes(scope_B)) {
     return {
       state: "SUCCESS",
       result: [
         {
-          scopes: ["#/properties/view/properties/updatedByB"],
+          scope: "#/properties/view/properties/updatedByB",
           id: null,
-          values: [{ indices: [], value: dependencies.B[0].value }],
+          values: [{ indices: [], value: dependencies[scope_B][0].value }],
         },
       ],
     } satisfies Result<UpdateResult[]>;
-  } else if (Object.keys(dependencies).includes("A_nested")) {
+  } else if (Object.keys(dependencies).includes(scope_A_nested)) {
     /**
      * See updatesInArray.json
      */
     const {
-      A_nested: [{ value: A_nested }],
-      B_nested: [{ value: B_nested }],
+      [scope_A_nested]: [{ value: A_nested }],
+      [scope_B_nested]: [{ value: B_nested }],
     } = dependencies;
     return {
       state: "SUCCESS",
       result: [
         {
-          scopes: ["#/properties/view/properties/myArray", "#/properties/sum"],
+          scope: "#/properties/view/properties/myArray/items/properties/sum",
           id: null,
           values: [
             {
@@ -174,10 +196,8 @@ const mockUpdate2 = (rpcRequest: {
           ],
         },
         {
-          scopes: [
-            "#/properties/view/properties/myArray",
-            "#/properties/product",
-          ],
+          scope:
+            "#/properties/view/properties/myArray/items/properties/product",
           id: null,
           values: [
             {
@@ -189,7 +209,7 @@ const mockUpdate2 = (rpcRequest: {
         },
         {
           id: "myChoicesProvider",
-          scopes: null,
+          scope: null,
           values: [
             {
               indices: [],
@@ -214,32 +234,32 @@ const mockUpdate2 = (rpcRequest: {
         },
       ],
     } satisfies Result<UpdateResult[]>;
-  } else if (Object.keys(dependencies).includes("Title")) {
+  } else if (
+    Object.keys(dependencies).includes(scope_title) &&
+    Object.keys(dependencies).includes(scope_subTitle)
+  ) {
     return {
       state: "SUCCESS",
       result: [
         {
-          scopes: null,
+          scope: null,
           id: "myTitleProvider",
-          values: [{ indices: [], value: dependencies.Title[0].value }],
+          values: dependencies[scope_title],
         },
-      ],
-    };
-  } else if (Object.keys(dependencies).includes("SubTitle")) {
-    return {
-      state: "SUCCESS",
-      result: [
         {
-          scopes: null,
+          scope: null,
           id: "mySubTitleProvider",
-          values: [{ indices: [], value: dependencies.SubTitle[0].value }],
+          values: dependencies[scope_subTitle],
         },
       ],
     };
-  } else {
+  } else if (
+    Object.keys(dependencies).includes(scope_A_nested_nested) &&
+    Object.keys(dependencies).includes(scope_B_nested_nested)
+  ) {
     const {
-      A_nested_nested: [{ value: A_nested_nested }],
-      B_nested_nested: [{ value: B_nested_nested }],
+      [scope_A_nested_nested]: [{ value: A_nested_nested }],
+      [scope_B_nested_nested]: [{ value: B_nested_nested }],
     } = dependencies;
     /**
      * See updatesInArray.json
@@ -248,11 +268,8 @@ const mockUpdate2 = (rpcRequest: {
       state: "SUCCESS",
       result: [
         {
-          scopes: [
-            "#/properties/view/properties/myArray",
-            "#/properties/nestedArray",
-            "#/properties/sum",
-          ],
+          scope:
+            "#/properties/view/properties/myArray/items/properties/nestedArray/items/properties/sum",
           id: null,
           values: [
             {
@@ -263,11 +280,8 @@ const mockUpdate2 = (rpcRequest: {
           ],
         },
         {
-          scopes: [
-            "#/properties/view/properties/myArray",
-            "#/properties/nestedArray",
-            "#/properties/product",
-          ],
+          scope:
+            "#/properties/view/properties/myArray/items/properties/nestedArray/items/properties/product",
           id: null,
           values: [
             {
@@ -279,7 +293,7 @@ const mockUpdate2 = (rpcRequest: {
         },
         {
           id: "myNestedChoicesProvider",
-          scopes: null,
+          scope: null,
           values: [
             {
               indices: [],
@@ -304,6 +318,11 @@ const mockUpdate2 = (rpcRequest: {
         },
       ],
     } satisfies Result<UpdateResult[]>;
+  } else {
+    window.alert(
+      "This should not happen: Unhandled data service mock update call",
+    );
+    throw new Error("Unhandled data service mock update call");
   }
 };
 

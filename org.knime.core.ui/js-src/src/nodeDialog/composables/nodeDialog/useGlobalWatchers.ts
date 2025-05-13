@@ -1,12 +1,11 @@
 import { ref } from "vue";
-import { toDataPath } from "@jsonforms/core";
 import { v4 as uuidv4 } from "uuid";
 
 import type { SettingsData } from "../../types/SettingsData";
 
 import { type ArrayRecord, toIndexIds } from "./useArrayIds";
 import type { DialogSettings } from "./useUpdates";
-import { getIndicesFromDataPaths } from "./utils/dataPaths";
+import { getIndicesFromDataPaths, scopeToDataPaths } from "./utils/dataPaths";
 
 export type TransformSettings = (newSettings: DialogSettings) => void;
 
@@ -136,15 +135,14 @@ export default (globalArrayIdsRecord: ArrayRecord) => {
       settingsForDependencies: DialogSettings & object,
     ) => Promise<TransformSettings>;
     /**
-     * 2d-array: Outer dimension, because there can be multiple dependencies. Inner dimension,
-     * because a dependency consists of multiple scopes when nested within an array layout.
+     * Scopes to be watched for changes. The paths are relative to the root of the settings.
      */
-    dependencies: string[][];
+    dependencies: string[];
   }) => {
     const registered = {
       id: uuidv4(),
       transformSettings,
-      dataPaths: dependencies.map((scopes) => scopes.map(toDataPath)),
+      dataPaths: dependencies.map(scopeToDataPaths),
     };
     registeredWatchers.value.push(registered);
     return () => {

@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
+import java.lang.reflect.Type;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashMap;
@@ -56,25 +57,25 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.DependencyInjector.DependencyCollector;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Vertex.VertexVisitor;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToValueRefsAndStateProviders.ValueProviderWrapper;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToValueRefsAndStateProviders.ValueRefWrapper;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToValueRefsAndStateProviders.ValueRefsAndStateProviders;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.RefsAndStateProviders;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.ValueProviderWrapper;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.ValueRefWrapper;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
-final class ValueRefsAndValueProvidersAndUiStateProvidersToDependencyTree {
+final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
 
-    private ValueRefsAndValueProvidersAndUiStateProvidersToDependencyTree() {
+    private RefsAndValueProvidersAndUiStateProvidersToDependencyTree() {
         // Utility
     }
 
@@ -85,7 +86,7 @@ final class ValueRefsAndValueProvidersAndUiStateProvidersToDependencyTree {
      * @return the trigger vertices of the resulting tree of vertices
      */
     static Collection<TriggerVertex> valueRefsAndStateProvidersToDependencyTree(
-        final ValueRefsAndStateProviders valueRefsAndStateProviders, final DefaultNodeSettingsContext context) {
+        final RefsAndStateProviders valueRefsAndStateProviders, final DefaultNodeSettingsContext context) {
         return new DependencyTreeCreator(valueRefsAndStateProviders, context).getTriggerVertices();
     }
 
@@ -95,16 +96,6 @@ final class ValueRefsAndValueProvidersAndUiStateProvidersToDependencyTree {
 
         private final Collection<ValueProviderWrapper> m_valueProviders;
 
-        private final Map<Class<? extends StateProvider>, StateVertex> m_stateVertices = new HashMap<>();
-
-        private final Map<Class<?>, TriggerVertex> m_triggerVertices = new HashMap<>();
-
-        /**
-         * Special-role static triggers like "before the dialog is opened"
-         */
-        private final Map<String, TriggerVertex> m_specialTriggerVertices = new HashMap<>();
-
-        private final Map<Class<? extends Reference>, DependencyVertex> m_dependencyVertices = new HashMap<>();
 
         private final Set<Vertex> m_visited = new HashSet<>();
 
@@ -114,18 +105,49 @@ final class ValueRefsAndValueProvidersAndUiStateProvidersToDependencyTree {
 
         private final Collection<Class<? extends StateProvider>> m_uiStateProviders;
 
-        DependencyTreeCreator(final ValueRefsAndStateProviders valueRefsAndStateProviders,
+        private final Map<Class<? extends StateProvider>, StateVertex> m_stateVertices = new HashMap<>();
+
+        private final Collection<DependencyVertex> m_dependencyVertices = new HashSet<>();
+
+        private final Collection<TriggerVertex> m_triggerVertices = new HashSet<>();
+
+        DependencyTreeCreator(final RefsAndStateProviders refsAndStateProviders,
             final DefaultNodeSettingsContext context) {
             m_context = context;
-            m_valueRefs = valueRefsAndStateProviders.valueRefs();
-            m_valueProviders = valueRefsAndStateProviders.valueProviders();
-            m_uiStateProviders = valueRefsAndStateProviders.uiStateProviders();
+            m_valueRefs = refsAndStateProviders.valueRefs();
+            m_valueProviders = refsAndStateProviders.valueProviders();
+            m_uiStateProviders = refsAndStateProviders.uiStateProviders();
+        }
+
+        TriggerVertex addTriggerVertex(final TriggerVertex triggerVertex) {
+            return addToCollectionIfAbsent(triggerVertex, m_triggerVertices);
+        }
+
+        DependencyVertex addDependencyVertex(final DependencyVertex dependencyVertex) {
+            return addToCollectionIfAbsent(dependencyVertex, m_dependencyVertices);
+        }
+
+        /**
+         * Adds the element to the collection if it is not already present.
+         *
+         * @param <T> type of the element
+         * @param element the element to add
+         * @param collection the collection to add the element to
+         * @return the element itself if it was added, or the existing element in the collection
+         */
+        static <T> T addToCollectionIfAbsent(final T element, final Collection<T> collection) {
+            if (collection.contains(element)) {
+                return collection.stream().filter(element::equals).findAny().orElseThrow(IllegalStateException::new);
+            } else {
+                collection.add(element);
+                return element;
+            }
+
         }
 
         Collection<TriggerVertex> getTriggerVertices() {
             collectVertices();
-            return Stream.concat(m_triggerVertices.values().stream(), m_specialTriggerVertices.values().stream())
-                .sorted((t1, t2) -> StringUtils.compare(t1.getId(), t2.getId())).toList();
+            return m_triggerVertices.stream().sorted().toList();
         }
 
         private void collectVertices() {
@@ -138,7 +160,7 @@ final class ValueRefsAndValueProvidersAndUiStateProvidersToDependencyTree {
 
         private void addParentsForVertex(final Vertex vertex) {
             m_visited.add(vertex);
-            final var parentVertices = vertex.visit(new GetParentVerticesVisitor());
+            final var parentVertices = vertex.visit(new CollectParentVerticesVisitor());
             parentVertices.forEach(vertex::addParent);
             parentVertices.forEach(this::addToQueue);
         }
@@ -149,48 +171,22 @@ final class ValueRefsAndValueProvidersAndUiStateProvidersToDependencyTree {
             }
         }
 
-        private final class GetParentVerticesVisitor implements VertexVisitor<Collection<Vertex>> {
+        private final class CollectParentVerticesVisitor implements VertexVisitor<Collection<Vertex>> {
 
             StateVertex getStateVertex(final Class<? extends StateProvider> stateProviderClass) {
                 return m_stateVertices.computeIfAbsent(stateProviderClass, StateVertex::new);
             }
 
-            TriggerVertex getValueTriggerVertex(final Class<? extends Reference> valueRef) {
-                final var valueRefWrapper = findValueRefWrapper(valueRef);
-                return m_triggerVertices.computeIfAbsent(valueRef, v -> new TriggerVertex(valueRefWrapper));
-            }
-
-            TriggerVertex getButtonTriggerVertex(final Class<? extends ButtonReference> buttonRef) {
-                return m_triggerVertices.computeIfAbsent(buttonRef, v -> new TriggerVertex(buttonRef));
+            TriggerVertex getButtonTriggerVertex(final Class<? extends ButtonReference> buttonReferenceClass) {
+                return addTriggerVertex(new IdTriggerVertex(buttonReferenceClass));
             }
 
             TriggerVertex getBeforeOpenDialogVertex() {
-                return m_specialTriggerVertices.computeIfAbsent(TriggerVertex.BEFORE_OPEN_DIALOG_ID,
-                    TriggerVertex::new);
+                return addTriggerVertex(new IdTriggerVertex(IdTriggerVertex.BEFORE_OPEN_DIALOG_ID));
             }
 
             TriggerVertex getAfterOpenDialogVertex() {
-                return m_specialTriggerVertices.computeIfAbsent(TriggerVertex.AFTER_OPEN_DIALOG_ID, TriggerVertex::new);
-            }
-
-            DependencyVertex getDependencyVertex(final Class<? extends Reference> valueRef) {
-                final var valueRefWrapper = findValueRefWrapper(valueRef);
-                return m_dependencyVertices.computeIfAbsent(valueRef, v -> new DependencyVertex(valueRefWrapper));
-            }
-
-            DependencyVertex getDependencyVertex(final Class<? extends Reference> valueRef,
-                final TypeReference<?> typeReference) {
-                final var valueRefWrapper = findValueRefWrapper(valueRef);
-                return m_dependencyVertices.computeIfAbsent(valueRef,
-                    v -> new DependencyVertex(valueRefWrapper, typeReference));
-            }
-
-            private ValueRefWrapper findValueRefWrapper(final Class<? extends Reference> valueRef) {
-                return m_valueRefs.stream().filter(wrapper -> wrapper.valueRef().equals(valueRef)).findAny()
-                    .orElseThrow(() -> new RuntimeException(String.format(
-                        "The value reference %s is used in a state provider but could not be found. "
-                            + "It should be used as @%s for some field.",
-                        valueRef.getSimpleName(), ValueReference.class.getSimpleName())));
+                return addTriggerVertex(new IdTriggerVertex(IdTriggerVertex.AFTER_OPEN_DIALOG_ID));
             }
 
             /**
@@ -208,23 +204,75 @@ final class ValueRefsAndValueProvidersAndUiStateProvidersToDependencyTree {
             @Override
             public Collection<Vertex> accept(final StateVertex stateVertex) {
                 final var stateProvider = stateVertex.createStateProvider();
-                CheckUtils.checkNotNull(stateProvider, "Failed to instantiate state provider class %s.",
-                    stateVertex.getStateProviderClass());
-                final var stateProviderDependencyReceiver = new StateProviderDependencyReceiver(m_context);
+                CheckUtils.checkNotNull(stateProvider, "Failed to instantiate state provider class %s.", stateVertex);
+
+                final Collection<Pair<Object, DependencyVertex>> extractedDependencies = new HashSet<>();
+                final Collection<TriggerVertex> extractedTriggers = new HashSet<>();
+
+                final var dependencyCollector = new DependencyCollector<Class<? extends Reference<?>>>() {
+
+                    @Override
+                    public LocationAndType locate(final Class<? extends Reference<?>> reference) {
+                        return new LocationAndType(findValueRefWrapper(reference).fieldLocation(),
+                            () -> getSettingsType(reference));
+                    }
+
+                    @Override
+                    protected LocationAndType locate(final Class<? extends Reference<?>> reference,
+                        final TypeReference<?> typeRef) {
+                        return new LocationAndType(findValueRefWrapper(reference).fieldLocation(),
+                            () -> getSettingsType(typeRef));
+                    }
+
+                    private ValueRefWrapper findValueRefWrapper(final Class<? extends Reference> valueRef) {
+                        return m_valueRefs.stream().filter(wrapper -> wrapper.valueRef().equals(valueRef)).findAny()
+                            .orElseThrow(() -> new RuntimeException(String.format(
+                                "The value reference %s is used in a state provider but could not be found. "
+                                    + "It should be used as @%s for some field.",
+                                valueRef.getSimpleName(), ValueReference.class.getSimpleName())));
+                    }
+
+                    private static Type getSettingsType(final Class<? extends Reference> valueRef) {
+                        return GenericTypeFinderUtil.getFirstGenericType(valueRef, Reference.class);
+                    }
+
+                    private static Type getSettingsType(final TypeReference<?> valueRef) {
+                        return GenericTypeFinderUtil.getFirstGenericType(valueRef.getClass(), TypeReference.class);
+                    }
+
+                    @Override
+                    public void setDependency(final LocationAndType location,
+                        final Class<? extends Reference<?>> reference) {
+                        extractedDependencies.add(new Pair<>(reference, new DependencyVertex(location)));
+                    }
+
+                    @Override
+                    public void setTrigger(final Location location) {
+                        extractedTriggers.add(new ValueTriggerVertex(location));
+                    }
+
+                };
+
+                final var stateProviderDependencyReceiver =
+                    new StateProviderDependencyReceiver(m_context, dependencyCollector, null);
                 stateProvider.init(stateProviderDependencyReceiver);
+                StateProviderInitializerUtil.initializeStateProvider(stateProvider, stateProviderDependencyReceiver);
 
                 final Collection<Vertex> parentVertices = new HashSet<>();
 
-                parentVertices.addAll(
-                    stateProviderDependencyReceiver.getStateProviders().stream().map(this::getStateVertex).toList());
-                parentVertices.addAll(stateProviderDependencyReceiver.getValueRefTriggers().stream()
-                    .map(this::getValueTriggerVertex).toList());
+                extractedTriggers.stream().map(trigger -> addTriggerVertex(trigger)).forEach(parentVertices::add);
+                extractedDependencies.stream()
+                    .map(pair -> new Pair<>(pair.getFirst(), addDependencyVertex(pair.getSecond()))).forEach(pair -> {
+                        final var reference = pair.getFirst();
+                        final var dependencyVertex = pair.getSecond();
+                        stateVertex.addDependency(reference, dependencyVertex);
+                        parentVertices.add(dependencyVertex);
+                    });
+
                 parentVertices.addAll(stateProviderDependencyReceiver.getButtonRefTriggers().stream()
                     .map(this::getButtonTriggerVertex).toList());
                 parentVertices.addAll(
-                    stateProviderDependencyReceiver.getDependencies().stream().map(this::getDependencyVertex).toList());
-                parentVertices.addAll(stateProviderDependencyReceiver.getTypedDependencies().stream()
-                    .map(pair -> getDependencyVertex(pair.getFirst(), pair.getSecond())).toList());
+                    stateProviderDependencyReceiver.getStateProviders().stream().map(this::getStateVertex).toList());
                 if (stateProviderDependencyReceiver.m_computeBeforeOpenDialog) {
                     parentVertices.add(getBeforeOpenDialogVertex());
                 }
@@ -248,64 +296,34 @@ final class ValueRefsAndValueProvidersAndUiStateProvidersToDependencyTree {
      *
      * @author Paul Bärnreuther
      */
-    private static final class StateProviderDependencyReceiver implements StateProvider.StateProviderInitializer {
+    private static final class StateProviderDependencyReceiver extends DefaultImperativeStateProviderInitializer {
 
         private DefaultNodeSettingsContext m_context;
 
-        private StateProviderDependencyReceiver(final DefaultNodeSettingsContext context) {
+        private StateProviderDependencyReceiver(final DefaultNodeSettingsContext context,
+            final DependencyInjector<Class<? extends Reference<?>>> dependencyCollector,
+            final DependencyInjector<Reference<?>> imperativeDependencyCollector) {
+            super(dependencyCollector, imperativeDependencyCollector);
             m_context = context;
         }
 
-        private final Collection<Class<? extends Reference>> m_valueRefTriggers = new HashSet<>();
-
         private final Collection<Class<? extends ButtonReference>> m_buttonRefTriggers = new HashSet<>();
 
-        private final Collection<Class<? extends Reference>> m_dependencies = new HashSet<>();
-
         private final Collection<Class<? extends StateProvider>> m_stateProviders = new HashSet<>();
-
-        private final Collection<Pair<Class<? extends Reference>, TypeReference<?>>> m_typedDependencies =
-            new HashSet<>();
 
         boolean m_computeBeforeOpenDialog;
 
         boolean m_computeAfterOpenDialog;
 
         @Override
-        public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> id) {
-            getValueRefTriggers().add(id);
-            getDependencies().add(id);
-            return null;
-        }
-
-        @Override
-        public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> id) {
-            getDependencies().add(id);
-            return null;
-        }
-
-        @Override
-        public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<?>> ref,
-            final TypeReference<T> typeRef) {
-            getTypedDependencies().add(new Pair<>(ref, typeRef));
-            return null;
-        }
-
-        @Override
-        public <T> void computeOnValueChange(final Class<? extends Reference<T>> id) {
-            getValueRefTriggers().add(id);
-        }
-
-        @Override
-        public void computeOnButtonClick(final Class<? extends ButtonReference> trigger) {
-            getButtonRefTriggers().add(trigger);
-
-        }
-
-        @Override
         public <T> Supplier<T> computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
             getStateProviders().add(stateProviderClass);
             return null;
+        }
+
+        @Override
+        public void computeOnButtonClick(final Class<? extends ButtonReference> ref) {
+            getButtonRefTriggers().add(ref);
         }
 
         @Override
@@ -318,24 +336,12 @@ final class ValueRefsAndValueProvidersAndUiStateProvidersToDependencyTree {
             m_computeAfterOpenDialog = true;
         }
 
-        Collection<Class<? extends Reference>> getValueRefTriggers() {
-            return m_valueRefTriggers;
+        Collection<Class<? extends StateProvider>> getStateProviders() {
+            return m_stateProviders;
         }
 
         Collection<Class<? extends ButtonReference>> getButtonRefTriggers() {
             return m_buttonRefTriggers;
-        }
-
-        Collection<Class<? extends Reference>> getDependencies() {
-            return m_dependencies;
-        }
-
-        Collection<Pair<Class<? extends Reference>, TypeReference<?>>> getTypedDependencies() {
-            return m_typedDependencies;
-        }
-
-        Collection<Class<? extends StateProvider>> getStateProviders() {
-            return m_stateProviders;
         }
 
         @Override

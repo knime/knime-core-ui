@@ -50,7 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
 import java.util.Optional;
 
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToValueRefsAndStateProviders.ValueProviderWrapper;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.ValueProviderWrapper;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
@@ -61,7 +61,7 @@ final class UpdateVertex extends Vertex {
 
     private final Class<? extends StateProvider> m_stateProviderClass;
 
-    private final Optional<PathsWithSettingsType> m_fieldLocation;
+    private final Optional<Location> m_fieldLocation;
 
     UpdateVertex(final ValueProviderWrapper wrapper) {
         m_stateProviderClass = wrapper.stateProviderClass();
@@ -85,7 +85,7 @@ final class UpdateVertex extends Vertex {
     /**
      * @return information on the associated field
      */
-    Optional<PathsWithSettingsType> getFieldLocation() {
+    Optional<Location> getFieldLocation() {
         return m_fieldLocation;
     }
 

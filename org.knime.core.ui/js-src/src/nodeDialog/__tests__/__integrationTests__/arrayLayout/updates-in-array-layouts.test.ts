@@ -22,11 +22,7 @@ import {
 import { JsonDataService } from "@knime/ui-extension-service";
 
 import NodeDialog from "../../../NodeDialog.vue";
-import type {
-  Update,
-  UpdateResult,
-  ValueReference,
-} from "../../../types/Update";
+import type { Update, UpdateResult } from "../../../types/Update";
 import { getOptions } from "../../utils";
 import { mockRegisterSettings } from "../utils/dirtySettingState";
 import { dynamicImportsSettled } from "../utils/dynamicImportsSettled";
@@ -151,22 +147,20 @@ describe("updates in array layouts", () => {
   // Buttons
 
   const registerButtonTriggerInGlobalUpdates = (buttonId: string) => {
-    const dependencies: ValueReference[] = [];
+    const dependencies: string[] = [];
     initialDataJson.globalUpdates = [
       ...initialDataJson.globalUpdates,
       {
         trigger: {
           id: buttonId,
-          scopes: undefined,
-          triggerInitially: undefined,
         },
         dependencies,
       },
     ];
 
     return {
-      addDependency: (valueReference: ValueReference) =>
-        dependencies.push(valueReference),
+      addDependency: (valueReferenceScope: string) =>
+        dependencies.push(valueReferenceScope),
     };
   };
 
@@ -242,12 +236,8 @@ describe("updates in array layouts", () => {
     initialDataJson.globalUpdates = [
       {
         trigger: {
-          id: "checkboxFieldId",
-          scopes: [
-            "#/properties/model/properties/values",
-            "#/properties/checkboxValue",
-          ],
-          triggerInitially: undefined,
+          scope:
+            "#/properties/model/properties/values/items/properties/checkboxValue",
         },
         dependencies: [],
       },
@@ -286,7 +276,7 @@ describe("updates in array layouts", () => {
       {
         id: choicesProviderId,
         values: [{ indices: [], value: possibleValues.value }],
-        scopes: null,
+        scope: null,
       },
     ]);
     return {
@@ -342,7 +332,7 @@ describe("updates in array layouts", () => {
       {
         id: null,
         values: [{ indices: [], value: newValue }],
-        scopes: ["#/properties/model/properties/values", "#/properties/value"],
+        scope: "#/properties/model/properties/values/items/properties/value",
       },
     ]);
     return {
@@ -370,7 +360,7 @@ describe("updates in array layouts", () => {
           value: possibleValues.value,
         },
       ],
-      scopes: null,
+      scope: null,
     });
     return { getNthDropdownChoices, possibleValues };
   };
@@ -545,25 +535,21 @@ describe("updates in array layouts", () => {
   });
 
   describe("dependencies within array elements", () => {
-    const createTextDependency = (dependencyId: string) => ({
-      id: dependencyId,
-      scopes: ["#/properties/model/properties/values", "#/properties/value"],
-    });
-
+    const dependencyScope =
+      "#/properties/model/properties/values/items/properties/value";
     const prepareUpdateByButtonWithDependency = async () => {
       const { triggerNthButton, addDependency } = addButtonToElements();
-      const dependencyId = "myDependencyId";
-      addDependency(createTextDependency(dependencyId));
+      addDependency(dependencyScope);
       const rpcDataSpy = mockRPCResult(() => []);
 
       const wrapper = await mountNodeDialog();
-      return { wrapper, rpcDataSpy, dependencyId, triggerNthButton };
+      return { wrapper, rpcDataSpy, dependencyScope, triggerNthButton };
     };
 
     it.each(arrayIndices)(
       "provides dependencies from within array element %s",
       async (index) => {
-        const { wrapper, rpcDataSpy, dependencyId, triggerNthButton } =
+        const { wrapper, rpcDataSpy, dependencyScope, triggerNthButton } =
           await prepareUpdateByButtonWithDependency();
 
         await triggerNthButton(wrapper, index);
@@ -574,7 +560,9 @@ describe("updates in array layouts", () => {
             null,
             expect.anything(),
             {
-              [dependencyId]: [{ indices: [], value: getInitialText(index) }],
+              [dependencyScope]: [
+                { indices: [], value: getInitialText(index) },
+              ],
             },
           ],
         });
@@ -584,16 +572,15 @@ describe("updates in array layouts", () => {
     describe("updates from outside the array layout with dependencies within", () => {
       const prepareUpdateByButtonOutsideWithDependencyWithin = async () => {
         const { triggerButton, addDependency } = addButtonAfterArray();
-        const dependencyId = "myDependencyId";
-        addDependency(createTextDependency(dependencyId));
+        addDependency(dependencyScope);
         const rpcDataSpy = mockRPCResult(() => []);
 
         const wrapper = await mountNodeDialog();
-        return { wrapper, rpcDataSpy, dependencyId, triggerButton };
+        return { wrapper, rpcDataSpy, dependencyScope, triggerButton };
       };
 
       it("allows updates triggered outside array with dependencies from within array", async () => {
-        const { wrapper, rpcDataSpy, dependencyId, triggerButton } =
+        const { wrapper, rpcDataSpy, dependencyScope, triggerButton } =
           await prepareUpdateByButtonOutsideWithDependencyWithin();
 
         await triggerButton(wrapper);
@@ -604,7 +591,7 @@ describe("updates in array layouts", () => {
             null,
             expect.anything(),
             {
-              [dependencyId]: expect.anything(),
+              [dependencyScope]: expect.anything(),
             },
           ],
         });
@@ -629,8 +616,7 @@ describe("updates in array layouts", () => {
       const prepareUpdateByButtonOutsideWithDependencyWithinHiddenArray =
         async () => {
           const { triggerButton, addDependency } = addButtonAfterArray();
-          const dependencyId = "myDependencyId";
-          addDependency(createTextDependency(dependencyId));
+          addDependency(dependencyScope);
           const rpcDataSpy = mockRPCResult(() => []);
           wrapArrayInHiddenSection();
 
@@ -638,13 +624,13 @@ describe("updates in array layouts", () => {
           return {
             wrapper,
             rpcDataSpy,
-            dependencyId,
+            dependencyScope,
             triggerButton,
           };
         };
 
       it("allows initial ui state updates triggered outside array with different updates within hidden array", async () => {
-        const { wrapper, rpcDataSpy, dependencyId, triggerButton } =
+        const { wrapper, rpcDataSpy, dependencyScope, triggerButton } =
           await prepareUpdateByButtonOutsideWithDependencyWithinHiddenArray();
         await triggerButton(wrapper);
 
@@ -654,7 +640,7 @@ describe("updates in array layouts", () => {
             null,
             expect.anything(),
             {
-              [dependencyId]: expect.anything(),
+              [dependencyScope]: expect.anything(),
             },
           ],
         });
@@ -675,18 +661,9 @@ describe("updates in array layouts", () => {
               {
                 trigger: {
                   id: "afterOpenDialog",
-                  scopes: undefined,
-                  triggerInitially: true,
                 },
-                dependencies: [
-                  {
-                    id: "dependencyId",
-                    scopes: [
-                      "#/properties/model/properties/values",
-                      "#/properties/value",
-                    ],
-                  },
-                ],
+                triggerInitially: true,
+                dependencies: [dependencyScope],
               },
             ];
             const rpcDataSpy = mockRPCResultOnce(() => [updateResult]);
@@ -698,7 +675,7 @@ describe("updates in array layouts", () => {
                     null,
                     expect.anything(),
                     {
-                      dependencyId: arrayIndices.map((i) =>
+                      [dependencyScope]: arrayIndices.map((i) =>
                         expect.objectContaining({
                           indices: [expect.any(String)],
                           value: getInitialText(i),
@@ -724,10 +701,7 @@ describe("updates in array layouts", () => {
           const { expectAfterMount } = mockInitialUpdate({
             id: null,
             values: getInitialUpdateValues(initialUpdateValues),
-            scopes: [
-              "#/properties/model/properties/values",
-              "#/properties/value",
-            ],
+            scope: dependencyScope,
           });
 
           return {
@@ -778,7 +752,7 @@ describe("updates in array layouts", () => {
               indices: [i],
               value: choices,
             })),
-            scopes: null,
+            scope: null,
           });
 
           return {
@@ -829,7 +803,7 @@ describe("updates in array layouts", () => {
               triggerButton: triggerSubsequentDropdownUpdate,
               addDependency,
             } = addButtonAfterArray();
-            addDependency(createTextDependency("someDependencyId"));
+            addDependency(dependencyScope);
 
             const { possibleValues: subsequentUpdateChoices } =
               mockRPCResultToUpdateElementDropdownChoices(choicesProviderId);

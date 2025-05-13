@@ -53,7 +53,6 @@ import java.util.List;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
 
@@ -152,12 +151,12 @@ public interface UpdateSimulator {
     }
 
     /**
-     * @param valueReference
+     * @param scope of the value that is changed and triggers the update
      * @param indices to be provided when the value is nested within an array layout (e.g. 1,2 means that it is the
      *            second element of the first element of an array layout within an array layout)
      * @return the resulting updates
      */
-    UpdateSimulatorResult simulateValueChange(Class<? extends Reference<?>> valueReference, int... indices);
+    UpdateSimulatorResult simulateValueChange(String scope, int... indices);
 
     /**
      *

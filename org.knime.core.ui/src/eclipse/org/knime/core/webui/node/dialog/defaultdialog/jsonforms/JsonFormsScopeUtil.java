@@ -51,11 +51,14 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.PathsWithSettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Location;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -69,6 +72,10 @@ public final class JsonFormsScopeUtil {
     private JsonFormsScopeUtil() {
         // utility class
     }
+
+    private static final String PROPERTIES = "properties";
+
+    private static final String ITEMS = "items";
 
     /**
      *
@@ -93,8 +100,6 @@ public final class JsonFormsScopeUtil {
         return toScope(node.getPath(), node.getSettingsType());
     }
 
-    private static final String PROPERTIES = "properties";
-
     /**
      * TODO UIEXT-1673 make this method private. We shouldn't need it to be public anymore.
      *
@@ -102,7 +107,7 @@ public final class JsonFormsScopeUtil {
      * @return the json schema scope
      */
     public static String toScope(final List<String> path) {
-        return String.join("/" + PROPERTIES + "/", path);
+        return String.join(String.format("/%s/", PROPERTIES), path);
     }
 
     /**
@@ -110,14 +115,71 @@ public final class JsonFormsScopeUtil {
      * @param location of a state provider or trigger
      * @return the list of jsonforms scopes
      */
-    public static List<String> resolveFieldLocationToScope(final PathsWithSettingsType location) {
-        final var numScopes = location.paths().size();
-        final List<String> scopes = new ArrayList<>(numScopes);
-        scopes.add(JsonFormsScopeUtil.toScope(location.paths().get(0), location.settingsType()));
-        for (int i = 1; i < numScopes; i++) {
-            scopes.add(JsonFormsScopeUtil.toScope(location.paths().get(i), null));
+    public static String getScopeFromLocation(final Location location) {
+        final var firstScope = toScope(Stream
+            .concat(Stream.of("#", location.settingsType().getConfigKey()), location.paths().get(0).stream()).toList());
+        final var otherScopes = IntStream.range(1, location.paths().size()).mapToObj(location.paths()::get)
+            .map(JsonFormsScopeUtil::toScope);
+        final var scopes = Stream.concat(Stream.of(firstScope), otherScopes).toList();
+        return String.join(String.format("/%s/%s/", ITEMS, PROPERTIES), scopes);
+    }
+
+    /**
+     * Parses a JSON schema scope string and converts it into a location.
+     * <p>
+     * Examples:
+     * <ul>
+     * <li>scope = "#/properties/model/properties/foo/items/properties/bar/items/properties/baz" → [["foo", "bar",
+     * "baz"]]</li>
+     * <li>scope = "#/properties/view/items/properties/foo/items/properties/bar" → [["items", "foo"], ["bar"]]</li>
+     * </ul>
+     *
+     * @param scope A JSON schema scope starting with "#/properties/{model|view}" and potentially including "items".
+     * @return a {@link Location} containing the {@link SettingsType} and a list of path segments (one list per path).
+     */
+    public static Location getLocationFromScope(final String scope) {
+        final var requiredPrefix = String.format("#/%s/", PROPERTIES);
+        if (scope == null || !scope.startsWith(requiredPrefix)) {
+            throw new IllegalArgumentException(String.format("Invalid scope: must start with '%s'", requiredPrefix));
         }
-        return scopes;
+
+        final String trimmed = scope.replaceFirst(String.format("^%s", requiredPrefix), "");
+        final String[] segments = trimmed.split("/");
+
+        if (segments.length == 0) {
+            throw new IllegalArgumentException("Invalid scope: missing settings type");
+        }
+
+        final List<List<String>> paths = new ArrayList<>();
+        List<String> currentPath = new ArrayList<>();
+
+        for (int i = 1; i < segments.length; i++) {
+            final String segment = segments[i];
+
+            switch (segment) {
+                case PROPERTIES:
+                    i++; // NOSONAR handle handle next segment right away
+                    CheckUtils.checkArgument(i < segments.length,
+                        String.format("Invalid scope: Ends with '%s' without a name", PROPERTIES));
+                    currentPath.add(segments[i]);
+                    break;
+                case ITEMS:
+                    if (!currentPath.isEmpty()) {
+                        paths.add(currentPath);
+                    }
+                    currentPath = new ArrayList<>();
+                    break;
+                default:
+                    throw new IllegalArgumentException(
+                        String.format("Invalid scope: Unexpected segment '%s'", segment));
+            }
+        }
+
+        if (!currentPath.isEmpty()) {
+            paths.add(currentPath);
+        }
+
+        return new Location(paths, SettingsType.fromConfigKey(segments[0]));
     }
 
     /**

@@ -1,4 +1,5 @@
 {
+  "$schema": "mock.def.json",
   "result": {
     "name": "Array Layout",
     "data": {
@@ -161,10 +162,12 @@
         }
       ]
     },
+    "flowVariableSettings": {},
     "globalUpdates": [
       {
         "trigger": {
-          "id": "ElementResetButton"
+          "id": "ElementResetButton",
+          "scope": "#/properties/view/properties/dummyArrayLayout/items/properties/_edit"
         },
         "dependencies": []
       }

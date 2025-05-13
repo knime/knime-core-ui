@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/schema-draft-v4.json",
+  "type": "object",
+  "properties": {
+    "result": {
+      "allOf": [
+        {
+          "$ref": "../src/nodeDialog/jsonSchema/framework/initialData.def.json"
+        },
+        {
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the mock"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,11 +1,20 @@
 /* eslint-disable max-lines */
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { shallowMount } from "@vue/test-utils";
+import {
+  type Mock,
+  type MockInstance,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+import { VueWrapper, shallowMount } from "@vue/test-utils";
 import { JsonForms } from "@jsonforms/vue";
 import flushPromises from "flush-promises";
 
 import { JsonFormsDialog } from "@knime/jsonforms";
 import {
+  type AlertType,
   AlertingService,
   DialogService,
   JsonDataService,
@@ -14,17 +23,21 @@ import {
 
 import { dialogInitialData } from "../../../test-setup/mocks/dialogData";
 import NodeDialog from "../NodeDialog.vue";
+import type { FlowSettings } from "../api/types";
+import type { DialogSettings } from "../composables/nodeDialog/useUpdates";
+import type { SettingsData } from "../types/SettingsData";
+import type { Update, UpdateResult } from "../types/Update";
 
 import { getOptions } from "./utils";
 
-const clear = (obj) => {
+const clear = (obj: Record<string, unknown>) => {
   for (const prop of Object.getOwnPropertyNames(obj)) {
     delete obj[prop];
   }
 };
 
 describe("NodeDialog.vue", () => {
-  let initialDataSpy, setApplyListenerSpy;
+  let initialDataSpy: MockInstance, setApplyListenerSpy: MockInstance;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -33,7 +46,9 @@ describe("NodeDialog.vue", () => {
       .mockResolvedValue({
         ...dialogInitialData,
       });
-    vi.spyOn(JsonDataService.prototype, "applyData").mockResolvedValue();
+    vi.spyOn(JsonDataService.prototype, "applyData").mockResolvedValue({
+      isApplied: true,
+    });
     vi.spyOn(SharedDataService.prototype, "shareData").mockResolvedValue();
     setApplyListenerSpy = vi.spyOn(DialogService.prototype, "setApplyListener");
   });
@@ -42,7 +57,7 @@ describe("NodeDialog.vue", () => {
     const wrapper = shallowMount(NodeDialog, getOptions());
     await flushPromises();
 
-    expect(wrapper.getComponent(NodeDialog).exists()).toBe(true);
+    expect(wrapper.findComponent(NodeDialog).exists()).toBe(true);
     expect(setApplyListenerSpy).toHaveBeenCalled();
     expect(wrapper.find("a.advanced-options").exists()).not.toBe(true);
   });
@@ -65,6 +80,7 @@ describe("NodeDialog.vue", () => {
   // Skipped due to problems stubbing JsonFormsDialog
   it.skip("renders advanced settings", async () => {
     const advancedDialogData = { ...dialogInitialData };
+    // @ts-expect-error
     advancedDialogData.ui_schema.options = { isAdvanced: true };
     vi.spyOn(JsonDataService.prototype, "initialData").mockResolvedValueOnce(
       advancedDialogData,
@@ -72,8 +88,8 @@ describe("NodeDialog.vue", () => {
     const wrapper = shallowMount(NodeDialog, getOptions());
     await flushPromises();
 
-    expect(wrapper.getComponent(NodeDialog).exists()).toBe(true);
-    let advancedLink = wrapper.find("a.advanced-options");
+    expect(wrapper.findComponent(NodeDialog).exists()).toBe(true);
+    const advancedLink = wrapper.find("a.advanced-options");
     expect(advancedLink.exists()).toBe(true);
     expect(advancedLink.text()).toBe("Show advanced settings");
 
@@ -84,7 +100,9 @@ describe("NodeDialog.vue", () => {
   // Skipped due to problems stubbing JsonFormsDialog
   it.skip("sets new values on change", async () => {
     const wrapper = shallowMount(NodeDialog, getOptions());
+    // @ts-expect-error
     const onSettingsChangedSpy = vi.spyOn(wrapper.vm, "onSettingsChanged");
+    // @ts-expect-error
     const publishDataSpy = vi.spyOn(wrapper.vm.sharedDataService, "shareData");
 
     await flushPromises();
@@ -109,16 +127,18 @@ describe("NodeDialog.vue", () => {
     });
   });
 
+  type Wrapper = VueWrapper<InstanceType<typeof NodeDialog>>;
+
   describe("applySettings", () => {
-    let wrapper, sendAlert;
+    let wrapper: Wrapper, sendAlert: MockInstance;
 
     beforeEach(async () => {
       setApplyListenerSpy.mockReset();
       sendAlert = vi.fn();
-      AlertingService.mockImplementation(() => ({
+      (AlertingService as never as Mock).mockImplementation(() => ({
         sendAlert,
       }));
-      wrapper = shallowMount(NodeDialog, getOptions());
+      wrapper = shallowMount(NodeDialog, getOptions()) as never as Wrapper;
       await flushPromises();
     });
 
@@ -128,7 +148,7 @@ describe("NodeDialog.vue", () => {
       const result = { isApplied: true };
       const applyDataSpy = vi
         .spyOn(wrapper.vm.jsonDataService, "applyData")
-        .mockReturnValue(result);
+        .mockResolvedValue(result);
       await flushPromises();
 
       expect(await applyListener()).toStrictEqual(result);
@@ -138,7 +158,7 @@ describe("NodeDialog.vue", () => {
   });
 
   it("provides 'getData' method", () => {
-    const wrapper = shallowMount(NodeDialog, getOptions());
+    const wrapper = shallowMount(NodeDialog, getOptions()) as never as Wrapper;
     const callParams = { method: "foo", options: ["bar"] };
     wrapper.vm.callDataService(callParams);
     expect(wrapper.vm.jsonDataService.data).toHaveBeenCalledWith(callParams);
@@ -146,12 +166,12 @@ describe("NodeDialog.vue", () => {
 
   it("provides 'sendAlert' method", () => {
     const sendAlert = vi.fn();
-    AlertingService.mockImplementation(() => ({
+    (AlertingService as never as Mock).mockImplementation(() => ({
       sendAlert,
     }));
     const options = getOptions();
-    const wrapper = shallowMount(NodeDialog, options);
-    const callParams = { type: "error", message: "message" };
+    const wrapper = shallowMount(NodeDialog, options) as never as Wrapper;
+    const callParams = { type: "error" as AlertType, message: "message" };
     wrapper.vm.sendAlert(callParams);
     expect(sendAlert).toHaveBeenCalledWith(callParams);
   });
@@ -159,10 +179,10 @@ describe("NodeDialog.vue", () => {
   it("provides 'getAvailableFlowVariables' method", () => {
     const wrapper = shallowMount(NodeDialog, getOptions());
     const path = "path.to.my.setting";
-    const currentData = { foo: "bar" };
+    const currentData: SettingsData = { foo: "bar" } as never;
     wrapper.vm.setCurrentData(currentData);
     const flowVariablesMap = {};
-    wrapper.vm.schema = { flowVariablesMap };
+    wrapper.vm.schema = { flowVariablesMap } as never;
     wrapper.vm.getAvailableFlowVariables(path);
     expect(wrapper.vm.jsonDataService.data).toHaveBeenCalledWith({
       method: "flowVariables.getAvailableFlowVariables",
@@ -183,7 +203,7 @@ describe("NodeDialog.vue", () => {
       .spyOn(wrapper.vm.jsonDataService, "data")
       .mockResolvedValue(expectedResult);
     const path = "path.to.my.setting";
-    const currentData = { foo: "bar" };
+    const currentData: SettingsData = { foo: "bar" } as never;
     wrapper.vm.setCurrentData(currentData);
     clear(wrapper.vm.flowVariablesMap);
     wrapper.vm.flowVariablesMap.myPath = {
@@ -222,7 +242,7 @@ describe("NodeDialog.vue", () => {
         test: "test",
         test2: "test",
         otherTest: "test",
-      });
+      } as never);
 
       const transformSettings = vi.fn();
       const init = vi.fn();
@@ -230,8 +250,10 @@ describe("NodeDialog.vue", () => {
 
       await wrapper.vm.registerWatcher({ transformSettings, dependencies });
 
+      // @ts-expect-error
       expect(wrapper.vm.registeredWatchers.length).toBe(1);
       wrapper.vm.updateData("#/properties/test");
+      // @ts-expect-error
       expect(wrapper.vm.registeredWatchers[0]).toMatchObject({
         dataPaths: [["test"], ["test2"]],
       });
@@ -243,7 +265,10 @@ describe("NodeDialog.vue", () => {
         dependencies,
       });
 
+      // @ts-expect-error
       expect(wrapper.vm.registeredWatchers.length).toBe(2);
+
+      // @ts-expect-error
       expect(wrapper.vm.registeredWatchers[1]).toMatchObject({
         dataPaths: [["test"], ["test2"]],
       });
@@ -269,16 +294,20 @@ describe("NodeDialog.vue", () => {
         dependencies,
       });
 
+      // @ts-expect-error
       expect(wrapper.vm.registeredWatchers.length).toBe(1);
 
       unwatch();
 
+      // @ts-expect-error
       expect(wrapper.vm.registeredWatchers.length).toBe(0);
     });
   });
 
   describe("updateData (old mechanism: registerWatchers)", () => {
-    let wrapper, registeredWatchers, transformSettingsSpy;
+    let wrapper: Wrapper,
+      registeredWatchers: Parameters<Wrapper["vm"]["registerWatcher"]>[0][],
+      transformSettingsSpy: (data: DialogSettings) => void;
 
     const settingsData = {
       currentData: {
@@ -293,13 +322,14 @@ describe("NodeDialog.vue", () => {
       wrapper = shallowMount(NodeDialog, getOptions());
       await flushPromises();
 
-      wrapper.vm.setCurrentData(settingsData.currentData);
+      wrapper.vm.setCurrentData(settingsData.currentData as never);
       transformSettingsSpy = vi.fn();
       registeredWatchers = [
         {
           transformSettings: vi.fn(() =>
-            Promise.resolve((data) => {
+            Promise.resolve((data: DialogSettings) => {
               transformSettingsSpy(data);
+              // @ts-expect-error
               data.test4 = "transformed";
             }),
           ),
@@ -363,7 +393,7 @@ describe("NodeDialog.vue", () => {
 
   describe("value updates, triggers and stateProviderListeners", () => {
     const uiSchemaKey = "ui_schema";
-    let globalUpdates, initialUpdates;
+    let globalUpdates: Update[], initialUpdates: UpdateResult[];
 
     beforeEach(() => {
       initialDataSpy.mockImplementation(
@@ -391,7 +421,9 @@ describe("NodeDialog.vue", () => {
       return vi.spyOn(JsonDataService.prototype, "data");
     };
 
-    const getWrapperWithDataServiceSpy = async (dispatchSpy = null) => {
+    const getWrapperWithDataServiceSpy = async (
+      dispatchSpy: ((path: string, value: any) => void) | null = null,
+    ) => {
       const dataServiceSpy = getDataServiceSpy();
       const wrapper = shallowMount(
         NodeDialog,
@@ -404,20 +436,14 @@ describe("NodeDialog.vue", () => {
     };
 
     it("handles value updates", async () => {
-      const triggerId = "myTriggerId";
-      const dependencyId = "myDependencyId";
+      const triggerScope = "#/properties/view/properties/firstSetting";
+      const dependencyScope = "#/properties/model/properties/secondSetting";
       globalUpdates = [
         {
           trigger: {
-            scopes: ["#/properties/view/properties/firstSetting"],
-            id: triggerId,
+            scope: triggerScope,
           },
-          dependencies: [
-            {
-              id: dependencyId,
-              scopes: ["#/properties/model/properties/secondSetting"],
-            },
-          ],
+          dependencies: [dependencyScope],
         },
       ];
 
@@ -431,7 +457,7 @@ describe("NodeDialog.vue", () => {
         state: "SUCCESS",
         result: [
           {
-            scopes: ["#/properties/model/properties/secondSetting"],
+            scope: "#/properties/model/properties/secondSetting",
             values: [{ indices: [], value: updatedValue }],
           },
         ],
@@ -443,8 +469,8 @@ describe("NodeDialog.vue", () => {
         method: "settings.update2",
         options: [
           null,
-          triggerId,
-          { [dependencyId]: [{ indices: [], value: "secondSetting" }] },
+          expect.objectContaining({ scope: triggerScope }),
+          { [dependencyScope]: [{ indices: [], value: "secondSetting" }] },
         ],
       });
       expect(dispatchSpy.mock.calls[0][1]).toBe("updated");
@@ -453,18 +479,13 @@ describe("NodeDialog.vue", () => {
 
     it("handles updates triggered by a widget user interaction", async () => {
       const triggerId = "myTriggerId";
-      const dependencyId = "myDependencyId";
+      const dependencyScope = "#/properties/model/properties/secondSetting";
       globalUpdates = [
         {
           trigger: {
             id: triggerId,
           },
-          dependencies: [
-            {
-              id: dependencyId,
-              scopes: ["#/properties/model/properties/secondSetting"],
-            },
-          ],
+          dependencies: [dependencyScope],
         },
       ];
 
@@ -478,7 +499,7 @@ describe("NodeDialog.vue", () => {
         state: "SUCCESS",
         result: [
           {
-            scopes: ["#/properties/model/properties/secondSetting"],
+            scope: "#/properties/model/properties/secondSetting",
             values: [{ indices: [], value: updatedValue }],
           },
         ],
@@ -490,8 +511,8 @@ describe("NodeDialog.vue", () => {
         method: "settings.update2",
         options: [
           null,
-          triggerId,
-          { [dependencyId]: [{ indices: [], value: "secondSetting" }] },
+          expect.objectContaining({ id: triggerId }),
+          { [dependencyScope]: [{ indices: [], value: "secondSetting" }] },
         ],
       });
 
@@ -501,18 +522,13 @@ describe("NodeDialog.vue", () => {
 
     it("calls registered state provider listeners on update", async () => {
       const triggerId = "myTriggerId";
-      const dependencyId = "myDependencyId";
+      const dependencyScope = "#/properties/model/properties/secondSetting";
       globalUpdates = [
         {
           trigger: {
             id: triggerId,
           },
-          dependencies: [
-            {
-              id: dependencyId,
-              scopes: ["#/properties/model/properties/secondSetting"],
-            },
-          ],
+          dependencies: [dependencyScope],
         },
       ];
 
@@ -541,8 +557,8 @@ describe("NodeDialog.vue", () => {
         method: "settings.update2",
         options: [
           null,
-          triggerId,
-          { [dependencyId]: [{ indices: [], value: "secondSetting" }] },
+          expect.objectContaining({ id: triggerId }),
+          { [dependencyScope]: [{ indices: [], value: "secondSetting" }] },
         ],
       });
 
@@ -561,7 +577,7 @@ describe("NodeDialog.vue", () => {
       ];
 
       const sendAlert = vi.fn();
-      AlertingService.mockImplementation(() => ({
+      (AlertingService as never as Mock).mockImplementation(() => ({
         sendAlert,
       }));
       const { wrapper, dataServiceSpy } = await getWrapperWithDataServiceSpy();
@@ -583,8 +599,9 @@ describe("NodeDialog.vue", () => {
       const updatedValue = "updatedValue";
       initialUpdates = [
         {
-          scopes: ["#/properties/model/properties/secondSetting"],
+          scope: "#/properties/model/properties/secondSetting",
           values: [{ indices: [], value: updatedValue }],
+          id: null,
         },
       ];
 
@@ -613,8 +630,8 @@ describe("NodeDialog.vue", () => {
         {
           trigger: {
             id: triggerId,
-            triggerInitially: true,
           },
+          triggerInitially: true,
           dependencies: [],
         },
       ];
@@ -625,7 +642,7 @@ describe("NodeDialog.vue", () => {
         state: "SUCCESS",
         result: [
           {
-            scopes: ["#/properties/model/properties/secondSetting"],
+            scope: "#/properties/model/properties/secondSetting",
             values: [{ indices: [], value: updatedValue }],
           },
         ],
@@ -644,7 +661,7 @@ describe("NodeDialog.vue", () => {
 
       expect(dataServiceSpy).toHaveBeenCalledWith({
         method: "settings.update2",
-        options: [null, triggerId, {}],
+        options: [null, expect.objectContaining({ id: triggerId }), {}],
       });
       expect(dispatchSpy.mock.calls[0][0]).toBe("model.secondSetting");
       expect(dispatchSpy.mock.calls[0][1]).toBe(updatedValue);
@@ -656,7 +673,7 @@ describe("NodeDialog.vue", () => {
       const wrapper = shallowMount(NodeDialog, getOptions());
       vi.spyOn(wrapper.vm.jsonDataService, "data").mockResolvedValue(undefined);
       const persistPath = "my.path";
-      const flowSettings = {};
+      const flowSettings = {} as FlowSettings;
       await flushPromises();
       wrapper.vm.flowVariablesMap[persistPath] = flowSettings;
 
@@ -681,11 +698,11 @@ describe("NodeDialog.vue", () => {
       wrapper.vm.flowVariablesMap[persistPathFlawedSetting] = {
         controllingFlowVariableName: "flawedSettingVariable",
         controllingFlowVariableFlawed: true,
-      };
+      } as FlowSettings;
       wrapper.vm.flowVariablesMap[persistPathOtherSetting] = {
         controllingFlowVariableName: "otherSettingsVariable",
         controllingFlowVariableFlawed: false,
-      };
+      } as FlowSettings;
       wrapper.vm.flawedControllingVariablePaths.add(persistPathFlawedSetting);
 
       wrapper.vm.setCurrentData({});
@@ -717,7 +734,7 @@ describe("NodeDialog.vue", () => {
       const flawedSettings = {
         controllingFlowVariableName: "flawedSettingVariable",
         controllingFlowVariableFlawed: true,
-      };
+      } as FlowSettings;
 
       wrapper.vm.flowVariablesMap[persistPathFlawedSetting] = flawedSettings;
 
@@ -743,17 +760,17 @@ describe("NodeDialog.vue", () => {
     it("excludes initially set paths from 'getFlowVariableOverrideValue' request until the controlling variable is are changed", async () => {
       const initialSetting1 = "first";
       const initialSetting2 = "second";
-      const flowSettings1 = {
+      const flowSettings1: Record<string, FlowSettings> = {
         [initialSetting1]: {
           controllingFlowVariableName: "var1",
           controllingFlowVariableFlawed: true,
-        },
+        } as FlowSettings,
       };
-      const flowSettings2 = {
+      const flowSettings2: Record<string, FlowSettings> = {
         [initialSetting2]: {
           controllingFlowVariableName: "var2",
           controllingFlowVariableFlawed: false,
-        },
+        } as FlowSettings,
       };
       initialDataSpy.mockResolvedValue({
         data: {},
@@ -811,7 +828,9 @@ describe("NodeDialog.vue", () => {
       const wrapper = shallowMount(NodeDialog, getOptions());
 
       const persistPath = "my.path";
-      const flowSettings = { controllingFlowVariableFlawed: true };
+      const flowSettings = {
+        controllingFlowVariableFlawed: true,
+      } as FlowSettings;
       await flushPromises();
       wrapper.vm.flowVariablesMap[persistPath] = flowSettings;
       wrapper.vm.flawedControllingVariablePaths.add(persistPath);

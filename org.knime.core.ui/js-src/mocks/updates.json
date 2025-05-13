@@ -1,4 +1,5 @@
 {
+  "$schema": "mock.def.json",
   "result": {
     "name": "Dialog with Value Updates",
     "data": {
@@ -114,73 +115,44 @@
         }
       ]
     },
+    "flowVariableSettings": {},
     "globalUpdates": [
       {
         "trigger": {
-          "scopes": ["#/properties/view/properties/a"],
-          "id": "Trigger_A"
+          "scope": "#/properties/view/properties/a"
         },
         "dependencies": [
-          {
-            "scopes": ["#/properties/view/properties/a"],
-            "id": "A"
-          },
-          {
-            "scopes": ["#/properties/view/properties/b"],
-            "id": "B"
-          }
+          "#/properties/view/properties/a",
+          "#/properties/view/properties/b"
         ]
       },
       {
         "trigger": {
-          "scopes": ["#/properties/view/properties/b"],
-          "id": "Trigger_B"
+          "scope": "#/properties/view/properties/b"
         },
         "dependencies": [
-          {
-            "scopes": ["#/properties/view/properties/a"],
-            "id": "A"
-          },
-          {
-            "scopes": ["#/properties/view/properties/b"],
-            "id": "B"
-          }
+          "#/properties/view/properties/a",
+          "#/properties/view/properties/b"
         ]
       },
       {
         "trigger": {
-          "scopes": ["#/properties/view/properties/updatedByA"],
-          "id": "Trigger_Updated_By_A"
+          "scope": "#/properties/view/properties/updatedByA"
         },
-        "dependencies": [
-          {
-            "scopes": ["#/properties/view/properties/updatedByA"],
-            "id": "UpdatedByA"
-          }
-        ]
+        "dependencies": ["#/properties/view/properties/updatedByA"]
       },
       {
         "trigger": {
-          "id": "Trigger_Button"
+          "id": "Trigger_Button",
+          "scope": "#/properties/view/properties/updateUpdatedByB"
         },
-        "dependencies": [
-          {
-            "scopes": ["#/properties/view/properties/b"],
-            "id": "B"
-          }
-        ]
+        "dependencies": ["#/properties/view/properties/b"]
       },
       {
         "trigger": {
-          "scopes": ["#/properties/view/properties/updatedByB"],
-          "id": "Trigger_Updated_By_B"
+          "scope": "#/properties/view/properties/updatedByB"
         },
-        "dependencies": [
-          {
-            "scopes": ["#/properties/view/properties/updatedByB"],
-            "id": "UpdatedByB"
-          }
-        ]
+        "dependencies": ["#/properties/view/properties/updatedByB"]
       }
     ]
   }

@@ -1,33 +1,34 @@
-export interface ValueReference {
+export interface Scoped {}
+
+export interface ValueTrigger extends Scoped {
   /**
-   * The sequence of schema paths (multiple in case of array layout elements) of the setting
+   * The schema paths of the setting (including "/properties/" and possibly "/items/properties/")
    */
-  scopes: string[];
-  /**
-   * A unique identifyer
-   */
+  scope: string;
+}
+
+export interface IdTrigger {
   id: string;
 }
 
-export interface Trigger {
-  id: string;
-  scopes: undefined;
-  triggerInitially?: true;
-}
+export type Trigger = ValueTrigger | IdTrigger;
+
+export const isValueTrigger = (trigger: Trigger): trigger is ValueTrigger =>
+  "scope" in trigger && Boolean(trigger.scope);
 
 export interface Update {
   /**
-   * The dependencies that the frontend needs to provide when requesting an update from the backend
+   * The json schema scopes of dependency that the frontend needs to provide when requesting an update from the backend
    */
-  dependencies: ValueReference[];
+  dependencies: string[];
   /**
    * The trigger of this update
    */
-  trigger:
-    | Trigger
-    | (ValueReference & {
-        triggerInitially: undefined;
-      });
+  trigger: Trigger;
+  /**
+   * Whether the trigger is an initial trigger
+   */
+  triggerInitially?: boolean;
 }
 
 export type IndicesValuePairs = { indices: number[]; value: unknown }[]; // synchronous computeBeforeOpenDialog results
@@ -35,17 +36,17 @@ export type IndexIdsValuePairs = { indices: string[]; value: unknown }[]; // asy
 export type Pairs = IndicesValuePairs | IndexIdsValuePairs;
 
 // value updates
-export interface ScopesAndValue {
-  scopes: string[];
+export interface ScopeAndValue {
+  scope: string;
   id: null;
   values: Pairs;
 }
 
 // ui state updates
 export interface IdAndValue {
-  scopes: null;
+  scope: null;
   id: string;
   values: Pairs;
 }
 
-export type UpdateResult = ScopesAndValue | IdAndValue;
+export type UpdateResult = ScopeAndValue | IdAndValue;

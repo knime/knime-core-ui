@@ -1,4 +1,5 @@
 {
+  "$schema": "mock.def.json",
   "result": {
     "name": "Button Control Mock Dialog",
     "data": {},
@@ -78,6 +79,7 @@
           }
         }
       ]
-    }
+    },
+    "flowVariableSettings": {}
   }
 }

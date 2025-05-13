@@ -4,9 +4,71 @@ import { describe, expect, it } from "vitest";
 import {
   combineDataPathsWithIndices,
   getIndicesFromDataPaths,
+  scopeToDataPaths,
 } from "../dataPaths";
 
 describe("dataPaths", () => {
+  describe("scopeToDataPaths", () => {
+    it.each([
+      { scope: "#/properties/foo", expected: ["foo"] },
+      { scope: "#/properties/foo/properties/bar", expected: ["foo.bar"] },
+      {
+        scope: "#/properties/foo/items/properties/bar",
+        expected: ["foo", "bar"],
+      },
+      {
+        scope: "#/properties/foo/items/properties/bar/properties/baz",
+        expected: ["foo", "bar.baz"],
+      },
+      {
+        scope: "#/properties/foo/properties/items/properties/bar",
+        expected: ["foo.items.bar"],
+      },
+      { scope: "#/properties/foo/properties/123", expected: ["foo.123"] },
+      {
+        scope: "#/properties/foo/items/properties/test2/properties/123",
+        expected: ["foo", "test2.123"],
+      },
+      {
+        scope: "#/properties/foo/properties/items/properties/123",
+        expected: ["foo.items.123"],
+      },
+      {
+        scope: "#/properties/properties/properties/properties",
+        expected: ["properties.properties"],
+      },
+      {
+        scope: "#/properties/foo/items/properties/bar/items/properties/baz",
+        expected: ["foo", "bar", "baz"],
+      },
+      { scope: "#/properties/items", expected: ["items"] },
+      {
+        scope: "#/properties/items/properties/items",
+        expected: ["items.items"],
+      },
+      { scope: "#/properties/foo/properties/items", expected: ["foo.items"] },
+      {
+        scope: "#/properties/items/items/properties/items",
+        expected: ["items", "items"],
+      },
+      {
+        scope:
+          "#/properties/items/items/properties/items/properties/items/properties/leaf",
+        expected: ["items", "items.items.leaf"],
+      },
+      {
+        scope: "#/properties/arrayField/items/properties/itemsField",
+        expected: ["arrayField", "itemsField"],
+      },
+    ] as const)(
+      "should convert scope %s to data paths",
+      ({ scope, expected }) => {
+        const result = scopeToDataPaths(scope);
+        expect(result).toEqual(expected);
+      },
+    );
+  });
+
   describe("combineDataPathsWithIndices", () => {
     it("should combine data paths with enough indices", () => {
       const dataPaths = ["foo", "bar", "baz"];
