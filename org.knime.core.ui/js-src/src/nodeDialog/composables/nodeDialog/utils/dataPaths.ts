@@ -1,5 +1,3 @@
-import { toDataPath } from "@jsonforms/core";
-
 /**
  * E.g.
  * * dataPaths = ['foo', 'bar', 'baz'], indices = [1, 2] -->  ['foo.1.bar.2.baz']
@@ -23,11 +21,43 @@ export const combineDataPathsWithIndices = (
 };
 
 /**
+ * E.g.
+ * * scope = '#/properties/foo/items/properties/bar/items/properties/baz'
+ *   --> ['foo', 'bar', 'baz']
+ * * scope = '#/properties/items/properties/foo/items/properties/bar' --> ['items.foo', 'bar']
+ */
+export const scopeToDataPaths = (scope: string): string[] => {
+  const segments = scope.replace(/^#\//, "").split("/");
+
+  const result: string[] = [];
+  let currentPath: string[] = [];
+
+  for (let i = 0; i < segments.length; i++) {
+    const segment = segments[i];
+
+    if (segment === "properties") {
+      i++; // NOSONAR handle next segment right away
+      if (segments.length === i) {
+        throw new Error("Invalid scope: properties without a name");
+      }
+      currentPath.push(segments[i]);
+    } else if (segment === "items") {
+      result.push(currentPath.join("."));
+      currentPath = [];
+    } else {
+      throw Error(`Unexpected segment in scope: ${segment}`);
+    }
+  }
+  result.push(currentPath.join("."));
+  return result;
+};
+/**
  * @returns an array of paths. If there are multiple, all but the first one lead to an array in
  * which every index is to be adjusted.
  */
-export const combineScopesWithIndices = (scopes: string[], indices: number[]) =>
-  combineDataPathsWithIndices(scopes.map(toDataPath), indices);
+export const combineScopeWithIndices = (scope: string, indices: number[]) => {
+  return combineDataPathsWithIndices(scopeToDataPaths(scope), indices);
+};
 
 /**
  * E.g.

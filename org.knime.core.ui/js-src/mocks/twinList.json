@@ -1,4 +1,5 @@
 {
+  "$schema": "mock.def.json",
   "result": {
     "name": "Twinlists",
     "data": {
@@ -60,36 +61,6 @@
         "patternFilter": {
           "pattern": ""
         }
-      },
-      "AsyncChoices": {
-        "mode": "MANUAL",
-        "manualFilter": {
-          "manuallySelected": ["AVG", "foo"],
-          "manuallyDeselected": ["bar"],
-          "includeUnknownColumns": false
-        },
-        "typeFilter": {
-          "selectedTypes": ["typeA"]
-        },
-
-        "patternFilter": {
-          "pattern": ""
-        }
-      },
-      "AsyncChoicesFail": {
-        "mode": "MANUAL",
-        "manualFilter": {
-          "manuallySelected": ["AVG", "foo"],
-          "manuallyDeselected": ["bar"],
-          "includeUnknownColumns": false
-        },
-        "typeFilter": {
-          "selectedTypes": ["typeA"]
-        },
-
-        "patternFilter": {
-          "pattern": ""
-        }
       }
     },
     "schema": {
@@ -136,22 +107,6 @@
           }
         },
         "ColumnFilterWithIncludedUnknownColumns": {
-          "type": "object",
-          "properties": {
-            "selected": {
-              "type": "array"
-            }
-          }
-        },
-        "AsyncChoices": {
-          "type": "object",
-          "properties": {
-            "selected": {
-              "type": "array"
-            }
-          }
-        },
-        "AsyncChoicesFail": {
           "type": "object",
           "properties": {
             "selected": {
@@ -271,34 +226,9 @@
               }
             ]
           }
-        },
-        {
-          "type": "Section",
-          "label": "Asynchronous",
-          "elements": [
-            {
-              "type": "Control",
-              "scope": "properties/AsyncChoices",
-              "options": {
-                "format": "typedStringFilter",
-                "emptyStateLabel": "No columns in this list",
-                "unknownValuesText": "Any unknown column",
-                "choicesProviderClass": "successfulChoicesProvider"
-              }
-            },
-            {
-              "type": "Control",
-              "scope": "properties/AsyncChoicesFail",
-              "options": {
-                "format": "typedStringFilter",
-                "emptyStateLabel": "No columns in this list",
-                "unknownValuesText": "Any unknown column",
-                "choicesProviderClass": "failingChoicesProvider"
-              }
-            }
-          ]
         }
       ]
-    }
+    },
+    "flowVariableSettings": {}
   }
 }

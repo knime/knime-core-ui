@@ -53,10 +53,7 @@ import java.lang.reflect.Type;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.ValueAndTypeReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -70,32 +67,6 @@ public final class ConvertValueUtil {
 
     private ConvertValueUtil() {
         // Utility
-    }
-
-    /**
-     * @param objectSettings
-     * @param valueAndTypeRef
-     * @param context
-     * @return an object of the generic type of the {@link Reference}
-     */
-    public static Object convertValueRef(final Object objectSettings, final ValueAndTypeReference valueAndTypeRef,
-        final DefaultNodeSettingsContext context) {
-        final var settingsType = getSettingsType(valueAndTypeRef);
-        return convertValue(objectSettings, settingsType, context);
-    }
-
-    private static Type getSettingsType(final ValueAndTypeReference valueAndTypeRef) {
-        final var valueRef = valueAndTypeRef.getValueRef();
-        final var typeRef = valueAndTypeRef.getTypeReference();
-        return typeRef == null ? getSettingsType(valueRef) : getSettingsType(typeRef);
-    }
-
-    private static Type getSettingsType(final Class<? extends Reference> valueRef) {
-        return GenericTypeFinderUtil.getFirstGenericType(valueRef, Reference.class);
-    }
-
-    private static Type getSettingsType(final TypeReference<?> typeRef) {
-        return GenericTypeFinderUtil.getFirstGenericType(typeRef.getClass(), TypeReference.class);
     }
 
     /**

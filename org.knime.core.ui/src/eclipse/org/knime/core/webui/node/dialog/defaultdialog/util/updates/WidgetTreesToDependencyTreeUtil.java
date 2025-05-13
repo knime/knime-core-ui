@@ -73,8 +73,8 @@ public final class WidgetTreesToDependencyTreeUtil {
     static Collection<TriggerVertex> widgetTreesToDependencyTree(final Collection<Tree<WidgetGroup>> widgetTrees,
         final DefaultNodeSettingsContext context) {
         final var valueRefsAndStateProviders =
-            new WidgetTreesToValueRefsAndStateProviders().widgetTreesToValueRefsAndStateProviders(widgetTrees);
-        return ValueRefsAndValueProvidersAndUiStateProvidersToDependencyTree
+            new WidgetTreesToRefsAndStateProviders().widgetTreesToRefsAndStateProviders(widgetTrees);
+        return RefsAndValueProvidersAndUiStateProvidersToDependencyTree
             .valueRefsAndStateProvidersToDependencyTree(valueRefsAndStateProviders, context);
     }
 

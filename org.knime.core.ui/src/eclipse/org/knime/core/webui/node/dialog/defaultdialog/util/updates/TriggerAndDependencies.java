@@ -48,12 +48,13 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil.getScopeFromLocation;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -63,6 +64,7 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.ConvertValueUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
@@ -85,31 +87,15 @@ public class TriggerAndDependencies {
         m_dependencyVertices = dependencyVertices;
     }
 
-    private static List<Dependency> getDependencyPaths(final Collection<DependencyVertex> dependencyVertices) {
-        return dependencyVertices.stream().map(dep -> {
-            final var valueRef = dep.getValueRef().getName();
-            return new Dependency(dep.getFieldLocation(), valueRef);
-        }).toList();
-    }
-
-    /**
-     * @return Information on the field associated to the trigger, if such a field exists. Otherwise empty.
-     */
-    public Optional<PathsWithSettingsType> getTriggerFieldLocation() {
-        return m_triggerVertex.getFieldLocation();
-    }
-
-    /**
-     * @param fieldLocation - information on the field associated to this dependency
-     * @param valueRef - an id of the reference class
-     */
-    public record Dependency(PathsWithSettingsType fieldLocation, String valueRef) {
+    private static List<Location> getDependencyPaths(final Collection<DependencyVertex> dependencyVertices) {
+        return dependencyVertices.stream().map(DependencyVertex::getLocationAndType).map(LocationAndType::location)
+            .sorted().toList();
     }
 
     /**
      * @return the dependencies
      */
-    public List<Dependency> getDependencies() {
+    public List<Location> getDependencies() {
         return getDependencyPaths(m_dependencyVertices);
     }
 
@@ -119,7 +105,7 @@ public class TriggerAndDependencies {
      * @param triggerIndices the indices indicating the triggers location if it triggering from within an array layout
      * @return a mapping to the values of the required dependencies
      */
-    public Map<ValueAndTypeReference, List<IndexedValue<Integer>>> extractDependencyValues(
+    public Map<LocationAndType, List<IndexedValue<Integer>>> extractDependencyValues(
         final Map<SettingsType, WidgetGroup> settings, final DefaultNodeSettingsContext context,
         final int... triggerIndices) {
         final var mapper = JsonFormsDataUtil.getMapper();
@@ -128,12 +114,13 @@ public class TriggerAndDependencies {
         return createDependenciesValuesMap(context, jsonNodes, triggerIndices);
     }
 
-    private Map<ValueAndTypeReference, List<IndexedValue<Integer>>> createDependenciesValuesMap(
+    private Map<LocationAndType, List<IndexedValue<Integer>>> createDependenciesValuesMap(
         final DefaultNodeSettingsContext context, final Map<SettingsType, JsonNode> jsonNodes,
         final int[] triggerIndices) {
-        final Map<ValueAndTypeReference, List<IndexedValue<Integer>>> dependencyValues = new HashMap<>();
+        final Map<LocationAndType, List<IndexedValue<Integer>>> dependencyValues = new HashMap<>();
         for (var vertex : m_dependencyVertices) {
-            dependencyValues.put(vertex, extractValues(vertex, jsonNodes, context, triggerIndices));
+            dependencyValues.put(vertex.getLocationAndType(),
+                extractValues(vertex, jsonNodes, context, triggerIndices));
         }
         return dependencyValues;
     }
@@ -141,12 +128,14 @@ public class TriggerAndDependencies {
     private static List<IndexedValue<Integer>> extractValues(final DependencyVertex vertex,
         final Map<SettingsType, JsonNode> jsonNodes, final DefaultNodeSettingsContext context,
         final int[] triggerIndices) {
-        var groupJsonNode = jsonNodes.get(vertex.getFieldLocation().settingsType());
+        final var locationAndType = vertex.getLocationAndType();
+        final var location = locationAndType.location();
+        var groupJsonNode = jsonNodes.get(location.settingsType());
 
-        final var paths = vertex.getFieldLocation().paths();
+        final var paths = location.paths();
         var indexedFieldValues = getIndexedFieldValues(groupJsonNode, paths, triggerIndices);
         return indexedFieldValues.stream().map(pair -> new IndexedValue<Integer>(pair.getFirst(),
-            ConvertValueUtil.convertValueRef(pair.getSecond(), vertex, context))).toList();
+            ConvertValueUtil.convertValue(pair.getSecond(), locationAndType.getType(), context))).toList();
     }
 
     private static List<Pair<List<Integer>, JsonNode>> getIndexedFieldValues(final JsonNode jsonNode,
@@ -175,28 +164,40 @@ public class TriggerAndDependencies {
     }
 
     private Collection<SettingsType> getDependencySettingsTypes() {
-        return getDependencies().stream().map(Dependency::fieldLocation).map(PathsWithSettingsType::settingsType)
-            .collect(Collectors.toSet());
+        return getDependencies().stream().map(Location::settingsType).collect(Collectors.toSet());
     }
 
     /**
      * @return the id of the trigger
      */
-    public String getTriggerId() {
-        return m_triggerVertex.getId();
+    public Trigger getTrigger() {
+        if (m_triggerVertex instanceof ValueTriggerVertex trigger) {
+            return new Trigger.ValueTrigger(getScopeFromLocation(trigger.getLocation()));
+        } else if (m_triggerVertex instanceof IdTriggerVertex trigger) {
+            return new Trigger.IdTrigger(trigger.getId());
+        }
+        throw new IllegalStateException("Unknown trigger type: " + m_triggerVertex.getClass().getSimpleName());
     }
 
     /**
      * @return Whether the trigger is "Before the dialog is opened"
      */
     public boolean isBeforeOpenDialogTrigger() {
-        return TriggerVertex.BEFORE_OPEN_DIALOG_ID.equals(getTriggerId());
+        return isIdTriggerWithId(IdTriggerVertex.BEFORE_OPEN_DIALOG_ID);
     }
 
     /**
-     * @return Whether the trigger is "After the dialog was opened"
+     * @return Whether the trigger is "After the dialog is opened"
      */
     public boolean isAfterOpenDialogTrigger() {
-        return TriggerVertex.AFTER_OPEN_DIALOG_ID.equals(getTriggerId());
+        return isIdTriggerWithId(IdTriggerVertex.AFTER_OPEN_DIALOG_ID);
+    }
+
+    private boolean isIdTriggerWithId(final String id) {
+        if (m_triggerVertex instanceof IdTriggerVertex globalTrigger) {
+            return globalTrigger.getId().equals(id);
+        }
+        return false;
+
     }
 }

@@ -7,7 +7,7 @@ import {
   getOrCreateNestedArrayRecord,
 } from "../useArrayIds";
 
-import { combineDataPathsWithIndices } from "./dataPaths";
+import { combineDataPathsWithIndices, scopeToDataPaths } from "./dataPaths";
 
 /**
  * If there is more than one path, we know that the settings at the first are an array
@@ -17,7 +17,7 @@ const hasFurtherPaths = (
   settings: object,
 ): settings is { _id: string | undefined }[] => dataPaths.length > 0;
 
-export const getDependencyValues = (
+const getDependencyValuesFromDataPaths = (
   settings: object,
   dataPaths: string[],
   indices: number[],
@@ -28,6 +28,21 @@ export const getDependencyValues = (
     settings,
     combineDataPathsWithIndices(dataPaths, indices),
     getOrCreateNestedArrayRecord(dataPaths, indices, arrayRecord),
+  );
+};
+
+export const getDependencyValues = (
+  settings: object,
+  scope: string,
+  indices: number[],
+  arrayRecord: ArrayRecord,
+): IndexIdsValuePairs => {
+  const dataPaths = scopeToDataPaths(scope);
+  return getDependencyValuesFromDataPaths(
+    settings,
+    dataPaths,
+    indices,
+    arrayRecord,
   );
 };
 
@@ -66,7 +81,7 @@ function getDependencyValuesWithoutFixedIndices(
         firstDataPath,
         arrayRecord,
       );
-      return getDependencyValues(
+      return getDependencyValuesFromDataPaths(
         elementSettings,
         restDataPaths,
         [index],

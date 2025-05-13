@@ -44,28 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 24, 2024 (Paul Bärnreuther): created
+ *   May 14, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
+package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Optional;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 
 /**
  *
- * @author Paul Bärnreuther
+ * Expects a JSON object with the following keys:
+ * <ul>
+ * <li>"scope" (optional): the scope of the control where the trigger</li>
+ * <li>"id" (optional): the id of the trigger.</li>
+ * </ul>
+ * At least one of these keys must be present.
+ * <ul>
+ * <li>Not providing the id means that the trigger is a value trigger.</li>
+ * <li>Not providing the scope means that the trigger is a global trigger issued by the framework.</li>
+ * </ul>
  */
-public interface ValueAndTypeReference {
+final class TriggerDeserializer extends JsonDeserializer<Trigger> {
 
     /**
-     * @return the value reference
+     * Same as the field name in {@link Trigger.IdTrigger}
      */
-    Class<? extends Reference> getValueRef();
+    private static final String ID = "id";
 
     /**
-     *
-     * @see TypeReference
-     * @return the optional type reference
+     * Same as the field name in {@link Trigger.ValueTrigger}
      */
-    TypeReference<?> getTypeReference();
+    private static final String SCOPE = "scope";
+
+    @Override
+    public Trigger deserialize(final JsonParser p, final DeserializationContext ctxt) throws IOException {
+        @SuppressWarnings("unchecked")
+        final Map<String, Object> map = p.readValueAs(Map.class);
+        final var scope = getParameter(map, SCOPE);
+        final var id = getParameter(map, ID);
+        if (scope.isPresent()) {
+            return new Trigger.ValueTrigger(scope.get());
+        } else if (id.isPresent()) {
+            return new Trigger.IdTrigger(id.get());
+        } else {
+            throw new IOException("Could not deserialize trigger, since no scope or id was provided.");
+        }
+    }
+
+    private static Optional<String> getParameter(final Map<String, Object> map, final String key) {
+        return Optional.ofNullable(map.get(key)).filter(String.class::isInstance).map(String.class::cast);
+    }
+
 }

@@ -52,6 +52,7 @@ import java.util.function.Supplier;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
 
 /**
  * To be extended and used for unit-testing state providers
@@ -67,38 +68,37 @@ public class TestStateProviderInitializer implements StateProviderInitializer {
 
     @Override
     public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
+        throw new IllegalStateException("This method should not have been called in this test.");
+    }
 
+    @Override
+    public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<?>> ref, final TypeReference<T> typeRef) {
         throw new IllegalStateException("This method should not have been called in this test.");
     }
 
     @Override
     public <T> void computeOnValueChange(final Class<? extends Reference<T>> id) {
-
         throw new IllegalStateException("This method should not have been called in this test.");
     }
 
     @Override
     public <T> Supplier<T> computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
-
         throw new IllegalStateException("This method should not have been called in this test.");
     }
 
     @Override
     public void computeOnButtonClick(final Class<? extends ButtonReference> ref) {
-
         throw new IllegalStateException("This method should not have been called in this test.");
     }
 
     @Override
     public void computeBeforeOpenDialog() {
         throw new IllegalStateException("This method should not have been called in this test.");
-
     }
 
     @Override
     public void computeAfterOpenDialog() {
         throw new IllegalStateException("This method should not have been called in this test.");
-
     }
 
     @Override

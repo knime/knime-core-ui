@@ -64,11 +64,11 @@ import java.util.stream.Stream;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.DependencyInjector.DependencyProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Vertex.VertexVisitor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
 
 /**
  * This class is used to convert a trigger to a map indexed by its triggered updates.
@@ -82,7 +82,7 @@ final class InvokeTrigger<I> {
 
     private Map<Vertex, ValuesWithLevelOfNesting<I>> m_cache = new HashMap<>();
 
-    private final Function<ValueAndTypeReference, List<IndexedValue<I>>> m_dependencyProvider;
+    private final Function<LocationAndType, List<IndexedValue<I>>> m_dependencyProvider;
 
     private final DefaultNodeSettingsContext m_context;
 
@@ -92,7 +92,7 @@ final class InvokeTrigger<I> {
      *            providers will depend on.
      * @param context the context provided to triggered state providers
      */
-    InvokeTrigger(final Function<ValueAndTypeReference, List<IndexedValue<I>>> dependencyProvider,
+    InvokeTrigger(final Function<LocationAndType, List<IndexedValue<I>>> dependencyProvider,
         final DefaultNodeSettingsContext context) {
         m_dependencyProvider = dependencyProvider;
         m_context = context;
@@ -132,28 +132,13 @@ final class InvokeTrigger<I> {
         final var getParentStateVertexVisitor = new VertexVisitor<StateVertex>() {
             @Override
             public StateVertex accept(final StateVertex stateVertex) {
-                if (stateVertex.getStateProviderClass().equals(stateProviderClass)) {
+                if (stateVertex.hasIdentifier(stateProviderClass)) {
                     return stateVertex;
                 }
                 return null;
             }
         };
         return vertex.getParents().stream().map(parent -> parent.visit(getParentStateVertexVisitor))
-            .filter(Objects::nonNull).findAny().orElseThrow();
-    }
-
-    private static DependencyVertex getParentDependencyVertex(final Vertex vertex,
-        final Class<? extends Reference<?>> valueRef) {
-        final var getParentDependencyVertexVisitor = new VertexVisitor<DependencyVertex>() {
-            @Override
-            public DependencyVertex accept(final DependencyVertex dependencyVertex) {
-                if (dependencyVertex.getValueRef().equals(valueRef)) {
-                    return dependencyVertex;
-                }
-                return null;
-            }
-        };
-        return vertex.getParents().stream().map(parent -> parent.visit(getParentDependencyVertexVisitor))
             .filter(Objects::nonNull).findAny().orElseThrow();
     }
 
@@ -183,7 +168,7 @@ final class InvokeTrigger<I> {
          *
          * @author Paul Bärnreuther
          */
-        private final class StateProviderInvocationInitializer implements StateProviderInitializer {
+        private final class StateProviderInvocationInitializer extends DefaultImperativeStateProviderInitializer {
 
             private final StateVertex m_stateVertex;
 
@@ -195,63 +180,57 @@ final class InvokeTrigger<I> {
              */
             private StateProviderInvocationInitializer(final StateVertex stateVertex,
                 final Function<Vertex, Object> getParentValue) {
+                super(new DependencyProvider<Class<? extends Reference<?>>>() {
+
+                    @Override
+                    public <V> Supplier<V> getValueSupplier(final Class<? extends Reference<?>> reference) {
+                        return vertexToSupplier(stateVertex.getDependency(reference), getParentValue);
+                    }
+
+                }, new DependencyProvider<Reference<?>>() {
+
+                    @Override
+                    public <V> Supplier<V> getValueSupplier(final Reference<?> reference) {
+                        return vertexToSupplier(stateVertex.getDependency(reference), getParentValue);
+                    }
+
+                });
                 m_stateVertex = stateVertex;
                 m_getParentValue = getParentValue;
             }
 
             @Override
-            public <T> void computeOnValueChange(final Class<? extends Reference<T>> id) {
-                // Nothing to do here during invocation
-            }
-
-            @Override
-            public void computeOnButtonClick(final Class<? extends ButtonReference> trigger) {
+            public void computeOnButtonClick(final Class<? extends ButtonReference> ref) {
                 // Nothing to do here during invocation
             }
 
             @Override
             public void computeBeforeOpenDialog() {
                 // Nothing to do here during invocation
-
             }
 
             @Override
             public void computeAfterOpenDialog() {
                 // Nothing to do here during invocation
-
-            }
-
-            @Override
-            public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> id) {
-                return vertexToSupplier(getParentDependencyVertex(m_stateVertex, id));
-            }
-
-            @Override
-            public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<?>> id,
-                final StateProvider.TypeReference<T> typeRef) {
-                return vertexToSupplier(getParentDependencyVertex(m_stateVertex, id));
-            }
-
-            @Override
-            public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> id) {
-                return vertexToSupplier(getParentDependencyVertex(m_stateVertex, id));
             }
 
             @Override
             public <T> Supplier<T>
                 computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
-                return vertexToSupplier(getParentStateVertex(m_stateVertex, stateProviderClass));
+                return vertexToSupplier(getParentStateVertex(m_stateVertex, stateProviderClass), m_getParentValue);
             }
 
             @SuppressWarnings("unchecked")
-            private <T> Supplier<T> vertexToSupplier(final Vertex vertex) {
-                return () -> (T)m_getParentValue.apply(vertex);
+            private static <T> Supplier<T> vertexToSupplier(final Vertex vertex,
+                final Function<Vertex, Object> getParentValue) {
+                return () -> (T)getParentValue.apply(vertex);
             }
 
             @Override
             public DefaultNodeSettingsContext getContext() {
                 return m_context;
             }
+
         }
 
         @Override
@@ -287,7 +266,7 @@ final class InvokeTrigger<I> {
                 vertex -> extractParentObject(parentValues.get(vertex), indices);
             final var initializer = new StateProviderInvocationInitializer(stateVertex, getParentValue);
             final var stateProvider = stateVertex.createStateProvider();
-            stateProvider.init(initializer);
+            StateProviderInitializerUtil.initializeStateProvider(stateProvider, initializer);
             try {
                 return Optional.ofNullable(stateProvider.computeState(m_context));
             } catch (StateComputationFailureException e) {
@@ -311,7 +290,7 @@ final class InvokeTrigger<I> {
         @Override
         public ValuesWithLevelOfNesting<I> accept(final DependencyVertex dependencyVertex) {
             return cached(dependencyVertex,
-                () -> ValuesWithLevelOfNesting.from(m_dependencyProvider.apply(dependencyVertex)));
+                () -> ValuesWithLevelOfNesting.from(m_dependencyProvider.apply(dependencyVertex.getLocationAndType())));
         }
 
         @Override

@@ -162,8 +162,9 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         return buttonHandler;
     }
 
+
     @Override
-    public Result<?> update2(final String widgetId, final String triggerClass,
+    public Result<?> update2(final String widgetId, final Trigger triggerClass,
         final Map<String, List<IndexedValue<String>>> rawDependenciesUnparsed)
         throws InterruptedException, ExecutionException {
         ErrorHandlingSingleton.reset();

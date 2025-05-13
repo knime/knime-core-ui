@@ -220,25 +220,19 @@ public class UpdatesUtilTest {
 
         assertThatJson(response).inPath("$.globalUpdates").isArray().hasSize(2);
 
-        assertThatJson(response).inPath("$.globalUpdates[0].trigger.id").isString()
-            .isEqualTo(TestSettings.DependencyA.class.getName());
-        assertThatJson(response).inPath("$.globalUpdates[0].trigger.scopes").isArray()
-            .isEqualTo(List.of("#/properties/model/properties/dependency"));
+        assertThatJson(response).inPath("$.globalUpdates[0].trigger").isObject().containsOnlyKeys("scope");
+        assertThatJson(response).inPath("$.globalUpdates[0].trigger.scope").isString()
+            .isEqualTo("#/properties/model/properties/anotherDependency");
         assertThatJson(response).inPath("$.globalUpdates[0].dependencies").isArray().hasSize(1);
-        assertThatJson(response).inPath("$.globalUpdates[0].dependencies[0].scopes").isArray()
-            .isEqualTo(List.of("#/properties/model/properties/dependency"));
-        assertThatJson(response).inPath("$.globalUpdates[0].dependencies[0].id").isString()
-            .isEqualTo(TestSettings.DependencyA.class.getName());
+        assertThatJson(response).inPath("$.globalUpdates[0].dependencies[0]").isString()
+            .isEqualTo("#/properties/model/properties/dependency");
 
-        assertThatJson(response).inPath("$.globalUpdates[1].trigger.id").isString()
-            .isEqualTo(TestSettings.DependencyB.class.getName());
-        assertThatJson(response).inPath("$.globalUpdates[1].trigger.scopes").isArray()
-            .isEqualTo(List.of("#/properties/model/properties/anotherDependency"));
+        assertThatJson(response).inPath("$.globalUpdates[1].trigger").isObject().containsOnlyKeys("scope");
+        assertThatJson(response).inPath("$.globalUpdates[1].trigger.scope").isString()
+            .isEqualTo("#/properties/model/properties/dependency");
         assertThatJson(response).inPath("$.globalUpdates[1].dependencies").isArray().hasSize(1);
-        assertThatJson(response).inPath("$.globalUpdates[1].dependencies[0].scopes").isArray()
-            .isEqualTo(List.of("#/properties/model/properties/dependency"));
-        assertThatJson(response).inPath("$.globalUpdates[1].dependencies[0].id").isString()
-            .isEqualTo(TestSettings.DependencyA.class.getName());
+        assertThatJson(response).inPath("$.globalUpdates[1].dependencies[0]").isString()
+            .isEqualTo("#/properties/model/properties/dependency");
 
     }
 
@@ -510,8 +504,8 @@ public class UpdatesUtilTest {
 
         assertThatJson(response).inPath("$").isObject().doesNotContainKey("globalUpdates");
         assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(2);
-        assertThatJson(response).inPath("$.initialUpdates[0].scopes").isArray()
-            .isEqualTo(List.of("#/properties/model/properties/valueUpdateSetting"));
+        assertThatJson(response).inPath("$.initialUpdates[0].scope").isString()
+            .isEqualTo("#/properties/model/properties/valueUpdateSetting");
         assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isObject().containsEntry("value",
             TestSettings.MyValueProvider.RESULT);
         assertThatJson(response).inPath("$.initialUpdates[1].id").isString()
@@ -569,8 +563,8 @@ public class UpdatesUtilTest {
         final var settings = new TestSettings();
         final var response = buildUpdates(settings);
         assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
-        assertThatJson(response).inPath("$.initialUpdates[0].scopes").isArray()
-            .isEqualTo(List.of("#/properties/model/properties/valueUpdateSetting"));
+        assertThatJson(response).inPath("$.initialUpdates[0].scope").isString()
+            .isEqualTo("#/properties/model/properties/valueUpdateSetting");
         assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isString()
             .isEqualTo("{self:null,other:foo}");
 
@@ -631,8 +625,8 @@ public class UpdatesUtilTest {
         assertThatJson(response).inPath("$.globalUpdates").isArray().hasSize(1);
 
         assertThatJson(response).inPath("$.globalUpdates[0].trigger").isObject().doesNotContainKey("scope");
-        assertThatJson(response).inPath("$.globalUpdates[0].trigger.triggerInitially").isBoolean().isTrue();
         assertThatJson(response).inPath("$.globalUpdates[0].trigger.id").isString().isEqualTo("after-open-dialog");
+        assertThatJson(response).inPath("$.globalUpdates[0].triggerInitially").isBoolean().isTrue();
         assertThatJson(response).inPath("$.globalUpdates[0].dependencies").isArray().hasSize(0);
     }
 
@@ -1097,14 +1091,10 @@ public class UpdatesUtilTest {
             assertThatJson(response).inPath("$.globalUpdates[0].trigger.id").isString()
                 .isEqualTo(TestSettings.ElementSettings.TriggerReference.class.getName());
             assertThatJson(response).inPath("$.globalUpdates[0].dependencies").isArray().hasSize(2);
-            assertThatJson(response).inPath("$.globalUpdates[0].dependencies[0].id").isString()
-                .isEqualTo(TestSettings.DependencyOutsideArray.class.getName());
-            assertThatJson(response).inPath("$.globalUpdates[0].dependencies[0].scopes").isArray()
-                .isEqualTo(List.of("#/properties/model/properties/dependencyOutsideArray"));
-            assertThatJson(response).inPath("$.globalUpdates[0].dependencies[1].id").isString()
-                .isEqualTo(TestSettings.ElementSettings.DependencyInsideArray.class.getName());
-            assertThatJson(response).inPath("$.globalUpdates[0].dependencies[1].scopes").isArray()
-                .isEqualTo(List.of("#/properties/model/properties/array", "#/properties/dependencyInsideArray"));
+            assertThatJson(response).inPath("$.globalUpdates[0].dependencies[0]").isString()
+                .isEqualTo("#/properties/model/properties/array/items/properties/dependencyInsideArray");
+            assertThatJson(response).inPath("$.globalUpdates[0].dependencies[1]").isString()
+                .isEqualTo("#/properties/model/properties/dependencyOutsideArray");
 
         }
 
@@ -1253,6 +1243,7 @@ public class UpdatesUtilTest {
             Map.of(SettingsType.MODEL, new InternalArrayWidgetTestSettings());
         final var response = buildUpdates(settings);
 
+        assertThatJson(response).inPath("$.globalUpdates[0].trigger").isObject().containsOnlyKeys("id");
         assertThatJson(response).inPath("$.globalUpdates[0].trigger.id").isString().isEqualTo("ElementResetButton");
 
     }

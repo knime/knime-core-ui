@@ -50,21 +50,36 @@ package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
 import static org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil.createInstance;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
+
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
  *
  * @author Paul Bärnreuther
  */
+@SuppressWarnings("rawtypes")
 final class StateVertex extends Vertex {
 
-    private final Class<? extends StateProvider> m_stateProviderClass; //NOSONAR, generic type is unknown here
+    private final Supplier<StateProvider> m_stateProviderSupplier; //NOSONAR, generic type is unknown here
+
+    private final Object m_identifier;
+
+    private final Map<Object, DependencyVertex> m_dependencies = new HashMap<>();
 
     /**
-     * @param stateProviderClass
+     * @param identifier an object whose {@link Object#equals} method is used to identify the state provider
+     * @param stateProviderSupplier the supplier of the state provider
      */
+    public StateVertex(final Object identifier, final Supplier<StateProvider> stateProviderSupplier) {
+        m_identifier = identifier;
+        m_stateProviderSupplier = stateProviderSupplier;
+    }
+
     public StateVertex(final Class<? extends StateProvider> stateProviderClass) {
-        m_stateProviderClass = stateProviderClass;
+        this(stateProviderClass, () -> createInstance(stateProviderClass));
     }
 
     @Override
@@ -72,12 +87,41 @@ final class StateVertex extends Vertex {
         return visitor.accept(this);
     }
 
-    public StateProvider createStateProvider() { //NOSONAR, generic type is unknown here
-        return createInstance(m_stateProviderClass);
+    void addDependency(final Object referenceKey, final DependencyVertex dependencyVertex) {
+        m_dependencies.put(referenceKey, dependencyVertex);
     }
 
-    public Class<? extends StateProvider> getStateProviderClass() {
-        return m_stateProviderClass;
+    DependencyVertex getDependency(final Object referenceKey) {
+        return m_dependencies.get(referenceKey);
+    }
+
+    public StateProvider createStateProvider() { //NOSONAR, generic type is unknown here
+        return m_stateProviderSupplier.get();
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof final StateVertex other) {
+            return hasIdentifier(other.m_identifier);
+        }
+        return false;
+    }
+
+    boolean hasIdentifier(final Object identifier) {
+        return m_identifier.equals(identifier);
+    }
+
+    @Override
+    public int hashCode() {
+        return m_identifier.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return m_identifier.toString();
     }
 
 }

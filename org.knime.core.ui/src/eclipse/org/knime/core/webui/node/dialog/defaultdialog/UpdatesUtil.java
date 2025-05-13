@@ -53,7 +53,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
@@ -63,7 +62,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUti
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMapUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.PathsWithSettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerAndDependencies;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToDependencyTreeUtil;
@@ -159,7 +157,7 @@ public final class UpdatesUtil {
         final Map<SettingsType, WidgetGroup> settings, final DefaultNodeSettingsContext context) {
         final var dependencyValues = triggerWithDependencies.extractDependencyValues(settings, context);
         final var triggerResult =
-            invocationHandler.invokeTrigger(triggerWithDependencies.getTriggerId(), dependencyValues::get, context);
+            invocationHandler.invokeTrigger(triggerWithDependencies.getTrigger(), dependencyValues::get, context);
         final var updateResults = UpdateResultsUtil.toUpdateResults(triggerResult);
 
         final var initialUpdates = rootNode.putArray("initialUpdates");
@@ -183,36 +181,29 @@ public final class UpdatesUtil {
     private static void addGlobalUpdate(final ArrayNode globalUpdates,
         final TriggerAndDependencies triggerWithDependencies) {
         final var updateObjectNode = globalUpdates.addObject();
-        addTriggerNode(triggerWithDependencies, updateObjectNode);
-        final var dependenciesArrayNode = updateObjectNode.putArray("dependencies");
-        /**
-         * Sorting is necessary for deterministic behavior in snapshot tests.
-         */
-        final var dependencies = triggerWithDependencies.getDependencies().stream()
-            .sorted((d1, d2) -> StringUtils.compare(d1.valueRef(), d2.valueRef()));
-        dependencies.forEach(dep -> {
-            final var newDependency = dependenciesArrayNode.addObject();
-            addLocationTo(newDependency, "scopes", dep.fieldLocation());
-            newDependency.put("id", dep.valueRef());
-        });
+        addTrigger(triggerWithDependencies, updateObjectNode);
+        addDependencies(triggerWithDependencies, updateObjectNode);
     }
 
-    private static void addTriggerNode(final TriggerAndDependencies triggerWithDependencies,
+    private static void addDependencies(final TriggerAndDependencies triggerWithDependencies,
         final ObjectNode updateObjectNode) {
+        final var dependenciesArrayNode = updateObjectNode.putArray("dependencies");
+        triggerWithDependencies.getDependencies().stream()//
+            /**
+             * Sorting is necessary for deterministic behavior in snapshot tests.
+             */
+            .sorted()//
+            .map(JsonFormsScopeUtil::getScopeFromLocation)//
+            .forEach(dependenciesArrayNode::add);
+    }
 
-        final var triggerNode = updateObjectNode.putObject("trigger");
-        triggerNode.put("id", triggerWithDependencies.getTriggerId());
-        triggerWithDependencies.getTriggerFieldLocation()
-            .ifPresent(fieldLocation -> addLocationTo(triggerNode, "scopes", fieldLocation));
+    private static void addTrigger(final TriggerAndDependencies triggerWithDependencies,
+        final ObjectNode updateObjectNode) {
+        updateObjectNode.set("trigger", MAPPER.valueToTree(triggerWithDependencies.getTrigger()));
         if (triggerWithDependencies.isAfterOpenDialogTrigger()) {
-            triggerNode.put("triggerInitially", true);
+            updateObjectNode.put("triggerInitially", true);
         }
 
     }
 
-    private static void addLocationTo(final ObjectNode newDependency, final String propertyName,
-        final PathsWithSettingsType location) {
-        final var scopesNodes = newDependency.putArray(propertyName);
-        JsonFormsScopeUtil.resolveFieldLocationToScope(location).forEach(scopesNodes::add);
-    }
 }

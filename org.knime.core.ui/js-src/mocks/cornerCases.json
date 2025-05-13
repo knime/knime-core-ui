@@ -1,4 +1,5 @@
 {
+  "$schema": "mock.def.json",
   "result": {
     "name": "Corner Cases Dialog",
     "data": {
@@ -125,6 +126,7 @@
           ]
         }
       ]
-    }
+    },
+    "flowVariableSettings": {}
   }
 }

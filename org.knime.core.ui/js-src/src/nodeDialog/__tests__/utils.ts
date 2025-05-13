@@ -4,7 +4,7 @@ export const getOptions = ({
   dispatch,
 }: {
   stubButtonsBySlot?: true;
-  dispatch?: (path: string, value: any) => void;
+  dispatch?: ((path: string, value: any) => void) | null;
 } = {}) => {
   return {
     global: {

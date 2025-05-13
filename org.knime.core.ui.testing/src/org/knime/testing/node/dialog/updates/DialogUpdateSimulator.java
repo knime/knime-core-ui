@@ -58,15 +58,15 @@ import java.util.stream.Collectors;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.PathsWithSettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Location;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerAndDependencies;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler.TriggerResult;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalButtonReferenceId;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
@@ -111,22 +111,23 @@ public class DialogUpdateSimulator implements UpdateSimulator {
         this(Map.of(SettingsType.MODEL, modelSettings), context);
     }
 
-    private TriggerResult<Integer> getTriggerResult(final String triggerId, final int... indices) {
-        final var trigger = m_listOfTriggers.stream().filter(t -> t.getTriggerId().equals(triggerId)).findFirst()
-            .orElseThrow(() -> new IllegalArgumentException(String.format("No trigger of id %s found.", triggerId)));
-        final var dependencyValues = trigger.extractDependencyValues(m_settings, m_context, indices);
-        return m_triggerInvocationHandler.invokeTrigger(trigger.getTriggerId(), dependencyValues::get, m_context);
+    private TriggerResult<Integer> getTriggerResult(final Trigger trigger, final int... indices) {
+        final var triggerAndDependencies =
+            m_listOfTriggers.stream().filter(t -> t.getTrigger().equals(trigger)).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(String.format("No trigger %s found.", trigger)));
+        final var dependencyValues = triggerAndDependencies.extractDependencyValues(m_settings, m_context, indices);
+        return m_triggerInvocationHandler.invokeTrigger(trigger, dependencyValues::get, m_context);
     }
 
-    private UpdateSimulatorResult simulateTrigger(final String triggerId, final int... indices) {
-        final var triggerResult = getTriggerResult(triggerId, indices);
+    private UpdateSimulatorResult simulateTrigger(final Trigger trigger, final int... indices) {
+        final var triggerResult = getTriggerResult(trigger, indices);
 
         return new UpdateSimulatorResult() {
 
             @Override
             public List<IndexedValue<Integer>> getMultiValueUpdatesInArrayAt(final SettingsType settingsType,
                 final List<List<String>> paths) {
-                return triggerResult.valueUpdates().get(new PathsWithSettingsType(paths, settingsType));
+                return triggerResult.valueUpdates().get(new Location(paths, settingsType));
             }
 
             @Override
@@ -138,9 +139,8 @@ public class DialogUpdateSimulator implements UpdateSimulator {
     }
 
     @Override
-    public UpdateSimulatorResult simulateValueChange(final Class<? extends Reference<?>> trigger,
-        final int... indices) {
-        return simulateTrigger(trigger.getName(), indices);
+    public UpdateSimulatorResult simulateValueChange(final String scope, final int... indices) {
+        return simulateTrigger(new Trigger.ValueTrigger(scope), indices);
     }
 
     @Override
@@ -148,19 +148,19 @@ public class DialogUpdateSimulator implements UpdateSimulator {
         final int... indices) {
         final var internalReferenceId = trigger.getAnnotation(InternalButtonReferenceId.class);
         if (internalReferenceId != null) {
-            return simulateTrigger(internalReferenceId.value(), indices);
+            return simulateTrigger(new Trigger.IdTrigger(internalReferenceId.value()), indices);
         }
-        return simulateTrigger(trigger.getName(), indices);
+        return simulateTrigger(new Trigger.IdTrigger(trigger.getName()), indices);
     }
 
     @Override
     public UpdateSimulatorResult simulateBeforeOpenDialog() {
-        return simulateTrigger("before-open-dialog");
+        return simulateTrigger(new Trigger.IdTrigger("before-open-dialog"));
     }
 
     @Override
     public UpdateSimulatorResult simulateAfterOpenDialog() {
-        return simulateTrigger("after-open-dialog");
+        return simulateTrigger(new Trigger.IdTrigger("after-open-dialog"));
     }
 
 }

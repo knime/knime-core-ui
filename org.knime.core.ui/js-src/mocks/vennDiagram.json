@@ -1,4 +1,5 @@
 {
+  "$schema": "mock.def.json",
   "result": {
     "name": "Checklist Dialog",
     "data": {

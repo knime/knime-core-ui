@@ -1,5 +1,5 @@
 import { inject, nextTick } from "vue";
-import { composePaths, toDataPath } from "@jsonforms/core";
+import { composePaths } from "@jsonforms/core";
 import { get } from "lodash-es";
 
 import {
@@ -9,12 +9,13 @@ import {
 } from "@knime/ui-extension-service";
 
 import type { Result } from "../../api/types/Result";
-import type {
-  IndexIdsValuePairs,
-  Pairs,
-  Update,
-  UpdateResult,
-  ValueReference,
+import {
+  type IndexIdsValuePairs,
+  type Pairs,
+  type Trigger,
+  type Update,
+  type UpdateResult,
+  isValueTrigger,
 } from "../../types/Update";
 
 import { type ArrayRecord, getIndex } from "./useArrayIds";
@@ -23,7 +24,7 @@ import type {
   IsActiveCallback,
   TriggerCallback,
 } from "./useTriggers";
-import { combineScopesWithIndices } from "./utils/dataPaths";
+import { combineScopeWithIndices } from "./utils/dataPaths";
 import { getDependencyValues } from "./utils/dependencyExtraction";
 import {
   isIndexIdsAndValuePairs,
@@ -39,7 +40,7 @@ const indicesAreDefined = (indices: (number | null)[]): indices is number[] =>
   !indices.includes(null);
 
 const getToBeAdjustedSegments = (
-  scopes: string[],
+  scope: string,
   /**
    * Indices starting from the root applied to all targets
    */
@@ -50,7 +51,7 @@ const getToBeAdjustedSegments = (
   values: [number[], unknown][],
   newSettings: DialogSettings,
 ) => {
-  const pathSegments = combineScopesWithIndices(scopes, indices ?? []);
+  const pathSegments = combineScopeWithIndices(scope, indices ?? []);
 
   type SettingsWithPath = {
     settings: object;
@@ -134,7 +135,7 @@ export default ({
     value: unknown,
   ) => void;
   registerWatcher: (params: {
-    dependencies: string[][];
+    dependencies: string[];
     transformSettings: TriggerCallback;
   }) => void;
   /**
@@ -156,7 +157,7 @@ export default ({
 
   const resolveUpdateResult =
     (
-      { scopes, values, id }: UpdateResult,
+      { scope, values, id }: UpdateResult,
       onValueUpdate: (path: string) => void,
       indexIds: string[],
     ) =>
@@ -166,13 +167,13 @@ export default ({
       if (!indicesAreDefined(indices)) {
         return;
       }
-      if (scopes) {
+      if (scope) {
         const indicesValuePairs = isIndexIdsAndValuePairs(values)
           ? toIndicesValuePairs(values, getIndex)
           : values;
         const { toBeAdjustedByLastPathSegment, lastPathSegment } =
           getToBeAdjustedSegments(
-            scopes,
+            scope,
             indices,
             indicesValuePairs.map(({ indices, value }) => [indices, value]),
             newSettings,
@@ -226,7 +227,7 @@ export default ({
     nextTick(() => updateData(updatedPaths));
   };
 
-  const setValueTrigger = (scope: string[], callback: TriggerCallback) => {
+  const setValueTrigger = (scope: string, callback: TriggerCallback) => {
     registerWatcher({
       dependencies: [scope],
       transformSettings: callback,
@@ -234,16 +235,16 @@ export default ({
   };
 
   const setTrigger = (
-    trigger: Update["trigger"],
+    trigger: Trigger,
     isActive: IsActiveCallback,
     triggerCallback: TriggerCallback,
+    triggerInitially?: boolean,
   ): null | ReturnType<TriggerCallback> => {
-    if (trigger.scopes) {
-      setValueTrigger(trigger.scopes, triggerCallback);
+    if (isValueTrigger(trigger)) {
+      setValueTrigger(trigger.scope, triggerCallback);
       return null;
     }
-
-    if (trigger.triggerInitially) {
+    if (triggerInitially) {
       return triggerCallback([]);
     }
     registerTrigger(trigger.id, isActive, triggerCallback);
@@ -251,32 +252,27 @@ export default ({
   };
 
   const extractCurrentDependencies = (
-    dependencies: ValueReference[],
+    dependencies: string[],
     newSettings: object,
     indices: number[],
   ) =>
     Object.fromEntries<Pairs>(
-      dependencies.map((dep) => [
-        dep.id,
-        getDependencyValues(
-          newSettings,
-          dep.scopes.map(toDataPath),
-          indices,
-          globalArrayIdsRecord,
-        ),
+      dependencies.map((scope) => [
+        scope,
+        getDependencyValues(newSettings, scope, indices, globalArrayIdsRecord),
       ]),
     );
 
   const callDataServiceUpdate2 = ({
-    triggerId,
+    trigger,
     currentDependencies,
   }: {
-    triggerId: string;
+    trigger: Trigger;
     currentDependencies: Record<string, Pairs>;
   }): Promise<Result<UpdateResult[]>> =>
     jsonDataService.data({
       method: "settings.update2",
-      options: [null, triggerId, currentDependencies],
+      options: [null, trigger, currentDependencies],
     });
 
   const sendAlerts = (messages: string[] | undefined) => {
@@ -302,7 +298,7 @@ export default ({
         indicesBeforeUpdate,
       );
       return callDataServiceUpdate2({
-        triggerId: trigger.id,
+        trigger,
         currentDependencies,
       });
     };
@@ -322,13 +318,13 @@ export default ({
   };
 
   const isUpdateAtIndicesNecessary = ({
-    scopes,
+    scope,
     currentIndices,
     indexIds,
     value,
     settings,
   }: {
-    scopes: string[];
+    scope: string;
     currentIndices: number[];
     indexIds: string[];
     value: unknown;
@@ -340,7 +336,7 @@ export default ({
     }
     const { toBeAdjustedByLastPathSegment, lastPathSegment } =
       getToBeAdjustedSegments(
-        scopes,
+        scope,
         currentIndices,
         [[indices, value]],
         settings,
@@ -361,7 +357,7 @@ export default ({
     settings: DialogSettings;
     indexIds: string[];
   }) =>
-    updateResult.reduce((acc: IndexedIsActive[], { id, scopes, values }) => {
+    updateResult.reduce((acc: IndexedIsActive[], { id, scope, values }) => {
       const currentIndices = resolveToIndices(indexIds);
       if (!indicesAreDefined(currentIndices)) {
         return acc;
@@ -371,10 +367,10 @@ export default ({
         if (id) {
           // for simplicity, if an ui state is provided, the update is seen as necessary
           existing.isActive = true;
-        } else if (scopes) {
+        } else if (scope) {
           if (
             isUpdateAtIndicesNecessary({
-              scopes,
+              scope,
               currentIndices,
               indexIds,
               value,
@@ -443,6 +439,7 @@ export default ({
         update.trigger,
         isActive,
         getTriggerCallback(update),
+        update.triggerInitially,
       );
       initialTransformation =
         inducedInitialTransformation ?? initialTransformation;

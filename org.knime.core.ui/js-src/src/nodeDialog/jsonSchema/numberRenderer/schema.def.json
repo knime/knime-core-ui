@@ -18,7 +18,7 @@
       "not": {
         "properties": {
           "minimum": {
-            "description": "Use the min validaiton in the uischema instead"
+            "description": "Use the min validation in the uischema instead"
           }
         },
         "required": ["minimum"]
@@ -28,7 +28,7 @@
       "not": {
         "properties": {
           "maximum": {
-            "description": "Use the max validaiton in the uischema instead"
+            "description": "Use the max validation in the uischema instead"
           }
         },
         "required": ["maximum"]

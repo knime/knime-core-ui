@@ -36,22 +36,26 @@ export default {
   computed: {
     dialogMocks() {
       // @ts-ignore
-      const mocks: Record<string, { result: object }> = import.meta.glob(
-        "@@/mocks/*.json",
-        { eager: true },
-      );
+      const mocks: Record<
+        string,
+        { $schema?: string; result: { name: string } }
+      > = import.meta.glob("@@/mocks/*.json", { eager: true });
+      delete mocks["/mocks/mock.def.json"];
+      Object.keys(mocks).forEach((key) => {
+        const schema = mocks[key].$schema;
+        if (!schema) {
+          console.error(
+            `Mock file ${key} does not have a $schema property. This is required for the dialog to work correctly.`,
+          );
+        }
+      });
+
       return Object.keys(mocks)
         .sort()
         .map((file) => {
           return {
             name: file.replace("/mocks/", ""),
-            config: {
-              ...mocks[file],
-              result: {
-                flowVariableSettings: {},
-                ...mocks[file].result,
-              } as any,
-            },
+            config: mocks[file],
           };
         });
     },

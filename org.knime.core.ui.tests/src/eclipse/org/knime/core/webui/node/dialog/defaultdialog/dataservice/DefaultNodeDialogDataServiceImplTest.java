@@ -175,13 +175,15 @@ class DefaultNodeDialogDataServiceImplTest {
             final String testDepenenciesFooValue = "custom value";
             final var testDependencyFoo = List.of(new IndexedValue<String>(List.of(), testDepenenciesFooValue));
             final var dataService = getDataService(UpdateSettings.class);
-            final var resultWrapper = dataService.update2("widgetId", MyValueRef.class.getName(),
-                Map.of(MyValueRef.class.getName(), testDependencyFoo));
+            final var valueRefScope = "#/properties/model/properties/dependency";
+            final var valueRefTrigger = new Trigger.ValueTrigger(valueRefScope);
+            final var resultWrapper =
+                dataService.update2("widgetId", valueRefTrigger, Map.of(valueRefScope, testDependencyFoo));
             final var result = (List<UpdateResult<String>>)(resultWrapper.result());
             assertThat(result).hasSize(1);
             assertThat(((TextNode)result.get(0).values().get(0).value()).textValue())
                 .isEqualTo(testDepenenciesFooValue);
-            assertThat(result.get(0).scopes()).isEqualTo(List.of("#/properties/model/properties/updatedWidget"));
+            assertThat(result.get(0).scope()).isEqualTo("#/properties/model/properties/updatedWidget");
         }
 
         @Test
@@ -219,12 +221,14 @@ class DefaultNodeDialogDataServiceImplTest {
             final var testDependency = List.of(new IndexedValue<String>(List.of(), testDepenencyValue));
 
             final var dataService = getDataService(UpdateSettings.class);
-            final var resultWrapper = dataService.update2("widgetId", MyValueRef.class.getName(),
-                Map.of(MyValueRef.class.getName(), testDependency));
+            final var valueRefScope = "#/properties/model/properties/dependency";
+            final var valueRefTrigger = new Trigger.ValueTrigger(valueRefScope);
+            final var resultWrapper =
+                dataService.update2("widgetId", valueRefTrigger, Map.of(valueRefScope, testDependency));
             final var result = (List<UpdateResult<String>>)(resultWrapper.result());
             assertThat(result).hasSize(1);
             assertThat(result.get(0).values().get(0).value()).isEqualTo(testDepenencyValue);
-            assertThat(result.get(0).scopes()).isNull();
+            assertThat(result.get(0).scope()).isNull();
             assertThat(result.get(0).id()).isEqualTo(UpdateSettings.MyFileExtensionProvider.class.getName());
         }
 
@@ -289,25 +293,28 @@ class DefaultNodeDialogDataServiceImplTest {
             final String testWorkingDependencyValue = "run";
             final var testWorkingDependency = List.of(new IndexedValue<String>(List.of(), testWorkingDependencyValue));
 
-            var resultWrapper = dataService.update2("widgetId", MyValueRef.class.getName(),
-                Map.of(MyValueRef.class.getName(), testWorkingDependency));
+            final var valueRefScope = "#/properties/model/properties/reference";
+            final var valueRefTrigger = new Trigger.ValueTrigger(valueRefScope);
+
+            var resultWrapper =
+                dataService.update2("widgetId", valueRefTrigger, Map.of(valueRefScope, testWorkingDependency));
             var result = (List<UpdateResult<String>>)(resultWrapper.result());
             assertThat(result).hasSize(2);
 
             assertThat(((TextNode)result.get(0).values().get(0).value()).textValue())
                 .isEqualTo(testWorkingDependencyValue);
-            assertThat(result.get(0).scopes().get(0)).isEqualTo("#/properties/model/properties/valueUpdateField");
+            assertThat(result.get(0).scope()).isEqualTo("#/properties/model/properties/valueUpdateField");
             assertThat(result.get(0).id()).isNull();
 
             assertThat(result.get(1).values().get(0).value()).isEqualTo(testWorkingDependencyValue);
-            assertThat(result.get(1).scopes()).isNull();
+            assertThat(result.get(1).scope()).isNull();
             assertThat(result.get(1).id()).isEqualTo(UpdateSettings.MyPlaceholderProvider.class.getName());
 
             final String testThrowingDependencyValue = "throw";
             final var testThrowingDependency =
                 List.of(new IndexedValue<String>(List.of(), testThrowingDependencyValue));
-            resultWrapper = dataService.update2("widgetId", MyValueRef.class.getName(),
-                Map.of(MyValueRef.class.getName(), testThrowingDependency));
+            resultWrapper =
+                dataService.update2("widgetId", valueRefTrigger, Map.of(valueRefScope, testThrowingDependency));
             result = (List<UpdateResult<String>>)(resultWrapper.result());
             assertThat(result).hasSize(0);
         }
@@ -406,19 +413,21 @@ class DefaultNodeDialogDataServiceImplTest {
             final var testDepenenciesBar = List.of(new IndexedValue<String>(List.of(), testDepenenciesBarValue));
 
             final var dataService = getDataService(UpdateSettings.class);
-            final var resultWrapper =
-                dataService.update2("widgetId", MyFirstValueRef.class.getName(), Map.of(MyFirstValueRef.class.getName(),
-                    testDependenciesFoo, MySecondValueRef.class.getName(), testDepenenciesBar));
+            final var myFirstValueRefScope = "#/properties/model/properties/foo";
+            final var mySecondValueRefScope = "#/properties/model/properties/bar";
+            final var myFirstValueRefTrigger = new Trigger.ValueTrigger(myFirstValueRefScope);
+            final var resultWrapper = dataService.update2("widgetId", myFirstValueRefTrigger,
+                Map.of(myFirstValueRefScope, testDependenciesFoo, mySecondValueRefScope, testDepenenciesBar));
             final var result = (List<UpdateResult<String>>)(resultWrapper.result());
             assertThat(result).hasSize(2);
             final var first = result.get(0);
             assertThat(((TextNode)first.values().get(0).value()).textValue())
                 .isEqualTo(testDependenciesFooValue + "_first");
-            assertThat(first.scopes()).isEqualTo(List.of("#/properties/model/properties/firstUpdatedWidget"));
+            assertThat(first.scope()).isEqualTo("#/properties/model/properties/firstUpdatedWidget");
             final var second = result.get(1);
             assertThat(((TextNode)second.values().get(0).value()).textValue())
                 .isEqualTo(testDepenenciesBarValue + "_second");
-            assertThat(second.scopes()).isEqualTo(List.of("#/properties/model/properties/secondUpdatedWidget"));
+            assertThat(second.scope()).isEqualTo("#/properties/model/properties/secondUpdatedWidget");
         }
     }
 

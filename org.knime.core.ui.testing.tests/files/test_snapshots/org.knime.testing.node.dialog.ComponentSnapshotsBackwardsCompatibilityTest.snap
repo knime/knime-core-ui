@@ -585,9 +585,9 @@
   },
   "globalUpdates" : [ {
     "trigger" : {
-      "id" : "after-open-dialog",
-      "triggerInitially" : true
+      "id" : "after-open-dialog"
     },
+    "triggerInitially" : true,
     "dependencies" : [ ]
   }, {
     "trigger" : {

@@ -48,11 +48,12 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil.getScopeFromLocation;
+
 import java.util.List;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
@@ -75,18 +76,18 @@ public final class UpdateResultsUtil {
      *
      * @param <I> the type of the keys of the resulting values in case of nested scopes (either by index or by indexId)
      *
-     * @param scopes to the field in case of a value update
+     * @param scope to the field in case of a value update
      * @param id of the state provider in other cases
      * @param values the list of to be updated values. Usually this is a one-element list with an element with empty
      *            indices. Other cases only occur when this update yields different results in each element of an array
      *            widget.
      */
-    public record UpdateResult<I>(List<String> scopes, String id, List<IndexedValue<I>> values)
+    public record UpdateResult<I>(String scope, String id, List<IndexedValue<I>> values)
         implements Comparable<UpdateResult<I>> {
 
-        private static <I> UpdateResult<I> forScopes(final List<String> path, final List<IndexedValue<I>> values) {
+        private static <I> UpdateResult<I> forScope(final String scope, final List<IndexedValue<I>> values) {
             UnaryOperator<Object> serialize = v -> JsonFormsDataUtil.getMapper().valueToTree(v);
-            return new UpdateResult<>(path, null, sortByIndices(serializeValues(values, serialize)));
+            return new UpdateResult<>(scope, null, sortByIndices(serializeValues(values, serialize)));
         }
 
         private static <I> UpdateResult<I> forId(final String id, final List<IndexedValue<I>> values) {
@@ -114,12 +115,12 @@ public final class UpdateResultsUtil {
 
         @Override
         public int compareTo(final UpdateResult<I> other) {
-            return internalId().compareTo(other.internalId());
+            return idForComparison().compareTo(other.idForComparison());
         }
 
-        private String internalId() {
-            if (scopes != null) {
-                return "0" + StringUtils.join(scopes);
+        private String idForComparison() {
+            if (scope != null) {
+                return "0" + scope;
             }
             return "1" + id;
         }
@@ -131,11 +132,9 @@ public final class UpdateResultsUtil {
      * @return the list of resulting instructions
      */
     public static <I> List<UpdateResult<I>> toUpdateResults(final TriggerResult<I> triggerResult) {
-        final var valueUpdates =
-            triggerResult
-                .valueUpdates().entrySet().stream().map(entry -> UpdateResult
-                    .forScopes(JsonFormsScopeUtil.resolveFieldLocationToScope(entry.getKey()), entry.getValue()))
-                .sorted();
+        final var valueUpdates = triggerResult.valueUpdates().entrySet().stream().map(
+            entry -> UpdateResult.forScope(getScopeFromLocation(entry.getKey()), entry.getValue()))
+            .sorted();
         final var otherUpdates = triggerResult.otherUpdates().entrySet().stream()
             .map(entry -> UpdateResult.forId(entry.getKey(), entry.getValue())).sorted();
         return Stream.concat(valueUpdates, otherUpdates).toList();

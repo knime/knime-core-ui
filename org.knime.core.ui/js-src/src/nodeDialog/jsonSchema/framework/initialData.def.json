@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json.schemastore.org/schema-draft-v4.json",
+  "title": "InitialData",
+  "type": "object",
+  "required": ["data", "schema", "ui_schema", "flowVariableSettings"],
+  "properties": {
+    "data": {
+      "type": "object"
+    },
+    "schema": {
+      "type": "object"
+    },
+    "ui_schema": {
+      "type": "object"
+    },
+    "flowVariableSettings": {
+      "type": "object"
+    },
+    "initialUpdates": {
+      "type": "array",
+      "items": {
+        "$ref": "./updateResult.def.json"
+      }
+    },
+    "globalUpdates": {
+      "type": "array",
+      "items": {
+        "$ref": "./update.def.json"
+      }
+    },
+    "persist": {
+      "type": "object"
+    }
+  }
+}

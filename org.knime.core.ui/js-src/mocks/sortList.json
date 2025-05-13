@@ -1,4 +1,5 @@
 {
+  "$schema": "mock.def.json",
   "result": {
     "name": "Twinlists",
     "data": {
@@ -51,6 +52,7 @@
           }
         }
       ]
-    }
+    },
+    "flowVariableSettings": {}
   }
 }

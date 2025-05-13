@@ -48,6 +48,9 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil.getScopeFromLocation;
+
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -58,8 +61,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.ConvertValueUtil
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.LocationAndType;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.ValueAndTypeReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 
 /**
@@ -82,20 +85,21 @@ final class DataServiceTriggerInvocationHandler {
         m_triggerInvocationHandler = TriggerInvocationHandler.fromWidgetTrees(widgetTrees, m_context);
     }
 
-    List<UpdateResultsUtil.UpdateResult<String>> trigger(final String triggerId,
+    List<UpdateResultsUtil.UpdateResult<String>> trigger(final Trigger trigger,
         final Map<String, List<IndexedValue<String>>> rawDependencies) {
-        final Function<ValueAndTypeReference, List<IndexedValue<String>>> dependencyProvider =
-            valueAndTypeRef -> rawDependencies.get(valueAndTypeRef.getValueRef().getName()).stream()
-                .map(raw -> new IndexedValue<>(raw.indices(), parseValue(raw.value(), valueAndTypeRef, m_context)))
+        final Function<LocationAndType, List<IndexedValue<String>>> dependencyProvider =
+            locationAndType -> rawDependencies.get(getScopeFromLocation(locationAndType.location())).stream()
+                .map(raw -> new IndexedValue<>(raw.indices(),
+                    parseValue(raw.value(), locationAndType.type().get(), m_context)))
                 .toList();
 
-        final var triggerResult = m_triggerInvocationHandler.invokeTrigger(triggerId, dependencyProvider, m_context);
+        final var triggerResult = m_triggerInvocationHandler.invokeTrigger(trigger, dependencyProvider, m_context);
         return UpdateResultsUtil.toUpdateResults(triggerResult);
     }
 
-    private static Object parseValue(final Object rawDependencyObject, final ValueAndTypeReference valueAndTypeRef,
+    private static Object parseValue(final Object rawDependencyObject, final Type type,
         final DefaultNodeSettingsContext context) {
-        return ConvertValueUtil.convertValueRef(rawDependencyObject, valueAndTypeRef, context);
+        return ConvertValueUtil.convertValue(rawDependencyObject, type, context);
     }
 
 }

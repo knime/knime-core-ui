@@ -92,7 +92,7 @@ const registerWatcher = async ({
         return newSettings;
       };
     },
-    dependencies: dependencies.map((dep) => [dep]),
+    dependencies,
   });
   if (typeof init === "function") {
     await init(getCurrentData());
@@ -333,6 +333,17 @@ defineExpose({
   // other test methods:
   setCurrentData,
   getCurrentData,
+  jsonDataService,
+  callDataService,
+  sendAlert,
+  schema,
+  getAvailableFlowVariables,
+  flowVariablesMap,
+  getFlowVariableOverrideValue,
+  trigger,
+  addStateProviderListener,
+  flawedControllingVariablePaths,
+  possiblyFlawedControllingVariablePaths,
 });
 </script>
 

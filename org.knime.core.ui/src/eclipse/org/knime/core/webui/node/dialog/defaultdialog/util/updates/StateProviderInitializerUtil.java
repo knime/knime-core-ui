@@ -44,56 +44,31 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Feb 7, 2024 (Paul Bärnreuther): created
+ *   May 14, 2025 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Stream;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative.WithImperativeInitializer;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative.WithImperativeInitializer.ImperativeStateProviderInitializer;
 
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+final class StateProviderInitializerUtil {
 
-/**
- *
- * @author Paul Bärnreuther
- * @param paths the path to the field in a {@link DefaultNodeSettings} class. It contains mulitple paths whenever the
- *            field is nested inside an array layout
- * @param settingsType of the {@link DefaultNodeSettings} class
- */
-public record PathsWithSettingsType(List<List<String>> paths, SettingsType settingsType) {
+    private StateProviderInitializerUtil() {
+        // utility class
+    }
 
     /**
-     * @param node
-     * @return the paths leading to that node in its tree together with the settingsKey of the root
+     * State providers should never be initialized directly since they might implement
+     * {@link WithImperativeInitializer}.
      */
-    static <S> PathsWithSettingsType fromTreeNode(final TreeNode<S> node) {
-        final var listOfFields = Stream.concat(node.getContainingArrayWidgetNodes().stream(), Stream.of(node)).toList();
-        final var settingsKey = listOfFields.get(0).getSettingsType();
-        final var listOfPaths = listOfFields.stream().map(TreeNode<S>::getPath).toList();
-        return new PathsWithSettingsType(listOfPaths, settingsKey);
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
+    static void initializeStateProvider(final StateProvider<?> stateProvider,
+        final ImperativeStateProviderInitializer initializer) {
+        if (stateProvider instanceof WithImperativeInitializer imperativeInitialized) {
+            imperativeInitialized.init(initializer);
+        } else {
+            stateProvider.init(initializer);
         }
-        if (obj == null) {
-            return false;
-        }
-        if (obj instanceof PathsWithSettingsType other) {
-            return other.paths.equals(paths) && other.settingsType == settingsType;
-        }
-        return false;
-
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(paths, settingsType);
     }
 
 }

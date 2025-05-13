@@ -48,6 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil.getLocationFromScope;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -56,6 +58,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 
@@ -95,26 +98,47 @@ public class TriggerInvocationHandler<I> {
      * @param <I> the type of the keys of the resulting values in case of nested scopes (either by index or by indexId)
      *
      */
-    public record TriggerResult<I>(Map<PathsWithSettingsType, List<IndexedValue<I>>> valueUpdates,
+    public record TriggerResult<I>(Map<Location, List<IndexedValue<I>>> valueUpdates,
         Map<String, List<IndexedValue<I>>> otherUpdates) {
+
     }
 
     /**
      *
-     * @param triggerId matching an id of the triggers in the provided settingsClasses
+     * @param trigger the to be invoked trigger
      * @param dependencyProvider providing values for dependencies of this trigger (see {@link TriggerAndDependencies})
      * @param context provided to the triggered state providers
      * @return a mapping from identifiers of fields to their updated value
      */
-    public TriggerResult<I> invokeTrigger(final String triggerId,
-        final Function<ValueAndTypeReference, List<IndexedValue<I>>> dependencyProvider,
+    public TriggerResult<I> invokeTrigger(final Trigger trigger,
+        final Function<LocationAndType, List<IndexedValue<I>>> dependencyProvider,
         final DefaultNodeSettingsContext context) {
-        final var trigger = m_triggers.stream().filter(t -> t.getId().equals(triggerId)).findAny().orElseThrow();
-        final var resultPerUpdateHandler = new InvokeTrigger<>(dependencyProvider, context).invokeTrigger(trigger);
+        final var constructedTriggerVertex = toTriggerVertex(trigger);
+        final var triggerVertex = m_triggers.stream().filter(constructedTriggerVertex::equals).findFirst()
+            .orElseThrow(() -> new IllegalArgumentException(String
+                .format("Trigger %s not found in the list of triggers: %s", constructedTriggerVertex, m_triggers)));
+        return invokeTrigger(triggerVertex, dependencyProvider, context);
+    }
+
+    private static TriggerVertex toTriggerVertex(final Trigger trigger) {
+        if (trigger instanceof Trigger.ValueTrigger valueTrigger) {
+            return new ValueTriggerVertex(getLocationFromScope(valueTrigger.scope()));
+        } else if (trigger instanceof Trigger.IdTrigger idTrigger) {
+            return new IdTriggerVertex(idTrigger.id());
+        } else {
+            throw new IllegalArgumentException("Unknown trigger type: " + trigger);
+        }
+    }
+
+    private TriggerResult<I> invokeTrigger(final TriggerVertex triggerVertex,
+        final Function<LocationAndType, List<IndexedValue<I>>> dependencyProvider,
+        final DefaultNodeSettingsContext context) {
+        final var resultPerUpdateHandler =
+            new InvokeTrigger<>(dependencyProvider, context).invokeTrigger(triggerVertex);
         final var partitionedResult = resultPerUpdateHandler.entrySet().stream()
             .collect(Collectors.partitioningBy(e -> e.getKey().getFieldLocation().isPresent()));
 
-        final Map<PathsWithSettingsType, List<IndexedValue<I>>> valueUpdates = new HashMap<>();
+        final Map<Location, List<IndexedValue<I>>> valueUpdates = new HashMap<>();
         for (var entry : partitionedResult.get(true)) {
             if (!entry.getValue().isEmpty()) {
                 valueUpdates.put(//

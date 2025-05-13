@@ -1,4 +1,5 @@
 {
+  "$schema": "mock.def.json",
   "result": {
     "name": "Compact Array Layout",
     "data": {
@@ -79,6 +80,7 @@
           ]
         }
       ]
-    }
+    },
+    "flowVariableSettings": {}
   }
 }

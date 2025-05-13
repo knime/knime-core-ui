@@ -1,4 +1,5 @@
 {
+  "$schema": "mock.def.json",
   "result": {
     "name": "Dialog with Value Updates",
     "data": {
@@ -156,105 +157,42 @@
         }
       ]
     },
+    "flowVariableSettings": {},
     "globalUpdates": [
       {
         "trigger": {
-          "scopes": ["#/properties/view/properties/myArray", "#/properties/a"],
-          "id": "Trigger_A"
+          "scope": "#/properties/view/properties/myArray/items/properties/a"
         },
         "dependencies": [
-          {
-            "scopes": [
-              "#/properties/view/properties/myArray",
-              "#/properties/a"
-            ],
-            "id": "A_nested"
-          },
-          {
-            "scopes": [
-              "#/properties/view/properties/myArray",
-              "#/properties/b"
-            ],
-            "id": "B_nested"
-          }
+          "#/properties/view/properties/myArray/items/properties/a",
+          "#/properties/view/properties/myArray/items/properties/b"
         ]
       },
       {
         "trigger": {
-          "scopes": ["#/properties/view/properties/myArray", "#/properties/b"],
-          "id": "Trigger_B"
+          "scope": "#/properties/view/properties/myArray/items/properties/b"
         },
         "dependencies": [
-          {
-            "scopes": [
-              "#/properties/view/properties/myArray",
-              "#/properties/a"
-            ],
-            "id": "A_nested"
-          },
-          {
-            "scopes": [
-              "#/properties/view/properties/myArray",
-              "#/properties/b"
-            ],
-            "id": "B_nested"
-          }
+          "#/properties/view/properties/myArray/items/properties/a",
+          "#/properties/view/properties/myArray/items/properties/b"
         ]
       },
       {
         "trigger": {
-          "scopes": [
-            "#/properties/view/properties/myArray",
-            "#/properties/nestedArray",
-            "#/properties/a"
-          ],
-          "id": "Trigger_A_nested"
+          "scope": "#/properties/view/properties/myArray/items/properties/nestedArray/items/properties/a"
         },
         "dependencies": [
-          {
-            "scopes": [
-              "#/properties/view/properties/myArray",
-              "#/properties/nestedArray",
-              "#/properties/a"
-            ],
-            "id": "A_nested_nested"
-          },
-          {
-            "scopes": [
-              "#/properties/view/properties/myArray",
-              "#/properties/nestedArray",
-              "#/properties/b"
-            ],
-            "id": "B_nested_nested"
-          }
+          "#/properties/view/properties/myArray/items/properties/nestedArray/items/properties/a",
+          "#/properties/view/properties/myArray/items/properties/nestedArray/items/properties/b"
         ]
       },
       {
         "trigger": {
-          "scopes": [
-            "#/properties/view/properties/myArray",
-            "#/properties/nestedArray",
-            "#/properties/b"
-          ],
-          "id": "Trigger_B_nested"
+          "scope": "#/properties/view/properties/myArray/items/properties/nestedArray/items/properties/b"
         },
         "dependencies": [
-          {
-            "scopes": [
-              "#/properties/view/properties/myArray",
-              "#/properties/nestedArray",
-              "#/properties/a"
-            ],
-            "id": "A_nested_nested"
-          },
-          {
-            "scopes": [
-              "#/properties/view/properties/myArray",
-              "#/properties/nestedArray",
-              "#/properties/b"
-            ],
-            "id": "B_nested_nested"
-          }
+          "#/properties/view/properties/myArray/items/properties/nestedArray/items/properties/a",
+          "#/properties/view/properties/myArray/items/properties/nestedArray/items/properties/b"
         ]
       }
     ]

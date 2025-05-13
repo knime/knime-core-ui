@@ -1,4 +1,5 @@
 {
+  "$schema": "mock.def.json",
   "result": {
     "name": "Horizontal Layout",
     "data": {
@@ -285,6 +286,7 @@
           ]
         }
       ]
-    }
+    },
+    "flowVariableSettings": {}
   }
 }

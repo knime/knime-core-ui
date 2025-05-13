@@ -57,7 +57,6 @@ import org.junit.jupiter.api.Test;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.testing.node.dialog.updates.TestSettings.ElementSettings;
 import org.knime.testing.node.dialog.updates.TestSettings.MyTextProvider.MyButtonRef;
-import org.knime.testing.node.dialog.updates.TestSettings.MyTextProvider.MyValueRef;
 import org.knime.testing.node.dialog.updates.UpdateSimulator.UpdateSimulatorResult;
 
 @SuppressWarnings("restriction")
@@ -118,13 +117,13 @@ class DialogUpdateSimulatorTest {
 
     @Test
     void testSimulateValueChange() {
-        assertResults(m_simulator.simulateValueChange(MyValueRef.class));
+        assertResults(m_simulator.simulateValueChange("#/properties/model/properties/dependency"));
     }
 
     @Test
     void testTriggerFromWithinAnArray() {
         final var result = m_simulator
-            .simulateValueChange(TestSettings.ElementSettings.ElementTextProvider.ElementValueReference.class, 1);
+            .simulateValueChange("#/properties/model/properties/array/items/properties/elementDependency", 1);
         assertThat(result.getValueUpdatesInArrayAt(PATH_TO_ELEMENT_FIELD)).isEqualTo(DEPENDENCY + ", " + SECOND);
     }
 

@@ -36,6 +36,9 @@ describe("edit/reset button in array layouts", () => {
 
   const defaultTextValue = "theDefault";
 
+  const dependencyScope =
+    "#/properties/model/properties/values/items/properties/value";
+
   const uiSchemaKey = "ui_schema";
   const baseInitialDataJson = {
     data: {
@@ -87,17 +90,8 @@ describe("edit/reset button in array layouts", () => {
       {
         trigger: {
           id: "ElementResetButton",
-          scopes: undefined,
         },
-        dependencies: [
-          {
-            scopes: [
-              "#/properties/model/properties/values",
-              "#/properties/value",
-            ],
-            id: "dependencyId",
-          },
-        ],
+        dependencies: [dependencyScope],
       },
     ] as Update[],
     initialUpdates: [] as UpdateResult[],
@@ -142,11 +136,11 @@ describe("edit/reset button in array layouts", () => {
     mockRPCResult((dependencies) => [
       {
         id: null,
-        values: dependencies.dependencyId.map(({ indices }) => ({
+        values: dependencies[dependencyScope].map(({ indices }) => ({
           indices,
           value: defaultTextValue,
         })),
-        scopes: ["#/properties/model/properties/values", "#/properties/value"],
+        scope: "#/properties/model/properties/values/items/properties/value",
       },
     ]);
   };

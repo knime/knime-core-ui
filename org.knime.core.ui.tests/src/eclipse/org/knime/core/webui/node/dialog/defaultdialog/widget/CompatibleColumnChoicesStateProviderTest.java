@@ -130,7 +130,7 @@ class CompatibleColumnChoicesStateProviderTest {
         assertColumnChoices(beforeOpenDialogResults, stringColumn, intColumn, boolColumn);
 
         settings.m_behaviourType = SettingsEnumThatDeterminesCompatibleColumnDataValues.ONLY_INT_COLUMNS;
-        var nextUpdateResult = simulator.simulateValueChange(ReferenceForSetting.class);
+        var nextUpdateResult = simulator.simulateValueChange("#/properties/model/properties/behaviourType");
 
         assertColumnChoices(nextUpdateResult, intColumn, boolColumn);
     }
