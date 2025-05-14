@@ -234,9 +234,9 @@ public final class DataServiceManager<N extends NodeWrapper> {
 
     private Stream<DataService> dataServices(final N nodeWrapper) {
         return Stream.<DataService> of( //
-            m_initialDataServices.get(nodeWrapper), //
-            m_dataServices.get(nodeWrapper), //
-            m_applyDataServices.get(nodeWrapper) //
+            getInitialDataService(nodeWrapper).orElse(null), //
+            getRpcDataService(nodeWrapper).orElse(null), //
+            getApplyDataService(nodeWrapper).orElse(null) //
         ).filter(Objects::nonNull);
     }
 
