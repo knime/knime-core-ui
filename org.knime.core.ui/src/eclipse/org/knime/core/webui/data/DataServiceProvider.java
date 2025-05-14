@@ -62,6 +62,8 @@ public interface DataServiceProvider {
     /**
      * Creates the initial data service instance. A {@link NodeContext} is available when this method is called.
      *
+     * Important note: Creating the {@link InitialDataService}-instance is expected to be a lightweight operation.
+     *
      * @return optional service that provides data for initialization of the node view, port view or node dialog.
      */
     <D> Optional<InitialDataService<D>> createInitialDataService();
@@ -69,12 +71,16 @@ public interface DataServiceProvider {
     /**
      * Creates the rpc data service instance. A {@link NodeContext} is available when this method is called.
      *
+     * Important note: Creating the {@link RpcDataService}-instance is expected to be a lightweight operation.
+     *
      * @return optional service generally providing data to the node view, port view or node dialog;
      */
     Optional<RpcDataService> createRpcDataService();
 
     /**
      * Creates the apply data service instance. A {@link NodeContext} is available when this method is called.
+     *
+     * Important note: Creating the {@link ApplyDataService}-instance is expected to be a lightweight operation.
      *
      * @return optional service to apply new data
      */

@@ -64,7 +64,7 @@ public interface PortView extends UIExtension, DataServiceProvider {
     @Override
     default Optional<ApplyDataService<?>> createApplyDataService() {
         // not available to port views
-        throw new UnsupportedOperationException();
+        return Optional.empty();
     }
 
 }
