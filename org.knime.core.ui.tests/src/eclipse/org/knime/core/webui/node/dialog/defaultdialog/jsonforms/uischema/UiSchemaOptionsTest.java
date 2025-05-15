@@ -80,6 +80,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection.DBTableSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.MultiFileSelection;
@@ -217,6 +218,9 @@ class UiSchemaOptionsTest {
             @Widget(title = "", description = "")
             MultiFileSelection<MyVerySpecialTestFilterSettings> m_multiFileSelection =
                 new MultiFileSelection<>(new MyVerySpecialTestFilterSettings());
+
+            @Widget(title = "", description = "")
+            DBTableSelection m_dbTableSelection;
         }
 
         var response = buildTestUiSchema(DefaultStylesSettings.class);
@@ -277,6 +281,9 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[16].options.filterSubUiSchema.elements[0].scope") //
             .isString() //
             .contains("someVeryImportantField"); // name of the field inside the filter class we're using for this test
+
+        assertThatJson(response).inPath("$.elements[17].scope").isString().contains("dbTableSelection");
+        assertThatJson(response).inPath("$.elements[17].options.format").isString().isEqualTo("dbTableChooser");
     }
 
     /**
@@ -297,8 +304,6 @@ class UiSchemaOptionsTest {
             return false;
         }
     }
-
-
 
     @Test
     void testComboBoxFormat() {
@@ -954,7 +959,6 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].options.possibleValues").isArray()
             .contains(elementForUtcTimeZone);
     }
-
 
     static final class TimeZoneIdProvider implements StringChoicesProvider {
         @Override

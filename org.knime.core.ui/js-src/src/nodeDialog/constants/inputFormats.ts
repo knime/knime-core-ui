@@ -3,6 +3,7 @@ import type { Tester } from "@jsonforms/core";
 export const inputFormats = {
   button: "button",
   credentials: "credentials",
+  dbTableChooser: "dbTableChooser",
   legacyCredentials: "legacyCredentials",
   localFileChooser: "localFileChooser",
   fileChooser: "fileChooser",

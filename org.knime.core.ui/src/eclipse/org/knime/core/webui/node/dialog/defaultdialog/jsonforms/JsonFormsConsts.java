@@ -287,6 +287,8 @@ public final class JsonFormsConsts {
 
             public static final String MULTI_FILE_CHOOSER = "multiFileChooser";
 
+            public static final String DB_TABLE_CHOOSER = "dbTableChooser";
+
             public static final String CREDENTIALS = "credentials";
 
             public static final String LEGACY_CREDENTIALS = "legacyCredentials";

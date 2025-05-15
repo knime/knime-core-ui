@@ -61,6 +61,7 @@ import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection.DBTableSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
@@ -137,6 +138,7 @@ public final class WidgetImplementationUtil {
             COLUMN_SELECTION, //
             DATA_TYPE, //
             DATE_INTERVAL, //
+            DB_TABLE_CHOOSER, //
             DYNAMIC_VALUE, //
             FILE_CHOOSER, //
             FLOW_VARIABLE_FILTER, //
@@ -202,6 +204,7 @@ public final class WidgetImplementationUtil {
         new DefaultWidget(List.of(ZoneId.class), DefaultWidgetType.ZONE_ID), //
         new DefaultWidget(List.of(FileSelection.class), DefaultWidgetType.FILE_CHOOSER), //
         new DefaultWidget(List.of(MultiFileSelection.class), DefaultWidgetType.MULTI_FILE_CHOOSER), //
+        new DefaultWidget(List.of(DBTableSelection.class), DefaultWidgetType.DB_TABLE_CHOOSER), //
         new DefaultWidget(List.of(Interval.class), DefaultWidgetType.INTERVAL), //
         new DefaultWidget(List.of(DateInterval.class), DefaultWidgetType.DATE_INTERVAL), //
         new DefaultWidget(List.of(TimeInterval.class), DefaultWidgetType.TIME_INTERVAL), //

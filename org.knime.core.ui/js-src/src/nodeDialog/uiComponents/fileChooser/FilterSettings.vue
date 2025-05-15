@@ -4,9 +4,9 @@ import { computed } from "vue";
 import { type VueControlProps } from "@knime/jsonforms";
 
 import { composePaths } from "@/nodeDialog/utils/paths";
+import FieldRenderer from "../FieldRenderer.vue";
 
 import type { FilterOptions } from "./composables/useFileFilterPreviewBackend";
-import FieldRenderer from "./withTabs/FieldRenderer.vue";
 
 const props = defineProps<{
   control: VueControlProps<FilterOptions>["control"];

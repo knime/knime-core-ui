@@ -44,62 +44,54 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2025 (Paul Bärnreuther): created
+ *   May 15, 2025 (david): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
+package org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection.DBTableSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.MultiFileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
-class HiddenFeaturesNodeSettings implements DefaultNodeSettings {
+/**
+ * A setting that represents a particular table from a database chosen by the user.
+ *
+ * Note that although this class implements {@link WidgetGroup}, it has its own renderer in the frontend which also
+ * includes a browser to select a table and schema.
+ *
+ * @author David Hickey, TNG Technology Consulting GmbH
+ */
+public final class DBTableSelection implements PersistableSettings, WidgetGroup {
 
-    static final class TestFileChooserFilters implements FileChooserFilters {
+    /**
+     * The (optional) name of the schema to use. If blank, the default schema is used.
+     */
+    @Widget(title = "Schema name", description = """
+            The name of the schema to use. If blank, the default schema is \
+            used.
+            """)
+    public String m_schemaName;
 
-        @Override
-        public boolean passesFilter(final Path root, final Path path) {
-            if (Files.isDirectory(path)) {
-                return true;
-            }
-            return path.getFileName().toString().endsWith(m_filePathEnding);
-        }
+    /**
+     * The name of the table to use.
+     */
+    @Widget(title = "Table name", description = "The name of the table to use.")
+    public String m_tableName;
 
-        @Override
-        public boolean followSymlinks() {
-            return m_followSymlinks;
-        }
-
-        @Section(title = "Some custom section")
-        interface SomeSection {
-        }
-
-        @Section(title = "Some other custom section")
-        @After(SomeSection.class)
-        interface SomeOtherSection {
-        }
-
-        @Widget(title = "File ends with", description = """
-                E.g. enter '.txt' to only show text files
-                or enter 'myData.csv' to list e.g. 'abcmyData.csv'.
-                        """)
-        @Layout(SomeSection.class)
-        String m_filePathEnding = "txt";
-
-        @Widget(title = "Follow Symlinks", description = "Follow symbolic links to directories.")
-        @Layout(SomeOtherSection.class)
-        boolean m_followSymlinks;
-
+    /**
+     * Only for deserialization.
+     */
+    DBTableSelection() {
+        this("", "");
     }
 
-    MultiFileSelection<TestFileChooserFilters> m_fileSelection = new MultiFileSelection<>(new TestFileChooserFilters());
-
-    DBTableSelection m_dbTableSelection = new DBTableSelection("test_schema", "test_table");
+    /**
+     * Constructor.
+     *
+     * @param schemaName the name of the schema to use, not null.
+     * @param tableName the name of the table to use, not null.
+     */
+    public DBTableSelection(final String schemaName, final String tableName) {
+        m_schemaName = schemaName;
+        m_tableName = tableName;
+    }
 }

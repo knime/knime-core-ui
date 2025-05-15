@@ -5,9 +5,9 @@ import { type VueControlProps } from "@knime/jsonforms";
 
 import { fileChooserForMultiFileFormat } from "@/nodeDialog/renderers/fileChooserRenderer";
 import type { FileChooserOptions } from "@/nodeDialog/types/FileChooserUiSchema";
+import FieldControl from "../../FieldControl.vue";
 import type { MultiFileSelection } from "../types";
 
-import FieldControl from "./FieldControl.vue";
 import FilterPreview from "./FilterPreview.vue";
 
 const props = defineProps<VueControlProps<MultiFileSelection>>();

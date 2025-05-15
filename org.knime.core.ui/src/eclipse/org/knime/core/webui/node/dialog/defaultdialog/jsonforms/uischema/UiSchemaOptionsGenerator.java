@@ -280,6 +280,9 @@ final class UiSchemaOptionsGenerator {
                     setFilterSchemaForMultiFileWidgetChooser(options, filtersClass);
                     options.put(TAG_FILE_FILTER_CLASS, filtersClass.getName());
                     break;
+                case DB_TABLE_CHOOSER:
+                    options.put(TAG_FORMAT, Format.DB_TABLE_CHOOSER);
+                    break;
                 case DYNAMIC_VALUE:
                     options.put(TAG_FORMAT, Format.DYNAMIC_VALUE);
                     break;
