@@ -33,4 +33,9 @@ export interface InitialData {
    * @return the initial settings
    */
   settings: TableViewViewSettings;
+
+  /**
+   * @return whether to enable the css property will-change on the container of the table
+   */
+  enableWillChangeOnContainer: boolean;
 }

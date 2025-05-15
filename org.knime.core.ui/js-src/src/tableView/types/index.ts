@@ -78,4 +78,5 @@ export interface TableViewDisplayProps {
   firstRowImageDimensions: Record<string, ImageDimension>;
   settingsItems?: MenuItem[];
   enableDynamicRowHeight?: boolean;
+  enableWillChangeScrollPosition?: boolean;
 }

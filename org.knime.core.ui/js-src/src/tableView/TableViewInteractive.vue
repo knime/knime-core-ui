@@ -132,6 +132,7 @@ export default {
       showOnlySelectedRows: false,
       showColumnCount: true,
       rowLabel: "",
+      enableWillChangeScrollPosition: false,
     };
   },
   computed: {
@@ -261,7 +262,14 @@ export default {
     // @ts-expect-error
     this.baseUrl = this.knimeService?.extensionConfig?.resourceInfo?.baseUrl;
     if (initialData) {
-      const { table, dataTypes, columnDomainValues, settings } = initialData;
+      const {
+        table,
+        dataTypes,
+        columnDomainValues,
+        settings,
+        enableWillChangeOnContainer,
+      } = initialData;
+      this.enableWillChangeScrollPosition = enableWillChangeOnContainer;
       this.displayedColumns = table.displayedColumns;
       this.columnCount = table.columnCount;
       this.columnDataTypeIds = table.columnDataTypeIds;
@@ -1342,6 +1350,7 @@ export default {
     :force-hide-table-sizes="forceHideTableSizes"
     :first-row-image-dimensions="table.firstRowImageDimensions || {}"
     :settings-items="settingsItems"
+    :enable-will-change-scroll-position="enableWillChangeScrollPosition"
     @page-change="onPageChange"
     @data-value-view="onDataValueView"
     @close-data-value-view="onCloseDataValueView"

@@ -80,4 +80,13 @@ public interface TableViewInitialData {
      */
     TableViewViewSettings getSettings();
 
+    /**
+     *
+     * @return whether to enable the css property will-change: scroll-position on the table to possibly improve
+     *         perceived performance of the table
+     */
+    default boolean isEnableWillChangeOnContainer() {
+        return Boolean.getBoolean("knime.tableview.enableRenderingHint");
+    }
+
 }

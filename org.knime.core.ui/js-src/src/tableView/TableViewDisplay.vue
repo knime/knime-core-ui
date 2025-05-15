@@ -282,6 +282,7 @@ const useCodeRenderer = (index: number) =>
     <TableUIWithAutoSizeCalculation
       v-if="rows.loaded && numberOfDisplayedColumns > 0"
       ref="table"
+      :class="{ 'will-change-scroll-position': enableWillChangeScrollPosition }"
       :data="[rowData]"
       :bottom-data="bottomRowData"
       :current-selection="selection ? [selection.top] : undefined"
@@ -434,6 +435,10 @@ const useCodeRenderer = (index: number) =>
     border-bottom: v-bind(BORDER_BOTTOM_WIDTH + "px") solid
       var(--knime-porcelain);
     align-content: center;
+  }
+
+  & :deep(.will-change-scroll-position > table > .container) {
+    will-change: scroll-position;
   }
 }
 </style>
