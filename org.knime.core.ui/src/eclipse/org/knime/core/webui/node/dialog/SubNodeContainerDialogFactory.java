@@ -64,6 +64,8 @@ import org.knime.core.node.workflow.WorkflowManager.NodeModelFilter;
 import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.dialog.SubNodeContainerSettingsService.DialogSubNode;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogUIExtension;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
 
 /**
  * The SubNodeContainerDialogFactory creates a {@link NodeDialog} for all the configuration nodes inside a
@@ -195,7 +197,13 @@ public final class SubNodeContainerDialogFactory {
 
         @Override
         public Optional<RpcDataService> createRpcDataService() {
-            return Optional.empty();
+            var fsConnector = new FileSystemConnector();
+            final var fileChooserService = new FileChooserDataService(fsConnector);
+            return Optional.of(RpcDataService.builder() //
+                .addService("fileChooser", fileChooserService) //
+                .onDeactivate(fsConnector::clear) //
+                .build() //
+            );
         }
 
     }
