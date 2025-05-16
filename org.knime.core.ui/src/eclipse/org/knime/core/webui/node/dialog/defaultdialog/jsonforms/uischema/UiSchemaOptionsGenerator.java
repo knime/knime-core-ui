@@ -127,7 +127,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
@@ -342,16 +341,6 @@ final class UiSchemaOptionsGenerator {
             options.put(TAG_IS_WRITER, true);
             final var fileWriterWidget = m_node.getAnnotation(FileWriterWidget.class).orElseThrow();
             resolveFileExtension(options, fileWriterWidget.fileExtension(), fileWriterWidget.fileExtensionProvider());
-        }
-        if (annotatedWidgets.contains(LocalFileReaderWidget.class)) {
-            if (annotatedWidgets.contains(LocalFileWriterWidget.class)) {
-                throw new UiSchemaGenerationException(
-                    "A widget cannot be both a LocalFileReaderWidget and a LocalFileWriterWidget.");
-            }
-            options.put(TAG_FORMAT, Format.LOCAL_FILE_CHOOSER);
-            final var localFileReaderWidget = m_node.getAnnotation(LocalFileReaderWidget.class).orElseThrow();
-            resolveFileExtensions(options, localFileReaderWidget.fileExtensions());
-            options.put("placeholder", localFileReaderWidget.placeholder());
         }
         if (annotatedWidgets.contains(LocalFileWriterWidget.class)) {
             options.put(TAG_FORMAT, Format.LOCAL_FILE_CHOOSER);

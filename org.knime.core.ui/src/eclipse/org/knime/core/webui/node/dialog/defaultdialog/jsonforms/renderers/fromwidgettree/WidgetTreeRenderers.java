@@ -66,6 +66,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Creden
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextAreaWidget;
 
 /**
@@ -85,6 +87,10 @@ public class WidgetTreeRenderers {
         new WidgetTreeNodeTester(//
             node -> new TextAreaRenderer(node, getPresentAnnotation(node, TextAreaWidget.class)), //
             hasAnnotationAssertingType(TextAreaWidget.class, String.class)), //
+        new WidgetTreeNodeTester(//
+            node -> new LocalFileChooserRenderer(node, getPresentAnnotation(node, LocalFileReaderWidget.class)), //
+            hasAnnotationAssertingTypeAndNoSecondInvalidAnnotation(LocalFileReaderWidget.class, String.class,
+                LocalFileWriterWidget.class)), //
         new WidgetTreeNodeTester(TextRenderer::new, //
             node -> String.class.equals(node.getRawClass())), //
         new WidgetTreeNodeTester(IntegerRenderer::new,
@@ -130,6 +136,30 @@ public class WidgetTreeRenderers {
                 String.format("The annotation %s is not applicable for setting field %s with type %s",
                     annotationClass.getSimpleName(), String.join(".", node.getPath()), fieldClass));
         }
+    }
+
+    private static void throwIfInvalidSecondAnnotation(final TreeNode<WidgetGroup> node,
+        final Class<? extends Annotation> validAnnotationClass,
+        final Class<? extends Annotation> invalidAnnotationClass) {
+        final var hasInvalidAnnotation = hasAnnotation(invalidAnnotationClass).test(node);
+        if (hasInvalidAnnotation) {
+            throw new UiSchemaGenerationException(String.format("A widget cannot be both, a %s and a %s.",
+                validAnnotationClass.getSimpleName(), invalidAnnotationClass.getSimpleName()));
+        }
+    }
+
+    private static Predicate<TreeNode<WidgetGroup>> hasAnnotationAssertingTypeAndNoSecondInvalidAnnotation(
+        final Class<? extends Annotation> annotationClass, final Class<?> expectedType,
+        final Class<? extends Annotation> invalidAnnotationClass) {
+        return node -> {
+            final var hasAnnotation = hasAnnotation(annotationClass).test(node);
+            if (!hasAnnotation) {
+                return false;
+            }
+            throwIfWrongType(expectedType, node, annotationClass);
+            throwIfInvalidSecondAnnotation(node, annotationClass, invalidAnnotationClass);
+            return true;
+        };
     }
 
     /**
