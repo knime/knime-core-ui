@@ -38,19 +38,16 @@ const mockUpdate2 = (rpcRequest: {
       state: "SUCCESS",
       result: [
         {
-          id: null,
           scope:
             "#/properties/view/properties/dummyArrayLayout/items/properties/doubleInput",
           values: [{ indices: [], value: 0 }],
         },
         {
-          id: null,
           scope:
             "#/properties/view/properties/dummyArrayLayout/items/properties/stringInput",
           values: [{ indices: [], value: "" }],
         },
         {
-          id: null,
           scope:
             "#/properties/view/properties/dummyArrayLayout/items/properties/radioInput",
           values: [{ indices: [], value: "OPTION1" }],
@@ -83,7 +80,8 @@ const mockUpdate2 = (rpcRequest: {
       state: "SUCCESS",
       result: [
         {
-          id: "textMessageProvider",
+          id: "textMessageId",
+          providedOptionName: "message",
           values: [
             {
               indices: [],
@@ -96,7 +94,6 @@ const mockUpdate2 = (rpcRequest: {
                 : null,
             },
           ],
-          scope: null,
         },
       ],
     };
@@ -114,7 +111,7 @@ const mockUpdate2 = (rpcRequest: {
       result: [
         {
           scope: "#/properties/view/properties/updatedByUpdatedByA",
-          id: null,
+
           values: [{ indices: [], value: UpdatedByA }],
         },
       ],
@@ -129,7 +126,7 @@ const mockUpdate2 = (rpcRequest: {
       result: [
         {
           scope: "#/properties/view/properties/updatedByUpdatedByB",
-          id: null,
+
           values: [{ indices: [], value: UpdatedByB }],
         },
       ],
@@ -145,19 +142,19 @@ const mockUpdate2 = (rpcRequest: {
       result: [
         {
           scope: "#/properties/view/properties/sum",
-          id: null,
+
           // @ts-expect-error
           values: [{ indices: [], value: A + B }],
         },
         {
           scope: "#/properties/view/properties/product",
-          id: null,
+
           // @ts-expect-error
           values: [{ indices: [], value: A * B }],
         },
         {
           scope: "#/properties/view/properties/updatedByA",
-          id: null,
+
           values: [{ indices: [], value: A }],
         },
       ],
@@ -168,7 +165,7 @@ const mockUpdate2 = (rpcRequest: {
       result: [
         {
           scope: "#/properties/view/properties/updatedByB",
-          id: null,
+
           values: [{ indices: [], value: dependencies[scope_B][0].value }],
         },
       ],
@@ -186,7 +183,6 @@ const mockUpdate2 = (rpcRequest: {
       result: [
         {
           scope: "#/properties/view/properties/myArray/items/properties/sum",
-          id: null,
           values: [
             {
               indices: [],
@@ -198,7 +194,7 @@ const mockUpdate2 = (rpcRequest: {
         {
           scope:
             "#/properties/view/properties/myArray/items/properties/product",
-          id: null,
+
           values: [
             {
               indices: [],
@@ -208,8 +204,9 @@ const mockUpdate2 = (rpcRequest: {
           ],
         },
         {
-          id: "myChoicesProvider",
-          scope: null,
+          scope:
+            "#/properties/view/properties/myArray/items/properties/product",
+          providedOptionName: "possibleValues",
           values: [
             {
               indices: [],
@@ -242,13 +239,13 @@ const mockUpdate2 = (rpcRequest: {
       state: "SUCCESS",
       result: [
         {
-          scope: null,
-          id: "myTitleProvider",
+          scope: "#/properties/view/properties/dummyArrayLayout",
+          providedOptionName: "arrayElementTitle",
           values: dependencies[scope_title],
         },
         {
-          scope: null,
-          id: "mySubTitleProvider",
+          scope: "#/properties/view/properties/dummyArrayLayout",
+          providedOptionName: "elementSubTitle",
           values: dependencies[scope_subTitle],
         },
       ],
@@ -270,7 +267,7 @@ const mockUpdate2 = (rpcRequest: {
         {
           scope:
             "#/properties/view/properties/myArray/items/properties/nestedArray/items/properties/sum",
-          id: null,
+
           values: [
             {
               indices: [],
@@ -282,7 +279,7 @@ const mockUpdate2 = (rpcRequest: {
         {
           scope:
             "#/properties/view/properties/myArray/items/properties/nestedArray/items/properties/product",
-          id: null,
+
           values: [
             {
               indices: [],
@@ -292,8 +289,9 @@ const mockUpdate2 = (rpcRequest: {
           ],
         },
         {
-          id: "myNestedChoicesProvider",
-          scope: null,
+          scope:
+            "#/properties/view/properties/myArray/items/properties/nestedArray/items/properties/product",
+          providedOptionName: "possibleValues",
           values: [
             {
               indices: [],

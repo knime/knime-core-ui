@@ -3,7 +3,7 @@ import { computed, onMounted, watch } from "vue";
 
 import type { VueControlPropsForLabelContent } from "@knime/jsonforms";
 
-import type { FileChooserOptions } from "@/nodeDialog/types/FileChooserUiSchema";
+import type { FileChooserUiSchema } from "@/nodeDialog/types/FileChooserUiSchema";
 import { useFlowSettings } from "../../../composables/components/useFlowVariables";
 import FileBrowserButton from "../FileBrowserButton.vue";
 import { useFileChooserFileSystemsOptions } from "../composables/useFileChooserBrowseOptions";
@@ -27,11 +27,9 @@ const isDisabled = computed(
     props.control.uischema.options?.fileSystemConnectionMissing,
 );
 
-const browseOptions = computed(
-  () => props.control.uischema.options as FileChooserOptions,
-);
+const uischema = computed(() => props.control.uischema as FileChooserUiSchema);
 
-const { validCategories } = useFileChooserFileSystemsOptions(browseOptions);
+const { validCategories } = useFileChooserFileSystemsOptions(uischema);
 const getDefaultData = () => {
   return {
     path: "",
@@ -39,7 +37,7 @@ const getDefaultData = () => {
     fsCategory: validCategories.value[0],
     context: {
       fsToString: "",
-      fsSpecifier: browseOptions.value.fileSystemSpecifier,
+      fsSpecifier: uischema.value.options?.fileSystemSpecifier,
     },
   };
 };
@@ -74,7 +72,7 @@ watch(
 const { onFsCategoryUpdate } = useFileChooserStateChange(
   data,
   props.changePath,
-  browseOptions,
+  uischema,
 );
 
 /**
@@ -104,10 +102,10 @@ const { onApply, sideDrawerValue } = useSideDrawerContent<FileChooserValue>({
       class="flex-grow"
       :model-value="data"
       :disabled="isDisabled"
-      :is-local="browseOptions.isLocal"
+      :is-local="uischema.options?.isLocal"
       :is-valid
-      :port-index="browseOptions.portIndex"
-      :file-system-specifier="browseOptions.fileSystemSpecifier"
+      :port-index="uischema.options?.portIndex"
+      :file-system-specifier="uischema.options?.fileSystemSpecifier"
       @update:model-value="changePath"
     />
     <FileBrowserButton
@@ -119,8 +117,8 @@ const { onApply, sideDrawerValue } = useSideDrawerContent<FileChooserValue>({
         :id="labelForId ?? null"
         v-model="sideDrawerValue"
         :disabled="isDisabled"
-        :options="browseOptions"
-        :selection-mode="browseOptions.selectionMode ?? 'FILE'"
+        :uischema
+        :selection-mode="uischema.options?.selectionMode ?? 'FILE'"
         @apply-and-close="applyAndClose"
       />
     </FileBrowserButton>

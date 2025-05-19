@@ -2,9 +2,12 @@
 import { computed, ref, watch } from "vue";
 
 import { InputField } from "@knime/components";
+import {
+  type UiSchemaWithProvidedOptions,
+  useProvidedState,
+} from "@knime/jsonforms";
 
 import { type FlowSettings } from "../../api/types";
-import useProvidedState from "../../composables/components/useProvidedState";
 import type { Control } from "../../types/Control";
 import { mergeDeep } from "../../utils";
 
@@ -66,23 +69,20 @@ const displayedSecondFactor = computed(() => {
     : data.value.secondFactor;
 });
 
-const options = computed(() => props.control.uischema.options ?? {});
+type CredentialsUISchema = UiSchemaWithProvidedOptions<{
+  hasUsername?: boolean;
+  hasPassword?: boolean;
+  showSecondFactor?: boolean;
+  usernameLabel?: string;
+  passwordLabel?: string;
+  secondFactorLabel?: string;
+}>;
 
-// Username visibility
-const hasUsername = useProvidedState(
-  computed(() => options.value.hasUsernameProvider),
-  true,
-);
-const hideUsername = computed(() => options.value.hideUsername ?? false);
-const showUsername = computed(() => hasUsername.value && !hideUsername.value);
+const uischema = computed(() => props.control.uischema as CredentialsUISchema);
+const options = computed(() => uischema.value.options ?? {});
 
-// Password visibility
-const hasPassword = useProvidedState(
-  computed(() => options.value.hasPasswordProvider),
-  true,
-);
-const hidePassword = computed(() => options.value.hidePassword ?? false);
-const showPassword = computed(() => hasPassword.value && !hidePassword.value);
+const showUsername = useProvidedState(uischema, "hasUsername", true);
+const showPassword = useProvidedState(uischema, "hasPassword", true);
 
 const showSecondFactor = computed(
   () => showPassword.value && (options.value.showSecondFactor ?? false),

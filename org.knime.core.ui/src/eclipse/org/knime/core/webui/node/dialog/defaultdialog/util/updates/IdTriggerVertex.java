@@ -105,7 +105,7 @@ final class IdTriggerVertex extends TriggerVertex {
         if (o instanceof IdTriggerVertex other) {
             return m_id.compareTo(other.getId());
         } else {
-            return o.compareTo(this);
+            return -o.compareTo(this);
         }
 
     }

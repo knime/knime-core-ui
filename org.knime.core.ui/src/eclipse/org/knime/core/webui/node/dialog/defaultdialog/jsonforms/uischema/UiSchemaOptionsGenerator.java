@@ -53,27 +53,30 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_ADD_BUTTON_TEXT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_DETAIL;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_CHECKBOX_SCOPE;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_DEFAULT_VALUE_PROVIDER;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_SUB_TITLE_PROVIDER;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_DEFAULT_VALUE;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_SUB_TITLE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_TITLE;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_TITLE_PROVIDER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_HAS_FIXED_SIZE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_SHOW_SORT_BUTTONS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_WITH_EDIT_AND_RESET;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_CHOICES_PROVIDER;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_DATE_TIME_FORMATS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_DEPENDENCIES;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ELEMENTS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_EMPTY_STATE_LABEL;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_EXTERNAL_VALIDATION_HANDLER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSION;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSIONS;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSION_PROVIDER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_FILTER_CLASS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FORMAT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_HIDE_CONTROL_HEADER;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_INTERVAL_TYPE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_IS_WRITER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_LABEL;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_MESSAGE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_OPTIONS;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_PLACEHOLDER;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_POSSIBLE_VALUES;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_PROVIDED_OPTIONS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_UNKNOWN_VALUES_TEXT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_USE_FLOW_VAR_TEMPLATES;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.getApplicableDefaults;
@@ -106,7 +109,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.Contro
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree.WidgetTreeRenderers;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
@@ -162,10 +164,6 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-/**
- *
- * @author Paul Bärnreuther
- */
 final class UiSchemaOptionsGenerator {
 
     private final TreeNode<WidgetGroup> m_node;
@@ -245,24 +243,24 @@ final class UiSchemaOptionsGenerator {
                     break;
                 case DATA_TYPE:
                     options.put(TAG_FORMAT, Format.DROP_DOWN);
-                    options.put(TAG_CHOICES_PROVIDER, DefaultDataTypeChoicesProvider.class.getName());
+                    getOrCreateProvidedOptions(control).add(TAG_POSSIBLE_VALUES);
                     break;
                 case ZONE_ID:
                     options.put(TAG_FORMAT, Format.DROP_DOWN);
-                    options.set("possibleValues",
+                    options.set(TAG_POSSIBLE_VALUES,
                         JsonFormsUiSchemaUtil.getMapper().valueToTree(DateTimeUtil.getPossibleZoneIdValues()));
                     break;
                 case DATE_INTERVAL:
                     options.put(TAG_FORMAT, Format.INTERVAL);
-                    options.put("intervalType", IntervalWidget.IntervalType.DATE.name());
+                    options.put(TAG_INTERVAL_TYPE, IntervalWidget.IntervalType.DATE.name());
                     break;
                 case TIME_INTERVAL:
                     options.put(TAG_FORMAT, Format.INTERVAL);
-                    options.put("intervalType", IntervalWidget.IntervalType.TIME.name());
+                    options.put(TAG_INTERVAL_TYPE, IntervalWidget.IntervalType.TIME.name());
                     break;
                 case INTERVAL:
                     options.put(TAG_FORMAT, Format.INTERVAL);
-                    options.put("intervalType", IntervalWidget.IntervalType.DATE_OR_TIME.name());
+                    options.put(TAG_INTERVAL_TYPE, IntervalWidget.IntervalType.DATE_OR_TIME.name());
                     break;
                 case STRING_ARRAY:
                     options.put(TAG_FORMAT, Format.COMBO_BOX);
@@ -304,21 +302,19 @@ final class UiSchemaOptionsGenerator {
         }
 
         if (annotatedWidgets.contains(TextMessage.class)) {
-            final var textMessageProvider = m_node.getAnnotation(TextMessage.class).orElseThrow().value();
             options.put(TAG_FORMAT, Format.TEXT_MESSAGE);
-            options.put("messageProvider", textMessageProvider.getName());
+            getOrCreateProvidedOptions(control).add(TAG_MESSAGE);
         }
 
         if (annotatedWidgets.contains(IntervalWidget.class)) {
-            var durationWidget = m_node.getAnnotation(IntervalWidget.class).orElseThrow();
-            options.put("intervalTypeProvider", durationWidget.typeProvider().getName());
+            getOrCreateProvidedOptions(control).add(TAG_INTERVAL_TYPE);
         }
 
         if (annotatedWidgets.contains(DateTimeFormatPickerWidget.class)) {
             options.put(TAG_FORMAT, getDateTimeFormatFormat());
 
-            final var dateTimeFormatPickerWidget = m_node.getAnnotation(DateTimeFormatPickerWidget.class).orElseThrow();
-            options.put("formatProvider", dateTimeFormatPickerWidget.formatProvider().getName());
+            getOrCreateProvidedOptions(control).add(TAG_DATE_TIME_FORMATS);
+
             options.put(TAG_EXTERNAL_VALIDATION_HANDLER, ExternalBuiltInValidationUtil
                 .getValidationHandlerClass(DateTimeFormatPickerWidget.class, m_fieldClass).getName());
         }
@@ -340,14 +336,15 @@ final class UiSchemaOptionsGenerator {
         if (annotatedWidgets.contains(FileWriterWidget.class)) {
             options.put(TAG_IS_WRITER, true);
             final var fileWriterWidget = m_node.getAnnotation(FileWriterWidget.class).orElseThrow();
-            resolveFileExtension(options, fileWriterWidget.fileExtension(), fileWriterWidget.fileExtensionProvider());
+            resolveFileExtension(control, options, fileWriterWidget.fileExtension(),
+                fileWriterWidget.fileExtensionProvider());
         }
         if (annotatedWidgets.contains(LocalFileWriterWidget.class)) {
             options.put(TAG_FORMAT, Format.LOCAL_FILE_CHOOSER);
             final var localFileWriterWidget = m_node.getAnnotation(LocalFileWriterWidget.class).orElseThrow();
-            options.put("placeholder", localFileWriterWidget.placeholder());
+            options.put(TAG_PLACEHOLDER, localFileWriterWidget.placeholder());
             options.put(TAG_IS_WRITER, true);
-            resolveFileExtension(options, localFileWriterWidget.fileExtension(),
+            resolveFileExtension(control, options, localFileWriterWidget.fileExtension(),
                 localFileWriterWidget.fileExtensionProvider());
         }
         if (annotatedWidgets.contains(ButtonWidget.class)) {
@@ -417,19 +414,15 @@ final class UiSchemaOptionsGenerator {
         final var isSingleSelection = m_fieldClass.equals(StringOrEnum.class);
         if (hasChoices) {
             final var choicesProvider = m_node.getAnnotation(ChoicesProvider.class).orElseThrow();
-            options.put(TAG_CHOICES_PROVIDER, choicesProvider.value().getName());
+            getOrCreateProvidedOptions(control).add(TAG_POSSIBLE_VALUES);
             assertCorrectChoicesProviderIfNecessary(choicesProvider);
             if (!isFilter && !isSingleSelection) {
                 options.put(TAG_FORMAT, getChoicesComponentFormat());
             }
         }
-        if (annotatedWidgets.contains(ColumnFilterWidget.class)) {
-            final var columnFilterWidget = m_node.getAnnotation(ColumnFilterWidget.class).orElseThrow();
-            options.put("choicesProvider", columnFilterWidget.choicesProvider().getName());
-        }
-        if (annotatedWidgets.contains(FlowVariableFilterWidget.class)) {
-            final var flowVarFilterWidget = m_node.getAnnotation(FlowVariableFilterWidget.class).orElseThrow();
-            options.put("choicesProvider", flowVarFilterWidget.choicesProvider().getName());
+        if (annotatedWidgets.contains(ColumnFilterWidget.class)
+            || annotatedWidgets.contains(FlowVariableFilterWidget.class)) {
+            getOrCreateProvidedOptions(control).add(TAG_POSSIBLE_VALUES);
         }
 
         if (annotatedWidgets.contains(SortListWidget.class)) {
@@ -451,16 +444,24 @@ final class UiSchemaOptionsGenerator {
         }
 
         if (m_node.isOptional()) {
-            OptionalWidgetOptionsUtil.addOptionalWidgetOptions(m_node, options);
+            OptionalWidgetOptionsUtil.addOptionalWidgetOptions(m_node, options,
+                () -> getOrCreateProvidedOptions(control));
         }
 
         if (m_node instanceof ArrayParentNode<WidgetGroup> arrayWidgetNode) {
-            applyArrayLayoutOptions(options, arrayWidgetNode.getElementTree());
+            applyArrayLayoutOptions(control, options, arrayWidgetNode.getElementTree());
         }
 
         if (options.isEmpty()) {
             control.remove(TAG_OPTIONS);
         }
+    }
+
+    private static ArrayNode getOrCreateProvidedOptions(final ObjectNode uiSchema) {
+        if (uiSchema.has(TAG_PROVIDED_OPTIONS)) {
+            return (ArrayNode)uiSchema.get(TAG_PROVIDED_OPTIONS);
+        }
+        return uiSchema.putArray(TAG_PROVIDED_OPTIONS);
     }
 
     private static void addTypedStringFilterOptions(final ObjectNode options, final String filteredObject) {
@@ -635,8 +636,8 @@ final class UiSchemaOptionsGenerator {
         }
     }
 
-    private static void resolveFileExtension(final ObjectNode options, final String fileExtension,
-        final Class<? extends StateProvider<String>> fileExtensionProvider) {
+    private static void resolveFileExtension(final ObjectNode uiSchema, final ObjectNode options,
+        final String fileExtension, final Class<? extends StateProvider<String>> fileExtensionProvider) {
         if (!fileExtension.isEmpty()) {
             options.put(TAG_FILE_EXTENSION, fileExtension);
         }
@@ -644,7 +645,7 @@ final class UiSchemaOptionsGenerator {
             CheckUtils.check(fileExtension.isEmpty(), UiSchemaGenerationException::new,
                 () -> "The parameter \"fileExtension\" and \"fileExtensionProvider\" "
                     + "cannot be used in combination.");
-            options.put(TAG_FILE_EXTENSION_PROVIDER, fileExtensionProvider.getName());
+            getOrCreateProvidedOptions(uiSchema).add(TAG_FILE_EXTENSION);
         }
     }
 
@@ -722,18 +723,21 @@ final class UiSchemaOptionsGenerator {
         return partitionedWidgetAnnotations.get(true).stream().map(WidgetAnnotation::widgetAnnotation).toList();
     }
 
-    private void applyArrayLayoutOptions(final ObjectNode options, final Tree<WidgetGroup> elementTree) {
+    private void applyArrayLayoutOptions(final ObjectNode control, final ObjectNode options,
+        final Tree<WidgetGroup> elementTree) {
         var details = JsonFormsUiSchemaUtil
             .buildUISchema(List.of(elementTree), m_widgetTrees, m_defaultNodeSettingsContext).get(TAG_ELEMENTS);
         options.set(TAG_ARRAY_LAYOUT_DETAIL, details);
 
-        m_node.getAnnotation(ArrayWidget.class).ifPresent(arrayWidget -> addArrayLayoutOptions(arrayWidget, options));
+        m_node.getAnnotation(ArrayWidget.class)
+            .ifPresent(arrayWidget -> addArrayLayoutOptions(arrayWidget, control, options));
 
-        m_node.getAnnotation(InternalArrayWidget.class)
-            .ifPresent(internalArrayWidget -> addInternalArrayLayoutOptions(internalArrayWidget, options, elementTree));
+        m_node.getAnnotation(InternalArrayWidget.class).ifPresent(
+            internalArrayWidget -> addInternalArrayLayoutOptions(internalArrayWidget, control, options, elementTree));
     }
 
-    private static void addArrayLayoutOptions(final ArrayWidget arrayWidget, final ObjectNode options) {
+    private static void addArrayLayoutOptions(final ArrayWidget arrayWidget, final ObjectNode control,
+        final ObjectNode options) {
         var addButtonText = arrayWidget.addButtonText();
         if (!addButtonText.isEmpty()) {
             options.put(TAG_ARRAY_LAYOUT_ADD_BUTTON_TEXT, addButtonText);
@@ -753,12 +757,12 @@ final class UiSchemaOptionsGenerator {
         }
         var elementDefaultValueProvider = arrayWidget.elementDefaultValueProvider();
         if (!elementDefaultValueProvider.equals(StateProvider.class)) {
-            options.put(TAG_ARRAY_LAYOUT_ELEMENT_DEFAULT_VALUE_PROVIDER, elementDefaultValueProvider.getName());
+            getOrCreateProvidedOptions(control).add(TAG_ARRAY_LAYOUT_ELEMENT_DEFAULT_VALUE);
         }
     }
 
     private static void addInternalArrayLayoutOptions(final InternalArrayWidget internalArrayWidget,
-        final ObjectNode options, final Tree<WidgetGroup> elementWidgetTree) {
+        final ObjectNode control, final ObjectNode options, final Tree<WidgetGroup> elementWidgetTree) {
 
         if (internalArrayWidget.withEditAndReset()) {
             options.put(TAG_ARRAY_LAYOUT_WITH_EDIT_AND_RESET, true);
@@ -770,11 +774,11 @@ final class UiSchemaOptionsGenerator {
         }
 
         if (!NoopStringProvider.class.equals(internalArrayWidget.titleProvider())) {
-            options.put(TAG_ARRAY_LAYOUT_ELEMENT_TITLE_PROVIDER, internalArrayWidget.titleProvider().getName());
+            getOrCreateProvidedOptions(control).add(TAG_ARRAY_LAYOUT_ELEMENT_TITLE);
         }
 
         if (!NoopStringProvider.class.equals(internalArrayWidget.subTitleProvider())) {
-            options.put(TAG_ARRAY_LAYOUT_ELEMENT_SUB_TITLE_PROVIDER, internalArrayWidget.subTitleProvider().getName());
+            getOrCreateProvidedOptions(control).add(TAG_ARRAY_LAYOUT_ELEMENT_SUB_TITLE);
         }
     }
 

@@ -5,6 +5,7 @@ import { FunctionButton } from "@knime/components";
 import { SettingsSubPanel, type VueControlProps } from "@knime/jsonforms";
 import NextArrowIcon from "@knime/styles/img/icons/arrow-next.svg";
 
+import type { FileChooserUiSchema } from "@/nodeDialog/types/FileChooserUiSchema";
 import FileSelectionPreview from "../FileSelectionPreview.vue";
 import FilterSettings from "../FilterSettings.vue";
 import { getBackendType } from "../composables/useFileChooserBackend";
@@ -16,9 +17,11 @@ import type { BackendType, MultiFileSelection } from "../types";
 
 const props = defineProps<VueControlProps<MultiFileSelection>>();
 const includeSubFolders = computed(() => props.control.data?.includeSubfolders);
-const browseOptions = computed(() => props.control.uischema.options!);
+const uischema = computed<FileChooserUiSchema>(
+  () => props.control.uischema as FileChooserUiSchema,
+);
 
-const { portIndex } = useFileChooserBrowseOptions(browseOptions);
+const { portIndex } = useFileChooserBrowseOptions(uischema);
 const backendType = computed<BackendType>(() =>
   getBackendType(props.control.data.path.fsCategory, portIndex.value),
 );

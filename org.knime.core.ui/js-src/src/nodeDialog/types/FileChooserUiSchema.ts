@@ -1,4 +1,6 @@
-export interface FileChooserOptions {
+import type { UiSchemaWithProvidedOptions } from "@knime/jsonforms";
+
+export type FileChooserOptions = {
   isWriter?: boolean;
   isLocal?: boolean;
   portIndex?: number;
@@ -17,8 +19,7 @@ export interface FileChooserOptions {
    * Wether a file or a folder is to be chosen. FILE is the default.
    */
   selectionMode?: "FILE" | "FOLDER";
-}
-
-export type FileChooserUiSchema = {
-  options?: FileChooserOptions;
 };
+
+export type FileChooserUiSchema =
+  UiSchemaWithProvidedOptions<FileChooserOptions>;

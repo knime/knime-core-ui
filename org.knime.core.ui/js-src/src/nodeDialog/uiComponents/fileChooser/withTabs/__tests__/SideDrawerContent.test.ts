@@ -30,8 +30,11 @@ describe("SideDrawerContent.vue", () => {
         path: "myPath",
         timeout: 1000,
       },
-      options: {
-        mountId: testSpaceName,
+      uischema: {
+        scope: "#/properties/some/properties/scope",
+        options: {
+          mountId: testSpaceName,
+        },
       },
       selectionMode: "FILE",
     };
@@ -73,7 +76,7 @@ describe("SideDrawerContent.vue", () => {
 
   it("renders local tab", async () => {
     props.modelValue.fsCategory = "LOCAL";
-    props.options!.isLocal = true;
+    props.uischema.options!.isLocal = true;
     const wrapper = mountSideDrawerContent();
     expect(wrapper.findComponent(TabBar).props().modelValue).toBe("LOCAL");
     await flushPromises();
@@ -91,7 +94,7 @@ describe("SideDrawerContent.vue", () => {
 
   it("renders current hub space tab", async () => {
     const spacePath = "mySpacePath";
-    props.options!.spacePath = spacePath;
+    props.uischema.options!.spacePath = spacePath;
     const wrapper = mountSideDrawerContent();
     expect(wrapper.findComponent(TabBar).props().modelValue).toBe(
       "relative-to-current-hubspace",
@@ -149,16 +152,19 @@ describe("SideDrawerContent.vue", () => {
     let wrapper: ReturnType<typeof mountSideDrawerContent>;
 
     beforeEach(() => {
-      props.options!.portIndex = 1;
+      props.uischema.options!.portIndex = 1;
       wrapper = mountSideDrawerContent();
     });
 
     it("renders CONNECTED tab", async () => {
       const fsSpecifier = "myFileSystemSpecifier";
       await wrapper.setProps({
-        options: {
-          ...wrapper.props().options,
-          fileSystemSpecifier: fsSpecifier,
+        uischema: {
+          ...wrapper.props().uischema,
+          options: {
+            ...wrapper.props().uischema.options,
+            fileSystemSpecifier: fsSpecifier,
+          },
         },
       });
       await wrapper

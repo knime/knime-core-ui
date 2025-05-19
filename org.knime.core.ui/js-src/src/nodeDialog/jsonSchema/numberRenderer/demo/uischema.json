@@ -3,15 +3,14 @@
   "type": "Control",
   "scope": "#/properties/text",
   "options": {
-    "validations": [
-      {
-        "id": "min",
+    "validation": {
+      "min": {
         "parameters": {
           "min": 1,
-          "isExclusive": false
+          "isExclusive": true
         },
-        "errorMessage": "The value must be at least 1."
+        "errorMessage": "The value must be greater than 1."
       }
-    ]
+    }
   }
 }

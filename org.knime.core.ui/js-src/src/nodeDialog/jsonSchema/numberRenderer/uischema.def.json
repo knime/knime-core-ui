@@ -18,27 +18,32 @@
         "options": {
           "type": "object",
           "properties": {
-            "validations": {
-              "type": "array",
-              "items": {
-                "anyOf": [
-                  {
-                    "$ref": "./validation/min.def.json"
-                  },
-                  {
-                    "$ref": "./validation/max.def.json"
-                  }
-                ]
-              }
-            },
-            "validationProviders": {
-              "type": "array",
-              "items": {
-                "type": "string"
+            "validation": {
+              "type": "object",
+              "properties": {
+                "min": {
+                  "$ref": "./validation/min.def.json"
+                },
+                "max": {
+                  "$ref": "./validation/max.def.json"
+                }
               }
             }
           },
           "additionalProperties": false
+        },
+        "providedOptions": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "const": "validation.min"
+              },
+              {
+                "const": "validation.max"
+              }
+            ]
+          }
         }
       }
     }

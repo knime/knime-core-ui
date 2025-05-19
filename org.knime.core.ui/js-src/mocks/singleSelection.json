@@ -31,32 +31,32 @@
               "scope": "#/properties/singleSelect",
               "options": {
                 "format": "singleSelection",
-                "choicesProvider": "regularChoicesProvider",
                 "specialChoices": [
                   { "id": "special1", "text": "Special Choice 1" },
                   { "id": "special2", "text": "Special Choice 2" }
                 ]
-              }
+              },
+              "providedOptions": ["possibleValues"]
             },
             {
               "type": "Control",
               "scope": "#/properties/disabled",
               "options": {
                 "format": "singleSelection",
-                "choicesProvider": "regularChoicesProvider",
                 "specialChoices": [
                   { "id": "I am disabled", "text": "I am disabled" }
                 ]
-              }
+              },
+              "providedOptions": ["possibleValues"]
             },
             {
               "type": "Control",
               "scope": "#/properties/loading",
               "options": {
                 "format": "singleSelection",
-                "choicesProvider": "choicesProviderWithoutInitialUpdate",
                 "specialChoices": []
-              }
+              },
+              "providedOptions": ["possibleValues"]
             }
           ]
         }
@@ -69,7 +69,8 @@
     },
     "initialUpdates": [
       {
-        "id": "regularChoicesProvider",
+        "scope": "#/properties/singleSelect",
+        "providedOptionName": "possibleValues",
         "values": [
           {
             "indices": [],
@@ -78,8 +79,20 @@
               { "id": "choice2", "text": "Choice 2" }
             ]
           }
-        ],
-        "scope": null
+        ]
+      },
+      {
+        "scope": "#/properties/disabled",
+        "providedOptionName": "possibleValues",
+        "values": [
+          {
+            "indices": [],
+            "value": [
+              { "id": "choice1", "text": "Choice 1" },
+              { "id": "choice2", "text": "Choice 2" }
+            ]
+          }
+        ]
       }
     ]
   }

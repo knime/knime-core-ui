@@ -71,11 +71,6 @@ public sealed interface NumberInputWidgetValidation extends BuiltinValidation {
      */
     abstract non-sealed class MinValidation implements NumberInputWidgetValidation {
 
-        @Override
-        public final String getId() {
-            return "min";
-        }
-
         /**
          * @param min the minimum to validate against
          * @param isExclusive whether to use an inclusive or an exclusive bound
@@ -147,11 +142,6 @@ public sealed interface NumberInputWidgetValidation extends BuiltinValidation {
      * Implement this interface to validate a numeric input against a given maximum.
      */
     abstract non-sealed class MaxValidation implements NumberInputWidgetValidation {
-
-        @Override
-        public final String getId() {
-            return "max";
-        }
 
         /**
          * @param max the maximum to validate against

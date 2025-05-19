@@ -54,9 +54,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMaxLengthValidationProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMinLengthValidationProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopPatternValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MaxLengthValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MinLengthValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation;
 
 /**
@@ -74,30 +78,68 @@ public @interface TextInputWidget {
     String placeholder() default "";
 
     /**
+     * Add this field to define a regex pattern validation.
      *
-     * @return same as {@link #placeholder()} but allows for dynamic changes
+     * <p>
+     * If the validation depends on the context of the node, use {@link #patternValidationProvider()} instead.
+     * </p>
+     *
+     * @return the pattern validation for this text input
+     */
+    Class<? extends PatternValidation> patternValidation() default PatternValidation.class;
+
+    /**
+     * Add this field to limit the allowed number of characters.
+     *
+     * <p>
+     * If the validation depends on the context of the node, use {@link #maxLengthValidationProvider()} instead.
+     * </p>
+     *
+     * @return the maximum length validation for this text input
+     */
+    Class<? extends MaxLengthValidation> maxLengthValidation() default MaxLengthValidation.class;
+
+    /**
+     * Add this field to define the minimum number of characters.
+     *
+     * <p>
+     * If the validation depends on the context of the node, use {@link #minLengthValidationProvider()} instead.
+     * </p>
+     *
+     * @return the minimum length validation for this text input
+     */
+    Class<? extends MinLengthValidation> minLengthValidation() default MinLengthValidation.class;
+
+    /**
+     * The dynamic way to set the placeholder of the text input.
+     *
+     * @return a dynamically provided placeholder
+     * @see #placeholder()
      */
     Class<? extends StateProvider<String>> placeholderProvider() default NoopStringProvider.class;
 
     /**
-     * Add this field to define validation instructions for the text input. Validation instructions specified should be
-     * constant, i.e. the value to validate against does not depend on the context of the node. To validate against a
-     * dynamic value which depends on the context of the node use {@link #validationProvider()}. See
-     * {@link TextInputWidgetValidation} for possible validation instructions such as validating the input against a
-     * pattern ({@link PatternValidation}).
+     * The dynamic way to set the pattern validation of the text input.
      *
-     * @return the validations to apply to the input
+     * @return a dynamically provided pattern validation
+     * @see #patternValidation()
      */
-    Class<? extends TextInputWidgetValidation>[] validation() default {};
+    Class<? extends StateProvider<? extends PatternValidation>> patternValidationProvider() default NoopPatternValidationProvider.class;
 
     /**
-     * Add this field to define validation instructions for the text input. Validation instructions specified should be
-     * dynamic, i.e. the values to validate against depend on the context of the node. To validate against a constant
-     * value which does not depend on the context of the node use {@link #validation()}. See
-     * {@link TextInputWidgetValidation} for possible validation instructions such as validating the input against a
-     * pattern ({@link PatternValidation}).
+     * The dynamic way to set the maximum length validation of the text input.
      *
-     * @return the providers specifying validations to apply to the input that depend on the context of the node
+     * @return a dynamically provided maximum length validation
+     * @see #maxLengthValidation()
      */
-    Class<? extends StateProvider<? extends TextInputWidgetValidation>>[] validationProvider() default {};
+    Class<? extends StateProvider<? extends MaxLengthValidation>> maxLengthValidationProvider() default NoopMaxLengthValidationProvider.class;
+
+    /**
+     * The dynamic way to set the minimum length validation of the text input.
+     *
+     * @return a dynamically provided minimum length validation
+     * @see #minLengthValidation()
+     */
+    Class<? extends StateProvider<? extends MinLengthValidation>> minLengthValidationProvider() default NoopMinLengthValidationProvider.class;
+
 }

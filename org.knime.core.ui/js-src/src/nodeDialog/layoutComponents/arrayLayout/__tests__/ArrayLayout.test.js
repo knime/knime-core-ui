@@ -217,9 +217,7 @@ describe("ArrayLayout.vue", () => {
 
   it("uses provided default value if present", () => {
     const addItem = vi.fn(() => () => {});
-    const elementDefaultValueProvider = "myElementDefaultValueProvider";
-    control.value.uischema.options.elementDefaultValueProvider =
-      elementDefaultValueProvider;
+    control.value.uischema.providedOptions = ["elementDefaultValue"];
 
     let provideDefault;
     const addStateProviderListener = vi.fn((_id, callback) => {
@@ -230,7 +228,10 @@ describe("ArrayLayout.vue", () => {
       provide: { addStateProviderListener, arrayControlMocks: { addItem } },
     });
     expect(addStateProviderListener).toHaveBeenCalledWith(
-      { id: elementDefaultValueProvider },
+      {
+        scope: control.value.uischema.scope,
+        providedOptionName: "elementDefaultValue",
+      },
       expect.anything(),
     );
     const providedDefault = {
@@ -499,10 +500,10 @@ describe("ArrayLayout.vue", () => {
   );
 
   it("displays provided title and subtitle", async () => {
-    const titleProvider = "myTitleProvider";
-    const subTitleProvider = "mySubTitleProvider";
-    control.value.uischema.options.elementTitleProvider = titleProvider;
-    control.value.uischema.options.elementSubTitleProvider = subTitleProvider;
+    control.value.uischema.providedOptions = [
+      "arrayElementTitle",
+      "elementSubTitle",
+    ];
 
     const provideState = [];
     const addStateProviderListener = vi.fn((_id, callback) => {
@@ -513,11 +514,21 @@ describe("ArrayLayout.vue", () => {
       provide: { addStateProviderListener },
     });
     expect(addStateProviderListener).toHaveBeenCalledWith(
-      { id: titleProvider, indexIds: expect.anything(), indices: [0] },
+      {
+        providedOptionName: "arrayElementTitle",
+        scope: control.value.uischema.scope,
+        indexIds: expect.anything(),
+        indices: [0],
+      },
       expect.anything(),
     );
     expect(addStateProviderListener).toHaveBeenCalledWith(
-      { id: subTitleProvider, indexIds: expect.anything(), indices: [0] },
+      {
+        providedOptionName: "elementSubTitle",
+        scope: control.value.uischema.scope,
+        indexIds: expect.anything(),
+        indices: [0],
+      },
       expect.anything(),
     );
     const providedState = "provided";

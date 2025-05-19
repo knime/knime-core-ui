@@ -48,45 +48,21 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
-import java.util.Optional;
+sealed class UpdateVertex extends Vertex permits LocationUpdateVertex, IdUpdateVertex {
 
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.ValueProviderWrapper;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-
-/**
- *
- * @author Paul Bärnreuther
- */
-final class UpdateVertex extends Vertex {
-
-    private final Class<? extends StateProvider> m_stateProviderClass;
-
-    private final Optional<Location> m_fieldLocation;
-
-    UpdateVertex(final ValueProviderWrapper wrapper) {
-        m_stateProviderClass = wrapper.stateProviderClass();
-        m_fieldLocation = Optional.of(wrapper.fieldLocation());
-    }
-
-    UpdateVertex(final Class<? extends StateProvider> update) {
-        m_stateProviderClass = update;
-        m_fieldLocation = Optional.empty();
-    }
+    private final ResolvedStateProvider m_resolvedStateProvider;
 
     @Override
     public <T> T visit(final VertexVisitor<T> visitor) {
         return visitor.accept(this);
     }
 
-    Class<? extends StateProvider> getStateProviderClass() {
-        return m_stateProviderClass;
+    UpdateVertex(final ResolvedStateProvider resolvedStateProvider) {
+        m_resolvedStateProvider = resolvedStateProvider;
     }
 
-    /**
-     * @return information on the associated field
-     */
-    Optional<Location> getFieldLocation() {
-        return m_fieldLocation;
+    ResolvedStateProvider getResolvedStateProvider() {
+        return m_resolvedStateProvider;
     }
 
 }

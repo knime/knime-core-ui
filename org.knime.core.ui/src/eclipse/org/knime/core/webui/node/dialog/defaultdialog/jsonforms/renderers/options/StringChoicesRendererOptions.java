@@ -67,11 +67,4 @@ public interface StringChoicesRendererOptions {
         return Optional.empty();
     }
 
-    /**
-     *
-     * @return the possible dynamic choices displayed in the renderer
-     */
-    default Optional<String> getChoicesProvider() {
-        return Optional.empty();
-    }
 }

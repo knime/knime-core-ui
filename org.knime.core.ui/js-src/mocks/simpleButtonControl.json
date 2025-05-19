@@ -39,8 +39,7 @@
     "globalUpdates": [
       {
         "trigger": {
-          "id": "buttonTriggerId (from simpleButtonControl.json)",
-          "scope": "#/properties/button"
+          "id": "buttonTriggerId (from simpleButtonControl.json)"
         },
         "dependencies": []
       }

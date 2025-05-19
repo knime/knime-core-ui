@@ -53,7 +53,6 @@ import java.util.List;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
 
 /**
@@ -82,12 +81,33 @@ public interface UpdateSimulator {
         }
 
         /**
+         * Use only for model settings. For view settings, use {@link #getValueUpdateAt(SettingsType, List)}.
+         *
          * @param settingsType
          * @param path to the field
          * @return the updated value
          */
         default Object getValueUpdateAt(final SettingsType settingsType, final String... path) {
-            return getValueUpdatesInArrayAt(settingsType, List.of(List.of(path)));
+            return getValueUpdateAt(settingsType, List.of(path));
+        }
+
+        /**
+         * Use only for model settings. For view settings, use {@link #getValueUpdateAt(SettingsType, List)}.
+         *
+         * @param path to the field
+         * @return the updated value
+         */
+        default Object getValueUpdateAt(final List<String> path) {
+            return getValueUpdateAt(SettingsType.MODEL, path);
+        }
+
+        /**
+         * @param settingsType
+         * @param path to the field
+         * @return the updated value
+         */
+        default Object getValueUpdateAt(final SettingsType settingsType, final List<String> path) {
+            return getValueUpdatesInArrayAt(settingsType, List.of(path));
         }
 
         /**
@@ -133,30 +153,100 @@ public interface UpdateSimulator {
         /**
          * To be used when all ui states of the same field are updated simultaneously per array layout element.
          *
-         * @param stateProviderClass triggered by the update
+         * @param paths at which a ui state is updated
+         * @param updatedOptionName the name of the ui state to be updated
          * @return the updated values
          */
-        List<IndexedValue<Integer>> getMultiUiStateUpdateAt(Class<? extends StateProvider<?>> stateProviderClass);
+        default List<IndexedValue<Integer>> getMultiUiStateUpdateAt(final List<List<String>> paths,
+            final String updatedOptionName) {
+            return getMultiUiStateUpdateAt(SettingsType.MODEL, paths, updatedOptionName);
+        }
 
         /**
-         * @param <T> the type of the state
-         * @param stateProviderClass triggered by the update
+         * To be used when all ui states of the same field are updated simultaneously per array layout element.
+         *
+         * @param settingsType
+         * @param paths at which a ui state is updated
+         * @param updatedOptionName the name of the ui state to be updated
+         * @return the updated values
+         */
+        List<IndexedValue<Integer>> getMultiUiStateUpdateAt(final SettingsType settingsType, List<List<String>> paths,
+            String updatedOptionName);
+
+        /**
+         * @param paths at which a ui state is updated
+         * @param updatedOptionName the name of the ui state to be updated
          * @return the updated value
          */
-        @SuppressWarnings("unchecked")
-        default <T> T getUiStateUpdateAt(final Class<? extends StateProvider<T>> stateProviderClass) {
-            return (T)getMultiUiStateUpdateAt(stateProviderClass).get(0).value();
+        default Object getUiStateUpdateAt(final List<String> paths, final String updatedOptionName) {
+            return getUiStateUpdateInArrayAt(List.of(paths), updatedOptionName);
+        }
+
+        /**
+         * @param paths at which a ui state is updated
+         * @param updatedOptionName the name of the ui state to be updated
+         * @return the updated value
+         */
+        default Object getUiStateUpdateInArrayAt(final List<List<String>> paths, final String updatedOptionName) {
+            return getMultiUiStateUpdateAt(paths, updatedOptionName).get(0).value();
         }
 
     }
 
     /**
-     * @param scope of the value that is changed and triggers the update
+     * @param settingsType of the setting that is to be changed and triggers the update
+     * @param paths to the setting that is changed and triggers the update
      * @param indices to be provided when the value is nested within an array layout (e.g. 1,2 means that it is the
      *            second element of the first element of an array layout within an array layout)
      * @return the resulting updates
      */
-    UpdateSimulatorResult simulateValueChange(String scope, int... indices);
+    UpdateSimulatorResult simulateValueChange(SettingsType settingsType, List<List<String>> paths, int... indices);
+
+    /**
+     *
+     * For view settings, use {@link #simulateValueChange(SettingsType, List, int...)}.
+     *
+     * @param paths to the model setting that is changed and triggers the update
+     * @param indices to be provided when the value is nested within an array layout (e.g. 1,2 means that it is the
+     *            second element of the first element of an array layout within an array layout)
+     * @return the resulting updates
+     */
+    default UpdateSimulatorResult simulateValueChange(final List<List<String>> paths, final int... indices) {
+        return simulateValueChange(SettingsType.MODEL, paths, indices);
+    }
+
+    /**
+     * Use {@link #simulateValueChange(List, int...)} instead if the setting is nested inside an array layout.
+     *
+     * @param settingsType of the setting that is to be changed and triggers the update
+     * @param path to the model setting that is changed and triggers the update
+     * @return the resulting updates
+     */
+    default UpdateSimulatorResult simulateValueChange(final SettingsType settingsType, final List<String> path) {
+        return simulateValueChange(settingsType, List.of(path));
+    }
+
+    /**
+     * Use {@link #simulateValueChange(SettingsType, List, int...)} instead if the setting is nested inside an array
+     * layout. For view settings, use {@link #simulateValueChange(SettingsType, List)}.
+     *
+     * @param path to the model setting that is changed and triggers the update
+     * @return the resulting updates
+     */
+    default UpdateSimulatorResult simulateValueChange(final List<String> path) {
+        return simulateValueChange(SettingsType.MODEL, List.of(path));
+    }
+
+    /**
+     * Use {@link #simulateValueChange(SettingsType, List, int...)} instead if the setting is nested inside an array
+     * layout. For view settings, use {@link #simulateValueChange(SettingsType, List)}.
+     *
+     * @param path to the model setting that is changed and triggers the update
+     * @return the resulting updates
+     */
+    default UpdateSimulatorResult simulateValueChange(final String... path) {
+        return simulateValueChange(SettingsType.MODEL, List.of(path));
+    }
 
     /**
      *

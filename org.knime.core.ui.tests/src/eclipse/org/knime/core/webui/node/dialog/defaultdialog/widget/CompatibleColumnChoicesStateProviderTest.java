@@ -130,13 +130,15 @@ class CompatibleColumnChoicesStateProviderTest {
         assertColumnChoices(beforeOpenDialogResults, stringColumn, intColumn, boolColumn);
 
         settings.m_behaviourType = SettingsEnumThatDeterminesCompatibleColumnDataValues.ONLY_INT_COLUMNS;
-        var nextUpdateResult = simulator.simulateValueChange("#/properties/model/properties/behaviourType");
+        var nextUpdateResult = simulator.simulateValueChange("behaviourType");
 
         assertColumnChoices(nextUpdateResult, intColumn, boolColumn);
     }
 
     private static void assertColumnChoices(final UpdateSimulatorResult result, final String... expectedColumnNames) {
-        var columnChoices = result.getUiStateUpdateAt(ColumnProvider.class);
+        @SuppressWarnings("unchecked")
+        var columnChoices =
+            (List<TypedStringChoice>)result.getUiStateUpdateAt(List.of("columnFilter"), "possibleValues");
         assertThat(columnChoices.stream().map(TypedStringChoice::id).toList()).isEqualTo(List.of(expectedColumnNames));
     }
 

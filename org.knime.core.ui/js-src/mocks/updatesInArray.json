@@ -116,9 +116,9 @@
                     "type": "Control",
                     "scope": "#/properties/product",
                     "options": {
-                      "format": "dropDown",
-                      "choicesProvider": "myChoicesProvider"
-                    }
+                      "format": "dropDown"
+                    },
+                    "providedOptions": ["possibleValues"]
                   },
                   {
                     "type": "Control",
@@ -143,9 +143,9 @@
                           "type": "Control",
                           "scope": "#/properties/product",
                           "options": {
-                            "format": "dropDown",
-                            "choicesProvider": "myNestedChoicesProvider"
-                          }
+                            "format": "dropDown"
+                          },
+                          "providedOptions": ["possibleValues"]
                         }
                       ]
                     }

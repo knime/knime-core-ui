@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/schema-draft-v4.json",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["indices", "value"],
+    "properties": {
+      "indices": {
+        "type": "array",
+        "items": { "type": "number" }
+      },
+      "value": {}
+    },
+    "additionalProperties": false
+  }
+}

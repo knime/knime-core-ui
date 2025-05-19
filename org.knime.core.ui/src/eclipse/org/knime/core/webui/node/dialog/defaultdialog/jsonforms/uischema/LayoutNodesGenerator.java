@@ -49,6 +49,7 @@
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ELEMENTS;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ID;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_SCOPE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_TYPE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TYPE_CONTROL;
@@ -61,6 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUt
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -123,7 +125,14 @@ final class LayoutNodesGenerator {
             return;
         }
         final var scope = getScope(node);
-        final var control = root.addObject().put(TAG_TYPE, TYPE_CONTROL).put(TAG_SCOPE, scope);
+        final var control = root.addObject()//
+            .put(TAG_TYPE, TYPE_CONTROL);//
+
+        if (WidgetTreeUtil.hasScope(node)) {
+            control.put(TAG_SCOPE, scope);
+        } else {
+            control.put(TAG_ID, scope);
+        }
         addOptions(node, control);
         addRule(node, control);
     }

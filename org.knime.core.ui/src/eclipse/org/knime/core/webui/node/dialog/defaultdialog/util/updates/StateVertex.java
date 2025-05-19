@@ -48,8 +48,6 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil.createInstance;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -70,16 +68,11 @@ final class StateVertex extends Vertex {
     private final Map<Object, DependencyVertex> m_dependencies = new HashMap<>();
 
     /**
-     * @param identifier an object whose {@link Object#equals} method is used to identify the state provider
-     * @param stateProviderSupplier the supplier of the state provider
+     * @param resolved the resolved state provider
      */
-    public StateVertex(final Object identifier, final Supplier<StateProvider> stateProviderSupplier) {
-        m_identifier = identifier;
-        m_stateProviderSupplier = stateProviderSupplier;
-    }
-
-    public StateVertex(final Class<? extends StateProvider> stateProviderClass) {
-        this(stateProviderClass, () -> createInstance(stateProviderClass));
+    public StateVertex(final ResolvedStateProvider resolved) {
+        m_identifier = resolved.identifier();
+        m_stateProviderSupplier = resolved.stateProviderSupplier();
     }
 
     @Override

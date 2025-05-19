@@ -86,10 +86,11 @@ final class TriggerDeserializer extends JsonDeserializer<Trigger> {
         @SuppressWarnings("unchecked")
         final Map<String, Object> map = p.readValueAs(Map.class);
         final var scope = getParameter(map, SCOPE);
-        final var id = getParameter(map, ID);
         if (scope.isPresent()) {
             return new Trigger.ValueTrigger(scope.get());
-        } else if (id.isPresent()) {
+        }
+        final var id = getParameter(map, ID);
+        if (id.isPresent()) {
             return new Trigger.IdTrigger(id.get());
         } else {
             throw new IOException("Could not deserialize trigger, since no scope or id was provided.");

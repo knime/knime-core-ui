@@ -27,19 +27,17 @@ type PropType = FileChooserProps & {
   selectionMode: "FILE" | "FOLDER";
 };
 
-const props = withDefaults(defineProps<PropType>(), {
-  options: () => ({}),
-});
+const props = defineProps<PropType>();
 const emit = defineEmits(["update:modelValue", "applyAndClose"]);
 
-const options = toRef(props, "options");
+const uischema = toRef(props, "uischema");
 const { onFsCategoryUpdate, onPathUpdate, onTimeoutUpdate } =
   useFileChooserStateChange(
     toRef(props, "modelValue"),
     (value: FileChooserValue) => {
       emit("update:modelValue", value);
     },
-    options,
+    uischema,
   );
 const {
   filteredExtensions,
@@ -52,7 +50,7 @@ const {
   isConnected,
   portFileSystemName,
   portIndex,
-} = useFileChooserBrowseOptions(options);
+} = useFileChooserBrowseOptions(uischema);
 
 type TabSpec = {
   value: keyof typeof FSCategory;

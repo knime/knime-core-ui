@@ -430,9 +430,9 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/columnSelection",
       "options" : {
-        "choicesProvider" : "org.knime.testing.node.dialog.DefaultNodeSettingsWithAllWidgets$MyColumnChoicesProvider",
         "format" : "dropDown"
-      }
+      },
+      "providedOptions" : [ "possibleValues" ]
     }, {
       "type" : "Control",
       "scope" : "#/properties/model/properties/columnFilter",

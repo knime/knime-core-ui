@@ -395,7 +395,6 @@ describe("flow variables", () => {
               value: "some updated value",
             },
           ],
-          id: null,
         },
       ] satisfies UpdateResult[],
     });

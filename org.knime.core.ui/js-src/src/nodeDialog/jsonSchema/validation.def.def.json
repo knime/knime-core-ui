@@ -7,12 +7,6 @@
     "properties": {
       "type": "object",
       "properties": {
-        "id": {
-          "type": "object",
-          "properties": {
-            "const": { "type": "string" }
-          }
-        },
         "parameters": {
           "type": "object",
           "properties": {
@@ -29,7 +23,7 @@
           }
         }
       },
-      "required": ["id", "parameters", "errorMessage"]
+      "required": ["parameters", "errorMessage"]
     }
   }
 }

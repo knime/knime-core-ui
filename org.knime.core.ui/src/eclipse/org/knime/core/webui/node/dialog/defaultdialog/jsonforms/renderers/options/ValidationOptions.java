@@ -50,21 +50,20 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.optio
 
 import java.util.Optional;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.BuiltinValidation;
-
 /**
  * Options for built-in validation.
  *
  * @author Paul Bärnreuther
  * @param <T> the type of the validation
  */
-public interface ValidationOptions<T extends BuiltinValidation> {
+public interface ValidationOptions<T> {
 
-    default Optional<T[]> getValidations() {
-        return Optional.empty();
-    }
-
-    default Optional<String[]> getValidationProviders() {
+    /**
+     * The validation options.
+     *
+     * @return the validation options. No validation per default.
+     */
+    default Optional<T> getValidation() {
         return Optional.empty();
     }
 

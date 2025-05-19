@@ -48,6 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -59,6 +61,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.Credent
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBooleanProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 class CredentialsRenderer extends WidgetTreeControlRendererSpec implements CredentialsRendererSpec {
 
@@ -88,21 +91,22 @@ class CredentialsRenderer extends WidgetTreeControlRendererSpec implements Crede
         return Optional.empty();
     }
 
+    @Override
+    public Map<String, Class<? extends StateProvider>> getStateProviderClasses() {
+        final Map<String, Class<? extends StateProvider>> stateProviderClasses = new HashMap<>();
+        final var credentialsWidget = m_node.getAnnotation(CredentialsWidget.class);
+        final var hasUsernameProvider = credentialsWidget.map(CredentialsWidget::hasUsernameProvider)
+            .filter(prov -> !prov.equals(NoopBooleanProvider.class));
+        hasUsernameProvider.ifPresent(provider -> stateProviderClasses.put(HAS_USERNAME, provider));
+        final var hasPasswordProvider = credentialsWidget.map(CredentialsWidget::hasPasswordProvider)
+            .filter(prov -> !prov.equals(NoopBooleanProvider.class));
+        hasPasswordProvider.ifPresent(provider -> stateProviderClasses.put(HAS_PASSWORD, provider));
+        return stateProviderClasses;
+    }
+
     private static CredentialsRendererOptions
         getOptionsFromCredentialsWidget(final CredentialsWidget credentialsWidget) {
         return new CredentialsRendererOptions() {
-
-            @Override
-            public Optional<String> getHasUsernameProvider() {
-                return Optional.of(credentialsWidget.hasUsernameProvider())
-                    .filter(prov -> !prov.equals(NoopBooleanProvider.class)).map(Class::getName);
-            }
-
-            @Override
-            public Optional<String> getHasPasswordProvider() {
-                return Optional.of(credentialsWidget.hasPasswordProvider())
-                    .filter(prov -> !prov.equals(NoopBooleanProvider.class)).map(Class::getName);
-            }
 
             @Override
             public Optional<String> getUsernameLabel() {
@@ -137,8 +141,8 @@ class CredentialsRenderer extends WidgetTreeControlRendererSpec implements Crede
         return new CredentialsRendererOptions() {
 
             @Override
-            public Optional<Boolean> getHideUsername() {
-                return Optional.of(true);
+            public Optional<Boolean> getHasUsername() {
+                return Optional.of(false);
             }
 
             @Override
@@ -169,8 +173,8 @@ class CredentialsRenderer extends WidgetTreeControlRendererSpec implements Crede
         return new CredentialsRendererOptions() {
 
             @Override
-            public Optional<Boolean> getHidePassword() {
-                return Optional.of(true);
+            public Optional<Boolean> getHasPassword() {
+                return Optional.of(false);
             }
 
             @Override

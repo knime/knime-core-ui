@@ -36,17 +36,34 @@ export type IndexIdsValuePairs = { indices: string[]; value: unknown }[]; // asy
 export type Pairs = IndicesValuePairs | IndexIdsValuePairs;
 
 // value updates
-export interface ScopeAndValue {
+export interface ValueUpdateResult {
   scope: string;
-  id: null;
+  values: Pairs;
+}
+
+export interface LocationUiStateUpdateResult {
+  scope: string;
+  providedOptionName: string;
   values: Pairs;
 }
 
 // ui state updates
-export interface IdAndValue {
-  scope: null;
+export interface IdUiStateUpdateResult {
   id: string;
+  providedOptionName: string;
   values: Pairs;
 }
 
-export type UpdateResult = ScopeAndValue | IdAndValue;
+export type UpdateResult =
+  | ValueUpdateResult
+  | LocationUiStateUpdateResult
+  | IdUiStateUpdateResult;
+
+export const isValueUpdateResult = (
+  result: UpdateResult,
+): result is ValueUpdateResult =>
+  "scope" in result && !("providedOptionName" in result);
+
+export const isLocationBased = (
+  result: LocationUiStateUpdateResult | IdUiStateUpdateResult,
+): result is LocationUiStateUpdateResult => "scope" in result;

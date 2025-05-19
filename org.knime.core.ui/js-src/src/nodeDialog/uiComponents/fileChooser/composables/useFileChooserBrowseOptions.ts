@@ -1,15 +1,16 @@
-import { type Ref, computed, onMounted, ref } from "vue";
+import { type Ref, computed, onMounted, ref, watch } from "vue";
 
-import { type FileChooserOptions } from "../../../types/FileChooserUiSchema";
-import inject from "../../../utils/inject";
+import { useProvidedState } from "@knime/jsonforms";
+
+import { type FileChooserUiSchema } from "../../../types/FileChooserUiSchema";
 import { FSCategory } from "../types/FileChooserProps";
 
 export const useFileChooserFileSystemsOptions = (
-  options: Ref<FileChooserOptions>,
+  uischema: Ref<FileChooserUiSchema>,
 ) => {
-  const isLocal = computed(() => options.value.isLocal);
+  const isLocal = computed(() => uischema.value.options?.isLocal);
   const isConnected = computed(
-    () => typeof options.value.portIndex !== "undefined",
+    () => typeof uischema.value.options?.portIndex !== "undefined",
   );
   const validCategories = computed<(keyof typeof FSCategory)[]>(() =>
     isConnected.value
@@ -26,10 +27,10 @@ export const useFileChooserFileSystemsOptions = (
 };
 
 export const useFileChooserBrowseOptions = (
-  options: Ref<FileChooserOptions>,
+  uischema: Ref<FileChooserUiSchema>,
 ) => {
-  const { isLocal, isConnected } = useFileChooserFileSystemsOptions(options);
-  const addStateProviderListener = inject("addStateProviderListener");
+  const options = computed(() => uischema.value.options ?? {});
+  const { isLocal, isConnected } = useFileChooserFileSystemsOptions(uischema);
   const filteredExtensions = ref<string[]>([]);
   const appendedExtension = ref<string | null>(null);
   const isWriter = computed(() => options.value.isWriter);
@@ -46,22 +47,31 @@ export const useFileChooserBrowseOptions = (
     appendedExtension.value = fileExtension;
     isLoaded.value = true;
   };
+  const fileExtension = useProvidedState(uischema, "fileExtension");
+  watch(
+    fileExtension,
+    (newFileExtension) => {
+      if (newFileExtension) {
+        setFileExtension(newFileExtension);
+      }
+    },
+    {
+      immediate: true,
+    },
+  );
 
   onMounted(() => {
-    const { fileExtension, fileExtensionProvider, fileExtensions } =
-      options.value;
-    if (!fileExtension && !fileExtensionProvider && !fileExtensions) {
+    const { fileExtension, fileExtensions } = options.value;
+    if (
+      !fileExtension &&
+      !uischema.value.providedOptions?.includes("fileExtension") &&
+      !fileExtensions
+    ) {
       isLoaded.value = true;
       return;
     }
-    if (fileExtension) {
-      setFileExtension(fileExtension);
-    } else if (fileExtensionProvider) {
-      addStateProviderListener({ id: fileExtensionProvider }, setFileExtension);
-    } else if (fileExtensions) {
+    if (fileExtensions) {
       filteredExtensions.value = fileExtensions;
-      isLoaded.value = true;
-    } else {
       isLoaded.value = true;
     }
   });

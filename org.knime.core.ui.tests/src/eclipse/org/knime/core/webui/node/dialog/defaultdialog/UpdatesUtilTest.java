@@ -78,7 +78,6 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
@@ -505,13 +504,14 @@ public class UpdatesUtilTest {
         assertThatJson(response).inPath("$").isObject().doesNotContainKey("globalUpdates");
         assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(2);
         assertThatJson(response).inPath("$.initialUpdates[0].scope").isString()
-            .isEqualTo("#/properties/model/properties/valueUpdateSetting");
-        assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isObject().containsEntry("value",
-            TestSettings.MyValueProvider.RESULT);
-        assertThatJson(response).inPath("$.initialUpdates[1].id").isString()
-            .isEqualTo(TestSettings.MyInitialFileExtensionProvider.class.getName());
-        assertThatJson(response).inPath("$.initialUpdates[1].values[0].value").isString()
+            .isEqualTo("#/properties/model/properties/localFileWriter");
+        assertThatJson(response).inPath("$.initialUpdates[0].providedOptionName").isString().isEqualTo("fileExtension");
+        assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isString()
             .isEqualTo(TestSettings.MyInitialFileExtensionProvider.RESULT);
+        assertThatJson(response).inPath("$.initialUpdates[1].scope").isString()
+            .isEqualTo("#/properties/model/properties/valueUpdateSetting");
+        assertThatJson(response).inPath("$.initialUpdates[1].values[0].value").isObject().containsEntry("value",
+            TestSettings.MyValueProvider.RESULT);
     }
 
     @Test
@@ -734,6 +734,9 @@ public class UpdatesUtilTest {
             final Map<SettingsType, WidgetGroup> settings = Map.of(SettingsType.MODEL, new TestSettings());
             final var response = buildUpdates(settings);
             assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
+            assertThatJson(response).inPath("$.initialUpdates[0].id").isString()
+                .isEqualTo("#/properties/model/properties/textMessage");
+            assertThatJson(response).inPath("$.initialUpdates[0].providedOptionName").isString().isEqualTo("message");
         }
 
         @Test
@@ -815,8 +818,8 @@ public class UpdatesUtilTest {
             final var response = buildUpdates(settings);
 
             assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
-            assertThatJson(response).inPath("$.initialUpdates[0].id").isString()
-                .isEqualTo(TestStringChoicesProvider.class.getName());
+            assertThatJson(response).inPath("$.initialUpdates[0].scope").isString()
+                .isEqualTo("#/properties/model/properties/string");
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isArray().hasSize(3);
             List.of(0, 1, 2).forEach(i -> {
                 assertThatJson(response).inPath(String.format("$.initialUpdates[0].values[0].value[%s].id", i))
@@ -856,8 +859,10 @@ public class UpdatesUtilTest {
             final var response = buildUpdates(settings);
 
             assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
-            assertThatJson(response).inPath("$.initialUpdates[0].id").isString()
-                .isEqualTo(MyEnumProvider.class.getName());
+            assertThatJson(response).inPath("$.initialUpdates[0].scope").isString()
+                .isEqualTo("#/properties/model/properties/enum");
+            assertThatJson(response).inPath("$.initialUpdates[0].providedOptionName").isString()
+                .isEqualTo("possibleValues");
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isArray().hasSize(2);
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].id").isString().isEqualTo("A");
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].text").isString().isEqualTo("A");
@@ -883,8 +888,10 @@ public class UpdatesUtilTest {
             final var response = buildUpdates(settings);
 
             assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
-            assertThatJson(response).inPath("$.initialUpdates[0].id").isString()
-                .isEqualTo(TestColumnChoicesProvider.class.getName());
+            assertThatJson(response).inPath("$.initialUpdates[0].scope").isString()
+                .startsWith("#/properties/model/properties/column");
+            assertThatJson(response).inPath("$.initialUpdates[0].providedOptionName").isString()
+                .isEqualTo("possibleValues");
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isArray().hasSize(1);
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].id").isString().isEqualTo("A");
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].text").isString().isEqualTo("A");
@@ -922,8 +929,10 @@ public class UpdatesUtilTest {
             final var response = buildUpdates(settings);
 
             assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
-            assertThatJson(response).inPath("$.initialUpdates[0].id").isString()
-                .isEqualTo(TestFlowVariableChoicesProvider.class.getName());
+            assertThatJson(response).inPath("$.initialUpdates[0].scope").isString()
+                .startsWith("#/properties/model/properties/flowVariable");
+            assertThatJson(response).inPath("$.initialUpdates[0].providedOptionName").isString()
+                .isEqualTo("possibleValues");
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isArray().hasSize(2);
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].id").isString()
                 .isEqualTo("someInt");
@@ -988,20 +997,24 @@ public class UpdatesUtilTest {
             final var settings = new TestSettings();
             final var response = buildUpdates(settings);
             assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(2);
-            assertThatJson(response).inPath("$.initialUpdates[0].id").isString()
-                .isEqualTo(TestSettings.OnlyStringAndDoubleChoicesProvider.class.getName());
-            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isArray().hasSize(2);
-            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].id").isString()
+            assertThatJson(response).inPath("$.initialUpdates[0].scope").isString()
+                .isEqualTo("#/properties/model/properties/dataType");
+            assertThatJson(response).inPath("$.initialUpdates[0].providedOptionName").isString()
+                .isEqualTo("possibleValues");
+            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isArray().hasSizeGreaterThan(2);
+            assertThatJson(response).inPath("$.initialUpdates[1].scope").isString()
+                .isEqualTo("#/properties/model/properties/limitedChoicesDataType");
+            assertThatJson(response).inPath("$.initialUpdates[1].providedOptionName").isString()
+                .isEqualTo("possibleValues");
+            assertThatJson(response).inPath("$.initialUpdates[1].values[0].value").isArray().hasSize(2);
+            assertThatJson(response).inPath("$.initialUpdates[1].values[0].value[0].id").isString()
                 .contains(DoubleCell.class.getName());
-            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[0].text").isString()
+            assertThatJson(response).inPath("$.initialUpdates[1].values[0].value[0].text").isString()
                 .isEqualTo(DoubleCell.TYPE.getName());
-            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[1].id").isString()
+            assertThatJson(response).inPath("$.initialUpdates[1].values[0].value[1].id").isString()
                 .contains(StringCell.class.getName());
-            assertThatJson(response).inPath("$.initialUpdates[0].values[0].value[1].text").isString()
+            assertThatJson(response).inPath("$.initialUpdates[1].values[0].value[1].text").isString()
                 .isEqualTo(StringCell.TYPE.getName());
-            assertThatJson(response).inPath("$.initialUpdates[1].id").isString()
-                .isEqualTo(DefaultDataTypeChoicesProvider.class.getName());
-            assertThatJson(response).inPath("$.initialUpdates[1].values[0].value").isArray().hasSizeGreaterThan(2);
 
         }
 
@@ -1023,7 +1036,7 @@ public class UpdatesUtilTest {
         void testNumberInputProvider() {
             class TestSettings implements DefaultNodeSettings {
 
-                @NumberInputWidget(validationProvider = MyDynamicMinValidation.class)
+                @NumberInputWidget(minValidationProvider = MyDynamicMinValidation.class)
                 double m_numberInput = 5;
             }
 

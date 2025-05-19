@@ -4,14 +4,19 @@
   "scope": "#/properties/text",
   "options": {
     "placeholder": "Enter text here",
-    "validations": [
-      {
-        "id": "minLength",
+    "validation": {
+      "minLength": {
         "parameters": {
           "minLength": 1
         },
         "errorMessage": "This field is required"
+      },
+      "pattern": {
+        "parameters": {
+          "pattern": "^\\w+$"
+        },
+        "errorMessage": "Only alphanumeric characters are allowed."
       }
-    ]
+    }
   }
 }

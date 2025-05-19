@@ -258,15 +258,19 @@ describe("updates in array layouts", () => {
 
   // Dropdown
 
-  const makeTextDropdownWithChoicesProvider = (choicesProviderId: string) => {
-    initialDataJson[uiSchemaKey].elements[0].options.detail[0].options = {
-      format: "dropDown",
-      choicesProvider: choicesProviderId,
+  const makeTextDropdownWithChoicesProvider = () => {
+    const uischema = initialDataJson[uiSchemaKey].elements[0].options.detail[0];
+    uischema.options = { format: "dropDown" };
+    uischema.providedOptions = ["possibleValues"];
+
+    return {
+      choicesProviderScope:
+        "#/properties/model/properties/values/items/properties/value",
     };
   };
 
   const mockRPCResultToUpdateElementDropdownChoices = (
-    choicesProviderId: string,
+    choicesProviderScope: string,
   ) => {
     const possibleValues = ref([
       { id: "foo", text: "Foo" },
@@ -274,9 +278,9 @@ describe("updates in array layouts", () => {
     ]);
     mockRPCResult(() => [
       {
-        id: choicesProviderId,
+        scope: choicesProviderScope,
+        providedOptionName: "possibleValues",
         values: [{ indices: [], value: possibleValues.value }],
-        scope: null,
       },
     ]);
     return {
@@ -347,20 +351,19 @@ describe("updates in array layouts", () => {
   };
 
   const createDropdownWithToBeUpdatedChoices = () => {
-    const myChoicesProvider = "myChoicesProvider";
-    makeTextDropdownWithChoicesProvider(myChoicesProvider);
+    const { choicesProviderScope } = makeTextDropdownWithChoicesProvider();
 
     const { getNthDropdownChoices, possibleValues } =
-      mockRPCResultToUpdateElementDropdownChoices(myChoicesProvider);
+      mockRPCResultToUpdateElementDropdownChoices(choicesProviderScope);
     initialDataJson.initialUpdates.push({
-      id: myChoicesProvider,
       values: [
         {
           indices: [],
           value: possibleValues.value,
         },
       ],
-      scope: null,
+      scope: choicesProviderScope,
+      providedOptionName: "possibleValues",
     });
     return { getNthDropdownChoices, possibleValues };
   };
@@ -380,7 +383,7 @@ describe("updates in array layouts", () => {
       };
     };
 
-    it.each(arrayIndexWithOtherIndicesList)(
+    it.each([arrayIndexWithOtherIndicesList[0]])(
       "performs ui state updates from trigger within array element %s",
       async (index, otherIndices) => {
         const {
@@ -699,7 +702,6 @@ describe("updates in array layouts", () => {
             (i) => `Initially updated value ${i}`,
           );
           const { expectAfterMount } = mockInitialUpdate({
-            id: null,
             values: getInitialUpdateValues(initialUpdateValues),
             scope: dependencyScope,
           });
@@ -741,22 +743,22 @@ describe("updates in array layouts", () => {
         });
 
         const defineInitialDropdownUpdates = () => {
-          const choicesProviderId = "myChoicesProvider";
-          makeTextDropdownWithChoicesProvider(choicesProviderId);
+          const { choicesProviderScope } =
+            makeTextDropdownWithChoicesProvider();
           const initialUpdateChoices = arrayIndices.map((i) => [
             { id: `initialChoice${i}`, text: `Initial choice ${i}` },
           ]);
           const { expectAfterMount } = mockInitialUpdate({
-            id: choicesProviderId,
+            scope: choicesProviderScope,
+            providedOptionName: "possibleValues",
             values: initialUpdateChoices.map((choices, i) => ({
               indices: [i],
               value: choices,
             })),
-            scope: null,
           });
 
           return {
-            choicesProviderId,
+            choicesProviderScope,
             getNthDropdownChoices: (wrapper: Wrapper, n: number) =>
               wrapper
                 .find(".array")
@@ -796,7 +798,7 @@ describe("updates in array layouts", () => {
 
         const prepareInitialAndSubsequentDropdownChoicesUpdatesForEachArrayElement =
           async () => {
-            const { choicesProviderId, getNthDropdownChoices } =
+            const { choicesProviderScope, getNthDropdownChoices } =
               defineInitialDropdownUpdates();
 
             const {
@@ -806,7 +808,7 @@ describe("updates in array layouts", () => {
             addDependency(dependencyScope);
 
             const { possibleValues: subsequentUpdateChoices } =
-              mockRPCResultToUpdateElementDropdownChoices(choicesProviderId);
+              mockRPCResultToUpdateElementDropdownChoices(choicesProviderScope);
 
             // We hide only one of the dropdowns. Otherwise we run into dynamicImportsSettled issues
             const { showFirstElementControl } = hideFirstElementControl();

@@ -2,36 +2,30 @@
   "$schema": "https://json.schemastore.org/schema-draft-v4.json",
   "title": "UpdateResult",
   "type": "object",
-  "required": ["scope", "id", "values"],
-  "properties": {
-    "values": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["indices", "value"],
-        "properties": {
-          "indices": {
-            "type": "array",
-            "items": { "type": "number" }
-          },
-          "value": {}
-        },
-        "additionalProperties": false
-      }
-    }
-  },
   "oneOf": [
     {
+      "title": "scope-based update of either the value or an ui state",
       "properties": {
+        "values": {
+          "$ref": "./updateResultValues.def.json"
+        },
         "scope": { "type": "string" },
-        "id": { "type": "null" }
-      }
+        "providedOptionName": { "type": "string" }
+      },
+      "required": ["values", "scope"],
+      "additionalProperties": false
     },
     {
+      "title": "id-based update of an ui state",
       "properties": {
-        "scope": { "type": "null" },
-        "id": { "type": "string" }
-      }
+        "values": {
+          "$ref": "./updateResultValues.def.json"
+        },
+        "id": { "type": "string" },
+        "providedOptionName": { "type": "string" }
+      },
+      "required": ["values", "id", "providedOptionName"],
+      "additionalProperties": false
     }
   ]
 }

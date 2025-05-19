@@ -14,33 +14,41 @@
             "placeholder": {
               "type": "string"
             },
-            "placeholderProvider": {
-              "type": "string"
-            },
-            "validations": {
-              "type": "array",
-              "items": {
-                "anyOf": [
-                  {
-                    "$ref": "./validation/minLength.def.json"
-                  },
-                  {
-                    "$ref": "./validation/maxLength.def.json"
-                  },
-                  {
-                    "$ref": "./validation/pattern.def.json"
-                  }
-                ]
-              }
-            },
-            "validationProviders": {
-              "type": "array",
-              "items": {
-                "type": "string"
+            "validation": {
+              "type": "object",
+              "properties": {
+                "minLength": {
+                  "$ref": "./validation/minLength.def.json"
+                },
+                "maxLength": {
+                  "$ref": "./validation/maxLength.def.json"
+                },
+                "pattern": {
+                  "$ref": "./validation/pattern.def.json"
+                }
               }
             }
           },
           "additionalProperties": false
+        },
+        "providedOptions": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "const": "placeholder"
+              },
+              {
+                "const": "validation.pattern"
+              },
+              {
+                "const": "validation.minLength"
+              },
+              {
+                "const": "validation.maxLength"
+              }
+            ]
+          }
         }
       }
     }

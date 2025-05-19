@@ -48,7 +48,10 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 
+import java.util.Map;
 import java.util.Optional;
+
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
  * The specification of a control, i.e. a widget that controls the value of one setting.
@@ -77,6 +80,18 @@ public interface ControlRendererSpec extends LocalizedControlRendererSpec {
      */
     default Object getOptions() {
         return null;
+    }
+
+    /**
+     * Some options may be provided dynamically by a state provider. This method defines which options are provided by
+     * which state providers.
+     *
+     * @return a mapping from option names which are usually keys in the options object
+     */
+    @SuppressWarnings("rawtypes")
+    default Map<String, Class<? extends StateProvider>> getStateProviderClasses() {
+        return Map.of();
+
     }
 
     /**

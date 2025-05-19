@@ -59,6 +59,7 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.ConvertValueUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.LocationAndType;
@@ -85,8 +86,7 @@ final class DataServiceTriggerInvocationHandler {
         m_triggerInvocationHandler = TriggerInvocationHandler.fromWidgetTrees(widgetTrees, m_context);
     }
 
-    List<UpdateResultsUtil.UpdateResult<String>> trigger(final Trigger trigger,
-        final Map<String, List<IndexedValue<String>>> rawDependencies) {
+    List<UpdateResult> trigger(final Trigger trigger, final Map<String, List<IndexedValue<String>>> rawDependencies) {
         final Function<LocationAndType, List<IndexedValue<String>>> dependencyProvider =
             locationAndType -> rawDependencies.get(getScopeFromLocation(locationAndType.location())).stream()
                 .map(raw -> new IndexedValue<>(raw.indices(),

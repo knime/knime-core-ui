@@ -534,11 +534,15 @@ describe("NodeDialog.vue", () => {
 
       const { wrapper, dataServiceSpy } = await getWrapperWithDataServiceSpy();
 
-      const stateProviderId = "myId";
+      const stateProviderScope = "myStateProviderScope";
+      const stateProviderOptionName = "myStateProviderOptionName";
 
       const stateProviderListener = vi.fn();
       wrapper.vm.addStateProviderListener(
-        { id: stateProviderId },
+        {
+          scope: stateProviderScope,
+          providedOptionName: stateProviderOptionName,
+        },
         stateProviderListener,
       );
       const updatedValue = "updated";
@@ -546,9 +550,10 @@ describe("NodeDialog.vue", () => {
         state: "SUCCESS",
         result: [
           {
-            id: stateProviderId,
+            scope: stateProviderScope,
+            providedOptionName: stateProviderOptionName,
             values: [{ indices: [], value: updatedValue }],
-          },
+          } satisfies UpdateResult,
         ],
         message: ["Success message."],
       });
@@ -601,7 +606,6 @@ describe("NodeDialog.vue", () => {
         {
           scope: "#/properties/model/properties/secondSetting",
           values: [{ indices: [], value: updatedValue }],
-          id: null,
         },
       ];
 

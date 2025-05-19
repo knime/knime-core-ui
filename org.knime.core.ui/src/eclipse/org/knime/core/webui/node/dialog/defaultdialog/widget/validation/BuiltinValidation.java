@@ -70,12 +70,6 @@ public interface BuiltinValidation {
 
     /**
      *
-     * @return an id to uniquely identify this validation
-     */
-    String getId();
-
-    /**
-     *
      * @return the parameters needed for the validation
      */
     Object getParameters();

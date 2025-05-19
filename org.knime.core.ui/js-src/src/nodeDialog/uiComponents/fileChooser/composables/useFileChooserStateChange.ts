@@ -1,16 +1,16 @@
 import { type Ref } from "vue";
 
-import { type FileChooserOptions } from "../../../types/FileChooserUiSchema";
+import { type FileChooserUiSchema } from "../../../types/FileChooserUiSchema";
 import { mergeDeep } from "../../../utils";
 import type { FSCategory, FileChooserValue } from "../types/FileChooserProps";
 
 export default (
   currentValue: Ref<FileChooserValue>,
   onChange: (value: FileChooserValue) => void,
-  options: Ref<FileChooserOptions>,
+  uischema: Ref<FileChooserUiSchema>,
 ) => {
   const onPathUpdate = (path: string) => {
-    const fsSpecifier = options.value.fileSystemSpecifier;
+    const fsSpecifier = uischema.value.options?.fileSystemSpecifier;
     onChange(
       mergeDeep(currentValue.value, {
         path,

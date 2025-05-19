@@ -48,16 +48,24 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
 
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMaxLengthValidationProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMinLengthValidationProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopPatternValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MaxLengthValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MinLengthValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation;
 
 final class TextRenderer extends WidgetTreeControlRendererSpec implements TextRendererSpec {
 
@@ -74,19 +82,35 @@ final class TextRenderer extends WidgetTreeControlRendererSpec implements TextRe
             return Optional.empty();
         }
         final var annotation = m_annotation.get();
+        final var minLengthValidation = getValidation(MinLengthValidation.class, annotation.minLengthValidation());
+        final Optional<MaxLengthValidation> maxLengthValidation =
+            getValidation(MaxLengthValidation.class, annotation.maxLengthValidation());
+        final Optional<PatternValidation> patternValidation =
+            getValidation(PatternValidation.class, annotation.patternValidation());
         return Optional.of(new TextRendererOptions() {
 
             @Override
-            public Optional<TextInputWidgetValidation[]> getValidations() {
-                return Optional.of(Arrays.stream(annotation.validation()).map(InstantiationUtil::createInstance)
-                    .toArray(TextInputWidgetValidation[]::new)).filter(val -> val.length > 0);
-            }
+            public Optional<TextRendererValidationOptions> getValidation() {
+                if (patternValidation.isEmpty() && minLengthValidation.isEmpty() && maxLengthValidation.isEmpty()) {
+                    return Optional.empty();
+                }
+                return Optional.of(new TextRendererValidationOptions() {
 
-            @Override
-            public Optional<String[]> getValidationProviders() {
-                return Optional
-                    .of(Arrays.stream(annotation.validationProvider()).map(Class::getName).toArray(String[]::new))
-                    .filter(val -> val.length > 0);
+                    @Override
+                    public Optional<PatternValidation> getPattern() {
+                        return patternValidation;
+                    }
+
+                    @Override
+                    public Optional<MinLengthValidation> getMinLength() {
+                        return minLengthValidation;
+                    }
+
+                    @Override
+                    public Optional<MaxLengthValidation> getMaxLength() {
+                        return maxLengthValidation;
+                    }
+                });
             }
 
             @Override
@@ -94,14 +118,33 @@ final class TextRenderer extends WidgetTreeControlRendererSpec implements TextRe
                 return Optional.of(annotation.placeholder()).filter(s -> !s.isEmpty());
             }
 
-            @Override
-            public Optional<String> getPlaceholderProvider() {
-                return Optional.of(annotation.placeholderProvider())
-                    .filter(val -> !NoopStringProvider.class.equals(val)).map(Class::getName);
-
-            }
-
         });
+    }
+
+    @Override
+    public Map<String, Class<? extends StateProvider>> getStateProviderClasses() {
+        if (m_annotation.isEmpty()) {
+            return Map.of();
+        }
+        final var annotation = m_annotation.get();
+        final Map<String, Class<? extends StateProvider>> stateProviderClasses = new HashMap<>();
+        if (annotation.placeholderProvider() != NoopStringProvider.class) {
+            stateProviderClasses.put(UiSchema.TAG_PLACEHOLDER, annotation.placeholderProvider());
+        }
+        if (annotation.minLengthValidationProvider() != NoopMinLengthValidationProvider.class) {
+            stateProviderClasses.put(TAG_MIN_LENGTH_VALIDATION, annotation.minLengthValidationProvider());
+        }
+        if (annotation.maxLengthValidationProvider() != NoopMaxLengthValidationProvider.class) {
+            stateProviderClasses.put(TAG_MAX_LENGTH_VALIDATION, annotation.maxLengthValidationProvider());
+        }
+        if (annotation.patternValidationProvider() != NoopPatternValidationProvider.class) {
+            stateProviderClasses.put(TAG_PATTERN_VALIDATION, annotation.patternValidationProvider());
+        }
+        return stateProviderClasses;
+    }
+
+    private static <T> Optional<T> getValidation(final Class<T> ignoredDefault, final Class<? extends T> clazz) {
+        return Optional.of(clazz).filter(cls -> !ignoredDefault.equals(cls)).map(InstantiationUtil::createInstance);
     }
 
 }
