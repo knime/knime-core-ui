@@ -65,7 +65,7 @@ public interface DataValueView extends UIExtension, DataServiceProvider {
     @Override
     default <D> Optional<ApplyDataService<D>> createApplyDataService() {
         // not available to data value views
-        throw new UnsupportedOperationException();
+        return Optional.empty();
     }
 
 }
