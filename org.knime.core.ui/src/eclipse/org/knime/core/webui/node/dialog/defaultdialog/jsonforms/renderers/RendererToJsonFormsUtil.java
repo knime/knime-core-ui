@@ -232,6 +232,11 @@ public final class RendererToJsonFormsUtil {
             CheckUtils.checkState(options instanceof NullNode, "Options need to be an object or null");
         }
         control.getFormat().ifPresent(format -> getOrCreateOptions(uiSchemaElement).put(UiSchema.TAG_FORMAT, format));
+        final var providedOptionNames = control.getStateProviderClasses().keySet().stream().sorted().toList();
+        if (!providedOptionNames.isEmpty()) {
+            final var providedOptions = uiSchemaElement.putArray(UiSchema.TAG_PROVIDED_OPTIONS);
+            providedOptionNames.forEach(providedOptions::add);
+        }
         return uiSchemaElement;
     }
 

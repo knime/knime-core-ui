@@ -208,7 +208,7 @@ describe("CredentialsControl.vue", () => {
   });
 
   it("hides username input field when configured to do so", () => {
-    props.control.uischema.options!.hideUsername = true;
+    props.control.uischema.options!.hasUsername = false;
     const { wrapper } = mountCredentialsControl({
       props,
     });
@@ -221,14 +221,14 @@ describe("CredentialsControl.vue", () => {
 
   it("hides username by state provider", async () => {
     const addStateProviderListener = vi.fn();
-    const hasUsernameProvider = "myHasUsernameProvider";
-    props.control.uischema.options!.hasUsernameProvider = hasUsernameProvider;
+    props.control.uischema.providedOptions = ["hasUsername"];
     const { wrapper } = mountCredentialsControl({
       props,
       provide: { addStateProviderListener },
     });
-    const [{ id }, callback] = addStateProviderListener.mock.calls[0];
-    expect(id).toBe(hasUsernameProvider);
+    const [{ providedOptionName }, callback] =
+      addStateProviderListener.mock.calls[0];
+    expect(providedOptionName).toBe("hasUsername");
     expect(wrapper.findAllComponents(InputField)).toHaveLength(2);
     callback(false);
     await flushPromises();
@@ -237,14 +237,15 @@ describe("CredentialsControl.vue", () => {
 
   it("hides password by state provider", async () => {
     const addStateProviderListener = vi.fn();
-    const hasPasswordProvider = "myUsernameProvider";
-    props.control.uischema.options!.hasPasswordProvider = hasPasswordProvider;
+    props.control.uischema.providedOptions = ["hasUsername"];
     const { wrapper } = mountCredentialsControl({
       props,
       provide: { addStateProviderListener },
     });
-    const [{ id }, callback] = addStateProviderListener.mock.calls[0];
-    expect(id).toBe(hasPasswordProvider);
+    const [{ scope, providedOptionName }, callback] =
+      addStateProviderListener.mock.calls[0];
+    expect(scope).toBe(props.control.uischema.scope);
+    expect(providedOptionName).toBe("hasUsername");
     expect(wrapper.findAllComponents(InputField)).toHaveLength(2);
     callback(false);
     await flushPromises();
@@ -252,7 +253,7 @@ describe("CredentialsControl.vue", () => {
   });
 
   it("hides password input field when configured to do so", () => {
-    props.control.uischema.options!.hidePassword = true;
+    props.control.uischema.options!.hasPassword = false;
     const { wrapper } = mountCredentialsControl({
       props,
     });
@@ -300,7 +301,7 @@ describe("CredentialsControl.vue", () => {
   });
 
   it("does not show second factor input field when password is hidden", () => {
-    props.control.uischema.options!.hidePassword = true;
+    props.control.uischema.options!.hasPassword = false;
     props.control.uischema.options!.showSecondFactor = true;
     const { wrapper } = mountCredentialsControl({
       props,

@@ -64,6 +64,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.Defaul
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.DependencyInjector.DependencyCollector;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Vertex.VertexVisitor;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.IdUiStateProviderWrapper;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.LocationUiStateProviderWrapper;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.RefsAndStateProviders;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.ValueProviderWrapper;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.ValueRefWrapper;
@@ -96,6 +98,9 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
 
         private final Collection<ValueProviderWrapper> m_valueProviders;
 
+        private final Collection<LocationUiStateProviderWrapper> m_locationUiStateProviders;
+
+        private final Collection<IdUiStateProviderWrapper> m_idUiStateProviders;
 
         private final Set<Vertex> m_visited = new HashSet<>();
 
@@ -103,9 +108,7 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
 
         private final Collection<ValueRefWrapper> m_valueRefs;
 
-        private final Collection<Class<? extends StateProvider>> m_uiStateProviders;
-
-        private final Map<Class<? extends StateProvider>, StateVertex> m_stateVertices = new HashMap<>();
+        private final Map<ResolvedStateProvider, StateVertex> m_stateVertices = new HashMap<>();
 
         private final Collection<DependencyVertex> m_dependencyVertices = new HashSet<>();
 
@@ -116,7 +119,8 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
             m_context = context;
             m_valueRefs = refsAndStateProviders.valueRefs();
             m_valueProviders = refsAndStateProviders.valueProviders();
-            m_uiStateProviders = refsAndStateProviders.uiStateProviders();
+            m_idUiStateProviders = refsAndStateProviders.idUiStateProviders();
+            m_locationUiStateProviders = refsAndStateProviders.locationUiStateProviders();
         }
 
         TriggerVertex addTriggerVertex(final TriggerVertex triggerVertex) {
@@ -151,8 +155,12 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
         }
 
         private void collectVertices() {
-            m_valueProviders.forEach(update -> addToQueue(new UpdateVertex(update)));
-            m_uiStateProviders.forEach(update -> addToQueue(new UpdateVertex(update)));
+            m_valueProviders.forEach(update -> addToQueue(new LocationUpdateVertex(update.fieldLocation(),
+                new ResolvedStateProvider(update.stateProviderClass()))));
+            m_idUiStateProviders.forEach(update -> addToQueue(new IdUpdateVertex(update.id(),
+                update.providedOptionName(), new ResolvedStateProvider(update.stateProviderClass()))));
+            m_locationUiStateProviders.forEach(update -> addToQueue(new LocationUpdateVertex(update.fieldLocation(),
+                update.providedOptionName(), new ResolvedStateProvider(update.stateProviderClass()))));
             while (!m_queue.isEmpty()) {
                 addParentsForVertex(m_queue.poll());
             }
@@ -173,8 +181,8 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
 
         private final class CollectParentVerticesVisitor implements VertexVisitor<Collection<Vertex>> {
 
-            StateVertex getStateVertex(final Class<? extends StateProvider> stateProviderClass) {
-                return m_stateVertices.computeIfAbsent(stateProviderClass, StateVertex::new);
+            StateVertex getStateVertex(final ResolvedStateProvider resolvedStateProvider) {
+                return m_stateVertices.computeIfAbsent(resolvedStateProvider, StateVertex::new);
             }
 
             TriggerVertex getButtonTriggerVertex(final Class<? extends ButtonReference> buttonReferenceClass) {
@@ -194,7 +202,7 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
              */
             @Override
             public Collection<Vertex> accept(final UpdateVertex updateVertex) {
-                final var stateProviderClass = updateVertex.getStateProviderClass();
+                final var stateProviderClass = updateVertex.getResolvedStateProvider();
                 return Set.of(getStateVertex(stateProviderClass));
             }
 
@@ -271,8 +279,8 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
 
                 parentVertices.addAll(stateProviderDependencyReceiver.getButtonRefTriggers().stream()
                     .map(this::getButtonTriggerVertex).toList());
-                parentVertices.addAll(
-                    stateProviderDependencyReceiver.getStateProviders().stream().map(this::getStateVertex).toList());
+                parentVertices.addAll(stateProviderDependencyReceiver.getStateProviders().stream()
+                    .map(ResolvedStateProvider::new).map(this::getStateVertex).toList());
                 if (stateProviderDependencyReceiver.m_computeBeforeOpenDialog) {
                     parentVertices.add(getBeforeOpenDialogVertex());
                 }

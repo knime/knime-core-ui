@@ -73,8 +73,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.AllFlowVariablesProvider;
@@ -216,16 +216,13 @@ class ChoicesWidgetUiSchemaOptionsTest {
 
         var response = buildTestUiSchema(ChoicesSettings.class, defaultNodeSettingsContext);
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("foo");
-        assertThatJson(response).inPath("$.elements[0].options.choicesProvider").isString()
-            .isEqualTo(TestColumnChoicesProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().containsExactly("possibleValues");
 
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("bar");
-        assertThatJson(response).inPath("$.elements[1].options.choicesProvider").isString()
-            .isEqualTo(TestChoicesProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[1].providedOptions").isArray().containsExactly("possibleValues");
 
         assertThatJson(response).inPath("$.elements[2].scope").isString().contains("enum");
-        assertThatJson(response).inPath("$.elements[2].options.choicesProvider").isString()
-            .isEqualTo(TestEnumChoicesProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[2].providedOptions").isArray().containsExactly("possibleValues");
 
     }
 

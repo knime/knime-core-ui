@@ -73,11 +73,6 @@ public sealed interface TextInputWidgetValidation extends BuiltinValidation {
         private static final String COLUMN_NAME_PATTERN = "\\S(.*\\S)?";
 
         @Override
-        public final String getId() {
-            return "pattern";
-        }
-
-        @Override
         public final PatternValidationParams getParameters() {
             return new PatternValidationParams(getPattern());
         }
@@ -150,7 +145,7 @@ public sealed interface TextInputWidgetValidation extends BuiltinValidation {
         /**
          * Validates whether the input is not empty, i.e. whether it contains at least one character.
          */
-        public static final class IsNotEmptyValidation extends PatternValidation {
+        public static final class IsNotEmptyValidation extends MinLengthValidation {
 
             @Override
             public String getErrorMessage() {
@@ -158,9 +153,10 @@ public sealed interface TextInputWidgetValidation extends BuiltinValidation {
             }
 
             @Override
-            public String getPattern() {
-                return ".+";
+            protected int getMinLength() {
+                return 1;
             }
+
         }
 
         /**
@@ -184,11 +180,6 @@ public sealed interface TextInputWidgetValidation extends BuiltinValidation {
      * Implement this interface to validate the length of the input against a given minLength.
      */
     abstract non-sealed class MinLengthValidation implements TextInputWidgetValidation {
-
-        @Override
-        public final String getId() {
-            return "minLength";
-        }
 
         /**
          * @param minLength the length to validate against
@@ -216,11 +207,6 @@ public sealed interface TextInputWidgetValidation extends BuiltinValidation {
      * Implement this interface to validate the length of the input against a given maxLength.
      */
     abstract non-sealed class MaxLengthValidation implements TextInputWidgetValidation {
-
-        @Override
-        public final String getId() {
-            return "maxLength";
-        }
 
         /**
          * @param maxLength the length to validate against

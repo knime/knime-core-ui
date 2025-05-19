@@ -49,9 +49,12 @@
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ExternalValidation;
 
 import com.github.victools.jsonschema.generator.SchemaKeyword;
@@ -154,6 +157,11 @@ public final class JsonFormsConsts {
         public static final String TAG_SCOPE = "scope";
 
         /**
+         * Identifier for a ui schema element that does not have a scope.
+         */
+        public static final String TAG_ID = "id";
+
+        /**
          * The type of a ui element, rule, etc.
          */
         public static final String TAG_TYPE = Schema.TAG_TYPE;
@@ -162,6 +170,11 @@ public final class JsonFormsConsts {
          * Additional options for an ui element in the ui-schema
          */
         public static final String TAG_OPTIONS = "options";
+
+        /**
+         * The key for the list of option names that are provided dynamically.
+         */
+        public static final String TAG_PROVIDED_OPTIONS = "providedOptions";
 
         /**
          * Format for an ui element in the ui-schema
@@ -184,12 +197,7 @@ public final class JsonFormsConsts {
         public static final String TAG_ACTION_HANDLER = "actionHandler";
 
         /**
-         * The choices provider of a choices widget
-         */
-        public static final String TAG_CHOICES_PROVIDER = "choicesProvider";
-
-        /**
-         * The dependencies of a {@link ButtonWidget} or the possible values of a {@link ChoicesProvider}
+         * The dependencies of a {@link ButtonWidget}
          */
         public static final String TAG_DEPENDENCIES = "dependencies";
 
@@ -209,11 +217,6 @@ public final class JsonFormsConsts {
         public static final String TAG_FILE_EXTENSION = "fileExtension";
 
         /**
-         * Used for providing a reference to a file extension provider to a file chooser/writer widget.
-         */
-        public static final String TAG_FILE_EXTENSION_PROVIDER = "fileExtensionProvider";
-
-        /**
          * Used with multi file selection to specify the java class corresponding to the filter class
          */
         public static final String TAG_FILE_FILTER_CLASS = "additionalFilterOptionsClassIdentifier";
@@ -227,6 +230,31 @@ public final class JsonFormsConsts {
          * Used for providing an external validation for a specific setting using {@link ExternalValidation}
          */
         public static final String TAG_EXTERNAL_VALIDATION_HANDLER = "externalValidationHandler";
+
+        /**
+         * Used for the type of a {@link IntervalWidget}.
+         */
+        public static final String TAG_INTERVAL_TYPE = "intervalType";
+
+        /**
+         * Used for providing the message of a {@link TextMessage}
+         */
+        public static final String TAG_MESSAGE = "message";
+
+        /**
+         * Used for providing the possible formats of a {@link DateTimeFormatPickerWidget}
+         */
+        public static final String TAG_DATE_TIME_FORMATS = "dateTimeFormats";
+
+        /**
+         * Used for providing placeholder of a {@link TextInputWidget}
+         */
+        public static final String TAG_PLACEHOLDER = "placeholder";
+
+        /**
+         * Used for providing the choices of a widget.
+         */
+        public static final String TAG_POSSIBLE_VALUES = "possibleValues";
 
         /**
          * Several formats which are written to the options of the ui-schema of an ui element
@@ -318,6 +346,11 @@ public final class JsonFormsConsts {
         public static final String TAG_ARRAY_LAYOUT_ELEMENT_TITLE = "arrayElementTitle";
 
         /**
+         * The id by which dynamic sub titles for array layout elements can be accessed
+         */
+        public static final String TAG_ARRAY_LAYOUT_ELEMENT_SUB_TITLE = "elementSubTitle";
+
+        /**
          * The text of the add button of an array layout
          */
         public static final String TAG_ARRAY_LAYOUT_ADD_BUTTON_TEXT = "addButtonText";
@@ -338,16 +371,6 @@ public final class JsonFormsConsts {
         public static final String TAG_ARRAY_LAYOUT_ELEMENT_CHECKBOX_SCOPE = "elementCheckboxScope";
 
         /**
-         * The id by which dynamic titles for array layout elements can be accessed
-         */
-        public static final String TAG_ARRAY_LAYOUT_ELEMENT_TITLE_PROVIDER = "elementTitleProvider";
-
-        /**
-         * The id by which dynamic sub titles for array layout elements can be accessed
-         */
-        public static final String TAG_ARRAY_LAYOUT_ELEMENT_SUB_TITLE_PROVIDER = "elementSubTitleProvider";
-
-        /**
          * Whether to hide add and delete buttons such that the size of the array cannot be changed
          */
         public static final String TAG_ARRAY_LAYOUT_HAS_FIXED_SIZE = "hasFixedSize";
@@ -355,7 +378,7 @@ public final class JsonFormsConsts {
         /**
          * The id by which default values for array layout elements can be accessed
          */
-        public static final String TAG_ARRAY_LAYOUT_ELEMENT_DEFAULT_VALUE_PROVIDER = "elementDefaultValueProvider";
+        public static final String TAG_ARRAY_LAYOUT_ELEMENT_DEFAULT_VALUE = "elementDefaultValue";
 
         /**
          * Rules to show/hide/enable/disable an ui element in the ui-schema

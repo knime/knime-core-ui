@@ -129,8 +129,8 @@ interface DefaultNodeDialogDataService {
      *            {@link Reference} using a mapper
      * @return A list of instructions on what is to be updated. In case of indexed dependencies, the updates are also
      *         indexed by the same indices.
-     * @throws InterruptedException
-     * @throws ExecutionException
+     * @throws InterruptedException if the used thread is interrupted
+     * @throws ExecutionException if an unexpected error is thrown during the invocation
      */
     Result<?> update2(String widgetId, Trigger trigger, Map<String, List<IndexedValue<String>>> rawDependencies)
         throws InterruptedException, ExecutionException;

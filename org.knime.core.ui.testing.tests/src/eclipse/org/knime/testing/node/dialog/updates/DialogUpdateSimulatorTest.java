@@ -84,11 +84,10 @@ class DialogUpdateSimulatorTest {
 
     static void assertResults(final UpdateSimulatorResult updateSimulatorResult) {
         assertThat(updateSimulatorResult.getValueUpdateAt("field")).isEqualTo(DEPENDENCY);
-        assertThat(updateSimulatorResult.getUiStateUpdateAt(TestSettings.PlaceholderProvider.class))
-            .isEqualTo(DEPENDENCY);
+        assertThat(updateSimulatorResult.getUiStateUpdateAt(List.of("field"), "placeholder")).isEqualTo(DEPENDENCY);
         final var multiValueUpdate = updateSimulatorResult.getMultiValueUpdatesInArrayAt(PATH_TO_ELEMENT_FIELD);
-        final var multiUiStateUpdate = updateSimulatorResult
-            .getMultiUiStateUpdateAt(TestSettings.ElementSettings.ElementPlaceholderProvider.class);
+        final var multiUiStateUpdate =
+            updateSimulatorResult.getMultiUiStateUpdateAt(PATH_TO_ELEMENT_FIELD, "placeholder");
 
         assertArrayResults(multiValueUpdate);
         assertArrayResults(multiUiStateUpdate);
@@ -117,13 +116,12 @@ class DialogUpdateSimulatorTest {
 
     @Test
     void testSimulateValueChange() {
-        assertResults(m_simulator.simulateValueChange("#/properties/model/properties/dependency"));
+        assertResults(m_simulator.simulateValueChange("dependency"));
     }
 
     @Test
     void testTriggerFromWithinAnArray() {
-        final var result = m_simulator
-            .simulateValueChange("#/properties/model/properties/array/items/properties/elementDependency", 1);
+        final var result = m_simulator.simulateValueChange(List.of(List.of("array"), List.of("elementDependency")), 1);
         assertThat(result.getValueUpdatesInArrayAt(PATH_TO_ELEMENT_FIELD)).isEqualTo(DEPENDENCY + ", " + SECOND);
     }
 

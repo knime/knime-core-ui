@@ -222,13 +222,13 @@ class OptionalWidgetOptionsTest {
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("string");
         assertThatJson(response).inPath("$.elements[0].options.hideOnNull").isBoolean().isTrue();
         assertThatJson(response).inPath("$.elements[0].options.default").isAbsent();
-        assertThatJson(response).inPath("$.elements[0].options.defaultProvider").isEqualTo(FirstChoice.class.getName());
+        assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().containsExactly("possibleValues",
+            "default");
 
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("interval");
         assertThatJson(response).inPath("$.elements[1].options.hideOnNull").isBoolean().isTrue();
         assertThatJson(response).inPath("$.elements[1].options.default").isAbsent();
-        assertThatJson(response).inPath("$.elements[1].options.defaultProvider")
-            .isEqualTo(DateIntervalDefault.class.getName());
+        assertThatJson(response).inPath("$.elements[1].providedOptions").isArray().containsExactly("default");
 
     }
 

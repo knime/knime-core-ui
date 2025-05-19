@@ -1,22 +1,51 @@
-interface Key {
-  id: string;
+export type StateProviderLocation = (
+  | {
+      id: string;
+    }
+  | {
+      scope: string;
+    }
+) & {
+  providedOptionName: string;
+};
+
+type Key = {
   indexIds: string[];
-}
+} & StateProviderLocation;
 
 const keySpecifier = ({ indexIds }: Key) => indexIds;
 
-interface IndicesKey {
-  id: string;
+type IndicesKey = {
   indices: number[];
-}
+} & StateProviderLocation;
 
 const indicesKeySpecifier = ({ indices }: IndicesKey) => indices;
 
 const isInvokedBy =
-  <K extends { id: string }>(getSpecifier: (key: K) => any[]) =>
+  <K extends StateProviderLocation>(getSpecifier: (key: K) => any[]) =>
   (invocationKey: K) =>
   (otherKey: K) => {
-    if (invocationKey.id !== otherKey.id) {
+    if (
+      ("id" in invocationKey && "scope" in otherKey) ||
+      ("scope" in invocationKey && "id" in otherKey)
+    ) {
+      return false;
+    }
+    if (invocationKey.providedOptionName !== otherKey.providedOptionName) {
+      return false;
+    }
+    if (
+      "id" in invocationKey &&
+      "id" in otherKey &&
+      invocationKey.id !== otherKey.id
+    ) {
+      return false;
+    }
+    if (
+      "scope" in invocationKey &&
+      "scope" in otherKey &&
+      invocationKey.scope !== otherKey.scope
+    ) {
       return false;
     }
     if (getSpecifier(invocationKey).length > getSpecifier(otherKey).length) {
@@ -28,7 +57,7 @@ const isInvokedBy =
   };
 
 const invokes =
-  <K extends { id: string }>(getSpecifier: (key: K) => any[]) =>
+  <K extends StateProviderLocation>(getSpecifier: (key: K) => any[]) =>
   (otherKey: K) =>
   (invocationKey: K) =>
     isInvokedBy(getSpecifier)(invocationKey)(otherKey);
@@ -40,20 +69,18 @@ const getValuesFromPredicate =
       .filter(([key]) => predicate(key))
       .map(([, value]) => value);
 
-const toMapKey = ({ id, indexIds }: { id: string; indexIds?: string[] }) => ({
-  id,
-  indexIds: indexIds ?? [],
+const toMapKey = (
+  location: { indexIds?: string[] } & StateProviderLocation,
+) => ({
+  ...location,
+  indexIds: location.indexIds ?? [],
 });
 
-const toByIndicesKey = ({
-  id,
-  indices,
-}: {
-  id: string;
-  indices?: number[];
-}) => ({
-  id,
-  indices: indices ?? [],
+const toByIndicesKey = (
+  location: { indices?: number[] } & StateProviderLocation,
+) => ({
+  ...location,
+  indices: location.indices ?? [],
 });
 
 export default () => {
@@ -107,7 +134,10 @@ export default () => {
   };
 
   const addStateProviderListener = (
-    location: { id: string; indexIds?: string[]; indices?: number[] },
+    location: {
+      indexIds?: string[];
+      indices?: number[];
+    } & StateProviderLocation,
     callback: (value: any) => void,
   ) => {
     const key = toMapKey(location);
@@ -118,7 +148,7 @@ export default () => {
   };
 
   const callStateProviderListener = (
-    location: { id: string; indexIds?: string[] },
+    location: { indexIds?: string[] } & StateProviderLocation,
     value: unknown,
   ) => {
     const key = toMapKey(location);
@@ -129,7 +159,7 @@ export default () => {
   };
 
   const callStateProviderListenerByIndices = (
-    location: { id: string; indices: number[] },
+    location: { indices: number[] } & StateProviderLocation,
     value: unknown,
   ) => {
     statesByIndices.set(location, value);

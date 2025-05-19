@@ -132,7 +132,6 @@ describe("transitive updates", () => {
                 {
                   scope: getUpdatedScope({ trigger: options[1], getScope }),
                   values: [{ indices: [], value: "Updated" }],
-                  id: null,
                 },
               ] satisfies UpdateResult[],
             });

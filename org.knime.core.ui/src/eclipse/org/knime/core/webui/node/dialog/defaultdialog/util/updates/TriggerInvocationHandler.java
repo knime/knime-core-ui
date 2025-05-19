@@ -55,7 +55,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
@@ -93,13 +92,17 @@ public class TriggerInvocationHandler<I> {
      * The resulting updates of a trigger invocation
      *
      * @param valueUpdates keys here are the path locations of fields whose value is updated
-     * @param otherUpdates keys here are the ids (the names) of the state providers
+     * @param locationUiStateUpdates keys here are the path locations of fields whose ui state is updated; inner keys
+     *            define which ui state is updated
+     * @param idUiStateUpdates keys here are the ids of components without a location whose ui state is updated; inner
+     *            keys define which ui state is updated
      *
      * @param <I> the type of the keys of the resulting values in case of nested scopes (either by index or by indexId)
      *
      */
     public record TriggerResult<I>(Map<Location, List<IndexedValue<I>>> valueUpdates,
-        Map<String, List<IndexedValue<I>>> otherUpdates) {
+        Map<Location, Map<String, List<IndexedValue<I>>>> locationUiStateUpdates,
+        Map<String, Map<String, List<IndexedValue<I>>>> idUiStateUpdates) {
 
     }
 
@@ -135,27 +138,35 @@ public class TriggerInvocationHandler<I> {
         final DefaultNodeSettingsContext context) {
         final var resultPerUpdateHandler =
             new InvokeTrigger<>(dependencyProvider, context).invokeTrigger(triggerVertex);
-        final var partitionedResult = resultPerUpdateHandler.entrySet().stream()
-            .collect(Collectors.partitioningBy(e -> e.getKey().getFieldLocation().isPresent()));
 
         final Map<Location, List<IndexedValue<I>>> valueUpdates = new HashMap<>();
-        for (var entry : partitionedResult.get(true)) {
-            if (!entry.getValue().isEmpty()) {
-                valueUpdates.put(//
-                    entry.getKey().getFieldLocation().get(), // NOSONAR isPresent() is checked during partitioning
-                    entry.getValue()//
-                );
+        final Map<Location, Map<String, List<IndexedValue<I>>>> otherLocationUpdates = new HashMap<>();
+        final Map<String, Map<String, List<IndexedValue<I>>>> otherUpdates = new HashMap<>();
+
+        for (var entry : resultPerUpdateHandler.entrySet()) {
+            final var updateVertex = entry.getKey();
+            final var indexedValues = entry.getValue();
+            if (indexedValues.isEmpty()) {
+                /**
+                 * Update of states inside an empty array. No need add those to the list.
+                 */
+                continue;
+            }
+            if (updateVertex instanceof LocationUpdateVertex locationUpdateVertex) {
+                final var providedOptions = locationUpdateVertex.getProvidedOption();
+                if (providedOptions.isPresent()) {
+                    otherLocationUpdates.computeIfAbsent(locationUpdateVertex.getLocation(), k -> new HashMap<>())
+                        .put(providedOptions.get(), indexedValues);
+                } else {
+                    valueUpdates.put(locationUpdateVertex.getLocation(), indexedValues);
+                }
+            } else if (updateVertex instanceof IdUpdateVertex idUpdateVertex) {
+                otherUpdates.computeIfAbsent(idUpdateVertex.getId(), k -> new HashMap<>())
+                    .put(idUpdateVertex.getProvidedOption(), indexedValues);
             }
         }
 
-        final Map<String, List<IndexedValue<I>>> otherUpdates = new HashMap<>();
-        for (var entry : partitionedResult.get(false)) {
-            if (!entry.getValue().isEmpty()) {
-                otherUpdates.put(entry.getKey().getStateProviderClass().getName(), entry.getValue());
-            }
-        }
-
-        return new TriggerResult<>(valueUpdates, otherUpdates);
+        return new TriggerResult<>(valueUpdates, otherLocationUpdates, otherUpdates);
     }
 
 }

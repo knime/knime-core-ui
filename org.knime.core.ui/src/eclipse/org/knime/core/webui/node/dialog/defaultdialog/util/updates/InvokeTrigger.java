@@ -128,11 +128,11 @@ final class InvokeTrigger<I> {
     }
 
     private static StateVertex getParentStateVertex(final Vertex vertex,
-        final Class<? extends StateProvider> stateProviderClass) {
+        final ResolvedStateProvider resolvedStateProvider) {
         final var getParentStateVertexVisitor = new VertexVisitor<StateVertex>() {
             @Override
             public StateVertex accept(final StateVertex stateVertex) {
-                if (stateVertex.hasIdentifier(stateProviderClass)) {
+                if (stateVertex.hasIdentifier(resolvedStateProvider.identifier())) {
                     return stateVertex;
                 }
                 return null;
@@ -217,7 +217,9 @@ final class InvokeTrigger<I> {
             @Override
             public <T> Supplier<T>
                 computeFromProvidedState(final Class<? extends StateProvider<T>> stateProviderClass) {
-                return vertexToSupplier(getParentStateVertex(m_stateVertex, stateProviderClass), m_getParentValue);
+                return vertexToSupplier(
+                    getParentStateVertex(m_stateVertex, new ResolvedStateProvider(stateProviderClass)),
+                    m_getParentValue);
             }
 
             @SuppressWarnings("unchecked")
@@ -295,7 +297,7 @@ final class InvokeTrigger<I> {
 
         @Override
         public ValuesWithLevelOfNesting<I> accept(final UpdateVertex updateVertex) {
-            return getParentStateVertex(updateVertex, updateVertex.getStateProviderClass()).visit(this);
+            return getParentStateVertex(updateVertex, updateVertex.getResolvedStateProvider()).visit(this);
         }
 
         private ValuesWithLevelOfNesting<I> cached(final Vertex key,

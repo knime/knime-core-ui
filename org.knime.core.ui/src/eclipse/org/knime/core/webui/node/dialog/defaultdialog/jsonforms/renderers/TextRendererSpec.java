@@ -51,7 +51,9 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.ValidationOptions;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MaxLengthValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MinLengthValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation;
 
 /**
  * Renderer to input a text value.
@@ -66,15 +68,59 @@ public interface TextRendererSpec extends ControlRendererSpec {
     }
 
     /**
-     * Options for rendering a text input field.
+     * Options for validating a text input field.
      */
-    interface TextRendererOptions extends ValidationOptions<TextInputWidgetValidation> {
+    interface TextRendererValidationOptions {
 
-        default Optional<String> getPlaceholder() {
+        /**
+         * Use this to limit the number of characters
+         *
+         * @return the minimum length validation
+         */
+        default Optional<MinLengthValidation> getMinLength() {
             return Optional.empty();
         }
 
-        default Optional<String> getPlaceholderProvider() {
+        /**
+         * Use this to limit the number of characters
+         *
+         * @return the maximum length validation
+         */
+        default Optional<MaxLengthValidation> getMaxLength() {
+            return Optional.empty();
+        }
+
+        /**
+         * Use this to define a regular expression to validate the input
+         *
+         * @return the pattern validation
+         */
+        default Optional<PatternValidation> getPattern() {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Use this tag to provide the min length validation dynamically.
+     */
+    String TAG_MIN_LENGTH_VALIDATION = "validation.minLength";
+
+    /**
+     * Use this tag to provide the max length validation dynamically.
+     */
+    String TAG_MAX_LENGTH_VALIDATION = "validation.maxLength";
+
+    /**
+     * Use this tag to provide the pattern validation dynamically.
+     */
+    String TAG_PATTERN_VALIDATION = "validation.pattern";
+
+    /**
+     * Options for rendering a text input field.
+     */
+    interface TextRendererOptions extends ValidationOptions<TextRendererValidationOptions> {
+
+        default Optional<String> getPlaceholder() {
             return Optional.empty();
         }
 

@@ -79,7 +79,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TestBut
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection.DBTableSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
@@ -266,8 +265,7 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[14].options.showMilliseconds").isBoolean().isTrue();
         assertThatJson(response).inPath("$.elements[15].scope").isString().contains("dataType");
         assertThatJson(response).inPath("$.elements[15].options.format").isString().isEqualTo("dropDown");
-        assertThatJson(response).inPath("$.elements[15].options.choicesProvider").isString()
-            .isEqualTo(DefaultDataTypeChoicesProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[15].providedOptions").isArray().containsExactly("possibleValues");
 
         assertThatJson(response).inPath("$.elements[16].scope").isString().contains("multiFileSelection");
         assertThatJson(response).inPath("$.elements[16].options.format").isString().isEqualTo("multiFileChooser");
@@ -445,12 +443,11 @@ class UiSchemaOptionsTest {
         var response = buildTestUiSchema(IntervalSettings.class);
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("interval");
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("interval");
-        assertThatJson(response).inPath("$.elements[0].options.intervalTypeProvider").isString()
-            .isEqualTo(SimpleDateStateProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().containsExactly("intervalType");
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("interval");
         assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo("interval");
-        assertThatJson(response).inPath("$.elements[1].options.intervalTypeProvider").isString()
-            .isEqualTo(SimpleTimeStateProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[1].providedOptions").isArray().containsExactly("intervalType");
+
     }
 
     @Test
@@ -617,8 +614,8 @@ class UiSchemaOptionsTest {
             .contains("arrayElementWithoutDefaultProvider");
         assertThatJson(response).inPath("$.elements[0].options").isObject().doesNotContainKey("hasFixedSize");
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("arrayElementWithDefaultProvider");
-        assertThatJson(response).inPath("$.elements[1].options.elementDefaultValueProvider").isString()
-            .isEqualTo(ElementDefaultValueProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[1].providedOptions").isArray()
+            .containsExactly("elementDefaultValue");
     }
 
     @Nested
@@ -1075,27 +1072,27 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("credentials");
         assertThatJson(response).inPath("$.elements[0].options.passwordLabel").isString().isEqualTo("myPasswordLabel");
         assertThatJson(response).inPath("$.elements[0].options.usernameLabel").isString().isEqualTo("myUsernameLabel");
-        assertThatJson(response).inPath("$.elements[0].options.hidePassword").isAbsent();
+        assertThatJson(response).inPath("$.elements[0].options.hasPassword").isAbsent();
         assertThatJson(response).inPath("$.elements[0].options.showSecondFactor").isAbsent();
-        assertThatJson(response).inPath("$.elements[0].options.hideUsername").isAbsent();
+        assertThatJson(response).inPath("$.elements[0].options.hasUsername").isAbsent();
     }
 
     private static void assertResponsePassword(final ObjectNode response) {
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("password");
         assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo("credentials");
         assertThatJson(response).inPath("$.elements[1].options.passwordLabel").isString().isEqualTo("myPasswordLabel");
-        assertThatJson(response).inPath("$.elements[1].options.hidePassword").isAbsent();
+        assertThatJson(response).inPath("$.elements[1].options.hasPassword").isAbsent();
         assertThatJson(response).inPath("$.elements[1].options.showSecondFactor").isAbsent();
-        assertThatJson(response).inPath("$.elements[1].options.hideUsername").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[1].options.hasUsername").isBoolean().isFalse();
     }
 
     private static void assertResponseUsername(final ObjectNode response) {
         assertThatJson(response).inPath("$.elements[2].scope").isString().contains("username");
         assertThatJson(response).inPath("$.elements[2].options.format").isString().isEqualTo("credentials");
         assertThatJson(response).inPath("$.elements[2].options.usernameLabel").isString().isEqualTo("myUsernameLabel");
-        assertThatJson(response).inPath("$.elements[2].options.hidePassword").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[2].options.hasPassword").isBoolean().isFalse();
         assertThatJson(response).inPath("$.elements[2].options.showSecondFactor").isAbsent();
-        assertThatJson(response).inPath("$.elements[2].options.hideUsername").isAbsent();
+        assertThatJson(response).inPath("$.elements[2].options.hasUsername").isAbsent();
     }
 
     private static void assertResponseCredentialsWithSecondFactor(final ObjectNode response) {
@@ -1103,9 +1100,9 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[3].options.format").isString().isEqualTo("credentials");
         assertThatJson(response).inPath("$.elements[3].options.secondFactorLabel").isString()
             .isEqualTo("mySecondFactorLabel");
-        assertThatJson(response).inPath("$.elements[3].options.hidePassword").isAbsent();
+        assertThatJson(response).inPath("$.elements[3].options.hasPassword").isAbsent();
         assertThatJson(response).inPath("$.elements[3].options.showSecondFactor").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[3].options.hideUsername").isAbsent();
+        assertThatJson(response).inPath("$.elements[3].options.hasUsername").isAbsent();
     }
 
     private static void assertResponsePasswordWithSecondFactor(final ObjectNode response) {
@@ -1113,9 +1110,9 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[4].options.format").isString().isEqualTo("credentials");
         assertThatJson(response).inPath("$.elements[4].options.secondFactorLabel").isString()
             .isEqualTo("mySecondFactorLabel");
-        assertThatJson(response).inPath("$.elements[4].options.hidePassword").isAbsent();
+        assertThatJson(response).inPath("$.elements[4].options.hasPassword").isAbsent();
         assertThatJson(response).inPath("$.elements[4].options.showSecondFactor").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[4].options.hideUsername").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[4].options.hasUsername").isBoolean().isFalse();
     }
 
     private static void assertResponseWithStateProviders(final ObjectNode response) {
@@ -1125,10 +1122,8 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[5].options.hidePassword").isAbsent();
         assertThatJson(response).inPath("$.elements[5].options.hideUsername").isAbsent();
         assertThatJson(response).inPath("$.elements[5].options.showSecondFactor").isAbsent();
-        assertThatJson(response).inPath("$.elements[5].options.hasUsernameProvider").isString()
-            .isEqualTo(MyHasUsernameProvider.class.getName());
-        assertThatJson(response).inPath("$.elements[5].options.hasPasswordProvider").isString()
-            .isEqualTo(MyHasPasswordProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[5].providedOptions").isArray().containsExactly("hasPassword",
+            "hasUsername");
 
     }
 
@@ -1217,8 +1212,7 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[1].options.isWriter").isBoolean().isTrue();
         assertThatJson(response).inPath("$.elements[2].scope").isString().contains("providedExtension");
         assertThatJson(response).inPath("$.elements[2].options").isObject().doesNotContainKey("fileExtension");
-        assertThatJson(response).inPath("$.elements[2].options.fileExtensionProvider").isString()
-            .isEqualTo(MyFileExtensionProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[2].providedOptions").isArray().containsExactly("fileExtension");
         assertThatJson(response).inPath("$.elements[2].options.isWriter").isBoolean().isTrue();
     }
 
@@ -1254,8 +1248,7 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[1].options.isWriter").isBoolean().isTrue();
         assertThatJson(response).inPath("$.elements[2].scope").isString().contains("providedExtension");
         assertThatJson(response).inPath("$.elements[2].options").isObject().doesNotContainKey("fileExtension");
-        assertThatJson(response).inPath("$.elements[2].options.fileExtensionProvider").isString()
-            .isEqualTo(MyFileExtensionProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[2].providedOptions").isArray().containsExactly("fileExtension");
         assertThatJson(response).inPath("$.elements[2].options.isWriter").isBoolean().isTrue();
     }
 
@@ -1339,8 +1332,7 @@ class UiSchemaOptionsTest {
         // first test the one of type string
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("formatPickerField");
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dateTimeFormat");
-        assertThatJson(response).inPath("$.elements[0].options.formatProvider").isString()
-            .isEqualTo(DateTimeFormatProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().containsExactly("dateTimeFormats");
         assertThatJson(response).inPath("$.elements[0].options.externalValidationHandler").isString()
             .isEqualTo(DateTimeStringFormatValidation.class.getName());
 
@@ -1348,8 +1340,7 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[1].scope").isString()
             .contains("formatPickerFieldWithTemporalFormat");
         assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo("dateTimeFormatWithType");
-        assertThatJson(response).inPath("$.elements[1].options.formatProvider").isString()
-            .isEqualTo(DateTimeFormatProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[1].providedOptions").isArray().containsExactly("dateTimeFormats");
         assertThatJson(response).inPath("$.elements[1].options.externalValidationHandler").isString()
             .isEqualTo(DateTimeTemporalFormatValidation.class.getName());
 
@@ -1357,8 +1348,7 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[2].scope").isString()
             .contains("formatPickerFieldWithTemporalFormat2");
         assertThatJson(response).inPath("$.elements[2].options.format").isString().isEqualTo("dateTimeFormatWithType");
-        assertThatJson(response).inPath("$.elements[2].options.formatProvider").isString()
-            .isEqualTo(ComprehensiveDateTimeFormatProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[2].providedOptions").isArray().containsExactly("dateTimeFormats");
     }
 
     @Test
@@ -1465,20 +1455,20 @@ class UiSchemaOptionsTest {
             String m_textInputPlaceholderProvider;
 
             @Widget(title = "", description = "")
-            @TextInputWidget(validation = MinLenValidation.class)
+            @TextInputWidget(minLengthValidation = MinLenValidation.class)
             String m_minLength;
 
             @Widget(title = "", description = "")
-            @TextInputWidget(validation = MaxLenValidation.class)
+            @TextInputWidget(maxLengthValidation = MaxLenValidation.class)
             String m_maxLength;
 
             @Widget(title = "", description = "")
-            @TextInputWidget(validation = CustomPatternValidation.class)
+            @TextInputWidget(patternValidation = CustomPatternValidation.class)
             String m_pattern;
 
             @Widget(title = "", description = "")
-            @TextInputWidget(
-                validation = {MinLenValidation.class, MaxLenValidation.class, CustomPatternValidation.class})
+            @TextInputWidget(minLengthValidation = MinLenValidation.class, maxLengthValidation = MaxLenValidation.class,
+                patternValidation = CustomPatternValidation.class)
             String m_multipleValidations;
         }
 
@@ -1487,34 +1477,29 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].options.placeholder").isString().isEqualTo("Bond");
 
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("textInputPlaceholderProvider");
-        assertThatJson(response).inPath("$.elements[1].options.placeholderProvider").isString()
-            .isEqualTo(TestStringProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[1].providedOptions").isArray().containsExactly("placeholder");
 
         assertThatJson(response).inPath("$.elements[2].scope").isString().contains("minLength");
-        assertThatJson(response).inPath("$.elements[2].options.validations[0].id").isString().isEqualTo("minLength");
-        assertThatJson(response).inPath("$.elements[2].options.validations[0].parameters.minLength").isNumber()
+        assertThatJson(response).inPath("$.elements[2].options.validation.minLength.parameters.minLength").isNumber()
             .isEqualTo(BigDecimal.valueOf(-42));
-        assertThatJson(response).inPath("$.elements[2].options.validations[0].errorMessage").isString()
+        assertThatJson(response).inPath("$.elements[2].options.validation.minLength.errorMessage").isString()
             .isEqualTo("The string must be at least -42 characters long.");
 
         assertThatJson(response).inPath("$.elements[3].scope").isString().contains("maxLength");
-        assertThatJson(response).inPath("$.elements[3].options.validations[0].id").isString().isEqualTo("maxLength");
-        assertThatJson(response).inPath("$.elements[3].options.validations[0].parameters.maxLength").isNumber()
+        assertThatJson(response).inPath("$.elements[3].options.validation.maxLength.parameters.maxLength").isNumber()
             .isEqualTo(BigDecimal.valueOf(42));
-        assertThatJson(response).inPath("$.elements[3].options.validations[0].errorMessage").isString()
+        assertThatJson(response).inPath("$.elements[3].options.validation.maxLength.errorMessage").isString()
             .isEqualTo("The string must not exceed 42 characters.");
 
         assertThatJson(response).inPath("$.elements[4].scope").isString().contains("pattern");
-        assertThatJson(response).inPath("$.elements[4].options.validations[0].id").isString().isEqualTo("pattern");
-        assertThatJson(response).inPath("$.elements[4].options.validations[0].parameters.pattern").isString()
+        assertThatJson(response).inPath("$.elements[4].options.validation.pattern.parameters.pattern").isString()
             .isEqualTo("a.*");
-        assertThatJson(response).inPath("$.elements[4].options.validations[0].errorMessage").isString()
+        assertThatJson(response).inPath("$.elements[4].options.validation.pattern.errorMessage").isString()
             .isEqualTo("The string must match the pattern: a.*");
 
         assertThatJson(response).inPath("$.elements[5].scope").isString().contains("multipleValidations");
-        assertThatJson(response).inPath("$.elements[5].options.validations[0].id").isString().isEqualTo("minLength");
-        assertThatJson(response).inPath("$.elements[5].options.validations[1].id").isString().isEqualTo("maxLength");
-        assertThatJson(response).inPath("$.elements[5].options.validations[2].id").isString().isEqualTo("pattern");
+        assertThatJson(response).inPath("$.elements[5].options.validation").isObject().containsKeys("minLength",
+            "maxLength", "pattern");
     }
 
     @Test
@@ -1538,10 +1523,8 @@ class UiSchemaOptionsTest {
         var response = buildTestUiSchema(InternalArrayWidgetTestSettings.class);
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("elementSettings");
         assertThatJson(response).inPath("$.elements[0].options.withEditAndReset").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[0].options.elementTitleProvider").isString()
-            .isEqualTo(TestStringProvider.class.getName());
-        assertThatJson(response).inPath("$.elements[0].options.elementSubTitleProvider").isString()
-            .isEqualTo(TestStringProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().containsExactly("arrayElementTitle",
+            "elementSubTitle");
         assertThatJson(response).inPath("$.elements[0].options.withEditAndReset").isBoolean().isTrue();
 
         assertThatJson(response).inPath("$.elements[0].options.detail[0].scope").isString().contains("elementValue");
@@ -1583,10 +1566,10 @@ class UiSchemaOptionsTest {
         }
 
         var response = buildTestUiSchema(TestSettings.class);
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("textMessage");
+        assertThatJson(response).inPath("$.elements[0]").isObject().doesNotContainKey("scope");
+        assertThatJson(response).inPath("$.elements[0].id").isString().contains("textMessage");
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("textMessage");
-        assertThatJson(response).inPath("$.elements[0].options.messageProvider").isString()
-            .isEqualTo(TestSettings.MyTextMessageProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().containsExactly("message");
 
     }
 
@@ -1647,74 +1630,68 @@ class UiSchemaOptionsTest {
         class NumberInputWidgetTestSettings implements DefaultNodeSettings {
 
             @Widget(title = "", description = "")
-            @NumberInputWidget(validation = CustomStaticMinValidation.class)
+            @NumberInputWidget(minValidation = CustomStaticMinValidation.class)
             double m_numberInputMin;
 
             @Widget(title = "", description = "")
-            @NumberInputWidget(validation = CustomStaticMaxValidation.class)
+            @NumberInputWidget(maxValidation = CustomStaticMaxValidation.class)
             int m_numberInputMax;
 
             @Widget(title = "", description = "")
-            @NumberInputWidget(validationProvider = CustomDynamicMinValidation.class)
+            @NumberInputWidget(minValidationProvider = CustomDynamicMinValidation.class)
             double m_numberInputMinProvider;
 
             @Widget(title = "", description = "")
-            @NumberInputWidget(validationProvider = CustomDynamicMaxValidation.class)
+            @NumberInputWidget(maxValidationProvider = CustomDynamicMaxValidation.class)
             int m_numberInputMaxProvider;
 
             @Widget(title = "", description = "")
-            @NumberInputWidget(validation = IsNonNegativeValidation.class)
+            @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
             int m_nonNegative;
 
             @Widget(title = "", description = "")
-            @NumberInputWidget(validation = IsPositiveIntegerValidation.class)
+            @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
             int m_positiveInteger;
         }
 
         var response = buildTestUiSchema(NumberInputWidgetTestSettings.class);
 
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("numberInputMin");
-        assertThatJson(response).inPath("$.elements[0].options.validations[0].id").isString().isEqualTo("min");
-        assertThatJson(response).inPath("$.elements[0].options.validations[0].parameters.min").isNumber()
+        assertThatJson(response).inPath("$.elements[0].options.validation.min.parameters.min").isNumber()
             .isEqualTo(BigDecimal.valueOf(-42.0));
-        assertThatJson(response).inPath("$.elements[0].options.validations[0].parameters.isExclusive").isBoolean()
+        assertThatJson(response).inPath("$.elements[0].options.validation.min.parameters.isExclusive").isBoolean()
             .isFalse();
-        assertThatJson(response).inPath("$.elements[0].options.validations[0].errorMessage").isString()
+        assertThatJson(response).inPath("$.elements[0].options.validation.min.errorMessage").isString()
             .isEqualTo("The value must be at least -42.");
 
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("numberInputMax");
-        assertThatJson(response).inPath("$.elements[1].options.validations[0].id").isString().isEqualTo("max");
-        assertThatJson(response).inPath("$.elements[1].options.validations[0].parameters.max").isNumber()
+        assertThatJson(response).inPath("$.elements[1].options.validation.max.parameters.max").isNumber()
             .isEqualTo(BigDecimal.valueOf(42.0));
-        assertThatJson(response).inPath("$.elements[1].options.validations[0].parameters.isExclusive").isBoolean()
+        assertThatJson(response).inPath("$.elements[1].options.validation.max.parameters.isExclusive").isBoolean()
             .isTrue();
-        assertThatJson(response).inPath("$.elements[1].options.validations[0].errorMessage").isString()
+        assertThatJson(response).inPath("$.elements[1].options.validation.max.errorMessage").isString()
             .isEqualTo("The value must be less than 42.");
 
         assertThatJson(response).inPath("$.elements[2].scope").isString().contains("numberInputMinProvider");
-        assertThatJson(response).inPath("$.elements[2].options.validationProviders[0]").isString()
-            .isEqualTo(CustomDynamicMinValidation.class.getName());
+        assertThatJson(response).inPath("$.elements[2].providedOptions").isArray().containsExactly("validation.min");
 
         assertThatJson(response).inPath("$.elements[3].scope").isString().contains("numberInputMaxProvider");
-        assertThatJson(response).inPath("$.elements[3].options.validationProviders[0]").isString()
-            .isEqualTo(CustomDynamicMaxValidation.class.getName());
+        assertThatJson(response).inPath("$.elements[3].providedOptions").isArray().containsExactly("validation.max");
 
         assertThatJson(response).inPath("$.elements[4].scope").isString().contains("nonNegative");
-        assertThatJson(response).inPath("$.elements[4].options.validations[0].id").isString().isEqualTo("min");
-        assertThatJson(response).inPath("$.elements[4].options.validations[0].parameters.min").isNumber()
+        assertThatJson(response).inPath("$.elements[4].options.validation.min.parameters.min").isNumber()
             .isEqualTo(BigDecimal.valueOf(0.0));
-        assertThatJson(response).inPath("$.elements[4].options.validations[0].parameters.isExclusive").isBoolean()
+        assertThatJson(response).inPath("$.elements[4].options.validation.min.parameters.isExclusive").isBoolean()
             .isFalse();
-        assertThatJson(response).inPath("$.elements[4].options.validations[0].errorMessage").isString()
+        assertThatJson(response).inPath("$.elements[4].options.validation.min.errorMessage").isString()
             .isEqualTo("The value must be at least 0.");
 
         assertThatJson(response).inPath("$.elements[5].scope").isString().contains("positiveInteger");
-        assertThatJson(response).inPath("$.elements[5].options.validations[0].id").isString().isEqualTo("min");
-        assertThatJson(response).inPath("$.elements[5].options.validations[0].parameters.min").isNumber()
+        assertThatJson(response).inPath("$.elements[5].options.validation.min.parameters.min").isNumber()
             .isEqualTo(BigDecimal.valueOf(1.0));
-        assertThatJson(response).inPath("$.elements[5].options.validations[0].parameters.isExclusive").isBoolean()
+        assertThatJson(response).inPath("$.elements[5].options.validation.min.parameters.isExclusive").isBoolean()
             .isFalse();
-        assertThatJson(response).inPath("$.elements[5].options.validations[0].errorMessage").isString()
+        assertThatJson(response).inPath("$.elements[5].options.validation.min.errorMessage").isString()
             .isEqualTo("The value must be at least 1.");
     }
 
@@ -1722,15 +1699,16 @@ class UiSchemaOptionsTest {
         final BigDecimal min, final BigDecimal max) {
         final var optionsPath = String.format("$.elements[%d].options", elementIndex);
         assertThatJson(response).inPath(String.format("$.elements[%d].scope", elementIndex)).isString().contains(scope);
-        assertThatJson(response).inPath(String.format("%s.validations", optionsPath)).isArray() //
-            .allSatisfy(v -> assertThatJson(v).inPath("$.parameters.isExclusive").isBoolean().isFalse());
 
-        assertThatJson(response).inPath(String.format("%s.validations[0].id", optionsPath)).isString().isEqualTo("min");
-        assertThatJson(response).inPath(String.format("%s.validations[0].parameters.min", optionsPath)).isNumber()
+        assertThatJson(response).inPath(String.format("%s.validation.min.parameters.min", optionsPath)).isNumber()
             .isEqualTo(min);
-        assertThatJson(response).inPath(String.format("%s.validations[1].id", optionsPath)).isString().isEqualTo("max");
-        assertThatJson(response).inPath(String.format("%s.validations[1].parameters.max", optionsPath)).isNumber()
+        assertThatJson(response).inPath(String.format("%s.validation.min.parameters.isExclusive", optionsPath))
+            .isBoolean().isFalse();
+
+        assertThatJson(response).inPath(String.format("%s.validation.max.parameters.max", optionsPath)).isNumber()
             .isEqualTo(max);
+        assertThatJson(response).inPath(String.format("%s.validation.max.parameters.isExclusive", optionsPath))
+            .isBoolean().isFalse();
     }
 
     @Test
@@ -1748,7 +1726,7 @@ class UiSchemaOptionsTest {
             long m_long;
 
             @Widget(title = "", description = "")
-            @NumberInputWidget(validation = IsNonNegativeValidation.class)
+            @NumberInputWidget(minValidation = IsNonNegativeValidation.class)
             int m_overwrittenIntValidation;
         }
 
@@ -1759,17 +1737,10 @@ class UiSchemaOptionsTest {
             BigDecimal.valueOf(2147483647.0));
         assertNumericValidation(response, 2, "long", BigDecimal.valueOf(-9007199254740991.0),
             BigDecimal.valueOf(9007199254740991.0));
-        assertThatJson(response).inPath("$.elements[2].options.validations").isArray() //
-            .anySatisfy(v -> {
-                assertThatJson(v).inPath("$.id").isEqualTo("min");
-                assertThatJson(v).inPath("$.errorMessage")
-                    .isEqualTo("Value too small to process without risking precision loss (< -9007199254740991).");
-            }) //
-            .anySatisfy(v -> {
-                assertThatJson(v).inPath("$.id").isEqualTo("max");
-                assertThatJson(v).inPath("$.errorMessage")
-                    .isEqualTo("Value too large to process without risking precision loss (> 9007199254740991).");
-            });
+        assertThatJson(response).inPath("$.elements[2].options.validation.min.errorMessage")
+            .isEqualTo("Value too small to process without risking precision loss (< -9007199254740991).");
+        assertThatJson(response).inPath("$.elements[2].options.validation.max.errorMessage")
+            .isEqualTo("Value too large to process without risking precision loss (> 9007199254740991).");
         assertNumericValidation(response, 3, "overwrittenIntValidation", BigDecimal.valueOf(0.0),
             BigDecimal.valueOf(2147483647.0));
     }
@@ -1807,7 +1778,6 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].options.specialChoices").isArray()
             .containsExactly(new StringChoice("SPECIAL1", "Special 1"), new StringChoice("SPECIAL2", "Special 2"));
 
-        assertThatJson(response).inPath("$.elements[0].options.choicesProvider").isString()
-            .isEqualTo(RegularChoicesProvider.class.getName());
+        assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().containsExactly("possibleValues");
     }
 }

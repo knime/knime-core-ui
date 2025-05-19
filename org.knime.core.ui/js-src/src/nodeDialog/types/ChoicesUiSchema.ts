@@ -10,7 +10,6 @@ export type PossibleValue = IdAndText & {
 
 export type ChoicesUiSchemaOptions = {
   possibleValues?: PossibleValue[];
-  choicesProviderClass?: string;
   setFirstValueOnUpdate?: boolean;
   showNoneColumn?: boolean;
   showRowKeys?: boolean;

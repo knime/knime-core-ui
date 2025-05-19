@@ -53,6 +53,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.function.Supplier;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
@@ -61,6 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.OptionalWidget;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -68,7 +70,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  *
  * @author Paul Bärnreuther
  */
-final class OptionalWidgetOptionsUtil {
+public final class OptionalWidgetOptionsUtil {
 
     OptionalWidgetOptionsUtil() {
         // prevent instantiation
@@ -84,18 +86,14 @@ final class OptionalWidgetOptionsUtil {
     /**
      * The default value for the widget if no {@link OptionalWidget} is provided.
      */
-    static final String STATIC_DEFAULT = "default";
+    public static final String TAG_DEFAULT = "default";
 
-    /**
-     * The id of the supplied {@link OptionalWidget}.
-     */
-    private static final String DEFAULT_PROVIDER = "defaultProvider";
-
-    static void addOptionalWidgetOptions(final TreeNode<WidgetGroup> optionalNode, final ObjectNode options) {
+    static void addOptionalWidgetOptions(final TreeNode<WidgetGroup> optionalNode, final ObjectNode options,
+        final Supplier<ArrayNode> getProvidedOptions) {
         options.put(FLAG, true);
         optionalNode.getAnnotation(OptionalWidget.class).ifPresentOrElse(
-            provider -> options.put(DEFAULT_PROVIDER, provider.defaultProvider().getName()),
-            () -> options.set(STATIC_DEFAULT, getDefaultValue(optionalNode))//
+            provider -> getProvidedOptions.get().add(TAG_DEFAULT),
+            () -> options.set(TAG_DEFAULT, getDefaultValue(optionalNode))//
         );
     }
 

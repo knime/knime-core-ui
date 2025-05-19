@@ -4,27 +4,21 @@ import { computed } from "vue";
 import { InputField } from "@knime/components";
 import type { VueControlPropsForLabelContent } from "@knime/jsonforms";
 
-import { type FileChooserOptions } from "../../../types/FileChooserUiSchema";
+import { type FileChooserUiSchema } from "../../../types/FileChooserUiSchema";
 import DialogFileExplorer from "../DialogFileExplorer.vue";
 import FileBrowserButton from "../FileBrowserButton.vue";
 import { useFileChooserBrowseOptions } from "../composables/useFileChooserBrowseOptions";
 import useSideDrawerContent from "../composables/useSideDrawerContent";
 
 const props = defineProps<VueControlPropsForLabelContent<string>>();
-
-const uiSchemaOptions = computed(
-  () =>
-    props.control.uischema.options as FileChooserOptions & {
-      placeholder?: string;
-    },
-);
+const uischema = computed(() => props.control.uischema as FileChooserUiSchema);
 const { sideDrawerValue, updateSideDrawerValue, onApply } =
   useSideDrawerContent<string>({
     onChange: props.changeValue,
     initialValue: computed(() => props.control.data),
   });
 const { appendedExtension, filteredExtensions, isLoaded, isWriter } =
-  useFileChooserBrowseOptions(uiSchemaOptions);
+  useFileChooserBrowseOptions(uischema);
 </script>
 
 <template>
@@ -34,7 +28,7 @@ const { appendedExtension, filteredExtensions, isLoaded, isWriter } =
       class="flex-grow"
       :disabled="disabled"
       :model-value="control.data"
-      :placeholder="uiSchemaOptions.placeholder"
+      :placeholder="control.uischema.options?.placeholder"
       :is-valid
       compact
       @update:model-value="changeValue"
@@ -44,7 +38,6 @@ const { appendedExtension, filteredExtensions, isLoaded, isWriter } =
         v-if="isLoaded"
         :backend-type="'local'"
         :disabled="disabled"
-        :options="uiSchemaOptions"
         :initial-value="control.data"
         :is-writer="isWriter"
         :filtered-extensions="filteredExtensions"

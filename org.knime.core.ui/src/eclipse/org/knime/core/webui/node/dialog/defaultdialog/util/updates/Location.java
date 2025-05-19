@@ -58,7 +58,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 
 /**
- *
+ * The location of a dialog field in the data
  * @author Paul Bärnreuther
  * @param paths the path to the field in a {@link DefaultNodeSettings} class. It contains mulitple paths whenever the
  *            field is nested inside an array layout

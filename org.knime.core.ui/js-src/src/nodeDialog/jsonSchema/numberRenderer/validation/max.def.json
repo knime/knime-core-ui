@@ -2,7 +2,6 @@
   "$schema": "../../validation.def.def.json",
   "type": "object",
   "properties": {
-    "id": { "const": "max" },
     "parameters": {
       "type": "object",
       "properties": {

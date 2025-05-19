@@ -54,8 +54,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMaxValidationProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMinValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.TypeDependentMaxValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.TypeDependentMinValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation;
 
 /**
@@ -68,27 +72,53 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberIn
 public @interface NumberInputWidget {
 
     /**
-     * Add this field to define validation instructions for the number input. Validation instructions specified should
-     * be constant, i.e. the value to validate against does not depend on the context of the node. To validate against a
-     * dynamic value which depends on the context of the node use {@link #validationProvider()}. See
-     * {@link NumberInputWidgetValidation} for possible validation instructions such as validating the input against a
-     * minimum ({@link MinValidation}). For byte and int fields, the MIN_VALUE and MAX_VALUE are used per default. For
-     * long fields, JavaScripts Number.MinSafeInteger and Number.MaxSafeInteger are used since larger values can not be
-     * exactly handled.
+     * Add this field to define a minimum for the number input.
      *
-     * @return the validations to apply to the input
+     * <p>
+     * If the min depends on the context of the node, use {@link #minValidationProvider()} instead.
+     * </p>
+     *
+     * <h3>Default Value</h3>
+     * <p>
+     * For byte and int fields, the MIN_VALUE is used per default. For long fields, JavaScripts Number.MinSafeInteger is
+     * used since larger values can not be exactly handled.
+     * </p>
+     *
+     * @return the minimum validation for this number input
      */
-    Class<? extends NumberInputWidgetValidation>[] validation() default {};
+    Class<? extends MinValidation> minValidation() default TypeDependentMinValidation.class;
 
     /**
-     * Add this field to define validation instructions for the number input. Validation instructions specified should
-     * be dynamic, i.e. the values to validate against depend on the context of the node. To validate against a constant
-     * value which does not depend on the context of the node use {@link #validation()}. See
-     * {@link NumberInputWidgetValidation} for possible validation instructions such as validating the input against a
-     * minimum ({@link MinValidation}).
+     * Add this field to define a maximum for the number input.
      *
-     * @return the providers specifying validations to apply to the input that depend on the context of the node
+     * <p>
+     * If the max depends on the context of the node, use {@link #maxValidationProvider()} instead.
+     * </p>
+     *
+     * <h3>Default Value</h3>
+     * <p>
+     * For byte and int fields, the MAX_VALUE is used per default. For long fields, JavaScripts Number.MaxSafeInteger is
+     * used since larger values can not be exactly handled.
+     * </p>
+     *
+     * @return the maximum validation for this number input
      */
-    Class<? extends StateProvider<? extends NumberInputWidgetValidation>>[] validationProvider() default {};
+    Class<? extends MaxValidation> maxValidation() default TypeDependentMaxValidation.class;
+
+    /**
+     * The dynamic way to set the minimum value of the number input.
+     *
+     * @see #minValidation()
+     * @return a dynamically provided min validation
+     */
+    Class<? extends StateProvider<? extends MinValidation>> minValidationProvider() default NoopMinValidationProvider.class;
+
+    /**
+     * The dynamic way to set the maximum value of the number input.
+     *
+     * @see #maxValidation()
+     * @return a dynamically provided max validation
+     */
+    Class<? extends StateProvider<? extends MaxValidation>> maxValidationProvider() default NoopMaxValidationProvider.class;
 
 }

@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
 
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -92,7 +93,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvid
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil.DateTimeStringFormatValidation;
 
-import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Tests DefaultNodeSettingsService.
@@ -101,6 +102,8 @@ import com.fasterxml.jackson.databind.node.TextNode;
  */
 @SuppressWarnings("java:S2698") // we accept assertions without messages
 class DefaultNodeDialogDataServiceImplTest {
+
+    static final ObjectMapper MAPPER = new ObjectMapper();
 
     static class TestDefaultNodeSettings implements DefaultNodeSettings {
         @Widget(title = "", description = "")
@@ -122,14 +125,6 @@ class DefaultNodeDialogDataServiceImplTest {
     private static DefaultNodeDialogDataServiceImpl
         getDataService(final Class<? extends DefaultNodeSettings> modelSettingsClass) {
         return new DefaultNodeDialogDataServiceImpl(Map.of(SettingsType.MODEL, modelSettingsClass));
-    }
-
-    private static DefaultNodeDialogDataServiceImpl getDataService(
-        final Class<? extends DefaultNodeSettings> modelSettingsClass,
-        final Class<? extends DefaultNodeSettings> viewSettingsClass) {
-        return new DefaultNodeDialogDataServiceImpl(
-            Map.of(SettingsType.MODEL, modelSettingsClass, SettingsType.VIEW, viewSettingsClass));
-
     }
 
     @Nested
@@ -179,11 +174,10 @@ class DefaultNodeDialogDataServiceImplTest {
             final var valueRefTrigger = new Trigger.ValueTrigger(valueRefScope);
             final var resultWrapper =
                 dataService.update2("widgetId", valueRefTrigger, Map.of(valueRefScope, testDependencyFoo));
-            final var result = (List<UpdateResult<String>>)(resultWrapper.result());
-            assertThat(result).hasSize(1);
-            assertThat(((TextNode)result.get(0).values().get(0).value()).textValue())
-                .isEqualTo(testDepenenciesFooValue);
-            assertThat(result.get(0).scope()).isEqualTo("#/properties/model/properties/updatedWidget");
+            final var result = MAPPER.valueToTree(resultWrapper.result());
+            assertThatJson(result).inPath("$").isArray().hasSize(1);
+            assertThatJson(result).inPath("$[0].scope").isEqualTo("#/properties/model/properties/updatedWidget");
+            assertThatJson(result).inPath("$[0].values[0].value").isEqualTo(testDepenenciesFooValue);
         }
 
         @Test
@@ -225,11 +219,12 @@ class DefaultNodeDialogDataServiceImplTest {
             final var valueRefTrigger = new Trigger.ValueTrigger(valueRefScope);
             final var resultWrapper =
                 dataService.update2("widgetId", valueRefTrigger, Map.of(valueRefScope, testDependency));
-            final var result = (List<UpdateResult<String>>)(resultWrapper.result());
-            assertThat(result).hasSize(1);
-            assertThat(result.get(0).values().get(0).value()).isEqualTo(testDepenencyValue);
-            assertThat(result.get(0).scope()).isNull();
-            assertThat(result.get(0).id()).isEqualTo(UpdateSettings.MyFileExtensionProvider.class.getName());
+            final var result = MAPPER.valueToTree(resultWrapper.result());
+
+            assertThatJson(result).inPath("$").isArray().hasSize(1);
+            assertThatJson(result).inPath("$[0].scope").isEqualTo("#/properties/model/properties/updatedWidget");
+            assertThatJson(result).inPath("$[0].values[0].value").isEqualTo(testDepenencyValue);
+            assertThatJson(result).inPath("$[0].providedOptionName").isEqualTo("fileExtension");
         }
 
         @Test
@@ -298,25 +293,21 @@ class DefaultNodeDialogDataServiceImplTest {
 
             var resultWrapper =
                 dataService.update2("widgetId", valueRefTrigger, Map.of(valueRefScope, testWorkingDependency));
-            var result = (List<UpdateResult<String>>)(resultWrapper.result());
-            assertThat(result).hasSize(2);
+            var result = MAPPER.valueToTree(resultWrapper.result());
 
-            assertThat(((TextNode)result.get(0).values().get(0).value()).textValue())
-                .isEqualTo(testWorkingDependencyValue);
-            assertThat(result.get(0).scope()).isEqualTo("#/properties/model/properties/valueUpdateField");
-            assertThat(result.get(0).id()).isNull();
-
-            assertThat(result.get(1).values().get(0).value()).isEqualTo(testWorkingDependencyValue);
-            assertThat(result.get(1).scope()).isNull();
-            assertThat(result.get(1).id()).isEqualTo(UpdateSettings.MyPlaceholderProvider.class.getName());
+            assertThatJson(result).inPath("$").isArray().hasSize(2);
+            assertThatJson(result).inPath("$[0].scope").isEqualTo("#/properties/model/properties/otherUpdateField");
+            assertThatJson(result).inPath("$[0].values[0].value").isEqualTo(testWorkingDependencyValue);
+            assertThatJson(result).inPath("$[0].providedOptionName").isEqualTo("placeholder");
+            assertThatJson(result).inPath("$[1].scope").isEqualTo("#/properties/model/properties/valueUpdateField");
+            assertThatJson(result).inPath("$[1].values[0].value").isEqualTo(testWorkingDependencyValue);
 
             final String testThrowingDependencyValue = "throw";
             final var testThrowingDependency =
                 List.of(new IndexedValue<String>(List.of(), testThrowingDependencyValue));
             resultWrapper =
                 dataService.update2("widgetId", valueRefTrigger, Map.of(valueRefScope, testThrowingDependency));
-            result = (List<UpdateResult<String>>)(resultWrapper.result());
-            assertThat(result).hasSize(0);
+            assertThat((List<UpdateResult>)(resultWrapper.result())).hasSize(0);
         }
 
         static final class MyFirstValueRef implements Reference<String> {
@@ -418,16 +409,14 @@ class DefaultNodeDialogDataServiceImplTest {
             final var myFirstValueRefTrigger = new Trigger.ValueTrigger(myFirstValueRefScope);
             final var resultWrapper = dataService.update2("widgetId", myFirstValueRefTrigger,
                 Map.of(myFirstValueRefScope, testDependenciesFoo, mySecondValueRefScope, testDepenenciesBar));
-            final var result = (List<UpdateResult<String>>)(resultWrapper.result());
-            assertThat(result).hasSize(2);
-            final var first = result.get(0);
-            assertThat(((TextNode)first.values().get(0).value()).textValue())
-                .isEqualTo(testDependenciesFooValue + "_first");
-            assertThat(first.scope()).isEqualTo("#/properties/model/properties/firstUpdatedWidget");
-            final var second = result.get(1);
-            assertThat(((TextNode)second.values().get(0).value()).textValue())
-                .isEqualTo(testDepenenciesBarValue + "_second");
-            assertThat(second.scope()).isEqualTo("#/properties/model/properties/secondUpdatedWidget");
+            final var result = MAPPER.valueToTree(resultWrapper.result());
+
+            assertThatJson(result).inPath("$").isArray().hasSize(2);
+            assertThatJson(result).inPath("$[0].scope").isEqualTo("#/properties/model/properties/firstUpdatedWidget");
+            assertThatJson(result).inPath("$[0].values[0].value").isEqualTo(testDependenciesFooValue + "_first");
+            assertThatJson(result).inPath("$[1].scope").isEqualTo("#/properties/model/properties/secondUpdatedWidget");
+            assertThatJson(result).inPath("$[1].values[0].value").isEqualTo(testDepenenciesBarValue + "_second");
+
         }
     }
 

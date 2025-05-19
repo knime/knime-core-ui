@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil.getScopeFromLocation;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
@@ -72,72 +73,143 @@ public final class UpdateResultsUtil {
     }
 
     /**
-     * An instruction for an update. Either a value update defined by a path or a ui state update defined by an id
+     * Common interface for all update results
      *
-     * @param <I> the type of the keys of the resulting values in case of nested scopes (either by index or by indexId)
-     *
-     * @param scope to the field in case of a value update
-     * @param id of the state provider in other cases
-     * @param values the list of to be updated values. Usually this is a one-element list with an element with empty
-     *            indices. Other cases only occur when this update yields different results in each element of an array
-     *            widget.
      */
-    public record UpdateResult<I>(String scope, String id, List<IndexedValue<I>> values)
-        implements Comparable<UpdateResult<I>> {
-
-        private static <I> UpdateResult<I> forScope(final String scope, final List<IndexedValue<I>> values) {
-            UnaryOperator<Object> serialize = v -> JsonFormsDataUtil.getMapper().valueToTree(v);
-            return new UpdateResult<>(scope, null, sortByIndices(serializeValues(values, serialize)));
-        }
-
-        private static <I> UpdateResult<I> forId(final String id, final List<IndexedValue<I>> values) {
-            // value can be a record here, leading to a failure, since the JsonFormsDataUtil mapper does not serialize
-            // getters, leading to empty serialized records
-            UnaryOperator<Object> serialize =
-                v -> v instanceof WidgetGroup ? JsonFormsDataUtil.getMapper().valueToTree(v) : v;
-            return new UpdateResult<>(null, id, sortByIndices(serializeValues(values, serialize)));
-        }
-
-        private static <I> List<IndexedValue<I>> sortByIndices(final List<IndexedValue<I>> serializeValues) {
-            return serializeValues.stream().sorted((v1, v2) -> toIndicesString(v1).compareTo(toIndicesString(v2)))
-                .toList();
-        }
-
-        private static <I> String toIndicesString(final IndexedValue<I> v1) {
-            return String.join(",", v1.indices().stream().map(Object::toString).toArray(String[]::new));
-        }
-
-        private static <I> List<IndexedValue<I>> serializeValues(final List<IndexedValue<I>> values,
-            final UnaryOperator<Object> serialize) {
-            return values.stream().map(value -> new IndexedValue<I>(value.indices(), serialize.apply(value.value())))
-                .toList();
-        }
-
+    public sealed interface UpdateResult extends Comparable<UpdateResult> {
         @Override
-        public int compareTo(final UpdateResult<I> other) {
+        default int compareTo(final UpdateResult other) {
             return idForComparison().compareTo(other.idForComparison());
         }
 
-        private String idForComparison() {
-            if (scope != null) {
+        /**
+         * We need to sort update results to ensure that the order of updates is deterministic. This is important for
+         * snapshot tests.
+         *
+         * @return an id that is used when comparing update results.
+         */
+        String idForComparison();
+
+        /**
+         * Updates the value of a component.
+         *
+         * @param scope the scope of the component
+         * @param values the list of to be updated values. Usually this is a one-element list with an element with empty
+         *            indices. Other cases only occur when this update yields different results in each element of an
+         *            array widget.
+         * @param <I> the type by which dependencies and results are indexed.
+         *
+         */
+        record ValueUpdateResult<I>(String scope, List<IndexedValue<I>> values) implements UpdateResult {
+
+            @Override
+            public String idForComparison() {
                 return "0" + scope;
             }
-            return "1" + id;
         }
 
+        /**
+         * Updates the ui state of a component that has a location.
+         *
+         *
+         * @param scope the scope leading to the component
+         * @param providedOptionName the name of the option to be updated within the component
+         * @param values the list of to be updated values. Usually this is a one-element list with an element with empty
+         *            indices. Other cases only occur when this update yields different results in each element of an
+         *            array widget.
+         * @param <I> the type by which dependencies and results are indexed.
+         *
+         */
+        record LocationUiStateUpdateResult<I>(String scope, String providedOptionName, List<IndexedValue<I>> values)
+            implements UpdateResult {
+
+            @Override
+            public String idForComparison() {
+                return "0" + scope + ":" + providedOptionName;
+            }
+
+        }
+
+        /**
+         *
+         * Updates the ui state of a component that does not have a location.
+         *
+         * @param id the id of the component
+         * @param providedOptionName the name of the option that is updated within the component
+         * @param values the list of to be updated values. Usually this is a one-element list with an element with empty
+         *            indices. Other cases only occur when this update yields different results in each element of an
+         *            array widget.
+         * @param <I> the type by which dependencies and results are indexed.
+         *
+         */
+        record IdUiStateUpdateResult<I>(String id, String providedOptionName, List<IndexedValue<I>> values)
+            implements UpdateResult {
+
+            @Override
+            public String idForComparison() {
+                return "1" + id + ":" + providedOptionName;
+            }
+        }
+
+    }
+
+    /**
+     * value can be a record here, leading to a failure, since the JsonFormsDataUtil mapper does not serialize /
+     * getters, leading to empty serialized records
+     */
+    static UnaryOperator<Object> serializeUiState =
+        v -> v instanceof WidgetGroup ? JsonFormsDataUtil.getMapper().valueToTree(v) : v;
+
+    static UnaryOperator<Object> serializeValue = v -> JsonFormsDataUtil.getMapper().valueToTree(v);
+
+    private static <I> UpdateResult createValueUpdateResult(final String scope, final List<IndexedValue<I>> values) {
+        return new UpdateResult.ValueUpdateResult<>(scope, sortByIndices(serializeValues(values, serializeValue)));
+    }
+
+    private static <I> UpdateResult createLocationUiStateUpdateResult(final String scope,
+        final String providedOptionName, final List<IndexedValue<I>> values) {
+        return new UpdateResult.LocationUiStateUpdateResult<>(scope, providedOptionName,
+            sortByIndices(serializeValues(values, serializeUiState)));
+    }
+
+    private static <I> UpdateResult createIdUiStateUpdateResult(final String id, final String providedOptionName,
+        final List<IndexedValue<I>> values) {
+        return new UpdateResult.IdUiStateUpdateResult<>(id, providedOptionName,
+            sortByIndices(serializeValues(values, serializeUiState)));
+    }
+
+    private static <I> List<IndexedValue<I>> sortByIndices(final List<IndexedValue<I>> serializedValues) {
+        return serializedValues.stream().sorted((v1, v2) -> toIndicesString(v1).compareTo(toIndicesString(v2)))
+            .toList();
+    }
+
+    private static <I> String toIndicesString(final IndexedValue<I> v1) {
+        return String.join(",", v1.indices().stream().map(Object::toString).toArray(String[]::new));
+    }
+
+    private static <I> List<IndexedValue<I>> serializeValues(final List<IndexedValue<I>> values,
+        final UnaryOperator<Object> serialize) {
+        return values.stream().map(value -> new IndexedValue<I>(value.indices(), serialize.apply(value.value())))
+            .toList();
     }
 
     /**
      * @param triggerResult
      * @return the list of resulting instructions
      */
-    public static <I> List<UpdateResult<I>> toUpdateResults(final TriggerResult<I> triggerResult) {
-        final var valueUpdates = triggerResult.valueUpdates().entrySet().stream().map(
-            entry -> UpdateResult.forScope(getScopeFromLocation(entry.getKey()), entry.getValue()))
-            .sorted();
-        final var otherUpdates = triggerResult.otherUpdates().entrySet().stream()
-            .map(entry -> UpdateResult.forId(entry.getKey(), entry.getValue())).sorted();
-        return Stream.concat(valueUpdates, otherUpdates).toList();
+    public static <I> List<UpdateResult> toUpdateResults(final TriggerResult<I> triggerResult) {
+        final var valueUpdates = triggerResult.valueUpdates().entrySet().stream()
+            .map(entry -> createValueUpdateResult(getScopeFromLocation(entry.getKey()), entry.getValue())).sorted();
+        final var locationUiStateUpdates = triggerResult.locationUiStateUpdates().entrySet().stream()
+            .flatMap(entry -> entry.getValue().entrySet().stream()
+                .map(e -> createLocationUiStateUpdateResult(getScopeFromLocation(entry.getKey()), e.getKey(),
+                    e.getValue())));
+        final var idUiStateUpdates =
+            triggerResult.idUiStateUpdates().entrySet().stream().flatMap(entry -> entry.getValue().entrySet().stream()
+                .map(e -> createIdUiStateUpdateResult(entry.getKey(), e.getKey(), e.getValue())));
+        return Stream.of(valueUpdates, locationUiStateUpdates, idUiStateUpdates).flatMap(Function.identity()).sorted()
+            .toList();
+
     }
 
 }

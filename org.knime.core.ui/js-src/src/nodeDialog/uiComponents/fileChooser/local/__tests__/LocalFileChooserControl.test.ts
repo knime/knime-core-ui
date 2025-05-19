@@ -13,7 +13,7 @@ import FileBrowserButton from "../../FileBrowserButton.vue";
 import LabeledLocalFileChooserControl from "../LocalFileChooserControl.vue";
 import type LocalFileChooserControl from "../LocalFileChooserControl.vue";
 
-describe("LabeledLocalFileChooserControl.vue", () => {
+describe("LocalFileChooserControl.vue", () => {
   let props: VueControlTestProps<typeof LocalFileChooserControl>,
     wrapper: VueWrapper;
 

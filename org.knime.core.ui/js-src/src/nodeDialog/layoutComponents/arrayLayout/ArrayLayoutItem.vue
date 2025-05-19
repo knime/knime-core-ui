@@ -12,6 +12,7 @@ import {
 import { elementCheckboxFormat } from "../../renderers/elementCheckboxRenderer";
 import inject from "../../utils/inject";
 
+import type { ArrayLayoutControl } from "./ArrayLayout.vue";
 import ArrayLayoutItemLabel, {
   type TitleConfig,
 } from "./ArrayLayoutItemLabel.vue";
@@ -21,6 +22,7 @@ const props = defineProps<{
   elements: [string, any][];
   elementCheckboxScope: string | undefined;
   arrayElementTitle: false | TitleConfig;
+  arrayUiSchema: ArrayLayoutControl["uischema"];
   subTitleProvider: string | undefined;
   index: number;
   path: string;
@@ -33,7 +35,7 @@ const resetElementDirtyState = props.hasBeenAdded
   ? provideForAddedArrayLayoutElements().resetElementDirtyState
   : null;
 
-addIndexToStateProviders(props.id, props.index);
+addIndexToStateProviders(props.id, props.index, props.arrayUiSchema.scope);
 addIndexToTriggers(props.id);
 const childPaths = createForArrayItem(props.idsRecord, props.id);
 provide("createArrayAtPath", (path: string) =>
@@ -82,7 +84,7 @@ defineExpose({
         />
         <ArrayLayoutItemLabel
           :title-config="arrayElementTitle"
-          :sub-title-provider="subTitleProvider"
+          :array-ui-schema
           :index="index"
         />
       </div>

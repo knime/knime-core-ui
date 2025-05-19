@@ -164,7 +164,7 @@ public final class UpdatesUtil {
         updateResults.forEach(updateResult -> addInitialUpdate(updateResult, initialUpdates));
     }
 
-    private static void addInitialUpdate(final UpdateResult<Integer> updateResult, final ArrayNode initialUpdates) {
+    private static void addInitialUpdate(final UpdateResult updateResult, final ArrayNode initialUpdates) {
         initialUpdates.add(getMapper().valueToTree(updateResult));
     }
 
@@ -199,7 +199,7 @@ public final class UpdatesUtil {
 
     private static void addTrigger(final TriggerAndDependencies triggerWithDependencies,
         final ObjectNode updateObjectNode) {
-        updateObjectNode.set("trigger", MAPPER.valueToTree(triggerWithDependencies.getTrigger()));
+        updateObjectNode.set("trigger", getMapper().valueToTree(triggerWithDependencies.getTrigger()));
         if (triggerWithDependencies.isAfterOpenDialogTrigger()) {
             updateObjectNode.put("triggerInitially", true);
         }

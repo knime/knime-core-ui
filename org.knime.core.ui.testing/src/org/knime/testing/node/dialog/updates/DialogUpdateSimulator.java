@@ -59,6 +59,7 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Location;
@@ -131,16 +132,20 @@ public class DialogUpdateSimulator implements UpdateSimulator {
             }
 
             @Override
-            public List<IndexedValue<Integer>>
-                getMultiUiStateUpdateAt(final Class<? extends StateProvider<?>> stateProviderClass) {
-                return triggerResult.otherUpdates().get(stateProviderClass.getName());
+            public List<IndexedValue<Integer>> getMultiUiStateUpdateAt(final SettingsType settingsType,
+                final List<List<String>> paths, final String providedOptionName) {
+                return triggerResult.locationUiStateUpdates().get(new Location(paths, settingsType))
+                    .get(providedOptionName);
             }
         };
     }
 
     @Override
-    public UpdateSimulatorResult simulateValueChange(final String scope, final int... indices) {
-        return simulateTrigger(new Trigger.ValueTrigger(scope), indices);
+    public UpdateSimulatorResult simulateValueChange(final SettingsType settingsType, final List<List<String>> paths,
+        final int... indices) {
+        return simulateTrigger(
+            new Trigger.ValueTrigger(JsonFormsScopeUtil.getScopeFromLocation(new Location(paths, settingsType))),
+            indices);
     }
 
     @Override

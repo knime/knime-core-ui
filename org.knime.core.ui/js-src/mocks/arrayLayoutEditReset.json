@@ -166,8 +166,7 @@
     "globalUpdates": [
       {
         "trigger": {
-          "id": "ElementResetButton",
-          "scope": "#/properties/view/properties/dummyArrayLayout/items/properties/_edit"
+          "id": "ElementResetButton"
         },
         "dependencies": []
       }

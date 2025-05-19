@@ -48,8 +48,9 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.NumberRendererSpec;
@@ -57,7 +58,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMaxValidationProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMinValidationProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.TypeDependentMaxValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.TypeDependentMinValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation;
 
 class NumberRenderer extends WidgetTreeControlRendererSpec implements NumberRendererSpec {
 
@@ -76,25 +83,46 @@ class NumberRenderer extends WidgetTreeControlRendererSpec implements NumberRend
         if (m_annotation.isEmpty()) {
             return Optional.empty();
         }
-        final var validations = m_annotation.stream().flatMap(ann -> Stream.of(ann.validation()))
-            .map(InstantiationUtil::createInstance).toArray(NumberInputWidgetValidation[]::new);
-        final var validationProviders =
-            m_annotation.stream().flatMap(ann -> Stream.of(ann.validationProvider())).toList();
+        final Optional<MinValidation> minValidation = m_annotation.map(ann -> ann.minValidation())
+            .filter(cls -> !TypeDependentMinValidation.class.equals(cls)).map(InstantiationUtil::createInstance);
+        final Optional<MaxValidation> maxValidation = m_annotation.map(ann -> ann.maxValidation())
+            .filter(cls -> !TypeDependentMaxValidation.class.equals(cls)).map(InstantiationUtil::createInstance);
 
         return Optional.of(new NumberRendererOptions() {
 
             @Override
-            public Optional<NumberInputWidgetValidation[]> getValidations() {
-                return Optional.of(validations).filter(val -> val.length > 0);
-            }
+            public Optional<NumberRendererValidationOptions> getValidation() {
+                return Optional.of(new NumberRendererValidationOptions() {
 
-            @Override
-            public Optional<String[]> getValidationProviders() {
-                return Optional.of(validationProviders.stream().map(Class::getName).toArray(String[]::new))
-                    .filter(val -> val.length > 0);
+                    @Override
+                    public Optional<MinValidation> getMin() {
+                        return minValidation;
+                    }
+
+                    @Override
+                    public Optional<MaxValidation> getMax() {
+                        return maxValidation;
+                    }
+                });
+
             }
 
         });
+    }
+
+    @Override
+    public Map<String, Class<? extends StateProvider>> getStateProviderClasses() {
+        final Map<String, Class<? extends StateProvider>> stateProviderClasses = new HashMap<>();
+        if (m_annotation.map(ann -> ann.minValidationProvider())
+            .filter(cls -> !NoopMinValidationProvider.class.equals(cls)).isPresent()) {
+            stateProviderClasses.put(TAG_MIN_VALIDATION, m_annotation.get().minValidationProvider());
+        }
+        if (m_annotation.map(ann -> ann.maxValidationProvider())
+            .filter(cls -> !NoopMaxValidationProvider.class.equals(cls)).isPresent()) {
+            stateProviderClasses.put(TAG_MAX_VALIDATION, m_annotation.get().maxValidationProvider());
+        }
+        return stateProviderClasses;
+
     }
 
     private static TypeBounds getTypeBounds(final TreeNode<WidgetGroup> node) {

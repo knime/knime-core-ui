@@ -9,10 +9,10 @@ import {
 } from "@jsonforms/vue";
 
 import { Button } from "@knime/components";
+import { useProvidedState } from "@knime/jsonforms";
 import PlusIcon from "@knime/styles/img/icons/plus.svg";
 
 import { useDirtySetting } from "../../composables/components/useDirtySetting";
-import useProvidedState from "../../composables/components/useProvidedState";
 import {
   createNewId,
   deleteId,
@@ -32,6 +32,7 @@ export interface ArrayLayoutControl {
   }[];
   path: string;
   uischema: {
+    type: "Control";
     scope: string;
     options: {
       elementDefaultValueProvider?: string;
@@ -40,11 +41,19 @@ export interface ArrayLayoutControl {
       hasFixedSize: boolean;
       addButtonText?: string;
       elementCheckboxScope?: string;
-      elementTitleProvider?: string;
-      elementSubTitleProvider?: string;
       arrayElementTitle?: string;
       detail?: Record<string, JsonSchema>;
+      /**
+       * Never actually present here but included in this type for provided options.
+       */
+      elementSubTitle?: string;
+      elementDefaultValue?: unknown;
     };
+    providedOptions?: (
+      | "arrayElementTitle"
+      | "elementSubTitle"
+      | "elementDefaultValue"
+    )[];
   };
   visible: boolean;
   schema: { properties: Record<string, JsonSchema> };
@@ -72,7 +81,8 @@ const ArrayLayout = defineComponent({
     const numElements = computed(() => control.value.data?.length ?? 0);
     const cleanArrayLength = ref(numElements.value);
     const providedElementDefaultValue = useProvidedState(
-      control.value.uischema.options?.elementDefaultValueProvider,
+      computed(() => control.value.uischema),
+      "elementDefaultValue",
       null,
     );
     useDirtySetting({
@@ -181,12 +191,13 @@ const ArrayLayout = defineComponent({
       return [];
     },
     arrayElementTitle() {
-      const elementTitleProvider =
-        this.control.uischema.options?.elementTitleProvider;
-      if (elementTitleProvider) {
+      if (
+        this.control.uischema.providedOptions?.includes(
+          this.arrayElementTitleKey,
+        )
+      ) {
         return {
           type: "provided",
-          provider: elementTitleProvider,
         };
       }
       const elementTitle =
@@ -198,9 +209,6 @@ const ArrayLayout = defineComponent({
         };
       }
       return false;
-    },
-    subTitleProvider() {
-      return this.control.uischema.options?.elementSubTitleProvider;
     },
     useCardLayout() {
       return this.arrayElementTitle !== false;
@@ -266,9 +274,9 @@ export default ArrayLayout;
         :id="obj._id"
         :ref="registerElement(obj._id)"
         :ids-record="idsRecord"
+        :array-ui-schema="control.uischema"
         :elements="elements"
         :array-element-title="arrayElementTitle"
-        :sub-title-provider="subTitleProvider"
         :path="control.path"
         :index="objIndex"
         :has-been-added="objIndex === elementCountBeforeAddingOne"

@@ -70,33 +70,26 @@ public interface CredentialsRendererSpec extends ControlRendererSpec {
     }
 
     /**
+     * Option to be used to hide the username field dynamically.
+     */
+    String HAS_USERNAME = "hasUsername";
+
+    /**
+     * Option to be used to hide the password field dynamically.
+     */
+    String HAS_PASSWORD = "hasPassword";
+
+    /**
      * Options for rendering a credentials input.
      */
     interface CredentialsRendererOptions {
 
-        default Optional<Boolean> getHideUsername() {
+
+        default Optional<Boolean> getHasUsername() {
             return Optional.empty();
         }
 
-        /**
-         * Use instead of {@link #getHideUsername()} to dynamically show/hide the username field.
-         *
-         * @return the id of a state provider
-         */
-        default Optional<String> getHasUsernameProvider() {
-            return Optional.empty();
-        }
-
-        default Optional<Boolean> getHidePassword() {
-            return Optional.empty();
-        }
-
-        /**
-         * Use instead of {@link #getHidePassword()} to dynamically show/hide the password field.
-         *
-         * @return the id of a state provider
-         */
-        default Optional<String> getHasPasswordProvider() {
+        default Optional<Boolean> getHasPassword() {
             return Optional.empty();
         }
 

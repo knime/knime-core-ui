@@ -48,12 +48,11 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.NumberRendererSpec.TypeBounds;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.BuiltinValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation;
 
@@ -101,45 +100,57 @@ public final class DefaultNumberValidationUtil {
     );
 
     /**
-     * Creates {@link MinValidation} and {@link MaxValidation} for byte and int using the corresponding
-     * MIN_VALUE/MAX_VALUE. For long, the MIN_SAFE_INTEGER/MAX_SAFE_INTEGER are used since using MIN_VALUE/MAX_VALUE
-     * would result in precision loss.
+     * Creates {@link MinValidation} for byte and int using the corresponding MIN_VALUE. For long, the MIN_SAFE_INTEGER
+     * is used since using MIN_VALUE would result in precision loss.
      *
      * @param typeBounds for which to get the default validations
      * @return the default number validations
      */
-    public static List<ValidationClassInstance<NumberInputWidgetValidation>>
-        getDefaultNumberValidations(final TypeBounds typeBounds) {
+    public static Optional<MinValidation> getDefaultMinValidations(final TypeBounds typeBounds) {
         if (!NUMERIC_TYPES_WITH_BUILTIN_BOUND_VALIDATION.containsKey(typeBounds)) {
-            return List.of();
+            return Optional.empty();
         }
         final var minMax = NUMERIC_TYPES_WITH_BUILTIN_BOUND_VALIDATION.get(typeBounds);
         final var min = minMax.min();
-        final var max = minMax.max();
-        return List.of( //
-            new ValidationClassInstance<>(MinValidation.class, //
-                new MinValidation() {
-                    @Override
-                    protected double getMin() {
-                        return min.value().doubleValue();
-                    }
+        return Optional.of( //
+            new MinValidation() {
+                @Override
+                protected double getMin() {
+                    return min.value().doubleValue();
+                }
 
-                    @Override
-                    public String getErrorMessage() {
-                        return min.message() == null ? super.getErrorMessage() : min.message();
-                    }
-                }),
-            new ValidationClassInstance<>(MaxValidation.class, //
-                new MaxValidation() {
-                    @Override
-                    protected double getMax() {
-                        return max.value().doubleValue();
-                    }
-
-                    @Override
-                    public String getErrorMessage() {
-                        return max.message() == null ? super.getErrorMessage() : max.message();
-                    }
-                }));
+                @Override
+                public String getErrorMessage() {
+                    return min.message() == null ? super.getErrorMessage() : min.message();
+                }
+            });
     }
+
+    /**
+     * Creates {@link MaxValidation} for byte and int using the corresponding MAX_VALUE. For long, the MAX_SAFE_INTEGER
+     * is used since using MAX_VALUE would result in precision loss.
+     *
+     * @param typeBounds for which to get the default validations
+     * @return the default number validations
+     */
+    public static Optional<MaxValidation> getDefaultMaxValidations(final TypeBounds typeBounds) {
+        if (!NUMERIC_TYPES_WITH_BUILTIN_BOUND_VALIDATION.containsKey(typeBounds)) {
+            return Optional.empty();
+        }
+        final var minMax = NUMERIC_TYPES_WITH_BUILTIN_BOUND_VALIDATION.get(typeBounds);
+        final var max = minMax.max();
+        return Optional.of( //
+            new MaxValidation() {
+                @Override
+                protected double getMax() {
+                    return max.value().doubleValue();
+                }
+
+                @Override
+                public String getErrorMessage() {
+                    return max.message() == null ? super.getErrorMessage() : max.message();
+                }
+            });
+    }
+
 }

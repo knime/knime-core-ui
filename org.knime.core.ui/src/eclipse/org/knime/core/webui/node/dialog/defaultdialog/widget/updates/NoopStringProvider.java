@@ -48,29 +48,11 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-
 /**
  * Marker class used as ignored default only.
  *
  * @author Paul Bärnreuther
  */
-public final class NoopStringProvider implements StateProvider<String> {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void init(final StateProviderInitializer initializer) {
-        throw new IllegalStateException("This method should never be called");
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String computeState(final DefaultNodeSettingsContext context) {
-        throw new IllegalStateException("This method should never be called");
-    }
+public final class NoopStringProvider extends NoopProvider<String> {
 
 }

@@ -51,7 +51,6 @@ package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -62,6 +61,12 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.ClassUtils;
 import org.knime.core.data.DataType;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.CredentialsRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.NumberRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.OptionalWidgetOptionsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
@@ -85,6 +90,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.Fl
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBooleanProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMaxLengthValidationProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMaxValidationProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMinLengthValidationProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMinValidationProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopPatternValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
@@ -99,8 +109,17 @@ final class WidgetTreesToRefsAndStateProviders {
     record ValueProviderWrapper(Class<? extends StateProvider> stateProviderClass, Location fieldLocation) {
     }
 
+    record LocationUiStateProviderWrapper(Class<? extends StateProvider> stateProviderClass, Location fieldLocation,
+        String providedOptionName) {
+    }
+
+    record IdUiStateProviderWrapper(Class<? extends StateProvider> stateProviderClass, String id,
+        String providedOptionName) {
+    }
+
     record RefsAndStateProviders(Collection<ValueRefWrapper> valueRefs, Collection<ValueProviderWrapper> valueProviders,
-        Collection<Class<? extends StateProvider>> uiStateProviders) {
+        Collection<LocationUiStateProviderWrapper> locationUiStateProviders,
+        Collection<IdUiStateProviderWrapper> idUiStateProviders) {
     }
 
     static final Configuration TRAVERSAL_CONFIG = new Configuration.Builder()//
@@ -111,7 +130,9 @@ final class WidgetTreesToRefsAndStateProviders {
 
     private final Collection<ValueProviderWrapper> m_valueProviders = new ArrayList<>();
 
-    private final Collection<Class<? extends StateProvider>> m_uiStateProviders = new ArrayList<>();
+    private final Collection<LocationUiStateProviderWrapper> m_locationUiStateProviders = new ArrayList<>();
+
+    private final Collection<IdUiStateProviderWrapper> m_idUiStateProviders = new ArrayList<>();
 
     /**
      * @param widgetTrees a collection of widget trees derived from settings classes to collect annotated fields from
@@ -119,7 +140,8 @@ final class WidgetTreesToRefsAndStateProviders {
      */
     RefsAndStateProviders widgetTreesToRefsAndStateProviders(final Collection<Tree<WidgetGroup>> widgetTrees) {
         widgetTrees.forEach(this::traverseWidgetTree);
-        return new RefsAndStateProviders(m_valueRefs, m_valueProviders, m_uiStateProviders);
+        return new RefsAndStateProviders(m_valueRefs, m_valueProviders, m_locationUiStateProviders,
+            m_idUiStateProviders);
 
     }
 
@@ -137,14 +159,22 @@ final class WidgetTreesToRefsAndStateProviders {
         }
     }
 
+    private record UiState(String name, Class<? extends StateProvider> stateProviderClass) {
+    }
+
     interface UiStateProviderSpec {
-        Optional<List<Class<? extends StateProvider>>> getUiStateProviders(TreeNode<WidgetGroup> node);
+        Optional<List<UiState>> getUiStateProviders(TreeNode<WidgetGroup> node);
+
     }
 
     /**
      * A class that defines a ui state which is defined for a specific field type.
      */
     private record UiStateProviderFieldTypeSpec( //
+        /**
+         * The identifier of this ui state within the updated control.
+         */
+        String providedOptionName,
         /**
          * The field type for which a ui state is defined
          */
@@ -160,7 +190,7 @@ final class WidgetTreesToRefsAndStateProviders {
     ) implements UiStateProviderSpec {
 
         @Override
-        public Optional<List<Class<? extends StateProvider>>> getUiStateProviders(final TreeNode<WidgetGroup> node) {
+        public Optional<List<UiState>> getUiStateProviders(final TreeNode<WidgetGroup> node) {
             if (!fieldType.isAssignableFrom(node.getRawClass())) {
                 return Optional.empty();
             }
@@ -168,7 +198,7 @@ final class WidgetTreesToRefsAndStateProviders {
                 && node.getAnnotation(ignoreIfThisAnnotationIsPresent).isPresent()) {
                 return Optional.empty();
             }
-            return Optional.of(List.of(uiStateProvider));
+            return Optional.of(List.of(new UiState(providedOptionName, uiStateProvider)));
         }
 
     }
@@ -177,6 +207,10 @@ final class WidgetTreesToRefsAndStateProviders {
      * A class that defines a ui state which is given by an annotation.
      */
     private record UiStateProviderAnnotationSpec<T extends Annotation, S extends StateProvider>( //
+        /**
+         * The identifier of this ui state within the updated control.
+         */
+        String providedOptionName,
         /**
          * The annotation class that defines the ui state
          */
@@ -192,7 +226,7 @@ final class WidgetTreesToRefsAndStateProviders {
     ) implements UiStateProviderSpec {
 
         @Override
-        public Optional<List<Class<? extends StateProvider>>> getUiStateProviders(final TreeNode<WidgetGroup> node) {
+        public Optional<List<UiState>> getUiStateProviders(final TreeNode<WidgetGroup> node) {
             if (!node.getPossibleAnnotations().contains(annotationClass)) {
                 return Optional.empty();
             }
@@ -204,39 +238,7 @@ final class WidgetTreesToRefsAndStateProviders {
             if (ignoredDefaultParameter != null && stateProvider.equals(ignoredDefaultParameter)) {
                 return Optional.empty();
             }
-            return Optional.of(List.of(stateProvider));
-
-        }
-
-    }
-
-    /**
-     * A list of classes that define ui states which are given by an annotation.
-     */
-    private record UiStateProvidersAnnotationSpec<T extends Annotation, S extends StateProvider>( //
-        /**
-         * The annotation class that defines the ui state
-         */
-        Class<T> annotationClass, //
-        /**
-         * The parameter of the provider that needs to be instantiated to retrieve the states
-         */
-        Function<T, Class<? extends S>[]> getProvidersParameter
-
-    ) implements UiStateProviderSpec {
-
-        @Override
-        public Optional<List<Class<? extends StateProvider>>> getUiStateProviders(final TreeNode<WidgetGroup> node) {
-            if (!node.getPossibleAnnotations().contains(annotationClass)) {
-                return Optional.empty();
-            }
-            final var annotation = node.getAnnotation(annotationClass);
-            if (annotation.isEmpty()) {
-                return Optional.empty();
-            }
-            final var stateProviders = getProvidersParameter.apply(annotation.get());
-
-            return stateProviders.length == 0 ? Optional.empty() : Optional.of(Arrays.asList(stateProviders));
+            return Optional.of(List.of(new UiState(providedOptionName, stateProvider)));
 
         }
 
@@ -244,105 +246,159 @@ final class WidgetTreesToRefsAndStateProviders {
 
     private static List<UiStateProviderFieldTypeSpec> uiStateProviderFieldTypeSpecs = List.of( //
         new UiStateProviderFieldTypeSpec( //
+            "possibleValues", //
             DataType.class, //
             DefaultDataTypeChoicesProvider.class, //
-            null //
+            ChoicesProvider.class//
         )//
     );
 
     private static List<UiStateProviderAnnotationSpec<? extends Annotation, ? extends StateProvider>> uiStateProviderAnnotationSpecs =
         List.of( //
             new UiStateProviderAnnotationSpec<>(//
+                UiSchema.TAG_FILE_EXTENSION, //
                 FileWriterWidget.class, //
                 FileWriterWidget::fileExtensionProvider, //
                 NoopStringProvider.class //
             ), //
             new UiStateProviderAnnotationSpec<>( //
+                UiSchema.TAG_FILE_EXTENSION, //
                 LocalFileWriterWidget.class, //
                 LocalFileWriterWidget::fileExtensionProvider, //
                 NoopStringProvider.class //
             ), //
             new UiStateProviderAnnotationSpec<>( //
+                CredentialsRendererSpec.HAS_PASSWORD, //
                 CredentialsWidget.class, //
                 CredentialsWidget::hasPasswordProvider, //
                 NoopBooleanProvider.class //
             ), //
             new UiStateProviderAnnotationSpec<>( //
+                CredentialsRendererSpec.HAS_USERNAME, //
                 CredentialsWidget.class, //
                 CredentialsWidget::hasUsernameProvider, //
                 NoopBooleanProvider.class //
             ), //
             new UiStateProviderAnnotationSpec<>( //
+                UiSchema.TAG_INTERVAL_TYPE, //
                 IntervalWidget.class, //
                 IntervalWidget::typeProvider, //
                 null //
             ), //
             new UiStateProviderAnnotationSpec<>( //
+                UiSchema.TAG_POSSIBLE_VALUES, //
                 ChoicesProvider.class, //
                 ChoicesProvider::value, //
                 null //
             ), //
             new UiStateProviderAnnotationSpec<>(//
+                UiSchema.TAG_POSSIBLE_VALUES, //
                 ColumnFilterWidget.class, //
                 ColumnFilterWidget::choicesProvider, //
                 null//
             ), //
             new UiStateProviderAnnotationSpec<>(//
+                UiSchema.TAG_POSSIBLE_VALUES, //
                 FlowVariableFilterWidget.class, //
                 FlowVariableFilterWidget::choicesProvider, //
                 null//
             ), //
             new UiStateProviderAnnotationSpec<>( //
+                UiSchema.TAG_DATE_TIME_FORMATS, //
                 DateTimeFormatPickerWidget.class, //
                 DateTimeFormatPickerWidget::formatProvider, //
                 null //
             ), //
             new UiStateProviderAnnotationSpec<>( //
+                UiSchema.TAG_PLACEHOLDER, //
                 TextInputWidget.class, //
                 TextInputWidget::placeholderProvider, //
                 NoopStringProvider.class //
             ), //
             new UiStateProviderAnnotationSpec<>(//
+                UiSchema.TAG_MESSAGE, //
                 TextMessage.class, //
                 TextMessage::value, //
                 null //
             ), //
             new UiStateProviderAnnotationSpec<>( //
+                UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_TITLE, //
                 InternalArrayWidget.class, //
                 InternalArrayWidget::titleProvider, //
                 NoopStringProvider.class //
             ), //
             new UiStateProviderAnnotationSpec<>( //
+                UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_SUB_TITLE, //
                 InternalArrayWidget.class, //
                 InternalArrayWidget::subTitleProvider, //
                 NoopStringProvider.class //
             ), //
             new UiStateProviderAnnotationSpec<>( //
+                UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_DEFAULT_VALUE, //
                 ArrayWidget.class, //
                 ArrayWidget::elementDefaultValueProvider, //
                 StateProvider.class //
             ), //
             new UiStateProviderAnnotationSpec<>(//
+                OptionalWidgetOptionsUtil.TAG_DEFAULT, //
                 OptionalWidget.class, //
                 OptionalWidget::defaultProvider, //
                 null//
-            )//
+            ), //
+            new UiStateProviderAnnotationSpec<>(//
+                NumberRendererSpec.TAG_MIN_VALIDATION, //
+                NumberInputWidget.class, //
+                NumberInputWidget::minValidationProvider, //
+                NoopMinValidationProvider.class//
+            ), //
+            new UiStateProviderAnnotationSpec<>(//
+                NumberRendererSpec.TAG_MAX_VALIDATION, //
+                NumberInputWidget.class, //
+                NumberInputWidget::maxValidationProvider, //
+                NoopMaxValidationProvider.class//
+            ), //
+            new UiStateProviderAnnotationSpec<>(//
+                TextRendererSpec.TAG_MIN_LENGTH_VALIDATION, //
+                TextInputWidget.class, //
+                TextInputWidget::minLengthValidationProvider, //
+                NoopMinLengthValidationProvider.class//
+            ), //
+            new UiStateProviderAnnotationSpec<>(//
+                TextRendererSpec.TAG_MAX_LENGTH_VALIDATION, //
+                TextInputWidget.class, //
+                TextInputWidget::maxLengthValidationProvider, //
+                NoopMaxLengthValidationProvider.class//
+            ), //
+            new UiStateProviderAnnotationSpec<>(//
+                TextRendererSpec.TAG_PATTERN_VALIDATION, //
+                TextInputWidget.class, //
+                TextInputWidget::patternValidationProvider, //
+                NoopPatternValidationProvider.class//
+            ) //
         );
 
-    private static List<UiStateProvidersAnnotationSpec<? extends Annotation, ? extends StateProvider>> //
-    uiStateProvidersAnnotationSpecs = List.of( //
-        new UiStateProvidersAnnotationSpec<>(NumberInputWidget.class, NumberInputWidget::validationProvider), //
-        new UiStateProvidersAnnotationSpec<>(TextInputWidget.class, TextInputWidget::validationProvider));
-
-    static final List<UiStateProviderSpec> uiStateProviderSpecs = Stream.<UiStateProviderSpec> concat(Stream.concat(//
-        uiStateProviderFieldTypeSpecs.stream(), //
-        uiStateProviderAnnotationSpecs.stream()), //
-        uiStateProvidersAnnotationSpecs.stream() //
-    ).toList();
+    static final List<UiStateProviderSpec> uiStateProviderSpecs = Stream.of( //
+        uiStateProviderFieldTypeSpecs, //
+        uiStateProviderAnnotationSpecs //
+    ).<UiStateProviderSpec> flatMap(specs -> specs.stream()).toList();
 
     private void addUiStateProviderForNode(final TreeNode<WidgetGroup> node) {
         uiStateProviderSpecs.stream()
-            .forEach(spec -> spec.getUiStateProviders(node).ifPresent(m_uiStateProviders::addAll));
+            .forEach(spec -> spec.getUiStateProviders(node).ifPresent(states -> addUiStateProviders(node, states)));
+    }
+
+    private void addUiStateProviders(final TreeNode<WidgetGroup> node, final List<UiState> states) {
+        final var location = Location.fromTreeNode(node);
+        if (WidgetTreeUtil.hasScope(node)) {
+            m_locationUiStateProviders.addAll(states.stream()
+                .map(state -> new LocationUiStateProviderWrapper(state.stateProviderClass(), location, state.name()))
+                .toList());
+        } else {
+            m_idUiStateProviders
+                .addAll(states.stream().map(state -> new IdUiStateProviderWrapper(state.stateProviderClass(),
+                    JsonFormsScopeUtil.getScopeFromLocation(location), state.name())).toList());
+        }
+
     }
 
     private void addWidgetValueAnnotationRefAndValueProviderForNode(final TreeNode<WidgetGroup> node) {

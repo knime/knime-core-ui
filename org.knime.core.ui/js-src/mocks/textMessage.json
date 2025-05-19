@@ -56,11 +56,11 @@
             },
             {
               "type": "Control",
-              "scope": "#/properties/textMessage",
+              "id": "textMessageId",
               "options": {
-                "format": "textMessage",
-                "messageProvider": "textMessageProvider"
-              }
+                "format": "textMessage"
+              },
+              "providedOptions": ["message"]
             },
             {
               "type": "Control",
@@ -72,7 +72,8 @@
     },
     "initialUpdates": [
       {
-        "id": "textMessageProvider",
+        "id": "textMessageId",
+        "providedOptionName": "message",
         "values": [
           {
             "indices": [],
@@ -82,8 +83,7 @@
               "description": "Description"
             }
           }
-        ],
-        "scope": null
+        ]
       }
     ],
     "globalUpdates": [

@@ -15,10 +15,13 @@ import {
   type Trigger,
   type Update,
   type UpdateResult,
+  isLocationBased,
   isValueTrigger,
+  isValueUpdateResult,
 } from "../../types/Update";
 
 import { type ArrayRecord, getIndex } from "./useArrayIds";
+import type { StateProviderLocation } from "./useStateProviders";
 import type {
   IndexedIsActive,
   IsActiveCallback,
@@ -127,11 +130,11 @@ export default ({
   globalArrayIdsRecord,
 }: {
   callStateProviderListener: (
-    location: { id: string; indexIds?: string[] },
+    location: { indexIds?: string[] } & StateProviderLocation,
     value: unknown,
   ) => void;
   callStateProviderListenerByIndices: (
-    location: { id: string; indices: number[] },
+    location: { indices: number[] } & StateProviderLocation,
     value: unknown,
   ) => void;
   registerWatcher: (params: {
@@ -157,7 +160,7 @@ export default ({
 
   const resolveUpdateResult =
     (
-      { scope, values, id }: UpdateResult,
+      updateResult: UpdateResult,
       onValueUpdate: (path: string) => void,
       indexIds: string[],
     ) =>
@@ -167,7 +170,8 @@ export default ({
       if (!indicesAreDefined(indices)) {
         return;
       }
-      if (scope) {
+      if (isValueUpdateResult(updateResult)) {
+        const { scope, values } = updateResult;
         const indicesValuePairs = isIndexIdsAndValuePairs(values)
           ? toIndicesValuePairs(values, getIndex)
           : values;
@@ -187,18 +191,33 @@ export default ({
             }
           },
         );
-      } else if (id) {
+      } else {
+        const toLocation = <T>(indexLocation: T): T & StateProviderLocation => {
+          if (isLocationBased(updateResult)) {
+            return {
+              ...indexLocation,
+              scope: updateResult.scope,
+              providedOptionName: updateResult.providedOptionName,
+            };
+          }
+          return {
+            ...indexLocation,
+            id: updateResult.id,
+            providedOptionName: updateResult.providedOptionName,
+          };
+        };
+        const { values } = updateResult;
         if (isIndexIdsAndValuePairs(values)) {
           values.forEach(({ indices: valueIndexIds, value }) =>
             callStateProviderListener(
-              { id, indexIds: [...indexIds, ...valueIndexIds] },
+              toLocation({ indexIds: [...indexIds, ...valueIndexIds] }),
               value,
             ),
           );
         } else {
           values.forEach(({ indices: valueIndices, value }) =>
             callStateProviderListenerByIndices(
-              { id, indices: [...indices, ...valueIndices] },
+              toLocation({ indices: [...indices, ...valueIndices] }),
               value,
             ),
           );
@@ -357,30 +376,32 @@ export default ({
     settings: DialogSettings;
     indexIds: string[];
   }) =>
-    updateResult.reduce((acc: IndexedIsActive[], { id, scope, values }) => {
+    updateResult.reduce((acc: IndexedIsActive[], updateResult) => {
       const currentIndices = resolveToIndices(indexIds);
       if (!indicesAreDefined(currentIndices)) {
         return acc;
       }
-      (values as IndexIdsValuePairs).forEach(({ indices: indexIds, value }) => {
-        const existing = getOrCreateIndicesEntry(indexIds, acc);
-        if (id) {
-          // for simplicity, if an ui state is provided, the update is seen as necessary
-          existing.isActive = true;
-        } else if (scope) {
-          if (
-            isUpdateAtIndicesNecessary({
-              scope,
-              currentIndices,
-              indexIds,
-              value,
-              settings,
-            })
-          ) {
+      (updateResult.values as IndexIdsValuePairs).forEach(
+        ({ indices: indexIds, value }) => {
+          const existing = getOrCreateIndicesEntry(indexIds, acc);
+          if (isValueUpdateResult(updateResult)) {
+            if (
+              isUpdateAtIndicesNecessary({
+                scope: updateResult.scope,
+                currentIndices,
+                indexIds,
+                value,
+                settings,
+              })
+            ) {
+              existing.isActive = true;
+            }
+          } else {
+            // for simplicity, if an ui state is provided, the update is seen as necessary
             existing.isActive = true;
           }
-        }
-      });
+        },
+      );
       return acc;
     }, [] satisfies IndexedIsActive[]);
 
