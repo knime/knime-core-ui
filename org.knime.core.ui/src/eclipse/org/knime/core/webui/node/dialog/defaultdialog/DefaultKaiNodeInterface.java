@@ -308,6 +308,15 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
         return m_settingsClasses.keySet();
     }
 
+    /**
+     * Public method for analysis purposes.
+     *
+     * @return the settings classes of the node
+     */
+    public Map<SettingsType, Class<? extends DefaultNodeSettings>> getSettingsClasses() {
+        return m_settingsClasses;
+    }
+
     @Override
     public Optional<OnApplyNodeModifier> getOnApplyNodeModifier() {
         return Optional.ofNullable(m_onApplyModifier);

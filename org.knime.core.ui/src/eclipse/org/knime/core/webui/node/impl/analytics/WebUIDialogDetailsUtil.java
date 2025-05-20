@@ -51,16 +51,22 @@ package org.knime.core.webui.node.impl.analytics;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.UnaryOperator;
 
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettingsImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
 
@@ -84,11 +90,11 @@ public final class WebUIDialogDetailsUtil {
      * @param hasWebUIDialog true if the node factory implements a dialog
      * @param hasWebUIModel for the model extracted from the node factory
      * @param hasWebUIModelMessage that can be present in case hasWebUIModel is false
-     * @param modelSettings for the settings extracted from the node model
-     * @param modelSettingsMessage that can be present in case modelSettings is null
+     * @param settings the extracted settings
+     * @param settingsMessage that can be present in case settings is null
      */
     public record WebUIDialogDetails(boolean hasWebUIDialog, boolean hasWebUIModel, String hasWebUIModelMessage,
-        WebUISettings modelSettings, String modelSettingsMessage) {
+        WebUISettings settings, String settingsMessage) {
 
     }
 
@@ -124,7 +130,44 @@ public final class WebUIDialogDetailsUtil {
         if (!hasWebUIDialog) {
             return new WebUIDialogDetails(false, false, null, null, null);
         }
+        if (factory instanceof KaiNodeInterfaceFactory kaiNodeInterfaceFactory
+            && kaiNodeInterfaceFactory.createKaiNodeInterface() instanceof DefaultKaiNodeInterface kaiNodeInterface) {
+            return extractDetailsFromKaiNodeInterface(kaiNodeInterface, factory);
+        }
+        final UnaryOperator<String> toNotKaiNodeInterfaceMessage =
+            string -> String.format("Node factory does not extend KAINodeInterface; %s", string);
 
+        final var nodeModelClassOptional = extractNodeModelClass(factory);
+        if (nodeModelClassOptional.isEmpty()) {
+            return new WebUIDialogDetails(true, false,
+                "Unable to extract the node model class from the node factory class", null,
+                toNotKaiNodeInterfaceMessage.apply("No model settings could be extracted"));
+        }
+        final var nodeModelClass = nodeModelClassOptional.get().getSecond();
+
+        final var hasWebUIModel = WebUINodeModel.class.isAssignableFrom(nodeModelClass)
+            || WebUISimpleStreamableFunctionNodeModel.class.isAssignableFrom(nodeModelClass);
+
+        if (!hasWebUIModel) {
+            return new WebUIDialogDetails(true, false, null, null, toNotKaiNodeInterfaceMessage
+                .apply("Unable to extract model settings from node model since it is not webUI."));
+        }
+
+        Class<? extends DefaultNodeSettings> modelSettingsClass;
+        try {
+            final Class<?> genericSuperClass = WebUINodeModel.class.isAssignableFrom(nodeModelClass)
+                ? WebUINodeModel.class : WebUISimpleStreamableFunctionNodeModel.class;
+            final var nodeModelType = nodeModelClassOptional.get().getFirst();
+            modelSettingsClass = (Class<? extends DefaultNodeSettings>)GenericTypeFinderUtil
+                .getFirstGenericTypeFromType(nodeModelType, genericSuperClass);
+        } catch (IndexOutOfBoundsException e) { // NOSONAR
+            return new WebUIDialogDetails(hasWebUIDialog, true, null, null, toNotKaiNodeInterfaceMessage
+                .apply("Unable to extract the model settings class from the generic types of the webUI node model."));
+        }
+        return constructDetails(true, null, Map.of(SettingsType.MODEL, modelSettingsClass));
+    }
+
+    private static Optional<Pair<Type, Class<?>>> extractNodeModelClass(final NodeFactory<?> factory) {
         Type nodeModelType;
         try {
             nodeModelType = GenericTypeFinderUtil.getFirstGenericType(factory.getClass(), NodeFactory.class);
@@ -135,8 +178,8 @@ public final class WebUIDialogDetailsUtil {
             try {
                 nodeModelType = factory.createNodeModel().getClass();
             } catch (Exception ex) { // NOSONAR
-                return new WebUIDialogDetails(true, false,
-                    "Unable to extract the node model class from the node factory class", null, null);
+                return Optional.empty();
+
             }
         }
         Class<?> nodeModelClass;
@@ -145,33 +188,47 @@ public final class WebUIDialogDetailsUtil {
         } else {
             nodeModelClass = (Class<?>)((ParameterizedType)nodeModelType).getRawType();
         }
-        final var hasWebUIModel = WebUINodeModel.class.isAssignableFrom(nodeModelClass)
-            || WebUISimpleStreamableFunctionNodeModel.class.isAssignableFrom(nodeModelClass);
+        return Optional.of(new Pair<>(nodeModelType, nodeModelClass));
 
-        if (!hasWebUIModel) {
-            return new WebUIDialogDetails(true, false, null, null, null);
-        }
+    }
 
-        Class<? extends DefaultNodeSettings> modelSettingsClass;
-        try {
-            final Class<?> genericSuperClass = WebUINodeModel.class.isAssignableFrom(nodeModelClass)
-                ? WebUINodeModel.class : WebUISimpleStreamableFunctionNodeModel.class;
-            modelSettingsClass = (Class<? extends DefaultNodeSettings>)GenericTypeFinderUtil
-                .getFirstGenericTypeFromType(nodeModelType, genericSuperClass);
-        } catch (IndexOutOfBoundsException e) { // NOSONAR
-            return new WebUIDialogDetails(hasWebUIDialog, true, null, null,
-                "Unable to extract the model settings class");
+    private static WebUIDialogDetails extractDetailsFromKaiNodeInterface(final DefaultKaiNodeInterface kaiNodeInterface,
+        final NodeFactory<?> factory) {
+        final boolean hasWebUIModel;
+        final String hasWebUIModelMessage;
+        final var nodeModelClassOptional = extractNodeModelClass(factory);
+        if (nodeModelClassOptional.isEmpty()) {
+            hasWebUIModel = false;
+            hasWebUIModelMessage = "Unable to extract the node model class from the node factory class";
+        } else {
+            final var nodeModelClass = nodeModelClassOptional.get().getSecond();
+            hasWebUIModel = WebUINodeModel.class.isAssignableFrom(nodeModelClass)
+                || WebUISimpleStreamableFunctionNodeModel.class.isAssignableFrom(nodeModelClass);
+            hasWebUIModelMessage = null;
         }
+        final var settingsClasses = kaiNodeInterface.getSettingsClasses();
+        return constructDetails(hasWebUIModel, hasWebUIModelMessage, settingsClasses);
+
+    }
+
+    private static WebUIDialogDetails constructDetails(final boolean hasWebUIModel, final String hasWebUIModelMessage,
+        final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses) {
         try {
-            final var modelSettings = DefaultNodeSettings.createSettings(modelSettingsClass);
-            final var context = DefaultNodeSettings.createDefaultNodeSettingsContext(new PortObjectSpec[0]);
-            var jsonFormsSettings = new JsonFormsSettingsImpl(Map.of(SettingsType.MODEL, modelSettings), context);
-            return new WebUIDialogDetails(hasWebUIDialog, true, null, new WebUISettings(jsonFormsSettings), null);
+            final var jsonFormsSettings = extractJsonFormsSettings(settingsClasses);
+            return new WebUIDialogDetails(true, hasWebUIModel, hasWebUIModelMessage, jsonFormsSettings, null);
         } catch (Exception ex) { //NOSONAR
-            return new WebUIDialogDetails(hasWebUIDialog, true, null, null,
-                "Unable to extract the model settings: " + ex.getMessage());
-
+            return new WebUIDialogDetails(true, hasWebUIModel, hasWebUIModelMessage, null,
+                "Unable to extract the settings: " + ex.getMessage());
         }
+    }
+
+    private static WebUISettings extractJsonFormsSettings(
+        final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses) throws JsonProcessingException {
+        final Map<SettingsType, DefaultNodeSettings> settings =
+            MapValuesUtil.mapValues(settingsClasses, DefaultNodeSettings::createSettings);
+        final var context = DefaultNodeSettings.createDefaultNodeSettingsContext(new PortObjectSpec[0]);
+        final var jsonFormsSettings = new JsonFormsSettingsImpl(settings, context);
+        return new WebUISettings(jsonFormsSettings);
     }
 
 }
