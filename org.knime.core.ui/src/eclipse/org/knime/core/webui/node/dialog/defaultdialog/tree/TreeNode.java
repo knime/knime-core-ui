@@ -146,6 +146,17 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
     }
 
     /**
+     * Returns the root of the tree containing this node. If this is a root node, it returns itself.
+     *
+     * @return the parent of this node (or itself if it is a root node)
+     */
+    public TreeNode<S> getRoot() {
+        return isRoot() //
+            ? this //
+            : getParent().getRoot();
+    }
+
+    /**
      * @return the name of this node. It is empty in case of a root tree node (which can be an element widget tree of an
      *         {@link ArrayParentNode})
      */

@@ -38,7 +38,6 @@ const props = withDefaults(defineProps<DialogFileExplorerProps>(), {
   isWriter: false,
   filteredExtensions: () => [],
   appendedExtension: null,
-  clickOutsideExceptions: () => [],
   breadcrumbRoot: null,
   selectionMode: "FILE",
 });
