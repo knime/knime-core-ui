@@ -50,8 +50,14 @@ package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Optional;
 
+import org.knime.core.webui.data.DataServiceContext;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode.HiddenFeaturesNodeSettings.DummyAdapter;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
@@ -62,6 +68,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.Mult
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FolderSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
+@DBTableAdapterProvider(DummyAdapter.class)
 class HiddenFeaturesNodeSettings implements DefaultNodeSettings {
 
     static final class TestFileChooserFilters implements FileChooserFilters {
@@ -103,9 +110,35 @@ class HiddenFeaturesNodeSettings implements DefaultNodeSettings {
 
     MultiFileSelection<TestFileChooserFilters> m_fileSelection = new MultiFileSelection<>(new TestFileChooserFilters());
 
-    DBTableSelection m_dbTableSelection = new DBTableSelection("test_schema", "test_table");
-
     @Widget(title = "File Selection with Folder", description = "A file selection that allows selecting folders.")
     @FolderSelectionWidget
     FileSelection m_testSelectionWithFolder = new FileSelection();
+
+    DBTableSelection m_dbTableSelection = new DBTableSelection("schema1", "table1");
+
+    static class DummyAdapter extends DBTableAdapterProvider.DBTableAdapter {
+
+        DummyAdapter(final DataServiceContext context) {
+            super(context);
+        }
+
+        @Override
+        public Optional<List<String>> listCatalogues() throws SQLException {
+            return Optional.empty();
+        }
+
+        @Override
+        public List<String> listSchemas(final String catalogue) throws SQLException {
+            return List.of("schema1", "schema2");
+        }
+
+        @Override
+        public List<String> listTables(final String catalogue, final String schema) throws SQLException {
+            return switch (schema) {
+                case "schema1" -> List.of("table1", "table2");
+                case "schema2" -> List.of("table3", "table4");
+                default -> throw new IllegalArgumentException("Unknown schema: " + schema);
+            };
+        }
+    }
 }

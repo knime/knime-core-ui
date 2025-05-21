@@ -63,6 +63,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 public final class DBTableSelection implements PersistableSettings, WidgetGroup {
 
     /**
+     * The (optional) name of the database to use.
+     */
+    @Widget(title = "Database name", description = """
+            The name of the database to use.""")
+    public String m_catalogName;
+
+    /**
      * The (optional) name of the schema to use. If blank, the default schema is used.
      */
     @Widget(title = "Schema name", description = """
@@ -84,16 +91,30 @@ public final class DBTableSelection implements PersistableSettings, WidgetGroup 
      * Only for deserialization.
      */
     DBTableSelection() {
-        this("", "");
+        this("", "", "");
     }
 
     /**
-     * Constructor.
+     * Constructor. If this is used, the catalogue name is not set. This makes sense if the database does not support
+     * catalogues.
      *
      * @param schemaName the name of the schema to use, not null.
      * @param tableName the name of the table to use, not null.
      */
     public DBTableSelection(final String schemaName, final String tableName) {
+        m_schemaName = schemaName;
+        m_tableName = tableName;
+    }
+
+    /**
+     * Constructor. This is used if the database supports catalogues.
+     *
+     * @param catalogName the name of the catalogue to use, not null.
+     * @param schemaName the name of the schema to use, not null.
+     * @param tableName the name of the table to use, not null.
+     */
+    public DBTableSelection(final String catalogName, final String schemaName, final String tableName) {
+        m_catalogName = catalogName;
         m_schemaName = schemaName;
         m_tableName = tableName;
     }
