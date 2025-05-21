@@ -46,7 +46,7 @@
  * History
  *   9 Nov 2021 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
+package org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -74,6 +74,7 @@ import org.knime.core.webui.data.DataServiceContextTest;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
@@ -95,11 +96,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTime
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * Tests DefaultNodeSettingsService.
- *
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
- */
 @SuppressWarnings("java:S2698") // we accept assertions without messages
 class DefaultNodeDialogDataServiceImplTest {
 

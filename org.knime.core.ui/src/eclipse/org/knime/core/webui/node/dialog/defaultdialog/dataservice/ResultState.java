@@ -53,7 +53,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
  *
  * @author Paul Bärnreuther
  */
-enum ResultState {
+public enum ResultState {
         /**
          * The invocation was succesful.
          */

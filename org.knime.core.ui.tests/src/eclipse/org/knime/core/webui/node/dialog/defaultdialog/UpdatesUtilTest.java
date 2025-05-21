@@ -621,6 +621,10 @@ public class UpdatesUtilTest {
         final var settings = new TestSettings();
         final var response = buildUpdates(settings);
 
+        assertAfterOpenDialogWithoutDependencies(response);
+    }
+
+    static void assertAfterOpenDialogWithoutDependencies(final ObjectNode response) {
         assertThatJson(response).inPath("$").isObject().doesNotContainKey("initialUpdates");
         assertThatJson(response).inPath("$.globalUpdates").isArray().hasSize(1);
 

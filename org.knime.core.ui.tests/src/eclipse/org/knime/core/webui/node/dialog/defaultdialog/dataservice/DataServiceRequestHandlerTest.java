@@ -61,10 +61,6 @@ import java.util.concurrent.Future;
 import org.junit.jupiter.api.Test;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 
-/**
- *
- * @author Paul Bärnreuther
- */
 @SuppressWarnings("java:S2698") // we accept assertions without messages
 class DataServiceRequestHandlerTest {
 

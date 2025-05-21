@@ -54,14 +54,18 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMapUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.RendererSpecsToDependencyTreeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerAndDependencies;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToDependencyTreeUtil;
@@ -106,24 +110,47 @@ public final class UpdatesUtil {
     }
 
     /**
-     * Adds an array with one element for each trigger of an update defined by {@link StateProviders} to the rootNode if
-     * any are present.
+     * Adds an array "globalUpdates" with one element for each trigger of an update defined by {@link StateProviders} to
+     * the rootNode if any are present. Also adds initially triggered results in a separate array "initialUpdates".
      *
-     * @param rootNode
-     * @param widgetTrees
-     * @param settings
-     * @param context
+     * @param rootNode the root node to add the updates to
+     * @param widgetTrees to extract the triggers from
+     * @param jsonData the current settings
+     * @param context the current context
      */
     static void addUpdates(final ObjectNode rootNode, final Collection<Tree<WidgetGroup>> widgetTrees,
-        final Map<SettingsType, WidgetGroup> settings, final DefaultNodeSettingsContext context) {
+        final ObjectNode jsonData, final DefaultNodeSettingsContext context) {
         final var pair =
             WidgetTreesToDependencyTreeUtil.<Integer> widgetTreesToTriggersAndInvocationHandler(widgetTrees, context);
+        addUpdates(rootNode, pair, jsonData, context);
+    }
+
+    /**
+     * Adds an array "globalUpdates" with one element for each trigger of an update defined by {@link StateProviders} to
+     * the rootNode if any are present. Also adds initially triggered results in a separate array "initialUpdates".
+     *
+     * @param rootNode the root node to add the updates to
+     * @param rendererSpecs to extract the triggers from
+     * @param jsonData the current settings
+     * @param context the current context
+     */
+    public static void addImperativeUpdates(final ObjectNode rootNode,
+        final Collection<DialogElementRendererSpec> rendererSpecs, final ObjectNode jsonData,
+        final DefaultNodeSettingsContext context) {
+        final var pair = RendererSpecsToDependencyTreeUtil
+            .<Integer> rendererSpecsToTriggersAndInvocationHandler(rendererSpecs, context);
+        addUpdates(rootNode, pair, jsonData, context);
+    }
+
+    static void addUpdates(final ObjectNode rootNode,
+        final Pair<List<TriggerAndDependencies>, TriggerInvocationHandler<Integer>> pair, final ObjectNode jsonData,
+        final DefaultNodeSettingsContext context) {
         final var triggersWithDependencies = pair.getFirst();
         final var invocationHandler = pair.getSecond();
         final var partitioned = triggersWithDependencies.stream()
             .collect(Collectors.partitioningBy(TriggerAndDependencies::isBeforeOpenDialogTrigger));
 
-        addInitialUpdates(rootNode, invocationHandler, settings, partitioned.get(true), context);
+        addInitialUpdates(rootNode, invocationHandler, jsonData, partitioned.get(true), context);
         addGlobalUpdates(rootNode, partitioned.get(false));
     }
 
@@ -142,20 +169,31 @@ public final class UpdatesUtil {
         addUpdates(rootNode, widgetTrees.values(), SettingsTypeMapUtil.map(settings), context);
     }
 
+    static void addUpdates(final ObjectNode rootNode, final Collection<Tree<WidgetGroup>> widgetTrees,
+        final Map<SettingsType, WidgetGroup> loadedSettings, final DefaultNodeSettingsContext context) {
+        final var pair =
+            WidgetTreesToDependencyTreeUtil.<Integer> widgetTreesToTriggersAndInvocationHandler(widgetTrees, context);
+        final var mapper = JsonFormsDataUtil.getMapper();
+        final var jsonData = mapper.createObjectNode();
+        loadedSettings
+            .forEach((type, widgetGroup) -> jsonData.set(type.getConfigKey(), mapper.valueToTree(widgetGroup)));
+        addUpdates(rootNode, pair, jsonData, context);
+    }
+
     private static void addInitialUpdates(final ObjectNode rootNode,
-        final TriggerInvocationHandler<Integer> invocationHandler, final Map<SettingsType, WidgetGroup> settings,
+        final TriggerInvocationHandler<Integer> invocationHandler, final ObjectNode jsonData,
         final List<TriggerAndDependencies> initialTriggersWithDependencies, final DefaultNodeSettingsContext context) {
         if (!initialTriggersWithDependencies.isEmpty()) {
             CheckUtils.check(initialTriggersWithDependencies.size() == 1, IllegalStateException::new,
                 () -> "There should not exist more than one initial trigger.");
-            addInitialUpdates(rootNode, initialTriggersWithDependencies.get(0), invocationHandler, settings, context);
+            addInitialUpdates(rootNode, initialTriggersWithDependencies.get(0), invocationHandler, jsonData, context);
         }
     }
 
     private static void addInitialUpdates(final ObjectNode rootNode,
         final TriggerAndDependencies triggerWithDependencies, final TriggerInvocationHandler<Integer> invocationHandler,
-        final Map<SettingsType, WidgetGroup> settings, final DefaultNodeSettingsContext context) {
-        final var dependencyValues = triggerWithDependencies.extractDependencyValues(settings, context);
+        final ObjectNode jsonData, final DefaultNodeSettingsContext context) {
+        final var dependencyValues = triggerWithDependencies.extractDependencyValues(jsonData, context);
         final var triggerResult =
             invocationHandler.invokeTrigger(triggerWithDependencies.getTrigger(), dependencyValues::get, context);
         final var updateResults = UpdateResultsUtil.toUpdateResults(triggerResult);

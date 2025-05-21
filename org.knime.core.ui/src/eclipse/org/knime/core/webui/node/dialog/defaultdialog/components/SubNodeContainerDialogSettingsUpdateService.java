@@ -44,69 +44,67 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 14, 2023 (Paul Bärnreuther): created
+ *   May 21, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
+package org.knime.core.webui.node.dialog.defaultdialog.components;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 
-import org.junit.jupiter.api.Test;
+import org.knime.core.webui.data.DataServiceContext;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonActionHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonChange;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DataServiceRequestHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DialogSettingsUpdateService;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Result;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.ErrorHandlingSingleton;
 
 /**
+ * RPC service enabling settings updates in sub node container dialog.
  *
  * @author Paul Bärnreuther
  */
-@SuppressWarnings("java:S2698") // we accept assertions without messages
-class ButtonWidgetActionHandlerHolderTest {
+public class SubNodeContainerDialogSettingsUpdateService implements DialogSettingsUpdateService {
+    private final Supplier<Collection<DialogElementRendererSpec>> m_settingsService;
 
-    static class TestDefaultNodeSettings {
+    private final DataServiceRequestHandler m_requestHandler;
+
+    private SubNodeContainerTriggerInvocationHandler m_triggerInvocationHandler;
+
+    /**
+     * @param rendererSupplier that is used to access the loaded dialog representations
+     */
+    public SubNodeContainerDialogSettingsUpdateService(
+        final Supplier<Collection<DialogElementRendererSpec>> rendererSupplier) {
+        m_settingsService = rendererSupplier;
+        m_requestHandler = new DataServiceRequestHandler();
     }
 
-    enum TestButtonStates {
-            FIRST, SECOND;
+    static DefaultNodeSettingsContext createContext() {
+        return DefaultNodeSettings.createDefaultNodeSettingsContext(DataServiceContext.get().getInputSpecs());
     }
 
-    static class WrongResultTypeActionHandler
-        implements ButtonActionHandler<Integer, TestDefaultNodeSettings, TestButtonStates> {
-
-        @Override
-        public Class<TestButtonStates> getStateMachine() {
-            return TestButtonStates.class;
+    SubNodeContainerTriggerInvocationHandler getTriggerInvocationHandler() {
+        if (m_triggerInvocationHandler == null) {
+            m_triggerInvocationHandler =
+                new SubNodeContainerTriggerInvocationHandler(m_settingsService, createContext());
         }
-
-        @Override
-        public ButtonChange<Integer, TestButtonStates> initialize(final Integer currentValue,
-            final DefaultNodeSettingsContext context) {
-            return null;
-        }
-
-        @Override
-        public ButtonChange<Integer, TestButtonStates> invoke(final TestButtonStates state,
-            final TestDefaultNodeSettings settings, final DefaultNodeSettingsContext context) {
-            return null;
-        }
-
+        return m_triggerInvocationHandler;
     }
 
-    @Test
-    void testValidatesReturnType() {
-
-        class ButtonSettings implements DefaultNodeSettings {
-            @Widget(description = "", title = "")
-            @ButtonWidget(actionHandler = WrongResultTypeActionHandler.class)
-            String m_button;
-        }
-
-        assertThrows(IllegalArgumentException.class,
-            () -> new ButtonWidgetActionHandlerHolder(List.of(ButtonSettings.class)));
+    @Override
+    public Result<?> update2(final String widgetId, final Trigger trigger,
+        final Map<String, List<IndexedValue<String>>> rawDependencies) throws InterruptedException, ExecutionException {
+        ErrorHandlingSingleton.reset();
+        final var triggerInvocationHandler = getTriggerInvocationHandler();
+        return m_requestHandler.handleRequest(widgetId,
+            () -> triggerInvocationHandler.trigger(trigger, rawDependencies));
     }
 
 }

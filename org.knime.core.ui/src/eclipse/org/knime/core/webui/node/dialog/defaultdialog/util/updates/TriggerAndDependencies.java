@@ -52,6 +52,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +71,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUti
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * A single trigger together with all dependencies of all of it triggered updates.
@@ -112,6 +114,27 @@ public class TriggerAndDependencies {
         final Map<SettingsType, JsonNode> jsonNodes = getDependencySettingsTypes().stream().collect(
             Collectors.toMap(Function.identity(), settingsType -> mapper.valueToTree(settings.get(settingsType))));
         return createDependenciesValuesMap(context, jsonNodes, triggerIndices);
+    }
+
+    /**
+     * This method can be used to extract dependencies from an already serialized data json.
+     *
+     * @param dataJson an object json node with top-level fields contained in ["model", "view"]
+     * @param context the current {@link DefaultNodeSettingsContext}
+     * @param triggerIndices the indices indicating the triggers location if it triggering from within an array layout
+     * @return a mapping to the values of the required dependencies
+     */
+    public Map<LocationAndType, List<IndexedValue<Integer>>> extractDependencyValues(final ObjectNode dataJson,
+        final DefaultNodeSettingsContext context, final int... triggerIndices) {
+        final Map<SettingsType, JsonNode> dataJsonPerSettingsType = new EnumMap<>(SettingsType.class);
+        Stream.of(SettingsType.values()).forEach(settingsType -> {
+            final var configKey = settingsType.getConfigKey();
+            if (dataJson.has(configKey)) {
+                dataJsonPerSettingsType.put(settingsType, dataJson.get(configKey));
+            }
+        });
+
+        return createDependenciesValuesMap(context, dataJsonPerSettingsType, triggerIndices);
     }
 
     private Map<LocationAndType, List<IndexedValue<Integer>>> createDependenciesValuesMap(

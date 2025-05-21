@@ -70,7 +70,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.External
  * @author Paul Bärnreuther
  */
 @SuppressWarnings("java:S1452") //Allow wildcard return values
-interface DefaultNodeDialogDataService {
+public interface DefaultNodeDialogDataService extends DialogSettingsUpdateService {
 
     /**
      * This method is triggered whenever a {@link ButtonWidget} is clicked.
@@ -132,6 +132,7 @@ interface DefaultNodeDialogDataService {
      * @throws InterruptedException if the used thread is interrupted
      * @throws ExecutionException if an unexpected error is thrown during the invocation
      */
+    @Override
     Result<?> update2(String widgetId, Trigger trigger, Map<String, List<IndexedValue<String>>> rawDependencies)
         throws InterruptedException, ExecutionException;
 

@@ -46,10 +46,10 @@
  * History
  *   Oct 24, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
+package org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl;
 
 import static java.util.stream.Collectors.toMap;
-import static org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultNodeDialogDataServiceImpl.createContext;
+import static org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.DefaultNodeDialogDataServiceImpl.createContext;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.FIELD_NAME_DATA;
 import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.TextToJsonUtil.textToJson;
 import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil.rootJsonToVariableSettings;
@@ -72,6 +72,9 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultDialogDataConverter;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDataService;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableTypesExtractorUtil;
 import org.knime.core.webui.node.dialog.internal.VariableSettings;
 
 import com.fasterxml.jackson.databind.JsonNode;

@@ -59,7 +59,7 @@ import java.util.List;
  * @param <R> The type of the result
  * @author Paul Bärnreuther
  */
-record Result<R>(R result, ResultState state, List<String> message) {
+public record Result<R>(R result, ResultState state, List<String> message) {
 
     /**
      * @param result the value of the successful result

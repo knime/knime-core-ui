@@ -48,24 +48,14 @@
  */
 package org.knime.core.webui.node.dialog;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeMap;
 
 import org.knime.core.node.dialog.DialogNode;
 import org.knime.core.node.dialog.DialogNodeRepresentation;
-import org.knime.core.node.dialog.util.ConfigurationLayoutUtil;
 import org.knime.core.node.workflow.NodeID;
 import org.knime.core.node.workflow.SubNodeContainer;
 import org.knime.core.node.workflow.WorkflowManager.NodeModelFilter;
-import org.knime.core.webui.data.RpcDataService;
-import org.knime.core.webui.node.dialog.SubNodeContainerSettingsService.DialogSubNode;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogUIExtension;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
+import org.knime.core.webui.node.dialog.defaultdialog.components.SubNodeContainerNodeDialog;
 
 /**
  * The SubNodeContainerDialogFactory creates a {@link NodeDialog} for all the configuration nodes inside a
@@ -112,19 +102,30 @@ public final class SubNodeContainerDialogFactory {
         m_snc = snc;
     }
 
-    boolean hasNodeDialog() {
+    /**
+     * Depending on the node container, it is determined if a webUI node dialog is present.
+     *
+     * @return whether a webUI dialog can be displayed for this component
+     */
+    public boolean hasNodeDialog() {
         return isSubNodeContainerNodeDialogEnabled() && !getConfigurationNodes(m_snc).isEmpty();
     }
 
     /**
      * @return Create the dialog containing all the dialog elements that were found in the {@link SubNodeContainer}
      */
-    NodeDialog createNodeDialog() {
+    public NodeDialog createNodeDialog() {
         return new SubNodeContainerNodeDialog(m_snc);
     }
 
+    /**
+     * Get all configuration nodes from a subNodeContainer
+     *
+     * @param snc the container
+     * @return a map from nodeId to configuration nodes
+     */
     @SuppressWarnings("rawtypes")
-    private static Map<NodeID, DialogNode> getConfigurationNodes(final SubNodeContainer snc) {
+    public static Map<NodeID, DialogNode> getConfigurationNodes(final SubNodeContainer snc) {
         var wfm = snc.getWorkflowManager();
         Map<NodeID, DialogNode> nodes = wfm.findNodes(DialogNode.class, new NodeModelFilter<DialogNode>() { // NOSONAR
             @Override
@@ -133,79 +134,6 @@ public final class SubNodeContainerDialogFactory {
             }
         }, false);
         return nodes;
-    }
-
-    private static class SubNodeContainerNodeDialog implements NodeDialog, DefaultNodeDialogUIExtension {
-
-        final NodeSettingsService m_settingsService;
-
-        SubNodeContainerNodeDialog(final SubNodeContainer snc) {
-            m_settingsService = new SubNodeContainerSettingsService(() -> getOrderedConfigurationNodes(snc));
-        }
-
-        @Override
-        public NodeSettingsService getNodeSettingsService() {
-            return m_settingsService;
-        }
-
-        @Override
-        public boolean canBeEnlarged() {
-            return false;
-        }
-
-        private static List<DialogSubNode> getOrderedConfigurationNodes(final SubNodeContainer snc) {
-            @SuppressWarnings("rawtypes")
-            Map<NodeID, DialogNode> nodes = getConfigurationNodes(snc);
-            return getNodeOrder(snc, nodes).stream()
-                .map(nodeId -> new DialogSubNode(snc.getWorkflowManager().getNodeContainer(nodeId), nodes.get(nodeId)))
-                .toList();
-        }
-
-        /**
-         * Sort the dialog node IDs according to the user provided preference.
-         *
-         * Note: The ordering is requested each time the dialog is opened. Otherwise, the ordering would stay as it was
-         * when the dialog was first created, because they are cached.
-         */
-        @SuppressWarnings("rawtypes")
-        private static List<NodeID> getNodeOrder(final SubNodeContainer snc, final Map<NodeID, DialogNode> nodes) {
-            List<Integer> order = ConfigurationLayoutUtil.getConfigurationOrder(
-                snc.getSubnodeConfigurationLayoutStringProvider(), nodes, snc.getWorkflowManager());
-
-            // Will contain the nodes in the ordering given by `order`.
-            // Nodes not mentioned in `order` will be placed at the end in arbitrary order.
-            TreeMap<Integer, NodeID> orderedNodeIDs = new TreeMap<>();
-            List<NodeID> unorderedNodeIDs = new ArrayList<>(nodes.size());
-            nodes.forEach((nodeId, node) -> {
-                int targetIndex = order.indexOf(nodeId.getIndex());
-                if (targetIndex == -1) {
-                    unorderedNodeIDs.add(nodeId);
-                } else {
-                    orderedNodeIDs.put(targetIndex, nodeId);
-                }
-            });
-            List<NodeID> res = new ArrayList<>();
-            res.addAll(orderedNodeIDs.values()); // `values` is ordered
-            res.addAll(unorderedNodeIDs);
-            return res;
-        }
-
-        @Override
-        public Set<SettingsType> getSettingsTypes() {
-            return Set.of(SettingsType.MODEL);
-        }
-
-        @Override
-        public Optional<RpcDataService> createRpcDataService() {
-            var fsConnector = new FileSystemConnector();
-            final var fileChooserService = new FileChooserDataService(fsConnector);
-            return Optional.of(RpcDataService.builder() //
-                .addService("fileChooser", fileChooserService) //
-                .onDeactivate(fsConnector::clear) //
-                .build() //
-            );
-        }
-
     }
 
 }

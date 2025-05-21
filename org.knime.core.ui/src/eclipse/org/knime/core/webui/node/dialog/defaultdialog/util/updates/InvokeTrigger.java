@@ -64,6 +64,7 @@ import java.util.stream.Stream;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlValueReference;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.DependencyInjector.DependencyProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Vertex.VertexVisitor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
@@ -187,10 +188,10 @@ final class InvokeTrigger<I> {
                         return vertexToSupplier(stateVertex.getDependency(reference), getParentValue);
                     }
 
-                }, new DependencyProvider<Reference<?>>() {
+                }, new DependencyProvider<ControlValueReference<?>>() {
 
                     @Override
-                    public <V> Supplier<V> getValueSupplier(final Reference<?> reference) {
+                    public <V> Supplier<V> getValueSupplier(final ControlValueReference<?> reference) {
                         return vertexToSupplier(stateVertex.getDependency(reference), getParentValue);
                     }
 

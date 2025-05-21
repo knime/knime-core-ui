@@ -75,8 +75,9 @@ public final class WidgetTreesToDependencyTreeUtil {
         final var valueRefsAndStateProviders =
             new WidgetTreesToRefsAndStateProviders().widgetTreesToRefsAndStateProviders(widgetTrees);
         return RefsAndValueProvidersAndUiStateProvidersToDependencyTree
-            .valueRefsAndStateProvidersToDependencyTree(valueRefsAndStateProviders, context);
+            .refsAndStateProvidersToDependencyTree(valueRefsAndStateProviders, context);
     }
+
 
     /**
      * Only for tests (since WidgetTree is not exposed to testing)

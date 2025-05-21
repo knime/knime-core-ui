@@ -44,25 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 29, 2024 (paul): created
+ *   May 21, 2025 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToDependencyTreeUtil.getTriggersWithDependencies;
+
+import java.util.Collection;
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.DefaultNodeDialogDataServiceImpl;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
+import org.knime.core.util.Pair;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 
 /**
- * To reference values (either within an {@link UpdateResult} or values of dependencies within
- * {@link DefaultNodeDialogDataServiceImpl#update2}), we need to account for locations nested in array layouts. We
- * describe which value is meant by additional indices which can either be the actual index or index ids.
+ * Dependency tree creating utility for {@link DialogElementRendererSpec}s.
  *
  * @author Paul Bärnreuther
- * @param <I> the type of the indices. Either Integer for indices or String for indexIds.
- * @param indices defining the location of the value relative to the location of the trigger
- * @param value
  */
-public record IndexedValue<I>(List<I> indices, Object value) {
+public class RendererSpecsToDependencyTreeUtil {
+
+    private RendererSpecsToDependencyTreeUtil() {
+        // Utility class.
+    }
+
+    static Collection<TriggerVertex> rendererSpecsToDependencyTree(
+        final Collection<DialogElementRendererSpec> rendererSpecs, final DefaultNodeSettingsContext context) {
+        final var valueRefsAndStateProviders =
+            new RendererSpecsToImperativeRefsAndStateProviders().widgetTreesToRefsAndStateProviders(rendererSpecs);
+        return RefsAndValueProvidersAndUiStateProvidersToDependencyTree
+            .imperativeRefsAndStateProvidersToDependencyTree(valueRefsAndStateProviders, context);
+    }
+
+    /**
+     * @param <T> the index-type
+     * @param rendererSpecs the renderer specs to be parsed
+     * @param context the current context
+     * @return a list of all triggers and their associated dependencies and an associated invocation handler.
+     */
+    public static <T> Pair<List<TriggerAndDependencies>, TriggerInvocationHandler<T>>
+        rendererSpecsToTriggersAndInvocationHandler(final Collection<DialogElementRendererSpec> rendererSpecs,
+            final DefaultNodeSettingsContext context) {
+        final var dependencyTree = rendererSpecsToDependencyTree(rendererSpecs, context);
+        final var listOfTriggers = getTriggersWithDependencies(dependencyTree);
+        return new Pair<>(listOfTriggers, new TriggerInvocationHandler<>(dependencyTree));
+    }
 
 }

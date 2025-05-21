@@ -50,32 +50,33 @@ package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
 import java.util.function.Supplier;
 
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlValueReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative.WithImperativeInitializer.ImperativeStateProviderInitializer;
 
 abstract class DefaultImperativeStateProviderInitializer extends DefaultStateProviderInitializer
     implements ImperativeStateProviderInitializer {
-    private final DependencyInjector<Reference<?>> m_dependencyInjector;
+    private final DependencyInjector<ControlValueReference<?>> m_dependencyInjector;
 
     protected DefaultImperativeStateProviderInitializer(
         final DependencyInjector<Class<? extends Reference<?>>> dependencyInjector,
-        final DependencyInjector<Reference<?>> imperativeDependencyInjector) {
+        final DependencyInjector<ControlValueReference<?>> imperativeDependencyInjector) {
         super(dependencyInjector);
         m_dependencyInjector = imperativeDependencyInjector;
     }
 
     @Override
-    public final <T> Supplier<T> computeFromValueSupplier(final Reference<T> ref) {
+    public final <T> Supplier<T> computeFromValueSupplier(final ControlValueReference<T> ref) {
         return m_dependencyInjector.setValueTriggerAndGetValueSupplier(ref);
     }
 
     @Override
-    public final <T> Supplier<T> getValueSupplier(final Reference<T> ref) {
+    public final <T> Supplier<T> getValueSupplier(final ControlValueReference<T> ref) {
         return m_dependencyInjector.getValueSupplier(ref);
     }
 
     @Override
-    public final <T> void computeOnValueChange(final Reference<T> id) {
+    public final <T> void computeOnValueChange(final ControlValueReference<T> id) {
         m_dependencyInjector.setValueTrigger(id);
     }
 

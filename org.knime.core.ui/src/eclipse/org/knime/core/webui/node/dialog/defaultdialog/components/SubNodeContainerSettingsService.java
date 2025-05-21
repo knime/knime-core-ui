@@ -46,7 +46,7 @@
  * History
  *   Apr 14, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog;
+package org.knime.core.webui.node.dialog.defaultdialog.components;
 
 import static org.knime.core.node.workflow.SubNodeContainer.getDialogNodeParameterName;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil.toSchemaConstructor;
@@ -54,6 +54,8 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers
 import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.TextToJsonUtil.textToJson;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -66,19 +68,28 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
+import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
+import org.knime.core.webui.node.dialog.NodeSettingsService;
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.WebDialogNodeRepresentation;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogDataServiceUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.UpdatesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-final class SubNodeContainerSettingsService implements NodeSettingsService {
+@SuppressWarnings("rawtypes")
+public final class SubNodeContainerSettingsService implements NodeSettingsService {
 
-    @SuppressWarnings("rawtypes")
-    record DialogSubNode(NodeContainer nc, DialogNode dialogNode, String paramName) {
+    public record DialogSubNode(NodeContainer nc, DialogNode dialogNode, String paramName) {
 
         DialogSubNode(final NodeContainer nc, final DialogNode node) {
             this(nc, node, getDialogNodeParameterName(node, nc.getID()));
@@ -94,6 +105,11 @@ final class SubNodeContainerSettingsService implements NodeSettingsService {
 
     static final JsonNodeFactory FACTORY = JsonNodeFactory.instance;
 
+    /**
+     * The collection of renderers constructed with the last call to {@link DialogSubNode#fromNodeSettings}
+     */
+    Collection<DialogElementRendererSpec> m_renderers;
+
     @Override
     public String fromNodeSettings(final Map<SettingsType, NodeAndVariableSettingsRO> settings,
         final PortObjectSpec[] specs) {
@@ -102,6 +118,7 @@ final class SubNodeContainerSettingsService implements NodeSettingsService {
         final var schema = FACTORY.objectNode();
         final var uiSchema = FACTORY.objectNode();
         final var uiSchemaElements = uiSchema.putArray(UiSchema.TAG_ELEMENTS);
+        m_renderers = new ArrayList<>();
 
         for (var dialogSubNode : m_orderedDialogNodes.get()) {
             final var paramName = dialogSubNode.paramName;
@@ -112,6 +129,7 @@ final class SubNodeContainerSettingsService implements NodeSettingsService {
 
             final var renderer = getRepresentation(dialogNode).getWebUIDialogControlSpec()
                 .at(SettingsType.MODEL.getConfigKey(), paramName);
+            m_renderers.add(renderer);
             uiSchemaElements.addObject().setAll(toUiSchemaElement(renderer));
             toSchemaConstructor(renderer).apply(schema);
         }
@@ -132,8 +150,20 @@ final class SubNodeContainerSettingsService implements NodeSettingsService {
                 return data;
             }
         };
-        return new DefaultNodeDialogDataServiceUtil.InitialDataBuilder(jsonFormsSettings).build();
+        return new DefaultNodeDialogDataServiceUtil.InitialDataBuilder(jsonFormsSettings)
+            .withUpdates(
+                (root, dataJson) -> UpdatesUtil.addImperativeUpdates(root, m_renderers, dataJson, createContext(specs)))
+            .build();
 
+    }
+
+    private static DefaultNodeSettingsContext createContext(final PortObjectSpec[] specs) {
+        return DefaultNodeSettings.createDefaultNodeSettingsContext(specs);
+    }
+
+    Collection<DialogElementRendererSpec> getRendererSpecs() {
+        CheckUtils.checkNotNull(m_renderers, "Unable to access dialog renderers");
+        return m_renderers;
     }
 
     @SuppressWarnings("rawtypes")

@@ -44,25 +44,29 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 29, 2024 (paul): created
+ *   May 21, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
+package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.DefaultNodeDialogDataServiceImpl;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogUIExtension;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 
 /**
- * To reference values (either within an {@link UpdateResult} or values of dependencies within
- * {@link DefaultNodeDialogDataServiceImpl#update2}), we need to account for locations nested in array layouts. We
- * describe which value is meant by additional indices which can either be the actual index or index ids.
+ * Service for handling updates in a {@link DefaultNodeDialogUIExtension}.
  *
  * @author Paul Bärnreuther
- * @param <I> the type of the indices. Either Integer for indices or String for indexIds.
- * @param indices defining the location of the value relative to the location of the trigger
- * @param value
  */
-public record IndexedValue<I>(List<I> indices, Object value) {
+public interface DialogSettingsUpdateService {
+
+    /**
+     * @see DefaultNodeDialogDataService#update2(String, Trigger, Map)
+     */
+    @SuppressWarnings("javadoc")
+    Result<?> update2(String widgetId, Trigger trigger, Map<String, List<IndexedValue<String>>> rawDependencies)
+        throws InterruptedException, ExecutionException;
 
 }

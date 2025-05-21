@@ -48,7 +48,7 @@
  */
 /**
  * THis package contains the rpc data service
- * {@link org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultNodeDialogDataServiceImpl} of a
+ * {@link org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.DefaultNodeDialogDataServiceImpl} of a
  * {@link DefaultNodeDialog}. This data service is currently used to invoke actions from buttons (see
  * {@link org.knime.core.webui.node.dialog.defaultdialog.widget.button}). Hereby the data service serves as a layer
  * between the calls from the frontend and different handlers in the backend. During initialization of the data service,

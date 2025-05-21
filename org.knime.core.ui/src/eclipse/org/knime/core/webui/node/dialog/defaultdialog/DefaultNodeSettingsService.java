@@ -64,11 +64,9 @@ import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettingsImpl;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.NodeSettingsToDefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -113,23 +111,19 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
         final var widgetTrees = map(loadedSettings, (type, s) -> widgetTreeFactory.createTree(s.getClass(), type));
 
         final var jsonFormsSettings = new JsonFormsSettingsImpl(loadedSettings, context, widgetTrees);
-        final var root = new DefaultNodeDialogDataServiceUtil.InitialDataBuilder(jsonFormsSettings).buildJson();
-        addAdditionalFieldsToRoot(root, settings, loadedSettings, context, widgetTrees);
+        final var root = new DefaultNodeDialogDataServiceUtil.InitialDataBuilder(jsonFormsSettings)
+            .withUpdates(
+                (rootJson, dataJson) -> UpdatesUtil.addUpdates(rootJson, widgetTrees.values(), dataJson, context))
+            .buildJson();
+        addAdditionalFieldsToRoot(root, settings, loadedSettings, context);
         return jsonToString(root);
     }
 
     private static void addAdditionalFieldsToRoot(final ObjectNode root,
         final Map<SettingsType, NodeAndVariableSettingsRO> settings,
-        final Map<SettingsType, DefaultNodeSettings> loadedSettings, final DefaultNodeSettingsContext context,
-        final Map<SettingsType, Tree<WidgetGroup>> widgetTrees) {
+        final Map<SettingsType, DefaultNodeSettings> loadedSettings, final DefaultNodeSettingsContext context) {
         addVariableSettingsToRootJson(root, map(settings), context);
-        addUpdates(root, loadedSettings, context, widgetTrees);
         addPersist(root, loadedSettings);
-    }
-
-    private static void addUpdates(final ObjectNode root, final Map<SettingsType, DefaultNodeSettings> loadedSettings,
-        final DefaultNodeSettingsContext context, final Map<SettingsType, Tree<WidgetGroup>> widgetTrees) {
-        UpdatesUtil.addUpdates(root, widgetTrees.values(), map(loadedSettings), context);
     }
 
     private static void addPersist(final ObjectNode root, final Map<SettingsType, DefaultNodeSettings> loadedSettings) {

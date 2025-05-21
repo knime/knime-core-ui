@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative.WithImperativeInitializer;
 
 /**
  * The specification of a control, i.e. a widget that controls the value of one setting.
@@ -91,7 +92,22 @@ public interface ControlRendererSpec extends LocalizedControlRendererSpec {
     @SuppressWarnings("rawtypes")
     default Map<String, Class<? extends StateProvider>> getStateProviderClasses() {
         return Map.of();
+    }
 
+    /**
+     * Some options may be provided dynamically by a state provider. This method defines which options are provided by
+     * which state provider.
+     *
+     * <p>
+     * In contrast to {@link #getStateProviderClasses()} this method returns instances of state providers which enables
+     * using it in an imperative way. To also reference other imperatively constructed renderers within such a state
+     * provider, let the state provider extend {@link WithImperativeInitializer}!
+     * </p>
+     *
+     * @return a mapping from option names which are usually keys in the options object
+     */
+    default Map<String, StateProvider<?>> getStateProviders() {
+        return Map.of();
     }
 
     /**

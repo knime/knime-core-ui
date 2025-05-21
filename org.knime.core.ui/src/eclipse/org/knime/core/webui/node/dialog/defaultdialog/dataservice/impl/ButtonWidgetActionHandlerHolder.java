@@ -44,43 +44,66 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 18, 2023 (Paul Bärnreuther): created
+ *   Jul 10, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
+package org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl;
 
 import java.util.Collection;
 import java.util.Optional;
 
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.TraversedField;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonUpdateHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.NoopButtonUpdateHandler;
+
+import com.fasterxml.jackson.databind.ser.PropertyWriter;
 
 /**
+ * The holder of all {@link ButtonWidget#actionHandler}s.
  *
  * @author Paul Bärnreuther
  */
-class ButtonWidgetUpdateHandlerHolder extends HandlerHolder<ButtonUpdateHandler<?, ?, ?>> {
+class ButtonWidgetActionHandlerHolder extends HandlerHolder<ButtonActionHandler<?, ?, ?>> {
 
     /**
      * @param settingsClasses
      */
-    ButtonWidgetUpdateHandlerHolder(final Collection<Class<? extends WidgetGroup>> settingsClasses) {
+    ButtonWidgetActionHandlerHolder(final Collection<Class<? extends WidgetGroup>> settingsClasses) {
         super(settingsClasses);
     }
 
     @Override
-    Optional<Class<? extends ButtonUpdateHandler<?, ?, ?>>> getHandlerClass(final TraversedField field) {
+    Optional<Class<? extends ButtonActionHandler<?, ?, ?>>> getHandlerClass(final TraversedField field) {
         final var buttonWidget = field.propertyWriter().getAnnotation(ButtonWidget.class);
         if (buttonWidget == null) {
             return Optional.empty();
+
         }
-        final var updateHandlerClass = buttonWidget.updateHandler();
-        if (updateHandlerClass == NoopButtonUpdateHandler.class) {
-            return Optional.empty();
+        final var actionHandlerClass = buttonWidget.actionHandler();
+        validate(field.propertyWriter(), actionHandlerClass);
+        return Optional.of(actionHandlerClass);
+
+    }
+
+    private static void validate(final PropertyWriter field,
+        final Class<? extends ButtonActionHandler<?, ?, ?>> actionHandlerClass) {
+        if (!isValidReturnType(field, actionHandlerClass)) {
+            throw new IllegalArgumentException(
+                String.format("Return type of action handler %s is not assignable to the type of the field %s.",
+                    actionHandlerClass.getSimpleName(), field.getFullName()));
         }
-        return Optional.of(updateHandlerClass);
+    }
+
+    private static boolean isValidReturnType(final PropertyWriter field,
+        final Class<? extends ButtonActionHandler<?, ?, ?>> handlerClass) {
+        final var returnType = GenericTypeFinderUtil.getFirstGenericType(handlerClass, ButtonActionHandler.class);
+        final var fieldType = field.getType();
+        if (returnType instanceof Class<?> clazz) {
+            return fieldType.getRawClass().isAssignableFrom(clazz);
+        }
+        return JsonFormsDataUtil.getMapper().constructType(returnType).equals(fieldType);
     }
 
 }

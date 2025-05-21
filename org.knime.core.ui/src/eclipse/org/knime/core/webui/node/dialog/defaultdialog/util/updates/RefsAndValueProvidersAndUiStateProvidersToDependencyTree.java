@@ -61,19 +61,15 @@ import java.util.function.Supplier;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlValueReference;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.DependencyInjector.DependencyCollector;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.RendererSpecsToImperativeRefsAndStateProviders.ImperativeRefsAndStateProviders;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Vertex.VertexVisitor;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.IdUiStateProviderWrapper;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.LocationUiStateProviderWrapper;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.RefsAndStateProviders;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.ValueProviderWrapper;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.ValueRefWrapper;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 
 final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
 
@@ -84,29 +80,35 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
     /**
      * Converts collected valueRefs and state providers to a tree structure connecting these
      *
-     * @param valueRefsAndStateProviders collected from settings
+     * @param valueRefsAndStateProviders collected from settings classes
      * @return the trigger vertices of the resulting tree of vertices
      */
-    static Collection<TriggerVertex> valueRefsAndStateProvidersToDependencyTree(
+    static Collection<TriggerVertex> refsAndStateProvidersToDependencyTree(
         final RefsAndStateProviders valueRefsAndStateProviders, final DefaultNodeSettingsContext context) {
-        return new DependencyTreeCreator(valueRefsAndStateProviders, context).getTriggerVertices();
+        return new DependencyTreeCreator(valueRefsAndStateProviders, ImperativeRefsAndStateProviders.empty(), context)
+            .getTriggerVertices();
+    }
+
+    /**
+     * Converts collected imperatively defined valueRefs and state providers to a tree structure connecting these
+     *
+     * @param imperativeRefsAndStateProviders collected from renderer specs
+     * @return the trigger vertices of the resulting tree of vertices
+     */
+    static Collection<TriggerVertex> imperativeRefsAndStateProvidersToDependencyTree(
+        final ImperativeRefsAndStateProviders imperativeRefsAndStateProviders,
+        final DefaultNodeSettingsContext context) {
+        return new DependencyTreeCreator(RefsAndStateProviders.empty(), imperativeRefsAndStateProviders, context)
+            .getTriggerVertices();
     }
 
     private static final class DependencyTreeCreator {
 
         private final DefaultNodeSettingsContext m_context;
 
-        private final Collection<ValueProviderWrapper> m_valueProviders;
-
-        private final Collection<LocationUiStateProviderWrapper> m_locationUiStateProviders;
-
-        private final Collection<IdUiStateProviderWrapper> m_idUiStateProviders;
-
         private final Set<Vertex> m_visited = new HashSet<>();
 
         private final Queue<Vertex> m_queue = new ArrayDeque<>();
-
-        private final Collection<ValueRefWrapper> m_valueRefs;
 
         private final Map<ResolvedStateProvider, StateVertex> m_stateVertices = new HashMap<>();
 
@@ -114,13 +116,16 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
 
         private final Collection<TriggerVertex> m_triggerVertices = new HashSet<>();
 
+        private final RefsAndStateProviders m_refsAndStateProviders;
+
+        private final ImperativeRefsAndStateProviders m_imperativeRefsAndStateProviders;
+
         DependencyTreeCreator(final RefsAndStateProviders refsAndStateProviders,
+            final ImperativeRefsAndStateProviders imperativeRefsAndStateProviders,
             final DefaultNodeSettingsContext context) {
             m_context = context;
-            m_valueRefs = refsAndStateProviders.valueRefs();
-            m_valueProviders = refsAndStateProviders.valueProviders();
-            m_idUiStateProviders = refsAndStateProviders.idUiStateProviders();
-            m_locationUiStateProviders = refsAndStateProviders.locationUiStateProviders();
+            m_refsAndStateProviders = refsAndStateProviders;
+            m_imperativeRefsAndStateProviders = imperativeRefsAndStateProviders;
         }
 
         TriggerVertex addTriggerVertex(final TriggerVertex triggerVertex) {
@@ -155,12 +160,17 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
         }
 
         private void collectVertices() {
-            m_valueProviders.forEach(update -> addToQueue(new LocationUpdateVertex(update.fieldLocation(),
-                new ResolvedStateProvider(update.stateProviderClass()))));
-            m_idUiStateProviders.forEach(update -> addToQueue(new IdUpdateVertex(update.id(),
+            m_refsAndStateProviders.valueProviders()
+                .forEach(update -> addToQueue(new LocationUpdateVertex(update.fieldLocation(),
+                    new ResolvedStateProvider(update.stateProviderClass()))));
+            m_refsAndStateProviders.idUiStateProviders().forEach(update -> addToQueue(new IdUpdateVertex(update.id(),
                 update.providedOptionName(), new ResolvedStateProvider(update.stateProviderClass()))));
-            m_locationUiStateProviders.forEach(update -> addToQueue(new LocationUpdateVertex(update.fieldLocation(),
-                update.providedOptionName(), new ResolvedStateProvider(update.stateProviderClass()))));
+            m_refsAndStateProviders.locationUiStateProviders()
+                .forEach(update -> addToQueue(new LocationUpdateVertex(update.fieldLocation(),
+                    update.providedOptionName(), new ResolvedStateProvider(update.stateProviderClass()))));
+            m_imperativeRefsAndStateProviders.locationUiStateProviders()
+                .forEach(update -> addToQueue(new LocationUpdateVertex(update.fieldLocation(),
+                    update.providedOptionName(), new ResolvedStateProvider(update.stateProvider()))));
             while (!m_queue.isEmpty()) {
                 addParentsForVertex(m_queue.poll());
             }
@@ -217,53 +227,14 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
                 final Collection<Pair<Object, DependencyVertex>> extractedDependencies = new HashSet<>();
                 final Collection<TriggerVertex> extractedTriggers = new HashSet<>();
 
-                final var dependencyCollector = new DependencyCollector<Class<? extends Reference<?>>>() {
-
-                    @Override
-                    public LocationAndType locate(final Class<? extends Reference<?>> reference) {
-                        return new LocationAndType(findValueRefWrapper(reference).fieldLocation(),
-                            () -> getSettingsType(reference));
-                    }
-
-                    @Override
-                    protected LocationAndType locate(final Class<? extends Reference<?>> reference,
-                        final TypeReference<?> typeRef) {
-                        return new LocationAndType(findValueRefWrapper(reference).fieldLocation(),
-                            () -> getSettingsType(typeRef));
-                    }
-
-                    private ValueRefWrapper findValueRefWrapper(final Class<? extends Reference> valueRef) {
-                        return m_valueRefs.stream().filter(wrapper -> wrapper.valueRef().equals(valueRef)).findAny()
-                            .orElseThrow(() -> new RuntimeException(String.format(
-                                "The value reference %s is used in a state provider but could not be found. "
-                                    + "It should be used as @%s for some field.",
-                                valueRef.getSimpleName(), ValueReference.class.getSimpleName())));
-                    }
-
-                    private static Type getSettingsType(final Class<? extends Reference> valueRef) {
-                        return GenericTypeFinderUtil.getFirstGenericType(valueRef, Reference.class);
-                    }
-
-                    private static Type getSettingsType(final TypeReference<?> valueRef) {
-                        return GenericTypeFinderUtil.getFirstGenericType(valueRef.getClass(), TypeReference.class);
-                    }
-
-                    @Override
-                    public void setDependency(final LocationAndType location,
-                        final Class<? extends Reference<?>> reference) {
-                        extractedDependencies.add(new Pair<>(reference, new DependencyVertex(location)));
-                    }
-
-                    @Override
-                    public void setTrigger(final Location location) {
-                        extractedTriggers.add(new ValueTriggerVertex(location));
-                    }
-
-                };
+                final var dependencyCollector = new DeclarativeDependencyCollector(m_refsAndStateProviders.valueRefs(),
+                    (key, dep) -> extractedDependencies.add(new Pair<>(key, dep)), extractedTriggers::add);
+                final var imperativeDependencyCollector =
+                    new ImperativeDependencyCollector(m_imperativeRefsAndStateProviders.valueRefs(),
+                        (key, dep) -> extractedDependencies.add(new Pair<>(key, dep)), extractedTriggers::add);
 
                 final var stateProviderDependencyReceiver =
-                    new StateProviderDependencyReceiver(m_context, dependencyCollector, null);
-                stateProvider.init(stateProviderDependencyReceiver);
+                    new StateProviderDependencyReceiver(m_context, dependencyCollector, imperativeDependencyCollector);
                 StateProviderInitializerUtil.initializeStateProvider(stateProvider, stateProviderDependencyReceiver);
 
                 final Collection<Vertex> parentVertices = new HashSet<>();
@@ -310,7 +281,7 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
 
         private StateProviderDependencyReceiver(final DefaultNodeSettingsContext context,
             final DependencyInjector<Class<? extends Reference<?>>> dependencyCollector,
-            final DependencyInjector<Reference<?>> imperativeDependencyCollector) {
+            final DependencyInjector<ControlValueReference<?>> imperativeDependencyCollector) {
             super(dependencyCollector, imperativeDependencyCollector);
             m_context = context;
         }
@@ -357,6 +328,10 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
             return m_context;
         }
 
+    }
+
+    static Type getSettingsType(final TypeReference<?> valueRef) {
+        return GenericTypeFinderUtil.getFirstGenericType(valueRef.getClass(), TypeReference.class);
     }
 
 }

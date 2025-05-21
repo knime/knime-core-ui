@@ -44,25 +44,27 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 29, 2024 (paul): created
+ *   May 22, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative;
 
-import java.util.List;
-
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.DefaultNodeDialogDataServiceImpl;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
- * To reference values (either within an {@link UpdateResult} or values of dependencies within
- * {@link DefaultNodeDialogDataServiceImpl#update2}), we need to account for locations nested in array layouts. We
- * describe which value is meant by additional indices which can either be the actual index or index ids.
+ * Use this interface to implement a state provider that is able to reference imperatively constructed other parts of
+ * the dialog.
+ *
+ * @see WithImperativeInitializer
  *
  * @author Paul Bärnreuther
- * @param <I> the type of the indices. Either Integer for indices or String for indexIds.
- * @param indices defining the location of the value relative to the location of the trigger
- * @param value
+ * @param <T> the type of the provided state
  */
-public record IndexedValue<I>(List<I> indices, Object value) {
+public interface ImperativeStateProvider<T> extends StateProvider<T>, WithImperativeInitializer {
+
+    @Override
+    default void init(final StateProviderInitializer initializer) {
+        throw new UnsupportedOperationException("This method should not be called. "
+            + "Instead the init method with an imperative initializer should be called.");
+    }
 
 }

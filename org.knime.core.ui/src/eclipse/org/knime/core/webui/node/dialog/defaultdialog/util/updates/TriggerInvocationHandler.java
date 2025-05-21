@@ -58,6 +58,7 @@ import java.util.function.Function;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 
@@ -86,6 +87,19 @@ public class TriggerInvocationHandler<I> {
         final DefaultNodeSettingsContext context) {
         return new TriggerInvocationHandler<>(
             WidgetTreesToDependencyTreeUtil.widgetTreesToDependencyTree(widgetTrees, context));
+    }
+
+    /**
+     * @param <T> the type of the keys of the dependencies and resulting values in case of nested scopes (either by
+     *            index by indexId)
+     * @param rendererSpecs that comprise the current dialog.
+     * @param context the current context
+     * @return a invocation handler for updates within the supplied widget trees
+     */
+    public static <T> TriggerInvocationHandler<T> fromRendererSpecs(
+        final Collection<DialogElementRendererSpec> rendererSpecs, final DefaultNodeSettingsContext context) {
+        return new TriggerInvocationHandler<>(
+            RendererSpecsToDependencyTreeUtil.rendererSpecsToDependencyTree(rendererSpecs, context));
     }
 
     /**

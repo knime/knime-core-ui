@@ -44,61 +44,65 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jan 24, 2024 (Paul Bärnreuther): created
+ *   Jul 14, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
+package org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil.createInstance;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser;
-import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.Configuration;
-import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.TraversedField;
+import org.junit.jupiter.api.Test;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonActionHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonChange;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
 
-/**
- * Takes care of accessing the fields in a given collection of {@link WidgetGroup}s. The implementer has to convert a
- * traversed field to a handlers of type <H> to make it accessible later via {@link #getHandler}.
- *
- * @author Paul Bärnreuther
- * @param <H> the type of the handler
- */
-public abstract class HandlerHolder<H> {
+@SuppressWarnings("java:S2698") // we accept assertions without messages
+class ButtonWidgetActionHandlerHolderTest {
 
-    private Map<String, H> m_handlers = new HashMap<>();
-
-    HandlerHolder(final Collection<Class<? extends WidgetGroup>> settingsClasses) {
-        final List<TraversedField> traversedFields =
-            settingsClasses.stream().flatMap(HandlerHolder::getTraversedFields).toList();
-        m_handlers = toHandlers(traversedFields);
+    static class TestDefaultNodeSettings {
     }
 
-    private static Stream<TraversedField> getTraversedFields(final Class<? extends WidgetGroup> settingsClass) {
-        return new WidgetGroupTraverser(settingsClass,
-            new Configuration.Builder().includeFieldsNestedInArrayLayout().build()).getAllFields().stream();
+    enum TestButtonStates {
+            FIRST, SECOND;
     }
 
-    private Map<String, H> toHandlers(final List<TraversedField> fields) {
-        final Map<String, H> handlers = new HashMap<>();
-        fields.forEach(field -> getHandlerClass(field)
-            .ifPresent(handlerClass -> handlers.put(handlerClass.getName(), createInstance(handlerClass))));
-        return handlers;
+    static class WrongResultTypeActionHandler
+        implements ButtonActionHandler<Integer, TestDefaultNodeSettings, TestButtonStates> {
+
+        @Override
+        public Class<TestButtonStates> getStateMachine() {
+            return TestButtonStates.class;
+        }
+
+        @Override
+        public ButtonChange<Integer, TestButtonStates> initialize(final Integer currentValue,
+            final DefaultNodeSettingsContext context) {
+            return null;
+        }
+
+        @Override
+        public ButtonChange<Integer, TestButtonStates> invoke(final TestButtonStates state,
+            final TestDefaultNodeSettings settings, final DefaultNodeSettingsContext context) {
+            return null;
+        }
+
     }
 
-    /**
-     * @param field of the traversed settings
-     * @return the relevant handler parameter of the annotation
-     */
-    abstract Optional<Class<? extends H>> getHandlerClass(final TraversedField field);
+    @Test
+    void testValidatesReturnType() {
 
-    H getHandler(final String handlerClassName) {
-        return m_handlers.get(handlerClassName);
+        class ButtonSettings implements DefaultNodeSettings {
+            @Widget(description = "", title = "")
+            @ButtonWidget(actionHandler = WrongResultTypeActionHandler.class)
+            String m_button;
+        }
+
+        assertThrows(IllegalArgumentException.class,
+            () -> new ButtonWidgetActionHandlerHolder(List.of(ButtonSettings.class)));
     }
 
 }

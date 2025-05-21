@@ -67,6 +67,10 @@ public record ResolvedStateProvider(Object identifier, Supplier<StateProvider> s
         this(stateProviderClass.getName(), () -> createInstance(stateProviderClass));
     }
 
+    ResolvedStateProvider(final StateProvider stateProvider) {
+        this(stateProvider, () -> stateProvider);
+    }
+
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
