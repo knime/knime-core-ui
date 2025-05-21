@@ -56,7 +56,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.MultiFileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.FolderSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 class HiddenFeaturesNodeSettings implements DefaultNodeSettings {
@@ -99,4 +101,8 @@ class HiddenFeaturesNodeSettings implements DefaultNodeSettings {
     }
 
     MultiFileSelection<TestFileChooserFilters> m_fileSelection = new MultiFileSelection<>(new TestFileChooserFilters());
+
+    @Widget(title = "File Selection with Folder", description = "A file selection that allows selecting folders.")
+    @FolderSelectionWidget
+    FileSelection m_testSelectionWithFolder = new FileSelection();
 }

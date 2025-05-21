@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.knime.core.webui.data.DataServiceContext;
@@ -85,11 +86,12 @@ public final class DBTableChooserDataService {
 
         try {
             var constructor = dbTableAdapter //
-                .getDeclaredConstructor(DataServiceContext.class);
+                .getDeclaredConstructor(Supplier.class);
 
             constructor.setAccessible(!Modifier.isPrivate(constructor.getModifiers()));
 
-            m_adapterInstance = constructor.newInstance(DataServiceContext.get());
+            Supplier<DataServiceContext> supplier = DataServiceContext::get;
+            m_adapterInstance = constructor.newInstance(supplier);
         } catch (NoSuchMethodException | IllegalAccessException ex) {
             throw new IllegalStateException("""
                     The DBTableAdapter subclass %s either does not have the required constructor \
@@ -112,26 +114,26 @@ public final class DBTableChooserDataService {
     enum DBItemType {
             ROOT, CATALOGUE, SCHEMA, TABLE;
 
-        DBItemType nextDown() {
+        DBItemType nextDown(final boolean supportsCatalogues) {
             return switch (this) {
-                case ROOT -> CATALOGUE;
+                case ROOT -> supportsCatalogues ? CATALOGUE : SCHEMA;
                 case CATALOGUE -> SCHEMA;
                 case SCHEMA -> TABLE;
                 case TABLE -> throw new IllegalArgumentException("Nothing comes below table");
             };
         }
 
-        DBItemType nextUp() {
+        DBItemType nextUp(final boolean supportsCatalogues) {
             return switch (this) {
                 case ROOT -> throw new IllegalArgumentException("Nothing comes above root");
                 case CATALOGUE -> ROOT;
-                case SCHEMA -> CATALOGUE;
+                case SCHEMA -> supportsCatalogues ? CATALOGUE : ROOT;
                 case TABLE -> SCHEMA;
             };
         }
 
         String niceName() {
-            return this.name().toLowerCase(Locale.ROOT);
+            return this.name().toLowerCase(Locale.getDefault());
         }
     }
 
@@ -254,12 +256,13 @@ public final class DBTableChooserDataService {
      * @return the result containing either a list of items or an error message
      */
     public ListItemsResult listItems(List<String> pathParts) {
-        int maxPathParts;
+        boolean supportsCatalogues;
         try {
-            maxPathParts = supportsCatalogs() ? 2 : 1;
+            supportsCatalogues = supportsCatalogs();
         } catch (SQLException ex) { // NOSONAR don't need to rethrow
-            return ListItemsResult.error("Databse error: " + ex.getMessage());
+            return ListItemsResult.error("Database error: " + ex.getMessage());
         }
+        int maxPathParts = supportsCatalogues ? 2 : 1;
         if (pathParts.size() > maxPathParts) {
             // shouldn't happen if the frontend is correct
             throw new IllegalArgumentException("Path parts must be at most " + maxPathParts);
@@ -278,10 +281,10 @@ public final class DBTableChooserDataService {
 
             try {
                 currentContainer = currentContainer.childToContainer(nextPart, m_adapterInstance);
-                currentContainerType = currentContainerType.nextDown();
+                currentContainerType = currentContainerType.nextDown(supportsCatalogues);
             } catch (IllegalArgumentException ex) { // NOSONAR don't need to rethrow
-                return ListItemsResult
-                    .error("Could not find %s '%s'".formatted(currentContainerType.nextDown().niceName(), nextPart));
+                return ListItemsResult.error("Could not find %s '%s'"
+                    .formatted(currentContainerType.nextDown(supportsCatalogues).niceName(), nextPart));
             } catch (SQLException ex) { // NOSONAR don't need to rethrow
                 return ListItemsResult.error("Database error: " + ex.getMessage());
             }
@@ -299,6 +302,15 @@ public final class DBTableChooserDataService {
      */
     public boolean supportsCatalogs() throws SQLException {
         return m_adapterInstance.listCatalogues().isPresent();
+    }
+
+    /**
+     * Checks if the database is connected.
+     *
+     * @return true if the database is connected, false otherwise.
+     */
+    public boolean isDbConnected() {
+        return m_adapterInstance.isDbConnected();
     }
 
     /**
@@ -320,17 +332,17 @@ public final class DBTableChooserDataService {
          */
         abstract class DBTableAdapter {
 
-            protected final DataServiceContext m_context;
+            protected final Supplier<DataServiceContext> m_contextSupplier;
 
             /**
              * Constructor for the DBTableAdapter.
              *
-             * @param context the DataServiceContext to use, which should be passed by the subclass. The subclass can
-             *            get it from the service by providing a single-argument constructor that takes a
-             *            {@link DataServiceContext} parameter.
+             * @param contextSupplier the DataServiceContext to use, which should be passed by the subclass. The
+             *            subclass can get it from the service by providing a single-argument constructor that takes a
+             *            {@link DataServiceContext} supplier parameter.
              */
-            protected DBTableAdapter(final DataServiceContext context) {
-                m_context = context;
+            protected DBTableAdapter(final Supplier<DataServiceContext> contextSupplier) {
+                m_contextSupplier = contextSupplier;
             }
 
             /**
@@ -365,6 +377,13 @@ public final class DBTableChooserDataService {
              * @throws SQLException if a database error occurs while listing the tables
              */
             public abstract List<String> listTables(String catalogue, String schema) throws SQLException;
+
+            /**
+             * Checks if the database is connected.
+             *
+             * @return true if the database is connected, false otherwise.
+             */
+            public abstract boolean isDbConnected();
         }
     }
 }

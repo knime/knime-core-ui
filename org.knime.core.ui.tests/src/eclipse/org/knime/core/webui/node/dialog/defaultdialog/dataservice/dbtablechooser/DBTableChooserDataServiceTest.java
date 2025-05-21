@@ -55,6 +55,7 @@ import static org.mockito.Mockito.mock;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,8 +63,9 @@ import org.knime.core.webui.data.DataServiceContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter;
 
 /**
+ * Tests for the {@link DBTableChooserDataService} and its adapter.
  *
- * @author david
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
 final class DBTableChooserDataServiceTest {
 
@@ -71,7 +73,9 @@ final class DBTableChooserDataServiceTest {
 
     @BeforeEach
     void setup() {
-        m_adapter = new Adapter(mock(DataServiceContext.class));
+        var mock = mock(DataServiceContext.class);
+        Supplier<DataServiceContext> supplier = () -> mock;
+        m_adapter = new Adapter(supplier);
     }
 
     @Test
@@ -121,7 +125,7 @@ final class DBTableChooserDataServiceTest {
 
     static class Adapter extends DBTableAdapter {
 
-        protected Adapter(final DataServiceContext context) {
+        protected Adapter(final Supplier<DataServiceContext> context) {
             super(context);
         }
 
@@ -143,11 +147,16 @@ final class DBTableChooserDataServiceTest {
                 default -> throw new IllegalArgumentException("Unknown schema: " + schema);
             };
         }
+
+        @Override
+        public boolean isDbConnected() {
+            return true;
+        }
     }
 
     static class ThrowingAdapter extends Adapter {
 
-        ThrowingAdapter(final DataServiceContext context) {
+        ThrowingAdapter(final Supplier<DataServiceContext> context) {
             super(context);
             throw new IllegalStateException("Test exception");
         }
@@ -162,7 +171,7 @@ final class DBTableChooserDataServiceTest {
 
     abstract static class AbstractAdapter extends Adapter {
 
-        AbstractAdapter(final DataServiceContext context) {
+        AbstractAdapter(final Supplier<DataServiceContext> context) {
             super(context);
         }
     }
