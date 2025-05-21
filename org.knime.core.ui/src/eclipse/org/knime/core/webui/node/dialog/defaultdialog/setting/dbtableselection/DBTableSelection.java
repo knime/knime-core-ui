@@ -48,6 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection;
 
+import java.util.Objects;
+
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -63,12 +65,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 public final class DBTableSelection implements PersistableSettings, WidgetGroup {
 
     /**
-     * The (optional) name of the schema to use. If blank, the default schema is used.
+     * The (optional) name of the database to use.
      */
-    @Widget(title = "Schema name", description = """
-            Specifies the database schema to read the table from. If left \
-            blank, the database's default schema is used.
-            """)
+    @Widget(title = "Database name", description = "The name of the database (or catalogue) to use.")
+    public String m_catalogName;
+
+    /**
+     * The name of the schema to use.
+     */
+    @Widget(title = "Schema name", description = "The database schema to read the table from.")
     public String m_schemaName;
 
     /**
@@ -76,7 +81,7 @@ public final class DBTableSelection implements PersistableSettings, WidgetGroup 
      */
     @Widget(title = "Table name", description = """
             Name of the database table to read data from. Must match the \
-            table name as it appears in the selected (or default) schema.
+            table name as it appears in the selected schema.
             """)
     public String m_tableName;
 
@@ -84,17 +89,31 @@ public final class DBTableSelection implements PersistableSettings, WidgetGroup 
      * Only for deserialization.
      */
     DBTableSelection() {
-        this("", "");
+        this("", "", "");
     }
 
     /**
-     * Constructor.
+     * Constructor. If this is used, the catalogue name is not set. This makes sense if the database does not support
+     * catalogues.
      *
      * @param schemaName the name of the schema to use, not null.
      * @param tableName the name of the table to use, not null.
      */
     public DBTableSelection(final String schemaName, final String tableName) {
-        m_schemaName = schemaName;
-        m_tableName = tableName;
+        m_schemaName = Objects.requireNonNull(schemaName);
+        m_tableName = Objects.requireNonNull(tableName);
+    }
+
+    /**
+     * Constructor. This is used if the database supports catalogues.
+     *
+     * @param catalogName the name of the catalogue to use, not null.
+     * @param schemaName the name of the schema to use, not null.
+     * @param tableName the name of the table to use, not null.
+     */
+    public DBTableSelection(final String catalogName, final String schemaName, final String tableName) {
+        m_catalogName = Objects.requireNonNull(catalogName);
+        m_schemaName = Objects.requireNonNull(schemaName);
+        m_tableName = Objects.requireNonNull(tableName);
     }
 }

@@ -58,6 +58,8 @@ import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
@@ -152,6 +154,21 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
         return m_settingsTypes;
     }
 
+    private Optional<DBTableChooserDataService> createDBTableChooserService() {
+        // check if we have a model settings class with a DBTableAdapter
+        var dbTableAdapters = m_settingsClasses.values().stream() //
+            .filter(c -> c.isAnnotationPresent(DBTableAdapterProvider.class)) //
+            .map(c -> c.getAnnotation(DBTableAdapterProvider.class)) //
+            .map(DBTableAdapterProvider::value) //
+            .toList();
+        if (dbTableAdapters.size() > 1) {
+            throw new IllegalStateException("Only one DBTableAdapter is allowed per node dialogue.");
+        }
+        return dbTableAdapters.stream() //
+            .findFirst() // get first adapter or empty optional
+            .map(DBTableChooserDataService::new);
+    }
+
     @Override
     public Optional<RpcDataService> createRpcDataService() {
         var fsConnector = new FileSystemConnector();
@@ -162,13 +179,20 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
         final var fileChooserService = new FileChooserDataService(fsConnector);
         final var fileFilterPreviewService =
             new FileFilterPreviewDataService(fsConnector, () -> createWidgetTrees(m_settingsClasses.values()));
-        return Optional.of(RpcDataService.builder() //
+
+        var serviceBuilder = RpcDataService.builder() //
             .addService("settings", dataService) //
             .addService("flowVariables", flowVariablesDataService) //
             .addService("fileChooser", fileChooserService) //
-            .addService("fileFilterPreview", fileFilterPreviewService) //
-            .onDeactivate(fsConnector::clear) //
-            .build() //
+            .addService("fileFilterPreview", fileFilterPreviewService); //
+
+        createDBTableChooserService() //
+            .ifPresent(s -> serviceBuilder.addService("dbTableChooser", s));
+
+        return Optional.of( //
+            serviceBuilder //
+                .onDeactivate(fsConnector::clear) //
+                .build() //
         );
     }
 
