@@ -120,6 +120,10 @@ final class WidgetTreesToRefsAndStateProviders {
     record RefsAndStateProviders(Collection<ValueRefWrapper> valueRefs, Collection<ValueProviderWrapper> valueProviders,
         Collection<LocationUiStateProviderWrapper> locationUiStateProviders,
         Collection<IdUiStateProviderWrapper> idUiStateProviders) {
+
+        static RefsAndStateProviders empty() {
+            return new RefsAndStateProviders(List.of(), List.of(), List.of(), List.of());
+        }
     }
 
     static final Configuration TRAVERSAL_CONFIG = new Configuration.Builder()//

@@ -44,43 +44,46 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 18, 2023 (Paul Bärnreuther): created
+ *   May 21, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
+package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
+
+import static org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToDependencyTreeUtil.getTriggersWithDependencies;
 
 import java.util.Collection;
-import java.util.Optional;
+import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.TraversedField;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonUpdateHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.NoopButtonUpdateHandler;
+import org.knime.core.util.Pair;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 
 /**
+ * Dependency tree creating utility for {@link DialogElementRendererSpec}s.
  *
  * @author Paul Bärnreuther
  */
-class ButtonWidgetUpdateHandlerHolder extends HandlerHolder<ButtonUpdateHandler<?, ?, ?>> {
+public class RendererSpecsToDependencyTreeUtil {
 
-    /**
-     * @param settingsClasses
-     */
-    ButtonWidgetUpdateHandlerHolder(final Collection<Class<? extends WidgetGroup>> settingsClasses) {
-        super(settingsClasses);
+    static Collection<TriggerVertex> rendererSpecsToDependencyTree(
+        final Collection<DialogElementRendererSpec> rendererSpecs, final DefaultNodeSettingsContext context) {
+        final var valueRefsAndStateProviders =
+            new RendererSpecsToImperativeRefsAndStateProviders().widgetTreesToRefsAndStateProviders(rendererSpecs);
+        return RefsAndValueProvidersAndUiStateProvidersToDependencyTree
+            .imperativeRefsAndStateProvidersToDependencyTree(valueRefsAndStateProviders, context);
     }
 
-    @Override
-    Optional<Class<? extends ButtonUpdateHandler<?, ?, ?>>> getHandlerClass(final TraversedField field) {
-        final var buttonWidget = field.propertyWriter().getAnnotation(ButtonWidget.class);
-        if (buttonWidget == null) {
-            return Optional.empty();
-        }
-        final var updateHandlerClass = buttonWidget.updateHandler();
-        if (updateHandlerClass == NoopButtonUpdateHandler.class) {
-            return Optional.empty();
-        }
-        return Optional.of(updateHandlerClass);
+    /**
+     * @param <T> the index-type
+     * @param rendererSpecs the renderer specs to be parsed
+     * @param context the current context
+     * @return a list of all triggers and their associated dependencies and an associated invocation handler.
+     */
+    public static <T> Pair<List<TriggerAndDependencies>, TriggerInvocationHandler<T>>
+        rendererSpecsToTriggersAndInvocationHandler(final Collection<DialogElementRendererSpec> rendererSpecs,
+            final DefaultNodeSettingsContext context) {
+        final var dependencyTree = rendererSpecsToDependencyTree(rendererSpecs, context);
+        final var listOfTriggers = getTriggersWithDependencies(dependencyTree);
+        return new Pair<>(listOfTriggers, new TriggerInvocationHandler<>(dependencyTree));
     }
 
 }

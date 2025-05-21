@@ -46,7 +46,7 @@
  * History
  *   Jun 15, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
+package org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl;
 
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.ConvertValueUtil.convertDependencies;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.ConvertValueUtil.convertValue;
@@ -62,6 +62,10 @@ import org.knime.core.webui.data.DataServiceContext;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DataServiceRequestHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultNodeDialogDataService;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Result;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;

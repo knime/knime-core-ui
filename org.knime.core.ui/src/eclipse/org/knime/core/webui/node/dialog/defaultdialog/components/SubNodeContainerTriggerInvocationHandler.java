@@ -44,25 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 29, 2024 (paul): created
+ *   Feb 7, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
+package org.knime.core.webui.node.dialog.defaultdialog.components;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil.getScopeFromLocation;
+
+import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.DefaultNodeDialogDataServiceImpl;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.ConvertValueUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.LocationAndType;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
 
 /**
- * To reference values (either within an {@link UpdateResult} or values of dependencies within
- * {@link DefaultNodeDialogDataServiceImpl#update2}), we need to account for locations nested in array layouts. We
- * describe which value is meant by additional indices which can either be the actual index or index ids.
+ * Used to convert triggers to a list of resulting updates given a map of dependencies.
  *
  * @author Paul Bärnreuther
- * @param <I> the type of the indices. Either Integer for indices or String for indexIds.
- * @param indices defining the location of the value relative to the location of the trigger
- * @param value
  */
-public record IndexedValue<I>(List<I> indices, Object value) {
+final class SubNodeContainerTriggerInvocationHandler {
+
+    private final TriggerInvocationHandler<String> m_triggerInvocationHandler;
+
+    private final DefaultNodeSettingsContext m_context;
+
+    SubNodeContainerTriggerInvocationHandler(final Supplier<Collection<DialogElementRendererSpec>> rendererSupplier,
+        final DefaultNodeSettingsContext context) {
+        m_context = context;
+        m_triggerInvocationHandler = TriggerInvocationHandler.fromRendererSpecs(rendererSupplier.get(), m_context);
+    }
+
+    List<UpdateResult> trigger(final Trigger trigger, final Map<String, List<IndexedValue<String>>> rawDependencies) {
+        final Function<LocationAndType, List<IndexedValue<String>>> dependencyProvider =
+            locationAndType -> rawDependencies.get(getScopeFromLocation(locationAndType.location())).stream()
+                .map(raw -> new IndexedValue<>(raw.indices(),
+                    parseValue(raw.value(), locationAndType.type().get(), m_context)))
+                .toList();
+
+        final var triggerResult = m_triggerInvocationHandler.invokeTrigger(trigger, dependencyProvider, m_context);
+        return UpdateResultsUtil.toUpdateResults(triggerResult);
+    }
+
+    private static Object parseValue(final Object rawDependencyObject, final Type type,
+        final DefaultNodeSettingsContext context) {
+        return ConvertValueUtil.convertValue(rawDependencyObject, type, context);
+    }
 
 }

@@ -52,12 +52,13 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.FIELD_NAME_SCHEMA;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.FIELD_NAME_UI_SCHEMA;
 
+import java.util.function.BiConsumer;
+
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.TextToJsonUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -92,6 +93,8 @@ public final class DefaultNodeDialogDataServiceUtil {
 
         private ObjectNode m_persistSchema;
 
+        private BiConsumer<ObjectNode, ObjectNode> m_addUpdates;
+
         /**
          * Creates a new builder for the initial data.
          *
@@ -113,8 +116,25 @@ public final class DefaultNodeDialogDataServiceUtil {
             m_persistSchema = persistSchema;
         }
 
+        /**
+         * @param addUpdates a callback consuming the root JSON as first and the data JSON as second argument
+         * @return this builder
+         */
+        public InitialDataBuilder withUpdates(final BiConsumer<ObjectNode, ObjectNode> addUpdates) {
+            m_addUpdates = addUpdates;
+            return this;
+        }
+
         ObjectNode buildJson() {
-            return jsonFormsSettingsToJson(m_jsonFormsSettings, JsonFormsDataUtil.getMapper());
+            final var root = JsonFormsDataUtil.getMapper().createObjectNode();
+            final var data = (ObjectNode)m_jsonFormsSettings.getData();
+            root.set(FIELD_NAME_DATA, data);
+            root.set(FIELD_NAME_SCHEMA, m_jsonFormsSettings.getSchema());
+            root.set(FIELD_NAME_UI_SCHEMA, m_jsonFormsSettings.getUiSchema());
+            if (m_addUpdates != null) {
+                m_addUpdates.accept(root, data);
+            }
+            return root;
         }
 
         /**
@@ -141,14 +161,6 @@ public final class DefaultNodeDialogDataServiceUtil {
             return objectNode;
         }
 
-        private static ObjectNode jsonFormsSettingsToJson(final JsonFormsSettings jsonFormsSettings,
-            final ObjectMapper mapper) {
-            final var root = mapper.createObjectNode();
-            root.set(FIELD_NAME_DATA, jsonFormsSettings.getData());
-            root.set(FIELD_NAME_SCHEMA, jsonFormsSettings.getSchema());
-            root.set(FIELD_NAME_UI_SCHEMA, jsonFormsSettings.getUiSchema());
-            return root;
-        }
     }
 
 }

@@ -68,12 +68,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandl
  *
  * @author Paul Bärnreuther
  */
-class DataServiceRequestHandler {
+public class DataServiceRequestHandler {
     private final Map<String, Future<?>> m_pendingRequests = new HashMap<>();
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(DataServiceRequestHandler.class);
 
-    <T> Result<T>
+    @SuppressWarnings("javadoc")
+    public <T> Result<T>
         handleRequest(final String widgetId, final Callable<T> callback)
         throws InterruptedException, ExecutionException {
         final var future = KNIMEConstants.GLOBAL_THREAD_POOL.enqueue(callback);

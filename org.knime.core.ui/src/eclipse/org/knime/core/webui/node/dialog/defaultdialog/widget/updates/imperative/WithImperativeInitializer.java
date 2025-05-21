@@ -50,7 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative
 
 import java.util.function.Supplier;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlValueReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
 
@@ -90,7 +90,7 @@ public interface WithImperativeInitializer {
          * @return a supplier to be used during {@link StateProvider#computeState}. If the returned supplier is not
          *         needed, use {@link #computeOnValueChange} instead.
          */
-        <T> Supplier<T> computeFromValueSupplier(final Reference<T> ref);
+        <T> Supplier<T> computeFromValueSupplier(final ControlValueReference<T> ref);
 
         /**
          * Sets value ref as <b>Dependency</b> and not as <b>Trigger</b>, i.e.:
@@ -101,7 +101,7 @@ public interface WithImperativeInitializer {
          * @param ref the instance of another widget
          * @return a supplier to be used during {@link StateProvider#computeState}.
          */
-        <T> Supplier<T> getValueSupplier(final Reference<T> ref);
+        <T> Supplier<T> getValueSupplier(final ControlValueReference<T> ref);
 
         /**
          * Sets value ref as <b>Trigger</b> and not as <b>Dependency</b>, i.e.:
@@ -113,7 +113,7 @@ public interface WithImperativeInitializer {
          * @param id the instance of another widget
          * @param <T> the type of the dependency
          */
-        <T> void computeOnValueChange(final Reference<T> id);
+        <T> void computeOnValueChange(final ControlValueReference<T> id);
 
     }
 }

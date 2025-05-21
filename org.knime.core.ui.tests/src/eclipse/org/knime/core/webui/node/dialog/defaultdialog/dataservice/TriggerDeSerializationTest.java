@@ -56,6 +56,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.webui.data.rpc.json.impl.ObjectMapperUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

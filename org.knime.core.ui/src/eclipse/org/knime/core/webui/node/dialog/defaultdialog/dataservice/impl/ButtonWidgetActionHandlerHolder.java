@@ -44,51 +44,66 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 16, 2023 (Paul Bärnreuther): created
+ *   Jul 10, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
+package org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.Optional;
+
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.TraversedField;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonActionHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
+
+import com.fasterxml.jackson.databind.ser.PropertyWriter;
 
 /**
- * The result of the invocation of a data service method from a dialog component.
+ * The holder of all {@link ButtonWidget#actionHandler}s.
  *
- * @param result the result of a successful response
- * @param state the state of the result.
- * @param message the error message in case of a failed response.
- * @param <R> The type of the result
  * @author Paul Bärnreuther
  */
-public record Result<R>(R result, ResultState state, List<String> message) {
+class ButtonWidgetActionHandlerHolder extends HandlerHolder<ButtonActionHandler<?, ?, ?>> {
 
     /**
-     * @param result the value of the successful result
-     * @return an {@link Result} with state {@link ResultState#SUCCESS}
+     * @param settingsClasses
      */
-    static <R> Result<R> succeed(final R result) {
-        return new Result<>(result, ResultState.SUCCESS, null);
+    ButtonWidgetActionHandlerHolder(final Collection<Class<? extends WidgetGroup>> settingsClasses) {
+        super(settingsClasses);
     }
 
-    /**
-     * @param result the value of the successful result
-     * @return an {@link Result} with state {@link ResultState#SUCCESS}
-     */
-    static <R> Result<R> succeed(final R result, final List<String> errorMessages) {
-        return new Result<>(result, ResultState.SUCCESS, errorMessages);
+    @Override
+    Optional<Class<? extends ButtonActionHandler<?, ?, ?>>> getHandlerClass(final TraversedField field) {
+        final var buttonWidget = field.propertyWriter().getAnnotation(ButtonWidget.class);
+        if (buttonWidget == null) {
+            return Optional.empty();
+
+        }
+        final var actionHandlerClass = buttonWidget.actionHandler();
+        validate(field.propertyWriter(), actionHandlerClass);
+        return Optional.of(actionHandlerClass);
+
     }
 
-    /**
-     * @param message the supplied error message
-     * @return an {@link Result} with state {@link ResultState#FAIL}
-     */
-    static <R> Result<R> fail(final String message) {
-        return new Result<>(null, ResultState.FAIL, List.of(message));
+    private static void validate(final PropertyWriter field,
+        final Class<? extends ButtonActionHandler<?, ?, ?>> actionHandlerClass) {
+        if (!isValidReturnType(field, actionHandlerClass)) {
+            throw new IllegalArgumentException(
+                String.format("Return type of action handler %s is not assignable to the type of the field %s.",
+                    actionHandlerClass.getSimpleName(), field.getFullName()));
+        }
     }
 
-    /**
-     * @return an {@link Result} with state {@link ResultState#CANCELED}
-     */
-    static <R> Result<R> cancel() {
-        return new Result<>(null, ResultState.CANCELED, null);
+    private static boolean isValidReturnType(final PropertyWriter field,
+        final Class<? extends ButtonActionHandler<?, ?, ?>> handlerClass) {
+        final var returnType = GenericTypeFinderUtil.getFirstGenericType(handlerClass, ButtonActionHandler.class);
+        final var fieldType = field.getType();
+        if (returnType instanceof Class<?> clazz) {
+            return fieldType.getRawClass().isAssignableFrom(clazz);
+        }
+        return JsonFormsDataUtil.getMapper().constructType(returnType).equals(fieldType);
     }
+
 }

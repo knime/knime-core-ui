@@ -44,25 +44,19 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 29, 2024 (paul): created
+ *   May 21, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
+package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 
-import java.util.List;
-
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.DefaultNodeDialogDataServiceImpl;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative.WithImperativeInitializer;
 
 /**
- * To reference values (either within an {@link UpdateResult} or values of dependencies within
- * {@link DefaultNodeDialogDataServiceImpl#update2}), we need to account for locations nested in array layouts. We
- * describe which value is meant by additional indices which can either be the actual index or index ids.
+ * Marker interface that enables referencing a {@link ControlRendererSpec} within an imperatively constructed state
+ * provider (i.e. a state provider implementing {@link WithImperativeInitializer})
  *
+ * @param <T> the type of the control value reference
  * @author Paul Bärnreuther
- * @param <I> the type of the indices. Either Integer for indices or String for indexIds.
- * @param indices defining the location of the value relative to the location of the trigger
- * @param value
  */
-public record IndexedValue<I>(List<I> indices, Object value) {
+public sealed interface ControlValueReference<T> extends ControlRendererSpec permits DropdownRendererSpec {
 
 }

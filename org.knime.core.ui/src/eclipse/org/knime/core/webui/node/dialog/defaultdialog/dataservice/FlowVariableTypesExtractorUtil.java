@@ -63,13 +63,22 @@ import org.knime.core.node.workflow.VariableTypeRegistry;
  *
  * @author Paul Bärnreuther
  */
-final class FlowVariableTypesExtractorUtil {
+public final class FlowVariableTypesExtractorUtil {
 
     private FlowVariableTypesExtractorUtil() {
         // Utility class
     }
 
-    static VariableType[] getTypes(final NodeSettings nodeSettings, final LinkedList<String> path)
+    /**
+     * Extract the possible types of flow variables at a path in the node settings.
+     *
+     * @param nodeSettings the node settings
+     * @param path the path to the settings
+     * @return the possible types of flow variables
+     * @throws InvalidSettingsException if the settings are invalid
+     */
+    @SuppressWarnings("rawtypes")
+    public static VariableType[] getTypes(final NodeSettings nodeSettings, final LinkedList<String> path)
         throws InvalidSettingsException {
         final var configKey = path.pollLast();
         final var fieldNodeSetting = atPath(nodeSettings, path);

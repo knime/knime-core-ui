@@ -58,7 +58,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.option
  *
  * @author Robin Gerling
  */
-public interface DropdownRendererSpec extends ControlRendererSpec {
+public non-sealed interface DropdownRendererSpec extends ControlValueReference<String> {
 
     @Override
     default JsonDataType getDataType() {

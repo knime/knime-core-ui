@@ -46,7 +46,7 @@
  * History
  *   Oct 25, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
+package org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl;
 
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -85,6 +85,7 @@ import org.knime.core.webui.node.dialog.NodeDialogManagerTest;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultDialogDataConverterImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDataService.PossibleFlowVariable;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
@@ -94,12 +95,8 @@ import org.knime.testing.util.WorkflowManagerUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 
-/**
- *
- * @author Paul Bärnreuther
- */
 @SuppressWarnings("java:S2698") // we accept assertions without messages
-class FlowVariableDataServiceTest {
+class FlowVariableDataServiceImplTest {
 
     final static PortObjectSpec[] PORT_OBJECT_SPECS = new PortObjectSpec[0];
 

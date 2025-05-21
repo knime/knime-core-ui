@@ -62,7 +62,7 @@ import org.knime.core.webui.node.dialog.internal.VariableSettings;
  *
  * @author Paul Bärnreuther
  */
-interface FlowVariableDataService {
+public interface FlowVariableDataService {
 
     /**
      * @param name the name of the flow variable

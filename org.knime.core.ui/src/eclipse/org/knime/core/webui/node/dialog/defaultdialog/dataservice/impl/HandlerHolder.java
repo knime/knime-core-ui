@@ -44,25 +44,61 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 29, 2024 (paul): created
+ *   Jan 24, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
+package org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil.createInstance;
+
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.DefaultNodeDialogDataServiceImpl;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser;
+import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.Configuration;
+import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.TraversedField;
 
 /**
- * To reference values (either within an {@link UpdateResult} or values of dependencies within
- * {@link DefaultNodeDialogDataServiceImpl#update2}), we need to account for locations nested in array layouts. We
- * describe which value is meant by additional indices which can either be the actual index or index ids.
+ * Takes care of accessing the fields in a given collection of {@link WidgetGroup}s. The implementer has to convert a
+ * traversed field to a handlers of type <H> to make it accessible later via {@link #getHandler}.
  *
  * @author Paul Bärnreuther
- * @param <I> the type of the indices. Either Integer for indices or String for indexIds.
- * @param indices defining the location of the value relative to the location of the trigger
- * @param value
+ * @param <H> the type of the handler
  */
-public record IndexedValue<I>(List<I> indices, Object value) {
+public abstract class HandlerHolder<H> {
+
+    private Map<String, H> m_handlers = new HashMap<>();
+
+    HandlerHolder(final Collection<Class<? extends WidgetGroup>> settingsClasses) {
+        final List<TraversedField> traversedFields =
+            settingsClasses.stream().flatMap(HandlerHolder::getTraversedFields).toList();
+        m_handlers = toHandlers(traversedFields);
+    }
+
+    private static Stream<TraversedField> getTraversedFields(final Class<? extends WidgetGroup> settingsClass) {
+        return new WidgetGroupTraverser(settingsClass,
+            new Configuration.Builder().includeFieldsNestedInArrayLayout().build()).getAllFields().stream();
+    }
+
+    private Map<String, H> toHandlers(final List<TraversedField> fields) {
+        final Map<String, H> handlers = new HashMap<>();
+        fields.forEach(field -> getHandlerClass(field)
+            .ifPresent(handlerClass -> handlers.put(handlerClass.getName(), createInstance(handlerClass))));
+        return handlers;
+    }
+
+    /**
+     * @param field of the traversed settings
+     * @return the relevant handler parameter of the annotation
+     */
+    abstract Optional<Class<? extends H>> getHandlerClass(final TraversedField field);
+
+    H getHandler(final String handlerClassName) {
+        return m_handlers.get(handlerClassName);
+    }
 
 }
