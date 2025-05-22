@@ -66,15 +66,18 @@ public final class DBTableSelection implements PersistableSettings, WidgetGroup 
      * The (optional) name of the schema to use. If blank, the default schema is used.
      */
     @Widget(title = "Schema name", description = """
-            The name of the schema to use. If blank, the default schema is \
-            used.
+            Specifies the database schema to read the table from. If left \
+            blank, the database's default schema is used.
             """)
     public String m_schemaName;
 
     /**
      * The name of the table to use.
      */
-    @Widget(title = "Table name", description = "The name of the table to use.")
+    @Widget(title = "Table name", description = """
+            Name of the database table to read data from. Must match the \
+            table name as it appears in the selected (or default) schema.
+            """)
     public String m_tableName;
 
     /**
