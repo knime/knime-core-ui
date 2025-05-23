@@ -59,7 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative.
  *
  * @author Paul Bärnreuther
  */
-public interface ControlRendererSpec extends LocalizedControlRendererSpec {
+public interface ControlRendererSpec extends DialogElementRendererSpec<ControlRendererSpec> {
 
     /**
      * @noimplement only to be implemented by the provided sub-interfaces
@@ -121,7 +121,7 @@ public interface ControlRendererSpec extends LocalizedControlRendererSpec {
     Optional<String> getDescription();
 
     @Override
-    default ControlRendererSpec getControlSpec() {
+    default ControlRendererSpec getNonLocalizedRendererSpec() {
         return this;
     }
 
