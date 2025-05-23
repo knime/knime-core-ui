@@ -55,8 +55,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -65,7 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.Contro
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlValueReference;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DropdownRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.LocalizedControlRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.SectionRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
@@ -119,14 +123,12 @@ public class UpdatesUtilImperativeUpdatesTest {
 
     /**
      * The dependency tree creation throws an illegal state exception when renderer paths don't start with "model".
+     *
      * @param rendererSpec the renderer spec
      * @return the renderer spec with a model path
      */
     public static DialogElementRendererSpec setModelSettingsType(final DialogElementRendererSpec rendererSpec) {
-        if (rendererSpec instanceof LocalizedControlRendererSpec localizedSpec) {
-            return localizedSpec.at("model");
-        }
-        return rendererSpec;
+        return rendererSpec.at("model");
     }
 
     interface TestImperativeStateProvider<T> extends ImperativeStateProvider<T> {
@@ -205,8 +207,53 @@ public class UpdatesUtilImperativeUpdatesTest {
         UpdatesUtilTest.assertAfterOpenDialogWithoutDependencies(response);
     }
 
-    @Test
-    void testValueReferences() {
+    interface CombineToRenderers {
+        Collection<DialogElementRendererSpec> getRendererSpecs(final DialogElementRendererSpec firstDependency,
+            final DialogElementRendererSpec secondDependency, final DialogElementRendererSpec updatedRendererSpec);
+    }
+
+    static Stream<Arguments> combineToRenderers() {
+        return Stream.of(//
+            Arguments.of(new CombineToRenderers() {
+                @Override
+                public String toString() {
+                    return "simple combination";
+                }
+
+                @Override
+                public Collection<DialogElementRendererSpec> getRendererSpecs(
+                    final DialogElementRendererSpec firstDependency, final DialogElementRendererSpec secondDependency,
+                    final DialogElementRendererSpec updatedRendererSpec) {
+                    return List.of(firstDependency, secondDependency, updatedRendererSpec);
+                }
+            }), Arguments.of(new CombineToRenderers() {
+                @Override
+                public String toString() {
+                    return "section with updated renderer";
+                }
+
+                @Override
+                public Collection<DialogElementRendererSpec> getRendererSpecs(
+                    final DialogElementRendererSpec firstDependency, final DialogElementRendererSpec secondDependency,
+                    final DialogElementRendererSpec updatedRendererSpec) {
+                    return List.of(new SectionRendererSpec() {
+                        @Override
+                        public Collection<DialogElementRendererSpec> getElements() {
+                            return List.of(firstDependency, updatedRendererSpec);
+                        }
+
+                        @Override
+                        public String getTitle() {
+                            return "Section";
+                        }
+                    }, secondDependency);
+                }
+            }));
+    }
+
+    @ParameterizedTest(name = "Global updates within {0}")
+    @MethodSource("combineToRenderers")
+    void testValueReferences(final CombineToRenderers combineToRenderers) {
 
         final var firstDropdown = createTestDependencySpec();
         final var secondDropdown = createTestDependencySpec();
@@ -222,8 +269,9 @@ public class UpdatesUtilImperativeUpdatesTest {
         };
 
         final var updatedRendererSpec = createControlSpecWithStateProvider(stateProvider);
-        final var response =
-            buildUpdates(List.of(firstDropdown.at("first"), secondDropdown.at("second"), updatedRendererSpec));
+        final var renderers = combineToRenderers.getRendererSpecs(firstDropdown.at("first"),
+            secondDropdown.at("second"), updatedRendererSpec.at("updated"));
+        final var response = buildUpdates(renderers);
 
         assertThatJson(response).inPath("$").isObject().doesNotContainKey("initialUpdates");
         assertThatJson(response).inPath("$.globalUpdates").isArray().hasSize(1);
@@ -241,8 +289,9 @@ public class UpdatesUtilImperativeUpdatesTest {
 
     static final JsonNodeFactory FACTORY = JsonNodeFactory.instance;
 
-    @Test
-    void testInitialUpdates() {
+    @ParameterizedTest(name = "Initial updates within {0}")
+    @MethodSource("combineToRenderers")
+    void testInitialUpdates(final CombineToRenderers combineToRenderers) {
 
         final var firstDependency = createTestDependencySpec();
         final var secondDependency = createTestDependencySpec();
@@ -280,8 +329,10 @@ public class UpdatesUtilImperativeUpdatesTest {
         final var jsonData = JsonNodeFactory.instance.objectNode();
         jsonData.putObject("model").put(firstDependencyKey, "first").put(secondDependencyKey, "second");
 
-        final var response =
-            buildUpdates(List.of(firstRendererSpec, secondRendererSpec, updatedRendererSpec), jsonData);
+        final var renderers =
+            combineToRenderers.getRendererSpecs(firstRendererSpec, secondRendererSpec, updatedRendererSpec);
+
+        final var response = buildUpdates(renderers, jsonData);
 
         assertThatJson(response).inPath("$").isObject().doesNotContainKey("globalUpdates");
         assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
@@ -291,4 +342,5 @@ public class UpdatesUtilImperativeUpdatesTest {
         assertThatJson(response).inPath("$.initialUpdates[0].providedOptionName").isString().isEqualTo("placeholder");
         assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isString().isEqualTo("first/second");
     }
+
 }

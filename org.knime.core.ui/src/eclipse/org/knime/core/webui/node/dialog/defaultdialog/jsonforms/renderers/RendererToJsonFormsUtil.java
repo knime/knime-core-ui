@@ -48,10 +48,12 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.knime.core.node.util.CheckUtils;
@@ -132,31 +134,31 @@ public final class RendererToJsonFormsUtil {
             VALIDATE, REPLACE;
     }
 
-    private static ObjectNode addPropertiesToSchema(final DialogElementRendererSpec spec,
+    private static ObjectNode addPropertiesToSchema(final DialogElementRendererSpec<?> spec,
         final ObjectNode jsonSchemaWithoutProperties, final ActionOnMissingObject actionOnMissingObject,
         final ActionOnPresentProperty actionOnPresentProperty) {
-        if (spec instanceof LocalizedControlRendererSpec control) {
-            return addControlPropertiesToSchema(control, jsonSchemaWithoutProperties, actionOnMissingObject,
+        final var nonLocalized = spec.getNonLocalizedRendererSpec();
+        final var path = spec.getPathWithinValueJsonObject();
+        if (nonLocalized instanceof ControlRendererSpec control) {
+            return addControlPropertiesToSchema(control, path, jsonSchemaWithoutProperties, actionOnMissingObject,
                 actionOnPresentProperty);
         }
-        if (spec instanceof LayoutRendererSpec layout) {
-            layout.getElements().forEach(el -> addPropertiesToSchema(el, jsonSchemaWithoutProperties,
-                actionOnMissingObject, actionOnPresentProperty));
+        if (nonLocalized instanceof LayoutRendererSpec layout) {
+            layout.getElements().forEach(el -> addPropertiesToSchema(el.at(path.toArray(String[]::new)),
+                jsonSchemaWithoutProperties, actionOnMissingObject, actionOnPresentProperty));
             return jsonSchemaWithoutProperties;
         }
         throw new NotImplementedException("Cannot convert " + spec.getClass().getName() + " to schema element.");
     }
 
-    private static ObjectNode addControlPropertiesToSchema(final LocalizedControlRendererSpec localizedControl,
+    private static ObjectNode addControlPropertiesToSchema(final ControlRendererSpec control, final List<String> path,
         final ObjectNode jsonSchemaWithoutProperties, final ActionOnMissingObject actionOnMissingObject,
         final ActionOnPresentProperty actionOnPresentProperty) {
         final BiFunction<ObjectNode, List<String>, ObjectNode> getSubSchemaAt = switch (actionOnMissingObject) {
             case CREATE -> JsonFormsScopeUtil::getOrConstructSchemaAt;
             case FAIL -> JsonFormsScopeUtil::getSchemaAtOrFail;
         };
-        final var control = localizedControl.getControlSpec();
-        final var controlSchema =
-            getSubSchemaAt.apply(jsonSchemaWithoutProperties, localizedControl.getPathWithinValueJsonObject());
+        final var controlSchema = getSubSchemaAt.apply(jsonSchemaWithoutProperties, path);
         putStringProperty(controlSchema, Schema.TAG_TYPE, control.getDataType().getType(), actionOnPresentProperty);
         putStringProperty(controlSchema, Schema.TAG_TITLE, control.getTitle(), actionOnPresentProperty);
         final var description = control.getDescription().orElse(null);
@@ -199,29 +201,30 @@ public final class RendererToJsonFormsUtil {
      * @param spec the renderer spec
      * @return the generated ui schema representation
      */
-    public static ObjectNode toUiSchemaElement(final DialogElementRendererSpec spec) {
-        if (spec instanceof LayoutRendererSpec layout) {
-            return layoutToUiSchemaElement(layout);
+    public static ObjectNode toUiSchemaElement(final DialogElementRendererSpec<?> spec) {
+        final var nonLocalized = spec.getNonLocalizedRendererSpec();
+        final var path = spec.getPathWithinValueJsonObject();
+        if (nonLocalized instanceof ControlRendererSpec control) {
+            return controlToUiSchemaElement(control, path);
         }
-        if (spec instanceof LocalizedControlRendererSpec control) {
-            return controlToUiSchemaElement(control);
+        if (nonLocalized instanceof LayoutRendererSpec layout) {
+            return layoutToUiSchemaElement(layout, path);
         }
         throw new NotImplementedException("Cannot convert " + spec.getClass().getName() + " to ui schema element.");
     }
 
-    private static ObjectNode layoutToUiSchemaElement(final LayoutRendererSpec layout) {
+    private static ObjectNode layoutToUiSchemaElement(final LayoutRendererSpec layout, final List<String> path) {
         final var uiSchemaElement = FACTORY.objectNode()//
             .put(UiSchema.TAG_TYPE, layout.getType());
         layout.getLabel().ifPresent(label -> uiSchemaElement.put(UiSchema.TAG_LABEL, label));
         layout.getDescription().ifPresent(description -> uiSchemaElement.put(UiSchema.TAG_DESCRIPTION, description));
         final var elementsArray = uiSchemaElement.withArray(UiSchema.TAG_ELEMENTS);
-        layout.getElements().stream().map(RendererToJsonFormsUtil::toUiSchemaElement).forEach(elementsArray::add);
+        layout.getElements().stream().map(el -> el.at(path.toArray(String[]::new)))
+            .map(RendererToJsonFormsUtil::toUiSchemaElement).forEach(elementsArray::add);
         return uiSchemaElement;
     }
 
-    private static ObjectNode controlToUiSchemaElement(final LocalizedControlRendererSpec localizedControl) {
-        final var control = localizedControl.getControlSpec();
-        final var path = localizedControl.getPathWithinValueJsonObject();
+    private static ObjectNode controlToUiSchemaElement(final ControlRendererSpec control, final List<String> path) {
         final var uiSchemaElement = FACTORY.objectNode()//
             .put(UiSchema.TAG_TYPE, UiSchema.TYPE_CONTROL)
             .put(UiSchema.TAG_SCOPE, JsonFormsScopeUtil.toScope(path, null));
@@ -232,7 +235,9 @@ public final class RendererToJsonFormsUtil {
             CheckUtils.checkState(options instanceof NullNode, "Options need to be an object or null");
         }
         control.getFormat().ifPresent(format -> getOrCreateOptions(uiSchemaElement).put(UiSchema.TAG_FORMAT, format));
-        final var providedOptionNames = control.getStateProviderClasses().keySet().stream().sorted().toList();
+        final var providedOptionNames =
+            Stream.of(control.getStateProviderClasses().keySet(), control.getStateProviders().keySet())
+                .flatMap(Collection::stream).sorted().toList();
         if (!providedOptionNames.isEmpty()) {
             final var providedOptions = uiSchemaElement.putArray(UiSchema.TAG_PROVIDED_OPTIONS);
             providedOptionNames.forEach(providedOptions::add);

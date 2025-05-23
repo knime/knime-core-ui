@@ -51,7 +51,7 @@ package org.knime.core.webui.node.dialog;
 import java.io.IOException;
 
 import org.knime.core.node.dialog.DialogNodeRepresentation;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.LocalizedControlRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -66,19 +66,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 public interface WebDialogNodeRepresentation<VAL extends WebDialogValue> extends DialogNodeRepresentation<VAL> {
 
     /**
-     * @return the specification of a control renderer that should be used in a WebUI dialog. It has to be localized to
-     *         a json path within the json generated from a value via {@link WebDialogValue#toDialogJson}.
+     * @return the specification of a renderer that should be used in a WebUI dialog. Used control renderers (i.e.
+     *         renderers controlling a setting) have to be localized to a json path within the json generated from a
+     *         value via {@link WebDialogValue#toDialogJson}.
      *
      *         E.g. if {@link WebDialogValue#toDialogJson} returns an object with a string property "value" and a
      *         renderer spec operating on a string value is to be used (e.g. the {@link TextRendererSpec}), that has to
      *         be localized to "value".
      */
     @JsonIgnore // otherwise a cyclic dependency arises
-    LocalizedControlRendererSpec getWebUIDialogControlSpec();
+    DialogElementRendererSpec<?> getWebUIDialogElementRendererSpec();
 
     /**
      * This method transforms the value of this node to a JSON representation suitable to be rendered using the result
-     * of {@link #getWebUIDialogControlSpec()}.
+     * of {@link #getWebUIDialogElementRendererSpec()}.
      *
      * @param value the to be transformed value
      * @return a json representation.
@@ -125,8 +126,7 @@ public interface WebDialogNodeRepresentation<VAL extends WebDialogValue> extends
      *
      * @param <T> the dialog node value type
      */
-    interface DefaultWebDialogNodeRepresentation<T extends WebDialogValue>
-        extends WebDialogNodeRepresentation<T> {
+    interface DefaultWebDialogNodeRepresentation<T extends WebDialogValue> extends WebDialogNodeRepresentation<T> {
 
         @Override
         default JsonNode transformValueToDialogJson(final T value) throws IOException {

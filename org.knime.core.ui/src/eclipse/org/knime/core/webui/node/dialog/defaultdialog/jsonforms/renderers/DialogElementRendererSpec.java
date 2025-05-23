@@ -44,15 +44,61 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 7, 2025 (paulbaernreuther): created
+ *   Apr 11, 2025 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 
+import java.util.List;
+import java.util.stream.Stream;
+
 /**
- * The base interface for all widgets
+ * This interface is used to provide a renderer specification for a JSON value at a path.
  *
  * @author Paul Bärnreuther
+ * @param <T> either control or layout
  */
-public sealed interface DialogElementRendererSpec permits LocalizedControlRendererSpec, LayoutRendererSpec {
+public interface DialogElementRendererSpec<T extends DialogElementRendererSpec<T>> {
+
+    /**
+     * Overwrite this method if the renderer is to be used on a nested JSON object. Or, alternatively, use the
+     * {@link #at} method to localize a non-localized renderer.
+     *
+     * @return the path within the value JSON object.
+     */
+    default List<String> getPathWithinValueJsonObject() {
+        return List.of();
+    }
+
+    /**
+     * @noreference
+     * @noimplement This method is only to be used and implemented in the provided direct sub-interfaces within this
+     *              package and within the {@link #at} localization method below.
+     *
+     *
+     * @return the renderer specification.
+     */
+    T getNonLocalizedRendererSpec();
+
+    /**
+     * @param path from the root of the new json to operate on.
+     * @return the same renderer but now acting on a json object nested within the provided path.
+     */
+    default DialogElementRendererSpec<T> at(final String... path) {
+        final var existingPathStream = getPathWithinValueJsonObject().stream();
+        final var newPathStream = Stream.of(path);
+        final var newPathStreamWithExistingPath = Stream.concat(newPathStream, existingPathStream).toList();
+        final var nonLocalized = getNonLocalizedRendererSpec();
+        return new DialogElementRendererSpec<>() {
+            @Override
+            public List<String> getPathWithinValueJsonObject() {
+                return newPathStreamWithExistingPath;
+            }
+
+            @Override
+            public T getNonLocalizedRendererSpec() {
+                return nonLocalized;
+            }
+        };
+    }
 
 }

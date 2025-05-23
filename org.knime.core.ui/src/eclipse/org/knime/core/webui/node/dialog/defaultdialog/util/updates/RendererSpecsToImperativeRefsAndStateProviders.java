@@ -54,10 +54,10 @@ import java.util.List;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlValueReference;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.LayoutRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.LocalizedControlRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 final class RendererSpecsToImperativeRefsAndStateProviders {
@@ -87,13 +87,14 @@ final class RendererSpecsToImperativeRefsAndStateProviders {
         return new ImperativeRefsAndStateProviders(m_valueRefs, m_locationUiStateProviders);
     }
 
-    private void traverseRendererSpec(final DialogElementRendererSpec rendererSpec) {
-        if (rendererSpec instanceof LayoutRendererSpec layoutSpec) {
-            layoutSpec.getElements().forEach(this::traverseRendererSpec);
-        } else if (rendererSpec instanceof LocalizedControlRendererSpec localizedSpec) {
-            final var path = localizedSpec.getPathWithinValueJsonObject();
+    private void traverseRendererSpec(final DialogElementRendererSpec<?> rendererSpec) {
+        final var nonLocalizedSpec = rendererSpec.getNonLocalizedRendererSpec();
+        final var path = rendererSpec.getPathWithinValueJsonObject();
+        if (nonLocalizedSpec instanceof LayoutRendererSpec layoutSpec) {
+            layoutSpec.getElements().stream().map(el -> el.at(path.toArray(String[]::new)))
+                .forEach(this::traverseRendererSpec);
+        } else if (nonLocalizedSpec instanceof ControlRendererSpec controlSpec) {
             final var location = rendererPathToLocation(path);
-            final var controlSpec = localizedSpec.getControlSpec();
             if (controlSpec instanceof ControlValueReference controlValueReference) {
                 m_valueRefs.add(new ImperativeValueRefWrapper(controlValueReference, location));
             }

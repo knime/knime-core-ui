@@ -68,7 +68,7 @@ import org.knime.core.node.NodeView;
 import org.knime.core.node.dialog.DialogNode;
 import org.knime.core.node.dialog.DialogNodePanel;
 import org.knime.core.webui.node.dialog.WebDialogNodeRepresentation.DefaultWebDialogNodeRepresentation;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.LocalizedControlRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -245,7 +245,7 @@ public class TestConfigurationNodeFactory extends NodeFactory<NodeModel> {
         }
 
         @Override
-        public LocalizedControlRendererSpec getWebUIDialogControlSpec() {
+        public DialogElementRendererSpec getWebUIDialogElementRendererSpec() {
             return new TextRendererSpec() {
 
                 @Override
