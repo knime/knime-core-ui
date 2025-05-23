@@ -127,7 +127,7 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
             final var valueJson = wrapWithContext(() -> getValueJson(dialogNode), dialogSubNode.nc);
             modelSettingsJson.set(paramName, valueJson);
 
-            final var renderer = getRepresentation(dialogNode).getWebUIDialogControlSpec()
+            final var renderer = getRepresentation(dialogNode).getWebUIDialogElementRendererSpec()
                 .at(SettingsType.MODEL.getConfigKey(), paramName);
             m_renderers.add(renderer);
             uiSchemaElements.addObject().setAll(toUiSchemaElement(renderer));

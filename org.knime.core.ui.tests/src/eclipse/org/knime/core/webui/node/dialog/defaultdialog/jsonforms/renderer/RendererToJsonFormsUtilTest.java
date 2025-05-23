@@ -64,7 +64,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.LocalizedControlRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.SectionRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
@@ -79,7 +79,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 class RendererToJsonFormsUtilTest {
 
-    static final LocalizedControlRendererSpec TEST_TEXT_RENDERER = new TextRendererSpec() {
+    static final DialogElementRendererSpec TEST_TEXT_RENDERER = new TextRendererSpec() {
 
         @Override
         public String getTitle() {
@@ -108,7 +108,7 @@ class RendererToJsonFormsUtilTest {
     static final DialogElementRendererSpec TEST_DIALOG = new SectionRendererSpec() {
 
         @Override
-        public Collection<LocalizedControlRendererSpec> getElements() {
+        public Collection<DialogElementRendererSpec> getElements() {
             return List.of(TEST_TEXT_RENDERER);
         }
 

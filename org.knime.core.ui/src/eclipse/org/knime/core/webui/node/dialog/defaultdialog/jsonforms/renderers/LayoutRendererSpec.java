@@ -56,12 +56,12 @@ import java.util.Optional;
  *
  * @author Paul Bärnreuther
  */
-public non-sealed interface LayoutRendererSpec extends DialogElementRendererSpec {
+public interface LayoutRendererSpec extends DialogElementRendererSpec {
 
     /**
      * @return the child dialog elements within this layout
      */
-    Collection<LocalizedControlRendererSpec> getElements();
+    Collection<DialogElementRendererSpec> getElements();
 
     /**
      * @return the id of this layout renderer
@@ -80,6 +80,11 @@ public non-sealed interface LayoutRendererSpec extends DialogElementRendererSpec
      */
     default Optional<String> getDescription() {
         return Optional.empty();
+    }
+
+    @Override
+    default DialogElementRendererSpec getNonLocalizedRendererSpec() {
+        return this;
     }
 
 }
