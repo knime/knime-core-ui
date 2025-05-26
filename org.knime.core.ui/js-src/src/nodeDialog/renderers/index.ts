@@ -4,12 +4,12 @@ import {
   type NamedRenderer,
   type PerformExternalValidation,
   type VueControlRenderer,
-  type VueLayout,
   type VueLayoutRenderer,
   controls,
   getAsyncSetupMethod,
   layouts,
   mapControls,
+  mapLayouts,
   toRenderers,
 } from "@knime/jsonforms";
 
@@ -35,6 +35,7 @@ import {
   fileChooserForMultiFileRenderer,
   fileChooserRenderer,
 } from "./fileChooserRenderer";
+import { labeledGroupRenderer } from "./labeledGroupRenderer";
 import { legacyCredentialsRenderer } from "./legacyCredentialsRenderer";
 import { localFileChooserRenderer } from "./localFileChooserRenderer";
 import { multiFileChooserRenderer } from "./multiFileChooserRenderer";
@@ -51,6 +52,10 @@ const coreUIControls: Record<string, VueControlRenderer> = {
   credentialsRenderer, // since it contains flowSettings logic (that a flow variable is set is important for the backend to resolve the value properly, since we do not load the password in the frontend in this case)
   legacyCredentialsRenderer,
   elementCheckboxRenderer,
+};
+
+const coreUILayouts: Record<string, VueLayoutRenderer> = {
+  labeledGroupRenderer, // since it is a simple layout that does not require any special logic
 };
 
 const otherRenderers = [
@@ -95,8 +100,19 @@ const processControls = ({
   }
   return processedControls;
 };
+const allLayouts: Record<string, VueLayoutRenderer> = {
+  ...layouts,
+  ...coreUILayouts,
+};
 
-const allLayouts: VueLayoutRenderer[] = [...Object.values(layouts)];
+const processLayouts = ({ showAdvancedSettings }: InitializeRenderersProps) => {
+  let processedLayouts = allLayouts;
+  processedLayouts = mapLayouts(withDescriptionButtonLayout)(processedLayouts);
+  processedLayouts = mapLayouts(handleIsAdvancedLayout(showAdvancedSettings))(
+    processedLayouts,
+  );
+  return processedLayouts;
+};
 
 export const initializeRenderers = (
   props: InitializeRenderersProps &
@@ -116,14 +132,7 @@ export const initializeRenderers = (
       ),
     })),
     controls: Object.values(processControls(props)),
-    layouts: allLayouts.map(({ name, tester, layout }) => ({
-      name,
-      tester,
-      layout: handleIsAdvancedLayout(props.showAdvancedSettings)(
-        withDescriptionButtonLayout(layout as VueLayout),
-      ),
-      __asyncSetup: getAsyncSetupMethod(layout),
-    })),
+    layouts: Object.values(processLayouts(props)),
     config: {
       performExternalValidation: props.performExternalValidation,
     },

@@ -235,7 +235,8 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
             return webDialogRepresentation;
         } else {
             throw new IllegalStateException(String.format("Representation needs to be %s, but is %s",
-                WebDialogNodeRepresentation.class.getSimpleName(), value.getClass().getSimpleName()));
+                WebDialogNodeRepresentation.class.getSimpleName(),
+                dialogNodeRepresentation.getClass().getSimpleName()));
         }
     }
 

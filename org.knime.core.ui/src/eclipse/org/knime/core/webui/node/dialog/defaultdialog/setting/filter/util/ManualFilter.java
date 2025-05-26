@@ -100,6 +100,12 @@ public class ManualFilter implements PersistableSettings {
         m_manuallyDeselected = new String[0];
     }
 
+    public ManualFilter(final String[] manuallySelected, final String[] manuallyDeselected, final boolean m_includeUnknownValues) {
+        m_manuallySelected = manuallySelected;
+        m_manuallyDeselected = manuallyDeselected;
+        m_includeUnknownColumns = m_includeUnknownValues;
+    }
+
     ManualFilter() {
     }
 

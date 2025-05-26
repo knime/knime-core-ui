@@ -44,87 +44,40 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 7, 2025 (Paul Bärnreuther): created
+ *   8 May 2025 (Robin Gerling): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 
-import java.util.Map;
 import java.util.Optional;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative.WithImperativeInitializer;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.StringChoicesRendererOptions;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.TwinlistRendererOptions;
 
 /**
- * The specification of a control, i.e. a widget that controls the value of one setting.
+ * A typed string filter renderer spec for a choices setting.
  *
- * @author Paul Bärnreuther
+ * @author Robin Gerling
  */
-public interface ControlRendererSpec extends DialogElementRendererSpec<ControlRendererSpec> {
-
-    /**
-     * @noimplement only to be implemented by the provided sub-interfaces
-     * @return the unique id of this control renderer in case it is detected via the id (in contrast to e.g. the
-     *         settings type).
-     */
-    default Optional<String> getFormat() {
-        return Optional.empty();
-    }
-
-    /**
-     * @noimplement only to be implemented by the provided sub-interfaces
-     * @return the required data type of the control
-     */
-    JsonDataType getDataType();
-
-    /**
-     * @return the options for this control renderer
-     */
-    default Object getOptions() {
-        return null;
-    }
-
-    /**
-     * Some options may be provided dynamically by a state provider. This method defines which options are provided by
-     * which state providers.
-     *
-     * @return a mapping from option names which are usually keys in the options object
-     */
-    @SuppressWarnings("rawtypes")
-    default Map<String, Class<? extends StateProvider>> getStateProviderClasses() {
-        return Map.of();
-    }
-
-    /**
-     * Some options may be provided dynamically by a state provider. This method defines which options are provided by
-     * which state provider.
-     *
-     * <p>
-     * In contrast to {@link #getStateProviderClasses()} this method returns instances of state providers which enables
-     * using it in an imperative way. To also reference other imperatively constructed renderers within such a state
-     * provider, let the state provider extend {@link WithImperativeInitializer}!
-     * </p>
-     *
-     * @return a mapping from option names which are usually keys in the options object
-     */
-    default Map<String, StateProvider<?>> getStateProviders() {
-        return Map.of();
-    }
-
-    /**
-     * @return the title of the control
-     */
-    String getTitle();
-
-    /**
-     * @return the description of the control
-     */
-    default Optional<String> getDescription() {
-        return Optional.empty();
+public interface StringFilterRendererSpec extends ControlRendererSpec {
+    @Override
+    default JsonDataType getDataType() {
+        return JsonDataType.OBJECT;
     }
 
     @Override
-    default ControlRendererSpec getNonLocalizedRendererSpec() {
-        return this;
+    default Optional<String> getFormat() {
+        return Optional.of(UiSchema.Format.NAME_FILTER);
     }
 
+    /**
+     * Options for rendering a string filter component.
+     */
+    interface StringFilterRendererOptions extends TwinlistRendererOptions, StringChoicesRendererOptions {
+    }
+
+    @Override
+    default Optional<StringFilterRendererOptions> getOptions() {
+        return Optional.empty();
+    }
 }
