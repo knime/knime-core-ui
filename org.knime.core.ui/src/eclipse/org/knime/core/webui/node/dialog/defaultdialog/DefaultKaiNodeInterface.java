@@ -60,10 +60,8 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowObjectStack;
-import org.knime.core.node.workflow.ICredentials;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.node.workflow.VariableType;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier;
@@ -201,15 +199,6 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
      *                     type: string
      *                 type:
      *                     type: string
-     *                 value:
-     *                     oneOf:
-     *                         - type: string
-     *                         - type: object
-     *                           properties:
-     *                               username:
-     *                                   type: string
-     *                               password:
-     *                                   type: string
      * </pre>
      *
      * @param flowObjectStack the {@link NodeContainer} holding flow variable information
@@ -229,14 +218,6 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
             final var varJson = flowVariables.addObject();
             varJson.put("name", flowVar.getName());
             varJson.put("type", flowVar.getVariableType().toString());
-            if (VariableType.CredentialsType.INSTANCE.equals(flowVar.getVariableType())) {
-                final ICredentials credentials = flowVar.getValue(VariableType.CredentialsType.INSTANCE);
-                final var valueNode = varJson.putObject("value");
-                valueNode.put("username", credentials.getLogin());
-                valueNode.put("password", "***");
-            } else {
-                varJson.put("value", flowVar.getValueAsString());
-            }
         });
 
         return jsonNode;
