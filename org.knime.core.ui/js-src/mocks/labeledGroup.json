@@ -1,0 +1,57 @@
+{
+  "$schema": "mock.def.json",
+  "result": {
+    "name": "Labeled Group",
+    "description": "Current minimal solution for a group of widgets with a common label and description.",
+    "data": {},
+    "schema": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string",
+          "title": "Column",
+          "description": "An ordinary settings description"
+        },
+        "value2": {
+          "type": "integer",
+          "title": "Value",
+          "description": "An ordinary settings description"
+        }
+      }
+    },
+    "ui_schema": {
+      "elements": [
+        {
+          "type": "Group",
+          "label": "A Group With a Description",
+          "description": "This is a description for the group",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/value"
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/value2"
+            }
+          ]
+        },
+        {
+          "type": "Group",
+          "label": "Another Group without a description",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/value"
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/value2"
+            }
+          ]
+        }
+      ]
+    },
+    "flowVariableSettings": {}
+  }
+}

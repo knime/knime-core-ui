@@ -44,66 +44,34 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 11, 2025 (Paul Bärnreuther): created
+ *   Apr 7, 2025 (paulbaernreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 
-import java.util.List;
-import java.util.stream.Stream;
+import java.util.Optional;
+
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts;
 
 /**
- * This interface is used to provide a renderer specification for a JSON value at a path.
+ * A group of sub-elements with a common title (and optional description).
  *
  * @author Paul Bärnreuther
- * @param <T> either control or layout
  */
-public interface DialogElementRendererSpec<T extends DialogElementRendererSpec<T>> {
+public interface LabeledGroupRendererSpec extends LayoutRendererSpec {
 
-    /**
-     * Overwrite this method if the renderer is to be used on a nested JSON object. Or, alternatively, use the
-     * {@link #at} method to localize a non-localized renderer.
-     *
-     * @return the path within the value JSON object.
-     */
-    default List<String> getPathWithinValueJsonObject() {
-        return List.of();
+    @Override
+    default String getType() {
+        return JsonFormsConsts.UiSchema.TYPE_GROUP;
     }
 
     /**
-     * The actual renderer without any localization.
-     *
-     * @noreference
-     * @noimplement This method is only to be used and implemented in the provided direct sub-interfaces within this
-     *              package and within the {@link #at} localization method below.
-     *
-     *
-     * @return the renderer specification.
+     * @return the title of the section
      */
-    T getNonLocalizedRendererSpec();
+    String getTitle();
 
-    /**
-     *
-     * Use this method to localize the renderer (further) to a certain path within the value JSON object.
-     *
-     * @param path from the root of the new JSON to operate on.
-     * @return the same renderer but now acting on a JSON object nested within the provided path.
-     */
-    default DialogElementRendererSpec<T> at(final String... path) {
-        final var existingPathStream = getPathWithinValueJsonObject().stream();
-        final var newPathStream = Stream.of(path);
-        final var newPathStreamWithExistingPath = Stream.concat(newPathStream, existingPathStream).toList();
-        final var nonLocalized = getNonLocalizedRendererSpec();
-        return new DialogElementRendererSpec<>() {
-            @Override
-            public List<String> getPathWithinValueJsonObject() {
-                return newPathStreamWithExistingPath;
-            }
-
-            @Override
-            public T getNonLocalizedRendererSpec() {
-                return nonLocalized;
-            }
-        };
+    @Override
+    default Optional<String> getLabel() {
+        return Optional.of(getTitle());
     }
 
 }

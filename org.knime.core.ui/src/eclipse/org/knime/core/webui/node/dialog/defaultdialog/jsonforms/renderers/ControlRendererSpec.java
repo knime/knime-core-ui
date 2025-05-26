@@ -118,7 +118,9 @@ public interface ControlRendererSpec extends DialogElementRendererSpec<ControlRe
     /**
      * @return the description of the control
      */
-    Optional<String> getDescription();
+    default Optional<String> getDescription() {
+        return Optional.empty();
+    }
 
     @Override
     default ControlRendererSpec getNonLocalizedRendererSpec() {

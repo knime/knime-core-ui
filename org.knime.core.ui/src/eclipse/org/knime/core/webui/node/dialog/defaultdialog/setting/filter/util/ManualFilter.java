@@ -55,6 +55,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ManualFilterRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 
 /**
@@ -98,6 +99,20 @@ public class ManualFilter implements PersistableSettings {
     public ManualFilter(final String[] initialSelected) {
         m_manuallySelected = initialSelected;
         m_manuallyDeselected = new String[0];
+    }
+
+    /**
+     * Used for the {@link ManualFilterRendererSpec} to create the underlying JSON object for the manual filter.
+     *
+     * @param manuallySelected initially included values
+     * @param manuallyDeselected initially excluded values
+     * @param includeUnknownValues the position of unknown values in the filter
+     */
+    public ManualFilter(final String[] manuallySelected, final String[] manuallyDeselected,
+        final boolean includeUnknownValues) {
+        m_manuallySelected = manuallySelected;
+        m_manuallyDeselected = manuallyDeselected;
+        m_includeUnknownColumns = includeUnknownValues;
     }
 
     ManualFilter() {

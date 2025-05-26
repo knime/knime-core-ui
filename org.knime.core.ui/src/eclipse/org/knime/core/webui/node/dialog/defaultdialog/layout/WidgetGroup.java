@@ -57,6 +57,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -80,6 +81,9 @@ public interface WidgetGroup {
      * As a best practice, when writing such a widget group, explain in JavaDocs what modifications are intended or
      * define an abstract implementation of {@link Modifier} that boils down to the necessary information to be
      * implemented by the different cases.
+     *
+     * TODO: UIEXT-2175 Re-think this API and possibly modify not by changing annotations but by a refined API that
+     * operates on {@link DialogElementRendererSpec} representations of the dialog.
      */
     @Retention(RUNTIME)
     @Target({FIELD, TYPE})

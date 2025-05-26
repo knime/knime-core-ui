@@ -74,8 +74,9 @@ public interface WebDialogNodeRepresentation<VAL extends WebDialogValue> extends
      *         renderer spec operating on a string value is to be used (e.g. the {@link TextRendererSpec}), that has to
      *         be localized to "value".
      */
+    @SuppressWarnings("rawtypes")
     @JsonIgnore // otherwise a cyclic dependency arises
-    DialogElementRendererSpec<?> getWebUIDialogElementRendererSpec();
+    DialogElementRendererSpec getWebUIDialogElementRendererSpec();
 
     /**
      * This method transforms the value of this node to a JSON representation suitable to be rendered using the result

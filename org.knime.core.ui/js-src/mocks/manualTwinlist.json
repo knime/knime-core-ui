@@ -1,0 +1,80 @@
+{
+  "$schema": "mock.def.json",
+  "result": {
+    "name": "Manual Twinlist Dialog",
+    "description": "Twinlist with 'any unknown values' field. I.e. same as the manual part of the multi mode twinlist.",
+    "data": {
+      "unknownsExcluded": {
+        "manuallySelected": ["A", "X"],
+        "manuallyDeselected": ["Y"],
+        "includeUnknownColumns": false
+      },
+      "unknownsIncluded": {
+        "manuallySelected": ["X"],
+        "manuallyDeselected": ["B", "Y"],
+        "includeUnknownColumns": true
+      },
+      "disabled": {
+        "manuallySelected": ["A", "B"],
+        "manuallyDeselected": ["X", "Y"],
+        "includeUnknownColumns": true
+      }
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "unknownsExcluded": {
+          "type": "object",
+          "description": "Should show included A and missing X and excluded B"
+        },
+        "unknownsIncluded": {
+          "type": "object",
+          "description": "Should show included A and excluded B and missing Y"
+        }
+      }
+    },
+    "ui_schema": {
+      "type": "VerticalLayout",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/unknownsExcluded",
+          "options": {
+            "format": "manualTwinlist",
+            "possibleValues": [
+              { "id": "A", "text": "A" },
+              { "id": "B", "text": "B" }
+            ]
+          }
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/unknownsIncluded",
+          "options": {
+            "format": "manualTwinlist",
+            "possibleValues": [
+              { "id": "A", "text": "A" },
+              { "id": "B", "text": "B" }
+            ]
+          }
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/disabled",
+          "options": {
+            "format": "manualTwinlist",
+            "possibleValues": [
+              { "id": "A", "text": "A" },
+              { "id": "B", "text": "B" }
+            ]
+          }
+        }
+      ]
+    },
+    "flowVariableSettings": {
+      "disabled.manuallySelected": {
+        "controllingFlowVariableName": "myVar"
+      }
+    }
+  }
+}

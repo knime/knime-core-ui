@@ -277,6 +277,8 @@ public final class JsonFormsConsts {
 
             public static final String NAME_FILTER = "nameFilter";
 
+            public static final String MANUAL_TWINLIST= "manualTwinlist";
+
             public static final String SINGLE_SELECTION = "singleSelection";
 
             public static final String COLUMN_SELECTION = "columnSelection";
@@ -445,6 +447,11 @@ public final class JsonFormsConsts {
          * The type of a section
          */
         public static final String TYPE_SECTION = "Section";
+
+        /**
+         * The type of a group
+         */
+        public static final String TYPE_GROUP = "Group";
 
         /**
          * The type of a side drawer section

@@ -89,6 +89,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @SuppressWarnings("rawtypes")
 public final class SubNodeContainerSettingsService implements NodeSettingsService {
 
+    /**
+     * One of the configurations that is to be shown in a component dialog.
+     *
+     * @param nc the node container of the sub node
+     * @param dialogNode the dialog node implementation of the sub node
+     * @param paramName the name where this sub node's value is stored in the model settings
+     */
     public record DialogSubNode(NodeContainer nc, DialogNode dialogNode, String paramName) {
 
         DialogSubNode(final NodeContainer nc, final DialogNode node) {
@@ -166,20 +173,17 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
         return m_renderers;
     }
 
-    @SuppressWarnings("rawtypes")
     private static WebDialogNodeRepresentation getRepresentation(final DialogNode dialogNode) {
         return CheckUtils.checkCast(dialogNode.getDialogRepresentation(), WebDialogNodeRepresentation.class,
             IllegalStateException::new,
             "WebUI component dialog is only used when all dialog sub nodes are webUI controls");
     }
 
-    @SuppressWarnings("rawtypes")
     private static JsonNode getValueJson(final DialogNode dialogNode) {
         final var value = Optional.ofNullable(dialogNode.getDialogValue()).orElseGet(dialogNode::getDefaultValue);
         return extractJsonFromWebDialogValueAndDialogRepresentation(value, dialogNode.getDialogRepresentation());
     }
 
-    @SuppressWarnings("rawtypes")
     private static JsonNode extractJsonFromWebDialogValueAndDialogRepresentation(final DialogNodeValue value,
         final DialogNodeRepresentation dialogRepresentation) {
         try {
@@ -216,7 +220,6 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
         }
     }
 
-    @SuppressWarnings("rawtypes")
     private static DialogNodeValue loadValueFromJson(final DialogNode dialogNode, final JsonNode inputJson) {
         final var value = dialogNode.createEmptyDialogValue();
         final var representation = dialogNode.getDialogRepresentation();
@@ -228,27 +231,25 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
         return value;
     }
 
-    @SuppressWarnings("rawtypes")
-    private static WebDialogNodeRepresentation assertWebRepresentationOrThrow(final DialogNodeValue value,
-        final DialogNodeRepresentation dialogNodeRepresentation) {
+    private static WebDialogNodeRepresentation
+        assertWebRepresentationOrThrow(final DialogNodeRepresentation dialogNodeRepresentation) {
         if (dialogNodeRepresentation instanceof WebDialogNodeRepresentation webDialogRepresentation) {
             return webDialogRepresentation;
         } else {
             throw new IllegalStateException(String.format("Representation needs to be %s, but is %s",
-                WebDialogNodeRepresentation.class.getSimpleName(), value.getClass().getSimpleName()));
+                WebDialogNodeRepresentation.class.getSimpleName(),
+                dialogNodeRepresentation.getClass().getSimpleName()));
         }
     }
 
-    @SuppressWarnings("rawtypes")
     private static JsonNode extractJsonOrThrow(final DialogNodeValue value,
         final DialogNodeRepresentation dialogNodeRepresentation) throws IOException {
-        return assertWebRepresentationOrThrow(value, dialogNodeRepresentation).castAndTransformValueToDialogJson(value);
+        return assertWebRepresentationOrThrow(dialogNodeRepresentation).castAndTransformValueToDialogJson(value);
     }
 
-    @SuppressWarnings("rawtypes")
     private static void setJsonOrThrow(final JsonNode json, final DialogNodeValue value,
         final DialogNodeRepresentation dialogNodeRepresentation) throws IOException {
-        assertWebRepresentationOrThrow(value, dialogNodeRepresentation).castAndSetValueFromDialogJson(json, value);
+        assertWebRepresentationOrThrow(dialogNodeRepresentation).castAndSetValueFromDialogJson(json, value);
     }
 
     /**

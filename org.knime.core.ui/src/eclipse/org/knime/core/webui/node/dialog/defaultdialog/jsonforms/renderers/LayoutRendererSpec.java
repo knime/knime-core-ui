@@ -56,11 +56,12 @@ import java.util.Optional;
  *
  * @author Paul Bärnreuther
  */
-public interface LayoutRendererSpec extends DialogElementRendererSpec {
+public interface LayoutRendererSpec extends DialogElementRendererSpec<LayoutRendererSpec> {
 
     /**
      * @return the child dialog elements within this layout
      */
+    @SuppressWarnings("rawtypes")
     Collection<DialogElementRendererSpec> getElements();
 
     /**
@@ -83,7 +84,7 @@ public interface LayoutRendererSpec extends DialogElementRendererSpec {
     }
 
     @Override
-    default DialogElementRendererSpec getNonLocalizedRendererSpec() {
+    default LayoutRendererSpec getNonLocalizedRendererSpec() {
         return this;
     }
 
