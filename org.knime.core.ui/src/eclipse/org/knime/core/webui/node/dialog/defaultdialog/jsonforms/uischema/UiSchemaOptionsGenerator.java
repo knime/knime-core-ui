@@ -127,6 +127,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.FolderSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
@@ -339,6 +340,11 @@ final class UiSchemaOptionsGenerator {
             resolveFileExtension(control, options, fileWriterWidget.fileExtension(),
                 fileWriterWidget.fileExtensionProvider());
         }
+
+        if (annotatedWidgets.contains(FolderSelectionWidget.class)) {
+            options.put("selectionMode", "FOLDER");
+        }
+
         if (annotatedWidgets.contains(LocalFileWriterWidget.class)) {
             options.put(TAG_FORMAT, Format.LOCAL_FILE_CHOOSER);
             final var localFileWriterWidget = m_node.getAnnotation(LocalFileWriterWidget.class).orElseThrow();

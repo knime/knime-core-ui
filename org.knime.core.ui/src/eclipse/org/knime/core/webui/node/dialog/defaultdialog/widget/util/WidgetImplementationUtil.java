@@ -75,6 +75,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.Tem
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.FolderSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
@@ -182,6 +183,7 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), UsernameWidget.class), //
         new WidgetAnnotation(List.of(FileSelection.class, MultiFileSelection.class), FileReaderWidget.class), //
         new WidgetAnnotation(List.of(FileSelection.class), FileWriterWidget.class), //
+        new WidgetAnnotation(List.of(FileSelection.class), FolderSelectionWidget.class), //
         new WidgetAnnotation(List.of(String.class), LocalFileReaderWidget.class), //
         new WidgetAnnotation(List.of(String.class), LocalFileWriterWidget.class), //
         new WidgetAnnotation(List.of(String.class), TextInputWidget.class), //

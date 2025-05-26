@@ -95,6 +95,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTi
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.FolderSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget.IntervalType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -481,6 +482,20 @@ class UiSchemaOptionsTest {
             String m_prop;
         }
         assertThrows(UiSchemaGenerationException.class, () -> buildTestUiSchema(NonApplicableStyleSettings.class));
+    }
+
+    @Test
+    void testFolderSelectionWidgetSetsAppropriateSettings() {
+        class SettingsWithFolderSelection implements DefaultNodeSettings {
+            @Widget(title = "", description = "")
+            @FolderSelectionWidget
+            FileSelection m_myFolderSelection;
+        }
+
+        var response = buildTestUiSchema(SettingsWithFolderSelection.class);
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("myFolderSelection");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("fileChooser");
+        assertThatJson(response).inPath("$.elements[0].options.selectionMode").isString().isEqualTo("FOLDER");
     }
 
     @Test

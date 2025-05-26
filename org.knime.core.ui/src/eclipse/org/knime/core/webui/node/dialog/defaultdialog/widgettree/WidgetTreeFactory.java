@@ -65,6 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.FolderSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
@@ -131,6 +132,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         Effect.class, //
         FileReaderWidget.class, //
         FileWriterWidget.class, //
+        FolderSelectionWidget.class, //
         FlowVariableFilterWidget.class, //
         InternalArrayWidget.ElementCheckboxWidget.class, //
         IntervalWidget.class, //
