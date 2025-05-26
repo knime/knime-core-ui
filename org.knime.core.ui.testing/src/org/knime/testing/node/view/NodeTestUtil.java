@@ -140,7 +140,7 @@ public final class NodeTestUtil {
             nodeViewManager.getDataServiceManager().getDataServiceOfType(nodeWrapper, RpcDataService.class);
         if (dataServiceType != null) {
             assertThat(rpcDataService).isNotEmpty();
-            assertThat(rpcDataService.get().getRpcServer().getHandler(dataServiceType)).isNotNull();
+            assertThat(rpcDataService.get().getHandler(dataServiceType.getName())).isNotNull();
         } else {
             assertThat(rpcDataService).isEmpty();
         }

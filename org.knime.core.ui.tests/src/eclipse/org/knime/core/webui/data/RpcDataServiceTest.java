@@ -56,13 +56,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.knime.core.webui.data.RpcDataService.jsonRpcRequest;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.WorkflowManager;
+import org.knime.core.webui.data.RpcDataService.WildcardHandler;
 import org.knime.core.webui.data.rpc.json.impl.ObjectMapperUtil;
 import org.knime.core.webui.node.NodeWrapper;
 import org.knime.core.webui.node.view.NodeView;
@@ -71,6 +75,8 @@ import org.knime.core.webui.node.view.NodeViewManagerTest;
 import org.knime.core.webui.page.Page;
 import org.knime.testing.node.view.NodeViewTestUtil;
 import org.knime.testing.util.WorkflowManagerUtil;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Tests for the {@link JsonRpcDataService}.
@@ -194,6 +200,51 @@ class RpcDataServiceTest {
         public String erroneusMethod(final String param1, final String param2) {
             throw new DataServiceException(param1, param2);
         }
+    }
+
+    @Test
+    void testWildcardHandler() {
+        var nnc = createNodeWithRPCDataService(() -> RpcDataService.builder(new MyWildcardHandler()).build());
+        var jsonRpcRequest = jsonRpcRequest("myMethod", "param1", "param2");
+        var response = sendRPCRequest(nnc, jsonRpcRequest);
+        assertThat(response).isEqualTo("""
+                {"jsonrpc":"2.0","id":1,"result":"myMethod,param1,param2"}""");
+
+        jsonRpcRequest =
+            jsonRpcRequestFromParameterMap("myMethod2", Map.of("param1", "param-val1", "param2", "param-val2"));
+        response = sendRPCRequest(nnc, jsonRpcRequest);
+        assertThat(response).isEqualTo("""
+                {"jsonrpc":"2.0","id":1,"result":"myMethod2,param-val1,param-val2"}""");
+
+        jsonRpcRequest = jsonRpcRequest("error");
+        response = sendRPCRequest(nnc, jsonRpcRequest);
+        assertThat(response).isEqualTo("""
+                {"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"This is an error"}}""");
+    }
+
+    private static class MyWildcardHandler implements WildcardHandler {
+
+        @Override
+        public Object handleRequest(final String method, final List<Object> params) throws RequestException {
+            if (method.equals("error")) {
+                throw new MethodNotFoundException("This is an error");
+            }
+            return method + "," + params.stream().map(Object::toString).collect(Collectors.joining(","));
+        }
+
+        @Override
+        public Object handleRequest(final String method, final Map<String, Object> params) {
+            return method + ","
+                + params.values().stream().sorted().map(Object::toString).collect(Collectors.joining(","));
+        }
+
+    }
+
+    private static String jsonRpcRequestFromParameterMap(final String method, final Map<String, String> params) {
+        var mapper = ObjectMapperUtil.getInstance().getObjectMapper();
+        var paramsNode = mapper.convertValue(params, ObjectNode.class);
+        return mapper.createObjectNode().put("jsonrpc", "2.0").put("id", 1).put("method", method)
+            .set("params", paramsNode).toPrettyString();
     }
 
     private NativeNodeContainer createNodeWithRPCDataService(final Supplier<RpcDataService> rpcDataServiceSupplier) {

@@ -50,16 +50,21 @@ package org.knime.core.webui.data;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
+import org.apache.commons.lang3.function.FailableFunction;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.webui.data.rpc.RpcServer;
+import org.knime.core.webui.data.RpcDataService.WildcardHandler.RequestException;
 import org.knime.core.webui.data.rpc.RpcServerManager;
 import org.knime.core.webui.data.rpc.json.impl.JsonRpcServer;
 import org.knime.core.webui.data.rpc.json.impl.JsonRpcSingleServer;
 import org.knime.core.webui.data.rpc.json.impl.ObjectMapperUtil;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -72,7 +77,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 public final class RpcDataService extends AbstractDataService {
 
-    private final RpcServer m_rpcServer;
+    private static final ObjectMapper MAPPER = ObjectMapperUtil.getInstance().getObjectMapper();
+
+    private final FailableFunction<String, String, IOException> m_rpcServer;
+
+    private final Function<String, Object> m_getHandler;
 
     private final NodeContainer m_nc;
 
@@ -85,15 +94,67 @@ public final class RpcDataService extends AbstractDataService {
                 throw new IllegalStateException(
                     "Having named and unnamed handlers at the same time is not supported at the moment.");
             }
-            m_rpcServer = new JsonRpcSingleServer<>(builder.m_unnamedHandler);
+            if (builder.m_unnamedHandler instanceof WildcardHandler handler) {
+                m_rpcServer = createWildcardRpcServer(handler);
+                m_getHandler = name -> handler;
+            } else {
+                var rpcServer = new JsonRpcSingleServer<>(builder.m_unnamedHandler);
+                m_rpcServer = request -> RpcServerManager.doRpc(rpcServer, request);
+                m_getHandler = name -> rpcServer.getHandler();
+            }
         } else if (hasNamedHandlers) {
             final var jsonRpcServer = new JsonRpcServer();
             builder.m_namedHandlers.forEach(jsonRpcServer::addService);
-            m_rpcServer = jsonRpcServer;
+            var rpcServer = jsonRpcServer;
+            m_rpcServer = request -> RpcServerManager.doRpc(rpcServer, request);
+            m_getHandler = rpcServer::getHandler;
         } else {
             throw new IllegalStateException("No handler was supplied to this RPCDataService");
         }
         m_nc = DataServiceUtil.getNodeContainerFromContext();
+    }
+
+    private static FailableFunction<String, String, IOException>
+        createWildcardRpcServer(final WildcardHandler handler) {
+        return request -> {
+            try {
+                final var root = MAPPER.readValue(request, Map.class);
+                final var method = root.get("method").toString();
+                final var paramsObj = root.get("params");
+                final var id = (int)root.get("id");
+                Object result;
+                try {
+                    if (paramsObj instanceof List list) {
+                        result = handler.handleRequest(method, list);
+                    } else if (paramsObj instanceof Map map) {
+                        result = handler.handleRequest(method, map);
+                    } else {
+                        throw new IllegalArgumentException("Invalid params type: " + paramsObj.getClass());
+                    }
+                } catch (RequestException ex) {
+                    return createJsonRpcErrorResponse(ex.getErrorCode(), ex.getMessage(), null, id);
+                }
+                return createJsonRpcReponse(result, id);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    private static String createJsonRpcReponse(final Object result, final int id) {
+        var jsonRpc = MAPPER.createObjectNode().put("jsonrpc", "2.0").put("id", id);
+        jsonRpc.set("result", MAPPER.convertValue(result, JsonNode.class));
+        return jsonRpc.toString();
+    }
+
+    private static String createJsonRpcErrorResponse(final int errorCode, final String message, final Object data,
+        final int id) {
+        ObjectNode jsonRpc = MAPPER.createObjectNode().put("jsonrpc", "2.0").put("id", id);
+        var res = jsonRpc.putObject("error").put("code", errorCode).put("message", message);
+        if (data != null) {
+            res.set("data", MAPPER.convertValue(data, JsonNode.class));
+        }
+        return jsonRpc.toString();
     }
 
     /**
@@ -106,15 +167,14 @@ public final class RpcDataService extends AbstractDataService {
         }
         try {
             DataServiceContext.init(m_nc);
-            final var response = RpcServerManager.doRpc(m_rpcServer, request);
+            final var response = m_rpcServer.apply(request);
             // We have to get the DataServiceContext again here, since the context may have changed since (or as a
             // consequence of) clearing it
             final var warningMessages = DataServiceContext.get().getWarningMessages();
             if (warningMessages != null && warningMessages.length > 0) {
-                final var mapper = ObjectMapperUtil.getInstance().getObjectMapper();
-                final var root = (ObjectNode)mapper.readTree(response);
+                final var root = (ObjectNode)MAPPER.readTree(response);
                 if (root.has("result")) {
-                    return root.set("warningMessages", mapper.valueToTree(warningMessages)).toString();
+                    return root.set("warningMessages", MAPPER.valueToTree(warningMessages)).toString();
                 }
             }
             return response;
@@ -129,10 +189,13 @@ public final class RpcDataService extends AbstractDataService {
     }
 
     /**
-     * @return the rpc server being used
+     * -
+     *
+     * @param name the handler name, {@code null} to get the unnamed handler
+     * @return the handler, or {@code null} if none
      */
-    public RpcServer getRpcServer() {
-        return m_rpcServer;
+    public Object getHandler(final String name) {
+        return m_getHandler.apply(name);
     }
 
     /**
@@ -143,12 +206,11 @@ public final class RpcDataService extends AbstractDataService {
      * @return the json rpc request as json string
      */
     public static String jsonRpcRequest(final String method, final String... params) {
-        var mapper = ObjectMapperUtil.getInstance().getObjectMapper();
-        var paramsArrayNode = mapper.createArrayNode();
+        var paramsArrayNode = MAPPER.createArrayNode();
         for (var param : params) {
             paramsArrayNode.add(param);
         }
-        return mapper.createObjectNode().put("jsonrpc", "2.0").put("id", 1).put("method", method)
+        return MAPPER.createObjectNode().put("jsonrpc", "2.0").put("id", 1).put("method", method)
             .set("params", paramsArrayNode).toPrettyString();
     }
 
@@ -220,5 +282,76 @@ public final class RpcDataService extends AbstractDataService {
         }
 
     }
+
+    /**
+     * Handler which can handle any rpc-request, independent from the method name and parameters.
+     */
+    public interface WildcardHandler {
+
+        /**
+         * Handles requests where the parameters are given as a list.
+         *
+         * @param method the rpc method name
+         * @param params the parameters of the request, given as a list
+         * @return the response
+         * @throws RequestException if an error occurred while handling the request
+         */
+        Object handleRequest(String method, List<Object> params) throws RequestException;
+
+        /**
+         * Handles requests for named paramaters.
+         *
+         * @param method the rpc method name
+         * @param params the parameters of the request, given as a map
+         * @return the response
+         * @throws RequestException if an error occurred while handling the request
+         */
+        Object handleRequest(String method, Map<String, Object> params) throws RequestException;
+
+        @SuppressWarnings("javadoc")
+        class RequestException extends Exception {
+
+            private int m_errorCode;
+
+            RequestException(final String message, final int errorCode) {
+                super(message);
+                m_errorCode = errorCode;
+            }
+
+            int getErrorCode() {
+                return m_errorCode;
+            }
+
+        }
+
+        @SuppressWarnings("javadoc")
+        class MethodNotFoundException extends RequestException {
+
+            MethodNotFoundException(final String message) {
+                super(message, -32601);
+            }
+
+        }
+
+        @SuppressWarnings("javadoc")
+        class InvalidParamsException extends RequestException {
+
+            InvalidParamsException(final String message) {
+                super(message, -32602);
+            }
+
+        }
+
+        @SuppressWarnings("javadoc")
+        class InternalErrorException extends RequestException {
+
+            InternalErrorException(final String message) {
+                super(message, -32603);
+            }
+
+        }
+
+    }
+
 
 }
