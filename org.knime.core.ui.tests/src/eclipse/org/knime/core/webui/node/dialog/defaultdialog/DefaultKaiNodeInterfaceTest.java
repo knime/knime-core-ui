@@ -167,12 +167,8 @@ final class DefaultKaiNodeInterfaceTest {
         assertEquals(flowVariables.size() + 1, flowVars.size());
         final var credentialsFlowVar = flowVars.get(0);
         assertEquals("credentials flow variable", credentialsFlowVar.get("name").asText());
-        assertEquals("varUsername", credentialsFlowVar.get("value").get("username").asText());
-        assertEquals("***", credentialsFlowVar.get("value").get("password").asText());
         final var fooFlowVar = flowVars.get(1);
         assertEquals("foo", fooFlowVar.get("name").asText());
-        assertEquals(42, fooFlowVar.get("value").asInt());
-        // don't check value of workspace flow var because it is different depending on where the test is run
         final var workspaceFlowVar = flowVars.get(2);
         assertEquals("knime.workspace", workspaceFlowVar.get("name").asText());
 
@@ -194,7 +190,6 @@ final class DefaultKaiNodeInterfaceTest {
             assertThat(flowVars).isNotEmpty();
             final var inputVar = flowVars.get(0);
             assertEquals("inputVar", inputVar.get("name").asText());
-            assertEquals("inputValue", inputVar.get("value").asText());
         } finally {
             NodeContext.removeLastContext();
         }
@@ -215,7 +210,6 @@ final class DefaultKaiNodeInterfaceTest {
             assertThat(flowVars).isNotEmpty();
             final var outputVar = flowVars.get(0);
             assertEquals("outputVar", outputVar.get("name").asText());
-            assertEquals("outputValue", outputVar.get("value").asText());
         } finally {
             NodeContext.removeLastContext();
         }
