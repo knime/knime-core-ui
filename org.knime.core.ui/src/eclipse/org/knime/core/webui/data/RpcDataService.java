@@ -327,7 +327,7 @@ public final class RpcDataService extends AbstractDataService {
         @SuppressWarnings("javadoc")
         class MethodNotFoundException extends RequestException {
 
-            MethodNotFoundException(final String message) {
+            public MethodNotFoundException(final String message) {
                 super(message, -32601);
             }
 
@@ -336,7 +336,7 @@ public final class RpcDataService extends AbstractDataService {
         @SuppressWarnings("javadoc")
         class InvalidParamsException extends RequestException {
 
-            InvalidParamsException(final String message) {
+            public InvalidParamsException(final String message) {
                 super(message, -32602);
             }
 
@@ -345,7 +345,7 @@ public final class RpcDataService extends AbstractDataService {
         @SuppressWarnings("javadoc")
         class InternalErrorException extends RequestException {
 
-            InternalErrorException(final String message) {
+            public InternalErrorException(final String message) {
                 super(message, -32603);
             }
 
