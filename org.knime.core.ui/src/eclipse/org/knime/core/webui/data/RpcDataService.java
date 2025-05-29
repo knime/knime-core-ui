@@ -117,28 +117,35 @@ public final class RpcDataService extends AbstractDataService {
     private static FailableFunction<String, String, IOException>
         createWildcardRpcServer(final WildcardHandler handler) {
         return request -> {
+            Map<String, Object> root;
             try {
-                final var root = MAPPER.readValue(request, Map.class);
-                final var method = root.get("method").toString();
-                final var paramsObj = root.get("params");
-                final var id = (int)root.get("id");
-                Object result;
-                try {
-                    if (paramsObj instanceof List list) {
-                        result = handler.handleRequest(method, list);
-                    } else if (paramsObj instanceof Map map) {
-                        result = handler.handleRequest(method, map);
-                    } else {
-                        throw new IllegalArgumentException("Invalid params type: " + paramsObj.getClass());
-                    }
-                } catch (RequestException ex) {
-                    return createJsonRpcErrorResponse(ex.getErrorCode(), ex.getMessage(), null, id);
-                }
-                return createJsonRpcReponse(result, id);
+                root = MAPPER.readValue(request, Map.class);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                return createJsonRpcErrorResponse(-32600 /* invalid request */, e.getMessage(), null, 0);
             }
+
+            final var method = root.get("method").toString();
+            final var paramsObj = root.get("params");
+            final var id = (int)root.get("id");
+            Object result;
+            try {
+                result = handleRequest(handler, method, paramsObj);
+            } catch (RequestException ex) {
+                return createJsonRpcErrorResponse(ex.getErrorCode(), ex.getMessage(), null, id);
+            }
+            return createJsonRpcReponse(result, id);
         };
+    }
+
+    private static Object handleRequest(final WildcardHandler handler, final String method, final Object paramsObj)
+        throws RequestException {
+        if (paramsObj instanceof List list) {
+            return handler.handleRequest(method, list);
+        } else if (paramsObj instanceof Map map) {
+            return handler.handleRequest(method, map);
+        } else {
+            throw new IllegalArgumentException("Invalid params type: " + paramsObj.getClass());
+        }
     }
 
     private static String createJsonRpcReponse(final Object result, final int id) {
@@ -311,7 +318,7 @@ public final class RpcDataService extends AbstractDataService {
         @SuppressWarnings("javadoc")
         class RequestException extends Exception {
 
-            private int m_errorCode;
+            private final int m_errorCode;
 
             RequestException(final String message, final int errorCode) {
                 super(message);
