@@ -232,16 +232,16 @@ public class NodeDialogManagerTest {
             // build workflow
             var wfm = WorkflowManagerUtil.createEmptyWorkflow();
             var nnc = WorkflowManagerUtil.createAndAddNode(wfm, new TestConfigurationNodeFactory());
+            var nonSupportedNNC =
+                WorkflowManagerUtil.createAndAddNode(wfm, new TestNonSupportedConfigurationNodeFactory());
 
-            var componentId =
-                wfm.collapseIntoMetaNode(new NodeID[]{nnc.getID()}, new WorkflowAnnotationID[0], "TestComponent")
-                    .getCollapsedMetanodeID();
+            var componentId = wfm.collapseIntoMetaNode(new NodeID[]{nnc.getID(), nonSupportedNNC.getID()},
+                new WorkflowAnnotationID[0], "TestComponent").getCollapsedMetanodeID();
             wfm.convertMetaNodeToSubNode(componentId);
 
             SubNodeContainer component = (SubNodeContainer)wfm.getNodeContainer(componentId);
             NativeNodeContainer configurationNode =
-                (NativeNodeContainer)component.getWorkflowManager().getNodeContainers().stream()
-                    .filter(nc -> nc.getName().equals("Configuration Node (used in tests)")).findFirst().orElseThrow();
+                findSubNodeWithName(component, "Configuration Node (used in tests)");
 
             assertThat(NodeDialogManager.hasNodeDialog(component)).as("node expected to have a node dialog").isTrue();
             var nodeDialogManager = NodeDialogManager.getInstance();
@@ -262,9 +262,21 @@ public class NodeDialogManagerTest {
             final var toBeApplied = getObject(resultAsJson, "result");
             setTestData(nodeIndex, toBeApplied, "test data");
             final var toBeAppliedString = new ObjectMapper().writeValueAsString(toBeApplied);
+            final var componentWrapper = NodeWrapper.of(component);
+            final var dataServiceManager = nodeDialogManager.getDataServiceManager();
 
-            NodeDialogManager.getInstance().getDataServiceManager().callApplyDataService(NodeWrapper.of(component),
-                toBeAppliedString);
+            // Applying not possible ...
+
+            final var errorResult = dataServiceManager.callApplyDataService(componentWrapper, toBeAppliedString);
+            var errorResultAsJson = (ObjectNode)new ObjectMapper().readTree(errorResult);
+            assertThatJson(errorResultAsJson).inPath("$.isApplied").isBoolean().isFalse();
+
+            // ... first we need to remove the non-supported node ...
+            component.getWorkflowManager()
+                .removeNode(findSubNodeWithName(component, "Non-supported Configuration Node (used in tests)").getID());
+
+            // ... now it works
+            dataServiceManager.callApplyDataService(componentWrapper, toBeAppliedString);
 
             // check node model settings
             final var savedData = ((TestConfigurationNodeFactory.TestConfigNodeModel)configurationNode.getNodeModel())
@@ -282,6 +294,12 @@ public class NodeDialogManagerTest {
         }
     }
 
+    private static NativeNodeContainer findSubNodeWithName(final SubNodeContainer component, final String nodeName) {
+        NativeNodeContainer configurationNode = (NativeNodeContainer)component.getWorkflowManager().getNodeContainers()
+            .stream().filter(nc -> nc.getName().equals(nodeName)).findFirst().orElseThrow();
+        return configurationNode;
+    }
+
     private static void assertInitialSubNodeContainerData(final JsonNode resultAsJson, final int nodeIndex) {
         assertThatJson(resultAsJson).inPath("$.result.data.model.%s.data".formatted(nodeIndex))
             .isEqualTo("default from model");
@@ -290,6 +308,11 @@ public class NodeDialogManagerTest {
             .isEqualTo("Test Configuration Node");
         assertThatJson(resultAsJson).inPath("$.result.ui_schema.elements[0].scope")
             .isEqualTo("#/properties/model/properties/%s/properties/data".formatted(nodeIndex));
+        assertThatJson(resultAsJson).inPath("$.result.ui_schema.elements[1].type")
+            .isEqualTo("ConfigurationNodeNotSupported");
+        assertThatJson(resultAsJson).inPath("$.result.ui_schema.elements[1].options.nodeName")
+            .isEqualTo("Non-supported Configuration Node (used in tests)");
+
     }
 
     private static void setTestData(final int nodeIndex, final ObjectNode result, final String testData) {

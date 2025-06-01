@@ -1,0 +1,38 @@
+{
+  "$schema": "mock.def.json",
+  "result": {
+    "name": "Configuration Node Not Supported",
+    "data": {
+      "textInput": ""
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "textInput": {
+          "type": "string",
+          "title": "Text Input",
+          "description": "This is a text input field"
+        }
+      }
+    },
+    "ui_schema": {
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/textInput"
+        },
+        {
+          "type": "ConfigurationNodeNotSupported",
+          "options": {
+            "nodeName": "Integer Slider Configuration"
+          }
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/textInput"
+        }
+      ]
+    },
+    "flowVariableSettings": {}
+  }
+}

@@ -26,6 +26,7 @@ import {
 
 import { arrayLayoutRenderer } from "./arrayLayoutRenderer";
 import { buttonRenderer } from "./buttonRenderer";
+import { configurationNodeNotSupportedRenderer } from "./configurationNodeNotSupportedRenderer";
 import { credentialsRenderer } from "./credentialsRenderer";
 import { dbTableChooserRenderer } from "./dbTableChooserRenderer";
 import { dynamicValueRenderer } from "./dynamicValueRenderer";
@@ -62,6 +63,7 @@ const otherRenderers = [
   /* layout renderers */
   arrayLayoutRenderer, // since it contains dirty-state - and update-logic. Note that we just remove the renderer from here but e.g. the data can still contain arrays
   vennDiagramLayoutRenderer, // probably never used anywhere else than in NodeDialogs
+  configurationNodeNotSupportedRenderer, // for deprecated configuration nodes
 
   /**
    * Sub renderers for array layout

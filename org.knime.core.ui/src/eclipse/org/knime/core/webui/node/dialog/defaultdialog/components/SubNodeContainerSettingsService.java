@@ -61,6 +61,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.dialog.DialogNode;
 import org.knime.core.node.dialog.DialogNodeRepresentation;
 import org.knime.core.node.dialog.DialogNodeValue;
@@ -83,11 +86,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.Dialog
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @SuppressWarnings("rawtypes")
 public final class SubNodeContainerSettingsService implements NodeSettingsService {
+
+    static final NodeLogger LOGGER = NodeLogger.getLogger(SubNodeContainerSettingsService.class);
 
     /**
      * One of the configurations that is to be shown in a component dialog.
@@ -130,6 +136,10 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
         for (var dialogSubNode : m_orderedDialogNodes.get()) {
             final var paramName = dialogSubNode.paramName;
             final var dialogNode = dialogSubNode.dialogNode;
+            if (!(dialogNode.getDialogRepresentation() instanceof WebDialogNodeRepresentation)) {
+                addNonSupportedConfiguration(uiSchemaElements, dialogSubNode.nc.getName());
+                continue;
+            }
 
             final var valueJson = wrapWithContext(() -> getValueJson(dialogNode), dialogSubNode.nc);
             modelSettingsJson.set(paramName, valueJson);
@@ -161,6 +171,12 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
             .withUpdates(
                 (root, dataJson) -> UpdatesUtil.addImperativeUpdates(root, m_renderers, dataJson, createContext(specs)))
             .build();
+
+    }
+
+    private static void addNonSupportedConfiguration(final ArrayNode uiSchemaElements, final String nodeName) {
+        uiSchemaElements.addObject().put(UiSchema.TAG_TYPE, "ConfigurationNodeNotSupported")
+            .putObject(UiSchema.TAG_OPTIONS).put("nodeName", nodeName);
 
     }
 
@@ -198,16 +214,38 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
         final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings, //
         final Map<SettingsType, NodeAndVariableSettingsWO> settings //
     ) {
-
-        JsonNode newSettingsJson = textToJson(jsonSettings);
-
         var modelSettings = settings.get(SettingsType.MODEL);
+        JsonNode newSettingsJson = textToJson(jsonSettings);
+        final var modelSettingsJson = newSettingsJson.get("data").get("model");
         for (var dialogSubNode : m_orderedDialogNodes.get()) {
-            final var inputJson = newSettingsJson.get("data").get("model").get(dialogSubNode.paramName);
+            saveSettingsForSubNode(previousSettings, modelSettings, modelSettingsJson, dialogSubNode);
+        }
+    }
+
+    private static void saveSettingsForSubNode(final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
+        final NodeAndVariableSettingsWO modelSettings, final JsonNode modelSettingsJson,
+        final DialogSubNode dialogSubNode) {
+        final var savedSettings = modelSettings.addNodeSettings(dialogSubNode.paramName);
+        if (modelSettingsJson.has(dialogSubNode.paramName)) {
+            final var inputJson = modelSettingsJson.get(dialogSubNode.paramName);
             final var dialogValue =
                 wrapWithContext(() -> loadValueFromJson(dialogSubNode.dialogNode, inputJson), dialogSubNode.nc);
 
-            dialogValue.saveToNodeSettings(modelSettings.addNodeSettings(dialogSubNode.paramName));
+            dialogValue.saveToNodeSettings(savedSettings);
+        } else {
+            saveSettingsForNonSupportedNode(previousSettings, dialogSubNode, savedSettings);
+        }
+    }
+
+    private static void saveSettingsForNonSupportedNode(
+        final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings, final DialogSubNode dialogSubNode,
+        final NodeSettingsWO savedSettings) {
+        try {
+            final var fromPreviousSettings =
+                previousSettings.get(SettingsType.MODEL).getNodeSettings(dialogSubNode.paramName);
+            fromPreviousSettings.copyTo(savedSettings);
+        } catch (InvalidSettingsException ex) {
+            LOGGER.error("Saving sub node container with a non-supported configuration without previous settings.", ex);
         }
     }
 
