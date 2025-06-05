@@ -56,8 +56,11 @@ import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.Se
 import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory.createSettingsSaver;
 import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory.saveSettings;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.junit.jupiter.api.Test;
@@ -168,14 +171,41 @@ class FieldBasedNodeSettingsPersistorTest {
 
     @Test
     void testArraySettings() throws InvalidSettingsException {
-        var arraySettings = new ArraySettings();
+        var arraySettings = new AllAllowedTypesArraySettings();
         arraySettings.m_bar = new ElementSettings[3];
         for (int i = 0; i < 3; i++) {
             var element = new ElementSettings();
             element.m_foo = "baz" + i;
             arraySettings.m_bar[i] = element;
         }
+        arraySettings.m_baz = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+            var element = new ElementSettings();
+            element.m_foo = "baz" + i;
+            arraySettings.m_baz.add(element);
+        }
+        arraySettings.m_bimms = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            var element = new ElementSettings();
+            element.m_foo = "bimms" + i;
+            arraySettings.m_bimms.add(element);
+        }
+        arraySettings.m_bams = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            var element = new ElementSettings();
+            element.m_foo = "bams" + i;
+            arraySettings.m_bams.add(element);
+        }
         testSaveLoad(arraySettings);
+    }
+
+    @Test
+    void testThrowsOnOtherCollections() throws InvalidSettingsException {
+        var settings = new NonAllowedCollectionsSettigns();
+
+        settings.m_bar = Set.of(new ElementSettings());
+        assertThat(assertThrows(IllegalStateException.class, () -> testSaveLoad(settings),
+            "Persistor should not allow non-allowed collections.")).message().contains("Set");
     }
 
     @Test
@@ -619,10 +649,11 @@ class FieldBasedNodeSettingsPersistorTest {
 
         @Override
         public void saveExpected(final NodeSettingsWO settings) {
-            var arraySettings = settings.addNodeSettings("bar");
+            var barSettings = settings.addNodeSettings("bar");
             for (int i = 0; i < m_bar.length; i++) {
-                m_bar[i].saveExpected(arraySettings.addNodeSettings(Integer.toString(i)));
+                m_bar[i].saveExpected(barSettings.addNodeSettings(Integer.toString(i)));
             }
+
         }
 
         @Override
@@ -635,6 +666,78 @@ class FieldBasedNodeSettingsPersistorTest {
             return Objects.deepEquals(m_bar, settings.m_bar);
         }
 
+    }
+
+    private static final class AllAllowedTypesArraySettings
+        extends AbstractTestNodeSettings<AllAllowedTypesArraySettings> {
+
+        ElementSettings[] m_bar;
+
+        List<ElementSettings> m_baz;
+
+        Collection<ElementSettings> m_bimms;
+
+        ArrayList<ElementSettings> m_bams;
+
+        @Override
+        public void saveExpected(final NodeSettingsWO settings) {
+            var barSettings = settings.addNodeSettings("bar");
+            for (int i = 0; i < m_bar.length; i++) {
+                m_bar[i].saveExpected(barSettings.addNodeSettings(Integer.toString(i)));
+            }
+            var bazSettings = settings.addNodeSettings("baz");
+            for (int i = 0; i < m_baz.size(); i++) {
+                m_baz.get(i).saveExpected(bazSettings.addNodeSettings(Integer.toString(i)));
+            }
+            var bimmsSettings = settings.addNodeSettings("bimms");
+            final var bimmsAsList = new ArrayList<>(m_bimms);
+            for (int i = 0; i < bimmsAsList.size(); i++) {
+                bimmsAsList.get(i).saveExpected(bimmsSettings.addNodeSettings(Integer.toString(i)));
+            }
+            var bamsSettings = settings.addNodeSettings("bams");
+            for (int i = 0; i < m_bams.size(); i++) {
+                m_bams.get(i).saveExpected(bamsSettings.addNodeSettings(Integer.toString(i)));
+            }
+
+        }
+
+        @Override
+        protected int computeHashCode() {
+            return Objects.hash(m_bar, m_baz, m_bimms, m_bams);
+        }
+
+        @Override
+        protected boolean equalSettings(final AllAllowedTypesArraySettings settings) {
+            return Objects.deepEquals(m_bar, settings.m_bar) && m_baz.equals(settings.m_baz)
+                && m_bimms.equals(settings.m_bimms) && m_bams.equals(settings.m_bams);
+        }
+
+    }
+
+    private static final class NonAllowedCollectionsSettigns
+        extends AbstractTestNodeSettings<NonAllowedCollectionsSettigns> {
+
+        Set<ElementSettings> m_bar;
+
+        @Override
+        public void saveExpected(final NodeSettingsWO settings) {
+            var barSettings = settings.addNodeSettings("bar");
+            var barAsList = new ArrayList<>(m_bar);
+            for (int i = 0; i < barAsList.size(); i++) {
+                barAsList.get(i).saveExpected(barSettings.addNodeSettings(Integer.toString(i)));
+            }
+        }
+
+        @Override
+        protected int computeHashCode() {
+            return Objects.hash(m_bar);
+        }
+
+        @Override
+        protected boolean equalSettings(final NonAllowedCollectionsSettigns settings) {
+            throw new UnsupportedOperationException(
+                "This method should not be called, as the persistor does not support collections.");
+        }
     }
 
     @Test

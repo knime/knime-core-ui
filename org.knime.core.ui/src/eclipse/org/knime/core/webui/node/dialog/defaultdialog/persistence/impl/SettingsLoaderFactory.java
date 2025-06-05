@@ -50,12 +50,10 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
 import static org.knime.core.webui.node.dialog.configmapping.NodeSettingsAtPathUtil.hasPath;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -131,19 +129,11 @@ public final class SettingsLoaderFactory extends PersistenceFactory<SettingsLoad
         };
     }
 
-    private static Pattern IS_DIGIT = Pattern.compile("^\\d+$");
-
     @Override
     protected SettingsLoader getForArray(final ArrayParentNode<PersistableSettings> arrayNode,
         final SettingsLoader elementLoader) {
-        return settings -> {
-            int size = (int)settings.keySet().stream().filter(s -> IS_DIGIT.matcher(s).matches()).count();
-            var values = (Object[])Array.newInstance(arrayNode.getElementTree().getRawClass(), size);
-            for (int i = 0; i < size; i++) {
-                values[i] = elementLoader.load(settings.getNodeSettings(Integer.toString(i)));
-            }
-            return values;
-        };
+        return settings -> SettingsLoaderArrayParentUtil.instantiateFromSettings(arrayNode, settings,
+            i -> elementLoader.load(settings.getNodeSettings(Integer.toString(i))));
     }
 
     @Override
