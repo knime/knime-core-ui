@@ -48,14 +48,16 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog;
 
-import java.time.Duration;
+import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -125,9 +127,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProv
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.DataTypeChoicesStateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
@@ -145,11 +145,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <ol>
  * <li>It must provide an empty constructor and optionally a constructor that receives a
  * {@link DefaultNodeSettingsContext}.
- * <li>Fields must be of any of the following supported types:
- * <ul>
- * <li>boolean, int, long, double, float, String, char, or byte
- * <li>POJOs, arrays or Collections holding other supported types
- * </ul>
+ * <li>Fields must be of any of the supported types given in the below table overview.</li>
  * <li>Fields should be initialized with proper default values.
  * <ul>
  * <li>If no default value is provided, then the Java default is used
@@ -166,6 +162,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * to the user). This can e.g. be used when a setting is only used in a dialog-less context, e.g. a port view. Refer to
  * {@link Effect} on how to hide a widget depending on other settings.
  *
+ * Getters and setters are ignored by the framework and to avoid confusion, they should simply not be used.
+ *
  * The table below lists all the supported type with
  * <ul>
  * <li>the default widget being displayed if no specific widget annotation is given</li>
@@ -176,7 +174,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <caption>Type to Widget Mapping</caption>
  * <tr>
  * <th>Type</th>
- * <th>Default Widget</th>
+ * <th>Default Widget and Choices Configuration</th>
  * <th>Compatible widget annotations</th>
  * <th>Can be wrapped in {@link Optional}? (***)</th>
  * </tr>
@@ -187,24 +185,26 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <td></td>
  * </tr>
  * <tr>
- * <td>byte, int, long, double, float, {@link Duration}</td>
+ * <td>byte, int, long, double, float</td>
  * <td>Number Input</td>
  * <td>{@link NumberInputWidget}</td>
  * <td>✓ (using the boxed types, e.g. {@link Integer})</td>
  * </tr>
  * <tr>
- * <td>String</td>
+ * <td rowspan="2">String</td>
  * <td>Text Input</td>
- * <td>{@link ChoicesProvider} (Drop Down)<br>
- * {@link TextAreaWidget}<br>
+ * <td>{@link TextAreaWidget}<br>
  * {@link TextInputWidget}<br>
  * {@link LocalFileReaderWidget}<br>
  * {@link LocalFileWriterWidget}<br>
  * {@link RichTextInputWidget}<br>
  * {@link DateTimeFormatPickerWidget}</td>
- * <td>✓</td>
+ * <td rowspan="2">✓</td>
  * </tr>
  * <tr>
+ * <td>Text with {@link ChoicesProvider} → Drop Down</td>
+ * <td>Other choices widgets are only available for enums.</td>
+ * </tr>
  * <td>{@link LocalDate}</td>
  * <td>Date Picker</td>
  * <td></td>
@@ -230,8 +230,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * </tr>
  * <tr>
  * <td>{@link ZoneId}</td>
- * <td>Time Zone Picker</td>
- * <td>{@link ChoicesProvider} for optionally defining a list of possible time zoned to choose from, manually.</td>
+ * <td>Time Zone Picker. Optionally, one can add {@link ChoicesProvider} for defining a list of possible time zoned to
+ * choose from, manually.</td>
+ * <td></td>
  * <td>✓</td>
  * </tr>
  * <tr>
@@ -260,36 +261,35 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * </tr>
  * <tr>
  * <td>String[]</td>
- * <td>Combo Box</td>
- * <td>{@link ChoicesProvider} with a {@link StringChoicesProvider}.<br>
+ * <td>Combo Box. Add a {@link ChoicesProvider} with a {@link StringChoicesProvider}.</td>
+ * <td><br>
  * {@link SortListWidget} <br>
  * {@link TwinlistWidget}</td>
  * <td>✓</td>
  * </tr>
  * <tr>
  * <td>Enums(*)</td>
- * <td>Drop Down</td>
+ * <td>Drop Down. Optionally, add a {@link ChoicesProvider} with an {@link EnumChoicesProvider}.</td>
  * <td>{@link ValueSwitchWidget}<br>
- * {@link RadioButtonsWidget}<br>
- * {@link ChoicesProvider} with an {@link EnumChoicesProvider} (Drop Down)</td>
+ * {@link RadioButtonsWidget}</td>
  * <td>✓</td>
  * </tr>
  * <tr>
  * <td>{@link StringOrEnum}</td>
- * <td></td>
- * <td>{@link ChoicesProvider} for setting the dynamic choices<br>
+ * <td>Use a {@link ChoicesProvider} for setting the dynamic choices.</td>
+ * <td><br>
  * <td></td>
  * </tr>
  * <tr>
- * <td>Arrays/Collections of {@link DefaultNodeSettings} (**)</td>
+ * <td>{@link Array}/{@link Collection}/{@link List} of {@link DefaultNodeSettings} (**)</td>
  * <td>Array Widget ({@link ArrayWidgetExample example})</td>
  * <td>{@link ArrayWidget}</td>
  * <td></td>
  * </tr>
  * <tr>
  * <td>{@link StringFilter}</td>
- * <td></td>
- * <td>{@link ChoicesProvider} with a {@link StringChoicesProvider}<br>
+ * <td>Add a {@link ChoicesProvider} with a {@link StringChoicesProvider}.</td>
+ * <td><br>
  * {@link TwinlistWidget}
  * <td>
  * <td></td>
@@ -297,7 +297,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <tr>
  * <td>{@link ColumnFilter}</td>
  * <td></td>
- * <td>{@link ColumnFilterWidget} or {@link ChoicesProvider} with a {@link ColumnChoicesProvider}<br>
+ * <td>{@link ColumnFilterWidget}<br>
  * {@link TwinlistWidget}
  * <td>
  * <td></td>
@@ -305,15 +305,16 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <tr>
  * <td>{@link FlowVariableFilter}</td>
  * <td></td>
- * <td>{@link FlowVariableFilterWidget} or {@link ChoicesProvider} with a {@link FlowVariableChoicesProvider}<br>
+ * <td>{@link FlowVariableFilterWidget}<br>
  * {@link TwinlistWidget}
  * <td>
  * <td></td>
  * </tr>
  * <tr>
  * <td>{@link DataType}</td>
- * <td>A drop down of all available data types</td>
- * <td>{@link ChoicesProvider} using a {@link DataTypeChoicesStateProvider}</td>
+ * <td>A drop down of all available data types. Add a {@link ChoicesProvider} using a
+ * {@link DataTypeChoicesStateProvider}.</td>
+ * <td></td>
  * <td>✓</td>
  * </tr>
  * <tr>

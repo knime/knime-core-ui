@@ -130,12 +130,8 @@ public final class SettingsSaverFactory extends PersistenceFactory<SettingsSaver
     @Override
     protected SettingsSaver getForArray(final ArrayParentNode<PersistableSettings> arrayNode,
         final SettingsSaver elementProperty) {
-        return (obj, settings) -> {
-            final var array = (Object[])obj;
-            for (int i = 0; i < array.length; i++) {
-                elementProperty.save(array[i], settings.addNodeSettings(Integer.toString(i)));
-            }
-        };
+        return (obj, settings) -> SettingsSaverArrayParentUtil.save(obj,
+            (i, objAtI) -> elementProperty.save(objAtI, settings.addNodeSettings(Integer.toString(i))));
     }
 
     @Override

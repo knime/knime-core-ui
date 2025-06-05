@@ -57,6 +57,7 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -85,6 +86,9 @@ public abstract class WebUINodeModel<S extends DefaultNodeSettings> extends Node
     private final Class<S> m_modelSettingsClass;
 
     /**
+     * Note: If the node factory is not a {@link ConfigurableNodeFactory}, use
+     * {@link #WebUINodeModel(WebUINodeConfiguration, Class)} instead.
+     *
      * @param configuration the {@link WebUINodeConfiguration} for this factory
      * @param modelSettingsClass the type of the model settings for this node
      */
@@ -93,6 +97,9 @@ public abstract class WebUINodeModel<S extends DefaultNodeSettings> extends Node
     }
 
     /**
+     * Use this constructor if the node factory is a {@link ConfigurableNodeFactory}. In this case the port types have
+     * to be extracted from the context within the method creating the node model.
+     *
      * @param modelSettingsClass the type of the model settings for this node
      * @param inputPortTypes input port types
      * @param outputPortTypes output port types
@@ -189,7 +196,6 @@ public abstract class WebUINodeModel<S extends DefaultNodeSettings> extends Node
         throw new NotImplementedException("NodeModel.execute() implementation missing!");
     }
 
-
     /**
      * @noreference reference {@link #createStreamableOperator(PartitionInfo, PortObjectSpec[], S)} instead
      */
@@ -231,7 +237,6 @@ public abstract class WebUINodeModel<S extends DefaultNodeSettings> extends Node
     protected HiLiteHandler getOutHiLiteHandler(final int outIndex, final S modelSettings) {
         return super.getOutHiLiteHandler(outIndex);
     }
-
 
     @Override
     protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)

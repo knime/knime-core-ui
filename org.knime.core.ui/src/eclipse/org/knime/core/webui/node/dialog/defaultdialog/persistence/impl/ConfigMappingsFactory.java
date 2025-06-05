@@ -52,6 +52,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
@@ -134,12 +135,26 @@ public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMap
     protected GetConfigMappings getForArray(final ArrayParentNode<PersistableSettings> arrayNode,
         final GetConfigMappings elementProperty) {
         return obj -> {
-            final var array = (Object[])obj;
-            return new ConfigMappings(IntStream.range(0, array.length)
-                .mapToObj(
-                    i -> new ConfigMappings(Integer.toString(i), List.of(elementProperty.getConfigMappings(array[i]))))
-                .toList());
+            final var size = extractFromArrayOrCollection(arrayNode, obj, a -> a.length, c -> c.size());
+            final IntFunction<Object> getElement = extractFromArrayOrCollection(arrayNode, obj, a -> i -> a[i],
+                ConfigMappingsFactory::getElementFromCollection);
+
+            return new ConfigMappings(IntStream.range(0, size).mapToObj(i -> new ConfigMappings(Integer.toString(i),
+                List.of(elementProperty.getConfigMappings(getElement.apply(i))))).toList());
         };
+    }
+
+    static <T> T extractFromArrayOrCollection(final ArrayParentNode<PersistableSettings> arrayNode, final Object obj,
+        final Function<Object[], T> fromArray, final Function<Collection, T> fromCollection) {
+        if (arrayNode.getRawClass().isArray()) {
+            return fromArray.apply((Object[])obj);
+        }
+        return fromCollection.apply((Collection)obj);
+    }
+
+    static IntFunction<Object> getElementFromCollection(final Collection c) {
+        final var collectionAsList = c.stream().toList();
+        return collectionAsList::get;
     }
 
     @Override
