@@ -22,4 +22,14 @@
             factory-class="org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode.HiddenFeaturesNodeFactory">
       </node>
    </extension>
+   <extension
+         point="org.knime.core.DataValueRenderer">
+      <dataValue
+            valueClass="org.knime.core.node.agentic.tool.ToolValue">
+         <renderer
+               rendererFactoryClass="org.knime.core.webui.node.view.table.datavalue.renderer.ToolValueRenderer$Factory"
+               suggestAsDefault="true">
+         </renderer>
+      </dataValue>
+   </extension>
 </plugin>
