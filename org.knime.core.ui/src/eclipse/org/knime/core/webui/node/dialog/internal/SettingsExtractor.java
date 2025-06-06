@@ -57,6 +57,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContainer;
+import org.knime.core.node.workflow.SingleNodeContainer;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.VariableSettingsRO;
@@ -110,14 +111,14 @@ public final class SettingsExtractor {
      */
     public Map<SettingsType, NodeAndVariableSettingsRO> getSettingsOverwrittenByVariables() {
         Map<SettingsType, NodeAndVariableSettingsRO> resultSettings = new EnumMap<>(SettingsType.class);
-        if (m_nc instanceof NativeNodeContainer nnc) {
+        if (m_nc instanceof SingleNodeContainer snc) {
             var overwrittenSettingsLoaded = false;
             for (var type : m_settingsTypes) {
-                var settings = getSettingsOverwrittenByFlowVariables(type, nnc);
+                var settings = getSettingsOverwrittenByFlowVariables(type, snc);
 
                 final var settingsOrDefault =
                     settings.type == Result.Type.NONE ? getDefaultSettings(type) : settings.result;
-                final var variableSettings = new VariableSettings(nnc.getNodeSettings(), type);
+                final var variableSettings = new VariableSettings(snc.getNodeSettings(), type);
                 if (settings.type == Result.Type.OVERWRITTEN && hasControllingVariables(variableSettings)) {
                     overwrittenSettingsLoaded = true;
                 }
@@ -125,11 +126,9 @@ public final class SettingsExtractor {
                     NodeAndVariableSettingsProxy.createROProxy(settingsOrDefault, variableSettings));
             }
             if (overwrittenSettingsLoaded) {
-                revertOverridesIfInvalid(resultSettings, nnc);
+                revertOverridesIfInvalid(resultSettings, snc);
             }
         }
-        // else: SubNodeContainers (aka components) are ignored here since those retrieve the settings
-        // from the contained configuration nodes and not from the component settings directly
         return resultSettings;
     }
 
@@ -170,7 +169,7 @@ public final class SettingsExtractor {
      * Returns Optional.empty if there aren't settings, yet.
      */
     private static Result getSettingsOverwrittenByFlowVariables(final SettingsType settingsType,
-        final NativeNodeContainer nnc) {
+        final SingleNodeContainer nnc) {
         if (nnc.getFlowObjectStack() != null) {
             try {
                 // a flow object stack is available (usually in case the node is connected)
@@ -194,7 +193,7 @@ public final class SettingsExtractor {
     }
 
     private static Result getSettingsWithoutFlowVariableOverrides(final SettingsType settingsType,
-        final NativeNodeContainer nnc) {
+        final SingleNodeContainer nnc) {
         try {
             return Result.nonOverwritten(nnc.getNodeSettings().getNodeSettings(settingsType.getConfigKey()));
         } catch (InvalidSettingsException ex) { //NOSONAR
@@ -228,7 +227,7 @@ public final class SettingsExtractor {
     }
 
     private void revertOverridesIfInvalid(final Map<SettingsType, NodeAndVariableSettingsRO> settings,
-        final NativeNodeContainer nnc) {
+        final SingleNodeContainer nnc) {
         if (settings.values().stream().noneMatch(SettingsExtractor::hasControllingVariables)) {
             return;
         }

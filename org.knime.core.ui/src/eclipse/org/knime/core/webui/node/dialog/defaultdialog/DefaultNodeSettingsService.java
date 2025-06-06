@@ -49,7 +49,6 @@
 package org.knime.core.webui.node.dialog.defaultdialog;
 
 import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.TextToJsonUtil.jsonToString;
-import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil.addVariableSettingsToRootJson;
 import static org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMapUtil.map;
 
 import java.util.Map;
@@ -114,7 +113,7 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
         final var root = new DefaultNodeDialogDataServiceUtil.InitialDataBuilder(jsonFormsSettings)
             .withUpdates(
                 (rootJson, dataJson) -> UpdatesUtil.addUpdates(rootJson, widgetTrees.values(), dataJson, context))
-            .buildJson();
+            .withFlowVariables(map(settings), context).buildJson();
         addAdditionalFieldsToRoot(root, settings, loadedSettings, context);
         return jsonToString(root);
     }
@@ -122,7 +121,6 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
     private static void addAdditionalFieldsToRoot(final ObjectNode root,
         final Map<SettingsType, NodeAndVariableSettingsRO> settings,
         final Map<SettingsType, DefaultNodeSettings> loadedSettings, final DefaultNodeSettingsContext context) {
-        addVariableSettingsToRootJson(root, map(settings), context);
         addPersist(root, loadedSettings);
     }
 

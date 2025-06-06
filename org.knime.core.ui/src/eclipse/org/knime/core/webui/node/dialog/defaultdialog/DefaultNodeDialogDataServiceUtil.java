@@ -52,8 +52,12 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.FIELD_NAME_SCHEMA;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.FIELD_NAME_UI_SCHEMA;
 
+import java.util.Map;
 import java.util.function.BiConsumer;
 
+import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.VariableSettingsRO;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.TextToJsonUtil;
@@ -106,14 +110,30 @@ public final class DefaultNodeDialogDataServiceUtil {
         }
 
         /**
+         * Set flow variables to display them correctly initially in the dialog.
+         *
+         * @param flowVariables as a map indexed by settings type
+         * @param context the current context
+         * @return this builder
+         */
+        public InitialDataBuilder withFlowVariables(final Map<SettingsType, VariableSettingsRO> flowVariables,
+            final DefaultNodeSettingsContext context) {
+            m_flowVariableSettings = VariableSettingsUtil.getVariableSettingsJson(flowVariables, context);
+            return this;
+        }
+
+        /**
          * With this method, setting flow variables in the dialog can be enabled.
          *
          * @param flowVariableSettings an object containing the currently set flow variables
          * @param persistSchema the schema defining which variables are (to be) set where in the dialog
+         * @return this builder
          */
-        public void withFlowVariables(final ObjectNode flowVariableSettings, final ObjectNode persistSchema) {
+        public InitialDataBuilder withFlowVariables(final ObjectNode flowVariableSettings,
+            final ObjectNode persistSchema) {
             m_flowVariableSettings = flowVariableSettings;
             m_persistSchema = persistSchema;
+            return this;
         }
 
         /**
@@ -134,6 +154,9 @@ public final class DefaultNodeDialogDataServiceUtil {
             if (m_addUpdates != null) {
                 m_addUpdates.accept(root, data);
             }
+            final var flowVariableSettings = m_flowVariableSettings == null
+                ? JsonFormsDataUtil.getMapper().createObjectNode() : m_flowVariableSettings;
+            root.set(FLOW_VARIABLE_SETTINGS_KEY, flowVariableSettings);
             return root;
         }
 
@@ -142,11 +165,6 @@ public final class DefaultNodeDialogDataServiceUtil {
          */
         public String build() {
             final var rootNode = buildJson();
-            final var flowVariableSettings = m_flowVariableSettings == null
-                ? JsonFormsDataUtil.getMapper().createObjectNode() : m_flowVariableSettings;
-            rootNode.set(FLOW_VARIABLE_SETTINGS_KEY, flowVariableSettings);
-            final var persistSchema = m_persistSchema == null ? createHidingPersistSettings() : m_persistSchema;
-            rootNode.set(PERSIST_KEY, persistSchema);
             return TextToJsonUtil.jsonToString(rootNode);
         }
 

@@ -55,7 +55,6 @@ import static org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMa
 
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.knime.core.node.NodeSettings;
@@ -67,10 +66,8 @@ import org.knime.core.webui.node.dialog.VariableSettingsRO;
 import org.knime.core.webui.node.dialog.configmapping.NodeSettingsCorrectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.JsonDataToDefaultNodeSettingsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.ToNodeSettingsUtil;
-import org.knime.core.webui.node.dialog.internal.InternalVariableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil;
 import org.knime.core.webui.node.dialog.internal.SettingsApplier.TextToNodeSettingsConverter;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Default implementation for applying the JSON representation of settings to {@link NodeAndVariableSettingsWO}.
@@ -93,7 +90,7 @@ final class DefaultTextToNodeSettingsConverter implements TextToNodeSettingsConv
         final var defaultNodeSettings =
             JsonDataToDefaultNodeSettingsUtil.toDefaultNodeSettings(m_settingsClasses, root.get(FIELD_NAME_DATA));
         final var extractedNodeSettings = ToNodeSettingsUtil.toNodeSettings(defaultNodeSettings);
-        final var extractedVariableSettings = extractVariableSettings(settings, root);
+        final var extractedVariableSettings = VariableSettingsUtil.extractVariableSettings(settings.keySet(), root);
 
         alignSettingsWithFlowVariables(//
             extractedNodeSettings,
@@ -102,14 +99,6 @@ final class DefaultTextToNodeSettingsConverter implements TextToNodeSettingsConv
         copyLeftToRight(extractedNodeSettings, settings);
         rootJsonToVariableSettings(root, map(settings));
 
-    }
-
-    private static Map<SettingsType, VariableSettingsRO>
-        extractVariableSettings(final Map<SettingsType, NodeAndVariableSettingsWO> settings, final JsonNode root) {
-        final var currentFlowVars = settings.keySet().stream()
-            .collect(Collectors.toMap(Function.identity(), k -> new InternalVariableSettings()));
-        rootJsonToVariableSettings(root, map(currentFlowVars));
-        return map(currentFlowVars);
     }
 
     private void alignSettingsWithFlowVariables( //

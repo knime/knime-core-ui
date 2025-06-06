@@ -49,9 +49,12 @@
 package org.knime.core.webui.node.dialog.defaultdialog.components;
 
 import static org.knime.core.node.workflow.SubNodeContainer.getDialogNodeParameterName;
+import static org.knime.core.webui.node.dialog.SettingsType.MODEL;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil.toSchemaConstructor;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil.toUiSchemaElement;
 import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.TextToJsonUtil.textToJson;
+import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil.rootJsonToVariableSettings;
+import static org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMapUtil.map;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -59,10 +62,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.dialog.DialogNode;
 import org.knime.core.node.dialog.DialogNodeRepresentation;
@@ -76,6 +81,8 @@ import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.WebDialogNodeRepresentation;
+import org.knime.core.webui.node.dialog.configmapping.ConfigMappings;
+import org.knime.core.webui.node.dialog.configmapping.NodeSettingsCorrectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogDataServiceUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
@@ -84,6 +91,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
+import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -127,7 +135,7 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
     public String fromNodeSettings(final Map<SettingsType, NodeAndVariableSettingsRO> settings,
         final PortObjectSpec[] specs) {
         final var data = FACTORY.objectNode();
-        final var modelSettingsJson = data.putObject(SettingsType.MODEL.getConfigKey());
+        final var modelSettingsJson = data.putObject(MODEL.getConfigKey());
         final var schema = FACTORY.objectNode();
         final var uiSchema = FACTORY.objectNode();
         final var uiSchemaElements = uiSchema.putArray(UiSchema.TAG_ELEMENTS);
@@ -144,8 +152,8 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
             final var valueJson = wrapWithContext(() -> getValueJson(dialogNode), dialogSubNode.nc);
             modelSettingsJson.set(paramName, valueJson);
 
-            final var renderer = getRepresentation(dialogNode).getWebUIDialogElementRendererSpec()
-                .at(SettingsType.MODEL.getConfigKey(), paramName);
+            final var renderer =
+                getRepresentation(dialogNode).getWebUIDialogElementRendererSpec().at(MODEL.getConfigKey(), paramName);
             m_renderers.add(renderer);
             uiSchemaElements.addObject().setAll(toUiSchemaElement(renderer));
             toSchemaConstructor(renderer).apply(schema);
@@ -167,10 +175,11 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
                 return data;
             }
         };
+        final var context = createContext(specs);
         return new DefaultNodeDialogDataServiceUtil.InitialDataBuilder(jsonFormsSettings)
             .withUpdates(
                 (root, dataJson) -> UpdatesUtil.addImperativeUpdates(root, m_renderers, dataJson, createContext(specs)))
-            .build();
+            .withFlowVariables(map(settings), context).build();
 
     }
 
@@ -200,7 +209,7 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
         return extractJsonFromWebDialogValueAndDialogRepresentation(value, dialogNode.getDialogRepresentation());
     }
 
-    private static JsonNode extractJsonFromWebDialogValueAndDialogRepresentation(final DialogNodeValue value,
+    static JsonNode extractJsonFromWebDialogValueAndDialogRepresentation(final DialogNodeValue value,
         final DialogNodeRepresentation dialogRepresentation) {
         try {
             return extractJsonOrThrow(value, dialogRepresentation);
@@ -214,17 +223,30 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
         final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings, //
         final Map<SettingsType, NodeAndVariableSettingsWO> settings //
     ) {
-        var modelSettings = settings.get(SettingsType.MODEL);
-        JsonNode newSettingsJson = textToJson(jsonSettings);
-        final var modelSettingsJson = newSettingsJson.get("data").get("model");
+        JsonNode root = textToJson(jsonSettings);
+        final var extractedModelSettings = new NodeSettings("extracted model settings");
+        final var modelSettingsJson = root.get("data").get("model");
         for (var dialogSubNode : m_orderedDialogNodes.get()) {
-            saveSettingsForSubNode(previousSettings, modelSettings, modelSettingsJson, dialogSubNode);
+            saveSettingsForSubNode(previousSettings, extractedModelSettings, modelSettingsJson, dialogSubNode);
         }
+
+        alignSettingsWithFlowVariables(previousSettings, root, extractedModelSettings);
+
+        extractedModelSettings.copyTo(settings.get(MODEL));
+        rootJsonToVariableSettings(root, map(settings));
+
     }
 
-    private static void saveSettingsForSubNode(final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
-        final NodeAndVariableSettingsWO modelSettings, final JsonNode modelSettingsJson,
-        final DialogSubNode dialogSubNode) {
+    private static void alignSettingsWithFlowVariables(
+        final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings, final JsonNode root,
+        final NodeSettings extractedModelSettings) {
+        final var extractedVariableSettings = VariableSettingsUtil.extractVariableSettings(Set.of(MODEL), root);
+        NodeSettingsCorrectionUtil.correctNodeSettingsRespectingFlowVariables(new ConfigMappings(List.of()),
+            extractedModelSettings, previousSettings.get(MODEL), extractedVariableSettings.get(MODEL));
+    }
+
+    static void saveSettingsForSubNode(final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
+        final NodeSettingsWO modelSettings, final JsonNode modelSettingsJson, final DialogSubNode dialogSubNode) {
         final var savedSettings = modelSettings.addNodeSettings(dialogSubNode.paramName);
         if (modelSettingsJson.has(dialogSubNode.paramName)) {
             final var inputJson = modelSettingsJson.get(dialogSubNode.paramName);
@@ -241,8 +263,7 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
         final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings, final DialogSubNode dialogSubNode,
         final NodeSettingsWO savedSettings) {
         try {
-            final var fromPreviousSettings =
-                previousSettings.get(SettingsType.MODEL).getNodeSettings(dialogSubNode.paramName);
+            final var fromPreviousSettings = previousSettings.get(MODEL).getNodeSettings(dialogSubNode.paramName);
             fromPreviousSettings.copyTo(savedSettings);
         } catch (InvalidSettingsException ex) {
             LOGGER.error("Saving sub node container with a non-supported configuration without previous settings.", ex);
