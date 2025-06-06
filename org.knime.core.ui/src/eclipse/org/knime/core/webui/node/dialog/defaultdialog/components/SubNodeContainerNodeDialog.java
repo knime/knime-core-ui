@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Supplier;
 
 import org.knime.core.node.dialog.DialogNode;
 import org.knime.core.node.dialog.util.ConfigurationLayoutUtil;
@@ -68,6 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogUIExtensi
 import org.knime.core.webui.node.dialog.defaultdialog.components.SubNodeContainerSettingsService.DialogSubNode;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.FlowVariableDataServiceImpl;
 
 /**
  * The dialog of a {@link SubNodeContainer} node.
@@ -78,13 +80,17 @@ public final class SubNodeContainerNodeDialog implements NodeDialog, DefaultNode
 
     final SubNodeContainerSettingsService m_settingsService;
 
+    private final SubNodeContainerDialogDataConverter m_dataConverter;
+
     /**
      * Creates a new {@link SubNodeContainerNodeDialog}.
      *
      * @param snc the {@link SubNodeContainer}.
      */
     public SubNodeContainerNodeDialog(final SubNodeContainer snc) {
-        m_settingsService = new SubNodeContainerSettingsService(() -> getOrderedConfigurationNodes(snc));
+        Supplier<List<DialogSubNode>> getOrderedDialogNodes = () -> getOrderedConfigurationNodes(snc);
+        m_settingsService = new SubNodeContainerSettingsService(getOrderedDialogNodes);
+        m_dataConverter = new SubNodeContainerDialogDataConverter(getOrderedDialogNodes);
     }
 
     @Override
@@ -144,9 +150,11 @@ public final class SubNodeContainerNodeDialog implements NodeDialog, DefaultNode
         var fsConnector = new FileSystemConnector();
         final var fileChooserService = new FileChooserDataService(fsConnector);
         final var updateService = new SubNodeContainerDialogSettingsUpdateService(m_settingsService::getRendererSpecs);
+        final var flowVariableService = new FlowVariableDataServiceImpl(m_dataConverter);
         return Optional.of(RpcDataService.builder() //
             .addService("fileChooser", fileChooserService) //
             .addService("settings", updateService) //
+            .addService("flowVariables", flowVariableService) //
             .onDeactivate(fsConnector::clear) //
             .build() //
         );

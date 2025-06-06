@@ -49,7 +49,9 @@
 package org.knime.core.webui.node.dialog;
 
 import java.io.IOException;
+import java.util.Optional;
 
+import org.knime.core.node.NodeSettings;
 import org.knime.core.node.dialog.DialogNodeRepresentation;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
@@ -77,6 +79,17 @@ public interface WebDialogNodeRepresentation<VAL extends WebDialogValue> extends
     @SuppressWarnings("rawtypes")
     @JsonIgnore // otherwise a cyclic dependency arises
     DialogElementRendererSpec getWebUIDialogElementRendererSpec();
+
+    /**
+     * This method has to be overwritten in case the settings structure of the JSON value of the dialog node is not the
+     * same as the structure of the saved {@link NodeSettings}.
+     *
+     * @return an optional schema that describes the relation to the persisted structure of the JSON dialog node value.
+     */
+    default Optional<PersistSchema> getPersistSchema() {
+        // By default, the dialog node value is persisted in the same structure as it is rendered in the dialog.
+        return Optional.empty();
+    }
 
     /**
      * This method transforms the value of this node to a JSON representation suitable to be rendered using the result
@@ -142,3 +155,4 @@ public interface WebDialogNodeRepresentation<VAL extends WebDialogValue> extends
     }
 
 }
+

@@ -85,8 +85,10 @@ public interface DefaultDialogDataConverter {
      *            the given type exists.
      * @param type the type of the to be extracted node settings
      * @return the node settings of the given type
+     * @throws InvalidSettingsException if creating node settings from the JSON is not possible
      */
-    NodeSettings dataJsonToNodeSettings(final JsonNode dataJson, final SettingsType type);
+    NodeSettings dataJsonToNodeSettings(final JsonNode dataJson, final SettingsType type)
+        throws InvalidSettingsException;
 
     /**
      * Transforms node settings to the data representation given to the front-end.
@@ -100,7 +102,7 @@ public interface DefaultDialogDataConverter {
      * @param context
      * @return The resulting representation of the data as JSON. Its top level keys have to be values of
      *         {@link SettingsType#getConfigKey()} containing the key of the given type.
-     * @throws InvalidSettingsException
+     * @throws InvalidSettingsException if loading the settings to JSON is not possible
      */
     JsonNode nodeSettingsToDataJson(SettingsType type, NodeSettingsRO nodeSettings, DefaultNodeSettingsContext context)
         throws InvalidSettingsException;

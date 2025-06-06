@@ -48,9 +48,14 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.settingsconversion;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMapUtil.map;
+
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
@@ -59,6 +64,7 @@ import org.knime.core.webui.node.dialog.VariableSettingsRO;
 import org.knime.core.webui.node.dialog.VariableSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
+import org.knime.core.webui.node.dialog.internal.InternalVariableSettings;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -96,6 +102,22 @@ public final class VariableSettingsUtil {
     }
 
     /**
+     * This method reads the JSON representation of variables from the key {@link #FLOW_VARIABLE_SETTINGS_KEY} and
+     * transforms them to node settings.
+     *
+     * @param settingsTypes the possible settings types
+     * @param root the root JSON received from the frontend
+     * @return the extracted map of flow variables
+     */
+    public static Map<SettingsType, VariableSettingsRO>
+        extractVariableSettings(final Collection<SettingsType> settingsTypes, final JsonNode root) {
+        final var currentFlowVars =
+            settingsTypes.stream().collect(Collectors.toMap(Function.identity(), k -> new InternalVariableSettings()));
+        rootJsonToVariableSettings(root, map(currentFlowVars));
+        return map(currentFlowVars);
+    }
+
+    /**
      * Transforms the given variable settings to an object node which is to be provide within the top-level node of the
      * data provided to the front-end and adds it to the given root.
      *
@@ -105,13 +127,22 @@ public final class VariableSettingsUtil {
      */
     public static void addVariableSettingsToRootJson(final ObjectNode root,
         final Map<SettingsType, VariableSettingsRO> settings, final DefaultNodeSettingsContext context) {
-        final var mapper = JsonFormsDataUtil.getMapper();
-        final var objectNode = mapper.createObjectNode();
-        final var variableSettingsJson = VariableSettingsUtil.fromVariableSettingsToJson(settings,
-            Set.of(context.getAvailableFlowVariableNames()), mapper);
+        final var variableSettingsJson = getVariableSettingsJson(settings, context);
+        root.set(FLOW_VARIABLE_SETTINGS_KEY, variableSettingsJson);
+    }
 
-        objectNode.set(FLOW_VARIABLE_SETTINGS_KEY, variableSettingsJson);
-        root.setAll(objectNode);
+    /**
+     * Transforms the given variable settings to an object node.
+     *
+     * @param settings a map of variable settings
+     * @param context used to get the available flow variables
+     * @return the variable settings object
+     */
+    public static ObjectNode getVariableSettingsJson(final Map<SettingsType, VariableSettingsRO> settings,
+        final DefaultNodeSettingsContext context) {
+        final var mapper = JsonFormsDataUtil.getMapper();
+        return VariableSettingsUtil.fromVariableSettingsToJson(settings,
+            Set.of(context.getAvailableFlowVariableNames()), mapper);
     }
 
     /**
@@ -122,7 +153,7 @@ public final class VariableSettingsUtil {
      * @param mapper the mapper used to create the resulting {@link JsonNode}s
      * @return a new JsonNode-instance
      */
-    private static JsonNode fromVariableSettingsToJson(final Map<SettingsType, VariableSettingsRO> variableSettings,
+    private static ObjectNode fromVariableSettingsToJson(final Map<SettingsType, VariableSettingsRO> variableSettings,
         final Set<String> availableFlowVariableNames, final ObjectMapper mapper) {
         var flowVariableSettingsMap = new HashMap<String, FlowVariableSetting>();
         for (SettingsType settingsType : SettingsType.values()) {

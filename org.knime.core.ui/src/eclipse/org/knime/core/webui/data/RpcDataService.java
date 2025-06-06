@@ -65,6 +65,7 @@ import org.knime.core.webui.data.rpc.json.impl.ObjectMapperUtil;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -209,6 +210,16 @@ public final class RpcDataService extends AbstractDataService {
      * Helper to create a json rpc request string.
      *
      * @param method
+     * @return the json rpc request as json string
+     */
+    public static String jsonRpcRequest(final String method) {
+        return jsonRpcRequest(method, MAPPER.createArrayNode());
+    }
+
+    /**
+     * Helper to create a json rpc request string.
+     *
+     * @param method
      * @param params
      * @return the json rpc request as json string
      */
@@ -217,6 +228,25 @@ public final class RpcDataService extends AbstractDataService {
         for (var param : params) {
             paramsArrayNode.add(param);
         }
+        return jsonRpcRequest(method, paramsArrayNode);
+    }
+
+    /**
+     * Helper to create a json rpc request string.
+     *
+     * @param method
+     * @param params
+     * @return the json rpc request as json string
+     */
+    public static String jsonRpcRequest(final String method, final JsonNode... params) {
+        var paramsArrayNode = MAPPER.createArrayNode();
+        for (var param : params) {
+            paramsArrayNode.add(param);
+        }
+        return jsonRpcRequest(method, paramsArrayNode);
+    }
+
+    private static String jsonRpcRequest(final String method, final ArrayNode paramsArrayNode) {
         return MAPPER.createObjectNode().put("jsonrpc", "2.0").put("id", 1).put("method", method)
             .set("params", paramsArrayNode).toPrettyString();
     }
@@ -359,6 +389,5 @@ public final class RpcDataService extends AbstractDataService {
         }
 
     }
-
 
 }

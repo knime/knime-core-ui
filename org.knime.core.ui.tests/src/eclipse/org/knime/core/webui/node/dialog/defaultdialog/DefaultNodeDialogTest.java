@@ -68,14 +68,10 @@ import static org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogTe
 import static org.knime.testing.node.dialog.NodeDialogNodeModel.VALIDATION_ERROR_MESSAGE;
 import static org.knime.testing.node.ui.NodeDialogTestUtil.createNodeDialog;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -83,21 +79,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
-import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NodeView;
-import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
-import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.CredentialsStore;
 import org.knime.core.node.workflow.FlowObjectStack;
@@ -115,7 +100,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUti
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.internal.VariableSettings;
+import org.knime.core.webui.node.dialog.utils.AbstractSettingsDocumentBuilder;
+import org.knime.core.webui.node.dialog.utils.FlowVariablesInputNodeFactory;
 import org.knime.core.webui.page.Page;
 import org.knime.testing.node.dialog.NodeDialogNodeModel;
 import org.knime.testing.util.WorkflowManagerUtil;
@@ -241,87 +227,10 @@ public class DefaultNodeDialogTest {
 
     private NativeNodeContainer m_previousNode;
 
-    static class FlowVariablesInputNodeModel extends NodeModel {
-
-        FlowVariablesInputNodeModel() {
-            super(0, 0);
-        }
-
-        @Override
-        protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
-            //
-        }
-
-        @Override
-        protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
-            //
-        }
-
-        @Override
-        protected void saveSettingsTo(final NodeSettingsWO settings) {
-            //
-        }
-
-        @Override
-        protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-            //
-        }
-
-        @Override
-        protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-            //
-        }
-
-        @Override
-        protected void reset() {
-            //
-        }
-
-        @Override
-        protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) {
-            return new PortObjectSpec[]{FlowVariablePortObjectSpec.INSTANCE};
-        }
-
-        @Override
-        protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) {
-            return new PortObject[]{};
-        }
-
-    }
-
-    static class FlowVariablesInputNodeFactory extends NodeFactory<FlowVariablesInputNodeModel> {
-        @Override
-        public FlowVariablesInputNodeModel createNodeModel() {
-            return new FlowVariablesInputNodeModel();
-        }
-
-        @Override
-        protected int getNrNodeViews() {
-            return 0;
-        }
-
-        @Override
-        public NodeView<FlowVariablesInputNodeModel> createNodeView(final int viewIndex,
-            final FlowVariablesInputNodeModel nodeModel) {
-            return null;
-        }
-
-        @Override
-        protected boolean hasDialog() {
-            return false;
-        }
-
-        @Override
-        protected NodeDialogPane createNodeDialogPane() {
-            return null;
-        }
-    }
-
     @BeforeEach
     void createWorkflowAndAddNode() throws IOException {
         m_wfm = WorkflowManagerUtil.createEmptyWorkflow();
+
         final var settingsClasses =
             Map.of(SettingsType.MODEL, ModelSettings.class, SettingsType.VIEW, ViewSettings.class);
         final var defaultNodeSettingsService = new DefaultNodeSettingsService(settingsClasses);
@@ -329,6 +238,7 @@ public class DefaultNodeDialogTest {
             () -> createNodeDialog(Page.builder(() -> "page content", "page.html").build(), defaultNodeSettingsService,
                 null);
         m_nnc = NodeDialogManagerTest.createNodeWithNodeDialog(m_wfm, nodeDialogCreator);
+
         m_previousNode = WorkflowManagerUtil.createAndAddNode(m_wfm, new FlowVariablesInputNodeFactory());
         m_wfm.addConnection(m_previousNode.getID(), 0, m_nnc.getID(), 0);
         m_wfm.executeAllAndWaitUntilDone();
@@ -943,179 +853,45 @@ public class DefaultNodeDialogTest {
         TestNodeSettingsBuilder.loadSettingsIntoNode(existingSettings, m_nnc);
     }
 
-    private abstract static class SettingsDocumentBuilder<T extends SettingsDocumentBuilder<T>> {
+    private abstract static class DefaultDialogSettingsDocumentBuilder<T extends AbstractSettingsDocumentBuilder<T>>
+        extends AbstractSettingsDocumentBuilder<T> {
 
-        private ModelSettings m_modelSettings;
+        ModelSettings m_modelSettings = new ModelSettings();
 
-        private ViewSettings m_viewSettings;
+        ViewSettings m_viewSettings = new ViewSettings();
 
-        private List<CustomSettingAt> m_customSettingsAt;
-
-        record CustomSettingAt(SettingsAtPath value, SettingsType type, List<String> path) {
+        DefaultDialogSettingsDocumentBuilder() {
         }
 
-        protected SettingsDocumentBuilder() {
-            m_modelSettings = new ModelSettings();
-            m_viewSettings = new ViewSettings();
-            m_customSettingsAt = new ArrayList<>();
+        T withNonDefaultModelSettings(final ModelSettings modelSettings) {
+            m_modelSettings = modelSettings;
+            return super.thisAsT();
         }
 
-        @SuppressWarnings("unchecked")
-        private T thisAsT() {
-            return (T)this;
-        }
-
-        /**
-         * Use this method if the settings should be constructed using different model settings than the ones
-         * constructed by the default constructor of {@link ModelSettings}
-         *
-         * @param adjustedModelSettings
-         * @return the builder
-         */
-        T withNonDefaultModelSettings(final ModelSettings adjustedModelSettings) {
-            m_modelSettings = adjustedModelSettings;
-            return thisAsT();
-        }
-
-        /**
-         * Use this method if the settings should be constructed using different view settings than the ones constructed
-         * by the default constructor of {@link ViewSettings}
-         *
-         * @param adjustedModelSettings
-         * @return the builder
-         */
-        T withNonDefaultViewSettings(final ViewSettings adjustedViewSettings) {
-            m_viewSettings = adjustedViewSettings;
-            return thisAsT();
-        }
-
-        T modifyAt(final SettingsType type, final List<String> path,
-            final Function<SettingsAtPath.Builder, SettingsAtPath> subBuilder) {
-            final var customSettings = subBuilder.apply(SettingsAtPath.builder());
-            m_customSettingsAt.add(new CustomSettingAt(customSettings, type, path));
-            return thisAsT();
-        }
-
-        T modifyAt(final SettingsType type, final String settingsKey,
-            final Function<SettingsAtPath.Builder, SettingsAtPath> subBuilder) {
-            return modifyAt(type, List.of(settingsKey), subBuilder);
-        }
-
-        static final class SettingsAtPath {
-
-            private String m_exposedFlowVariableName;
-
-            private String m_invalidValue;
-
-            private String m_controllingFlowVariableName;
-
-            private boolean m_isFlawed;
-
-            static Builder builder() {
-                return new Builder();
-            }
-
-            static final class Builder {
-
-                private String m_exposedFlowVariableName;
-
-                private String m_invalidValue;
-
-                private String m_controllingFlowVariableName;
-
-                private boolean m_isFlawed;
-
-                Builder setStringValue(final String invalidValue) {
-                    m_invalidValue = invalidValue;
-                    return this;
-                }
-
-                Builder withExposedFlowVariableName(final String name) {
-                    m_exposedFlowVariableName = name;
-                    return this;
-                }
-
-                Builder withControllingFlowVariableName(final String name) {
-                    m_controllingFlowVariableName = name;
-                    return this;
-                }
-
-                Builder asFlawedFlowVariable() {
-                    checkControllingFlowVariableSet();
-                    m_isFlawed = true;
-                    return this;
-                }
-
-                private void checkControllingFlowVariableSet() {
-                    Objects.requireNonNull(m_controllingFlowVariableName, "Set a controlling flow variable first");
-                }
-
-                SettingsAtPath build() {
-                    final var built = new SettingsAtPath();
-                    built.m_controllingFlowVariableName = m_controllingFlowVariableName;
-                    built.m_exposedFlowVariableName = m_exposedFlowVariableName;
-                    built.m_invalidValue = m_invalidValue;
-                    built.m_isFlawed = m_isFlawed;
-                    return built;
-                }
-
-            }
-
+        T withNonDefaultViewSettings(final ViewSettings viewSettings) {
+            m_viewSettings = viewSettings;
+            return super.thisAsT();
         }
 
     }
 
-    private final static class ApplyDataBuilder extends SettingsDocumentBuilder<ApplyDataBuilder> {
+    private final static class ApplyDataBuilder extends DefaultDialogSettingsDocumentBuilder<ApplyDataBuilder> {
 
         ObjectNode build() {
             final var root = new ObjectMapper().createObjectNode();
-            final var flowVariableSettings = root.putObject("flowVariableSettings");
+            root.putObject("flowVariableSettings");
             final var data = root.putObject("data");
             data.set("model", JsonFormsDataUtil.toJsonData(super.m_modelSettings));
             data.set("view", JsonFormsDataUtil.toJsonData(super.m_viewSettings));
 
-            super.m_customSettingsAt.forEach(customSettingAt -> {
-                if (customSettingAt.value().m_invalidValue != null) {
-                    addInvalidValue(data, customSettingAt);
-                }
-                if (customSettingAt.value().m_controllingFlowVariableName != null
-                    || customSettingAt.value().m_exposedFlowVariableName != null) {
-                    addFlowVariable(flowVariableSettings, customSettingAt);
-                }
-            });
+            JsonBuilderUtils.resolveCustomSettingsAt(root, super.getCustomSettingsAt());
             return root;
-        }
-
-        private static void addFlowVariable(final ObjectNode flowVariableSettings,
-            final CustomSettingAt customSettingAt) {
-            final var path = toJsonPath(customSettingAt.type(), customSettingAt.path());
-            final var value = customSettingAt.value();
-            flowVariableSettings.putObject(path)//
-                .put("exposedFlowVariableName", value.m_exposedFlowVariableName)
-                .put("controllingFlowVariableName", value.m_controllingFlowVariableName)
-                .put("controllingFlowVariableFlawed", value.m_isFlawed);
-        }
-
-        private static String toJsonPath(final SettingsType settingsType, final List<String> path) {
-            return settingsType.getConfigKey() + "." + String.join(".", path);
-        }
-
-        private static void addInvalidValue(final ObjectNode data, final CustomSettingAt customSettingAt) {
-            final var lastIndex = customSettingAt.path().size() - 1;
-            final var pathToParent = customSettingAt.path().subList(0, lastIndex);
-            final var settingsKey = customSettingAt.path().get(lastIndex);
-            final var parent = (ObjectNode)data.at(toJsonPointer(customSettingAt.type(), pathToParent));
-            parent.put(settingsKey, customSettingAt.value().m_invalidValue);
-        }
-
-        private static String toJsonPointer(final SettingsType settingsType, final List<String> path) {
-            final var segments = Stream.concat(Stream.of(settingsType.getConfigKey()), path.stream()).toList();
-            return "/" + String.join("/", segments);
         }
 
     }
 
-    private final static class TestNodeSettingsBuilder extends SettingsDocumentBuilder<TestNodeSettingsBuilder> {
+    private final static class TestNodeSettingsBuilder
+        extends DefaultDialogSettingsDocumentBuilder<TestNodeSettingsBuilder> {
 
         /**
          * Return void. Instead, the settings are loaded to the container.
@@ -1137,6 +913,13 @@ public class DefaultNodeDialogTest {
         }
 
         private NodeSettings buildNodeSettings(final NativeNodeContainer nnc) {
+            var nodeSettings = initializeNodeSettings(nnc);
+            NodeSettingsBuilderUtils.resolveCustomSettingsAt(nodeSettings, super.getCustomSettingsAt());
+            return nodeSettings;
+
+        }
+
+        private NodeSettings initializeNodeSettings(final NativeNodeContainer nnc) {
             var nodeSettings = new NodeSettings("configuration");
             if (nnc != null) {
                 nnc.getParent().saveNodeSettings(nnc.getID(), nodeSettings);
@@ -1145,73 +928,13 @@ public class DefaultNodeDialogTest {
             var viewSettings = nodeSettings.addNodeSettings("view");
             DefaultNodeSettings.saveSettings(ModelSettings.class, super.m_modelSettings, modelSettings);
             DefaultNodeSettings.saveSettings(ViewSettings.class, super.m_viewSettings, viewSettings);
-
-            super.m_customSettingsAt.forEach(customSettingAt -> {
-                try {
-
-                    if (customSettingAt.value().m_invalidValue != null) {
-                        addInvalidValue(nodeSettings, customSettingAt);
-                    }
-                    if (customSettingAt.value().m_controllingFlowVariableName != null
-                        || customSettingAt.value().m_exposedFlowVariableName != null) {
-                        addFlowVariable(nodeSettings, customSettingAt);
-                    }
-                } catch (InvalidSettingsException ex) {
-                    throw new RuntimeException(ex); // NOSONAR
-                }
-            });
             return nodeSettings;
-
         }
 
         private static void loadSettingsIntoNode(final NodeSettings nodeSettings, final NativeNodeContainer nnc)
             throws InvalidSettingsException {
             nnc.getParent().loadNodeSettings(nnc.getID(), nodeSettings);
             nnc.getParent().executeAllAndWaitUntilDone();
-        }
-
-        private static void addInvalidValue(final NodeSettings nodeSettings, final CustomSettingAt customSettingAt)
-            throws InvalidSettingsException {
-            final var path = customSettingAt.path.stream().toArray(String[]::new);
-            var config = nodeSettings.getNodeSettings(customSettingAt.type().getConfigKey());
-            for (int i = 0; i < path.length - 1; i++) {
-                config = config.getNodeSettings(path[i]);
-            }
-            config.addString(path[path.length - 1], customSettingAt.value().m_invalidValue);
-        }
-
-        private static void addFlowVariable(final NodeSettings nodeSettings, final CustomSettingAt customSettingAt)
-            throws InvalidSettingsException {
-            final var path = customSettingAt.path.stream().toArray(String[]::new);
-            var variableConfig = getOrCreateVariableTree(nodeSettings, customSettingAt.type);
-            for (int i = 0; i < path.length; i++) {
-                variableConfig = getOrCreateNodeSettings(variableConfig, path[i]);
-            }
-            variableConfig.addString(VariableSettings.EXPOSED_VARIABLE_CFG_KEY,
-                customSettingAt.value().m_exposedFlowVariableName);
-            variableConfig.addString(VariableSettings.USED_VARIABLE_CFG_KEY,
-                customSettingAt.value().m_controllingFlowVariableName);
-            variableConfig.addBoolean(VariableSettings.USED_VARIABLE_FLAWED_CFG_KEY,
-                customSettingAt.value().m_isFlawed);
-        }
-
-        private static NodeSettings getOrCreateVariableTree(final NodeSettings nodeSettings, final SettingsType type)
-            throws InvalidSettingsException {
-            final var key = type.getVariablesConfigKey();
-            if (nodeSettings.containsKey(key)) {
-                return nodeSettings.getNodeSettings(key).getNodeSettings("tree");
-            }
-            final var variableSettings = nodeSettings.addNodeSettings(key);
-            variableSettings.addString("version", "V_2019_09_13");
-            return (NodeSettings)variableSettings.addNodeSettings("tree");
-        }
-
-        private static NodeSettings getOrCreateNodeSettings(final NodeSettings nodeSettings, final String key)
-            throws InvalidSettingsException {
-            if (nodeSettings.containsKey(key)) {
-                return nodeSettings.getNodeSettings(key);
-            }
-            return (NodeSettings)nodeSettings.addNodeSettings(key);
         }
 
     }

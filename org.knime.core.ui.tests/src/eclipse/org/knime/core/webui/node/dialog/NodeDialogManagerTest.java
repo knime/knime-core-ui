@@ -251,8 +251,6 @@ public class NodeDialogManagerTest {
             var pageId = NodeDialogManager.getInstance().getPageResourceManager().getPageId(NodeWrapper.of(component));
             assertThat(pageId).isEqualTo("defaultdialog");
 
-            // The jsonforms dialog cannot be built from our test node, because it is no valid/known DialogNodeRepresentation,
-            // So we just check for the error here.
             var initialData = NodeDialogManager.getInstance().getDataServiceManager()
                 .callInitialDataService(NodeWrapper.of(component));
             var resultAsJson = (ObjectNode)new ObjectMapper().readTree(initialData);
@@ -297,9 +295,8 @@ public class NodeDialogManagerTest {
     }
 
     private static NativeNodeContainer findSubNodeWithName(final SubNodeContainer component, final String nodeName) {
-        NativeNodeContainer configurationNode = (NativeNodeContainer)component.getWorkflowManager().getNodeContainers()
+        return (NativeNodeContainer)component.getWorkflowManager().getNodeContainers()
             .stream().filter(nc -> nc.getName().equals(nodeName)).findFirst().orElseThrow();
-        return configurationNode;
     }
 
     private static void assertInitialSubNodeContainerData(final JsonNode resultAsJson, final int nodeIndex) {
