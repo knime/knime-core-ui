@@ -64,6 +64,7 @@ import org.knime.core.data.property.ValueFormatHandler;
 import org.knime.core.data.v2.RowCursor;
 import org.knime.core.data.xml.XMLValue;
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.agentic.tool.ToolValue;
 import org.knime.core.webui.node.DataServiceManager;
 import org.knime.core.webui.node.DataValueWrapper;
 import org.knime.core.webui.node.PageResourceManager;
@@ -72,6 +73,7 @@ import org.knime.core.webui.node.PageResourceManager.PageType;
 import org.knime.core.webui.node.util.NodeCleanUpCallback;
 import org.knime.core.webui.node.view.table.datavalue.views.StringCellView;
 import org.knime.core.webui.node.view.table.datavalue.views.StringCellViewWithFormatter;
+import org.knime.core.webui.node.view.table.datavalue.views.ToolValueView;
 import org.knime.core.webui.node.view.table.datavalue.views.XMLCodeValueView;
 import org.knime.core.webui.node.view.table.datavalue.views.image.PNGImageValueView;
 
@@ -89,6 +91,7 @@ public final class DataValueViewManager {
         m_dataValueViewFactories.put(XMLValue.class, cell -> new XMLCodeValueView((XMLValue<?>)cell));
         m_dataValueViewFactories.put(StringCell.class, cell -> new StringCellView((StringCell)cell));
         m_dataValueViewFactories.put(PNGImageValue.class, cell -> new PNGImageValueView((PNGImageValue)cell));
+        m_dataValueViewFactories.put(ToolValue.class, cell -> new ToolValueView((ToolValue)cell));
     }
 
     private static DataValueViewManager instance;
