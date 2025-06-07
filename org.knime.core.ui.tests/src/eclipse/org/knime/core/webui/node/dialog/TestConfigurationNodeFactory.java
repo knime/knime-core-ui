@@ -48,79 +48,40 @@
  */
 package org.knime.core.webui.node.dialog;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
-import org.apache.commons.lang3.NotImplementedException;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.CanceledExecutionException;
-import org.knime.core.node.ExecutionContext;
-import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeDialogPane;
-import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.NodeView;
-import org.knime.core.node.dialog.DialogNode;
-import org.knime.core.node.dialog.DialogNodePanel;
 import org.knime.core.webui.node.dialog.WebDialogNodeRepresentation.DefaultWebDialogNodeRepresentation;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
+import org.knime.core.webui.node.dialog.utils.TestConfigurationNodeFactoryTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-
-import jakarta.json.JsonException;
-import jakarta.json.JsonValue;
 
 /**
  * A configuration node to test whether "modern" NodeDialogs of Components work.
  *
  * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
  */
-public class TestConfigurationNodeFactory extends NodeFactory<NodeModel> {
+public class TestConfigurationNodeFactory extends TestConfigurationNodeFactoryTemplate {
 
-    static class TestConfigNodeModel extends NodeModel
-        implements DialogNode<TestConfigNodeRepresentation, TestConfigNodeValue> {
+    @Override
+    public NodeModel createNodeModel() {
+        return new TestConfigNodeModel();
+    }
+
+    static class TestConfigNodeModel extends
+        TestConfigurationNodeFactoryTemplate.TestConfigNodeModel<TestConfigNodeRepresentation, TestConfigNodeValue> {
         protected TestConfigNodeModel() {
-            super(0, 0);
+            super();
         }
 
         TestConfigNodeValue m_value;
-
-        @Override
-        protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        }
-
-        @Override
-        protected void saveSettingsTo(final NodeSettingsWO settings) {
-        }
-
-        @Override
-        protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
-        }
-
-        @Override
-        protected void reset() {
-        }
-
-        @Override
-        protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        }
-
-        @Override
-        protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
-            throws IOException, CanceledExecutionException {
-        }
-
-        @Override
-        public void saveCurrentValue(final NodeSettingsWO content) {
-        }
 
         @Override
         public TestConfigNodeRepresentation getDialogRepresentation() {
@@ -148,36 +109,14 @@ public class TestConfigurationNodeFactory extends NodeFactory<NodeModel> {
         }
 
         @Override
-        public void validateDialogValue(final TestConfigNodeValue value) throws InvalidSettingsException {
-        }
-
-        @Override
         public String getParameterName() {
-            return null;
+            return null; // this leads to the index being used as key
         }
 
-        @Override
-        public boolean isHideInDialog() {
-            return false;
-        }
-
-        @Override
-        public void setHideInDialog(final boolean hide) {
-        }
-
-        @Override
-        protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-            throws Exception {
-            return null;
-        }
-
-        @Override
-        protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-            return null;
-        }
     }
 
-    static final class TestConfigNodeValue implements WebDialogValue {
+    static final class TestConfigNodeValue
+        implements TestConfigurationNodeFactoryTemplate.TestConfigNodeValue, WebDialogValue {
 
         String m_data;
 
@@ -202,26 +141,6 @@ public class TestConfigurationNodeFactory extends NodeFactory<NodeModel> {
             m_data = settings.getString(CFG_KEY);
         }
 
-        @Override
-        public void loadFromNodeSettingsInDialog(final NodeSettingsRO settings) {
-            throw new NotImplementedException("Not implemented");
-        }
-
-        @Override
-        public void loadFromString(final String fromCmdLine) throws UnsupportedOperationException {
-            throw new NotImplementedException("Not implemented");
-        }
-
-        @Override
-        public void loadFromJson(final JsonValue json) throws JsonException {
-            throw new NotImplementedException("Not implemented");
-        }
-
-        @Override
-        public JsonValue toJson() {
-            throw new NotImplementedException("Not implemented");
-        }
-
         static final JsonNodeFactory FACTORY = JsonNodeFactory.instance;
 
         @Override
@@ -237,12 +156,8 @@ public class TestConfigurationNodeFactory extends NodeFactory<NodeModel> {
     }
 
     private static final class TestConfigNodeRepresentation
-        implements DefaultWebDialogNodeRepresentation<TestConfigNodeValue> {
-
-        @Override
-        public DialogNodePanel<TestConfigNodeValue> createDialogPanel() {
-            throw new NotImplementedException("Not implemented");
-        }
+        implements TestConfigurationNodeFactoryTemplate.TestConfigNodeRepresentation<TestConfigNodeValue>,
+        DefaultWebDialogNodeRepresentation<TestConfigNodeValue> {
 
         @Override
         public DialogElementRendererSpec getWebUIDialogElementRendererSpec() {
@@ -261,31 +176,6 @@ public class TestConfigurationNodeFactory extends NodeFactory<NodeModel> {
 
         }
 
-    }
-
-    @Override
-    public NodeModel createNodeModel() {
-        return new TestConfigNodeModel();
-    }
-
-    @Override
-    protected int getNrNodeViews() {
-        return 0;
-    }
-
-    @Override
-    public NodeView<NodeModel> createNodeView(final int viewIndex, final NodeModel nodeModel) {
-        return null;
-    }
-
-    @Override
-    protected boolean hasDialog() {
-        return false;
-    }
-
-    @Override
-    protected NodeDialogPane createNodeDialogPane() {
-        return null;
     }
 
 }

@@ -214,7 +214,8 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
         try {
             return extractJsonOrThrow(value, dialogRepresentation);
         } catch (IOException ex) {
-            throw new IllegalStateException("Unable to extract json content from dialog value and representation.", ex);
+            throw new IllegalStateException(
+                "Unable to extract json content from dialog value and representation:" + ex.getMessage(), ex);
         }
     }
 

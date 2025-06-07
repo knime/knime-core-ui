@@ -44,99 +44,107 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   18 Aug 2022 (Carsten Haubold): created
+ *   Jun 7, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog;
+package org.knime.core.webui.node.dialog.utils;
 
+import java.io.File;
+import java.io.IOException;
+
+import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.utils.TestConfigurationNodeFactoryTemplate;
+import org.knime.core.node.NodeView;
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
 
 /**
- * A configuration node to test whether "modern" NodeDialogs of Components work.
+ * Used in integration tests that test behavior of node dialogs with set variables.
  *
- * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
+ * @author Paul Bärnreuther
  */
-public class TestNonSupportedConfigurationNodeFactory extends TestConfigurationNodeFactoryTemplate {
+public class FlowVariablesInputNodeFactory
+    extends NodeFactory<FlowVariablesInputNodeFactory.FlowVariablesInputNodeModel> {
+    @Override
+    public FlowVariablesInputNodeModel createNodeModel() {
+        return new FlowVariablesInputNodeModel();
+    }
 
     @Override
-    public NodeModel createNodeModel() {
-        return new TestConfigNodeModel();
+    protected int getNrNodeViews() {
+        return 0;
     }
 
-    static class TestConfigNodeModel extends
-        TestConfigurationNodeFactoryTemplate.TestConfigNodeModel<TestNonSupportedConfigNodeRepresentation, TestNonSupportedConfigNodeValue> {
-        protected TestConfigNodeModel() {
-            super();
-        }
-
-        TestNonSupportedConfigNodeValue m_value;
-
-        @Override
-        public TestNonSupportedConfigNodeRepresentation getDialogRepresentation() {
-            return new TestNonSupportedConfigNodeRepresentation();
-        }
-
-        @Override
-        public TestNonSupportedConfigNodeValue createEmptyDialogValue() {
-            return new TestNonSupportedConfigNodeValue();
-        }
-
-        @Override
-        public void setDialogValue(final TestNonSupportedConfigNodeValue value) {
-            m_value = value;
-        }
-
-        @Override
-        public TestNonSupportedConfigNodeValue getDefaultValue() {
-            return new TestNonSupportedConfigNodeValue("default from model");
-        }
-
-        @Override
-        public TestNonSupportedConfigNodeValue getDialogValue() {
-            return m_value;
-        }
-
-        @Override
-        public String getParameterName() {
-            return null; // this leads to the index being used as key
-        }
-
+    @Override
+    public NodeView<FlowVariablesInputNodeModel> createNodeView(final int viewIndex,
+        final FlowVariablesInputNodeModel nodeModel) {
+        return null;
     }
 
-    static final class TestNonSupportedConfigNodeValue
-        implements TestConfigurationNodeFactoryTemplate.TestConfigNodeValue {
+    @Override
+    protected boolean hasDialog() {
+        return false;
+    }
 
-        String m_data;
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return null;
+    }
 
-        static final String CFG_KEY = "data_cfg";
+    static class FlowVariablesInputNodeModel extends NodeModel {
 
-        static final String JSON_KEY = "data";
-
-        public TestNonSupportedConfigNodeValue(final String string) {
-            m_data = string;
-        }
-
-        public TestNonSupportedConfigNodeValue() {
-        }
-
-        @Override
-        public void saveToNodeSettings(final NodeSettingsWO settings) {
-            settings.addString(CFG_KEY, m_data);
+        FlowVariablesInputNodeModel() {
+            super(0, 0);
         }
 
         @Override
-        public void loadFromNodeSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-            m_data = settings.getString(CFG_KEY);
+        protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+            throws IOException, CanceledExecutionException {
+            //
+        }
+
+        @Override
+        protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+            throws IOException, CanceledExecutionException {
+            //
+        }
+
+        @Override
+        protected void saveSettingsTo(final NodeSettingsWO settings) {
+            //
+        }
+
+        @Override
+        protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+            //
+        }
+
+        @Override
+        protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+            //
+        }
+
+        @Override
+        protected void reset() {
+            //
+        }
+
+        @Override
+        protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) {
+            return new PortObjectSpec[]{FlowVariablePortObjectSpec.INSTANCE};
+        }
+
+        @Override
+        protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) {
+            return new PortObject[]{};
         }
 
     }
-
-    private static final class TestNonSupportedConfigNodeRepresentation
-        implements TestConfigurationNodeFactoryTemplate.TestConfigNodeRepresentation<TestNonSupportedConfigNodeValue> {
-
-    }
-
 }
