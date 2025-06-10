@@ -1,13 +1,15 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { type Ref, ref } from "vue";
 import { shallowMount } from "@vue/test-utils";
 
 import { Button } from "@knime/components";
 
+import type { FlowVariablesForSettings } from "@/nodeDialog/composables/nodeDialog/useDirtySettings";
 import { type FlowSettings } from "../../../../api/types";
 import { injectionKey as providedByComponentKey } from "../../../../composables/components/useFlowVariables";
 import { injectionKey as flowVarMapKey } from "../../../../composables/components/useProvidedFlowVariablesMap";
 import DeprecatedFlowVariables from "../DeprecatedFlowVariables.vue";
+import UnsetDeprecatedFlowVariableButton from "../UnsetDeprecatedFlowVariableButton.vue";
 
 describe("FlowVariablePopover", () => {
   let configPaths: Ref<
@@ -23,15 +25,43 @@ describe("FlowVariablePopover", () => {
     configPaths = ref([{ configPath: path, deprecatedConfigPaths: [] }]);
   });
 
-  const mountDeprecatedFlowVariablesComponent = () => {
+  const mountDeprecatedFlowVariablesComponent = (
+    unsetControlling: () => void,
+  ) => {
     return shallowMount(DeprecatedFlowVariables, {
       global: {
         provide: {
           [providedByComponentKey as symbol]: {
             dataPaths,
             configPaths,
+            getSettingStateFlowVariables: () =>
+              ({
+                controlling: {
+                  create: () => ({
+                    set: () => {},
+                    unset: unsetControlling,
+                  }),
+                  get: () => ({
+                    set: () => {},
+                    unset: unsetControlling,
+                  }),
+                },
+                exposed: {
+                  create: () => ({
+                    set: () => {},
+                    unset: () => {},
+                  }),
+                  get: () => ({
+                    set: () => {},
+                    unset: () => {},
+                  }),
+                },
+              }) satisfies FlowVariablesForSettings,
           },
           [flowVarMapKey as symbol]: flowVariablesMap,
+        },
+        stubs: {
+          UnsetDeprecatedFlowVariableButton,
         },
       },
     });
@@ -53,7 +83,8 @@ describe("FlowVariablePopover", () => {
         deprecatedConfigPaths: [deprecatedPath, "some other deprecated path"],
       },
     ];
-    const wrapper = mountDeprecatedFlowVariablesComponent();
+    const unsetControlling = vi.fn();
+    const wrapper = mountDeprecatedFlowVariablesComponent(unsetControlling);
     expect(wrapper.text()).toContain(
       "The following set flow variables are deprecated:",
     );
@@ -62,5 +93,6 @@ describe("FlowVariablePopover", () => {
     expect(li.find("input").element.value).toStrictEqual(flowVariableName);
     await li.findComponent(Button).trigger("click");
     expect(flowVariablesMap).toStrictEqual({});
+    expect(unsetControlling).toHaveBeenCalled();
   });
 });

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { Button } from "@knime/components";
-
 import { getFlowVariablesMap } from "../../../composables/components/useProvidedFlowVariablesMap";
 import useDeprecatedConfigPaths from "../composables/useDeprecatedConfigPaths";
+
+import UnsetDeprecatedFlowVariableButton from "./UnsetDeprecatedFlowVariableButton.vue";
 
 const { deprecatedSetConfigPaths } = useDeprecatedConfigPaths();
 
@@ -10,10 +10,6 @@ const flowVariablesMap = getFlowVariablesMap();
 const getFlowVariableName = (path: string) =>
   flowVariablesMap[path].controllingFlowVariableName ??
   flowVariablesMap[path].exposedFlowVariableName;
-
-const unsetDeprecatedPath = (path: string) => {
-  delete flowVariablesMap[path];
-};
 </script>
 
 <template>
@@ -24,9 +20,7 @@ const unsetDeprecatedPath = (path: string) => {
         <p>
           "{{ path }}": <input disabled :value="getFlowVariableName(path)" />
         </p>
-        <Button with-border compact @click="unsetDeprecatedPath(path)">
-          Unset
-        </Button>
+        <UnsetDeprecatedFlowVariableButton :path />
       </li>
     </ul>
   </div>
