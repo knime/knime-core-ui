@@ -55,6 +55,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.
 
 import java.math.BigDecimal;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -1667,6 +1668,10 @@ class UiSchemaOptionsTest {
             @Widget(title = "", description = "")
             @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
             int m_positiveInteger;
+
+            @Widget(title = "", description = "")
+            @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
+            Duration m_positiveDuration;
         }
 
         var response = buildTestUiSchema(NumberInputWidgetTestSettings.class);
@@ -1707,6 +1712,14 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[5].options.validation.min.parameters.isExclusive").isBoolean()
             .isFalse();
         assertThatJson(response).inPath("$.elements[5].options.validation.min.errorMessage").isString()
+            .isEqualTo("The value must be at least 1.");
+
+        assertThatJson(response).inPath("$.elements[6].scope").isString().contains("positiveDuration");
+        assertThatJson(response).inPath("$.elements[6].options.validation.min.parameters.min").isNumber()
+            .isEqualTo(BigDecimal.valueOf(1.0));
+        assertThatJson(response).inPath("$.elements[6].options.validation.min.parameters.isExclusive").isBoolean()
+            .isFalse();
+        assertThatJson(response).inPath("$.elements[6].options.validation.min.errorMessage").isString()
             .isEqualTo("The value must be at least 1.");
     }
 

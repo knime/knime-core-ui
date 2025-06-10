@@ -49,6 +49,7 @@
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
 
 import java.lang.annotation.Annotation;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -94,7 +95,8 @@ public class WidgetTreeRenderers {
         new WidgetTreeNodeTester(TextRenderer::new, //
             node -> String.class.equals(node.getRawClass())), //
         new WidgetTreeNodeTester(IntegerRenderer::new,
-            node -> List.of(Byte.class, Integer.class).contains(ClassUtils.primitiveToWrapper(node.getRawClass()))), // bytes and integers
+            node -> List.of(Byte.class, Integer.class, Duration.class)
+                .contains(ClassUtils.primitiveToWrapper(node.getRawClass()))), // bytes and integers
         new WidgetTreeNodeTester(NumberRenderer::new,
             node -> Number.class.isAssignableFrom(ClassUtils.primitiveToWrapper(node.getRawClass()))), // all other numbers
         new WidgetTreeNodeTester(CheckboxRenderer::new,
