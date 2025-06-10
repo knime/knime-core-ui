@@ -270,6 +270,8 @@ public class NodeDialogManagerTest {
             final var errorResult = dataServiceManager.callApplyDataService(componentWrapper, toBeAppliedString);
             var errorResultAsJson = (ObjectNode)new ObjectMapper().readTree(errorResult);
             assertThatJson(errorResultAsJson).inPath("$.isApplied").isBoolean().isFalse();
+            assertThatJson(errorResultAsJson).inPath("$.error").isString()
+                .isEqualTo("Failed to apply due to a non-supported configuration that was not previously configured.");
 
             // ... first we need to remove the non-supported node ...
             component.getWorkflowManager()

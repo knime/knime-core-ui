@@ -90,9 +90,10 @@ public interface NodeSettingsService {
      * @param textSettings the text-based settings object
      * @param previousSettings the version the node settings that were used when opening the dialog.
      * @param settings the settings instances to write into
+     * @throws InvalidSettingsException in case the settings cannot be transformed to node settings
      */
     void toNodeSettings(final String textSettings, Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
-        Map<SettingsType, NodeAndVariableSettingsWO> settings);
+        Map<SettingsType, NodeAndVariableSettingsWO> settings) throws InvalidSettingsException;
 
     /**
      * An optional validation method which is meant to be called before {@link NodeSettingsService#fromNodeSettings} in

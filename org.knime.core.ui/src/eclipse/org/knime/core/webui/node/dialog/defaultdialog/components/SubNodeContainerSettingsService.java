@@ -213,7 +213,7 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
     public void toNodeSettings(final String jsonSettings, //
         final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings, //
         final Map<SettingsType, NodeAndVariableSettingsWO> settings //
-    ) {
+    ) throws InvalidSettingsException {
         var modelSettings = settings.get(SettingsType.MODEL);
         JsonNode newSettingsJson = textToJson(jsonSettings);
         final var modelSettingsJson = newSettingsJson.get("data").get("model");
@@ -224,7 +224,7 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
 
     private static void saveSettingsForSubNode(final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
         final NodeAndVariableSettingsWO modelSettings, final JsonNode modelSettingsJson,
-        final DialogSubNode dialogSubNode) {
+        final DialogSubNode dialogSubNode) throws InvalidSettingsException {
         final var savedSettings = modelSettings.addNodeSettings(dialogSubNode.paramName);
         if (modelSettingsJson.has(dialogSubNode.paramName)) {
             final var inputJson = modelSettingsJson.get(dialogSubNode.paramName);
@@ -239,13 +239,14 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
 
     private static void saveSettingsForNonSupportedNode(
         final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings, final DialogSubNode dialogSubNode,
-        final NodeSettingsWO savedSettings) {
+        final NodeSettingsWO savedSettings) throws InvalidSettingsException {
         try {
             final var fromPreviousSettings =
                 previousSettings.get(SettingsType.MODEL).getNodeSettings(dialogSubNode.paramName);
             fromPreviousSettings.copyTo(savedSettings);
         } catch (InvalidSettingsException ex) {
-            LOGGER.error("Saving sub node container with a non-supported configuration without previous settings.", ex);
+            throw new InvalidSettingsException(
+                "Failed to apply due to a non-supported configuration that was not previously configured.", ex);
         }
     }
 

@@ -56,6 +56,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil.
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeDialog;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
@@ -90,7 +91,7 @@ public final class DefaultNodeSettingsServiceWithVariables implements NodeSettin
     @Override
     public void toNodeSettings(final String textSettings,
         final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
-        final Map<SettingsType, NodeAndVariableSettingsWO> settings) {
+        final Map<SettingsType, NodeAndVariableSettingsWO> settings) throws InvalidSettingsException {
         m_delegate.toNodeSettings(textSettings, previousSettings, settings);
         rootJsonToVariableSettings(textToJson(textSettings), restrictValues(settings));
     }

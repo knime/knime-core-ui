@@ -110,9 +110,10 @@ public final class SettingsApplier {
          * @param textSettings to convert
          * @param previousSettings of the node
          * @param settings to be written
+         * @throws InvalidSettingsException in case the settings cannot be transformed to node settings
          */
         void toNodeSettings(final String textSettings, Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
-            Map<SettingsType, NodeAndVariableSettingsWO> settings);
+            Map<SettingsType, NodeAndVariableSettingsWO> settings) throws InvalidSettingsException;
     }
 
     /**
