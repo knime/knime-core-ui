@@ -64,8 +64,7 @@ const isKeyValuePresentInObject = (
     ) {
       return true;
     } else if (typeof val === "object") {
-      currentParentKey = key;
-      if (isKeyValuePresentInObject(val, params, currentParentKey) === true) {
+      if (isKeyValuePresentInObject(val, params, key) === true) {
         return true;
       }
     }
