@@ -343,6 +343,7 @@ final class UiSchemaOptionsGenerator {
 
         if (annotatedWidgets.contains(FolderSelectionWidget.class)) {
             options.put("selectionMode", "FOLDER");
+            addFileSystemInformation(options);
         }
 
         if (annotatedWidgets.contains(LocalFileWriterWidget.class)) {
