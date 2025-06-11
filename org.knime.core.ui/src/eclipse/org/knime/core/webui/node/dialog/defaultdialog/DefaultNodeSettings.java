@@ -70,6 +70,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.dialog.DialogNode;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -380,6 +381,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
+@SuppressWarnings("rawtypes")
 public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
 
     /**
@@ -398,18 +400,22 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
 
         private final PortObject[] m_inputPortObjects;
 
+        private final DialogNode m_dialogNode;
+
         DefaultNodeSettingsContext(final PortType[] inTypes, final PortObjectSpec[] specs, final FlowObjectStack stack,
-            final CredentialsProvider credentialsProvider, final PortObject[] inputPortObjects) {
+            final CredentialsProvider credentialsProvider, final PortObject[] inputPortObjects,
+            final DialogNode dialogNode) {
             m_inTypes = inTypes;
             m_specs = specs;
             m_stack = stack;
             m_credentialsProvider = credentialsProvider;
             m_inputPortObjects = inputPortObjects;
+            m_dialogNode = dialogNode;
         }
 
         DefaultNodeSettingsContext(final PortType[] inTypes, final PortObjectSpec[] specs, final FlowObjectStack stack,
             final CredentialsProvider credentialsProvider) {
-            this(inTypes, specs, stack, credentialsProvider, null);
+            this(inTypes, specs, stack, credentialsProvider, null, null);
         }
 
         /**
@@ -418,7 +424,7 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
         @SuppressWarnings("javadoc")
         public static DefaultNodeSettingsContext createDefaultNodeSettingsContext(final PortType[] inPortTypes,
             final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider) {
-            return new DefaultNodeSettingsContext(inPortTypes, specs, stack, credentialsProvider, null);
+            return new DefaultNodeSettingsContext(inPortTypes, specs, stack, credentialsProvider, null, null);
         }
 
         /**
@@ -428,7 +434,8 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
         public static DefaultNodeSettingsContext createDefaultNodeSettingsContext(final PortType[] inPortTypes,
             final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider,
             final PortObject[] inputPortObjects) {
-            return new DefaultNodeSettingsContext(inPortTypes, specs, stack, credentialsProvider, inputPortObjects);
+            return new DefaultNodeSettingsContext(inPortTypes, specs, stack, credentialsProvider, inputPortObjects,
+                null);
         }
 
         /**
@@ -555,6 +562,17 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
             return Optional.ofNullable(m_credentialsProvider);
         }
 
+        /**
+         * Getter for the {@link DialogNode} of a configuration node.
+         *
+         * @return the dialogNode
+         */
+        public DialogNode getDialogNode() {
+            CheckUtils.checkNotNull(m_dialogNode, "No dialog node is available in this context. "
+                + "This method should be called only for configurations.");
+            return m_dialogNode;
+        }
+
     }
 
     /**
@@ -669,16 +687,20 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
         final var nodeContext = NodeContext.getContext();
         if (nodeContext == null) {
             // can only happen during tests
-            return new DefaultNodeSettingsContext(fallbackPortTypesFor(specs), specs, null, null, null);
+            return new DefaultNodeSettingsContext(fallbackPortTypesFor(specs), specs, null, null, null, null);
         }
         final var nc = nodeContext.getNodeContainer();
         final CredentialsProvider credentialsProvider;
         final PortType[] inPortTypes;
+        DialogNode dialogNode = null;
         if (nc instanceof NativeNodeContainer nnc) {
             credentialsProvider = nnc.getNode().getCredentialsProvider();
             // skip hidden flow variable input (mickey mouse ear) - not exposed to node implementation
             inPortTypes = IntStream.range(1, nnc.getNrInPorts()).mapToObj(nnc::getInPort).map(NodeInPort::getPortType)
                 .toArray(PortType[]::new);
+            if (nnc.getNode().getNodeModel() instanceof DialogNode model) {
+                dialogNode = model;
+            }
         } else {
             credentialsProvider = null;
             inPortTypes = fallbackPortTypesFor(specs);
@@ -689,7 +711,7 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
             : InputPortUtil.getInputPortObjectsExcludingVariablePort(nc);
 
         return new DefaultNodeSettingsContext(inPortTypes, specs, nc.getFlowObjectStack(), credentialsProvider,
-            inPortObjects);
+            inPortObjects, dialogNode);
     }
 
     private static PortType[] fallbackPortTypesFor(final PortObjectSpec[] specs) {
