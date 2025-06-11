@@ -493,7 +493,11 @@ class UiSchemaOptionsTest {
             FileSelection m_myFolderSelection;
         }
 
-        var response = buildTestUiSchema(SettingsWithFolderSelection.class);
+        var fileSystemType = "myFileSystemType";
+        var fileSystemSpecifier = "fileSystemSpecifier";
+        var context = setupFileSystemMocks(fileSystemType, fileSystemSpecifier);
+
+        var response = buildTestUiSchema(SettingsWithFolderSelection.class, context);
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("myFolderSelection");
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("fileChooser");
         assertThatJson(response).inPath("$.elements[0].options.selectionMode").isString().isEqualTo("FOLDER");
