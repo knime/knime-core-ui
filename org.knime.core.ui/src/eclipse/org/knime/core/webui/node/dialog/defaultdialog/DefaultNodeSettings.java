@@ -414,6 +414,11 @@ public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
         }
 
         DefaultNodeSettingsContext(final PortType[] inTypes, final PortObjectSpec[] specs, final FlowObjectStack stack,
+            final CredentialsProvider credentialsProvider, final PortObject[] inputPortObjects) {
+            this(inTypes, specs, stack, credentialsProvider, inputPortObjects, null);
+        }
+
+        DefaultNodeSettingsContext(final PortType[] inTypes, final PortObjectSpec[] specs, final FlowObjectStack stack,
             final CredentialsProvider credentialsProvider) {
             this(inTypes, specs, stack, credentialsProvider, null, null);
         }

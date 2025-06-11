@@ -50,6 +50,9 @@ package org.knime.core.webui.node.dialog;
 
 import java.util.Map;
 
+import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.jface.preference.IPersistentPreferenceStore;
+import org.eclipse.ui.preferences.ScopedPreferenceStore;
 import org.knime.core.node.dialog.DialogNode;
 import org.knime.core.node.dialog.DialogNodeRepresentation;
 import org.knime.core.node.workflow.NodeID;
@@ -74,10 +77,25 @@ public final class SubNodeContainerDialogFactory {
 
     private static final String SUB_NODE_CONTAINER_UI_MODE_DEFAULT = SUB_NODE_CONTAINER_UI_MODE_SWING;
 
+    // see org.knime.ui.java.prefs.KnimeUIPreferences#BUNDLE_NAME
+    private static final String UI_BUNDLE_NAME = "org.knime.ui.java";
+
+    // see org.knime.ui.java.prefs.KnimeUIPreferences#PREF_STORE
+    private static final IPersistentPreferenceStore PREF_STORE =
+        new ScopedPreferenceStore(InstanceScope.INSTANCE, UI_BUNDLE_NAME);
+
+    /**
+     * preference key to determine if the JS-based component dialog should be used.
+     */
+    public static final String SUB_NODE_CONTAINER_UI_MODE_JS_PREF_KEY = "subNodeContainerUiModeJs";
+
     private final SubNodeContainer m_snc;
 
     private static String getSubNodeContainerUiMode() {
         var mode = System.getProperty(SUB_NODE_CONTAINER_UI_MODE_PROPERTY);
+        if (mode == null && PREF_STORE.getBoolean(SUB_NODE_CONTAINER_UI_MODE_JS_PREF_KEY)) {
+            mode = SUB_NODE_CONTAINER_UI_MODE_JS;
+        }
         if (mode == null
             || (!mode.equals(SUB_NODE_CONTAINER_UI_MODE_SWING) && !mode.equals(SUB_NODE_CONTAINER_UI_MODE_JS))) {
             return SUB_NODE_CONTAINER_UI_MODE_DEFAULT;
