@@ -59,8 +59,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
  * Loads from legacy column filter settings. If the settings have to be saved to this legacy format as well, use a
  * {@link LegacyColumnFilterPersistor} instead.
  *
+ * @noreference using this migration changes a behavior which used might rely on.
+ * @deprecated TODO: UIEXT-2793 remove this class and provide an alternative solution for migrating column filters.
+ *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
+@Deprecated
 public abstract class LegacyColumnFilterMigration implements NodeSettingsMigration<ColumnFilter> {
 
     private final String m_configKey;

@@ -51,7 +51,6 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.config.base.ConfigBaseWO;
-import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.util.filter.NameFilterConfiguration.EnforceOption;
 
 @SuppressWarnings("javadoc")
@@ -71,12 +70,6 @@ public final class LegacyManualFilterPersistorUtil {
      * See NameFilterConfiguration.KEY_INCLUDED_NAMES
      */
     public static final String KEY_INCLUDED_NAMES = "included_names";
-
-    /**
-     * See NameFilterConfiguration.KEY_HANDLE_BOTH_INCLUDED_AND_EXCLUDED_NAMES_CORRECTLY
-     */
-    private static final String KEY_HANDLE_BOTH_INCLUDED_AND_EXCLUDED_NAMES_CORRECTLY =
-        "handle-both-included-and-excluded-names-correctly" + SettingsModel.CFGKEY_INTERNAL;
 
     private LegacyManualFilterPersistorUtil() {
         // Utility
@@ -98,7 +91,6 @@ public final class LegacyManualFilterPersistorUtil {
     }
 
     public static void saveManualFilter(final ManualFilter manualFilter, final ConfigBaseWO columnFilterSettings) {
-        columnFilterSettings.addBoolean(KEY_HANDLE_BOTH_INCLUDED_AND_EXCLUDED_NAMES_CORRECTLY, true);
         columnFilterSettings.addStringArray(KEY_INCLUDED_NAMES, manualFilter.m_manuallySelected);
         columnFilterSettings.addStringArray(OLD_EXCLUDED_NAMES, manualFilter.m_manuallyDeselected);
         columnFilterSettings.addString(KEY_ENFORCE_OPTION, getEnforceOption(manualFilter).name());
