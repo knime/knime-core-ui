@@ -108,14 +108,7 @@ export const useFlowSettings = (
       configPaths.value
         .flatMap(({ deprecatedConfigPaths }) => deprecatedConfigPaths)
         .filter(
-          (deprecatedConfigPath) =>
-            Boolean(
-              flowVariablesMap[deprecatedConfigPath]
-                ?.controllingFlowVariableName,
-            ) ||
-            Boolean(
-              flowVariablesMap[deprecatedConfigPath]?.exposedFlowVariableName,
-            ),
+          (deprecatedConfigPath) => flowVariablesMap[deprecatedConfigPath],
         ).length > 0,
   );
 
