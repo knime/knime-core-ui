@@ -48,7 +48,10 @@
  */
 package org.knime.core.webui.node.view.table.data.render;
 
+import java.util.Set;
+
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataTableSpec;
 
 /**
  * Describes how {@link DataCell} are supposed to be rendered in the table on the frontend side.
@@ -90,6 +93,21 @@ public enum DataCellContentType {
     @Override
     public String toString() {
         return name().toLowerCase();
+    }
+
+    /**
+     * Checks whether a list of column matches at least one of the given content types as their default content type.
+     *
+     * @param tableSpec the table spec whose columns to check
+     * @param contentTypes the content types to check for
+     * @return {@code true} if at least one column matches one of the given content types as default
+     */
+    public static boolean anyMatchAsDefault(final DataTableSpec tableSpec, final DataCellContentType... contentTypes) {
+        final var targetTypes = Set.of(contentTypes);
+        return tableSpec.stream() //
+            .map(SwingBasedRendererFactory::createDefaultRenderer) //
+            .map(DataValueRenderer::getContentType) //
+            .anyMatch(targetTypes::contains);
     }
 
 }

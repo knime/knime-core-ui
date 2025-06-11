@@ -81,22 +81,10 @@ public final class SwingBasedRendererFactory implements DataValueRendererFactory
     @Override
     public DataValueRenderer createDataValueRenderer(final DataColumnSpec colSpec, final String rendererId) {
         // use swing-based legacy renderers as fallback
-        var dataType = colSpec.getType();
         if (rendererId == null) {
-            // create default renderer
-
-            // use formatter attached to the column if present
-            Optional<DataValueRenderer> formatHandler = Optional.ofNullable(colSpec.getValueFormatHandler())//
-                .map(SwingBasedRendererFactory::createHtmlRenderer);
-            if (formatHandler.isPresent()) {
-                return formatHandler.get();
-            }
-
-            // use swing-based legacy renderers as fallback
-            var it = dataType.getRendererFactories().iterator();
-            return createRenderer(it.next(), colSpec);
+            return createDefaultRenderer(colSpec);
         } else {
-            return dataType.getRendererFactories().stream()//
+            return colSpec.getType().getRendererFactories().stream()//
                 .filter(f -> f.getId().equals(rendererId)) //
                 .map(f -> createRenderer(f, colSpec))//
                 .findFirst().orElseGet(() -> {
@@ -105,6 +93,19 @@ public final class SwingBasedRendererFactory implements DataValueRendererFactory
                     return createDataValueRenderer(colSpec, null);
                 });
         }
+    }
+
+    static DataValueRenderer createDefaultRenderer(final DataColumnSpec colSpec) {
+        // use formatter attached to the column if present
+        Optional<DataValueRenderer> formatHandler = Optional.ofNullable(colSpec.getValueFormatHandler())//
+            .map(SwingBasedRendererFactory::createHtmlRenderer);
+        if (formatHandler.isPresent()) {
+            return formatHandler.get();
+        }
+
+        // use swing-based legacy renderers as fallback
+        var it = colSpec.getType().getRendererFactories().iterator();
+        return createRenderer(it.next(), colSpec);
     }
 
     @Override
