@@ -59,8 +59,12 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.data.DataType;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
@@ -139,15 +143,19 @@ class DefaultFieldNodeSettingsPersistorFactoryTest {
     @Test
     void testEnum() throws InvalidSettingsException {
         testSaveLoad(TestEnum.class, TestEnum.BAR);
-        testSaveLoad(TestEnum.class, null);
     }
 
-    @Test
-    void testInvalidEnumConstant() throws InvalidSettingsException {
+    @MethodSource("invalidEnumConstants")
+    @ParameterizedTest
+    void testInvalidEnumConstant(final String invalidEnumConstant) throws InvalidSettingsException {
         var persistor = createPersistor(TestEnum.class);
         var nodeSettings = new NodeSettings(KEY);
-        nodeSettings.addString(KEY, "BAZ");
+        nodeSettings.addString(KEY, invalidEnumConstant);
         assertThrows(InvalidSettingsException.class, () -> persistor.load(nodeSettings));
+    }
+
+    static Stream<Arguments> invalidEnumConstants() {
+        return Stream.of(Arguments.of("INVALID"), Arguments.of((String)null));
     }
 
     private enum TestEnum {

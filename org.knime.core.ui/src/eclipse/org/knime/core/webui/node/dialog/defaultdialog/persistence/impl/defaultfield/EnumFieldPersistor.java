@@ -81,14 +81,19 @@ public final class EnumFieldPersistor<E extends Enum<E>> implements OptionalCont
     @Override
     public E load(final NodeSettingsRO settings) throws InvalidSettingsException {
         var name = settings.getString(m_configKey);
-        try {
-            return name == null ? null : Enum.valueOf(m_enumClass, name);
-        } catch (IllegalArgumentException ex) {
-            var values =
-                Arrays.stream(m_enumClass.getEnumConstants()).map(Enum::name).collect(Collectors.joining(", "));
-            throw new InvalidSettingsException(String.format("Invalid value '%s'. Possible values: %s", name, values),
-                ex);
+        if (name == null) {
+            throw new InvalidSettingsException(createInvalidSettingsExceptionMessage(null));
         }
+        try {
+            return Enum.valueOf(m_enumClass, name);
+        } catch (IllegalArgumentException ex) {
+            throw new InvalidSettingsException(createInvalidSettingsExceptionMessage(name), ex);
+        }
+    }
+
+    private String createInvalidSettingsExceptionMessage(final String name) {
+        var values = Arrays.stream(m_enumClass.getEnumConstants()).map(Enum::name).collect(Collectors.joining(", "));
+        return String.format("Invalid value '%s'. Possible values: %s", name, values);
     }
 
     @Override
