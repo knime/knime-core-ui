@@ -86,6 +86,7 @@ public interface WebDialogNodeRepresentation<VAL extends WebDialogValue> extends
      *
      * @return an optional schema that describes the relation to the persisted structure of the JSON dialog node value.
      */
+    @JsonIgnore
     default Optional<PersistSchema> getPersistSchema() {
         // By default, the dialog node value is persisted in the same structure as it is rendered in the dialog.
         return Optional.empty();
