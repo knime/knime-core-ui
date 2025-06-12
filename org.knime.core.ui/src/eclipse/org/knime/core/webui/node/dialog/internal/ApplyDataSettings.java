@@ -110,7 +110,7 @@ final class ApplyDataSettings {
     }
 
     private boolean settingsChanged() {
-        return !Objects.equals(getSettings(), getPreviousSettings());
+        return settingsChanged(getSettings(), getPreviousSettings());
     }
 
     private boolean variableSettingsChanged() {
@@ -118,10 +118,7 @@ final class ApplyDataSettings {
     }
 
     private static boolean settingsChanged(final NodeSettings settings, final NodeSettings previousSettings) {
-        if (settings != null) {
-            return !Objects.equals(settings, previousSettings);
-        }
-        return false;
+        return !Objects.equals(settings, previousSettings);
     }
 
     /**
