@@ -6,6 +6,7 @@
       "model": {
         "single": "",
         "combined": "",
+        "withHideOnNull": "default",
         "withPattern": "",
         "withMinLength": "",
         "withMaxLength": "too long",
@@ -31,6 +32,10 @@
               "minLength": 1,
               "maxLength": 3,
               "pattern": "a.*"
+            },
+            "withHideOnNull": {
+              "type": "string",
+              "default": "default"
             },
             "withPattern": {
               "type": "string",
@@ -96,6 +101,8 @@
               "type": "Control",
               "scope": "#/properties/model/properties/combined",
               "options": {
+                "hideOnNull": true,
+                "default": "default",
                 "validation": {
                   "pattern": {
                     "parameters": {
@@ -114,6 +121,22 @@
                       "maxLength": 3
                     },
                     "errorMessage": "Value must have at most 3 characters"
+                  }
+                }
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/model/properties/withHideOnNull",
+              "options": {
+                "hideOnNull": true,
+                "default": "default",
+                "validation": {
+                  "pattern": {
+                    "parameters": {
+                      "pattern": "a.*"
+                    },
+                    "errorMessage": "Value must start with 'a' (this message should only be visible once!)"
                   }
                 }
               }
