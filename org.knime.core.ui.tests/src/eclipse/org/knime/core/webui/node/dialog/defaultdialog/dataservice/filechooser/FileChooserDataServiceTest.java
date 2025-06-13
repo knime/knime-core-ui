@@ -255,7 +255,7 @@ class FileChooserDataServiceTest {
             final var result = new PerformListItemsBuilder().build().performListItems();
 
             getItemsInInitialFolder()
-                .forEach(item -> verify(fileChooserBackendMock.constructed().get(0)).pathToObject(eq(item)));
+                .forEach(item -> verify(fileChooserBackendMock.constructed().get(0)).directoryPathToObject(eq(item)));
             assertThat(result.folder().items()).hasSize(1);
             assertThat(result.folder().path()).isNull();
             assertThat(result.errorMessage()).isEmpty();
