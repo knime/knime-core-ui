@@ -6,6 +6,10 @@ export interface Item {
    * null in case of root directory
    */
   name: string;
+  /**
+   * true in case of non-accessible root directories
+   */
+  isDisabledDirectory?: boolean;
 }
 
 export type ParentFolder =

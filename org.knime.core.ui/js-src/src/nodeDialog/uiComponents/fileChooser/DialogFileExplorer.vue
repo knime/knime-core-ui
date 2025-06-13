@@ -55,7 +55,11 @@ const allItemsInCurrentFolder = ref<FileExplorerItem[]>([]);
 const displayedItemsInCurrentFolder = computed(() =>
   allItemsInCurrentFolder.value.map((item) => ({
     ...item,
-    ...{ disabled: props.selectionMode === "FOLDER" && !item.isDirectory },
+    ...{
+      disabled:
+        item.disabled ||
+        (props.selectionMode === "FOLDER" && !item.isDirectory),
+    },
   })),
 );
 

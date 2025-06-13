@@ -84,6 +84,7 @@ final class FileSystemTestMockingUtil {
         return Mockito.mockConstruction(backendType, (mock, context) -> {
             when(mock.getFileSystem()).thenReturn(fileSystem);
             when(mock.pathToObject(ArgumentMatchers.any())).thenCallRealMethod();
+            when(mock.directoryPathToObject(ArgumentMatchers.any())).thenCallRealMethod();
             when(mock.isAbsoluteFileSystem()).thenReturn(isAbsolute);
         });
 

@@ -70,6 +70,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService.FolderAndError;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService.ListItemsConfig;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector.FileChooserBackend;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.SimpleFileChooserBackend.Item;
 import org.mockito.ArgumentMatchers;
 import org.mockito.MockedConstruction;
@@ -108,6 +109,11 @@ class FileChooserDataServiceTest {
         @Override
         Path getDefaultDirectory() {
             return m_tempRootFolder;
+        }
+
+        @Override
+        void verifyRootItemConstruction(final Path item, final FileChooserBackend localFileChooserBackend) {
+            verify(localFileChooserBackend).directoryPathToObject(eq(item));
         }
 
         @Override
@@ -181,6 +187,11 @@ class FileChooserDataServiceTest {
         }
 
         @Override
+        void verifyRootItemConstruction(final Path item, final FileChooserBackend localFileChooserBackend) {
+            verify(localFileChooserBackend).pathToObject(eq(item));
+        }
+
+        @Override
         FileSystem getFileSystem() {
             final var fileSystem = mock(FileSystem.class);
             when(fileSystem.getPath(eq(""))).thenReturn(getDefaultDirectory());
@@ -229,6 +240,8 @@ class FileChooserDataServiceTest {
 
         abstract Path getDefaultDirectory();
 
+        abstract void verifyRootItemConstruction(Path item, FileChooserBackend localFileChooserBackend);
+
         abstract FileSystem getFileSystem();
 
         abstract boolean useAbsoluteFileSystem();
@@ -255,7 +268,7 @@ class FileChooserDataServiceTest {
             final var result = new PerformListItemsBuilder().build().performListItems();
 
             getItemsInInitialFolder()
-                .forEach(item -> verify(fileChooserBackendMock.constructed().get(0)).pathToObject(eq(item)));
+                .forEach(item -> verifyRootItemConstruction(item, fileChooserBackendMock.constructed().get(0)));
             assertThat(result.folder().items()).hasSize(1);
             assertThat(result.folder().path()).isNull();
             assertThat(result.errorMessage()).isEmpty();

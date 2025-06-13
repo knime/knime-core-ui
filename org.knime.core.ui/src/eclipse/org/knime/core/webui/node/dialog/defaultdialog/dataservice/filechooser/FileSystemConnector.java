@@ -73,6 +73,18 @@ public final class FileSystemConnector {
 
         Object pathToObject(Path path);
 
+        /**
+         * For root directories we know that a path should be displayed as directory but the file system lists them as
+         * files for unavailable ones. Overwrite this method to adjust how paths where it is known that they should be
+         * displayed as directories are displayed.
+         * @param path the directory path
+         * @return a representation given to the front-end
+         *
+         */
+        default Object directoryPathToObject(final Path path) {
+            return pathToObject(path);
+        }
+
         default boolean isAbsoluteFileSystem() {
             return true;
         }

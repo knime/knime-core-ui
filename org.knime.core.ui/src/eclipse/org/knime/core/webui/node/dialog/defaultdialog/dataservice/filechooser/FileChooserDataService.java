@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.NoSuchFileException;
@@ -312,7 +313,7 @@ public final class FileChooserDataService {
     private static List<Object> getRootItems(final FileChooserBackend fileChooserBackend) {
         final List<Object> out = new ArrayList<>();
         fileChooserBackend.getFileSystem().getRootDirectories()
-            .forEach(p -> out.add(fileChooserBackend.pathToObject(p)));
+            .forEach(p -> out.add(fileChooserBackend.directoryPathToObject(p)));
         return out;
     }
 
@@ -345,10 +346,18 @@ public final class FileChooserDataService {
                 if (errorMessage == null) {
                     errorMessage = String.format("The selected path %s is not a valid path", path);
                 }
+            } catch (FileSystemException ex) { //NOSONAR
+                if (errorMessage == null) {
+                    errorMessage = String.format("An error occurred when resolving the path %s.", path);
+                }
+            } catch (Exception ex) {
+                if (errorMessage == null) { //NOSONAR
+                    errorMessage = String.format("An unexpected error occurred when resolving the path %s.", path);
+                }
             }
         }
-        throw new IllegalStateException(
-            "Something went wrong. There should be at least one valid path in the given stack.");
+        return Folder.asRootFolder(getRootItems(fileChooserBackend),
+            errorMessage == null ? String.format("The selected path %s does not exist", inputPath) : errorMessage, "");
     }
 
     private static FolderAndError createFolder(final Path path, final List<Object> folderContent,

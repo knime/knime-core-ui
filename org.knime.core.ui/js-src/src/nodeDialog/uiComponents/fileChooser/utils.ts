@@ -11,5 +11,6 @@ export const toFileExplorerItem = (props: Item): FileExplorerItem => {
     isOpenableFile: true,
     canBeRenamed: false,
     canBeDeleted: false,
+    ...(props.isDisabledDirectory ? { disabled: true } : {}),
   };
 };

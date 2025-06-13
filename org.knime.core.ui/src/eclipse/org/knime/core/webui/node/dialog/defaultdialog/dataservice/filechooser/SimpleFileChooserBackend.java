@@ -82,13 +82,21 @@ abstract class SimpleFileChooserBackend implements FileChooserBackend {
     /**
      * This record contains the information about a single item in the file explorer to be displayed in the front-end.
      */
-    record Item(boolean isDirectory, String name) {
+    record Item(boolean isDirectory, String name, boolean isDisabledDirectory) {
     }
 
     @Override
     public Item pathToObject(final Path path) {
-        return new Item(Files.isDirectory(path),
-            path.getFileName() == null ? path.toString() : path.getFileName().toString());
+        return new Item(Files.isDirectory(path), pathToString(path), false);
+    }
+
+    @Override
+    public Item directoryPathToObject(final Path path) {
+        return new Item(true, pathToString(path), !Files.isDirectory(path));
+    }
+
+    private static String pathToString(final Path path) {
+        return path.getFileName() == null ? path.toString() : path.getFileName().toString();
     }
 
     @Override
