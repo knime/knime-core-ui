@@ -53,6 +53,7 @@ import java.util.Optional;
 
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.dialog.DialogNodeRepresentation;
+import org.knime.core.node.dialog.DialogNodeValue;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
 
@@ -65,7 +66,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * @author Paul Bärnreuther
  * @param <VAL> the dialog node value type.
  */
-public interface WebDialogNodeRepresentation<VAL extends WebDialogValue> extends DialogNodeRepresentation<VAL> {
+public interface WebDialogNodeRepresentation<VAL extends DialogNodeValue> extends DialogNodeRepresentation<VAL> {
 
     /**
      * @return the specification of a renderer that should be used in a WebUI dialog. Used control renderers (i.e.
