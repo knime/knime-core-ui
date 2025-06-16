@@ -70,7 +70,7 @@ public final class LeafNode<S> extends TreeNode<S> {
 
     private final Class<?> m_contentType;
 
-    LeafNode(final Tree<S> parent,final JavaType type, final Class<?> contentType,
+    LeafNode(final Tree<S> parent, final JavaType type, final Class<?> contentType,
         final Function<Class<? extends Annotation>, Annotation> annotations,
         final Collection<Class<? extends Annotation>> possibleAnnotations, final Field underlyingField) {
         super(parent, parent.getSettingsType(), type, annotations, possibleAnnotations, underlyingField);
@@ -82,6 +82,15 @@ public final class LeafNode<S> extends TreeNode<S> {
      */
     public Class<?> getContentType() {
         return m_contentType;
+    }
+
+    /**
+     * Use this method to access the raw class of the parent {@link Tree} of this leaf node.
+     *
+     * @return the type of the containing parent of this node.
+     */
+    public Class<? extends S> getParentType() {
+        return getParent().getRawClass();
     }
 
 }

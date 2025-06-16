@@ -69,19 +69,25 @@ public final class EnumFieldPersistor<E extends Enum<E>> implements OptionalCont
 
     private final Class<E> m_enumClass;
 
+    private boolean m_allowNull;
+
     /**
      * @param configKey under which the string is to be stored
      * @param enumClass the class of the to be persisted enum
      */
-    public EnumFieldPersistor(final String configKey, final Class<E> enumClass) {
+    public EnumFieldPersistor(final String configKey, final Class<E> enumClass, final boolean allowNull) {
         m_enumClass = enumClass;
         m_configKey = configKey;
+        m_allowNull = allowNull;
     }
 
     @Override
     public E load(final NodeSettingsRO settings) throws InvalidSettingsException {
         var name = settings.getString(m_configKey);
         if (name == null) {
+            if (m_allowNull) {
+                return null;
+            }
             throw new InvalidSettingsException(createInvalidSettingsExceptionMessage(null));
         }
         try {

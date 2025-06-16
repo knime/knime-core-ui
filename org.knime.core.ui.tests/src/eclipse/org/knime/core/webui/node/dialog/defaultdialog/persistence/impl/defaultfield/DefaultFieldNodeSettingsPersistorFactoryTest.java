@@ -74,6 +74,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Creden
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 
@@ -152,6 +153,17 @@ class DefaultFieldNodeSettingsPersistorFactoryTest {
         var nodeSettings = new NodeSettings(KEY);
         nodeSettings.addString(KEY, invalidEnumConstant);
         assertThrows(InvalidSettingsException.class, () -> persistor.load(nodeSettings));
+    }
+
+    @Test
+    void testStringOrEnumWithNullEnumValue() throws InvalidSettingsException {
+        var persistor = createPersistor(TestEnum.class, StringOrEnum.class);
+
+        var nodeSettings = new NodeSettings(KEY);
+        nodeSettings.addString(KEY, null);
+
+        assertThat(persistor.load(nodeSettings)).isNull();
+
     }
 
     static Stream<Arguments> invalidEnumConstants() {
@@ -432,7 +444,11 @@ class DefaultFieldNodeSettingsPersistorFactoryTest {
     }
 
     private static <T> DefaultFieldPersistor<T> createPersistor(final Class<T> type) {
-        return DefaultFieldNodeSettingsPersistorFactory.createPersistor(type, KEY);
+        return createPersistor(type, null);
+    }
+
+    private static <T> DefaultFieldPersistor<T> createPersistor(final Class<T> type, final Class<?> getParentClass) {
+        return DefaultFieldNodeSettingsPersistorFactory.createPersistor(type, KEY, () -> getParentClass);
     }
 
     private static final class UnsupportedType {

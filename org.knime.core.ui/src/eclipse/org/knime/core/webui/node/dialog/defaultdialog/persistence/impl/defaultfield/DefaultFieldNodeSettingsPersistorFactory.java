@@ -58,6 +58,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ClassUtils;
@@ -84,6 +85,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Creden
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.filehandling.core.connections.FSLocation;
 
@@ -128,7 +130,7 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
      */
     public static DefaultFieldPersistor<?> createPersistor(final LeafNode<PersistableSettings> node,
         final String configKey) {
-        final var fieldPersistor = createPersistor(node.getRawClass(), configKey);
+        final var fieldPersistor = createPersistor(node.getRawClass(), configKey, node::getParentType);
         if (node.isOptional()) {
             return new OptionalPersistor<>(fieldPersistor, configKey);
         }
@@ -144,19 +146,20 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
      * @return a new persistor
      * @throws IllegalArgumentException if there is no persistor available for the provided fieldType
      */
-    static <T> OptionalContentPersistor<T> createPersistor(final Class<T> fieldType, final String configKey) {
+    static <T> OptionalContentPersistor<T> createPersistor(final Class<T> fieldType, final String configKey,
+        final Supplier<Class<?>> getParentType) {
         @SuppressWarnings("unchecked") // Type-save since IMPL_MAP maps Class<T> to FieldPersistor<T>
         var impl = (FieldPersistor<T>)IMPL_MAP.get(ClassUtils.primitiveToWrapper(fieldType));
-        return createPersistorFromImpl(fieldType, configKey, impl);
+        return createPersistorFromImpl(fieldType, configKey, impl, getParentType);
     }
 
     @SuppressWarnings("unchecked")
     private static <T> OptionalContentPersistor<T> createPersistorFromImpl(final Class<T> fieldType,
-        final String configKey, final FieldPersistor<T> impl) {
+        final String configKey, final FieldPersistor<T> impl, final Supplier<Class<?>> getParentType) {
         if (impl != null) {
             return new DefaultFieldNodeSettingsPersistor<>(configKey, impl);
         } else if (fieldType.isEnum()) {
-            return createEnumPersistor(configKey, fieldType);
+            return createEnumPersistor(configKey, fieldType, StringOrEnum.class.equals(getParentType.get()));
         } else if (fieldType.equals(LocalDate.class)) {
             return (OptionalContentPersistor<T>)createLocalDatePersistor(configKey);
         } else if (fieldType.equals(LocalTime.class)) {
@@ -182,6 +185,7 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
                 String.format("No default persistor available for type '%s'.", fieldType));
         }
     }
+
 
     /**
      * When extending this enum only use lambdas if the definition fits a single line, otherwise use function references
@@ -271,9 +275,10 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static <T> OptionalContentPersistor<T> createEnumPersistor(final String configKey,
-        final Class<T> fieldType) {
-        return new EnumFieldPersistor<>(configKey, (Class)fieldType);
+        final Class<T> fieldType, final boolean allowNull) {
+        return new EnumFieldPersistor<>(configKey, (Class)fieldType, allowNull);
     }
+
 
     private static OptionalContentPersistor<LocalDate> createLocalDatePersistor(final String configKey) {
         return new LocalDatePersistor(configKey);
