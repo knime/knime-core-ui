@@ -55,6 +55,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.
 
 import java.math.BigDecimal;
 import java.nio.file.Path;
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -66,15 +67,19 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.knime.core.data.DataType;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
@@ -167,6 +172,7 @@ class UiSchemaOptionsTest {
     @Test
     void testDefaultFormats() {
         @SuppressWarnings("unused")
+        @DBTableAdapterProvider(DummyDbAdapterWithoutCatalogues.class)
         class DefaultStylesSettings implements DefaultNodeSettings {
             @Widget(title = "", description = "")
             String m_string;
@@ -228,7 +234,8 @@ class UiSchemaOptionsTest {
             DBTableSelection m_dbTableSelection;
         }
 
-        var response = buildTestUiSchema(DefaultStylesSettings.class);
+        var context = Mockito.mock(DefaultNodeSettingsContext.class);
+        var response = buildTestUiSchema(DefaultStylesSettings.class, context);
 
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("string");
         assertThatJson(response).inPath("$.elements[0]").isObject().doesNotContainKey("options");
@@ -1853,5 +1860,78 @@ class UiSchemaOptionsTest {
         }
 
         assertThrows(UiSchemaGenerationException.class, () -> buildTestUiSchema(TestSettings.class));
+    }
+
+    @Test
+    void testThatDbTableAdapterSetsSupportsCatalogues() {
+
+        @DBTableAdapterProvider(DummyDbAdapterWithoutCatalogues.class)
+        class SettingsWithoutCatalogues implements DefaultNodeSettings {
+            @Widget(title = "", description = "")
+            DBTableSelection m_dbTableSelection;
+        }
+
+        var context = Mockito.mock(DefaultNodeSettingsContext.class);
+        var response = buildTestUiSchema(SettingsWithoutCatalogues.class, context);
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("dbTableSelection");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dbTableChooser");
+        assertThatJson(response).inPath("$.elements[0].options.dbConnected").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[0].options.catalogsSupported").isBoolean().isFalse();
+
+        @DBTableAdapterProvider(DummyDbAdapterWithCatalogues.class)
+        class SettingsWithCatalogues implements DefaultNodeSettings {
+            @Widget(title = "", description = "")
+            DBTableSelection m_dbTableSelection;
+        }
+
+        response = buildTestUiSchema(SettingsWithCatalogues.class, context);
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("dbTableSelection");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dbTableChooser");
+        assertThatJson(response).inPath("$.elements[0].options.dbConnected").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[0].options.catalogsSupported").isBoolean().isTrue();
+    }
+
+    static class DummyDbAdapterWithoutCatalogues extends DBTableAdapter {
+
+        DummyDbAdapterWithoutCatalogues(final Supplier<PortObjectSpec[]> inputPortSpecSupplier) {
+            super(inputPortSpecSupplier);
+        }
+
+        @Override
+        public boolean isDbConnected() {
+            return true;
+        }
+
+        @Override
+        public Optional<List<String>> listCatalogs() throws SQLException {
+            return Optional.empty();
+        }
+
+        @Override
+        public List<String> listSchemas(final String catalogue) throws SQLException {
+            return List.of();
+        }
+
+        @Override
+        public List<String> listTables(final String catalogue, final String schema) throws SQLException {
+            return List.of();
+        }
+    }
+
+    static class DummyDbAdapterWithCatalogues extends DummyDbAdapterWithoutCatalogues {
+
+        DummyDbAdapterWithCatalogues(final Supplier<PortObjectSpec[]> inputPortSpecSupplier) {
+            super(inputPortSpecSupplier);
+        }
+
+        @Override
+        public boolean isDbConnected() {
+            return true;
+        }
+
+        @Override
+        public Optional<List<String>> listCatalogs() throws SQLException {
+            return Optional.of(List.of("catalog1", "catalog2"));
+        }
     }
 }

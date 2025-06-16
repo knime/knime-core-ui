@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
@@ -108,14 +109,15 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
     private static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_ANNOTATIONS = List.of( //
         Layout.class, //
         Effect.class, //
-        /**
+        /*
          * Since {@link MultiFileSelection} is a {@link WidgetGroup}.
          */
         FileReaderWidget.class, //
         ValueReference.class, //
         ValueProvider.class, //
         Modification.class, //
-        Modification.WidgetReference.class//
+        Modification.WidgetReference.class, //
+        DBTableAdapterProvider.class //
     );
 
     private static final Collection<ClassAnnotationSpec> POSSIBLE_TREE_CLASS_ANNOTATIONS = List.of( //

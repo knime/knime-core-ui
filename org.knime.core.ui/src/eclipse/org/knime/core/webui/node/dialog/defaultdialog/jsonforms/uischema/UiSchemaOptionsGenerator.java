@@ -84,12 +84,14 @@ import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetI
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.partitionWidgetAnnotationsByApplicability;
 
 import java.lang.reflect.Field;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -103,6 +105,8 @@ import org.knime.core.node.workflow.contextv2.ServerLocationInfo;
 import org.knime.core.node.workflow.contextv2.WorkflowContextV2.ExecutorType;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.DateTimeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.EnumUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
@@ -111,6 +115,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.Contro
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree.WidgetTreeRenderers;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection.DBTableSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
@@ -283,6 +288,7 @@ final class UiSchemaOptionsGenerator {
                     break;
                 case DB_TABLE_CHOOSER:
                     options.put(TAG_FORMAT, Format.DB_TABLE_CHOOSER);
+                    setDbTableChooserOptions(options);
                     break;
                 case DYNAMIC_VALUE:
                     options.put(TAG_FORMAT, Format.DYNAMIC_VALUE);
@@ -821,5 +827,37 @@ final class UiSchemaOptionsGenerator {
             JsonFormsUiSchemaUtil.buildUISchema(List.of(elementTree), m_widgetTrees, m_defaultNodeSettingsContext);
 
         options.set("filterSubUiSchema", filterSubUiSchema);
+    }
+
+    private void setDbTableChooserOptions(final ObjectNode options) {
+        var rootNode = m_node.getRoot();
+
+        var provider = Optional.ofNullable(rootNode.getRawClass().getAnnotation(DBTableAdapterProvider.class)) //
+            .map(DBTableAdapterProvider::value);
+
+        if (provider.isPresent()) {
+            var adapterClass = provider.get();
+            Supplier<PortObjectSpec[]> supplier = m_defaultNodeSettingsContext::getPortObjectSpecs;
+            var adapter = DBTableAdapter.instantiate(adapterClass, supplier);
+            try {
+                var isDbConnected = adapter.isDbConnected();
+                options.put("dbConnected", isDbConnected);
+                if (isDbConnected) {
+                    options.put("catalogsSupported", adapter.listCatalogs().isPresent());
+                }
+            } catch (SQLException ex) {
+                throw new UiSchemaGenerationException("""
+                        Could not check whether the underlying DBTableAdapter supports catalogues, \
+                        because an SQL error occurred while trying to query the database.
+                        """, ex);
+            }
+        } else {
+            var dbTableAdapterClassName = DBTableAdapterProvider.class.getSimpleName();
+            var widgetClassName = DBTableSelection.class.getSimpleName();
+            throw new UiSchemaGenerationException("""
+                    The %s widget requires a @%s annotation on the root node of the \
+                    widget tree to determine whether catalogues are supported.
+                    """.formatted(widgetClassName, dbTableAdapterClassName));
+        }
     }
 }

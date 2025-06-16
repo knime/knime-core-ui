@@ -55,7 +55,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection.DBTableSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.MultiFileSelection;
@@ -102,8 +101,6 @@ class HiddenFeaturesNodeSettings implements DefaultNodeSettings {
     }
 
     MultiFileSelection<TestFileChooserFilters> m_fileSelection = new MultiFileSelection<>(new TestFileChooserFilters());
-
-    DBTableSelection m_dbTableSelection = new DBTableSelection("test_schema", "test_table");
 
     @Widget(title = "File Selection with Folder", description = "A file selection that allows selecting folders.")
     @FolderSelectionWidget
