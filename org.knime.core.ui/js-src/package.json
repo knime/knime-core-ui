@@ -54,7 +54,7 @@
     "@knime/jsonforms": "1.12.5",
     "@knime/knime-ui-table": "0.5.22",
     "@knime/rich-text-editor": "1.4.10",
-    "@knime/styles": "1.2.0",
+    "@knime/styles": "^1.6.0",
     "@knime/ui-extension-service": "2.2.0",
     "@tiptap/core": "2.1.10",
     "date-fns": "2.29.3",
