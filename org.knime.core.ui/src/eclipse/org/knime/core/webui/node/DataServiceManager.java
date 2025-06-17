@@ -160,7 +160,17 @@ public final class DataServiceManager<N extends NodeWrapper> {
         if (service != null) {
             return service.handleRpcRequest(request);
         } else {
-            throw new IllegalStateException("No rpc data service available");
+            throw new IllegalStateException(String.format("No rpc data service available: %s; \nRequest: %s",
+                wrapperToString(nodeWrapper), request));
+        }
+    }
+
+    private static String wrapperToString(final NodeWrapper nodeWrapper) {
+        if (nodeWrapper instanceof NodePortWrapper portWrapper) {
+            return String.format("Node %s; port %s; view index %s", portWrapper.get(), portWrapper.getPortIdx(),
+                portWrapper.getViewIdx());
+        } else {
+            return nodeWrapper.toString();
         }
     }
 
