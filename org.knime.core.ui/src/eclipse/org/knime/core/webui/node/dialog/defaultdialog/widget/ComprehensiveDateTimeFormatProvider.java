@@ -59,6 +59,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.D
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.TemporalQuery;
 import java.util.ArrayList;
@@ -79,6 +80,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStri
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatWithExample;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
@@ -114,6 +116,8 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
 
     private Collection<String> m_recentFormats;
 
+    private Supplier<String> m_localeLanguageTag;
+
     /**
      * Constructor for providing a list of recently used formats. Most probably useful when this class is used as a base
      * class for a more specific format provider.
@@ -145,19 +149,15 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
     }
 
     /**
-     * Get the locale to use for the examples. Note that this method is called only once per call to
-     * {@link #computeState}. Override this method to provide a custom locale.
-     *
-     * @return the locale to use for the examples.
+     * A reference to the setting which specifies the locale to be used for the examples.
      */
-    protected Locale getLocaleForExamples() {
-        // Provide a default value for subclasses to override if needed
-        return Locale.ENGLISH;
+    public static final class LocaleValueRef implements Reference<String> {
     }
 
     @Override
     public void init(final StateProviderInitializer initializer) {
         initializer.computeBeforeOpenDialog();
+        m_localeLanguageTag = initializer.computeFromValueSupplier(LocaleValueRef.class);
     }
 
     /**
@@ -221,7 +221,7 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
     @Override
     public FormatWithExample[] computeState(final DefaultNodeSettingsContext context) {
         var time = getTimeForExamples();
-        var locale = getLocaleForExamples();
+        final var locale = Locale.forLanguageTag(m_localeLanguageTag.get());
 
         var recentFormats = computeRecentFormats(time, locale, m_recentFormats);
         var defaultFormats = computeDefaultFormats(time, locale);
@@ -412,6 +412,7 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
         new FormatWithoutExample("yyyy-MM-dd HH:mm:ss", DATE_TIME, AMERICAN), //
         new FormatWithoutExample("yyyy-MM-dd HH:mm:ss.SSS", DATE_TIME, AMERICAN), //
         new FormatWithoutExample("MM/dd/yyyy h:mm a", DATE_TIME, AMERICAN), //
+        new FormatWithoutExample("M/d/yyyy h:mm:ss a", DATE_TIME, AMERICAN), //
         new FormatWithoutExample("MM/dd/yyyy h:mm:ss a", DATE_TIME, AMERICAN), //
         new FormatWithoutExample("yyyyMMdd HH:mm:ss", DATE_TIME, AMERICAN), //
         new FormatWithoutExample("yyyyMMdd HH:mm", DATE_TIME, AMERICAN), //
@@ -568,11 +569,12 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
      * @param dateStrings a collection of date/time strings (e.g. 2020-01-01 or 13:23:45)
      * @param temporalType the temporal type to use for parsing the date strings
      * @param recentFormats the formats that the user has recently used.
+     * @param locale the locale used for parsing
      * @return optional containing the first format that matches all of the dateStrings, or empty if none of the formats
      *         match all of the dateStrings
      */
     public static Optional<FormatWithoutExample> bestFormatGuess(final Collection<String> dateStrings,
-        final FormatTemporalType temporalType, final Collection<String> recentFormats) {
+        final FormatTemporalType temporalType, final Collection<String> recentFormats, final Locale locale) {
         if (dateStrings.isEmpty()) {
             throw new IllegalArgumentException("dateStrings must not be empty");
         }
@@ -580,7 +582,7 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
         return Stream.concat(ALL_DEFAULT_FORMATS.stream(), //
             computeRecentFormatsWithoutExamples(recentFormats).stream()) //
             .filter(fmt -> temporalType == null || temporalType == fmt.temporalType) //
-            .filter(fmt -> matchesAllDateStrings(fmt, dateStrings, temporalType)) //
+            .filter(fmt -> matchesAllDateStrings(fmt, dateStrings, temporalType, locale)) //
             .findFirst();
     }
 
@@ -598,7 +600,7 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
      * @return true if the format matches all of the date strings and the provided format type, else false
      */
     static boolean matchesAllDateStrings(final FormatWithoutExample format, final Collection<String> dateStrings,
-        final FormatTemporalType desiredType) {
+        final FormatTemporalType desiredType, final Locale locale) {
 
         Objects.requireNonNull(format, "format must not be null");
         Objects.requireNonNull(dateStrings, "dateStrings must not be null");
@@ -612,7 +614,8 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
         }
 
         // should not throw since pattern is from our big list of valid formats
-        var pattern = DateTimeFormatter.ofPattern(format.format);
+        var pattern =
+            new DateTimeFormatterBuilder().parseCaseInsensitive().appendPattern(format.format).toFormatter(locale);
 
         if (desiredType == null) {
             var allQueries = Arrays.stream(FormatTemporalType.values()) //
