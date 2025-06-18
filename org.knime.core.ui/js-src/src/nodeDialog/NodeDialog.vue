@@ -280,6 +280,21 @@ const hasAdvancedOptions2 = () => {
   return hasAdvancedOptions(uischema.value);
 };
 
+const isSomeModifierKeyPressed = (event: KeyboardEvent) =>
+  (["altKey", "ctrlKey", "metaKey", "shiftKey"] as const).some(
+    (key) => event[key],
+  );
+
+const onKeydownAdvancedSettingsLink = (event: KeyboardEvent) => {
+  if (
+    !isSomeModifierKeyPressed(event) &&
+    (event.code === "Enter" || event.code === "Space")
+  ) {
+    event.preventDefault();
+    changeAdvancedSettings();
+  }
+};
+
 const renderers = ref<null | readonly NamedRenderer[]>(null);
 
 onMounted(async () => {
@@ -369,7 +384,10 @@ defineExpose({
       <a
         v-if="hasAdvancedOptions2()"
         class="advanced-options"
+        tabindex="0"
+        role="button"
         @click="changeAdvancedSettings"
+        @keydown="onKeydownAdvancedSettingsLink"
       >
         {{ showAdvancedSettings ? "Hide" : "Show" }} advanced settings
       </a>
