@@ -1331,10 +1331,6 @@ class UiSchemaOptionsTest {
                 return ZonedDateTime.of(2000, 1, 1, 0, 0, 0, 0, ZoneId.of("Africa/Cairo"));
             }
 
-            @Override
-            protected Locale getLocaleForExamples() {
-                return Locale.ITALIAN;
-            }
         }
 
         class DateTimeFormatPickerWidgetTestSettings implements DefaultNodeSettings {
