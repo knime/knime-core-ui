@@ -55,6 +55,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -103,33 +104,71 @@ final class ComprehensiveDateTimeFormatProviderTest {
                 "2025-01-28T12:00:00", //
                 "2025-01-28T12:00:00.000", //
                 "2025-02-01T12:00" //
-            ), FormatTemporalType.DATE_TIME, List.of()).map(FormatWithoutExample::format));
-
-        assertTrue(
-            ComprehensiveDateTimeFormatProvider
-                .bestFormatGuess(List.of("blah", "hello", "world"), FormatTemporalType.TIME, List.of()).isEmpty(),
-            "Expected no format to be guessed because inputs are not date-times");
+            ), FormatTemporalType.DATE_TIME, List.of(), Locale.ENGLISH).map(FormatWithoutExample::format));
 
         assertTrue(ComprehensiveDateTimeFormatProvider
-            .bestFormatGuess(List.of("2025-01-28", "2025-02-01"), FormatTemporalType.DATE_TIME, List.of()).isEmpty(),
+            .bestFormatGuess(List.of("blah", "hello", "world"), FormatTemporalType.TIME, List.of(), Locale.ENGLISH)
+            .isEmpty(), "Expected no format to be guessed because inputs are not date-times");
+
+        assertTrue(
+            ComprehensiveDateTimeFormatProvider.bestFormatGuess(List.of("2025-01-28", "2025-02-01"),
+                FormatTemporalType.DATE_TIME, List.of(), Locale.ENGLISH).isEmpty(),
             "Expected no format to be guessed because query is for LocalDateTime but all inputs are LocalDate");
 
         assertTrue(
             ComprehensiveDateTimeFormatProvider
-                .bestFormatGuess(List.of("2025-01-28 12:00:00"), FormatTemporalType.DATE, List.of()).isEmpty(),
+                .bestFormatGuess(List.of("2025-01-28 12:00:00"), FormatTemporalType.DATE, List.of(), Locale.ENGLISH)
+                .isEmpty(),
             "Expected no format to be guessed because query is for LocalDate but all inputs are LocalDateTime");
 
         assertTrue(
-            ComprehensiveDateTimeFormatProvider.bestFormatGuess(List.of("Q1/2024"), FormatTemporalType.DATE, List.of())
-                .isEmpty(),
+            ComprehensiveDateTimeFormatProvider
+                .bestFormatGuess(List.of("Q1/2024"), FormatTemporalType.DATE, List.of(), Locale.ENGLISH).isEmpty(),
             "Expected no format to be guessed because query is for LocalDate but all inputs less specific than that");
 
         // we had an issue where a string like '2025-01-28' will match a format like 'yyyy-MM-Q' even though
         // 28 is not a valid quarter. This should be fixed now when passing a FormatTemporalType since it will
         // use the attached query to determine the best format, so let's test that here
         var testFormat = new FormatWithoutExample("yyyy-Q", FormatTemporalType.DATE, FormatCategory.STANDARD);
-        assertFalse(ComprehensiveDateTimeFormatProvider.matchesAllDateStrings(testFormat, List.of("2024-31"),
-            FormatTemporalType.DATE), "Expected format to not match due to 31 being an invalid quarter");
+        assertFalse(
+            ComprehensiveDateTimeFormatProvider.matchesAllDateStrings(testFormat, List.of("2024-31"),
+                FormatTemporalType.DATE, Locale.ENGLISH),
+            "Expected format to not match due to 31 being an invalid quarter");
+    }
+
+    private static final List<String> FRENCH_EXAMPLES = List.of( //
+        "juin 18, 2025 1:47 PM", //
+        "juil. 17, 2025 1:47 AM", //
+        "août 14, 2025 1:47 PM" //
+    );
+
+    private static final List<String> GERMAN_EXAMPLES = List.of( //
+        "Juni 18, 2025 1:47 PM", //
+        "Juli 17, 2025 1:47 AM", //
+        "Aug. 14, 2025 1:47 PM" //
+    );
+
+    @Test
+    void testAutoGuessFormatWithLocales() {
+        assertPresentAndEquals("MMM dd, yyyy h:mm a",
+            ComprehensiveDateTimeFormatProvider
+                .bestFormatGuess(FRENCH_EXAMPLES, FormatTemporalType.DATE_TIME, List.of(), Locale.FRANCE)
+                .map(FormatWithoutExample::format));
+
+        assertTrue(
+            ComprehensiveDateTimeFormatProvider
+                .bestFormatGuess(FRENCH_EXAMPLES, FormatTemporalType.DATE_TIME, List.of(), Locale.ENGLISH).isEmpty(),
+            "Expected no format to be guessed because inputs have a french locale but guessing expects english");
+
+        assertPresentAndEquals("MMM dd, yyyy h:mm a",
+            ComprehensiveDateTimeFormatProvider
+                .bestFormatGuess(GERMAN_EXAMPLES, FormatTemporalType.DATE_TIME, List.of(), Locale.GERMANY)
+                .map(FormatWithoutExample::format));
+
+        assertTrue(
+            ComprehensiveDateTimeFormatProvider
+                .bestFormatGuess(GERMAN_EXAMPLES, FormatTemporalType.DATE_TIME, List.of(), Locale.FRANCE).isEmpty(),
+            "Expected no format to be guessed because inputs have a german locale but guessing expects french");
     }
 
     @Test
@@ -138,7 +177,8 @@ final class ComprehensiveDateTimeFormatProviderTest {
             "2025-J-28X12:00", //
             "2025-J-28X12:00", //
             "2025-J-01X12:00" //
-        ), FormatTemporalType.DATE_TIME, List.of("yyyy-MMMMM-dd'X'HH:mm")).map(FormatWithoutExample::format));
+        ), FormatTemporalType.DATE_TIME, List.of("yyyy-MMMMM-dd'X'HH:mm"), Locale.ENGLISH)
+            .map(FormatWithoutExample::format));
     }
 
     private static <T> void assertPresentAndEquals(final T expected, final Optional<T> actual) {
