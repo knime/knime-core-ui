@@ -187,12 +187,32 @@ public class PersistUtilTest {
         public int test;
     }
 
+    /**
+     * TODO: UIEXT-2817 repurpose this test to a positive test.
+     */
     @Test
     void testThrowsOnCustomPersistorWithConfigKeysContainingDots() throws JsonProcessingException {
 
         assertThrows(IllegalArgumentException.class,
             () -> getPersistSchema(SettingWithCustomPersistorWithKeysContainingDots.class));
 
+    }
+
+    @SuppressWarnings("unused")
+    private static class SettingsWithDefaultPersistorWithHiddenFlowVariables implements PersistableSettings {
+        /**
+         * the default persistor of Map hides flow variables.
+         */
+        public Map<String, Object> fieldName;
+    }
+
+    /**
+     * TODO: UIEXT-2817 remove this test together with the code it tests that was introduced in the same commit with it.
+     */
+    @Test
+    void testConfigPathsFromDefaultPersistorWithHiddenFlowVariables() throws JsonProcessingException {
+        final var result = getPersistSchema(SettingsWithDefaultPersistorWithHiddenFlowVariables.class);
+        assertThatJson(result).inPath("$.properties.model.properties.fieldName.configPaths").isArray().isEmpty();
     }
 
     private static class SettingsWithHiddenPersist implements PersistableSettings {

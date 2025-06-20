@@ -68,6 +68,8 @@ interface SubConfigPathProvider {
      *         This could be changed to a method returning multiple paths if necessary. Note that this method is
      *         different from {@link NodeSettingsPersistor#getConfigPaths()} in that it does not list the root config
      *         key as part of the config path(s).
+     *
+     *         In case an optional of an empty list is returned, no flow variables will be selectable.
      */
     default Optional<List<String>> getSubConfigPath() {
         return Optional.empty();

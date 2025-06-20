@@ -141,19 +141,19 @@ public final class PersistUtil {
             final var objectNode = MAPPER.createObjectNode();
             final var configKey = ConfigKeyUtil.getConfigKey(node);
             final var defaultPersistor = DefaultFieldNodeSettingsPersistorFactory.createPersistor(node, configKey);
-            final var subConfigPaths = defaultPersistor.getSubConfigPath();
-            return getNested(node, addConfigPathsIfPresent(objectNode, configKey, subConfigPaths, node.isOptional()));
+            final var subConfigPath = defaultPersistor.getSubConfigPath();
+            return getNested(node, addConfigPathsIfPresent(objectNode, configKey, subConfigPath, node.isOptional()));
         }
 
         private static ObjectNode addConfigPathsIfPresent(final ObjectNode objectNode, final String configKey,
-            final Optional<List<String>> subConfigPaths, final boolean isOptional) {
+            final Optional<List<String>> subConfigPath, final boolean isOptional) {
             final var isPresentKey =
                 Optional.of(OptionalPersistor.toIsPresentCfgKey(configKey)).filter(path -> isOptional);
             final var isPresentPath = isPresentKey.map(path -> new String[]{path});
-            final var subConfigPath =
-                subConfigPaths.map(sub -> Stream.concat(Stream.of(configKey), sub.stream()).toArray(String[]::new));
-            if (isPresentPath.isPresent() || subConfigPath.isPresent()) {
-                final var valueConfigPath = subConfigPath.or(() -> Optional.of(new String[]{configKey}));
+            final var pathToSubConfig = subConfigPath.map(sub -> sub.isEmpty() ? new String[0]
+                : Stream.concat(Stream.of(configKey), sub.stream()).toArray(String[]::new));
+            if (isPresentPath.isPresent() || pathToSubConfig.isPresent()) {
+                final var valueConfigPath = pathToSubConfig.or(() -> Optional.of(new String[]{configKey}));
                 final var configPaths =
                     Stream.of(isPresentPath, valueConfigPath).flatMap(Optional::stream).toArray(String[][]::new);
                 return addConfigPaths(objectNode, "configPaths", configPaths);

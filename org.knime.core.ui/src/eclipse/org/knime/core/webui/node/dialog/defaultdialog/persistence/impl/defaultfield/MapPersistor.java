@@ -49,7 +49,9 @@
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -129,6 +131,17 @@ final class MapPersistor implements DefaultFieldPersistor<Map<String, Object>> {
         } else {
             throw new IllegalArgumentException("Unsupported type for key " + key + ": " + value.getClass());
         }
+    }
+
+    @Override
+    public Optional<List<String>> getSubConfigPath() {
+        /**
+         * Disable flow variables for now since this persistor is used for maps with keys that contain dots in the DB
+         * Connectors
+         *
+         * TODO: UIEXT-2817: Remove this method override to enable flow vairables
+         */
+        return Optional.of(List.of());
     }
 
 }
