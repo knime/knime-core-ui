@@ -130,6 +130,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.MultiFileSelectionUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DynamicSettingsWidget;
@@ -304,6 +305,10 @@ final class UiSchemaOptionsGenerator {
             if (widget.hideControlHeader()) {
                 options.put(TAG_HIDE_CONTROL_HEADER, true);
             }
+        }
+
+        if (annotatedWidgets.contains(Advanced.class)) {
+            options.put(OPTIONS_IS_ADVANCED, true);
         }
 
         if (annotatedWidgets.contains(OverwriteDialogTitle.class)) {

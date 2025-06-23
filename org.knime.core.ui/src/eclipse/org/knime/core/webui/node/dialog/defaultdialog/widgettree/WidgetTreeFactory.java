@@ -62,6 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DynamicSettingsWidget;
@@ -109,6 +110,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
     private static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_ANNOTATIONS = List.of( //
         Layout.class, //
         Effect.class, //
+        Advanced.class, //
         /*
          * Since {@link MultiFileSelection} is a {@link WidgetGroup}.
          */
@@ -123,10 +125,12 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
     private static final Collection<ClassAnnotationSpec> POSSIBLE_TREE_CLASS_ANNOTATIONS = List.of( //
         new ClassAnnotationSpec(Layout.class, false), //
         new ClassAnnotationSpec(Effect.class), //
+        new ClassAnnotationSpec(Advanced.class), //
         new ClassAnnotationSpec(Modification.class) //
     );
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_LEAF_ANNOTATIONS = List.of(//
+        Advanced.class, //
         ButtonWidget.class, //
         ChoicesProvider.class, //
         ColumnFilterWidget.class, //
@@ -164,6 +168,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
     );
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_ARRAY_ANNOTATIONS = List.of(//
+        Advanced.class, //
         ArrayWidget.class, //
         Effect.class, //
         InternalArrayWidget.class, //
@@ -192,21 +197,27 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
     @Override
     public Tree<WidgetGroup> createTree(final Class<? extends WidgetGroup> rootClass, final SettingsType settingsType) {
         final var tree = super.createTree(rootClass, settingsType);
-        propagateLayoutAndEffectAnnotationsToChildren(tree);
+        propagateLayoutAdvancedAndEffectAnnotationsToChildren(tree);
         resolveWidgetModifications(tree);
         return tree;
     }
 
-    private void propagateLayoutAndEffectAnnotationsToChildren(final Tree<WidgetGroup> tree) {
+    private void propagateLayoutAdvancedAndEffectAnnotationsToChildren(final Tree<WidgetGroup> tree) {
         tree.getChildren().forEach(child -> {
-            tree.getAnnotation(Effect.class)
-                .ifPresent(effect -> super.performAddAnnotation(child, Effect.class, effect));
+            propagateAnnotationToChild(child, tree, Effect.class);
+            propagateAnnotationToChild(child, tree, Advanced.class);
             if (tree.getAnnotation(Layout.class).isEmpty()) {
                 tree.getTypeAnnotation(Layout.class)
                     .ifPresent(layout -> super.performAddAnnotation(child, Layout.class, layout));
             }
-            getWidgetTreeFrom(child).ifPresent(this::propagateLayoutAndEffectAnnotationsToChildren);
+            getWidgetTreeFrom(child).ifPresent(this::propagateLayoutAdvancedAndEffectAnnotationsToChildren);
         });
+    }
+
+    private void propagateAnnotationToChild(final TreeNode<WidgetGroup> child, final Tree<WidgetGroup> tree,
+        final Class<? extends Annotation> annotationClass) {
+        tree.getAnnotation(annotationClass)
+            .ifPresent(value -> super.performAddAnnotation(child, annotationClass, value));
     }
 
     private static Optional<Tree<WidgetGroup>> getWidgetTreeFrom(final TreeNode<WidgetGroup> node) {

@@ -44,39 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 21, 2023 (Paul Bärnreuther): created
+ *   23 Jun 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.layout;
+package org.knime.core.webui.node.dialog.defaultdialog.widget;
 
-import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+
+import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 
 /**
+ * With this annotation, a field, all fields in a class, or an entire layout part (e.g., {@link Section} or
+ * {@link HorizontalLayout}) can be marked as advanced and, therefore, are hidden by default in the dialog. This
+ * annotation takes precedence over {@link Widget#advanced()}, (i.e. using {@code advanced = false} won't have an
+ * effect).
  *
- * Annotation to mark a class as a section which can contain several settings and other layout parts. See {@link Layout}
- * on how to add settings to such a section.
- *
- * @author Paul Bärnreuther
+ * @author Robin Gerling
  */
 @Retention(RUNTIME)
-@Target(TYPE)
-public @interface Section {
-    /**
-     * @return the title of the section
-     */
-    String title() default "";
-
-    /**
-     * @return an optional description of the section
-     */
-    String description() default "";
-
-    /**
-     * @return Whether the section should be shown in a side drawer, i.e. a separate sub-panel with a nice transition
-     *         animation.
-     */
-    boolean sideDrawer() default false;
+public @interface Advanced {
 }

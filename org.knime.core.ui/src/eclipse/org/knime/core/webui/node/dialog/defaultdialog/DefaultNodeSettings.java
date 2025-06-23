@@ -103,6 +103,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInter
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
@@ -161,7 +162,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  *
  * Fields without a widget annotation are still persisted and passed to the frontend as 'data' (but will not be visible
  * to the user). This can e.g. be used when a setting is only used in a dialog-less context, e.g. a port view. Refer to
- * {@link Effect} on how to hide a widget depending on other settings.
+ * {@link Effect} on how to hide a widget depending on other settings. With {@link Advanced}, widgets are hidden per
+ * default, but can be shown when enabling advanced settings in the dialog.
  *
  * Getters and setters are ignored by the framework and to avoid confusion, they should simply not be used.
  *

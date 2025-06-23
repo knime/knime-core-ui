@@ -64,7 +64,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -85,6 +84,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.Dialog
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TestButtonActionHandler.TestStates;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection.DBTableSelection;
@@ -99,6 +99,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInter
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
@@ -366,12 +367,34 @@ class UiSchemaOptionsTest {
             @Widget(title = "", description = "")
             String m_bar;
 
+            @Widget(title = "", description = "")
+            @Advanced
+            String m_fieldAnnotation;
+
+            @Advanced
+            static final class AdvancedTestSettings implements PersistableSettings, WidgetGroup {
+                @Widget(title = "", description = "")
+                String m_ats1;
+
+                @Widget(title = "", description = "", advanced = false)
+                String m_ats2;
+            }
+
+            @Widget(title = "", description = "")
+            AdvancedTestSettings m_classAnnotation;
+
         }
         var response = buildTestUiSchema(AdvancedSettings.class);
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("foo");
         assertThatJson(response).inPath("$.elements[0].options.isAdvanced").isBoolean().isTrue();
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("bar");
         assertThatJson(response).inPath("$.elements[1]").isObject().doesNotContainKey("isAdvanced");
+        assertThatJson(response).inPath("$.elements[2].scope").isString().contains("fieldAnnotation");
+        assertThatJson(response).inPath("$.elements[2].options.isAdvanced").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[3].scope").isString().endsWith("classAnnotation/properties/ats1");
+        assertThatJson(response).inPath("$.elements[3].options.isAdvanced").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[4].scope").isString().endsWith("classAnnotation/properties/ats2");
+        assertThatJson(response).inPath("$.elements[4].options.isAdvanced").isBoolean().isTrue();
     }
 
     @Test

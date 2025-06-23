@@ -65,6 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.CheckboxesWithVennD
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.VerticalLayout;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -118,12 +119,10 @@ enum LayoutPart {
         final var label = sectionAnnotation.title();
         node.put(TAG_LABEL, label);
         node.put(TAG_TYPE, sectionAnnotation.sideDrawer() ? TYPE_SIDE_DRAWER_SECTION : TYPE_SECTION);
-        if (sectionAnnotation.advanced()) {
-            node.putObject(TAG_OPTIONS).put(OPTIONS_IS_ADVANCED, true);
-        }
         if (!sectionAnnotation.description().isEmpty()) {
             node.put(TAG_DESCRIPTION, sectionAnnotation.description());
         }
+        processAdvancedAnnotation(creationContext, node);
         applyRules(node, creationContext);
         return node.putArray(TAG_ELEMENTS);
     }
@@ -139,6 +138,7 @@ enum LayoutPart {
         final var node = parent.addObject();
         node.put(TAG_TYPE, TYPE_HORIZONTAL_LAYOUT);
         applyRules(node, creationContext);
+        processAdvancedAnnotation(creationContext, node);
         return node.putArray(TAG_ELEMENTS);
     }
 
@@ -147,7 +147,15 @@ enum LayoutPart {
         final var node = parent.addObject();
         node.put(TAG_TYPE, TYPE_VERTICAL_LAYOUT);
         applyRules(node, creationContext);
+        processAdvancedAnnotation(creationContext, node);
         return node.putArray(TAG_ELEMENTS);
+    }
+
+    private static void processAdvancedAnnotation(final LayoutNodeCreationContext creationContext,
+        final ObjectNode node) {
+        if (creationContext.layoutClass().isAnnotationPresent(Advanced.class)) {
+            node.putObject(TAG_OPTIONS).put(OPTIONS_IS_ADVANCED, true);
+        }
     }
 
     private static void applyRules(final ObjectNode node, final LayoutNodeCreationContext creationContext) {

@@ -63,6 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.VerticalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 
@@ -102,7 +103,8 @@ class JsonFormsUiSchemaUtilTest {
         interface Section1 {
         }
 
-        @Section(title = "Test section title", description = "Test section description", advanced = true)
+        @Section(title = "Test section title", description = "Test section description")
+        @Advanced
         interface Section2 {
             @Section(title = "Nested section title")
             interface NestedSection {

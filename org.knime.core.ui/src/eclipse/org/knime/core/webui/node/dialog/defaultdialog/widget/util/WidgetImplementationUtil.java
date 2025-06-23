@@ -72,6 +72,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
@@ -167,6 +168,7 @@ public final class WidgetImplementationUtil {
      */
     private static final WidgetAnnotation[] WIDGET_ANNOTATIONS = new WidgetAnnotation[]{//
         new WidgetAnnotation(Widget.class), //
+        new WidgetAnnotation(Advanced.class), //
         new WidgetAnnotation(DynamicSettingsWidget.class), //
         new WidgetAnnotation(OverwriteDialogTitle.class), //
         new WidgetAnnotation(List.of(Enum.class), RadioButtonsWidget.class), //
