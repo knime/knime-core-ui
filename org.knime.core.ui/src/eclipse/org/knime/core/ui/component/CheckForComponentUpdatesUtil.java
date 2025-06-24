@@ -131,8 +131,7 @@ public final class CheckForComponentUpdatesUtil {
         var updateList = new ArrayList<NodeID>();
         var errorList = new ArrayList<NodeID>(); // necessary for tracking update errors
         try {
-            nodeIdToUpdateStatus = TemplateUpdateUtil.fillNodeUpdateStates(nodeIdToTemplate.values(), lH, loadResult,
-                new LinkedHashMap<>());
+            nodeIdToUpdateStatus = TemplateUpdateUtil.fillNodeUpdateStates(nodeIdToTemplate.values(), lH, loadResult);
         } catch (IOException e) {
             final var ex = e.getCause() != null ? e.getCause() : e;
             LOGGER.warn(ex);
