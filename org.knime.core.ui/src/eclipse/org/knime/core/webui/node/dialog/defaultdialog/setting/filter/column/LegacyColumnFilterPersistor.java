@@ -70,9 +70,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.T
  * {@link NodeSettingsPersistor} for {@link TypedStringFilter} that persists it in a way compatible to
  * {@link DataColumnSpecFilterConfiguration}.
  *
- * If only backwards compatible load is required but the settings should be saved as per default (i.e. also with the
- * default flow variables), use a {@link LegacyColumnFilterMigration} instead.
- *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public abstract class LegacyColumnFilterPersistor implements NodeSettingsPersistor<ColumnFilter> {
@@ -226,7 +223,7 @@ public abstract class LegacyColumnFilterPersistor implements NodeSettingsPersist
         return getConfigPaths(m_configKey);
     }
 
-    static String[][] getConfigPaths(final String configKey) {
+    public static String[][] getConfigPaths(final String configKey) {
         return new String[][]{//
             {configKey, KEY_FILTER_TYPE}, //
             {configKey, LegacyManualFilterPersistorUtil.KEY_INCLUDED_NAMES}, //
