@@ -253,17 +253,12 @@ final class InvokeTrigger<I> {
                 .map(values -> values.stream().map(IndexedValue::indices)).orElseGet(() -> Stream.of(List.of()));
             final var levelsOfNesting = maximalParent.map(ValuesWithLevelOfNesting::levelsOfNesting).orElse(0);
             return new ValuesWithLevelOfNesting<>(
-                indicesStream.map(computeIndexedValue(stateVertex, parentValues)).flatMap(Optional::stream).toList(),
+                indicesStream.map(indices -> computeIndexedValue(indices, stateVertex, parentValues))
+                    .flatMap(Optional::stream).toList(),
                 levelsOfNesting);
         }
 
-        private Function<List<I>, Optional<IndexedValue<I>>> computeIndexedValue(final StateVertex stateVertex,
-            final Map<Vertex, ValuesWithLevelOfNesting<I>> parentValues) {
-            return indices -> computeIndexedValue(indices, stateVertex, parentValues)
-                .map(val -> new IndexedValue<>(indices, val));
-        }
-
-        private Optional<Object> computeIndexedValue(final List<I> indices, final StateVertex stateVertex,
+        private Optional<IndexedValue<I>> computeIndexedValue(final List<I> indices, final StateVertex stateVertex,
             final Map<Vertex, ValuesWithLevelOfNesting<I>> parentValues) {
             final Function<Vertex, Object> getParentValue =
                 vertex -> extractParentObject(parentValues.get(vertex), indices);
@@ -271,7 +266,7 @@ final class InvokeTrigger<I> {
             final var stateProvider = stateVertex.createStateProvider();
             StateProviderInitializerUtil.initializeStateProvider(stateProvider, initializer);
             try {
-                return Optional.ofNullable(stateProvider.computeState(m_context));
+                return Optional.of(new IndexedValue<>(indices, stateProvider.computeState(m_context)));
             } catch (StateComputationFailureException e) {
                 LOGGER.error(e);
                 return Optional.empty();

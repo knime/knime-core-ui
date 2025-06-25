@@ -241,6 +241,35 @@ public class UpdatesUtilTest {
     }
 
     @Test
+    void testNullValuedValueUpdate() {
+        class TestSettings implements DefaultNodeSettings {
+
+            static final class TestStateProvider implements StateProvider<String> {
+
+                @Override
+                public void init(final StateProviderInitializer initializer) {
+                    initializer.computeBeforeOpenDialog();
+                }
+
+                @Override
+                public String computeState(final DefaultNodeSettingsContext context)
+                    throws StateComputationFailureException {
+                    return null;
+                }
+            }
+
+            @Widget(title = "", description = "")
+            @ValueProvider(TestStateProvider.class)
+            String target;
+        }
+
+        final var response = buildUpdates(new TestSettings());
+
+        assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
+
+    }
+
+    @Test
     void testThrowsRuntimeExceptionOnWrongTypeForValueRef() {
 
         class WrongTypeReferenceSettings implements DefaultNodeSettings {
