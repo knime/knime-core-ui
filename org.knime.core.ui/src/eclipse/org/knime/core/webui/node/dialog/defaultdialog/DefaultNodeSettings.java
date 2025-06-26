@@ -116,7 +116,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.OptionalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.SortListWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextAreaWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
@@ -265,9 +264,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <tr>
  * <td>String[]</td>
  * <td>Combo Box. Add a {@link ChoicesProvider} with a {@link StringChoicesProvider}.</td>
- * <td><br>
- * {@link SortListWidget} <br>
- * {@link TwinlistWidget}</td>
+ * <td>{@link TwinlistWidget}</td>
  * <td>✓</td>
  * </tr>
  * <tr>

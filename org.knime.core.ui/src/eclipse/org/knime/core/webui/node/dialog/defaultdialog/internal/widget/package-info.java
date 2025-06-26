@@ -90,6 +90,8 @@
  * <ul>
  * <li>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal
  * OverwriteDialogTitleInternal}: For showing a different title in the dialog as in the node description.</li>
+ * <li>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget SortListWidget}: For a
+ * widget that allows sorting a list of columns in the node dialog.</li>
  * </ul>
  *
  * @author Robin Gerling
