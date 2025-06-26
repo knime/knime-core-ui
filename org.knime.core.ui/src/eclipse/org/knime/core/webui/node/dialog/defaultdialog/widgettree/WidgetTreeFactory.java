@@ -56,6 +56,7 @@ import java.util.Optional;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
@@ -137,6 +138,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         ChoicesProvider.class, //
         ColumnFilterWidget.class, //
         CredentialsWidget.class, //
+        CredentialsWidgetInternal.class, //
         DateTimeFormatPickerWidget.class, //
         Effect.class, //
         FileReaderWidget.class, //

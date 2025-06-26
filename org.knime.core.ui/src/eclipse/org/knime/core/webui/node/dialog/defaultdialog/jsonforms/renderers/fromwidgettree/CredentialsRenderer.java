@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.CredentialsRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
@@ -94,11 +95,11 @@ class CredentialsRenderer extends WidgetTreeControlRendererSpec implements Crede
     @Override
     public Map<String, Class<? extends StateProvider>> getStateProviderClasses() {
         final Map<String, Class<? extends StateProvider>> stateProviderClasses = new HashMap<>();
-        final var credentialsWidget = m_node.getAnnotation(CredentialsWidget.class);
-        final var hasUsernameProvider = credentialsWidget.map(CredentialsWidget::hasUsernameProvider)
+        final var credentialsWidget = m_node.getAnnotation(CredentialsWidgetInternal.class);
+        final var hasUsernameProvider = credentialsWidget.map(CredentialsWidgetInternal::hasUsernameProvider)
             .filter(prov -> !prov.equals(NoopBooleanProvider.class));
         hasUsernameProvider.ifPresent(provider -> stateProviderClasses.put(HAS_USERNAME, provider));
-        final var hasPasswordProvider = credentialsWidget.map(CredentialsWidget::hasPasswordProvider)
+        final var hasPasswordProvider = credentialsWidget.map(CredentialsWidgetInternal::hasPasswordProvider)
             .filter(prov -> !prov.equals(NoopBooleanProvider.class));
         hasPasswordProvider.ifPresent(provider -> stateProviderClasses.put(HAS_PASSWORD, provider));
         return stateProviderClasses;

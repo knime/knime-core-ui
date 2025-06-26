@@ -80,6 +80,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.Defaul
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
@@ -1111,7 +1112,8 @@ class UiSchemaOptionsTest {
             Credentials m_passwordWithSecondFactor;
 
             @Widget(title = "", description = "")
-            @CredentialsWidget(hasPasswordProvider = MyHasPasswordProvider.class,
+            @CredentialsWidget
+            @CredentialsWidgetInternal(hasPasswordProvider = MyHasPasswordProvider.class,
                 hasUsernameProvider = MyHasUsernameProvider.class)
             Credentials m_withStateProviders;
         }

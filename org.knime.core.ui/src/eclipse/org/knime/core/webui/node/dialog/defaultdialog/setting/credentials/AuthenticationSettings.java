@@ -58,6 +58,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration.Builder;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
@@ -141,7 +142,8 @@ public final class AuthenticationSettings extends BaseAuthenticationSettings {
 
     @Widget(title = "Credentials", description = "The credentials used for the authentication.")
     @Effect(predicate = AuthenticationTypeRef.RequiresCredentials.class, type = EffectType.SHOW)
-    @CredentialsWidget(hasPasswordProvider = RequiresPasswordProvider.class,
+    @CredentialsWidget
+    @CredentialsWidgetInternal(hasPasswordProvider = RequiresPasswordProvider.class,
         hasUsernameProvider = RequiresUsernameProvider.class)
     final Credentials m_credentials;
 

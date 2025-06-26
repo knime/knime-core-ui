@@ -59,6 +59,7 @@ import java.util.stream.Collectors;
 
 import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
@@ -187,6 +188,7 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(String.class), RichTextInputWidget.class), //
         new WidgetAnnotation(List.of(String.class), RichTextInputWidgetInternal.class), //
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), CredentialsWidget.class), //
+        new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), CredentialsWidgetInternal.class), //
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), PasswordWidget.class), //
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), UsernameWidget.class), //
         new WidgetAnnotation(List.of(FileSelection.class, MultiFileSelection.class), FileReaderWidget.class), //

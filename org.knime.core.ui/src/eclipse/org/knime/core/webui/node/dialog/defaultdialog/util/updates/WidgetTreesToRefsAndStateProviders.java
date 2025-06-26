@@ -61,6 +61,8 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.ClassUtils;
 import org.knime.core.data.DataType;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.CredentialsRendererSpec;
@@ -88,8 +90,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBooleanProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMaxLengthValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMaxValidationProvider;
@@ -274,14 +274,14 @@ final class WidgetTreesToRefsAndStateProviders {
             ), //
             new UiStateProviderAnnotationSpec<>( //
                 CredentialsRendererSpec.HAS_PASSWORD, //
-                CredentialsWidget.class, //
-                CredentialsWidget::hasPasswordProvider, //
+                CredentialsWidgetInternal.class, //
+                CredentialsWidgetInternal::hasPasswordProvider, //
                 NoopBooleanProvider.class //
             ), //
             new UiStateProviderAnnotationSpec<>( //
                 CredentialsRendererSpec.HAS_USERNAME, //
-                CredentialsWidget.class, //
-                CredentialsWidget::hasUsernameProvider, //
+                CredentialsWidgetInternal.class, //
+                CredentialsWidgetInternal::hasUsernameProvider, //
                 NoopBooleanProvider.class //
             ), //
             new UiStateProviderAnnotationSpec<>( //

@@ -356,9 +356,7 @@ final class UiSchemaOptionsGenerator {
             }
         }
 
-        if (annotatedWidgets.contains(FileReaderWidget.class))
-
-        {
+        if (annotatedWidgets.contains(FileReaderWidget.class)) {
             final var fileReaderWidget = m_node.getAnnotation(FileReaderWidget.class).orElseThrow();
             resolveFileExtensions(options, fileReaderWidget.fileExtensions());
             addFileSystemInformation(options);
@@ -495,9 +493,7 @@ final class UiSchemaOptionsGenerator {
                 DynamicSettingsWidget.class.getSimpleName()));
         }
 
-        if (m_node instanceof
-
-        ArrayParentNode<WidgetGroup> arrayWidgetNode) {
+        if (m_node instanceof ArrayParentNode<WidgetGroup> arrayWidgetNode) {
             applyArrayLayoutOptions(control, options, arrayWidgetNode.getElementTree());
         }
 

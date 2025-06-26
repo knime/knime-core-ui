@@ -89,6 +89,12 @@
  * RichTextInputWidgetInternal}</td>
  * <td>Rich text input with flow variable templates</td>
  * </tr>
+ * <tr>
+ * <td>{@link CredentialsWidget}</td>
+ * <td>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal
+ * CredentialsWidgetInternal}</td>
+ * <td>Dynamically hiding the username or password fields</td>
+ * </tr>
  * </table>
  * <br>
  *

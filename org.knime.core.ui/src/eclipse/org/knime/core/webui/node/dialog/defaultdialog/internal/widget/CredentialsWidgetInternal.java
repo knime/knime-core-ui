@@ -44,9 +44,9 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2023 (Paul Bärnreuther): created
+ *   Jun 26, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.credentials;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.widget;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -54,35 +54,38 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBooleanProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
- * The widget annotation to customize the labels of a {@link Credentials} setting.
+ * Use this on a field next to a {@link CredentialsWidget} in order to control visiblity of username or password
+ * dynamically.
  *
  * @author Paul Bärnreuther
  */
 @Retention(RUNTIME)
 @Target(FIELD)
-public @interface CredentialsWidget {
+public @interface CredentialsWidgetInternal {
 
     /**
-     * @return A label for the password input field.
+     * Only to be used when the same credentials should be used both with and without a password depending on
+     * circumstances. When the credentials should never contain a password, use the {@link UsernameWidget} annotation
+     * instead.
+     *
+     * @return a provider for whether the password should be configurable
      */
-    String passwordLabel() default PasswordWidget.DEFAULT_PASSWORD_LABEL;
+    Class<? extends StateProvider<Boolean>> hasPasswordProvider() default NoopBooleanProvider.class;
 
     /**
-     * @return A label for the password input field.
+     * Only to be used when the same credentials should be used both with and without a username depending on
+     * circumstances. When the credentials should never contain a username, use the {@link PasswordWidget} annotation
+     * instead.
+     *
+     * @return a provider for whether the username should be configurable
      */
-    String usernameLabel() default UsernameWidget.DEFAULT_USERNAME_LABEL;
-
-    /**
-     * @return whether this widget should provide a second authentication factor input field.
-     */
-    boolean hasSecondAuthenticationFactor() default false;
-
-    /**
-     * @return the label for the second factor input field.
-     */
-    String secondFactorLabel() default PasswordWidget.DEFAULT_SECOND_FACTOR_LABEL;
+    Class<? extends StateProvider<Boolean>> hasUsernameProvider() default NoopBooleanProvider.class;
 
 }
