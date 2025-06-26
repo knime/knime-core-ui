@@ -50,7 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
 import java.io.IOException;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.connections.RelativeTo;

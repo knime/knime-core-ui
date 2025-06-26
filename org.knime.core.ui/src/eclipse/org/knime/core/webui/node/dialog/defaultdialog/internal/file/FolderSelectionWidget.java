@@ -44,80 +44,23 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 15, 2025 (david): created
+ *   May 26, 2025 (david): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
-import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Predicate;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters.FilterResult;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 /**
+ * Widget to select a single folder. Should annotate a field of type {@link FileSelection}.
  *
- * @author david
+ * @author David Hickey, TNG Technology Consulting GmbH
  */
-final class FileChooserFilterFileVisitor extends SimpleFileVisitor<Path> {
-
-    private final Predicate<Path> m_pathFilter;
-
-    private final int m_limitToAcceptedFiles;
-
-    private final List<Path> m_acceptedFilePaths;
-
-    private int m_numEncounteredFiles;
-
-    private boolean m_wereAnySubtreesSkipped;
-
-    FileChooserFilterFileVisitor(final Predicate<Path> pathFilter, final int limitToAcceptedFiles) {
-        m_pathFilter = pathFilter;
-        m_limitToAcceptedFiles = limitToAcceptedFiles;
-
-        m_acceptedFilePaths = new ArrayList<>();
-        m_numEncounteredFiles = 0;
-        m_wereAnySubtreesSkipped = false;
-    }
-
-    @Override
-    public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
-        boolean isFileLike = attrs.isRegularFile() || attrs.isOther();
-
-        if (isFileLike) {
-            ++m_numEncounteredFiles;
-            boolean passesFilter = m_pathFilter.test(file);
-            boolean limitNotHit = m_acceptedFilePaths.size() < m_limitToAcceptedFiles;
-            if (passesFilter && limitNotHit) {
-                m_acceptedFilePaths.add(file);
-            }
-        }
-
-        return super.visitFile(file, attrs);
-    }
-
-    @Override
-    public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
-        boolean shouldSkipSubtree = m_acceptedFilePaths.size() >= m_limitToAcceptedFiles || !m_pathFilter.test(dir);
-
-        m_wereAnySubtreesSkipped |= shouldSkipSubtree;
-
-        return shouldSkipSubtree //
-            ? FileVisitResult.SKIP_SUBTREE //
-            : super.preVisitDirectory(dir, attrs);
-    }
-
-    FilterResult getFilterResult() {
-        return new FilterResult( //
-            m_acceptedFilePaths, //
-            m_numEncounteredFiles, //
-            m_wereAnySubtreesSkipped, //
-            m_acceptedFilePaths.size() >= m_limitToAcceptedFiles //
-        );
-    }
+@Retention(RUNTIME)
+@Target(FIELD)
+public @interface FolderSelectionWidget {
 
 }

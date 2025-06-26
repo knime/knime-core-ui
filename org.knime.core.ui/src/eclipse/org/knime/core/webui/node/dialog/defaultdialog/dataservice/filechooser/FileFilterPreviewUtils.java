@@ -51,8 +51,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters.FilterResult;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters.FilterResult;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;

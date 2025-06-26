@@ -46,7 +46,7 @@
  * History
  *   Mar 27, 2025 (david): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
 import java.util.Objects;
 
@@ -132,8 +132,8 @@ public final class MultiFileSelection<F extends FileChooserFilters> implements P
             /**
              * Select all files in a folder (optionally recursively).
              */
-            @Label(value = "Folder", description = "Select all files in a folder. "
-                + "Optionally, it is then also possible to define filter options to select only specific files within the selected folder.")
+            @Label(value = "Folder", description = "Select all files in a folder. Optionally, it is then also possible "
+                + "to define filter options to select only specific files within the selected folder.")
             FOLDER;
     }
 }

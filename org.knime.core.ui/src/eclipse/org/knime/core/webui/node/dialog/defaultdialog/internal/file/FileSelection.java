@@ -44,35 +44,70 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 19, 2024 (Paul Bärnreuther): created
+ *   Nov 3, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.util.Objects;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSLocation;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
-import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Put this annotation on a {@link FileSelection} field in order to equip it with additional reader features.
- *
- * One implicit effect that is enabled by using this annotation is that the first input port of type
- * {@link FileSystemPortObjectSpec} is used if available. This will enable browsing (only) the connected file system or
- * disable the control when no connection exists or could be established.
+ * This settings class can be used to display a path text input with associated browse button to select a single file
+ * from one of the supported file systems.
  *
  * @author Paul Bärnreuther
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface FileReaderWidget {
+public final class FileSelection implements PersistableSettings {
+
+    @JsonProperty("path")
+    public FSLocation m_path;
 
     /**
-     * @return the valid extensions by which the browsable files should be filtered
+     * A local file chooser
      */
-    String[] fileExtensions() default {};
+    public FileSelection() {
+        this(new FSLocation(FSCategory.LOCAL, ""));
+    }
+
+    /**
+     * @param fsLocation
+     */
+    public FileSelection(final FSLocation fsLocation) {
+        m_path = fsLocation;
+    }
+
+    /**
+     * @return the underlying fsLocation of the chosen file
+     */
+    @JsonIgnore
+    public FSLocation getFSLocation() {
+        return m_path;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final var other = (FileSelection)obj;
+        return Objects.equals(m_path, other.m_path);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(m_path);
+    }
 
 }

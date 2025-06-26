@@ -93,8 +93,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigMap
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
@@ -106,12 +104,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.OptionalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
@@ -195,8 +189,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <td>Text Input</td>
  * <td>{@link TextAreaWidget}<br>
  * {@link TextInputWidget}<br>
- * {@link LocalFileReaderWidget}<br>
- * {@link LocalFileWriterWidget}<br>
  * {@link RichTextInputWidget}<br>
  * {@link DateTimeFormatPickerWidget}</td>
  * <td rowspan="2">✓</td>
@@ -322,19 +314,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * {@link PasswordWidget} (password only)<br>
  * {@link UsernameWidget} (username only)</td>
  * <td>✓</td>
- * </tr>
- * <tr>
- * <td>{@link FileSelection}</td>
- * <td>Path file chooser (with limited file system options)</td>
- * <td>{@link FileReaderWidget}<br>
- * {@link FileWriterWidget}</td>
- * <td></td>
- * </tr>
- * <tr>
- * <td>{@link MultiFileSelection}</td>
- * <td>Path file chooser which can also accept a folder.</td>
- * <td>{@link FileReaderWidget}</td>
- * <td></td>
  * </tr>
  * <tr>
  * <td>{@link Void} (i.e. this is not a setting but only something that is displayed)</td>

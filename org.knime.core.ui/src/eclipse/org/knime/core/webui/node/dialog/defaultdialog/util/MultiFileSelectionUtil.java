@@ -50,9 +50,9 @@ package org.knime.core.webui.node.dialog.defaultdialog.util;
 
 import java.util.Optional;
 
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 
 /**

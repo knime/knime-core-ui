@@ -62,6 +62,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidg
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelectionWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileReaderWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
@@ -70,8 +77,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInte
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection.DBTableSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
@@ -82,12 +87,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.St
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.FileReaderWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.FileWriterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.FolderSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileReaderWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
