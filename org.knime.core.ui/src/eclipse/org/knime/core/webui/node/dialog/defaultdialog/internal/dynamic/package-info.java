@@ -46,42 +46,11 @@
  * History
  *   Jul 30, 2024 (Paul Bärnreuther): created
  */
+
 /**
- * This package contains features of default node dialogs that are still subject to change / preliminary versions. They
- * are to be used only internally only and not intended for public use.
- *
- * As such, the APIs provided in this package may change without notice and do **not** follow the stability guarantees
- * of the public API. They may be modified or removed in future releases.
- *
- *
- * <p>
- * The table below lists the supported types of the internal API (which are **not** part of the public API), including:
- * </p>
- * <ul>
- * <li>The default widget displayed if no specific annotation is provided</li>
- * <li>The widget annotations compatible with the given type</li>
- * </ul>
- *
- * <table border="1" cellpadding="3" cellspacing="0">
- * <caption>Type to Widget Mapping</caption>
- * <tr>
- * <th>Type</th>
- * <th>Default Widget and Choices Configuration</th>
- * <th>Compatible Widget Annotations</th>
- * <th>Supports {@link Optional}?</th>
- * </tr>
- * <tr>
- * <td>Map&ltString,Object&gt;</td>
- * <td></td>
- * <td>{@link DynamicSettingsWidget} for creating an imperative dialog for this map.</td>
- * <td></td>
- * </tr>
- * </table>
- * <br>
- *
- *
+ * This package contains tools to create parts of default node dialogs that depend dynamically on other parts, i.e.
+ * their dialog is provided imperatively.
  *
  * @author Paul Bärnreuther
  */
-
-package org.knime.core.webui.node.dialog.defaultdialog.internal;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic;

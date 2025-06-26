@@ -46,7 +46,7 @@
  * History
  *   15 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;

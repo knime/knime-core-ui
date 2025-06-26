@@ -46,7 +46,7 @@
  * History
  *   11 Jul 2024 (manuelhotz): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -70,6 +70,7 @@ import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.time.localdate.LocalDateCellFactory;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 
 /**
  * Tests for the {@link DynamicValuesInput} widget.
