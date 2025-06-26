@@ -44,32 +44,80 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 30, 2023 (Paul Bärnreuther): created
+ *   Apr 15, 2025 (david): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters.FilterResult;
 
 /**
- * Put this annotation on a String setting in order to enable a file chooser next to the string input field.
  *
- * @author Paul Bärnreuther
+ * @author david
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface LocalFileReaderWidget {
+final class FileChooserFilterFileVisitor extends SimpleFileVisitor<Path> {
 
-    /**
-     * @return the placeholder of the string input field
-     */
-    String placeholder() default "";
+    private final Predicate<Path> m_pathFilter;
 
-    /**
-     * @return the valid extensions by which the browsable files should be filtered
-     */
-    String[] fileExtensions() default {};
+    private final int m_limitToAcceptedFiles;
+
+    private final List<Path> m_acceptedFilePaths;
+
+    private int m_numEncounteredFiles;
+
+    private boolean m_wereAnySubtreesSkipped;
+
+    FileChooserFilterFileVisitor(final Predicate<Path> pathFilter, final int limitToAcceptedFiles) {
+        m_pathFilter = pathFilter;
+        m_limitToAcceptedFiles = limitToAcceptedFiles;
+
+        m_acceptedFilePaths = new ArrayList<>();
+        m_numEncounteredFiles = 0;
+        m_wereAnySubtreesSkipped = false;
+    }
+
+    @Override
+    public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+        boolean isFileLike = attrs.isRegularFile() || attrs.isOther();
+
+        if (isFileLike) {
+            ++m_numEncounteredFiles;
+            boolean passesFilter = m_pathFilter.test(file);
+            boolean limitNotHit = m_acceptedFilePaths.size() < m_limitToAcceptedFiles;
+            if (passesFilter && limitNotHit) {
+                m_acceptedFilePaths.add(file);
+            }
+        }
+
+        return super.visitFile(file, attrs);
+    }
+
+    @Override
+    public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
+        boolean shouldSkipSubtree = m_acceptedFilePaths.size() >= m_limitToAcceptedFiles || !m_pathFilter.test(dir);
+
+        m_wereAnySubtreesSkipped |= shouldSkipSubtree;
+
+        return shouldSkipSubtree //
+            ? FileVisitResult.SKIP_SUBTREE //
+            : super.preVisitDirectory(dir, attrs);
+    }
+
+    FilterResult getFilterResult() {
+        return new FilterResult( //
+            m_acceptedFilePaths, //
+            m_numEncounteredFiles, //
+            m_wereAnySubtreesSkipped, //
+            m_acceptedFilePaths.size() >= m_limitToAcceptedFiles //
+        );
+    }
+
 }

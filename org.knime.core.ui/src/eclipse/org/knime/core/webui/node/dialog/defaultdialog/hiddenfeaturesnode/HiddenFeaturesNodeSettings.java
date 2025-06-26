@@ -52,13 +52,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelectionWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileChooserFilters;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.MultiFileSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.FolderSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 class HiddenFeaturesNodeSettings implements DefaultNodeSettings {

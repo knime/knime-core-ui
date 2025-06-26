@@ -79,12 +79,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActi
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonChange;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;

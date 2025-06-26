@@ -46,7 +46,7 @@
  * History
  *   Mar 26, 2025 (david): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
 import java.io.IOException;
 import java.nio.file.FileVisitOption;

@@ -44,9 +44,9 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 26, 2025 (david): created
+ *   Feb 13, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -54,15 +54,43 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.fileselection.FileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
- * Widget to select a single folder. Should annotate a field of type {@link FileSelection}.
+ * Put this annotation on a String setting in order to enable a file chooser with writer capabilities next to the string
+ * input field.
  *
- * @author David Hickey, TNG Technology Consulting GmbH
+ * @author Paul Bärnreuther
  */
 @Retention(RUNTIME)
 @Target(FIELD)
-public @interface FolderSelectionWidget {
+public @interface LocalFileWriterWidget {
+
+    /**
+     * @return the placeholder of the string input field
+     */
+    String placeholder() default "";
+
+    /**
+     * A single valid file extension. When selecting a file path from the file explorer this has two effects:
+     * <ol>
+     * <li>Only files with this extension are shown in the explorer</li>
+     * <li>Whenever a file is chosen, i.e. when the explorer is closed, the extension is appended if the file does not
+     * already exist and does not already end with the extension.
+     * </ol>
+     *
+     *
+     * @return a file extension (e.g. "pdf" for files which should end with ".pdf")
+     */
+    String fileExtension() default "";
+
+    /**
+     * This can be used instead of {@link #fileExtension} in order to supply the file extension in a dynamic way, e.g.
+     * depending on other settings. See {@link StateProvider} for more information.
+     *
+     * @return a file extension provider
+     */
+    Class<? extends StateProvider<String>> fileExtensionProvider() default NoopStringProvider.class;
 
 }

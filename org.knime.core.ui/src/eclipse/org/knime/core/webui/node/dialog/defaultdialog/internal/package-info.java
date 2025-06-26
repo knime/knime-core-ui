@@ -50,16 +50,16 @@
  * This package contains features of default node dialogs that are still subject to change / preliminary versions. They
  * are to be used only internally only and not intended for public use.
  *
- * As such, the APIs provided in this package may change without notice and do **not** follow the stability guarantees
- * of the public API. They may be modified or removed in future releases.
- *
+ * As such, the APIs provided in this package may change without notice and do <i>not</i> follow the stability
+ * guarantees of the public API. They may be modified or removed in future releases.
  *
  * <p>
- * The table below lists the supported types of the internal API (which are **not** part of the public API), including:
+ * The table below lists the supported types of the internal API (which are <i>not</i> part of the public API),
+ * including:
  * </p>
  * <ul>
  * <li>The default widget displayed if no specific annotation is provided</li>
- * <li>The widget annotations compatible with the given type</li>
+ * <li>The internal widget annotations compatible with the given type</li>
  * </ul>
  *
  * <table border="1" cellpadding="3" cellspacing="0">
@@ -88,10 +88,27 @@
  * <td>{@link SimpleButtonWidget} (button with backend-side handler using the state provider mechanism).</td>
  * <td></td>
  * </tr>
+ * <td>String</td>
+ * <td>Text Input</td>
+ * <td>{@link LocalFileReaderWidget}<br>
+ * {@link LocalFileWriterWidget}<br>
+ * <td>✓</td>
+ * </tr>
+ * <tr>
+ * <td>{@link FileSelection}</td>
+ * <td>Path file chooser (with limited file system options)</td>
+ * <td>{@link FileReaderWidget}<br>
+ * {@link FileWriterWidget}</td>
+ * <td></td>
+ * </tr>
+ * <tr>
+ * <td>{@link MultiFileSelection}</td>
+ * <td>Path file chooser which can also accept a folder.</td>
+ * <td>{@link FileReaderWidget}</td>
+ * <td></td>
+ * </tr>
  * </table>
  * <br>
- *
- *
  *
  * @author Paul Bärnreuther
  */
