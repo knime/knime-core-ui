@@ -105,7 +105,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.Colu
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
@@ -821,7 +821,7 @@ public class UpdatesUtilTest {
 
                 }
 
-                @InternalArrayWidget(titleProvider = MyStringProvider.class, subTitleProvider = MyStringProvider.class)
+                @ArrayWidgetInternal(titleProvider = MyStringProvider.class, subTitleProvider = MyStringProvider.class)
                 ElementSettings[] m_array;
 
             }
@@ -1318,7 +1318,7 @@ public class UpdatesUtilTest {
 
                     @Override
                     public void init(final StateProviderInitializer initializer) {
-                        initializer.computeOnButtonClick(InternalArrayWidget.ElementResetButton.class);
+                        initializer.computeOnButtonClick(ArrayWidgetInternal.ElementResetButton.class);
                     }
 
                     @Override
@@ -1333,7 +1333,7 @@ public class UpdatesUtilTest {
                 String m_elementValue;
             }
 
-            @InternalArrayWidget(withEditAndReset = true)
+            @ArrayWidgetInternal(withEditAndReset = true)
             @Widget(title = "title", description = "description")
             ElementSettings[] m_elementSettings;
 

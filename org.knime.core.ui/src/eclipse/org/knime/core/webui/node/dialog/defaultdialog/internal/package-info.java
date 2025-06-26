@@ -44,70 +44,38 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 14, 2025 (Paul Bärnreuther): created
+ *   Jul 30, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
-
-import java.util.Objects;
-
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ButtonReferenceIdInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-
 /**
- * A trigger that is not a value trigger, i.e., currently, either one of the global triggers before or after the dialog
- * is opened or a button.
+ * This package contains features of default node dialogs that are still subject to change / preliminary versions. They
+ * are to be used only internally only and not intended for public use.
+ *
+ * As such, the APIs provided in this package may change without notice and do **not** follow the stability guarantees
+ * of the public API. They may be modified or removed in future releases.
+ *
+ *
+ * <p>
+ * The table below lists the supported types of the internal API (which are **not** part of the public API), including:
+ * </p>
+ * <ul>
+ * <li>The default widget displayed if no specific annotation is provided</li>
+ * <li>The widget annotations compatible with the given type</li>
+ * </ul>
+ *
+ * <table border="1" cellpadding="3" cellspacing="0">
+ * <caption>Type to Widget Mapping</caption>
+ * <tr>
+ * <th>Type</th>
+ * <th>Default Widget and Choices Configuration</th>
+ * <th>Compatible Widget Annotations</th>
+ * <th>Supports {@link Optional}?</th>
+ * </tr>
+ * </table>
+ * <br>
+ *
+ *
  *
  * @author Paul Bärnreuther
  */
-final class IdTriggerVertex extends TriggerVertex {
 
-    static final String BEFORE_OPEN_DIALOG_ID = "before-open-dialog";
-
-    static final String AFTER_OPEN_DIALOG_ID = "after-open-dialog";
-
-    String m_id;
-
-    IdTriggerVertex(final String id) {
-        m_id = id;
-    }
-
-    IdTriggerVertex(final Class<? extends ButtonReference> buttonRef) {
-        this(extractId(buttonRef));
-    }
-
-    private static String extractId(final Class<? extends ButtonReference> buttonRef) {
-        final var internalId = buttonRef.getAnnotation(ButtonReferenceIdInternal.class);
-        return internalId == null ? buttonRef.getName() : internalId.value();
-    }
-
-    String getId() {
-        return m_id;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof final IdTriggerVertex other) {
-            return m_id.equals(other.getId());
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(m_id);
-    }
-
-    @Override
-    public int compareTo(final TriggerVertex o) {
-        if (o instanceof IdTriggerVertex other) {
-            return m_id.compareTo(other.getId());
-        } else {
-            return -1; // IdTriggerVertex should always be before any value trigger vertex
-        }
-
-    }
-
-}
+package org.knime.core.webui.node.dialog.defaultdialog.internal;

@@ -254,12 +254,7 @@ public @interface TextMessage {
             /**
              * A success message.
              */
-            SUCCESS,
-
-            /**
-             * A message that informs the user about KNIME News
-             */
-            PROMOTION
+            SUCCESS
     }
 
 }

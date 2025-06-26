@@ -60,7 +60,7 @@ import java.util.List;
 import org.apache.commons.lang3.NotImplementedException;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.And;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ConstantPredicate;
@@ -143,7 +143,7 @@ class JsonFormsPredicateResolver implements PredicateVisitor<ObjectNode> {
     @Override
     public ObjectNode visit(final FrameworkPredicate frameworkPredicate) {
         final var frameworkPredicateProviderClass = frameworkPredicate.providerClass();
-        if (InternalArrayWidget.ElementIsEdited.class.equals(frameworkPredicateProviderClass)) {
+        if (ArrayWidgetInternal.ElementIsEdited.class.equals(frameworkPredicateProviderClass)) {
             final var conditionNode = getMapper().createObjectNode();
             conditionNode.put(TAG_SCOPE, JsonFormsScopeUtil.toScope(List.of("_edit"), null));
             conditionNode.set(FIELD_NAME_SCHEMA, JsonFormsConditionResolver.createConstTrueCondition());

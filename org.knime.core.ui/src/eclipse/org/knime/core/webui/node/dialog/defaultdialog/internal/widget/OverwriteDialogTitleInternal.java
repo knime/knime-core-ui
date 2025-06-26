@@ -44,13 +44,34 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 30, 2024 (Paul Bärnreuther): created
+ *   Dec 6, 2024 (Tobias Kampmann): created
  */
+package org.knime.core.webui.node.dialog.defaultdialog.internal.widget;
+
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
 /**
- * This package contains widget annotations which are not ready to be API.
+ * Annotation to overwrite the title of a widget in the dialog. This is useful if the title
+ * of the parameter shown in the node description is not suitable for the dialog or vice versa.
  *
- * Either because it is only necessary as internal use case or because it is not polished enough.
+ * One use case is to hide the explicit title string in the dialog but preserve the spacing
+ * and the control buttons,i.e. , the flow variable assignment button and the description button.
  *
- * @author Paul Bärnreuther
+ * @author Tobias Kampmann
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.internal;
+@Retention(RUNTIME)
+@Target(FIELD)
+public @interface OverwriteDialogTitleInternal {
+
+    /**
+     * The title shown in the dialog. The node description does not change.
+     * Contrary to the `title` attribute of the widget, an emtpy string
+     * will not result in the title string being defaulted to the components name, but
+     * will be rendered as empty string.
+     */
+    String value();
+}

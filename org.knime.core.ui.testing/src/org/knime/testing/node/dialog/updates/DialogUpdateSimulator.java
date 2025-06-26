@@ -66,7 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Location;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerAndDependencies;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler.TriggerResult;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalButtonReferenceId;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ButtonReferenceIdInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
@@ -151,7 +151,7 @@ public class DialogUpdateSimulator implements UpdateSimulator {
     @Override
     public UpdateSimulatorResult simulateButtonClick(final Class<? extends ButtonReference> trigger,
         final int... indices) {
-        final var internalReferenceId = trigger.getAnnotation(InternalButtonReferenceId.class);
+        final var internalReferenceId = trigger.getAnnotation(ButtonReferenceIdInternal.class);
         if (internalReferenceId != null) {
             return simulateTrigger(new Trigger.IdTrigger(internalReferenceId.value()), indices);
         }

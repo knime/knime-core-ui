@@ -44,34 +44,27 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 6, 2024 (Tobias Kampmann): created
+ *   Jul 31, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.internal;
-
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.widget;
 
 import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import java.lang.annotation.RetentionPolicy;
+
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 
 /**
- * Annotation to overwrite the title of a widget in the dialog. This is useful if the title
- * of the parameter shown in the node description is not suitable for the dialog or vice versa.
+ * This annotation can optionally be put on a {@link ButtonReference} in order to use the provided id instead of the
+ * name of the reference. This is used internally for buttons added by the framework (e.g. the
+ * {@link ArrayWidgetInternal.ElementResetButton}).
  *
- * One use case is to hide the explicit title string in the dialog but preserve the spacing
- * and the control buttons,i.e. , the flow variable assignment button and the description button.
- *
- * @author Tobias Kampmann
+ * @author Paul Bärnreuther
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface OverwriteDialogTitle {
-
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ButtonReferenceIdInternal {
     /**
-     * The title shown in the dialog. The node description does not change.
-     * Contrary to the `title` attribute of the widget, an emtpy string
-     * will not result in the title string being defaulted to the components name, but
-     * will be rendered as empty string.
+     * @return A unique id used internally for the annotated button.
      */
     String value();
+
 }

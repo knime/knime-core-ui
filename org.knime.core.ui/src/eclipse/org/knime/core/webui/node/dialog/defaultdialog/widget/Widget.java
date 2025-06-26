@@ -55,7 +55,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.OverwriteDialogTitle;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
@@ -96,7 +96,7 @@ public @interface Widget {
     /**
      * @return true if the title should be hidden from the dialog, but should still be available in the node
      *         description. NB: The whole title element will be hidden, including the flow variable button and the
-     *         description. If you want to hide only the displayed title string, use {@link OverwriteDialogTitle}
+     *         description. If you want to hide only the displayed title string, use {@link OverwriteDialogTitleInternal}
      *         with an empty string instead.
      */
     boolean hideControlHeader() default false;

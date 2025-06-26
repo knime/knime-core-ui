@@ -56,7 +56,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 
 /**
  * Test UI schema generation with arrays.
@@ -252,12 +252,12 @@ class JsonFormsUiSchemaUtilArrayTest {
         class TestArrayLayoutWithUpdateSettings implements DefaultNodeSettings {
 
             @Widget(title = "", description = "")
-            @InternalArrayWidget(withElementCheckboxes = true)
+            @ArrayWidgetInternal(withElementCheckboxes = true)
             ArrayElements[] m_arraySetting;
 
             class ArrayElements implements WidgetGroup {
 
-                @InternalArrayWidget.ElementCheckboxWidget
+                @ArrayWidgetInternal.ElementCheckboxWidget
                 @Widget(title = "inner setting", description = "inner setting description")
                 boolean m_innerSetting;
             }

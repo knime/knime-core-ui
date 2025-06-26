@@ -91,8 +91,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.Fl
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.OverwriteDialogTitle;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
@@ -141,7 +141,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         FileWriterWidget.class, //
         FolderSelectionWidget.class, //
         FlowVariableFilterWidget.class, //
-        InternalArrayWidget.ElementCheckboxWidget.class, //
+        ArrayWidgetInternal.ElementCheckboxWidget.class, //
         IntervalWidget.class, //
         Layout.class, //
         LocalFileReaderWidget.class, //
@@ -149,7 +149,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         Modification.WidgetReference.class, //
         NumberInputWidget.class, //
         OptionalWidget.class, //
-        OverwriteDialogTitle.class, //
+        OverwriteDialogTitleInternal.class, //
         PasswordWidget.class, //
         RadioButtonsWidget.class, //
         RichTextInputWidget.class, //
@@ -171,7 +171,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         Advanced.class, //
         ArrayWidget.class, //
         Effect.class, //
-        InternalArrayWidget.class, //
+        ArrayWidgetInternal.class, //
         Layout.class, //
         Modification.class, //
         Modification.WidgetReference.class, //

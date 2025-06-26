@@ -44,27 +44,49 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 31, 2024 (Paul Bärnreuther): created
+ *   Jul 30, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.internal;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-
 /**
- * This annotation can optionally be put on a {@link ButtonReference} in order to use the provided id instead of the
- * name of the reference. This is used internally for buttons added by the framework (e.g. the
- * {@link InternalArrayWidget.ElementResetButton}).
+ * This package contains widget annotations that are **internal** and not intended for public use. These annotations
+ * exist either for KNIME-internal purposes or are not polished enough for public exposure. As such, the APIs provided
+ * in this package may change without notice and do **not** follow the stability guarantees of the public API. They may
+ * be modified or removed in future releases.
  *
- * @author Paul Bärnreuther
+ * <h3>Internal Counterparts</h3>
+ *
+ * Some public widgets have internal counterparts that provide additional configuration options.
+ *
+ * <p>
+ * <strong>Naming Convention:</strong> Internal widgets should follow the naming pattern: <code>*Internal</code>.
+ * </p>
+ *
+ * <p>
+ * The following table maps public widgets to their internal counterparts, which offer additional configuration options:
+ * </p>
+ *
+ * <table border="1" cellpadding="3" cellspacing="0">
+ * <caption>Public to Internal Widget Mapping</caption>
+ * <tr>
+ * <th>Public Widget</th>
+ * <th>Internal Widget</th>
+ * <th>When to Use</th>
+ * </tr>
+ * <tr>
+ * <td>{@link ArrayWidget}</td>
+ * <td>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal
+ * ArrayWidgetInternal}</td>
+ * <td>Dynamic titles and edit/reset buttons in array elements</td>
+ * </tr>
+ * </table>
+ * <br>
+ *
+ * <h3>Additional internal widgets that are not tied to a specific type or public widget:</h3>
+ * <ul>
+ * <li>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal
+ * OverwriteDialogTitleInternal}: For showing a different title in the dialog as in the node description.</li>
+ * </ul>
+ *
+ * @author Robin Gerling
  */
-@Retention(RetentionPolicy.RUNTIME)
-public @interface InternalButtonReferenceId {
-    /**
-     * @return A unique id used internally for the annotated button.
-     */
-    String value();
 
-}
+package org.knime.core.webui.node.dialog.defaultdialog.internal.widget;

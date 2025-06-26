@@ -160,8 +160,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.Colu
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.OverwriteDialogTitle;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.WidgetAnnotation;
@@ -311,8 +311,8 @@ final class UiSchemaOptionsGenerator {
             options.put(OPTIONS_IS_ADVANCED, true);
         }
 
-        if (annotatedWidgets.contains(OverwriteDialogTitle.class)) {
-            final var widget = m_node.getAnnotation(OverwriteDialogTitle.class).orElseThrow();
+        if (annotatedWidgets.contains(OverwriteDialogTitleInternal.class)) {
+            final var widget = m_node.getAnnotation(OverwriteDialogTitleInternal.class).orElseThrow();
             control.put(TAG_LABEL, widget.value());
         }
 
@@ -761,7 +761,7 @@ final class UiSchemaOptionsGenerator {
         m_node.getAnnotation(ArrayWidget.class)
             .ifPresent(arrayWidget -> addArrayLayoutOptions(arrayWidget, control, options));
 
-        m_node.getAnnotation(InternalArrayWidget.class).ifPresent(
+        m_node.getAnnotation(ArrayWidgetInternal.class).ifPresent(
             internalArrayWidget -> addInternalArrayLayoutOptions(internalArrayWidget, control, options, elementTree));
     }
 
@@ -790,23 +790,23 @@ final class UiSchemaOptionsGenerator {
         }
     }
 
-    private static void addInternalArrayLayoutOptions(final InternalArrayWidget internalArrayWidget,
+    private static void addInternalArrayLayoutOptions(final ArrayWidgetInternal arrayWidgetInternal,
         final ObjectNode control, final ObjectNode options, final Tree<WidgetGroup> elementWidgetTree) {
 
-        if (internalArrayWidget.withEditAndReset()) {
+        if (arrayWidgetInternal.withEditAndReset()) {
             options.put(TAG_ARRAY_LAYOUT_WITH_EDIT_AND_RESET, true);
         }
 
-        if (internalArrayWidget.withElementCheckboxes()) {
+        if (arrayWidgetInternal.withElementCheckboxes()) {
             final var elementCheckboxScope = findElementCheckboxScope(elementWidgetTree);
             options.put(TAG_ARRAY_LAYOUT_ELEMENT_CHECKBOX_SCOPE, elementCheckboxScope);
         }
 
-        if (!NoopStringProvider.class.equals(internalArrayWidget.titleProvider())) {
+        if (!NoopStringProvider.class.equals(arrayWidgetInternal.titleProvider())) {
             getOrCreateProvidedOptions(control).add(TAG_ARRAY_LAYOUT_ELEMENT_TITLE);
         }
 
-        if (!NoopStringProvider.class.equals(internalArrayWidget.subTitleProvider())) {
+        if (!NoopStringProvider.class.equals(arrayWidgetInternal.subTitleProvider())) {
             getOrCreateProvidedOptions(control).add(TAG_ARRAY_LAYOUT_ELEMENT_SUB_TITLE);
         }
     }
@@ -820,8 +820,8 @@ final class UiSchemaOptionsGenerator {
     }
 
     static boolean hasElementCheckboxWidgetAnnotation(final TreeNode<WidgetGroup> field) {
-        return field.getPossibleAnnotations().contains(InternalArrayWidget.ElementCheckboxWidget.class)
-            && field.getAnnotation(InternalArrayWidget.ElementCheckboxWidget.class).isPresent();
+        return field.getPossibleAnnotations().contains(ArrayWidgetInternal.ElementCheckboxWidget.class)
+            && field.getAnnotation(ArrayWidgetInternal.ElementCheckboxWidget.class).isPresent();
     }
 
     private void setFilterSchemaForMultiFileWidgetChooser(final ObjectNode options,

@@ -89,7 +89,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProv
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBooleanProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMaxLengthValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMaxValidationProvider;
@@ -328,14 +328,14 @@ final class WidgetTreesToRefsAndStateProviders {
             ), //
             new UiStateProviderAnnotationSpec<>( //
                 UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_TITLE, //
-                InternalArrayWidget.class, //
-                InternalArrayWidget::titleProvider, //
+                ArrayWidgetInternal.class, //
+                ArrayWidgetInternal::titleProvider, //
                 NoopStringProvider.class //
             ), //
             new UiStateProviderAnnotationSpec<>( //
                 UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_SUB_TITLE, //
-                InternalArrayWidget.class, //
-                InternalArrayWidget::subTitleProvider, //
+                ArrayWidgetInternal.class, //
+                ArrayWidgetInternal::subTitleProvider, //
                 NoopStringProvider.class //
             ), //
             new UiStateProviderAnnotationSpec<>( //

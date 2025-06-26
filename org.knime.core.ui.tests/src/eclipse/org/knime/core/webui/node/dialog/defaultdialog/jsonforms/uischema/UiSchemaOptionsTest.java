@@ -135,8 +135,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.Passwor
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DeclaringDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.InternalArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.OverwriteDialogTitle;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
@@ -584,11 +584,11 @@ class UiSchemaOptionsTest {
             String m_foo1;
 
             @Widget(title = "foo2", description = "")
-            @OverwriteDialogTitle(title)
+            @OverwriteDialogTitleInternal(title)
             String m_foo2;
 
             @Widget(title = "foo3", description = "")
-            @OverwriteDialogTitle("")
+            @OverwriteDialogTitleInternal("")
             String m_foo3;
         }
 
@@ -1559,11 +1559,11 @@ class UiSchemaOptionsTest {
             static final class ElementSettings implements DefaultNodeSettings {
 
                 @Widget(title = "Element value", description = "")
-                @Effect(predicate = InternalArrayWidget.ElementIsEdited.class, type = EffectType.SHOW)
+                @Effect(predicate = ArrayWidgetInternal.ElementIsEdited.class, type = EffectType.SHOW)
                 String m_elementValue;
             }
 
-            @InternalArrayWidget(withEditAndReset = true, titleProvider = TestStringProvider.class,
+            @ArrayWidgetInternal(withEditAndReset = true, titleProvider = TestStringProvider.class,
                 subTitleProvider = TestStringProvider.class)
             @Widget(title = "title", description = "description")
             ElementSettings[] m_elementSettings;

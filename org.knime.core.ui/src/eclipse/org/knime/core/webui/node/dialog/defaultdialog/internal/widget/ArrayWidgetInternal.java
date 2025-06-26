@@ -46,7 +46,7 @@
  * History
  *   Jul 30, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.internal;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.widget;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -70,7 +70,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.
  */
 @Retention(RUNTIME)
 @Target(FIELD)
-public @interface InternalArrayWidget {
+public @interface ArrayWidgetInternal {
 
     /**
      * When set to true, a button flipping between an edit button and a reset button appears in the array layout
@@ -95,12 +95,12 @@ public @interface InternalArrayWidget {
      *
      * @author Paul Bärnreuther
      */
-    @InternalButtonReferenceId("ElementResetButton")
+    @ButtonReferenceIdInternal("ElementResetButton")
     final class ElementResetButton implements ButtonReference {
     }
 
     /**
-     * Use this when having {@link InternalArrayWidget#withEditAndReset} activated to show widgets inside an array
+     * Use this when having {@link ArrayWidgetInternal#withEditAndReset} activated to show widgets inside an array
      * layout element only when it is in edit mode.
      *
      * @author Paul Bärnreuther
@@ -118,7 +118,7 @@ public @interface InternalArrayWidget {
     boolean withElementCheckboxes() default false;
 
     /**
-     * See {@link InternalArrayWidget#withElementCheckboxes}.
+     * See {@link ArrayWidgetInternal#withElementCheckboxes}.
      *
      * @author Paul Bärnreuther
      */

@@ -99,7 +99,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.Credent
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.internal.OverwriteDialogTitle;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 
 /**
  * This utility class defines defaults and registers additional annotations used to define the format of an ui element.
@@ -170,7 +170,7 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(Widget.class), //
         new WidgetAnnotation(Advanced.class), //
         new WidgetAnnotation(DynamicSettingsWidget.class), //
-        new WidgetAnnotation(OverwriteDialogTitle.class), //
+        new WidgetAnnotation(OverwriteDialogTitleInternal.class), //
         new WidgetAnnotation(List.of(Enum.class), RadioButtonsWidget.class), //
         new WidgetAnnotation(List.of(Enum.class), ValueSwitchWidget.class), //
         new WidgetAnnotation(ChoicesProvider.class), //
