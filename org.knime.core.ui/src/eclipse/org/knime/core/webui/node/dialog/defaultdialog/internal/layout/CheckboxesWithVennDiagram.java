@@ -46,7 +46,7 @@
  * History
  *   Apr 23, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.layout;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.layout;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
