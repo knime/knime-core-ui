@@ -82,6 +82,12 @@
  * <td>{@link DynamicSettingsWidget} for creating an imperative dialog for this map.</td>
  * <td></td>
  * </tr>
+ * <tr>
+ * <td>{@link java.lang.Void Void} (i.e. this is not a setting but only something that is displayed)</td>
+ * <td></td>
+ * <td>{@link SimpleButtonWidget} (button with backend-side handler using the state provider mechanism).</td>
+ * <td></td>
+ * </tr>
  * </table>
  * <br>
  *

@@ -46,7 +46,7 @@
  * History
  *   Mar 26, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.button;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.button;
 
 /**
  * A set of predefined icons that can be used in annotations for certain widget components.
