@@ -81,6 +81,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
@@ -1045,7 +1046,8 @@ class UiSchemaOptionsTest {
             String m_richTextContent;
 
             @Widget(title = "", description = "")
-            @RichTextInputWidget(useFlowVarTemplates = true)
+            @RichTextInputWidget
+            @RichTextInputWidgetInternal(useFlowVarTemplates = true)
             String m_richTextContentWithTemplates;
         }
 

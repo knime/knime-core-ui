@@ -59,6 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidge
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
@@ -154,6 +155,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         PasswordWidget.class, //
         RadioButtonsWidget.class, //
         RichTextInputWidget.class, //
+        RichTextInputWidgetInternal.class, //
         SimpleButtonWidget.class, //
         SortListWidget.class, //
         TextAreaWidget.class, //

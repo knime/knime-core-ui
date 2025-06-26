@@ -63,11 +63,4 @@ import java.lang.annotation.Target;
 @Target(FIELD)
 public @interface RichTextInputWidget {
 
-    /**
-     * @return whether occurrences of `$$["flowVariableName"]` will be replaced by the value of the respective flow
-     *         variable wherever the result of this widget is used. The widget needs this information to, e.g., adjust
-     *         the validation method for urls to allow the above syntax.
-     */
-    boolean useFlowVarTemplates() default false;
-
 }

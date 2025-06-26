@@ -109,6 +109,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.DateTimeUtil;
@@ -343,9 +344,15 @@ final class UiSchemaOptionsGenerator {
 
         if (annotatedWidgets.contains(RichTextInputWidget.class)) {
             options.put(TAG_FORMAT, Format.RICH_TEXT_INPUT);
-            final var richTextInputWidget = m_node.getAnnotation(RichTextInputWidget.class).orElseThrow();
-            if (richTextInputWidget.useFlowVarTemplates()) {
-                options.put(TAG_USE_FLOW_VAR_TEMPLATES, true);
+            if (annotatedWidgets.contains(RichTextInputWidgetInternal.class)) {
+                final var richTextInputWidgetInternal =
+                    m_node.getAnnotation(RichTextInputWidgetInternal.class).orElseThrow();
+                if (richTextInputWidgetInternal.useFlowVarTemplates()) {
+                    options.put(TAG_USE_FLOW_VAR_TEMPLATES, true);
+                } else {
+                    throw new UiSchemaGenerationException(
+                        "The RichTextInputWidgetInternal annotation must have useFlowVarTemplates set to true.");
+                }
             }
         }
 

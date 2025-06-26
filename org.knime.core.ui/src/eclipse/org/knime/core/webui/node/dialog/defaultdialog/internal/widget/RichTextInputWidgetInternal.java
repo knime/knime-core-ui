@@ -44,63 +44,34 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 30, 2024 (Paul Bärnreuther): created
+ *   Jun 26, 2025 (Paul Bärnreuther): created
  */
-/**
- * This package contains widget annotations that are **internal** and not intended for public use. These annotations
- * exist either for KNIME-internal purposes or are not polished enough for public exposure. As such, the APIs provided
- * in this package may change without notice and do **not** follow the stability guarantees of the public API. They may
- * be modified or removed in future releases.
- *
- * <h3>Internal Counterparts</h3>
- *
- * Some public widgets have internal counterparts that provide additional configuration options.
- *
- * <p>
- * <strong>Naming Convention:</strong> Internal widgets should follow the naming pattern: <code>*Internal</code>.
- * </p>
- *
- * <p>
- * The following table maps public widgets to their internal counterparts, which offer additional configuration options:
- * </p>
- *
- * <table border="1" cellpadding="3" cellspacing="0">
- * <caption>Public to Internal Widget Mapping</caption>
- * <tr>
- * <th>Public Widget</th>
- * <th>Internal Widget</th>
- * <th>When to Use</th>
- * </tr>
- * <tr>
- * <td>{@link ArrayWidget}</td>
- * <td>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal
- * ArrayWidgetInternal}</td>
- * <td>Dynamic titles and edit/reset buttons in array elements</td>
- * </tr>
- * <tr>
- * <td>{@link Widget}</td>
- * <td>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal
- * WidgetInternal}</td>
- * <td>Hide the title, flow variable, and description button of an element</td>
- * </tr>
- * <tr>
- * <td>{@link RichTextInputWidget}</td>
- * <td>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal
- * RichTextInputWidgetInternal}</td>
- * <td>Rich text input with flow variable templates</td>
- * </tr>
- * </table>
- * <br>
- *
- * <h3>Additional internal widgets that are not tied to a specific type or public widget:</h3>
- * <ul>
- * <li>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal
- * OverwriteDialogTitleInternal}: For showing a different title in the dialog as in the node description.</li>
- * <li>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget SortListWidget}: For a
- * widget that allows sorting a list of columns in the node dialog.</li>
- * </ul>
- *
- * @author Robin Gerling
- */
-
 package org.knime.core.webui.node.dialog.defaultdialog.internal.widget;
+
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
+
+/**
+ * Add this next to a {@link RichTextInputWidget} annotation to make use of {@link #useFlowVarTemplates}.
+ *
+ * @author Paul Bärnreuther
+ */
+@Retention(RUNTIME)
+@Target(FIELD)
+public @interface RichTextInputWidgetInternal {
+
+    /**
+     * The returned value should be `true`, otherwise an error will be thrown.
+     *
+     * @return whether occurrences of `$$["flowVariableName"]` will be replaced by the value of the respective flow
+     *         variable wherever the result of this widget is used. The widget needs this information to, adjust the
+     *         validation method for urls to allow the above syntax.
+     */
+    boolean useFlowVarTemplates();
+
+}
