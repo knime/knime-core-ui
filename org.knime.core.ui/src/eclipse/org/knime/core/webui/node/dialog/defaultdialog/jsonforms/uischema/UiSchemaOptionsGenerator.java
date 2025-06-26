@@ -107,6 +107,9 @@ import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.DateTimeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.EnumUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
@@ -160,8 +163,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.Colu
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.WidgetAnnotation;
@@ -302,8 +303,14 @@ final class UiSchemaOptionsGenerator {
             if (widget.advanced()) {
                 options.put(OPTIONS_IS_ADVANCED, true);
             }
-            if (widget.hideControlHeader()) {
-                options.put(TAG_HIDE_CONTROL_HEADER, true);
+            if (annotatedWidgets.contains(WidgetInternal.class)) {
+                final var widgetInternal = m_node.getAnnotation(WidgetInternal.class).orElseThrow();
+                if (widgetInternal.hideControlHeader()) {
+                    options.put(TAG_HIDE_CONTROL_HEADER, true);
+                } else {
+                    throw new UiSchemaGenerationException(
+                        "The WidgetInternal annotation must have hideControlHeader set to true.");
+                }
             }
         }
 

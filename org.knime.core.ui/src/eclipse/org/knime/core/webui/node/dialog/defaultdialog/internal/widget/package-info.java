@@ -77,6 +77,12 @@
  * ArrayWidgetInternal}</td>
  * <td>Dynamic titles and edit/reset buttons in array elements</td>
  * </tr>
+ * <tr>
+ * <td>{@link Widget}</td>
+ * <td>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal
+ * WidgetInternal}</td>
+ * <td>Hide the title, flow variable, and description button of an element</td>
+ * </tr>
  * </table>
  * <br>
  *

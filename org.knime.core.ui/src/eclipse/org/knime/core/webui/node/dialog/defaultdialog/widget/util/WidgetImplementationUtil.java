@@ -59,6 +59,8 @@ import java.util.stream.Collectors;
 
 import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection.DBTableSelection;
@@ -99,7 +101,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.Credent
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.dynamic.DynamicValuesInput;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 
 /**
  * This utility class defines defaults and registers additional annotations used to define the format of an ui element.
@@ -168,6 +169,7 @@ public final class WidgetImplementationUtil {
      */
     private static final WidgetAnnotation[] WIDGET_ANNOTATIONS = new WidgetAnnotation[]{//
         new WidgetAnnotation(Widget.class), //
+        new WidgetAnnotation(WidgetInternal.class), //
         new WidgetAnnotation(Advanced.class), //
         new WidgetAnnotation(DynamicSettingsWidget.class), //
         new WidgetAnnotation(OverwriteDialogTitleInternal.class), //

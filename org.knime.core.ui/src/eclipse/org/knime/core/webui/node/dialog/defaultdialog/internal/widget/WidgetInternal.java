@@ -44,62 +44,32 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   4 Nov 2021 (Marc Bux, KNIME GmbH, Berlin, Germany): created
+ *   26 Jun 2025 (Robin Gerling, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.widget;
 
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
- * An annotation for a field indicating that its contributing to the dialog UI. And it allows one to control common
- * widget metadata of the field.
+ * An extension for the {@link Widget} annotation specifying further configuration options.
  *
- * Depending on the type of the field being annotated and in case there is <b> no</b>
- * {@link org.knime.core.webui.node.dialog.defaultdialog.widget other widget annotation} present, a default widget will
- * be displayed in the dialog (see {@link DefaultNodeSettings} for details). In case the default widget is not desired,
- * an additional specialized widget-annotation (e.g. {@link TextInputWidget}) can be used to customize it.
- *
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Robin Gerling, KNIME GmbH, Konstanz, Germany
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-@Inherited
-public @interface Widget {
+public @interface WidgetInternal {
 
     /**
-     * @return the title / label of the field. If empty, the widgets default name is used.
-     * If the title should be empty in the dialog, use
+     * @return true if the title should be hidden from the dialog, but should still be available in the node
+     *         description. NB: The whole title element will be hidden, including the flow variable button and the
+     *         description. If you want to hide only the displayed title string, use
+     *         {@link OverwriteDialogTitleInternal} with an empty string instead.
      */
-    String title();
-
-    /**
-     * @return the description of the field (for tooltips or node descriptions)
-     */
-    String description();
-
-    /**
-     * @return true if the annotated setting is advanced
-     * @see Advanced
-     */
-    boolean advanced() default false;
-
-    /**
-     * Add an effect annotation here as an alternative to putting it on the annotated field directly. if an effect
-     * annotation also exists on the field, an error is thrown.
-     *
-     * @return whether the widget should be disabled or hidden.
-     * @see Effect
-     *
-     */
-    Effect effect() default @Effect(predicate = PredicateProvider.class, type = EffectType.SHOW);
+    boolean hideControlHeader() default false;
 
 }
