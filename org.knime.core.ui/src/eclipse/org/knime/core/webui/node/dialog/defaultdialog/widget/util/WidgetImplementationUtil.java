@@ -49,7 +49,6 @@
 package org.knime.core.webui.node.dialog.defaultdialog.widget.util;
 
 import java.lang.annotation.Annotation;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
@@ -91,7 +90,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TimeWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -182,7 +180,6 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(FlowVariableFilter.class), FlowVariableFilterWidget.class), //
         new WidgetAnnotation(List.of(String[].class), SortListWidget.class), //
         new WidgetAnnotation(ButtonWidget.class), //
-        new WidgetAnnotation(List.of(LocalTime.class), TimeWidget.class), //
         new WidgetAnnotation(List.of(Interval.class), IntervalWidget.class), //
         new WidgetAnnotation(List.of(TemporalFormat.class, String.class), DateTimeFormatPickerWidget.class), //
         new WidgetAnnotation(List.of(String.class), RichTextInputWidget.class), //
