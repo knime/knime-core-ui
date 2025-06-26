@@ -51,12 +51,12 @@ package org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl;
 import java.util.Collection;
 import java.util.Optional;
 
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActionHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.TraversedField;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonActionHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
 
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 

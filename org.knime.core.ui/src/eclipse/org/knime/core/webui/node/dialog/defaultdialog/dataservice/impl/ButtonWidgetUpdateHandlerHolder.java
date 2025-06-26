@@ -51,11 +51,11 @@ package org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl;
 import java.util.Collection;
 import java.util.Optional;
 
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonUpdateHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.NoopButtonUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.TraversedField;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonUpdateHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.NoopButtonUpdateHandler;
 
 /**
  *

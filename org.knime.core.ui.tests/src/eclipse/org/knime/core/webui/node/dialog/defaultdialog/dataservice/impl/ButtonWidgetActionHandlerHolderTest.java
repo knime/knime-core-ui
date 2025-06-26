@@ -55,10 +55,10 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActionHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonChange;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonActionHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonChange;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
 
 @SuppressWarnings("java:S2698") // we accept assertions without messages
 class ButtonWidgetActionHandlerHolderTest {

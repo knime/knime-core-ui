@@ -122,7 +122,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.DataTypeChoicesStateProvider;
@@ -343,12 +342,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
  * <td></td>
  * <td>{@link SimpleButtonWidget} (button with backend-side action handler)<br>
  * {@link TextMessage}</td>
- * <td></td>
- * </tr>
- * <tr>
- * <td>Any type</td>
- * <td></td>
- * <td>{@link ButtonWidget} (button with backend-side action handler)</td>
  * <td></td>
  * </tr>
  *

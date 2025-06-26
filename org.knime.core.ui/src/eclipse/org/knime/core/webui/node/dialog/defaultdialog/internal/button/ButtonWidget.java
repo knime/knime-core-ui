@@ -44,32 +44,61 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 18, 2023 (Paul Bärnreuther): created
+ *   Jun 15, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.button;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.button;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.NoopButtonUpdateHandler.NoopEnum;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyHandler;
 
 /**
- * Marker class that is only meant to serve as a default in {@link ButtonWidget#updateHandler}.
+ *
+ * This annotation can be applied to a field of any serializable type, in order to display a button widget which, on
+ * click, invokes an action specified by the given actionHandler. The returned value is set to the setting on a
+ * successful response.
+ *
+ * @see org.knime.core.webui.node.dialog.defaultdialog.dataservice
  *
  * @author Paul Bärnreuther
  */
-public final class NoopButtonUpdateHandler implements ButtonUpdateHandler<Void, Void, NoopEnum> {
-
-    enum NoopEnum {
-
-    }
+@Retention(RUNTIME)
+@Target(FIELD)
+public @interface ButtonWidget {
 
     /**
-     * This method should never be called, since the handler should never be used.
+     * @return the action handler that is to be triggered on click. A successful result should be of the same type as
+     *         the setting that is implemented. The second generic type of the {@link ButtonActionHandler} controls
+     *         which other settings are available during the invocation. Without a {@link ButtonWidget#updateHandler}
+     *         set, this does not mean that the buttons state gets changed when one of these settings is changed.
+     *
+     *         See {@link DependencyHandler} for further information on how to define these other settings.
      */
-    @Override
-    public ButtonChange<Void, NoopEnum> update(final Void settings, final DefaultNodeSettingsContext context)
-        throws WidgetHandlerException {
-        return null;
-    }
+    Class<? extends ButtonActionHandler<?, ?, ?>> actionHandler(); //NOSONAR
+
+    /**
+     * @return a handler that controls which other settings trigger a reset of the button when they change (i.e. delete
+     *         the saved value and enable the button again). See there for further information on how to use this. While
+     *         the first and third generic type have to agree with the ones of {@link ButtonWidget#actionHandler}, the
+     *         second one can, in principle, be different if the settings triggering an update and the settings used on
+     *         invocation differ.
+     *
+     *         See {@link DependencyHandler} for further information on how to define these other settings.
+     */
+    Class<? extends ButtonUpdateHandler<?, ?, ?>> updateHandler() default NoopButtonUpdateHandler.class; //NOSONAR
+
+    /**
+     * @return if set to true, error messages are displayed besides the button.
+     */
+    boolean displayErrorMessage() default true;
+
+    /**
+     * @return if set to true, title and description will be shown above the ButtonWidget
+     */
+    boolean showTitleAndDescription() default true;
 
 }

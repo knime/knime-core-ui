@@ -44,21 +44,42 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 18, 2023 (Paul Bärnreuther): created
+ *   Jun 27, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.button;
-
-import org.knime.core.webui.node.dialog.defaultdialog.widget.UpdateHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyHandler;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.button;
 
 /**
- * A handler for updating the button state when another setting changes its value.
+ * This class exists in order to communicate what changes should be made to a button component after a call to a
+ * {@link ButtonActionHandler} or a {@link ButtonUpdateHandler}.
  *
- * @param <R> the type of the setting which is annotated by {@link ButtonWidget}
- * @param <S> the settings which should trigger an update of the button (see {@link DependencyHandler})
- * @param <M> the state machine of the button. This has to be the same one as for the {@link ButtonWidget#actionHandler}
+ * @param buttonState The next state of the button
+ * @param settingValue The next value the setting should be set to if {@link ButtonChange#setSettingValue} is true
+ * @param setSettingValue Whether the next value of the setting should be set or ignored
+ * @param <R> the type of the annotated setting
+ * @param <M> the state machine of the button
+ *
  * @author Paul Bärnreuther
  */
-public interface ButtonUpdateHandler<R, S, M extends Enum<M>> extends UpdateHandler<ButtonChange<R, M>, S> {
+public record ButtonChange<R, M extends Enum<M>>(M buttonState, R settingValue, boolean setSettingValue) {
+
+
+    /**
+     * Use this constructor to change the buttonState but keep the setting value untouched.
+     *
+     * @param newButtonState the new state of the button.
+     */
+    public ButtonChange(final M newButtonState) {
+        this(newButtonState, null, false);
+    }
+
+    /**
+     * Use this constructor to change the buttonState and the setting value.
+     *
+     * @param newSettingValue the new value of the setting.
+     * @param newButtonState the new state of the button.
+     */
+    public ButtonChange(final R newSettingValue, final M newButtonState) {
+        this(newButtonState, newSettingValue, true);
+    }
 
 }

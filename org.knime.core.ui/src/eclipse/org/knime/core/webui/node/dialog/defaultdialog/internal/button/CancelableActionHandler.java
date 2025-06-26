@@ -46,12 +46,12 @@
  * History
  *   Jun 19, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.button;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.button;
 
 import java.lang.annotation.Annotation;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.CancelableActionHandler.States;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.CancelableActionHandler.States;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 
 /**

@@ -46,40 +46,48 @@
  * History
  *   Jun 27, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.button;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.button;
+
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 /**
- * This class exists in order to communicate what changes should be made to a button component after a call to a
- * {@link ButtonActionHandler} or a {@link ButtonUpdateHandler}.
+ * An interface used to defining the underlying state machine of the action handler within a {@link ButtonWidget}. It
+ * targets the enum fields of {@link ButtonActionHandler#getStateMachine}.
  *
- * @param buttonState The next state of the button
- * @param settingValue The next value the setting should be set to if {@link ButtonChange#setSettingValue} is true
- * @param setSettingValue Whether the next value of the setting should be set or ignored
- * @param <R> the type of the annotated setting
- * @param <M> the state machine of the button
+ * The annotated state can be overwritten for an individual {@link ButtonActionHandler}s by using
+ * {@link ButtonActionHandler#overrideButtonState}.
  *
  * @author Paul Bärnreuther
  */
-public record ButtonChange<R, M extends Enum<M>>(M buttonState, R settingValue, boolean setSettingValue) {
-
-
-    /**
-     * Use this constructor to change the buttonState but keep the setting value untouched.
-     *
-     * @param newButtonState the new state of the button.
-     */
-    public ButtonChange(final M newButtonState) {
-        this(newButtonState, null, false);
-    }
+@Retention(RUNTIME)
+@Target(FIELD)
+public @interface ButtonState {
 
     /**
-     * Use this constructor to change the buttonState and the setting value.
-     *
-     * @param newSettingValue the new value of the setting.
-     * @param newButtonState the new state of the button.
+     * @return the text displayed on the button.
      */
-    public ButtonChange(final R newSettingValue, final M newButtonState) {
-        this(newButtonState, newSettingValue, true);
-    }
+    String text();
+
+    /**
+     * @return the next button state selected immediately on click. Use the default to not change the state of the
+     *         button. The state can be changed a second time (to a possibly different state) again defined by the
+     *         result of the invoked action (see {@link ButtonActionHandler#invoke}). If the invocation is cancelled,
+     *         the state of the button is reseted to the previous one again.
+     */
+    String nextState() default "";
+
+    /**
+     * @return whether the button is disabled in this state.
+     */
+    boolean disabled() default false;
+
+    /**
+     * @return whether the button is in primary state
+     */
+    boolean primary() default true;
 
 }

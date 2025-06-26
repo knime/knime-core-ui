@@ -71,6 +71,12 @@
  * <th>Supports {@link Optional}?</th>
  * </tr>
  * <tr>
+ * <td>Any type</td>
+ * <td></td>
+ * <td>{@link ButtonWidget} (button with backend-side action handler)</td>
+ * <td></td>
+ * </tr>
+ * <tr>
  * <td>Map&ltString,Object&gt;</td>
  * <td></td>
  * <td>{@link DynamicSettingsWidget} for creating an imperative dialog for this map.</td>

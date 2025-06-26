@@ -44,50 +44,21 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 27, 2023 (Paul Bärnreuther): created
+ *   Jul 18, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.button;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.button;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.UpdateHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyHandler;
 
 /**
- * An interface used to defining the underlying state machine of the action handler within a {@link ButtonWidget}. It
- * targets the enum fields of {@link ButtonActionHandler#getStateMachine}.
+ * A handler for updating the button state when another setting changes its value.
  *
- * The annotated state can be overwritten for an individual {@link ButtonActionHandler}s by using
- * {@link ButtonActionHandler#overrideButtonState}.
- *
+ * @param <R> the type of the setting which is annotated by {@link ButtonWidget}
+ * @param <S> the settings which should trigger an update of the button (see {@link DependencyHandler})
+ * @param <M> the state machine of the button. This has to be the same one as for the {@link ButtonWidget#actionHandler}
  * @author Paul Bärnreuther
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface ButtonState {
-
-    /**
-     * @return the text displayed on the button.
-     */
-    String text();
-
-    /**
-     * @return the next button state selected immediately on click. Use the default to not change the state of the
-     *         button. The state can be changed a second time (to a possibly different state) again defined by the
-     *         result of the invoked action (see {@link ButtonActionHandler#invoke}). If the invocation is cancelled,
-     *         the state of the button is reseted to the previous one again.
-     */
-    String nextState() default "";
-
-    /**
-     * @return whether the button is disabled in this state.
-     */
-    boolean disabled() default false;
-
-    /**
-     * @return whether the button is in primary state
-     */
-    boolean primary() default true;
+public interface ButtonUpdateHandler<R, S, M extends Enum<M>> extends UpdateHandler<ButtonChange<R, M>, S> {
 
 }

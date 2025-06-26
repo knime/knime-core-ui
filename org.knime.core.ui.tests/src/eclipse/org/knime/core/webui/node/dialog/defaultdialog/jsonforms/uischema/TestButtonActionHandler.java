@@ -51,10 +51,10 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 import java.lang.annotation.Annotation;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActionHandler;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonChange;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonState;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TestButtonActionHandler.TestStates;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonActionHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonChange;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.button.ButtonState;
 
 /**
  *
