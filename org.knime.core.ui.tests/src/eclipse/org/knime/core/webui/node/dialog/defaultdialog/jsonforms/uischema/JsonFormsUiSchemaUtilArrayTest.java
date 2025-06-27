@@ -46,6 +46,7 @@
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_DETAIL;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.buildTestUiSchema;
 
@@ -53,10 +54,12 @@ import java.util.Collection;
 
 import org.junit.jupiter.api.Test;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
+import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 
 /**
  * Test UI schema generation with arrays.
@@ -124,6 +127,62 @@ class JsonFormsUiSchemaUtilArrayTest {
     }
 
     @Test
+    void wrapsElementDetailsInAHorizontalLayoutInCaseOfSingleLineLayoutMode() {
+
+        class TestArrayWidgetSettings implements DefaultNodeSettings {
+            @Widget(title = "", description = "")
+            @ArrayWidget(elementLayout = ArrayWidget.ElementLayout.HORIZONTAL_SINGLE_LINE)
+            ArrayElements[] m_arraySetting;
+
+            class ArrayElements implements WidgetGroup {
+
+                @Widget(title = "", description = "")
+                String m_innerSetting1;
+
+                @Widget(title = "", description = "")
+                String m_innerSetting2;
+            }
+        }
+
+        final var response = buildTestUiSchema(TestArrayWidgetSettings.class);
+        assertThatJson(response).inPath("$.elements[0].type").isString().isEqualTo("Control");
+        assertThatJson(response).inPath("$.elements[0].options.detail").isArray().hasSize(1);
+        assertThatJson(response).inPath("$.elements[0].options.detail[0].type").isString()
+            .isEqualTo("HorizontalLayout");
+        assertThatJson(response).inPath("$.elements[0].options.detail[0].elements").isArray().hasSize(2);
+    }
+
+    @Test
+    void doesNotWrapInAnAdditionalHorizontalLayoutIfItIsAlreadyOneElement() {
+        class TestArrayWidgetSettings implements DefaultNodeSettings {
+            @Widget(title = "", description = "")
+            @ArrayWidget(elementLayout = ArrayWidget.ElementLayout.HORIZONTAL_SINGLE_LINE)
+            ArrayElements[] m_arraySetting;
+
+            class ArrayElements implements WidgetGroup {
+
+                @HorizontalLayout
+                interface InnerLayout {
+                }
+
+                @Widget(title = "", description = "")
+                @Layout(InnerLayout.class)
+                String m_innerSetting1;
+
+                @Widget(title = "", description = "")
+                @Layout(InnerLayout.class)
+                String m_innerSetting2;
+            }
+        }
+
+        final var response = buildTestUiSchema(TestArrayWidgetSettings.class);
+        assertThatJson(response).inPath("$.elements[0].type").isString().isEqualTo("Control");
+        assertThatJson(response).inPath("$.elements[0].options.detail").isArray().hasSize(1);
+        assertThatJson(response).inPath("$.elements[0].options.detail[0].elements[0].type").isString()
+            .isEqualTo("Control");
+    }
+
+    @Test
     void testArrayWidgetAnnotation() {
         class TestArrayWidgetSettings implements DefaultNodeSettings {
 
@@ -140,7 +199,7 @@ class JsonFormsUiSchemaUtilArrayTest {
             ArrayElements[] m_arraySetting2;
 
             @Widget(title = "", description = "")
-            @ArrayWidget(elementTitle = "", addButtonText = "")
+            @ArrayWidget(elementLayout = ArrayWidget.ElementLayout.HORIZONTAL_SINGLE_LINE, addButtonText = "")
             ArrayElements[] m_arraySetting3;
 
             @Widget(title = "", description = "")
@@ -152,7 +211,7 @@ class JsonFormsUiSchemaUtilArrayTest {
             Collection<ArrayElements> m_collectionSetting2;
 
             @Widget(title = "", description = "")
-            @ArrayWidget(elementTitle = "", addButtonText = "")
+            @ArrayWidget(addButtonText = "")
             Collection<ArrayElements> m_collectionSetting3;
 
             @Widget(title = "", description = "", advanced = true)
@@ -166,7 +225,6 @@ class JsonFormsUiSchemaUtilArrayTest {
         }
         final var response = buildTestUiSchema(TestArrayWidgetSettings.class);
 
-        assertThatJson(response).inPath("$.elements[0].options").isObject().doesNotContainKey("arrayElementTitle");
         assertThatJson(response).inPath("$.elements[0].options.addButtonText").isString()
             .isEqualTo(TestArrayWidgetSettings.EXPECTED_ADD_TEXT);
         assertThatJson(response).inPath("$.elements[1].options.arrayElementTitle").isString()
@@ -174,14 +232,14 @@ class JsonFormsUiSchemaUtilArrayTest {
         assertThatJson(response).inPath("$.elements[1].options").isObject().doesNotContainKey("addButtonText");
         assertThatJson(response).inPath("$.elements[2].options").isObject().doesNotContainKey("arrayElementTitle");
         assertThatJson(response).inPath("$.elements[2].options").isObject().doesNotContainKey("addButtonText");
+        assertThatJson(response).inPath("$.elements[2].options.elementLayout").isString()
+            .isEqualTo("HORIZONTAL_SINGLE_LINE");
 
-        assertThatJson(response).inPath("$.elements[3].options").isObject().doesNotContainKey("arrayElementTitle");
         assertThatJson(response).inPath("$.elements[3].options.addButtonText").isString()
             .isEqualTo(TestArrayWidgetSettings.EXPECTED_ADD_TEXT);
         assertThatJson(response).inPath("$.elements[4].options.arrayElementTitle").isString()
             .isEqualTo(TestArrayWidgetSettings.EXPECTED_TITLE);
         assertThatJson(response).inPath("$.elements[4].options").isObject().doesNotContainKey("addButtonText");
-        assertThatJson(response).inPath("$.elements[5].options").isObject().doesNotContainKey("arrayElementTitle");
         assertThatJson(response).inPath("$.elements[5].options").isObject().doesNotContainKey("addButtonText");
         assertThatJson(response).inPath("$.elements[6].options.isAdvanced").isBoolean().isTrue();
     }
@@ -246,7 +304,6 @@ class JsonFormsUiSchemaUtilArrayTest {
         assertThatJson(response).inPath("elements[0].options").isObject().doesNotContainKey(TAG_ARRAY_LAYOUT_DETAIL);
     }
 
-
     @Test
     void testInternalArrayLayoutElementCheckboxWidget() {
         class TestArrayLayoutWithUpdateSettings implements DefaultNodeSettings {
@@ -273,4 +330,53 @@ class JsonFormsUiSchemaUtilArrayTest {
             .isEqualTo("#/properties/innerSetting");
 
     }
+
+    /**
+     * In case an element title is required (i.e. the element layout is VERTICAL_CARD) but not set, it should be derived
+     * from the field name.
+     */
+    @Test
+    void testFieldNameToElementTitle() {
+        class TestArrayLayoutWithFieldNameElementTitle implements DefaultNodeSettings {
+
+            @Widget(title = "", description = "")
+            @ArrayWidget(elementLayout = ArrayWidget.ElementLayout.VERTICAL_CARD)
+            ArrayElements[] m_myElements;
+
+            class ArrayElements implements WidgetGroup {
+
+                @Widget(title = "", description = "")
+                String m_innerSetting1;
+            }
+        }
+
+        final var response = buildTestUiSchema(TestArrayLayoutWithFieldNameElementTitle.class);
+
+        assertThatJson(response).inPath("$.elements[0].options.arrayElementTitle").isString().isEqualTo("My Element");
+
+    }
+
+    @Test
+    void testThrowsOnSetElementTitleWhenNotRequired() {
+        class TestArrayLayoutWithFieldNameElementTitle implements DefaultNodeSettings {
+
+            @Widget(title = "", description = "")
+            @ArrayWidget(elementTitle = "My Element Title",
+                elementLayout = ArrayWidget.ElementLayout.HORIZONTAL_SINGLE_LINE)
+            ArrayElements[] m_myElements;
+
+            class ArrayElements implements WidgetGroup {
+
+                @Widget(title = "", description = "")
+                String m_innerSetting1;
+
+                @Widget(title = "", description = "")
+                String m_innerSetting2;
+            }
+        }
+
+        assertThrows(UiSchemaGenerationException.class,
+            () -> buildTestUiSchema(TestArrayLayoutWithFieldNameElementTitle.class));
+    }
+
 }

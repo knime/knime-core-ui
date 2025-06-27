@@ -60,6 +60,7 @@
               "options": {
                 "addButtonText": "Add dummy element",
                 "showSortButtons": true,
+                "elementLayout": "HORIZONTAL_SINGLE_LINE",
                 "detail": {
                   "horizontalLayout": {
                     "type": "HorizontalLayout",

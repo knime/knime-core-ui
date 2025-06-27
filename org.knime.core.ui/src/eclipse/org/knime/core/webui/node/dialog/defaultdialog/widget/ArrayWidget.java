@@ -75,6 +75,22 @@ public @interface ArrayWidget {
     String addButtonText() default "";
 
     /**
+     * Choose between a standard card style with a header or a more compact single line style.
+     *
+     * @return the style in which the elements should be displayed in the array widget.
+     */
+    ElementLayout elementLayout() default ElementLayout.VERTICAL_CARD;
+
+    /**
+     * This title is used when {@link #elementLayout()} is set to {@link ElementLayout#VERTICAL_CARD} as a header within
+     * each card. The header adds the index of the element, i.e. setting this field to "Column" would result in "Column
+     * 1", "Column 2", etc. being shown as the header of each card.
+     *
+     * If {@link #elementLayout()} is set to {@link ElementLayout#HORIZONTAL_SINGLE_LINE}, this title is ignored.
+     *
+     * When not setting this field, the element title will be inferred from the array layout field name by removing the
+     * plural and resolving camelCase to separate words.
+     *
      * @return a title that is shown above each element of the array
      */
     String elementTitle() default "";
@@ -91,8 +107,30 @@ public @interface ArrayWidget {
 
     /**
      * @return a {@link StateProvider} that determines the default value when adding a new element to the array. The
-     * {@link StateProvider} must provide a value of the element's type. If this attribute is not set, the default
-     * constructor of the element's type will be called.
+     *         {@link StateProvider} must provide a value of the element's type. If this attribute is not set, the
+     *         default constructor of the element's type will be called.
      */
     Class<? extends StateProvider> elementDefaultValueProvider() default StateProvider.class; // NOSONAR
+
+    /**
+     * An enum to define the layout of the elements in the array widget.
+     */
+    enum ElementLayout {
+            /**
+             * Elements are styled as a card and displayed vertically. Each element has a header showing the element
+             * title and controls are positioned on the right side of that header.
+             *
+             * Note that controls can still be wrapped in a horizontal layout and only top-level blocks are displayed
+             * vertically.
+             */
+            VERTICAL_CARD,
+
+            /**
+             * A more compact version that shows only one line per element of the array. Elements are shown in a
+             * horizontal layout without a header showing the element title. Controls are positioned on the right of
+             * this line. I.e. in particular, there is no need to wrap the elements in a horizontal layout additionally.
+             */
+            HORIZONTAL_SINGLE_LINE;
+
+    }
 }

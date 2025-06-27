@@ -29,6 +29,7 @@ const props = defineProps<{
   hasBeenAdded: boolean;
   id: string;
   idsRecord: IdsRecord;
+  useCardLayout: boolean;
 }>();
 
 const resetElementDirtyState = props.hasBeenAdded
@@ -64,7 +65,7 @@ defineExpose({
 </script>
 
 <template>
-  <template v-if="arrayElementTitle">
+  <template v-if="useCardLayout && arrayElementTitle">
     <div class="item-header">
       <div
         class="left"
