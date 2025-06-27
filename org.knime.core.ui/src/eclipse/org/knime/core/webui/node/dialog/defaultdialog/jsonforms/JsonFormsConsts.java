@@ -350,6 +350,11 @@ public final class JsonFormsConsts {
         public static final String TAG_ARRAY_LAYOUT_DETAIL = "detail";
 
         /**
+         * The option tag for the element layout of an array layout
+         */
+        public static final String TAG_ARRAY_LAYOUT_ELEMENT_LAYOUT = "elementLayout";
+
+        /**
          * The title of the sub elements in an array layout
          */
         public static final String TAG_ARRAY_LAYOUT_ELEMENT_TITLE = "arrayElementTitle";

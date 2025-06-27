@@ -107,7 +107,6 @@ public final class JsonFormsUiSchemaUtil {
      * having access to the parentFields
      *
      * @param context
-     * @param asyncChoicesAdder
      * @param widgetTrees to derive the uischema from
      * @return the uischema
      */

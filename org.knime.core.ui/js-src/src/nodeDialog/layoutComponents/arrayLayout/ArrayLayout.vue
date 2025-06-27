@@ -48,6 +48,7 @@ export interface ArrayLayoutControl {
        */
       elementSubTitle?: string;
       elementDefaultValue?: unknown;
+      elementLayout?: "HORIZONTAL_SINGLE_LINE" | "VERTICAL_CARD";
     };
     providedOptions?: (
       | "arrayElementTitle"
@@ -165,6 +166,7 @@ const ArrayLayout = defineComponent({
   },
   data() {
     return {
+      elementLayoutKey: "elementLayout" as const,
       arrayElementTitleKey: "arrayElementTitle" as const,
       editResetButtonFormat,
       elementCountBeforeAddingOne: -1,
@@ -202,6 +204,12 @@ const ArrayLayout = defineComponent({
       }
       const elementTitle =
         this.control.uischema.options?.[this.arrayElementTitleKey];
+      if (this.elementLayout === "VERTICAL_CARD" && !elementTitle) {
+        return {
+          type: "enumerated",
+          title: "Element",
+        };
+      }
       if (elementTitle) {
         return {
           type: "enumerated",
@@ -210,8 +218,14 @@ const ArrayLayout = defineComponent({
       }
       return false;
     },
+    elementLayout() {
+      return (
+        this.control.uischema.options?.[this.elementLayoutKey] ||
+        "VERTICAL_CARD"
+      );
+    },
     useCardLayout() {
-      return this.arrayElementTitle !== false;
+      return this.elementLayout === "VERTICAL_CARD";
     },
   },
   methods: {
@@ -281,6 +295,7 @@ export default ArrayLayout;
         :index="objIndex"
         :has-been-added="objIndex === elementCountBeforeAddingOne"
         :element-checkbox-scope="elementCheckboxScope"
+        :use-card-layout="useCardLayout"
       >
         <template #renderer="{ element, path }">
           <DispatchRenderer

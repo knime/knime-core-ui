@@ -399,7 +399,7 @@ describe("ArrayLayout.vue", () => {
     expect(itemControlsWithArrowDown).toHaveLength(0);
   });
 
-  it("renders headers and uses card styled items", () => {
+  it("renders headers and uses card styled items when elementLayout is VERTICAL_CARD (default)", () => {
     const { wrapper } = mountArrayLayout({
       props: { control },
     });
@@ -408,15 +408,23 @@ describe("ArrayLayout.vue", () => {
     expect(wrapper.vm.useCardLayout).toBeTruthy();
   });
 
-  it("does not render headers and items as card but renders controls if arrayElementTitle is missing", () => {
+  it("does not render headers or card layout when elementLayout is HORIZONTAL_SINGLE_LINE", () => {
     delete control.value.uischema.options.arrayElementTitle;
+    control.value.uischema.options.elementLayout = "HORIZONTAL_SINGLE_LINE";
     const { wrapper } = mountArrayLayout({
       props: { control },
     });
     expect(wrapper.find(".item-header").exists()).toBeFalsy();
-    const numberDataItems = control.value.data.length;
-    const itemControls = wrapper.findAllComponents(ArrayLayoutItemControls);
-    expect(itemControls).toHaveLength(numberDataItems);
+    expect(wrapper.vm.useCardLayout).toBeFalsy();
+  });
+
+  it("does not render card layout or header if elementLayout is HORIZONTAL_SINGLE_LINE, even if arrayElementTitle is set", () => {
+    control.value.uischema.options.elementLayout = "HORIZONTAL_SINGLE_LINE";
+    control.value.uischema.options.arrayElementTitle = "ShouldNotShow";
+    const { wrapper } = mountArrayLayout({
+      props: { control },
+    });
+    expect(wrapper.find(".item-header").exists()).toBeFalsy();
     expect(wrapper.vm.useCardLayout).toBeFalsy();
   });
 

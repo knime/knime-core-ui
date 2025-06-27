@@ -54,6 +54,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_DETAIL;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_CHECKBOX_SCOPE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_DEFAULT_VALUE;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_LAYOUT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_SUB_TITLE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_ELEMENT_TITLE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ARRAY_LAYOUT_HAS_FIXED_SIZE;
@@ -78,8 +79,10 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_PLACEHOLDER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_POSSIBLE_VALUES;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_PROVIDED_OPTIONS;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_TYPE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_UNKNOWN_VALUES_TEXT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_USE_FLOW_VAR_TEMPLATES;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TYPE_HORIZONTAL_LAYOUT;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.getApplicableDefaults;
 import static org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.partitionWidgetAnnotationsByApplicability;
 
@@ -88,12 +91,15 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.PortObjectSpec;
@@ -494,7 +500,9 @@ final class UiSchemaOptionsGenerator {
         }
 
         if (m_node instanceof ArrayParentNode<WidgetGroup> arrayWidgetNode) {
-            applyArrayLayoutOptions(control, options, arrayWidgetNode.getElementTree());
+            applyArrayLayoutOptions(control, options, arrayWidgetNode.getElementTree(),
+                m_node.getAnnotation(ArrayWidget.class).map(ArrayWidget::elementLayout)
+                    .orElse(ArrayWidget.ElementLayout.VERTICAL_CARD));
         }
 
         if (options.isEmpty()) {
@@ -769,10 +777,18 @@ final class UiSchemaOptionsGenerator {
     }
 
     private void applyArrayLayoutOptions(final ObjectNode control, final ObjectNode options,
-        final Tree<WidgetGroup> elementTree) {
+        final Tree<WidgetGroup> elementTree, final ArrayWidget.ElementLayout elementLayout) {
         var details = JsonFormsUiSchemaUtil
             .buildUISchema(List.of(elementTree), m_widgetTrees, m_defaultNodeSettingsContext).get(TAG_ELEMENTS);
-        options.set(TAG_ARRAY_LAYOUT_DETAIL, details);
+        if (elementLayout == ArrayWidget.ElementLayout.HORIZONTAL_SINGLE_LINE && details.isArray()
+            && StreamSupport.stream(details.spliterator(), false).count() > 1) {
+            options.putArray(TAG_ARRAY_LAYOUT_DETAIL)//
+                .addObject()//
+                .put(TAG_TYPE, TYPE_HORIZONTAL_LAYOUT)//
+                .set(TAG_ELEMENTS, details);
+        } else {
+            options.set(TAG_ARRAY_LAYOUT_DETAIL, details);
+        }
 
         m_node.getAnnotation(ArrayWidget.class)
             .ifPresent(arrayWidget -> addArrayLayoutOptions(arrayWidget, control, options));
@@ -781,7 +797,7 @@ final class UiSchemaOptionsGenerator {
             internalArrayWidget -> addInternalArrayLayoutOptions(internalArrayWidget, control, options, elementTree));
     }
 
-    private static void addArrayLayoutOptions(final ArrayWidget arrayWidget, final ObjectNode control,
+    private void addArrayLayoutOptions(final ArrayWidget arrayWidget, final ObjectNode control,
         final ObjectNode options) {
         var addButtonText = arrayWidget.addButtonText();
         if (!addButtonText.isEmpty()) {
@@ -790,10 +806,7 @@ final class UiSchemaOptionsGenerator {
         if (!addButtonText.isEmpty()) {
             options.put(TAG_ARRAY_LAYOUT_ADD_BUTTON_TEXT, addButtonText);
         }
-        var elementTitle = arrayWidget.elementTitle();
-        if (!elementTitle.isEmpty()) {
-            options.put(TAG_ARRAY_LAYOUT_ELEMENT_TITLE, elementTitle);
-        }
+        addArrayElementLayoutAndTitleOptions(arrayWidget, options);
         if (arrayWidget.showSortButtons()) {
             options.put(TAG_ARRAY_LAYOUT_SHOW_SORT_BUTTONS, true);
         }
@@ -804,6 +817,53 @@ final class UiSchemaOptionsGenerator {
         if (!elementDefaultValueProvider.equals(StateProvider.class)) {
             getOrCreateProvidedOptions(control).add(TAG_ARRAY_LAYOUT_ELEMENT_DEFAULT_VALUE);
         }
+    }
+
+    private void addArrayElementLayoutAndTitleOptions(final ArrayWidget arrayWidget, final ObjectNode options) {
+        final var elementLayout = arrayWidget.elementLayout();
+        if (elementLayout != ArrayWidget.ElementLayout.VERTICAL_CARD) {
+            options.put(TAG_ARRAY_LAYOUT_ELEMENT_LAYOUT, elementLayout.name());
+        }
+        var elementTitle = arrayWidget.elementTitle();
+        if (!elementTitle.isEmpty() && elementLayout == ArrayWidget.ElementLayout.HORIZONTAL_SINGLE_LINE) {
+            throw new UiSchemaGenerationException(
+                "In an ArrayWidget, do not set the elementTitle in case elementLayout is HORIZONTAL_SINGLE_LINE.");
+        }
+        if (elementTitle.isEmpty() && elementLayout == ArrayWidget.ElementLayout.VERTICAL_CARD) {
+            elementTitle = autoGuessElementTitle(m_node);
+        }
+        if (!elementTitle.isEmpty()) {
+            options.put(TAG_ARRAY_LAYOUT_ELEMENT_TITLE, elementTitle);
+        }
+    }
+
+    private static String autoGuessElementTitle(final TreeNode<WidgetGroup> node) {
+        final var nodeName = node.getName();
+        if (nodeName.isEmpty()) {
+            throw new IllegalStateException("Cannot guess element title for array layout without a name.");
+
+        }
+        return fieldNameToElementTitle(nodeName.get());
+    }
+
+    private static String fieldNameToElementTitle(final String nodeName) {
+        return makeSingular(upperCase(resolveCamelCase(nodeName)));
+    }
+
+    private static String makeSingular(final String upperCaseFirstCharacter) {
+        return upperCaseFirstCharacter.endsWith("s")
+            ? upperCaseFirstCharacter.substring(0, upperCaseFirstCharacter.length() - 1) : upperCaseFirstCharacter;
+    }
+
+    private static String upperCase(final String withResolvedCamelCase) {
+        return withResolvedCamelCase.substring(0, 1).toUpperCase(Locale.getDefault())
+            + withResolvedCamelCase.substring(1);
+    }
+
+    private static final Pattern CAMEL_CASE_PATTERN = Pattern.compile("([\\p{Ll}])([\\p{Lu}])");
+
+    private static String resolveCamelCase(final String nodeName) {
+        return CAMEL_CASE_PATTERN.matcher(nodeName).replaceAll("$1 $2");
     }
 
     private static void addInternalArrayLayoutOptions(final ArrayWidgetInternal arrayWidgetInternal,
