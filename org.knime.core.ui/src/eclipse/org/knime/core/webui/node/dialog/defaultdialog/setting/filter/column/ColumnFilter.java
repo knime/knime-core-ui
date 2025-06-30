@@ -115,8 +115,9 @@ public final class ColumnFilter extends TypedStringFilter<ColumnTypeFilter> {
     }
 
     /**
-     * Get selected columns, including columns that were selected but are not in the provided column list. You likely
-     * want to use {@link #filter} instead.
+     * In case of manual selection, the selected values can become missing by the columns dynamically changing. This
+     * method returns the manually selected columns which are not contained in the provided column list. You likely want
+     * to use {@link #filter} instead.
      *
      * @see #filter
      * @param choices the non-null list of all possible column names
@@ -158,7 +159,8 @@ public final class ColumnFilter extends TypedStringFilter<ColumnTypeFilter> {
     }
 
     /**
-     * Use this method if every column in an input spec is possible
+     * Get selected columns, but only those that are available in the provided data table spec. This is likely the
+     * method you want to use.
      *
      * @param spec to take all columns from
      * @return the array of currently selected columns with respect to the mode which are contained in the given array
@@ -168,7 +170,9 @@ public final class ColumnFilter extends TypedStringFilter<ColumnTypeFilter> {
     }
 
     /**
-     * Use this method if every column in an input spec is possible
+     * In case of manual selection, the selected values can become missing by the columns dynamically changing. This
+     * method returns the manually selected columns that are missing in the provided data table spec. You likely want to
+     * use {@link #filterFromFullSpec} instead.
      *
      * @param spec to take all columns from
      * @return the array of currently selected columns with respect to the mode which are contained in the given array

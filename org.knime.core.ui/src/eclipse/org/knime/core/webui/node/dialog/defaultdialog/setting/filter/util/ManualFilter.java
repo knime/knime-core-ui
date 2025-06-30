@@ -131,13 +131,13 @@ public class ManualFilter implements PersistableSettings {
     }
 
     /**
-     * Returns the manually selected (also missing ones, i.e. not present in the choices) columns plus any unknown
-     * columns if these are included. Note that the manually selected and manually deselected do not get updated by this
-     * method. The only place where these get altered is if the dialog gets opened and new settings get saved. This way,
-     * excluded columns stay marked as excluded when a view is executed without opening the dialog.
+     * Returns the missing columns (i.e. not present in the choices). Note that the manually selected and manually
+     * deselected do not get updated by this method. The only place where these get altered is if the dialog gets opened
+     * and new settings get saved. This way, excluded columns stay marked as excluded when a view is executed without
+     * opening the dialog.
      *
      * @param choices for selected values from which previously unknown ones are either selected or deselected.
-     * @return the manually selected columns plus the new previously unknown ones if these are included.
+     * @return the columns previously selected but not contained in the provided column list
      */
     public String[] getUpdatedMissingValues(final String[] choices) {
         if (m_includeUnknownColumns) {
