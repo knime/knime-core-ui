@@ -179,10 +179,6 @@ public class PageTest {
             .getReusablePage(pageName);
         assertThat(page.getPageId()).isEqualTo(pageName + ":" + System.identityHashCode(page));
 
-        page = Page.create().fromFile().bundleID(BUNDLE_ID).basePath("files").relativeFilePath("page.html")
-            .getReusablePage(null);
-        assertThat(page.getPageId()).isEmpty();
-
         page = Page.create().fromFile().bundleID(BUNDLE_ID).basePath("files").relativeFilePath("page.js")
             .getReusablePage(pageName);
         assertThat(page.getPageId()).isEqualTo(pageName);

@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -98,6 +99,7 @@ public class FromFilePage extends Page {
 
     /**
      * Shallow copy constructor.
+     *
      * @param p
      */
     protected FromFilePage(final FromFilePage p) {
@@ -236,6 +238,17 @@ public class FromFilePage extends Page {
             m_isCompletelyStatic = false;
         }
         super.addResources(supplier, relativePathPrefix, areStatic);
+        return this;
+    }
+
+    @Override
+    public Page addResources(final Function<String, InputStream> supplier, final String relativePathPrefix,
+        final boolean areStatic, final Charset charset) {
+
+        if (!areStatic) {
+            m_isCompletelyStatic = false;
+        }
+        super.addResources(supplier, relativePathPrefix, areStatic, charset);
         return this;
     }
 

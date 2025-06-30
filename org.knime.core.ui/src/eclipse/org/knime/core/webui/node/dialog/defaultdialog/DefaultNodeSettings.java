@@ -354,6 +354,16 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 public interface DefaultNodeSettings extends PersistableSettings, WidgetGroup {
 
     /**
+     * Use this method to validate a loaded instance of DefaultNodeSettings. Settings should be invalid if it should be
+     * impossible to apply them.
+     *
+     * @throws InvalidSettingsException if a setting is invalid
+     */
+    default void validate() throws InvalidSettingsException {
+        // No validation per default
+    }
+
+    /**
      * A context that holds any available information that might be relevant for creating a new instance of
      * {@link DefaultNodeSettings}.
      */

@@ -282,7 +282,9 @@ public class Page implements Resource, FluentNodeAPI {
      */
     public Page addResources(final Function<String, InputStream> supplier, final String relativePathPrefix,
         final boolean areStatic, final Charset charset) {
-        assert !isCompletelyStatic();
+        if (!areStatic && isCompletelyStatic()) {
+            throw new IllegalStateException("Cannot add dynamic resources to a completely static page.");
+        }
         m_dynamicResources.put(relativePathPrefix, relativePath -> { // NOSONAR
             var inputStream = supplier.apply(relativePath);
             if (inputStream == null) {
