@@ -90,12 +90,12 @@ public final class OptionsAdder {
     }
 
     /**
-     * TODO
+     * Adds {@link DefaultNodeSettings} to a options tab.
      *
-     * @param tab
-     * @param modelSettingsClass
-     * @param viewSettingsClass
-     * @param optionCreator
+     * @param tab to add to
+     * @param modelSettingsClass (might be null)
+     * @param viewSettingsClass (might be null)
+     * @param optionCreator for creating an option from title and description
      */
     public static void addOptionsToTab(final Element tab, final Class<? extends DefaultNodeSettings> modelSettingsClass,
         final Class<? extends DefaultNodeSettings> viewSettingsClass,

@@ -7,6 +7,5 @@ Bundle-ClassPath: knime-core-ui-api.jar
 Bundle-Vendor: KNIME AG
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-17
-Export-Package: org.knime.core.ui.api.widget
 Automatic-Module-Name: org.knime.core.ui.api
 Require-Bundle: org.knime.core;bundle-version="[5.5.0,6.0.0)"
