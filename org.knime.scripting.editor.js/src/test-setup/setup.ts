@@ -1,7 +1,7 @@
 import { vi } from "vitest";
-import { LogLevel } from "consola";
+import { consola } from "consola";
 
-consola.level = LogLevel.Debug;
+window.consola = consola;
 
 vi.mock("@xterm/xterm", () => {
   const Terminal = vi.fn();
