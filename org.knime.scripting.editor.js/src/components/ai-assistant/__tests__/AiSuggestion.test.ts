@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { nextTick, ref } from "vue";
+import { isRef, nextTick, ref } from "vue";
 import { mount } from "@vue/test-utils";
 
 import { Button } from "@knime/components";
@@ -30,11 +30,12 @@ describe("AiSuggestion", () => {
     };
     const wrapper = mount(AiSuggestion);
     const editorContainer = wrapper.find(".diff-editor");
-    expect(useDiffEditor).toHaveBeenCalledWith({
-      container: ref(editorContainer.element),
-      modifiedFileName: "ai-suggestion",
-      originalModel: "myEditorModel",
-    });
+    // Patch: compare ref value instead of ref object
+    const callArgs = (useDiffEditor as any).mock.calls[0][0];
+    expect(isRef(callArgs.container)).toBe(true);
+    expect(callArgs.container.value).toBe(editorContainer.element);
+    expect(callArgs.modifiedFileName).toBe("ai-suggestion");
+    expect(callArgs.originalModel).toBe("myEditorModel");
   });
 
   it("should update diff on prompt response change", async () => {
