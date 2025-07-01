@@ -29,12 +29,15 @@ describe("ScriptingEditorBottomPane", () => {
       props?: Partial<InstanceType<typeof ScriptingEditorBottomPane>["$props"]>;
       slots?: any;
     } = {
-      props: { slottedTabs: [] },
+      props: {},
       slots: {},
     },
   ) => {
     const wrapper = mount(ScriptingEditorBottomPane, {
-      props: args.props,
+      props: {
+        slottedTabs: [],
+        ...args.props,
+      },
       slots: args.slots,
       attachTo: "body",
     });
