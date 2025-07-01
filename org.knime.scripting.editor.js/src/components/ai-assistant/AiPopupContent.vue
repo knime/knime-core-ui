@@ -50,6 +50,9 @@ const { textarea, input } = useTextareaAutosize({
   // to take the border into account
   // See https://github.com/vueuse/vueuse/issues/3133
   onResize() {
+    if (!textarea.value) {
+      return;
+    }
     const style = getComputedStyle(textarea.value);
     const heightWithBorder =
       parseFloat(textarea.value.style.height) +
@@ -93,10 +96,7 @@ const handleCodeSuggestion = (codeSuggestion: CodeSuggestion) => {
   } else {
     const suggestedCode = JSON.parse(codeSuggestion.code).code;
     message = { role: "request", content: input.value };
-    promptResponseStore.promptResponse = {
-      suggestedCode,
-      message,
-    };
+    promptResponseStore.promptResponse = { suggestedCode, message };
     status.value = "idle";
     input.value = "";
   }
