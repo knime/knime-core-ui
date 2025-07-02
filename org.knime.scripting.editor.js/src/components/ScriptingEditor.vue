@@ -66,6 +66,8 @@ const props = withDefaults(defineProps<Props>(), {
   modelOrView: "model",
 });
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// The return type of the slots is any as per the Vue 3 documentation.
 const slots = defineSlots<{
   "left-pane": () => any;
   editor: () => any;
@@ -77,6 +79,7 @@ const slots = defineSlots<{
   [key: BottomPaneTabSlotName]: (props: { grabFocus: () => void }) => any;
   [key: BottomPaneTabControlsSlotName]: () => any;
 }>();
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 const isRightPaneCollapsable = computed(
   () => props.rightPaneMinimumWidthInPixel === 0,

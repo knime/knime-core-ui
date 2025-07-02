@@ -22,7 +22,7 @@ export const mainEditorStore = shallowRef({
     mainEditorStore.value.text.value += text;
   }),
   editor: shallowRef({
-    onDidChangeModelContent: vi.fn((callback: any) => {
+    onDidChangeModelContent: vi.fn((callback: () => unknown) => {
       const unwatch = watch(
         () => mainEditorStore.value.text.value,
         () => {

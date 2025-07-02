@@ -74,7 +74,7 @@ describe("InputOutputPane", () => {
   it("does not render input / output items if no data is fetched", async () => {
     const wrapper = doMount();
     await flushPromises();
-    expect(wrapper.findComponent(InputOutputItem).exists());
+    expect(wrapper.findComponent(InputOutputItem).exists()).toBe(true);
   });
 
   describe("drop event handler", () => {
@@ -133,7 +133,7 @@ describe("InputOutputPane", () => {
       await flushPromises();
       const dropEventHandler = wrapper.emitted(
         "drop-event-handler-created",
-      )![0][0] as Function;
+      )![0][0] as (payload: any) => void;
       dropEventHandler(wrongSourceDropEventMock);
       expect(
         wrongSourceDropEventMock.dataTransfer.getData,
@@ -145,7 +145,7 @@ describe("InputOutputPane", () => {
       await flushPromises();
       const dropEventHandler = wrapper.emitted(
         "drop-event-handler-created",
-      )![0][0] as Function;
+      )![0][0] as (payload: any) => void;
 
       // run drop event handler
       dropEventHandler(correctSourceDropEventMock);
@@ -182,7 +182,7 @@ describe("InputOutputPane", () => {
 
       const dropEventHandler = wrapper.emitted(
         "drop-event-handler-created",
-      )![0][0] as Function;
+      )![0][0] as (payload: any) => void;
 
       // run drop event handler
       dropEventHandler(correctSourceDropEventMock);
@@ -201,7 +201,7 @@ describe("InputOutputPane", () => {
       expect(inputOutputSelectionStore.selectedItem).toStrictEqual(item1);
       const dropEventHandler = wrapper.emitted(
         "drop-event-handler-created",
-      )![0][0] as Function;
+      )![0][0] as (payload: any) => void;
       dropEventHandler(wrongSourceDropEventMock);
       expect(inputOutputSelectionStore.selectedItem).toStrictEqual(item1);
     });
@@ -211,7 +211,7 @@ describe("InputOutputPane", () => {
       await flushPromises();
       const dropEventHandler = wrapper.emitted(
         "drop-event-handler-created",
-      )![0][0] as Function;
+      )![0][0] as (payload: any) => void;
       dropEventHandler(correctSourceDropEventMock);
       expect(inputOutputSelectionStore.selectedItem).toBeUndefined();
     });

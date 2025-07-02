@@ -5,6 +5,8 @@ import type { PropType } from "vue";
 import { type MenuItem, SubMenu } from "@knime/components";
 import MenuIcon from "@knime/styles/img/icons/menu-options.svg";
 
+import type { SettingsMenuItem } from "./SettingsPage.vue";
+
 export default defineComponent({
   name: "HeaderBar",
   components: { SubMenu, MenuIcon },
@@ -25,7 +27,7 @@ export default defineComponent({
     },
   },
   methods: {
-    menuItemClicked(event: Event, item: any) {
+    menuItemClicked(event: Event, item: SettingsMenuItem) {
       this.$emit("menu-item-click", { event, item });
     },
   },

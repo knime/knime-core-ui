@@ -1,8 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { editor } from "monaco-editor";
-import type { Range } from "vscode-languageserver-protocol";
+import type {
+  Range,
+  TextDocumentContentChangeEvent,
+} from "vscode-languageserver-protocol";
 
 import { getDidChangeParams, getDidOpenParams } from "../doc-sync";
+
+type RangeChange = Extract<TextDocumentContentChangeEvent, { range: Range }>;
+
+function assertRangeChange(
+  change: TextDocumentContentChangeEvent,
+): asserts change is RangeChange {
+  expect("range" in change).toBe(true); // any runtime check is fine
+}
 
 describe("doc-sync", () => {
   const editorModel = {
@@ -45,17 +56,19 @@ describe("doc-sync", () => {
       ],
     } as unknown as editor.IModelContentChangedEvent);
     expect(didChangeParams.textDocument.version).toBe(99);
-    expect(didChangeParams.contentChanges[0].text).toBe("Bla");
-    // @ts-ignore
-    const change0Range: Range = didChangeParams.contentChanges[0].range;
+    const change0 = didChangeParams.contentChanges[0];
+    expect(change0.text).toBe("Bla");
+    assertRangeChange(change0);
+    const change0Range: Range = change0.range;
     expect(change0Range.start.line).toBe(9);
     expect(change0Range.start.character).toBe(11);
     expect(change0Range.end.line).toBe(19);
     expect(change0Range.end.character).toBe(21);
 
-    expect(didChangeParams.contentChanges[1].text).toBe("Hello");
-    // @ts-ignore
-    const change1Range: Range = didChangeParams.contentChanges[1].range;
+    const change1 = didChangeParams.contentChanges[1];
+    expect(change1.text).toBe("Hello");
+    assertRangeChange(change1);
+    const change1Range: Range = change1.range;
     expect(change1Range.start.line).toBe(0);
     expect(change1Range.start.character).toBe(0);
     expect(change1Range.end.line).toBe(8);

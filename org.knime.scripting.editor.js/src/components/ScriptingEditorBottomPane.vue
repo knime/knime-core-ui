@@ -24,7 +24,7 @@ export type SlottedTab = {
   associatedControlsSlotName?: BottomPaneTabControlsSlotName;
 };
 type PropsType = {
-  slottedTabs: SlottedTab[];
+  slottedTabs?: SlottedTab[];
 };
 const props = withDefaults(defineProps<PropsType>(), {
   slottedTabs: () => [] as SlottedTab[],

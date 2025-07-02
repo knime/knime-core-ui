@@ -1,12 +1,10 @@
-const applyStyles = (
-  element: HTMLElement,
-  styles: Partial<CSSStyleDeclaration>,
-): void => {
-  Object.entries(styles).forEach(([property, value]) => {
-    // @ts-ignore
-    element.style[property] = value;
-  });
+type StylePatch = {
+  [K in keyof CSSStyleDeclaration]?: CSSStyleDeclaration[K] | null;
 };
+
+function applyStyles(element: HTMLElement, styles: StylePatch): void {
+  Object.assign(element.style, styles);
+}
 
 const createBadge = (numSelectedItems: number) => {
   const badge = document.createElement("div");

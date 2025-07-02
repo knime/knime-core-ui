@@ -68,7 +68,6 @@ const apiLayer: UIExtensionAPILayer = {
       dataServiceRequest: JSON.stringify(requestObj),
     });
 
-    // @ts-ignore
     return response;
   },
   updateDataPointSelection: () => Promise.resolve({ result: null }),
@@ -79,7 +78,7 @@ const apiLayer: UIExtensionAPILayer = {
   publishData: noop,
   sendAlert(alert) {
     AlertingService.getInstance().then((service) =>
-      // @ts-expect-error
+      // @ts-expect-error baseService is not API but a property of the service
       service.baseService.sendAlert(alert),
     );
   },
@@ -89,24 +88,26 @@ const apiLayer: UIExtensionAPILayer = {
   closeDataValueView: noop,
 };
 const updateExtensionConfig = async (config: ExtensionConfig) => {
-  // @ts-ignore
+  // @ts-expect-error baseUrl is not part of the type definition but it exists
   resourceLocation.value = `${config.resourceInfo.baseUrl}${config.resourceInfo.path.split("/").slice(0, -1).join("/")}/core-ui/TableView.js`;
 
   extensionConfig.value = await makeExtensionConfig(
     config.nodeId,
     config.projectId,
     config.workflowId,
-    // @ts-ignore
+    // @ts-expect-error baseUrl is not part of the type definition but it exists
     config.resourceInfo.baseUrl,
   );
 };
 
 onMounted(async () => {
   const jsonService = await JsonDataService.getInstance();
-  baseService.value = (jsonService as any).baseService;
+  // @ts-expect-error baseService is not API but a property of the service
+  baseService.value = jsonService.baseService;
 
-  // @ts-ignore
-  const extensionConfigLoaded = await baseService.value.getConfig();
+  const extensionConfigLoaded: ExtensionConfig =
+    // @ts-expect-error baseService is not API but a property of the service
+    await baseService.value.getConfig();
   await updateExtensionConfig(extensionConfigLoaded);
 
   getScriptingService().registerEventHandler(

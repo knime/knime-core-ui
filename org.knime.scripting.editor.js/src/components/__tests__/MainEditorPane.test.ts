@@ -21,9 +21,7 @@ vi.mock("@/scripting-service");
 vi.mock("@/editor");
 
 const registerSettingsGetterForApplyMock = vi.hoisted(() =>
-  vi.fn(() => {
-    return Promise.resolve();
-  }),
+  vi.fn((_settingsGetter: () => GenericNodeSettings) => Promise.resolve()),
 );
 
 vi.mock("@/settings-service", () => ({
@@ -66,8 +64,7 @@ describe("MainEditorPane", () => {
     await flushPromises();
 
     const calls = registerSettingsGetterForApplyMock.mock.calls;
-    // @ts-ignore - for some reason typescript thinks mock.calls is guaranteed to be empty...
-    const settingsGetter = calls[0][0] as unknown as Function;
+    const settingsGetter = calls[0][0];
     expect(settingsGetter()).toStrictEqual({
       script: DEFAULT_INITIAL_SETTINGS.script,
     });
@@ -83,8 +80,7 @@ describe("MainEditorPane", () => {
     expect(registerSettingsGetterForApplyMock).toHaveBeenCalledOnce();
 
     const calls = registerSettingsGetterForApplyMock.mock.calls;
-    // @ts-ignore - for some reason typescript thinks mock.calls is guaranteed to be empty...
-    const settingsGetter = calls[0][0] as unknown as Function;
+    const settingsGetter = calls[0][0];
 
     expect(settingsGetter()).toStrictEqual(settings);
   });

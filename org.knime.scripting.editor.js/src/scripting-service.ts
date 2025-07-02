@@ -11,13 +11,12 @@ type LanugageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
 
 // --- HELPER CLASSES ---
 
-// TODO(AP-19341) use Java-to-JS events
+// TODO AP-19341: use Java-to-JS events
 /**
  * This class is a singleton that polls for events from the
  * Java backend and calls event handlers.
  */
 class EventPoller {
-  // eslint-disable-next-line no-use-before-define
   private static instance: EventPoller;
   private _eventHandlers: { [type: string]: (args: any) => void } = {};
 
@@ -28,7 +27,6 @@ class EventPoller {
   private async startPolling() {
     const jsonDataService = await JsonDataService.getInstance();
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       const res = await jsonDataService.data({
         method: "ScriptingService.getEvent",
@@ -58,7 +56,6 @@ class EventPoller {
 }
 
 class RPCHelper {
-  // eslint-disable-next-line no-use-before-define
   private static instance: RPCHelper;
   private jsonDataService: Promise<JsonDataService>;
 

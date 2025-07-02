@@ -71,7 +71,7 @@ const apiLayer: UIExtensionAPILayer = {
   publishData: noop,
   sendAlert(alert) {
     AlertingService.getInstance().then((service) =>
-      // @ts-expect-error
+      // @ts-expect-error baseService is not API but a property of the service
       service.baseService.sendAlert(alert),
     );
   },
@@ -101,7 +101,7 @@ watchEffect(() => {
       if (response.isSome) {
         extensionConfig.value = response.result;
         resourceLocation.value =
-          // @ts-ignore
+          // @ts-expect-error the baseUrl is not part of the type definition but it exists
           extensionConfig.value?.resourceInfo?.baseUrl +
           extensionConfig.value?.resourceInfo?.path;
       }

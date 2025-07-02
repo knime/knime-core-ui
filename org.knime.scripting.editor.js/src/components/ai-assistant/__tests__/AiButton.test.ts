@@ -18,16 +18,14 @@ vi.mock("@/initial-data-service", () => ({
 const doMount = async (
   args: {
     props?: Partial<InstanceType<typeof AiButton>["$props"]>;
-  } = {
+  } = {},
+) => {
+  const wrapper = mount(AiButton, {
     props: {
       currentPaneSizes: { left: 0, right: 0, bottom: 0 } satisfies PaneSizes,
       showButtonText: true,
+      ...args.props,
     },
-  },
-) => {
-  const wrapper = mount(AiButton, {
-    // @ts-ignore I'm not sure why this line gives a type error, because it's fine
-    props: args.props,
   });
 
   await flushPromises();

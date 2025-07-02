@@ -13,7 +13,6 @@ type InitialDataAndSettings = {
 };
 
 class SettingsHelper {
-  // eslint-disable-next-line no-use-before-define
   private static instance: SettingsHelper;
   private jsonDataService: Promise<JsonDataService>;
   private readonly dialogService: Promise<DialogService>;
