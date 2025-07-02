@@ -22,14 +22,10 @@ const emit = defineEmits<{
   ];
 }>();
 
-const props = withDefaults(
-  defineProps<{
-    inputOutputItems: InputOutputModel[];
-  }>(),
-  {
-    inputOutputItems: () => [],
-  },
-);
+type Props = { inputOutputItems?: InputOutputModel[] };
+const props = withDefaults(defineProps<Props>(), {
+  inputOutputItems: () => [],
+});
 
 // Watch inputOutputItems and update store/ai-bar/currentInputOutputItems
 const inputOutputItemsRef = toRef(props, "inputOutputItems");

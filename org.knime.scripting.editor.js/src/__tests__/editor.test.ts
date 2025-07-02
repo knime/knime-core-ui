@@ -41,7 +41,7 @@ describe("editor", () => {
       template: "<div></div>",
     });
 
-  // @ts-ignore createModel is mocked and does not need the arguments
+  // @ts-expect-error createModel is mocked and does not need the arguments
   const createEditorModel = () => monaco.editor.createModel();
 
   const expectModelProvidesText = (

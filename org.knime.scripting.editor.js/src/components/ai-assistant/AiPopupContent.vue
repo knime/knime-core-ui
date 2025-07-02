@@ -65,7 +65,7 @@ const promptResponseStore: PromptResponseStore = usePromptResponseStore();
 const status = ref<Status>("idle" as Status);
 let message: Message | null =
   promptResponseStore.promptResponse?.message ?? null;
-let history: Array<Message | null> = [];
+const history: Array<Message | null> = [];
 const scriptingService = getScriptingService();
 
 const abortRequest = () => {

@@ -1,5 +1,6 @@
 // eslint-disable-next-line spaced-comment
 /// <reference types="vitest" />
+import { join } from "node:path";
 import { URL, fileURLToPath } from "node:url";
 
 import { defineConfig } from "vite";
@@ -8,7 +9,7 @@ import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 import dts from "vite-plugin-dts";
 import svgLoader from "vite-svg-loader";
 
-// @ts-ignore
+// @ts-expect-error no types for svgo.config available
 import { svgoConfig } from "@knime/styles/config/svgo.config";
 
 // https://vitejs.dev/config/
@@ -74,7 +75,10 @@ export default defineConfig({
     alias: [
       {
         find: /^monaco-editor$/,
-        replacement: `${__dirname}/node_modules/monaco-editor/esm/vs/editor/editor.api.js`,
+        replacement: join(
+          __dirname,
+          "/node_modules/monaco-editor/esm/vs/editor/editor.api.js",
+        ),
       },
     ],
     coverage: {

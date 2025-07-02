@@ -193,7 +193,11 @@ const onSubItemDragStart = (event: DragEvent, index: number) => {
     multiSelection.handleSelectionClick(index);
   }
 
-  const draggedItem = props.inputOutputItem.subItems?.[index]!;
+  const draggedItem = props.inputOutputItem.subItems?.[index];
+  if (!draggedItem || !draggedItem.supported) {
+    return;
+  }
+
   const dragGhost = createDragGhost({
     elements: [{ text: draggedItem.name }],
     numSelectedItems: multiSelection.selectedIndexes.value.filter(

@@ -16,7 +16,7 @@ describe("OutputConsole", () => {
 
     // Get the handler to write to the console
     expect(wrapper.emitted()).toHaveProperty("console-created");
-    // @ts-ignore
+    // @ts-expect-error - the type of emitted()["console-created"] is unknown
     const handler = wrapper.emitted()[
       "console-created"
     ][0][0] as ConsoleHandler;

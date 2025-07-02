@@ -137,8 +137,7 @@ describe("AiPopup", () => {
     // click Send Button
     const sendButton = bar.findComponent({ ref: "sendButton" });
 
-    // @ts-ignore
-    expect(sendButton.isDisabled).toBeTruthy();
+    expect(sendButton.element.disabled).toBeTruthy();
   });
 
   it("disables send button if input textarea content is longer than 3000 characters", async () => {
@@ -153,8 +152,7 @@ describe("AiPopup", () => {
 
     const sendButton = bar.findComponent({ ref: "sendButton" });
 
-    // @ts-ignore
-    expect(sendButton.isDisabled).toBeTruthy();
+    expect(sendButton.element.disabled).toBeTruthy();
   });
 
   it("test aiBar abort request", async () => {

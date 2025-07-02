@@ -85,7 +85,7 @@ describe("monaco-lsp", () => {
     const resolveLastServerRequest = (result: any) =>
       sendFromServer({
         jsonrpc: "2.0",
-        // @ts-ignore - write is a mock and has been called
+        // @ts-expect-error - write is a mock and has been called
         id: writer.write.mock.lastCall[0].id,
         result,
       });

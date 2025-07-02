@@ -4,7 +4,6 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
 import AiButton from "../ai-assistant/AiButton.vue";
-import type { PaneSizes } from "../utils/paneSizes";
 
 vi.mock("@/scripting-service");
 vi.mock("@/initial-data-service", () => ({
@@ -18,15 +17,14 @@ const doMount = async (
     props?: Partial<InstanceType<typeof CodeEditorControlBar>["$props"]>;
     slots?: any;
   } = {
-    props: {
-      currentPaneSizes: { left: 0, right: 0, bottom: 0 } satisfies PaneSizes,
-    },
     slots: {},
   },
 ) => {
   const wrapper = mount(CodeEditorControlBar, {
-    // @ts-ignore
-    props: args.props,
+    props: {
+      currentPaneSizes: { left: 0, right: 0, bottom: 0 },
+      ...args.props,
+    },
     slots: args.slots,
     attachTo: "body",
   });

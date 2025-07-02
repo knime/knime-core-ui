@@ -173,8 +173,7 @@ export const getCompletionResolveParams = (
   const params: CompletionItem = {
     label: typeof item.label === "string" ? item.label : item.label.label,
   };
-  if (item.hasOwnProperty("data")) {
-    // @ts-ignore -- we checked for the data property before accessing it
+  if ("data" in item) {
     params.data = item.data;
   }
   return params;
