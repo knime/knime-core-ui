@@ -43,29 +43,9 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
- * History
- *   Feb 16, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.configmapping;
-
-import java.util.Collection;
 
 /**
- * This class provides a connection from an array of config paths relative to the base config of a field to another one.
- *
- * @see ConfigMigration
- *
- * @author Paul Bärnreuther
+ * Contains interfaces and logic related to the public Dialog-UI API.
  */
-public interface NewAndDeprecatedConfigPaths {
-
-    /**
-     * @return the newConfigPaths relative to the base config path of the annotated setting
-     */
-    Collection<ConfigPath> getNewConfigPaths();
-
-    /**
-     * @return the deprecatedConfigPaths relative to the base config path of the annotated setting
-     */
-    Collection<ConfigPath> getDeprecatedConfigPaths();
-}
+package org.knime.core.ui.api;
