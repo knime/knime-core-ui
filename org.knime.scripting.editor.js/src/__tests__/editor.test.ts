@@ -177,9 +177,9 @@ describe("editor", () => {
           endLineNumber: 127,
         },
       } as any;
-      vi
-        .mocked(state.editor.value?.onDidChangeCursorSelection)
-        ?.mock.lastCall?.[0](selectionEvent);
+      vi.mocked(
+        state.editor.value?.onDidChangeCursorSelection,
+      )?.mock.lastCall?.[0](selectionEvent);
 
       // Call for getting the selection
       expect(state.editorModel.getValueInRange).toHaveBeenCalledWith(
