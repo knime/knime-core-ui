@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-. "$(dirname -- "$0")/_/husky.sh"
-cd org.knime.scripting.editor.js && npx lint-staged || exit 0
