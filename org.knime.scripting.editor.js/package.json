@@ -25,9 +25,9 @@
     "postinstall": "license-check -c"
   },
   "dependencies": {
-    "@knime/styles": "^1.2.0",
-    "@knime/ui-extension-renderer": "2.0.7",
-    "@knime/utils": "^1.2.4",
+    "@knime/styles": "1.8.0",
+    "@knime/ui-extension-renderer": "2.0.51",
+    "@knime/utils": "1.5.1",
     "@vueuse/core": "10.09.0",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-unicode11": "^0.8.0",
@@ -51,7 +51,7 @@
     "@vue/eslint-config-typescript": "13.0.0",
     "@vue/test-utils": "2.4.6",
     "@vue/tsconfig": "0.5.1",
-    "consola": "2.15.3",
+    "consola": "3.4.2",
     "eslint": "8.57.0",
     "eslint-import-resolver-typescript": "3.6.1",
     "eslint-plugin-vue": "9.26.0",
@@ -69,10 +69,10 @@
     "vue-tsc": "2.1.6"
   },
   "peerDependencies": {
-    "@knime/components": "^1.17.0",
-    "@knime/ui-extension-service": "^2.1.1",
+    "@knime/components": "1.30.1",
+    "@knime/ui-extension-service": "2.2.0",
     "monaco-editor": "0.45.x",
-    "vue": "3.4.27"
+    "vue": "3.5.17"
   },
   "files": [
     "dist"
