@@ -913,8 +913,11 @@ final class UiSchemaOptionsGenerator {
     private void setDbTableChooserOptions(final ObjectNode options) {
         var rootNode = m_node.getRoot();
 
-        var provider = Optional.ofNullable(rootNode.getRawClass().getAnnotation(DBTableAdapterProvider.class)) //
-            .map(DBTableAdapterProvider::value);
+        var annotation = Optional.ofNullable(rootNode.getRawClass().getAnnotation(DBTableAdapterProvider.class));
+
+        var provider = annotation.map(DBTableAdapterProvider::value);
+        var validateSchema = annotation.map(DBTableAdapterProvider::validateSchema);
+        var validateTable = annotation.map(DBTableAdapterProvider::validateTable);
 
         if (provider.isPresent()) {
             var adapterClass = provider.get();
@@ -925,6 +928,12 @@ final class UiSchemaOptionsGenerator {
                 options.put("dbConnected", isDbConnected);
                 if (isDbConnected) {
                     options.put("catalogsSupported", adapter.listCatalogs().isPresent());
+                }
+                if (validateSchema.isPresent()) {
+                    options.put("validateSchema", validateSchema.get());
+                }
+                if (validateTable.isPresent()) {
+                    options.put("validateTable", validateTable.get());
                 }
             } catch (SQLException ex) {
                 throw new UiSchemaGenerationException("""

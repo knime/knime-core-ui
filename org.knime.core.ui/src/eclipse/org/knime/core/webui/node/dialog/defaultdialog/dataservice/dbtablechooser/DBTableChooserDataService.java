@@ -344,6 +344,19 @@ public final class DBTableChooserDataService {
         Class<? extends DBTableAdapter> value();
 
         /**
+         * Show validation error for the schema. When set to true, the component checks if the specified schema exists
+         * in the database, showing a validation error if it does not. Useful for selecting existing schemas.
+         */
+        boolean validateSchema() default false;
+
+        /**
+         * Show validation error for the table. When set to true, the component checks if the specified table exists in
+         * the database, showing a validation error if it does not. Useful for selecting existing tables. Setting to
+         * false allows for the creation of new tables without validation errors.
+         */
+        boolean validateTable() default false;
+
+        /**
          * Intended to be subclassed by the user of this annotation. Note that the class must have a constructor with a
          * single argument of type {@link DataServiceContext} - this will be provided by the service so you don't need
          * to worry about where it comes from.
