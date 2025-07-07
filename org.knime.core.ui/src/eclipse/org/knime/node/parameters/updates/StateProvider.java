@@ -180,12 +180,12 @@ public interface StateProvider<S> {
     void init(StateProviderInitializer initializer);
 
     /**
-     * @param context the current context of the dialog
+     * @param parametersInput the current input of the parameters
      * @return the provided state. It is either transformed directly to a specific update in the dialog or used as input
      *         for another {@link StateProvider}.
      * @throws StateComputationFailureException when an error occurs during computation to prevent downstream updates
      */
-    S computeState(NodeParametersInput context) throws StateComputationFailureException;
+    S computeState(NodeParametersInput parametersInput) throws StateComputationFailureException;
 
     /**
      * Use within {@link StateProviderInitializer#getValueSupplier} to define the actual type of a referenced field.
