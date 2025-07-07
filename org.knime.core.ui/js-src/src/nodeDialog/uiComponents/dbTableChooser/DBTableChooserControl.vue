@@ -27,6 +27,14 @@ const isDbConnected = computed<boolean>(
   () => props.control.uischema.options!.dbConnected,
 );
 
+const validateSchema = computed<boolean>(
+  () => props.control.uischema.options!.validateSchema,
+);
+
+const validateTable = computed<boolean>(
+  () => props.control.uischema.options!.validateTable,
+);
+
 const pathParts = computed<string[]>({
   get: () => {
     const output: string[] = [];
@@ -129,6 +137,8 @@ const {
   schemaName,
   tableName,
   isDbConnected,
+  validateSchema,
+  validateTable,
 });
 
 const errorMessageDescription =

@@ -1920,6 +1920,30 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].options.catalogsSupported").isBoolean().isTrue();
     }
 
+    @Test
+    void testThatDbTableValidationOptionsAreAdded() {
+        @DBTableAdapterProvider(DummyDbAdapterWithoutCatalogues.class)
+        class SettingWithDefaultValues implements DefaultNodeSettings {
+            @Widget(title = "", description = "")
+            DBTableSelection m_dbTableSelection;
+        }
+
+        var context = Mockito.mock(DefaultNodeSettingsContext.class);
+        var response = buildTestUiSchema(SettingWithDefaultValues.class, context);
+        assertThatJson(response).inPath("$.elements[0].options.validateSchema").isBoolean().isFalse();
+        assertThatJson(response).inPath("$.elements[0].options.validateTable").isBoolean().isFalse();
+
+        @DBTableAdapterProvider(value= DummyDbAdapterWithoutCatalogues.class, validateSchema = true, validateTable = true)
+        class SettingWithChangedValues implements DefaultNodeSettings {
+            @Widget(title = "", description = "")
+            DBTableSelection m_dbTableSelection;
+        }
+
+        response = buildTestUiSchema(SettingWithChangedValues.class, context);
+        assertThatJson(response).inPath("$.elements[0].options.validateSchema").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[0].options.validateTable").isBoolean().isTrue();
+    }
+
     static class DummyDbAdapterWithoutCatalogues extends DBTableAdapter {
 
         DummyDbAdapterWithoutCatalogues(final Supplier<PortObjectSpec[]> inputPortSpecSupplier) {

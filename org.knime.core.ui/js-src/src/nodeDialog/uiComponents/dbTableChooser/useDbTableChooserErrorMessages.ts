@@ -21,6 +21,8 @@ export default ({
   schemaName,
   tableName,
   isDbConnected,
+  validateSchema,
+  validateTable,
 }: {
   itemTypeExtractor: (path: string[]) => Promise<DBItemType | null>;
   cataloguesSupported: Readonly<Ref<boolean>>;
@@ -28,6 +30,8 @@ export default ({
   catalogueName: Readonly<Ref<string>>;
   schemaName: Readonly<Ref<string>>;
   tableName: Readonly<Ref<string>>;
+  validateSchema: Readonly<Ref<boolean>>;
+  validateTable: Readonly<Ref<boolean>>;
 }): ReturnType => {
   const catalogueErrorMessageIsLoading = ref(false);
   const catalogueErrorMessage = computedAsync(
@@ -67,7 +71,10 @@ export default ({
       // schema can be blank, so we only check if it exists
       if (catalogueErrorMessage.value) {
         return "There are errors in the database selection.";
-      } else if ((await itemTypeExtractor(pathUpToSchema)) === null) {
+      } else if (
+        validateSchema.value &&
+        (await itemTypeExtractor(pathUpToSchema)) === null
+      ) {
         return "Schema does not exist in database.";
       } else {
         return null;
@@ -92,7 +99,10 @@ export default ({
 
       if (schemaErrorMessage.value) {
         return "There are errors in the schema selection.";
-      } else if ((await itemTypeExtractor(pathUpToTable)) === null) {
+      } else if (
+        validateTable.value &&
+        (await itemTypeExtractor(pathUpToTable)) === null
+      ) {
         return "Table does not exist in schema.";
       } else {
         return null;
