@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
 import org.knime.node.parameters.Widget;
@@ -80,9 +81,12 @@ public final class DBTableSelection implements Persistable, WidgetGroup {
     /**
      * The name of the schema to use.
      */
-    @Widget(title = "Schema name", description = "The database schema to read the table from.")
+    @Widget(title = "Schema name", description = """
+            The database schema to read the table from. If not provided, \
+            the default schema of the database will be used.
+            """)
     @Modification.WidgetReference(SchemaNameRef.class)
-    public String m_schemaName;
+    public Optional<String> m_schemaName;
 
     interface SchemaNameRef extends Modification.Reference {
     }
@@ -115,7 +119,7 @@ public final class DBTableSelection implements Persistable, WidgetGroup {
      * @param tableName the name of the table to use, not null.
      */
     public DBTableSelection(final String schemaName, final String tableName) {
-        m_schemaName = Objects.requireNonNull(schemaName);
+        m_schemaName = Optional.of(Objects.requireNonNull(schemaName));
         m_tableName = Objects.requireNonNull(tableName);
     }
 
@@ -128,7 +132,7 @@ public final class DBTableSelection implements Persistable, WidgetGroup {
      */
     public DBTableSelection(final String catalogName, final String schemaName, final String tableName) {
         m_catalogName = Objects.requireNonNull(catalogName);
-        m_schemaName = Objects.requireNonNull(schemaName);
+        m_schemaName = Optional.of(Objects.requireNonNull(schemaName));
         m_tableName = Objects.requireNonNull(tableName);
     }
 
@@ -179,6 +183,17 @@ public final class DBTableSelection implements Persistable, WidgetGroup {
          */
         protected Optional<String> getTableNameDescription() {
             return Optional.empty();
+        }
+    }
+
+    /**
+     * Validates the settings of this table selection.
+     *
+     * @throws InvalidSettingsException if the schema is present but blank.
+     */
+    public void validate() throws InvalidSettingsException {
+        if (m_schemaName.isPresent() && m_schemaName.get().isBlank()) {
+            throw new InvalidSettingsException("The schema name must not be blank.");
         }
     }
 }

@@ -63,6 +63,9 @@ const BASE_PROPS: Omit<
         format: "dbTableChooser",
         catalogsSupported: true,
         dbConnected: true,
+        validateSchema: true,
+        validateTable: true,
+        validateCatalog: true,
       },
     },
   },
@@ -99,6 +102,12 @@ const doMount = async (
   await nextTick();
   await flushPromises();
 
+  // because of debouncing, we need to wait
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  await nextTick();
+  await flushPromises();
+
   return mountedResult;
 };
 
@@ -131,6 +140,17 @@ describe("DBTableChooserControl", () => {
     invalidProps.control.data.schemaName = "invalidSchema";
     invalidProps.control.data.tableName = "invalidTable";
     const { wrapper: invalidWrapper } = await doMount({ props: invalidProps });
+
+    // we need to convince the control that some user interaction has happened
+    // @ts-ignore
+    invalidWrapper.vm.enableErrorMessages = true;
+
+    await nextTick();
+    await flushPromises();
+
+    // because of debouncing, we need to wait a bit for things to show up
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     expect(invalidWrapper.findAll(".error-text").length).toBe(3);
   });
 

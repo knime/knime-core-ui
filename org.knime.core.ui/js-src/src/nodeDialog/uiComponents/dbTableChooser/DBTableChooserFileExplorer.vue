@@ -288,7 +288,7 @@ onApply.value = () => {
   }
 
   & span.error {
-    color: var(--theme-color-error);
+    color: var(--knime-masala);
   }
 }
 
