@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import { LoadingIcon } from "@knime/components";
 
-defineProps<{
-  errorMessage: string | null;
-  isLoading: boolean;
-}>();
+withDefaults(
+  defineProps<{
+    errorMessage: string | null;
+    isLoading: boolean;
+    type?: "ERROR" | "INFO";
+  }>(),
+  {
+    type: "ERROR",
+  },
+);
 </script>
 
 <template>
@@ -15,7 +21,13 @@ defineProps<{
       </span>
       <span class="loading-text">Validating...</span>
     </template>
-    <span v-else-if="errorMessage !== null" class="error-text">
+    <span
+      v-else-if="errorMessage !== null"
+      :class="{
+        'error-text': type === 'ERROR',
+        'info-text': type === 'INFO',
+      }"
+    >
       {{ errorMessage }}
     </span>
   </div>
@@ -32,6 +44,10 @@ defineProps<{
 
   & .error-text {
     color: var(--knime-coral);
+  }
+
+  & .info-text {
+    color: var(--knime-dove-gray);
   }
 
   & .loading-text {

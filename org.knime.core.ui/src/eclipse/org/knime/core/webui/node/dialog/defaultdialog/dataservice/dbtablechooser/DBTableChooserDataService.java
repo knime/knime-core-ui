@@ -206,7 +206,12 @@ public final class DBTableChooserDataService {
      * @param pathParts the path parts to normalise, which must not start with ".."
      * @return the normalised path parts
      */
-    private static List<String> normalisePathParts(final List<String> pathParts) {
+    private static List<String> normalisePathParts(List<String> pathParts) {
+        // truncate the path parts at the first null
+        pathParts = pathParts.stream() //
+            .takeWhile(Objects::nonNull) //
+            .toList();
+
         if (pathParts.isEmpty()) {
             return List.of(); // nothing to normalise
         } else if (pathParts.get(0).equals("..")) {
@@ -225,6 +230,13 @@ public final class DBTableChooserDataService {
         }
 
         return normalisedParts;
+    }
+
+    private static String capitalise(final String s) {
+        if (s == null || s.isEmpty()) {
+            return s;
+        }
+        return s.substring(0, 1).toUpperCase() + s.substring(1);
     }
 
     /**
@@ -260,12 +272,13 @@ public final class DBTableChooserDataService {
             while (!pathParts.isEmpty()) {
                 var nextPart = pathParts.get(0);
 
-                if (!currentContainer.hasChild(nextPart)) {
+                if (nextPart == null || !currentContainer.hasChild(nextPart)) {
                     return ListItemsResult.of( //
                         currentContainer, //
-                        "Could not find %s '%s'".formatted( //
-                            currentContainerType.nextDown(supportsCatalogues).niceName(), //
-                            nextPart //
+                        "%s '%s' not found. See available %ss below.".formatted( //
+                            capitalise(currentContainerType.nextDown(supportsCatalogues).niceName()), //
+                            nextPart, //
+                            currentContainerType.nextDown(supportsCatalogues).niceName() //
                         ) //
                     );
                 }
@@ -284,7 +297,8 @@ public final class DBTableChooserDataService {
 
             return ListItemsResult.of( //
                 currentContainer, //
-                isSchemaAndHasNoMatchingChildren ? "Could not find table '%s'.".formatted(tableName) : null //
+                isSchemaAndHasNoMatchingChildren
+                    ? "Table '%s' not found. See available tables below.".formatted(tableName) : null //
             );
         } catch (SQLException ex) { // NOSONAR don't need to rethrow
             return ListItemsResult.of("Database error: " + ex.getMessage());

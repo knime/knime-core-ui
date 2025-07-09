@@ -3,7 +3,7 @@ import { mount } from "@vue/test-utils";
 
 import { LoadingIcon } from "@knime/components";
 
-import ErrorMessageWithLoadingIcon from "../ErrorMessageWithLoadingIcon.vue";
+import MessageWithLoadingIcon from "../MessageWithLoadingIcon.vue";
 
 const doMount = (
   errorMessage: string | null = "test",
@@ -14,7 +14,7 @@ const doMount = (
     isLoading,
   };
 
-  return mount(ErrorMessageWithLoadingIcon, {
+  return mount(MessageWithLoadingIcon, {
     props,
   });
 };
@@ -22,9 +22,7 @@ const doMount = (
 describe("ErrorMessageWithLoadingIcon", () => {
   it("renders", () => {
     const wrapper = doMount();
-    expect(
-      wrapper.findComponent(ErrorMessageWithLoadingIcon).exists(),
-    ).toBeTruthy();
+    expect(wrapper.findComponent(MessageWithLoadingIcon).exists()).toBeTruthy();
   });
 
   it("shows error message when isloading is false", () => {
