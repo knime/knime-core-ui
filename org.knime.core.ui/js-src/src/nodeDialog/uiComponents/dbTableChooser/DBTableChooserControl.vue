@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 import { Button, InlineMessage } from "@knime/components";
 import { SettingsSubPanel, type VueControlProps } from "@knime/jsonforms";
@@ -111,9 +111,14 @@ const apply = () =>
     .then(close)
     .catch(() => {});
 
-const catalogueName = computed(() => props.control.data.catalogName ?? "");
-const schemaName = computed(() => props.control.data.schemaName);
-const tableName = computed(() => props.control.data.tableName);
+const data = computed(() => props.control.data);
+const catalogueName = computed(() => data.value.catalogName ?? "");
+const schemaName = computed<string | null>(() => data.value.schemaName);
+const tableName = computed(() => data.value.tableName);
+
+// we enable error messages only after the first user interaction
+const enableErrorMessages = ref(false);
+watch(data, () => (enableErrorMessages.value = schemaName.value !== null));
 
 const {
   catalogueErrorMessage,
@@ -129,6 +134,7 @@ const {
   schemaName,
   tableName,
   isDbConnected,
+  enable: enableErrorMessages,
 });
 
 const errorMessageDescription =
@@ -143,56 +149,7 @@ const errorMessageDescription =
       title="Database not connected"
       :description="errorMessageDescription"
     />
-    <SettingsSubPanel ref="settingsSubPanelRef" hide-buttons-when-expanded>
-      <template #expand-button="{ expand }">
-        <div class="expand-button-container">
-          <Button
-            primary
-            compact
-            :disabled="!isDbConnected"
-            class="expand-button"
-            @click="expand"
-          >
-            <span class="icon">
-              <SelectTableIcon />
-            </span>
-            <span class="label">Browse table</span>
-          </Button>
-        </div>
-      </template>
-      <template #default>
-        <DBTableChooserFileExplorer
-          :initial-path-parts="currentFolderPath"
-          :initial-table="tableName"
-          @table-selected="onTableSelected"
-        />
-      </template>
-      <template #bottom-content>
-        <div class="bottom-buttons">
-          <Button with-border compact @click="close"> Cancel </Button>
-          <div>
-            <Button
-              ref="goIntoFolderButton"
-              with-border
-              compact
-              :disabled="enterFolderButtonDisabled"
-              @click="onEnterFolderButtonClicked"
-            >
-              {{ enterFolderButtonText }}
-            </Button>
-            <Button
-              ref="applyButton"
-              compact
-              primary
-              :disabled="applyDisabled"
-              @click="apply"
-            >
-              {{ applyText }}
-            </Button>
-          </div>
-        </div>
-      </template>
-    </SettingsSubPanel>
+
     <template v-if="areCatalogsSupported">
       <FieldControl field-name="catalogName" :control />
       <ErrorMessageWithLoadingIcon
@@ -200,22 +157,86 @@ const errorMessageDescription =
         :is-loading="catalogueErrorMessageIsLoading"
       />
     </template>
-    <FieldControl field-name="schemaName" :control />
+    <FieldControl
+      field-name="schemaName"
+      :control
+      :options="{
+        hideOnNull: true,
+        default: '',
+      }"
+    />
     <ErrorMessageWithLoadingIcon
       :error-message="schemaErrorMessage"
-      :is-loading="
-        schemaErrorMessageIsLoading || catalogueErrorMessageIsLoading
-      "
+      :is-loading="schemaErrorMessageIsLoading"
     />
-    <FieldControl field-name="tableName" :control />
-    <ErrorMessageWithLoadingIcon
-      :error-message="tableErrorMessage"
-      :is-loading="
-        tableErrorMessageIsLoading ||
-        schemaErrorMessageIsLoading ||
-        catalogueErrorMessageIsLoading
-      "
-    />
+    <div class="flex-column">
+      <SettingsSubPanel
+        ref="settingsSubPanelRef"
+        hide-buttons-when-expanded
+        :background-color-override="'var(--knime-porcelain)'"
+      >
+        <template #expand-button="{ expand }">
+          <div class="browse-button-flex-row">
+            <FieldControl class="flex-grow" field-name="tableName" :control />
+            <div class="flex-fixed expand-button-container">
+              <Button
+                primary
+                compact
+                :disabled="!isDbConnected"
+                class="expand-button"
+                @click="expand"
+              >
+                <span class="icon">
+                  <SelectTableIcon />
+                </span>
+                <span class="label">Browse table</span>
+              </Button>
+            </div>
+          </div>
+        </template>
+        <template #default>
+          <DBTableChooserFileExplorer
+            :initial-path-parts="currentFolderPath"
+            :initial-table="tableName"
+            @table-selected="onTableSelected"
+          />
+        </template>
+        <template #bottom-content>
+          <div class="bottom-buttons">
+            <Button with-border compact @click="close"> Cancel </Button>
+            <div>
+              <Button
+                ref="goIntoFolderButton"
+                with-border
+                compact
+                :disabled="enterFolderButtonDisabled"
+                @click="onEnterFolderButtonClicked"
+              >
+                {{ enterFolderButtonText }}
+              </Button>
+              <Button
+                ref="applyButton"
+                compact
+                primary
+                :disabled="applyDisabled"
+                @click="apply"
+              >
+                {{ applyText }}
+              </Button>
+            </div>
+          </div>
+        </template>
+      </SettingsSubPanel>
+      <ErrorMessageWithLoadingIcon
+        :error-message="
+          schemaName === null
+            ? 'Validation disabled when using default schema.'
+            : tableErrorMessage
+        "
+        :is-loading="tableErrorMessageIsLoading"
+        :type="schemaName === null ? 'INFO' : 'ERROR'"
+      />
+    </div>
   </div>
 </template>
 
@@ -226,13 +247,25 @@ const errorMessageDescription =
   gap: var(--space-4);
 }
 
-.expand-button-container {
-  width: 100%;
+.browse-button-flex-row {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-4);
+  align-items: flex-end;
 
-  & .expand-button .icon svg {
-    width: 16px;
-    height: 16px;
+  & .flex-grow {
+    flex: 1 1 0;
+    min-width: 0;
   }
+
+  & .flex-fixed {
+    flex: 0 0 auto;
+  }
+}
+
+.expand-button-container .expand-button .icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 .bottom-buttons {

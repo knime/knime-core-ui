@@ -206,7 +206,12 @@ public final class DBTableChooserDataService {
      * @param pathParts the path parts to normalise, which must not start with ".."
      * @return the normalised path parts
      */
-    private static List<String> normalisePathParts(final List<String> pathParts) {
+    private static List<String> normalisePathParts(List<String> pathParts) {
+        // truncate the path parts at the first null
+        pathParts = pathParts.stream() //
+            .takeWhile(Objects::nonNull) //
+            .toList();
+
         if (pathParts.isEmpty()) {
             return List.of(); // nothing to normalise
         } else if (pathParts.get(0).equals("..")) {
@@ -260,7 +265,7 @@ public final class DBTableChooserDataService {
             while (!pathParts.isEmpty()) {
                 var nextPart = pathParts.get(0);
 
-                if (!currentContainer.hasChild(nextPart)) {
+                if (nextPart == null || !currentContainer.hasChild(nextPart)) {
                     return ListItemsResult.of( //
                         currentContainer, //
                         "Could not find %s '%s'".formatted( //

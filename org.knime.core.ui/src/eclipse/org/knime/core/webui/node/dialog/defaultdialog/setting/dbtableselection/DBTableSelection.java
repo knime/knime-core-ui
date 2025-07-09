@@ -49,9 +49,13 @@
 package org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection;
 
 import java.util.Objects;
+import java.util.Optional;
 
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DefaultValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
@@ -73,8 +77,11 @@ public final class DBTableSelection implements PersistableSettings, WidgetGroup 
     /**
      * The name of the schema to use.
      */
-    @Widget(title = "Schema name", description = "The database schema to read the table from.")
-    public String m_schemaName;
+    @Widget(title = "Schema name", description = """
+            The database schema to read the table from. If not provided, \
+            the default schema of the database will be used.
+            """)
+    public Optional<String> m_schemaName;
 
     /**
      * The name of the table to use.
@@ -100,7 +107,7 @@ public final class DBTableSelection implements PersistableSettings, WidgetGroup 
      * @param tableName the name of the table to use, not null.
      */
     public DBTableSelection(final String schemaName, final String tableName) {
-        m_schemaName = Objects.requireNonNull(schemaName);
+        m_schemaName = Optional.of(Objects.requireNonNull(schemaName));
         m_tableName = Objects.requireNonNull(tableName);
     }
 
@@ -113,7 +120,14 @@ public final class DBTableSelection implements PersistableSettings, WidgetGroup 
      */
     public DBTableSelection(final String catalogName, final String schemaName, final String tableName) {
         m_catalogName = Objects.requireNonNull(catalogName);
-        m_schemaName = Objects.requireNonNull(schemaName);
+        m_schemaName = Optional.of(Objects.requireNonNull(schemaName));
         m_tableName = Objects.requireNonNull(tableName);
+    }
+
+    static class EmptyStringProvider implements DefaultValueProvider<String> {
+        @Override
+        public String computeState(final DefaultNodeSettingsContext context) throws StateComputationFailureException {
+            return "";
+        }
     }
 }

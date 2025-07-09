@@ -314,6 +314,9 @@ onMounted(async () => {
     performExternalValidation,
   });
   ready.value = true;
+
+  console.log(uischema.value);
+  console.log(schema.value);
 });
 
 const dialogPopoverTeleportDest = ref<null | HTMLElement>(null);
