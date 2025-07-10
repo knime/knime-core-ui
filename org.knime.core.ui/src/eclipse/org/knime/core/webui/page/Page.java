@@ -65,17 +65,13 @@ import java.util.function.Supplier;
 import org.knime.core.node.FluentNodeAPI;
 
 /**
- * A (html) page of an ui-extension, e.g. a node view, port view or node dialog.
- *
- *
- * @noimplement This interface is not intended to be implemented by clients. TODO make it a sealed class to only
- *              implement FromFilePage
+ * A (html) page of a ui-extension, e.g. a node view, port view or node dialog.
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  *
  * @since 4.5
  */
-public class Page implements Resource, FluentNodeAPI {
+public sealed class Page implements Resource, FluentNodeAPI permits FromFilePage {
 
     /**
      * Entry point to the fluent API in order to create a page.
@@ -83,8 +79,7 @@ public class Page implements Resource, FluentNodeAPI {
      * @return the first stage to create a page
      */
     public static RequireFromFileOrString create() {
-        return new RequireFromFileOrString() {
-
+        return new RequireFromFileOrString() { // NOSONAR
             @Override
             public RequireBundle fromFile() {
                 return new RequireBundle() {
@@ -102,12 +97,12 @@ public class Page implements Resource, FluentNodeAPI {
             }
 
             @Override
-            public RequireRelativPath fromString(final InputStreamSupplier content, final Charset charset) {
+            public RequireRelativePath fromString(final InputStreamSupplier content, final Charset charset) {
                 return relativePath -> new Page(createResource(content, relativePath, false, charset), false);
             }
 
             @Override
-            public RequireRelativPath fromString(final StringSupplier content, final Charset charset) {
+            public RequireRelativePath fromString(final StringSupplier content, final Charset charset) {
                 return relativePath -> new Page(
                     createResource(() -> new ByteArrayInputStream(content.get().getBytes(charset)), relativePath, false,
                         charset),
@@ -118,10 +113,12 @@ public class Page implements Resource, FluentNodeAPI {
 
     private final Resource m_pageResource;
 
+    @SuppressWarnings("javadoc")
     protected final Map<String, Resource> m_resources;
 
     private final Map<String, Function<String, Resource>> m_dynamicResources;
 
+    @SuppressWarnings("javadoc")
     protected boolean m_isCompletelyStatic;
 
     @SuppressWarnings("javadoc")
@@ -136,7 +133,7 @@ public class Page implements Resource, FluentNodeAPI {
     /**
      * Shallow copy constructor.
      *
-     * @param p
+     * @param p page to copy
      */
     protected Page(final Page p) {
         m_pageResource = p.m_pageResource;
@@ -147,90 +144,130 @@ public class Page implements Resource, FluentNodeAPI {
 
     /* REQUIRED PROPERTIES */
 
-    @SuppressWarnings("javadoc")
+    /**
+     * The build stage that requires the a file or string.
+     */
     public interface RequireFromFileOrString {
 
         /**
-         * Creates a {@link PageBuilder}-instance to create a (static) page (and associated resources) from files.
+         * Create a (static) {@link FromFilePage page} (and associated resources) from files.
          *
-         * @return the next step to create the page
+         * @return the subsequent build stage
          */
         RequireBundle fromFile();
 
         /**
+         * Create a (dynamic) {@link Page page} from a {@link InputStreamSupplier}.
+         *
          * @param content the page content supplier for lazy initialization
-         * @return the next step to create the page
+         * @return the subsequent build stage
          */
-        default RequireRelativPath fromString(final InputStreamSupplier content) {
+        default RequireRelativePath fromString(final InputStreamSupplier content) {
             return fromString(content, null);
         }
 
         /**
+         * Create a (dynamic) {@link Page page} from a {@link StringSupplier}.
+         *
          * @param content the page content supplier for lazy initialization
-         * @return the next step to create the page
+         * @return the subsequent build stage
          */
-        default RequireRelativPath fromString(final StringSupplier content) {
+        default RequireRelativePath fromString(final StringSupplier content) {
             return fromString(content, StandardCharsets.UTF_8);
         }
 
         /**
+         * Create a (dynamic) {@link Page page} from a {@link InputStreamSupplier} with a custom {@link Charset}.
+         *
          * @param content the page content supplier for lazy initialization
          * @param charset the charset to use for the content
-         * @return the next step to create the page
+         * @return the subsequent build stage
          */
-        RequireRelativPath fromString(InputStreamSupplier content, Charset charset);
+        RequireRelativePath fromString(InputStreamSupplier content, Charset charset);
 
         /**
+         * Create a (dynamic) {@link Page page} from a {@link StringSupplier} with a custom {@link Charset}.
+         *
          * @param content the page content supplier for lazy initialization
          * @param charset the charset to use for the content
-         * @return the next step to create the page
+         * @return the subsequent build stage
          */
-        RequireRelativPath fromString(StringSupplier content, Charset charset);
-
+        RequireRelativePath fromString(StringSupplier content, Charset charset);
     }
 
-    @SuppressWarnings("javadoc")
+    /**
+     * The build stage that requires the bundle when creating a page from file(s).
+     */
     public interface RequireBundle {
 
         /**
+         * Specifies the bundle where the references files are located by its {@link Class}.
+         *
          * @param clazz a class which is part of the bundle where the references files are located
+         * @return the subsequent build stage
          */
         RequireBasePath bundleClass(Class<?> clazz);
 
         /**
+         * Specifies the bundle where the references files are located by its id.
+         *
          * @param bundleID the id of the bundle where the references files are located
+         * @return the subsequent build stage
          */
         RequireBasePath bundleID(String bundleID);
-
     }
 
-    @SuppressWarnings("javadoc")
+    /**
+     * The build stage that requires the base path when creating a page from file(s).
+     */
     public interface RequireBasePath {
+
         /**
+         * Specifies the base path (beneath the bundle root).
+         *
          * @param basePath the base part (beneath the bundle root)
          * @return the next step to create the page
          */
         RequireRelativeFilePath basePath(String basePath);
-
     }
 
-    @SuppressWarnings("javadoc")
+    /**
+     * The build stage that requires the relative file path when creating a page from file(s).
+     */
     public interface RequireRelativeFilePath {
 
         /**
+         * Specifies the file to get the page content from.
+         *
          * @param relativeFilePath the file to get the page content from
-         * @return the next step to create the page
+         * @return the {@link FromFilePage}
          */
         FromFilePage relativeFilePath(String relativeFilePath);
-
     }
 
-    @SuppressWarnings("javadoc")
-    public interface RequireRelativPath {
+    /**
+     * The build stage that requires the relative path when creating a page from string.
+     */
+    public interface RequireRelativePath {
 
         /**
+         * Specifies the relative path of the page (including the page resource name itself).
+         *
+         * Some notes on this relative path:
+         *
+         * <ul>
+         * <li>For some relative path <code>index.html</code>, the frontend can load the page at a location like
+         * <code>http://org.knime.node.view/ui-ext/dialog/5:3:3/index.html</code>.</li>
+         * <li>The file extension of the relative path (e.g., .html) is used to derive the
+         * {@link org.knime.core.webui.page.Resource.ContentType}.</li>
+         * <li>If additional resources are {@link Page#addResource(Supplier, String) added}, their path is relative to
+         * the relative path of the page. E.g.,
+         * <code>fromString("foo").relativePath("index.html").addResource("bar", "link.html")</code> is valid, just as
+         * <code>fromString("foo").relativePath("index.html").addResource("bar", "../../../link.html")</code> is.</li>
+         * </ul>
+         *
          * @param relativePath the relative path of the page (including the page resource name itself)
-         * @return the next step to create the page
+         * @return the {@link Page}
          */
         Page relativePath(String relativePath);
     }
@@ -238,17 +275,25 @@ public class Page implements Resource, FluentNodeAPI {
     /* OPTIONAL PROPERTIES */
 
     /**
-     * Adds another resource to the 'context' of a page (such js-resource).
+     * Adds another resource to the 'context' of a page (such as a js-resource).
      *
      * @param content the actual content of the resource
      * @param relativePath the relative path to the resource (including the resource name itself)
-     * @return this page builder instance
+     * @return this {@link Page}
      */
     public Page addResource(final Supplier<InputStream> content, final String relativePath) {
         return addResource(content, relativePath, null);
     }
 
-    private Page addResource(final Supplier<InputStream> content, final String relativePath, final Charset charset) {
+    /**
+     * Adds another resource to the 'context' of a page (such as a js-resource).
+     *
+     * @param content the actual content of the resource
+     * @param relativePath the relative path to the resource (including the resource name itself)
+     * @param charset the encoding of the content of all the resources
+     * @return this {@link Page}
+     */
+    public Page addResource(final Supplier<InputStream> content, final String relativePath, final Charset charset) {
         var resource = createResource(content, relativePath, false, charset);
         m_resources.put(resource.getRelativePath(), resource);
         return this;
@@ -262,7 +307,7 @@ public class Page implements Resource, FluentNodeAPI {
      * @param relativePathPrefix the path prefix; if there are resources registered with 'overlapping' path prefixes,
      *            the resources with the 'longest' match are being used
      * @param areStatic whether the returned resources can be considered static or not - see {@link Resource#isStatic()}
-     * @return this page builder instance
+     * @return this {@link Page}
      */
     public Page addResources(final Function<String, InputStream> supplier, final String relativePathPrefix,
         final boolean areStatic) {
@@ -278,7 +323,7 @@ public class Page implements Resource, FluentNodeAPI {
      *            the resources with the 'longest' match are being used
      * @param areStatic whether the returned resources can be considered static or not - see {@link Resource#isStatic()}
      * @param charset the encoding of the content of all the resources
-     * @return this page builder instance
+     * @return this {@link Page}
      */
     public Page addResources(final Function<String, InputStream> supplier, final String relativePathPrefix,
         final boolean areStatic, final Charset charset) {
@@ -296,11 +341,11 @@ public class Page implements Resource, FluentNodeAPI {
     }
 
     /**
-     * Adds another resource to the 'context' of a page (such js-resource).
+     * Adds another resource to the 'context' of a page (such as js-resource).
      *
      * @param content the actual content of the resource
      * @param relativePath the relative path to the resource (including the resource name itself)
-     * @return this page builder instance
+     * @return this {@link Page}
      */
     public Page addResourceFromString(final Supplier<String> content, final String relativePath) {
         addResource(() -> new ByteArrayInputStream(content.get().getBytes(StandardCharsets.UTF_8)), relativePath,
@@ -341,25 +386,16 @@ public class Page implements Resource, FluentNodeAPI {
             .findFirst();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public String getRelativePath() {
         return m_pageResource.getRelativePath();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public InputStream getInputStream() throws IOException {
         return m_pageResource.getInputStream();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isStatic() {
         return m_pageResource.isStatic();
@@ -374,17 +410,11 @@ public class Page implements Resource, FluentNodeAPI {
         return m_isCompletelyStatic;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public ContentType getContentType() {
         return m_pageResource.getContentType();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Optional<Charset> getCharset() {
         return m_pageResource.getCharset();
@@ -393,7 +423,6 @@ public class Page implements Resource, FluentNodeAPI {
     /**
      * {@link Supplier} of a {@link String}.
      */
-    @FunctionalInterface
     public interface StringSupplier extends Supplier<String> {
         //
     }
@@ -401,7 +430,6 @@ public class Page implements Resource, FluentNodeAPI {
     /**
      * {@link Supplier} of a {@link InputStream}.
      */
-    @FunctionalInterface
     public interface InputStreamSupplier extends Supplier<InputStream> {
         //
     }
@@ -437,5 +465,4 @@ public class Page implements Resource, FluentNodeAPI {
             }
         };
     }
-
 }

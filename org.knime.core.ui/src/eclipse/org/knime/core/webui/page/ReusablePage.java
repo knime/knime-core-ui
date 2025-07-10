@@ -49,7 +49,7 @@
 package org.knime.core.webui.page;
 
 /**
- * See {@link Page#getReusablePage(String)}.
+ * A reusable {@link FromFilePage}, see {@link FromFilePage#getReusablePage(String)}.
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
@@ -68,7 +68,7 @@ public final class ReusablePage extends FromFilePage {
      * @return the page-id
      * @throws IllegalStateException if the page is marked as re-usable but not completely static (see
      *             {@link Page#isCompletelyStatic()}); or if 're-usability' is not supported for the page's
-     *             {@link ContentType}.
+     *             {@link org.knime.core.webui.page.Resource.ContentType}.
      */
     public String getPageId() {
         if (!isCompletelyStatic()) {
@@ -85,5 +85,4 @@ public final class ReusablePage extends FromFilePage {
                 throw new IllegalStateException("Page with content type " + getContentType() + " can't be re-used.");
         }
     }
-
 }

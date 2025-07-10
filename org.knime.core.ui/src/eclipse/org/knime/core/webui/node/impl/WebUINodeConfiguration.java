@@ -69,7 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @Deprecated(since = "5.6")
-public final class WebUINodeConfiguration {
+public final class WebUINodeConfiguration { // NOSONAR
 
     /**
      * @return a new builder for assembly of {@link WebUINodeConfiguration WebUINodeConfigurations}

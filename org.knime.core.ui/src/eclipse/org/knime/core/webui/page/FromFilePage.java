@@ -69,19 +69,19 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
 /**
- * TODO final?
+ * A {@link Page} created from a file.
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
-public class FromFilePage extends Page {
+public sealed class FromFilePage extends Page permits ReusablePage {
 
-    private static NodeLogger LOGGER = NodeLogger.getLogger(FromFilePage.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(FromFilePage.class);
 
-    private Class<?> m_clazz;
+    private final Class<?> m_clazz;
 
-    private String m_bundleID;
+    private final String m_bundleID;
 
-    private String m_basePath;
+    private final String m_basePath;
 
     FromFilePage(final Class<?> clazz, final String basePath, final String relativeFilePath) {
         super(createFileResource(clazz, null, basePath, relativeFilePath), true);
@@ -109,13 +109,15 @@ public class FromFilePage extends Page {
         m_basePath = p.m_basePath;
     }
 
+    /* OPTIONAL PROPERTIES */
+
     /**
      * Adds another resource file to the 'context' of a page (such as a js-file).
      *
      * NOTE: the referenced resource-file is expected to be UTF-8-encoded.
      *
      * @param relativeFilePath the relative path to the file
-     * @return this page builder instance
+     * @return this {@link FromFilePage}
      */
     public FromFilePage addResourceFile(final String relativeFilePath) {
         var resource = createFileResource(m_clazz, m_bundleID, m_basePath, relativeFilePath);
@@ -130,7 +132,7 @@ public class FromFilePage extends Page {
      * NOTE: the referenced resource-files are expected to be UTF-8-encoded.
      *
      * @param relativeDirPath the relative path to the directory
-     * @return this page builder instance
+     * @return this {@link FromFilePage}
      */
     public FromFilePage addResourceDirectory(final String relativeDirPath) {
         var root = getAbsoluteBasePath(m_clazz, m_bundleID, m_basePath);
@@ -191,6 +193,8 @@ public class FromFilePage extends Page {
         }
     }
 
+    /* GETTERS */
+
     /**
      * Creates a page that can be re-used by different nodes (e.g., as node dialog and/or view) and/or port (as port
      * view). A benefit of re-using pages is that the resources associated with the page only need to be requested once
@@ -203,7 +207,7 @@ public class FromFilePage extends Page {
      * the different nodes/ports.
      *
      * @param pageName a name for the re-usable page; must not be {@code null}
-     * @return this page builder instance
+     * @return a new {@link ReusablePage} that wraps this {@link FromFilePage}
      */
     public ReusablePage getReusablePage(final String pageName) {
         Objects.requireNonNull(pageName);
@@ -221,7 +225,6 @@ public class FromFilePage extends Page {
         m_isCompletelyStatic = false;
         super.addResource(content, relativePath);
         return this;
-
     }
 
     @Override
@@ -251,5 +254,4 @@ public class FromFilePage extends Page {
         super.addResources(supplier, relativePathPrefix, areStatic, charset);
         return this;
     }
-
 }

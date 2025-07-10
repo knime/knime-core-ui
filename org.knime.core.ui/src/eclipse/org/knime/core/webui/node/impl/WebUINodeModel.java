@@ -81,7 +81,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @Deprecated(since = "5.6")
-public abstract class WebUINodeModel<S extends DefaultNodeSettings> extends NodeModel {
+public abstract class WebUINodeModel<S extends DefaultNodeSettings> extends NodeModel { // NOSONAR
 
     private S m_modelSettings;
 

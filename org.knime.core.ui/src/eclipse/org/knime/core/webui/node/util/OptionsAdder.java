@@ -46,7 +46,7 @@
  * History
  *   Oct 9, 2023 (hornm): created
  */
-package org.knime.core.webui.node.impl;
+package org.knime.core.webui.node.util;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -69,6 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.DescriptionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.DescriptionUtil.TitleAndDescription;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.impl.WebUINodeFactory;
 import org.w3c.dom.Element;
 
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
@@ -82,7 +83,6 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
  * @author Paul Bärnreuther
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
-// TODO move it somewhere else?
 public final class OptionsAdder {
 
     private OptionsAdder() {

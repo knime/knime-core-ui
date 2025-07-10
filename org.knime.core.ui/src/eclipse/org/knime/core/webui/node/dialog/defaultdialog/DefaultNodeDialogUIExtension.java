@@ -62,9 +62,8 @@ public interface DefaultNodeDialogUIExtension extends UIExtension {
     /**
      * The page representing the default node dialog.
      */
-    public static final ReusablePage PAGE =
-        Page.create().fromFile().bundleClass(DefaultNodeDialog.class).basePath("js-src")
-            .relativeFilePath("dist/NodeDialog.js").addResourceDirectory("dist").getReusablePage("defaultdialog");
+    ReusablePage PAGE = Page.create().fromFile().bundleClass(DefaultNodeDialog.class).basePath("js-src")
+        .relativeFilePath("dist/NodeDialog.js").addResourceDirectory("dist").getReusablePage("defaultdialog");
 
     @Override
     default Page getPage() {

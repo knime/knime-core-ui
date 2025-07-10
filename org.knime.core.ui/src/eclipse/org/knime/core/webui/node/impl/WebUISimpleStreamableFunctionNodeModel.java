@@ -74,7 +74,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
  * @since 5.3
  */
 @Deprecated(since = "5.6")
-public abstract class WebUISimpleStreamableFunctionNodeModel<S extends DefaultNodeSettings>
+public abstract class WebUISimpleStreamableFunctionNodeModel<S extends DefaultNodeSettings> // NOSONAR
     extends SimpleStreamableFunctionNodeModel {
 
     private S m_modelSettings;

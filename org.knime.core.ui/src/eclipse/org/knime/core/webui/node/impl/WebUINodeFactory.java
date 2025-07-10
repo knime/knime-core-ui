@@ -91,7 +91,7 @@ import org.xml.sax.SAXException;
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
 @Deprecated(since = "5.6")
-public abstract class WebUINodeFactory<M extends NodeModel> extends NodeFactory<M>
+public abstract class WebUINodeFactory<M extends NodeModel> extends NodeFactory<M> // NOSONAR
     implements NodeDialogFactory, KaiNodeInterfaceFactory {
 
     private final WebUINodeConfiguration m_configuration;
