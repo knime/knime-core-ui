@@ -72,8 +72,8 @@ import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.webui.data.DataServiceContextTest;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonChange;
@@ -101,7 +101,7 @@ class DefaultNodeDialogDataServiceImplTest {
 
     static final ObjectMapper MAPPER = new ObjectMapper();
 
-    static class TestDefaultNodeSettings implements DefaultNodeSettings {
+    static class TestDefaultNodeSettings implements NodeParameters {
         @Widget(title = "", description = "")
         String m_foo = "bar";
     }
@@ -119,7 +119,7 @@ class DefaultNodeDialogDataServiceImplTest {
     }
 
     private static DefaultNodeDialogDataServiceImpl
-        getDataService(final Class<? extends DefaultNodeSettings> modelSettingsClass) {
+        getDataService(final Class<? extends NodeParameters> modelSettingsClass) {
         return new DefaultNodeDialogDataServiceImpl(Map.of(SettingsType.MODEL, modelSettingsClass));
     }
 
@@ -151,7 +151,7 @@ class DefaultNodeDialogDataServiceImplTest {
         @Test
         void testSingleUpdate() throws ExecutionException, InterruptedException {
 
-            class UpdateSettings implements DefaultNodeSettings {
+            class UpdateSettings implements NodeParameters {
 
                 @Widget(title = "", description = "")
                 @ValueReference(MyValueRef.class)
@@ -179,7 +179,7 @@ class DefaultNodeDialogDataServiceImplTest {
         @Test
         void testUiStateProvider() throws ExecutionException, InterruptedException {
 
-            class UpdateSettings implements DefaultNodeSettings {
+            class UpdateSettings implements NodeParameters {
 
                 @Widget(title = "", description = "")
                 @ValueReference(MyValueRef.class)
@@ -226,7 +226,7 @@ class DefaultNodeDialogDataServiceImplTest {
         @Test
         void testAbortUiStateProviderExecution() throws ExecutionException, InterruptedException {
 
-            class UpdateSettings implements DefaultNodeSettings {
+            class UpdateSettings implements NodeParameters {
 
                 @Widget(title = "", description = "")
                 @ValueReference(MyValueRef.class)
@@ -374,7 +374,7 @@ class DefaultNodeDialogDataServiceImplTest {
         @Test
         void testMultipleUpdatesWithOneHandler() throws ExecutionException, InterruptedException {
 
-            class UpdateSettings implements DefaultNodeSettings {
+            class UpdateSettings implements NodeParameters {
 
                 @Widget(title = "", description = "")
                 @ValueReference(MyFirstValueRef.class)
@@ -467,7 +467,7 @@ class DefaultNodeDialogDataServiceImplTest {
         @Test
         void testInitializeButton() throws ExecutionException, InterruptedException {
 
-            class ButtonSettings implements DefaultNodeSettings {
+            class ButtonSettings implements NodeParameters {
                 @Widget(title = "", description = "")
                 @ButtonWidget(actionHandler = GenericTypesTestHandler.class)
                 String m_button;
@@ -485,7 +485,7 @@ class DefaultNodeDialogDataServiceImplTest {
         @Test
         void testInvokeButtonAction() throws ExecutionException, InterruptedException {
 
-            class ButtonSettings implements DefaultNodeSettings {
+            class ButtonSettings implements NodeParameters {
                 @Widget(title = "", description = "")
                 @ButtonWidget(actionHandler = GenericTypesTestHandler.class)
                 String m_button;
@@ -501,7 +501,7 @@ class DefaultNodeDialogDataServiceImplTest {
             assertThat(buttonChange.settingValue()).isEqualTo(testDepenenciesFooValue);
         }
 
-        static class ButtonAndCredentialsSettings implements DefaultNodeSettings {
+        static class ButtonAndCredentialsSettings implements NodeParameters {
 
             Credentials m_credentials;
 
@@ -597,7 +597,7 @@ class DefaultNodeDialogDataServiceImplTest {
         @Test
         void testUpdate() throws ExecutionException, InterruptedException {
 
-            class ButtonSettings implements DefaultNodeSettings {
+            class ButtonSettings implements NodeParameters {
                 @Widget(title = "", description = "")
                 @ButtonWidget(actionHandler = GenericTypesTestHandler.class,
                     updateHandler = GenericTypesUpdateHandler.class)
@@ -620,7 +620,7 @@ class DefaultNodeDialogDataServiceImplTest {
         @Test
         void testValidationExecution() throws ExecutionException, InterruptedException {
 
-            class DateTimeFormatPickerSettings implements DefaultNodeSettings {
+            class DateTimeFormatPickerSettings implements NodeParameters {
                 @Widget(title = "", description = "")
                 @DateTimeFormatPickerWidget
                 String m_dateTimeFormat;

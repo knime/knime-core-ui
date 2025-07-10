@@ -54,7 +54,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultDialogDataConverter;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.FlowVariableDataServiceImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettingsImpl;
@@ -73,14 +72,14 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 public final class DefaultDialogDataConverterImpl implements DefaultDialogDataConverter {
 
-    private final Map<SettingsType, Class<? extends DefaultNodeSettings>> m_settingsClasses;
+    private final Map<SettingsType, Class<? extends NodeParameters>> m_settingsClasses;
 
     /**
-     * @param settingsClasses the classes of the {@link DefaultNodeSettings} associated to the settings types (model
+     * @param settingsClasses the classes of the {@link NodeParameters} associated to the settings types (model
      *            and/or view).
      */
     public DefaultDialogDataConverterImpl(
-        final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses) {
+        final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses) {
         m_settingsClasses = settingsClasses;
     }
 
@@ -92,7 +91,7 @@ public final class DefaultDialogDataConverterImpl implements DefaultDialogDataCo
      * @param settingsClass the default node setting of this type
      */
     public DefaultDialogDataConverterImpl(final SettingsType type,
-        final Class<? extends DefaultNodeSettings> settingsClass) {
+        final Class<? extends NodeParameters> settingsClass) {
         this(Map.of(type, settingsClass));
     }
 

@@ -54,7 +54,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
@@ -65,7 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicatePr
  *
  * Depending on the type of the field being annotated and in case there is <b> no</b>
  * {@link org.knime.core.webui.node.dialog.defaultdialog.widget other widget annotation} present, a default widget will
- * be displayed in the dialog (see {@link DefaultNodeSettings} for details). In case the default widget is not desired,
+ * be displayed in the dialog (see {@link NodeParameters} for details). In case the default widget is not desired,
  * an additional specialized widget-annotation (e.g. {@link TextInputWidget}) can be used to customize it.
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany

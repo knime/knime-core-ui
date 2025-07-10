@@ -56,7 +56,6 @@ import java.util.stream.Collectors;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
@@ -162,7 +161,7 @@ public final class UpdatesUtil {
      * @param context
      */
     public static void constructTreesAndAddUpdates(final ObjectNode rootNode,
-        final Map<SettingsType, DefaultNodeSettings> settings, final DefaultNodeSettingsContext context) {
+        final Map<SettingsType, NodeParameters> settings, final DefaultNodeSettingsContext context) {
         final var widgetTreeFactory = new WidgetTreeFactory();
         final var widgetTrees =
             SettingsTypeMapUtil.map(settings, (type, s) -> widgetTreeFactory.createTree(s.getClass(), type));

@@ -48,12 +48,12 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
-class OtherRootSettings implements DefaultNodeSettings {
+class OtherRootSettings implements NodeParameters {
 
     @HorizontalLayout
     interface MyLayoutPart {

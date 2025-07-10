@@ -54,7 +54,8 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
@@ -79,7 +80,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvid
  * @author Paul Bärnreuther
  */
 @SuppressWarnings("restriction")
-class DefaultNodeSettingsWithAllWidgets implements DefaultNodeSettings {
+class DefaultNodeSettingsWithAllWidgets implements NodeParameters {
 
     @Widget(title = "File Chooser", description = "")
     FileSelection m_fileSelection = new FileSelection();
@@ -133,7 +134,7 @@ class DefaultNodeSettingsWithAllWidgets implements DefaultNodeSettings {
     @ValueProvider(MyValueProvider.class)
     String m_string;
 
-    static final class NestedSettings implements DefaultNodeSettings {
+    static final class NestedSettings implements NodeParameters {
         @Widget(title = "Nested String Setting", description = "")
         String m_nestedString;
     }

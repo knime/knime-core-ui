@@ -56,7 +56,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil.getMapper;
 
 import org.apache.commons.lang3.NotImplementedException;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.And;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ConstantPredicate;

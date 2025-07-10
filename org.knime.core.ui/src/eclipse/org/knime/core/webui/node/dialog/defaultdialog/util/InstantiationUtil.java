@@ -52,8 +52,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import org.knime.core.node.NodeLogger;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 
 /**
  *
@@ -75,7 +75,7 @@ public final class InstantiationUtil {
      * @return the instance provided by the constructor of clazz which takes a single {@link DefaultNodeSettingsContext}
      *         as a parameter.
      */
-    public static <T extends DefaultNodeSettings> T createDefaultNodeSettings(final Class<T> clazz,
+    public static <T extends NodeParameters> T createNodeParameters(final Class<T> clazz,
         final DefaultNodeSettingsContext context) {
         @SuppressWarnings("unchecked")
         final var settings = (T)createInstanceWithContext(clazz, context);

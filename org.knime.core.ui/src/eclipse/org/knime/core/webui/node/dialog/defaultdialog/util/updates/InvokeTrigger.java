@@ -63,7 +63,7 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlValueReference;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.DependencyInjector.DependencyProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Vertex.VertexVisitor;

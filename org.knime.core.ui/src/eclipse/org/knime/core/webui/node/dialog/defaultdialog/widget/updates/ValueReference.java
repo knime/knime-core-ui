@@ -54,11 +54,11 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 
 /**
- * Add this annotation to a field nested within {@link DefaultNodeSettings} to make a {@link StateProvider} used in
+ * Add this annotation to a field nested within {@link NodeParameters} to make a {@link StateProvider} used in
  * other annotations depend on its value.
  *
  * <p>

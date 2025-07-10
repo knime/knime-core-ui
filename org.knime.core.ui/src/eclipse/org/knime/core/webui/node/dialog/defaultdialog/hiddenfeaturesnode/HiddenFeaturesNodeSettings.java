@@ -51,7 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelectionWidget;
@@ -61,7 +61,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
-class HiddenFeaturesNodeSettings implements DefaultNodeSettings {
+class HiddenFeaturesNodeSettings implements NodeParameters {
 
     static final class TestFileChooserFilters implements FileChooserFilters {
 

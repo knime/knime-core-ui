@@ -71,7 +71,7 @@ import org.knime.core.webui.data.DataServiceException;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultDialogDataConverter;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableTypesExtractorUtil;

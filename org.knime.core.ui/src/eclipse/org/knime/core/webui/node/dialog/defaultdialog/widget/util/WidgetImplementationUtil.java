@@ -57,7 +57,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.knime.core.data.DataType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
@@ -132,7 +132,7 @@ public final class WidgetImplementationUtil {
     /**
      * Extend this by a new element for each new default format of a ui element.
      *
-     * !!! WHEN ADDING A NEW ELEMENT HERE, ALSO ADD TO THE DOCUMENTATION OF {@link DefaultNodeSettings} !!!
+     * !!! WHEN ADDING A NEW ELEMENT HERE, ALSO ADD TO THE DOCUMENTATION OF {@link NodeParameters} !!!
      *
      * @author Paul Bärnreuther
      */
@@ -165,7 +165,7 @@ public final class WidgetImplementationUtil {
     /**
      * Extend this by every new annotation defining the format of the annotated ui element.
      *
-     * !!! WHEN ADDING A NEW ELEMENT HERE, ALSO ADD TO THE DOCUMENTATION OF {@link DefaultNodeSettings} !!!
+     * !!! WHEN ADDING A NEW ELEMENT HERE, ALSO ADD TO THE DOCUMENTATION OF {@link NodeParameters} !!!
      */
     private static final WidgetAnnotation[] WIDGET_ANNOTATIONS = new WidgetAnnotation[]{//
         new WidgetAnnotation(Widget.class), //
@@ -202,7 +202,7 @@ public final class WidgetImplementationUtil {
     /**
      *
      * Extend this for every fields type which has default format set. !!! WHEN ADDING A NEW ELEMENT HERE, ALSO ADD TO
-     * THE DOCUMENTATION OF {@link DefaultNodeSettings} !!!
+     * THE DOCUMENTATION OF {@link NodeParameters} !!!
      */
     private static final DefaultWidget[] DEFAULT_WIDGETS = new DefaultWidget[]{//
         new DefaultWidget(List.of(StringFilter.class), DefaultWidgetType.NAME_FILTER), //

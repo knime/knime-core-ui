@@ -56,12 +56,12 @@ import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
- * If a (possibly nested) field within a {@link DefaultNodeSettings} class is an instance of a class extending this
+ * If a (possibly nested) field within a {@link NodeParameters} class is an instance of a class extending this
  * interface, it will not be treated as a setting during the creation of the user interface and instead its nested
  * fields (annotated with {@link Widget}) are respected. This is useful for clustering several settings into one java
  * object.

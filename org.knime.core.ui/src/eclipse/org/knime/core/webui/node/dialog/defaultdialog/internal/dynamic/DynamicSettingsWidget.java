@@ -56,8 +56,8 @@ import java.lang.annotation.Target;
 import java.util.Map;
 
 import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
@@ -66,7 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Put this annotation on a Map<String, Object> field in a {@link DefaultNodeSettings} class to provide a dialog to
+ * Put this annotation on a Map<String, Object> field in a {@link NodeParameters} class to provide a dialog to
  * operate on that map.
  *
  * @author Robin Gerling
@@ -119,7 +119,7 @@ public @interface DynamicSettingsWidget {
      * Use this interface to provide a dialog for a map of settings in an imperative way.
      *
      * TODO: UIEXT-2592 introduce a declarative version of this interface, which allows to specify only an instance of
-     * {@link DefaultNodeSettings} using the JsonFormsSettingsImpl
+     * {@link NodeParameters} using the JsonFormsSettingsImpl
      */
     interface ImperativeDialogProvider extends StateProvider<DataAndDialog<Map<String, Object>>> {
 

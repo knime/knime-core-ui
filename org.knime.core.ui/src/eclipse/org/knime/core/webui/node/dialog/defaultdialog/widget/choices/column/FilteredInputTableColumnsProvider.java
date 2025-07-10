@@ -52,7 +52,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 
 /**
  * Convenience interface for providing columns from a single input table that satisfy a certain condition

@@ -50,7 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
 
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 
 /**
  * Used to provide the choices of the domain of a column within the table of the first port.

@@ -48,14 +48,14 @@
  */
 package org.knime.testing.node.dialog;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 
 /**
  *
  * @author jasper
  */
-class ExampleDefaultNodeSettings implements DefaultNodeSettings {
+class ExampleDefaultNodeSettings implements NodeParameters {
 
     @Widget(title = "String Setting", description = "")
     String m_stringV = "default string";

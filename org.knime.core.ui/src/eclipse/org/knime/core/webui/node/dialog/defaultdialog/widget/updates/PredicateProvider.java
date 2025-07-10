@@ -48,8 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.And;
@@ -57,7 +57,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.Or;
 
 /**
- * Use the initializer to create a predicate depending on other fields in the current {@link DefaultNodeSettings} or the
+ * Use the initializer to create a predicate depending on other fields in the current {@link NodeParameters} or the
  * {@link DefaultNodeSettingsContext}.
  *
  * <h5>For array layouts:</h5>
@@ -74,7 +74,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.
 public interface PredicateProvider {
 
     /**
-     * Use the initializer to create a predicate depending on other fields in the current {@link DefaultNodeSettings},
+     * Use the initializer to create a predicate depending on other fields in the current {@link NodeParameters},
      * the {@link DefaultNodeSettingsContext} or on another {@link PredicateProvider}.
      *
      * @param i
@@ -129,7 +129,7 @@ public interface PredicateProvider {
      *
      * <p>
      * Use {@link #isMissing} to check for missing references if those are expected (this only occurs in the special
-     * case where a {@link PredicateProvider} is used in the context of different {@link DefaultNodeSettings}).
+     * case where a {@link PredicateProvider} is used in the context of different {@link NodeParameters}).
      * </p>
      *
      * @author Paul Bärnreuther
@@ -283,7 +283,7 @@ public interface PredicateProvider {
 
         /**
          * Use this method in case a {@link PredicateProvider} is used in the context of two different
-         * {@link DefaultNodeSettings} (e.g. by reusing the same {@link WidgetGroup} within both of them. This way, one
+         * {@link NodeParameters} (e.g. by reusing the same {@link WidgetGroup} within both of them. This way, one
          * can avoid an error that a {@link ValueReference} annotations is missing in one of the cases and instead one
          * can use {@link #never} or {@link #always} to create a constant effect not depending on the reference.
          *

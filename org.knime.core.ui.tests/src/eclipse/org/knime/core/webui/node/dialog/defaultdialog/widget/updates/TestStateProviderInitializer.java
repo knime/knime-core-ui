@@ -50,7 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.updates;
 
 import java.util.function.Supplier;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
 

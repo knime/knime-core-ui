@@ -69,7 +69,7 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
@@ -223,7 +223,7 @@ class FieldBasedNodeSettingsPersistorTest {
         assertThrows(NullPointerException.class, () -> saver.save(null, root));
     }
 
-    private interface TestNodeSettings extends DefaultNodeSettings {
+    private interface TestNodeSettings extends NodeParameters {
 
         void saveExpected(final NodeSettingsWO settings);
 
@@ -415,7 +415,7 @@ class FieldBasedNodeSettingsPersistorTest {
         }
     }
 
-    private static final class FailingConstructorFieldPersistorSettings implements DefaultNodeSettings {
+    private static final class FailingConstructorFieldPersistorSettings implements NodeParameters {
         @Persistor(FailingConstructorFieldPersistor.class)
         String m_foo;
     }
@@ -818,7 +818,7 @@ class FieldBasedNodeSettingsPersistorTest {
                 "Persist", "fieldName");
     }
 
-    static final class PersistAndPersistorUsedAtTheSameTime implements DefaultNodeSettings {
+    static final class PersistAndPersistorUsedAtTheSameTime implements NodeParameters {
 
         static final class PersistorClass implements NodeSettingsPersistor<Integer> {
 
@@ -850,7 +850,7 @@ class FieldBasedNodeSettingsPersistorTest {
                 "Migrate", "fieldName");
     }
 
-    static final class MigrationAndMigrateUsedAtTheSameTime implements DefaultNodeSettings {
+    static final class MigrationAndMigrateUsedAtTheSameTime implements NodeParameters {
 
         static final class MigratorClass implements NodeSettingsMigration<Integer> {
 

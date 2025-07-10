@@ -60,7 +60,7 @@ import java.util.function.Supplier;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlValueReference;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.RendererSpecsToImperativeRefsAndStateProviders.ImperativeRefsAndStateProviders;

@@ -76,8 +76,8 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
@@ -139,7 +139,7 @@ public final class JsonFormsSchemaUtil {
      * @return a schema representation
      */
     public static ObjectNode buildCombinedSchema(
-        final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses,
+        final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses,
         final Map<SettingsType, Tree<WidgetGroup>> widgetTrees, final DefaultNodeSettingsContext context,
         final ObjectMapper mapper) {
         final var root = mapper.createObjectNode();

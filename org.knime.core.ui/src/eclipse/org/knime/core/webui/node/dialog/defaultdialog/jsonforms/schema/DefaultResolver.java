@@ -53,7 +53,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationU
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.LRUCache;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 
 import com.github.victools.jsonschema.generator.ConfigFunction;
 import com.github.victools.jsonschema.generator.FieldScope;

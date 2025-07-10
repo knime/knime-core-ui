@@ -50,7 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
 

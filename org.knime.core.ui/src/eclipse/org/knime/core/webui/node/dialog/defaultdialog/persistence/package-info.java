@@ -47,7 +47,7 @@
  *   May 2, 2023 (Paul Bärnreuther): created
  */
 /**
- * This package contains the logic and API for defining how {@link DefaultNodeSettings} are persisted to
+ * This package contains the logic and API for defining how {@link NodeParameters} are persisted to
  * {@link NodeSettings}.
  *
  * <p>
@@ -55,7 +55,7 @@
  * responsible for persisting one kind of java type. Such persistors can be attached to classes (via the
  * {@link org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor @Persistor} annotation) and fields (via
  * the {@link org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist @Persist} annotation) within
- * {@link DefaultNodeSettings}.
+ * {@link NodeParameters}.
  * </p>
  *
  * <p>

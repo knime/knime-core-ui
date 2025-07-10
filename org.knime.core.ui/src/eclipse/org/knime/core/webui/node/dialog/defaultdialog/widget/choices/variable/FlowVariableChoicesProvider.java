@@ -51,7 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable;
 import java.util.List;
 
 import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoicesProvider;
 

@@ -61,7 +61,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 
 /**
  * The {@link NodeModel} for simple streamable WebUI nodes, see {@link WebUINodeFactory} and
@@ -74,7 +74,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
  * @since 5.3
  */
 @Deprecated(since = "5.6")
-public abstract class WebUISimpleStreamableFunctionNodeModel<S extends DefaultNodeSettings> // NOSONAR
+public abstract class WebUISimpleStreamableFunctionNodeModel<S extends NodeParameters> // NOSONAR
     extends SimpleStreamableFunctionNodeModel {
 
     private S m_modelSettings;
@@ -112,7 +112,7 @@ public abstract class WebUISimpleStreamableFunctionNodeModel<S extends DefaultNo
     @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
         if (m_modelSettings == null) {
-            m_modelSettings = DefaultNodeSettings.createSettings(m_modelSettingsClass, new PortObjectSpec[]{spec});
+            m_modelSettings = NodeParameters.createParamaters(m_modelSettingsClass, new PortObjectSpec[]{spec});
         }
         return createColumnRearranger(spec, m_modelSettings);
     }
@@ -146,13 +146,13 @@ public abstract class WebUISimpleStreamableFunctionNodeModel<S extends DefaultNo
     @Override
     protected final void saveSettingsTo(final NodeSettingsWO settings) {
         final var modelSettings =
-                m_modelSettings == null ? DefaultNodeSettings.createSettings(m_modelSettingsClass) : m_modelSettings;
-        DefaultNodeSettings.saveSettings(m_modelSettingsClass, modelSettings, settings);
+                m_modelSettings == null ? NodeParameters.createParameters(m_modelSettingsClass) : m_modelSettings;
+        NodeParameters.saveParameters(m_modelSettingsClass, modelSettings, settings);
     }
 
     @Override
     protected final void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        validateSettings(DefaultNodeSettings.loadSettings(settings, m_modelSettingsClass));
+        validateSettings(NodeParameters.loadParameters(settings, m_modelSettingsClass));
     }
 
     /**
@@ -167,7 +167,7 @@ public abstract class WebUISimpleStreamableFunctionNodeModel<S extends DefaultNo
 
     @Override
     protected final void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_modelSettings = DefaultNodeSettings.loadSettings(settings, m_modelSettingsClass);
+        m_modelSettings = NodeParameters.loadParameters(settings, m_modelSettingsClass);
     }
 
     @Override

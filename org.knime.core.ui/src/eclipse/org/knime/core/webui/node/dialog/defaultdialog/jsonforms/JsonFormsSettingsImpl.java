@@ -53,8 +53,8 @@ import static org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMa
 import java.util.Map;
 
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
@@ -68,7 +68,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * Abstract implementation of JsonFormsSettings, where
  * <ul>
  * <li>the schema content is created from the types, names, and annotations of the fields in model and view
- * {@link DefaultNodeSettings settings} (see {@link JsonFormsSchemaUtil})
+ * {@link NodeParameters settings} (see {@link JsonFormsSchemaUtil})
  * <li>the data content is created from the values in these fields (see {@link JsonFormsDataUtil})
  * <li>the UI schema content is created either from a uischema.json file that resides in the same folder as the model
  * and view settings classes or, if no such file exists, it is generated from settings annotations (see
@@ -84,14 +84,14 @@ public final class JsonFormsSettingsImpl implements JsonFormsSettings {
 
     private final Map<SettingsType, Tree<WidgetGroup>> m_widgetTrees;
 
-    private Map<SettingsType, DefaultNodeSettings> m_settings;
+    private Map<SettingsType, NodeParameters> m_settings;
 
     /**
      * @param settings the POJOs from which to derive the schema, data and uiSchema
      * @param context the current {@link DefaultNodeSettingsContext} with access to input ports
      * @param widgetTrees of the settings
      */
-    public JsonFormsSettingsImpl(final Map<SettingsType, DefaultNodeSettings> settings,
+    public JsonFormsSettingsImpl(final Map<SettingsType, NodeParameters> settings,
         final DefaultNodeSettingsContext context, final Map<SettingsType, Tree<WidgetGroup>> widgetTrees) {
         m_settings = settings;
         m_context = context;
@@ -102,14 +102,14 @@ public final class JsonFormsSettingsImpl implements JsonFormsSettings {
      * @param settings the POJOs from which to derive the schema, data and uiSchema
      * @param context the current {@link DefaultNodeSettingsContext} with access to input ports
      */
-    public JsonFormsSettingsImpl(final Map<SettingsType, DefaultNodeSettings> settings,
+    public JsonFormsSettingsImpl(final Map<SettingsType, NodeParameters> settings,
         final DefaultNodeSettingsContext context) {
         this(settings, context, map(settings, (type, s) -> new WidgetTreeFactory().createTree(s.getClass(), type)));
     }
 
     @Override
     public ObjectNode getSchema() {
-        return JsonFormsSchemaUtil.buildCombinedSchema(map(m_settings, DefaultNodeSettings::getClass), m_widgetTrees,
+        return JsonFormsSchemaUtil.buildCombinedSchema(map(m_settings, NodeParameters::getClass), m_widgetTrees,
             m_context, JsonFormsDataUtil.getMapper());
     }
 

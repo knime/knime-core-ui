@@ -54,11 +54,11 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 
 /**
- * Add this annotation to a field nested within {@link DefaultNodeSettings} to dynamically set and alter its value.
+ * Add this annotation to a field nested within {@link NodeParameters} to dynamically set and alter its value.
  *
  * <p>
  * Possible use cases include:

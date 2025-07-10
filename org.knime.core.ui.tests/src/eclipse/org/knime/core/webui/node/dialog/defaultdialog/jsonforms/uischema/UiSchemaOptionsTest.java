@@ -75,8 +75,8 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonChange;
@@ -177,7 +177,7 @@ class UiSchemaOptionsTest {
     void testDefaultFormats() {
         @SuppressWarnings("unused")
         @DBTableAdapterProvider(DummyDbAdapterWithoutCatalogues.class)
-        class DefaultStylesSettings implements DefaultNodeSettings {
+        class DefaultStylesSettings implements NodeParameters {
             @Widget(title = "", description = "")
             String m_string;
 
@@ -322,7 +322,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testComboBoxFormat() {
-        class ComboBoxFormatSettings implements DefaultNodeSettings {
+        class ComboBoxFormatSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             String[] m_comboBox;
@@ -344,7 +344,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testSortListFormat() {
-        class ComboBoxFormatSettings implements DefaultNodeSettings {
+        class ComboBoxFormatSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @ChoicesProvider(TestChoicesProvider.class)
@@ -362,7 +362,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testAdvancedSettings() {
-        class AdvancedSettings implements DefaultNodeSettings {
+        class AdvancedSettings implements NodeParameters {
 
             @Widget(title = "", description = "", advanced = true)
             String m_foo;
@@ -402,7 +402,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testRadioButtonWidget() {
-        class RadioButtonsSettings implements DefaultNodeSettings {
+        class RadioButtonsSettings implements NodeParameters {
 
             enum MyEnum {
                     A, //
@@ -467,7 +467,7 @@ class UiSchemaOptionsTest {
             }
         }
 
-        class IntervalSettings implements DefaultNodeSettings {
+        class IntervalSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @IntervalWidget(typeProvider = SimpleDateStateProvider.class)
@@ -491,7 +491,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testValueSwitchWidget() {
-        class ValueSwitchSettings implements DefaultNodeSettings {
+        class ValueSwitchSettings implements NodeParameters {
 
             enum MyEnum {
                     A, //
@@ -514,7 +514,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testThrowsIfIsNotApplicable() {
-        class NonApplicableStyleSettings implements DefaultNodeSettings {
+        class NonApplicableStyleSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @RadioButtonsWidget()
             String m_prop;
@@ -524,7 +524,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testFolderSelectionWidgetSetsAppropriateSettings() {
-        class SettingsWithFolderSelection implements DefaultNodeSettings {
+        class SettingsWithFolderSelection implements NodeParameters {
             @Widget(title = "", description = "")
             @FolderSelectionWidget
             FileSelection m_myFolderSelection;
@@ -549,7 +549,7 @@ class UiSchemaOptionsTest {
             int m_field2;
         }
 
-        class ShowSortButtonsTestSettings implements DefaultNodeSettings {
+        class ShowSortButtonsTestSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @ArrayWidget
             ArrayElement[] m_arrayElementNoSortButtons;
@@ -569,7 +569,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testHideControlHeader() {
-        class HideTitleSettings implements DefaultNodeSettings {
+        class HideTitleSettings implements NodeParameters {
             @Widget(title = "foo2", description = "")
             @WidgetInternal(hideControlHeader = true)
             String m_foo2;
@@ -583,7 +583,7 @@ class UiSchemaOptionsTest {
     void overwriteTitle() {
         final String title = "Overwritten";
 
-        class OverwriteTitleSettings implements DefaultNodeSettings {
+        class OverwriteTitleSettings implements NodeParameters {
             @Widget(title = "foo1", description = "")
             String m_foo1;
 
@@ -615,7 +615,7 @@ class UiSchemaOptionsTest {
             int m_field2;
         }
 
-        class HasFixedSizeTestSettings implements DefaultNodeSettings {
+        class HasFixedSizeTestSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @ArrayWidget
             ArrayElement[] m_arrayElementVariableSize;
@@ -657,7 +657,7 @@ class UiSchemaOptionsTest {
 
         }
 
-        class ElementDefaultValueProviderTestSettings implements DefaultNodeSettings {
+        class ElementDefaultValueProviderTestSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @ArrayWidget
             ArrayElement[] m_arrayElementWithoutDefaultProvider;
@@ -689,7 +689,7 @@ class UiSchemaOptionsTest {
 
         @Test
         void testDefaultButtonWidgetOptions() {
-            class ButtonWidgetDefaultTestSettings implements DefaultNodeSettings {
+            class ButtonWidgetDefaultTestSettings implements NodeParameters {
 
                 @Widget(title = "", description = "")
                 @ButtonWidget(actionHandler = ButtonActionHandlerWithoutDependencies.class)
@@ -709,7 +709,7 @@ class UiSchemaOptionsTest {
 
         @Test
         void testButtonWidgetOptions() {
-            class ButtonWidgetOptionsTestSettings implements DefaultNodeSettings {
+            class ButtonWidgetOptionsTestSettings implements NodeParameters {
                 @Widget(title = "", description = "")
                 @ButtonWidget(actionHandler = ButtonActionHandlerWithoutDependencies.class, displayErrorMessage = false,
                     showTitleAndDescription = false)
@@ -729,7 +729,7 @@ class UiSchemaOptionsTest {
 
         @Test
         void testButtonStates() {
-            class ButtonWidgetDefaultTestSettings implements DefaultNodeSettings {
+            class ButtonWidgetDefaultTestSettings implements NodeParameters {
                 @Widget(title = "", description = "")
                 @ButtonWidget(actionHandler = ButtonActionHandlerWithoutDependencies.class)
                 String m_foo;
@@ -774,7 +774,7 @@ class UiSchemaOptionsTest {
             String m_sub2;
         }
 
-        class ButtonWidgetWithDependenciesTestSettings implements DefaultNodeSettings {
+        class ButtonWidgetWithDependenciesTestSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @ButtonWidget(actionHandler = ButtonActionHandlerWithDependencies.class,
                 updateHandler = ButtonUpdateHandlerWithDependencies.class)
@@ -846,7 +846,7 @@ class UiSchemaOptionsTest {
 
         }
 
-        class ButtonWidgetWithMissingDependenciesTestSettings implements DefaultNodeSettings {
+        class ButtonWidgetWithMissingDependenciesTestSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @ButtonWidget(actionHandler = ButtonActionHandlerWithMissingDependencies.class)
             String m_foo;
@@ -875,7 +875,7 @@ class UiSchemaOptionsTest {
                 () -> buildTestUiSchema(ButtonWidgetWithMissingDependenciesTestSettings.class));
         }
 
-        class ButtonWidgetWithAmbigousDependenciesTestSettings implements DefaultNodeSettings {
+        class ButtonWidgetWithAmbigousDependenciesTestSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @ButtonWidget(actionHandler = ButtonActionHandlerWithAmbiguousDependencies.class)
             String m_foo;
@@ -884,13 +884,13 @@ class UiSchemaOptionsTest {
             Boolean m_otherSetting1;
         }
 
-        class SecondSettings implements DefaultNodeSettings {
+        class SecondSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             Boolean m_otherSetting1;
         }
 
-        static class OtherSettingsWithAmbigous implements DefaultNodeSettings {
+        static class OtherSettingsWithAmbigous implements NodeParameters {
 
             @Widget(title = "", description = "")
             Boolean m_otherSetting1;
@@ -909,7 +909,7 @@ class UiSchemaOptionsTest {
             assertThrows(UiSchemaGenerationException.class, () -> buildUiSchema(settingsClasses));
         }
 
-        class ButtonWidgetWithDisAmbigousDependenciesTestSettings implements DefaultNodeSettings {
+        class ButtonWidgetWithDisAmbigousDependenciesTestSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @ButtonWidget(actionHandler = TestButtonActionHandlerWithDisAmbiguousDependencies.class)
             String m_foo;
@@ -918,7 +918,7 @@ class UiSchemaOptionsTest {
             Boolean m_otherSetting1;
         }
 
-        static class OtherSettingsWithSpecification implements DefaultNodeSettings {
+        static class OtherSettingsWithSpecification implements NodeParameters {
 
             @Widget(title = "", description = "")
             @DeclaringDefaultNodeSettings(SecondSettings.class)
@@ -943,7 +943,7 @@ class UiSchemaOptionsTest {
                 .isEqualTo("#/properties/view/properties/otherSetting1");
         }
 
-        class ButtonWidgetWithWrongTypeDependenciesTestSettings implements DefaultNodeSettings {
+        class ButtonWidgetWithWrongTypeDependenciesTestSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @ButtonWidget(actionHandler = TestButtonActionHandlerWithWrongType.class)
             String m_foo;
@@ -952,7 +952,7 @@ class UiSchemaOptionsTest {
             Boolean m_otherSetting1;
         }
 
-        static class OtherSettingsWithWrongType implements DefaultNodeSettings {
+        static class OtherSettingsWithWrongType implements NodeParameters {
             @Widget(title = "", description = "")
             String m_otherSetting1;
         }
@@ -970,7 +970,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testSimpleButtonWidgetOptions() {
-        class SimpleButtonWidgetTestSettings implements DefaultNodeSettings {
+        class SimpleButtonWidgetTestSettings implements NodeParameters {
 
             class MyButtonTrigger implements ButtonReference {
 
@@ -998,7 +998,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testTimeZoneWidgetDefaultOptions() {
-        class TimeZoneDefaultTestSettings implements DefaultNodeSettings {
+        class TimeZoneDefaultTestSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             ZoneId m_zoneId;
@@ -1025,7 +1025,7 @@ class UiSchemaOptionsTest {
     @Test
     void testTimeZoneWidgetCustomChoicesProviderOptions() {
 
-        class TimeZoneDefaultTestSettings implements DefaultNodeSettings {
+        class TimeZoneDefaultTestSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @ChoicesProvider(TimeZoneIdProvider.class)
@@ -1041,7 +1041,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testRichTextInputWidget() {
-        class RichTextInputWidgetSettings implements DefaultNodeSettings {
+        class RichTextInputWidgetSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @RichTextInputWidget
             String m_richTextContent;
@@ -1090,7 +1090,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testCredentials() {
-        class CredentialsWidgetSettings implements DefaultNodeSettings {
+        class CredentialsWidgetSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @CredentialsWidget(passwordLabel = "myPasswordLabel", usernameLabel = "myUsernameLabel")
             Credentials m_credentials;
@@ -1189,7 +1189,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testThrowsIfUsernameWidget() {
-        class CredentialsWidgetSettings implements DefaultNodeSettings {
+        class CredentialsWidgetSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @PasswordWidget(passwordLabel = "myPasswordLabel")
             @UsernameWidget("myUsernameLabel")
@@ -1202,7 +1202,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testLocalFileReaderWidget() {
-        class LocalFileReaderWidgetTestSettings implements DefaultNodeSettings {
+        class LocalFileReaderWidgetTestSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @LocalFileReaderWidget
@@ -1242,7 +1242,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testLocalFileWriterWidget() {
-        class LocalFileWriterWidgetTestSettings implements DefaultNodeSettings {
+        class LocalFileWriterWidgetTestSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @LocalFileWriterWidget
@@ -1278,7 +1278,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testFileWriterWidget() {
-        class FileWriterWidgetTestSettings implements DefaultNodeSettings {
+        class FileWriterWidgetTestSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @FileWriterWidget
@@ -1329,7 +1329,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testFileReaderWidget() {
-        class FileWriterWidgetTestSettings implements DefaultNodeSettings {
+        class FileWriterWidgetTestSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @FileReaderWidget(fileExtensions = {"txt", "csv"})
@@ -1369,7 +1369,7 @@ class UiSchemaOptionsTest {
 
         }
 
-        class DateTimeFormatPickerWidgetTestSettings implements DefaultNodeSettings {
+        class DateTimeFormatPickerWidgetTestSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @DateTimeFormatPickerWidget(formatProvider = DateTimeFormatProvider.class)
             String m_formatPickerField;
@@ -1409,7 +1409,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testTextAreaWidget() {
-        class TextAreaWidgetTestSettings implements DefaultNodeSettings {
+        class TextAreaWidgetTestSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @TextAreaWidget
@@ -1432,7 +1432,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testMultiFileReader() {
-        class MultiFileChooserTestSettings implements DefaultNodeSettings {
+        class MultiFileChooserTestSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @FileReaderWidget(fileExtensions = {"txt", "csv"})
@@ -1500,7 +1500,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testTextInputWidget() {
-        class TextInputWidgetTestSettings implements DefaultNodeSettings {
+        class TextInputWidgetTestSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @TextInputWidget(placeholder = "Bond")
@@ -1560,9 +1560,9 @@ class UiSchemaOptionsTest {
 
     @Test
     void testInternalArrayWidget() {
-        class InternalArrayWidgetTestSettings implements DefaultNodeSettings {
+        class InternalArrayWidgetTestSettings implements NodeParameters {
 
-            static final class ElementSettings implements DefaultNodeSettings {
+            static final class ElementSettings implements NodeParameters {
 
                 @Widget(title = "Element value", description = "")
                 @Effect(predicate = ArrayWidgetInternal.ElementIsEdited.class, type = EffectType.SHOW)
@@ -1591,7 +1591,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testTextMessage() {
-        class TestSettings implements DefaultNodeSettings {
+        class TestSettings implements NodeParameters {
 
             static final class MyTextMessageProvider implements TextMessage.SimpleTextMessageProvider {
 
@@ -1683,7 +1683,7 @@ class UiSchemaOptionsTest {
     @Test
     void testNumberInputWidget() {
 
-        class NumberInputWidgetTestSettings implements DefaultNodeSettings {
+        class NumberInputWidgetTestSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @NumberInputWidget(minValidation = CustomStaticMinValidation.class)
@@ -1782,7 +1782,7 @@ class UiSchemaOptionsTest {
     @Test
     void testNumericDefaultValidations() {
 
-        class NumberInputWidgetTestSettings implements DefaultNodeSettings {
+        class NumberInputWidgetTestSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             byte m_byte;
@@ -1831,7 +1831,7 @@ class UiSchemaOptionsTest {
                 SPECIAL2;
         }
 
-        class SingleSelectionSettings implements DefaultNodeSettings {
+        class SingleSelectionSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @ChoicesProvider(RegularChoicesProvider.class)
@@ -1851,7 +1851,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testDynamicSettingsWidget() {
-        class TestSettings implements DefaultNodeSettings {
+        class TestSettings implements NodeParameters {
 
             static final class SomeClass implements DynamicSettingsWidget.ImperativeDialogProvider {
 
@@ -1882,7 +1882,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testMapFieldThrowsIfWithoutDynamicSettingsWidget() {
-        class TestSettings implements DefaultNodeSettings {
+        class TestSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             Map<String, String> m_mapField;
@@ -1895,7 +1895,7 @@ class UiSchemaOptionsTest {
     void testThatDbTableAdapterSetsSupportsCatalogues() {
 
         @DBTableAdapterProvider(DummyDbAdapterWithoutCatalogues.class)
-        class SettingsWithoutCatalogues implements DefaultNodeSettings {
+        class SettingsWithoutCatalogues implements NodeParameters {
             @Widget(title = "", description = "")
             DBTableSelection m_dbTableSelection;
         }
@@ -1908,7 +1908,7 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].options.catalogsSupported").isBoolean().isFalse();
 
         @DBTableAdapterProvider(DummyDbAdapterWithCatalogues.class)
-        class SettingsWithCatalogues implements DefaultNodeSettings {
+        class SettingsWithCatalogues implements NodeParameters {
             @Widget(title = "", description = "")
             DBTableSelection m_dbTableSelection;
         }

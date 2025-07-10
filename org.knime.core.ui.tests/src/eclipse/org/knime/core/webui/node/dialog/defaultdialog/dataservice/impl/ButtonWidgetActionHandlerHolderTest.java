@@ -53,8 +53,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonChange;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
@@ -95,7 +95,7 @@ class ButtonWidgetActionHandlerHolderTest {
     @Test
     void testValidatesReturnType() {
 
-        class ButtonSettings implements DefaultNodeSettings {
+        class ButtonSettings implements NodeParameters {
             @Widget(description = "", title = "")
             @ButtonWidget(actionHandler = WrongResultTypeActionHandler.class)
             String m_button;

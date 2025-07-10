@@ -53,7 +53,7 @@ import java.util.List;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.FlowVariable.Scope;
 import org.knime.core.node.workflow.VariableTypeRegistry;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 
 /**
  * Offers all flow variables of {@link Scope#Flow} (i.e., ordinary, non-global, non-local, non-hidden flow variables)

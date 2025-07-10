@@ -51,7 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget;
 import java.util.Arrays;
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.DomainChoicesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.ErrorHandlingSingleton;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;

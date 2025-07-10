@@ -58,7 +58,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TraversableLayoutTreeNode;
@@ -90,21 +90,21 @@ public final class OptionsAdder {
     }
 
     /**
-     * Adds {@link DefaultNodeSettings} to a options tab.
+     * Adds {@link NodeParameters} to a options tab.
      *
      * @param tab to add to
      * @param modelSettingsClass (might be null)
      * @param viewSettingsClass (might be null)
      * @param optionCreator for creating an option from title and description
      */
-    public static void addOptionsToTab(final Element tab, final Class<? extends DefaultNodeSettings> modelSettingsClass,
-        final Class<? extends DefaultNodeSettings> viewSettingsClass,
+    public static void addOptionsToTab(final Element tab, final Class<? extends NodeParameters> modelSettingsClass,
+        final Class<? extends NodeParameters> viewSettingsClass,
         final BiFunction<String, String, Element> optionCreator) {
         addOptions(modelSettingsClass, viewSettingsClass, field -> createOption(field, tab, optionCreator));
     }
 
-    private static void addOptions(final Class<? extends DefaultNodeSettings> modelSettingsClass,
-        final Class<? extends DefaultNodeSettings> viewSettingsClass, final Consumer<TreeNode<WidgetGroup>> addField) {
+    private static void addOptions(final Class<? extends NodeParameters> modelSettingsClass,
+        final Class<? extends NodeParameters> viewSettingsClass, final Consumer<TreeNode<WidgetGroup>> addField) {
         final Map<SettingsType, Class<? extends WidgetGroup>> settings = new EnumMap<>(SettingsType.class);
         if (modelSettingsClass != null) {
             settings.put(SettingsType.MODEL, modelSettingsClass);

@@ -47,7 +47,7 @@
  *   Okt 7, 2024 (Paul Bärnreuther): created
  */
 /**
- * This package contains the tree structure that is used to build the dialog from {@link DefaultNodeSettings}.
+ * This package contains the tree structure that is used to build the dialog from {@link NodeParameters}.
  *
  * @author Paul Bärnreuther
  */

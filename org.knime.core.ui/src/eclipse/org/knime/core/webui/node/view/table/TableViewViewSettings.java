@@ -55,7 +55,8 @@ import java.util.stream.Stream;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
@@ -93,7 +94,7 @@ import org.knime.core.webui.node.view.table.TableViewViewSettings.VerticalPaddin
  * @author Christian Albrecht, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("java:S103") // we accept too long lines
-public class TableViewViewSettings implements DefaultNodeSettings {
+public class TableViewViewSettings implements NodeParameters {
 
     /**
      * Previously, displayedColumnsV2 was called displayedColumns and stored a string array.

@@ -98,7 +98,7 @@ public final class PersistUtil {
      * @param settings
      */
     public static void constructTreesAndAddPersist(final ObjectNode parentNode,
-        final Map<SettingsType, DefaultNodeSettings> settings) {
+        final Map<SettingsType, NodeParameters> settings) {
         final var persistTreeFactory = new PersistTreeFactory();
         final var persistTrees =
             SettingsTypeMapUtil.map(settings, (type, s) -> persistTreeFactory.createTree(s.getClass(), type));

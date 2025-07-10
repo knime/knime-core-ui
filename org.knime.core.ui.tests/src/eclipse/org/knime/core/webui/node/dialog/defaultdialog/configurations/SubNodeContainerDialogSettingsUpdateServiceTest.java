@@ -61,7 +61,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.data.DataServiceContextTest;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.UpdatesUtilImperativeUpdatesTest;
 import org.knime.core.webui.node.dialog.defaultdialog.components.SubNodeContainerDialogSettingsUpdateService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DialogSettingsUpdateService;

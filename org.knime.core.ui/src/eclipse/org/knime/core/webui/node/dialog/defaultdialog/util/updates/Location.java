@@ -54,15 +54,15 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 
 /**
  * The location of a dialog field in the data
  * @author Paul Bärnreuther
- * @param paths the path to the field in a {@link DefaultNodeSettings} class. It contains mulitple paths whenever the
+ * @param paths the path to the field in a {@link NodeParameters} class. It contains mulitple paths whenever the
  *            field is nested inside an array layout
- * @param settingsType of the {@link DefaultNodeSettings} class
+ * @param settingsType of the {@link NodeParameters} class
  */
 public record Location(List<List<String>> paths, SettingsType settingsType) implements Comparable<Location> {
 

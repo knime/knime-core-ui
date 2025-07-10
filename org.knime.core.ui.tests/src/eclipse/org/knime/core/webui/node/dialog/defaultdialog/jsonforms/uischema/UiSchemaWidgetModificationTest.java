@@ -54,7 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.buildTestUiSchema;
 
 import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
@@ -68,7 +68,7 @@ class UiSchemaWidgetModificationTest {
     @Test
     void testModifiesExistingAnnotation() {
 
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -105,7 +105,7 @@ class UiSchemaWidgetModificationTest {
     @Test
     void testWorksOnClassAnnotations() {
 
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             @Modification(ModifyPlaceholder.class)
             final class WidgetGroupSettings implements WidgetGroup {
@@ -141,7 +141,7 @@ class UiSchemaWidgetModificationTest {
 
     @Test
     void testAddsNewAnnotation() {
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -174,7 +174,7 @@ class UiSchemaWidgetModificationTest {
 
     @Test
     void testRemoveAnnotation() {
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -209,7 +209,7 @@ class UiSchemaWidgetModificationTest {
 
     @Test
     void throwsForRemoveAnnotationOnMissing() {
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -241,7 +241,7 @@ class UiSchemaWidgetModificationTest {
 
     @Test
     void throwsForModifyAnnotationOnMissing() {
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -275,7 +275,7 @@ class UiSchemaWidgetModificationTest {
 
     @Test
     void throwsForAddAnnotationIfAlreadyPresent() {
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -308,7 +308,7 @@ class UiSchemaWidgetModificationTest {
 
     @Test
     void throwsOnInvalidParameterName() {
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -342,7 +342,7 @@ class UiSchemaWidgetModificationTest {
 
     @Test
     void throwsOnInvalidParameterType() {
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -377,7 +377,7 @@ class UiSchemaWidgetModificationTest {
 
     @Test
     void throwsWhenAddingAnnotationWithoutSettingRequiredProperties() {
-        final class NoEffectTypeTestSettings implements DefaultNodeSettings {
+        final class NoEffectTypeTestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -418,7 +418,7 @@ class UiSchemaWidgetModificationTest {
         assertThat(assertThrows(IllegalArgumentException.class, () -> buildTestUiSchema(NoEffectTypeTestSettings.class))
             .getMessage()).isEqualTo("The property \"type\" is required for Effect");
 
-        final class NoValueReferenceTestSettings implements DefaultNodeSettings {
+        final class NoValueReferenceTestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -454,7 +454,7 @@ class UiSchemaWidgetModificationTest {
     @Test
     void throwsOnDuplicateReferences() {
 
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -493,7 +493,7 @@ class UiSchemaWidgetModificationTest {
     @Test
     void testThrowsOnMissingReferences() {
 
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 

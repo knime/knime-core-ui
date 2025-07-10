@@ -63,8 +63,8 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DefaultValueProvider;
@@ -83,7 +83,7 @@ class OptionalWidgetOptionsTest {
 
     @Test
     void testOptionalSetting() {
-        class HidableSettings implements DefaultNodeSettings {
+        class HidableSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @TextInputWidget(placeholder = "I am still being picked up")
@@ -192,7 +192,7 @@ class OptionalWidgetOptionsTest {
 
     @Test
     void testThrowsOnFieldTypeWithoutBuiltinDefaultAndWithoutOptionalWidget() {
-        class HidableSettings implements DefaultNodeSettings {
+        class HidableSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             Optional<DateInterval> m_interval;
@@ -205,7 +205,7 @@ class OptionalWidgetOptionsTest {
 
     @Test
     void testOptionalWidgetWithDefaultProvider() {
-        class HidableSettings implements DefaultNodeSettings {
+        class HidableSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @ChoicesProvider(TestChoicesProvider.class)

@@ -54,8 +54,8 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.layout.CheckboxesWithVennDiagram;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
@@ -88,12 +88,12 @@ class JsonFormsUiSchemaUtilTest {
             );
     }
 
-    static ObjectNode buildTestUiSchema(final Class<? extends DefaultNodeSettings> settingsClass) {
+    static ObjectNode buildTestUiSchema(final Class<? extends NodeParameters> settingsClass) {
         return buildUiSchema(Map.of(SettingsType.MODEL, settingsClass));
     }
 
 
-    static ObjectNode buildTestUiSchema(final Class<? extends DefaultNodeSettings> settingsClass,
+    static ObjectNode buildTestUiSchema(final Class<? extends NodeParameters> settingsClass,
         final DefaultNodeSettingsContext context) {
         return buildUiSchema(Map.of(SettingsType.MODEL, settingsClass), context);
     }
@@ -113,7 +113,7 @@ class JsonFormsUiSchemaUtilTest {
     }
 
     @Layout(TestSettingsLayout.class)
-    class DummySettings implements DefaultNodeSettings {
+    class DummySettings implements NodeParameters {
 
         @Widget(title = "", description = "")
         @Layout(TestSettingsLayout.Section1.class)
@@ -153,7 +153,7 @@ class JsonFormsUiSchemaUtilTest {
         String m_sub2;
     }
 
-    class TestControlSettings implements DefaultNodeSettings {
+    class TestControlSettings implements NodeParameters {
         @Widget(title = "", description = "")
         String m_normalSetting;
 
@@ -180,7 +180,7 @@ class JsonFormsUiSchemaUtilTest {
     @Test
     void testHiddenSettings() throws JsonProcessingException {
         @SuppressWarnings("unused")
-        class TestHiddenSettings implements DefaultNodeSettings {
+        class TestHiddenSettings implements NodeParameters {
             @Widget(title = "", description = "")
             String m_normalSetting;
 
@@ -202,7 +202,7 @@ class JsonFormsUiSchemaUtilTest {
             }
         }
 
-        class TestHorizontalLayoutSettings implements DefaultNodeSettings {
+        class TestHorizontalLayoutSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestHorizontalLayout.HorizontalGroup.class)
             String m_setting1;
@@ -224,7 +224,7 @@ class JsonFormsUiSchemaUtilTest {
     @Test
     void testVerticalLayout() {
 
-        class TestHorizontalLayoutSettings implements DefaultNodeSettings {
+        class TestHorizontalLayoutSettings implements NodeParameters {
 
             //   [ ] Use hour   [ ] Use minute
             //   Hours          Minutes
@@ -288,7 +288,7 @@ class JsonFormsUiSchemaUtilTest {
             }
         }
 
-        class TestHorizontalLayoutSettings implements DefaultNodeSettings {
+        class TestHorizontalLayoutSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestVennDiagramLayout.Venn.class)
             String m_inner;

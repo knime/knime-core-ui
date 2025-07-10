@@ -54,14 +54,14 @@ import java.util.Map;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * Used to de-serialize JSON data to {@link DefaultNodeSettings}.
+ * Used to de-serialize JSON data to {@link NodeParameters}.
  *
  * @author Paul Bärnreuther
  */
@@ -74,14 +74,14 @@ public final class JsonDataToDefaultNodeSettingsUtil {
     private static final NodeLogger LOGGER = NodeLogger.getLogger(JsonDataToDefaultNodeSettingsUtil.class);
 
     /**
-     * @param settingsClasses a map associating settings types with {@link DefaultNodeSettings}
+     * @param settingsClasses a map associating settings types with {@link NodeParameters}
      * @param data containing keys "model" and/or "view" which are the keys of the map of settingsClasses
      *
      * @return a map of the extracted default node settings. The keys are the same as the ones in the given map of
      *         classes.
      */
-    public static Map<SettingsType, DefaultNodeSettings> toDefaultNodeSettings(
-        final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses, final JsonNode data) {
+    public static Map<SettingsType, NodeParameters> toDefaultNodeSettings(
+        final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses, final JsonNode data) {
         return mapValuesWithKeys(settingsClasses,
             (type, settingsClass) -> toDefaultNodeSettings(settingsClass, data, type));
     }
@@ -92,7 +92,7 @@ public final class JsonDataToDefaultNodeSettingsUtil {
      * @param data containing the given type as key
      * @return the extracted DefaultNodeSettings
      */
-    public static DefaultNodeSettings toDefaultNodeSettings(final Class<? extends DefaultNodeSettings> settingsClass,
+    public static NodeParameters toDefaultNodeSettings(final Class<? extends NodeParameters> settingsClass,
         final JsonNode data, final SettingsType type) {
         return toDefaultNodeSettings(getJsonNodeForType(data, type), settingsClass);
     }
@@ -101,8 +101,8 @@ public final class JsonDataToDefaultNodeSettingsUtil {
         return data.get(type.getConfigKey());
     }
 
-    private static DefaultNodeSettings toDefaultNodeSettings(final JsonNode node,
-        final Class<? extends DefaultNodeSettings> settingsClass) {
+    private static NodeParameters toDefaultNodeSettings(final JsonNode node,
+        final Class<? extends NodeParameters> settingsClass) {
         try {
             return JsonFormsDataUtil.toDefaultNodeSettings(node, settingsClass);
         } catch (JsonProcessingException e) {

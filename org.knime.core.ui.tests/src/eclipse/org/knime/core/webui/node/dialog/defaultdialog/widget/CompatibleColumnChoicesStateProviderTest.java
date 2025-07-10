@@ -66,7 +66,8 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
@@ -99,7 +100,7 @@ class CompatibleColumnChoicesStateProviderTest {
     @Test
     void testChoicesFromCompatibleDataValueClassesSupplier() {
 
-        class TestSettings implements DefaultNodeSettings {
+        class TestSettings implements NodeParameters {
 
             static final class ColSelectPersistor extends LegacyColumnFilterPersistor {
                 public ColSelectPersistor() {
@@ -122,7 +123,7 @@ class CompatibleColumnChoicesStateProviderTest {
         var settings = new TestSettings();
 
         UpdateSimulator simulator = new DialogUpdateSimulator(settings,
-            DefaultNodeSettings.DefaultNodeSettingsContext.createDefaultNodeSettingsContext(
+            DefaultNodeSettingsContext.createDefaultNodeSettingsContext(
                 new PortType[]{BufferedDataTable.TYPE}, new PortObjectSpec[]{testSpec}, null, null));
 
         UpdateSimulatorResult beforeOpenDialogResults = simulator.simulateBeforeOpenDialog();

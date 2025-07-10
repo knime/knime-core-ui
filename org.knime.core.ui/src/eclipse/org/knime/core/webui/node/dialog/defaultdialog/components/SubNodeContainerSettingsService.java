@@ -87,8 +87,7 @@ import org.knime.core.webui.node.dialog.WebDialogNodeRepresentation;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMappings;
 import org.knime.core.webui.node.dialog.configmapping.NodeSettingsCorrectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogDataServiceUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.UpdatesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
@@ -200,7 +199,7 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
     }
 
     private static DefaultNodeSettingsContext createContext(final PortObjectSpec[] specs) {
-        return DefaultNodeSettings.createDefaultNodeSettingsContext(specs);
+        return DefaultNodeSettingsContext.createDefaultNodeSettingsContext(specs);
     }
 
     Collection<DialogElementRendererSpec> getRendererSpecs() {

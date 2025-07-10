@@ -50,7 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
 
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 
 /**
@@ -62,7 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
  * <li>{@link TypedStringChoicesProvider} for choosing a column or a flow variable</li>
  * </ul>
  *
- * See {@link DefaultNodeSettings} for further information which state provider is to be used for which setting.
+ * See {@link NodeParameters} for further information which state provider is to be used for which setting.
  *
  * @param <S> the type of the choices
  *

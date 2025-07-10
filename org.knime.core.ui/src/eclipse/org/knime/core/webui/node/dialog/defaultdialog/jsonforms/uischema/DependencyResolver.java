@@ -54,7 +54,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
@@ -123,7 +123,7 @@ final class DependencyResolver {
     }
 
     private String findTargetScope(final String searchScope,
-        final Class<? extends DefaultNodeSettings> declaringDefaultNodeSettings, final Class<?> clazz) {
+        final Class<? extends NodeParameters> declaringDefaultNodeSettings, final Class<?> clazz) {
         final var candidates = m_fields.stream().filter(control -> {
             if (declaringDefaultNodeSettings != null && !control.rootClass().equals(declaringDefaultNodeSettings)) {
                 return false;

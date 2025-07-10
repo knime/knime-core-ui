@@ -53,7 +53,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.data.DataType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 
 /**
  * A provider for an array of possible values of a {@link DataType} selection

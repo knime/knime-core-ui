@@ -56,8 +56,8 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
@@ -72,7 +72,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 
 /**
  * Use this simulator to simulate the updates that are defined by {@link StateProvider}s within
- * {@link DefaultNodeSettings}
+ * {@link NodeParameters}
  *
  * @author Paul Bärnreuther
  */

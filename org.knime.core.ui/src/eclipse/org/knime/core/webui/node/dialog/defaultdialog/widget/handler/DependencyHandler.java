@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.handler;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 
 /**
  *
@@ -86,8 +86,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
  *
  * </pre>
  *
- * For simple scenarios where there is only one {@link DefaultNodeSettings} class used and a setting should depend on
- * all other settings, the {@link DefaultNodeSettings} class itself can be directly used as the generic class.
+ * For simple scenarios where there is only one {@link NodeParameters} class used and a setting should depend on
+ * all other settings, the {@link NodeParameters} class itself can be directly used as the generic class.
  *
  * @param <S> the settings, the handler is depending on.
  *

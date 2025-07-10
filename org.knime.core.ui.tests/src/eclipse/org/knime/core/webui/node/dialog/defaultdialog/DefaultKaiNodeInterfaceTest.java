@@ -247,7 +247,7 @@ final class DefaultKaiNodeInterfaceTest {
 
     }
 
-    static final class TestSettings implements DefaultNodeSettings {
+    static final class TestSettings implements NodeParameters {
         @Widget(title = "Some Model Setting", description = "Some Description")
         int m_someModelSetting;
 

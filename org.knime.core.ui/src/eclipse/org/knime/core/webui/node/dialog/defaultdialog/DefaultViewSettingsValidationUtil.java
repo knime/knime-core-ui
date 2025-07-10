@@ -53,11 +53,11 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 
 /**
- * A utility class for validating view {@link DefaultNodeSettings} instances overwritten by flow variables. Use this in
- * a node model (within {@link NodeModel#validateViewSettings}) for a node using {@link DefaultNodeSettings} view
+ * A utility class for validating view {@link NodeParameters} instances overwritten by flow variables. Use this in
+ * a node model (within {@link NodeModel#validateViewSettings}) for a node using {@link NodeParameters} view
  * variables. As a typical example where this validation is useful: When overwriting an enum field with a string flow
  * variable which does not have one of the string values, overwriting the node settings with the default node settings
- * does not throw an error. This error is only thrown when loading the node settings to {@link DefaultNodeSettings}
+ * does not throw an error. This error is only thrown when loading the node settings to {@link NodeParameters}
  * which, in case of view settings, is not caught unless this class is used as node model.
  *
  * @author Paul Bärnreuther
@@ -69,7 +69,7 @@ public final class DefaultViewSettingsValidationUtil {
     }
 
     /**
-     * Try to load the view settings (already overwritten by flow variables) to {@link DefaultNodeSettings}.
+     * Try to load the view settings (already overwritten by flow variables) to {@link NodeParameters}.
      *
      * @param viewSettings the to be validated view settings
      * @param viewSettingsClass the class of the view settings. Although it is odd, that any information regarding view
@@ -79,8 +79,8 @@ public final class DefaultViewSettingsValidationUtil {
      * @throws InvalidSettingsException
      */
     public static void validateViewSettings(final NodeSettingsRO viewSettings,
-        final Class<? extends DefaultNodeSettings> viewSettingsClass) throws InvalidSettingsException {
-        DefaultNodeSettings.loadSettings(viewSettings, viewSettingsClass);
+        final Class<? extends NodeParameters> viewSettingsClass) throws InvalidSettingsException {
+        NodeParameters.loadParameters(viewSettings, viewSettingsClass);
     }
 
 }

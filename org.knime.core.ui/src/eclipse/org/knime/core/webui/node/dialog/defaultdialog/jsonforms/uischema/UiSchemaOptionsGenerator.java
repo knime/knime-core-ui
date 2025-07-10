@@ -110,7 +110,7 @@ import org.knime.core.node.workflow.contextv2.LocationInfo;
 import org.knime.core.node.workflow.contextv2.ServerLocationInfo;
 import org.knime.core.node.workflow.contextv2.WorkflowContextV2.ExecutorType;
 import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActionHandler;

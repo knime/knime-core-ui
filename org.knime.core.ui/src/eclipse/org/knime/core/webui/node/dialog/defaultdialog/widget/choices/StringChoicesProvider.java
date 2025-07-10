@@ -50,7 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
 
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 
 /**
  * A class that provides an array of possible string values of a {@link ChoicesProvider} based on the current

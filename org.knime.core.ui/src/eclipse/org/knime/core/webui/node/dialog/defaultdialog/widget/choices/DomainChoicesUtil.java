@@ -55,7 +55,7 @@ import java.util.Optional;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 
 /**

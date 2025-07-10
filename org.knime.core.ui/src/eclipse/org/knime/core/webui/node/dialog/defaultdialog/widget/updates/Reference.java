@@ -48,12 +48,12 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 
 /**
  * This interface can be extended by classes used as {@link ValueReference#value()}.
  *
- * @param <V> the type of the associated field in the {@link DefaultNodeSettings}.
+ * @param <V> the type of the associated field in the {@link NodeParameters}.
  * @author Paul Bärnreuther
  */
 public interface Reference<V> {

@@ -98,7 +98,7 @@ class DefaultNodeSettingsServiceTest {
     private static final ObjectMapper MAPPER = JsonFormsDataUtil.getMapper();
 
     @SuppressWarnings("unused")
-    private static class TestSettings implements DefaultNodeSettings {
+    private static class TestSettings implements NodeParameters {
         String m_value;
 
         TestSettings() {
@@ -128,7 +128,7 @@ class DefaultNodeSettingsServiceTest {
         final var specs =
             new PortObjectSpec[]{new DataTableSpec(new DataColumnSpecCreator("bar", StringCell.TYPE).createSpec())};
         final var viewDataSchema = JsonFormsSchemaUtil.buildSchema(TestSettings.class,
-            DefaultNodeSettings.createDefaultNodeSettingsContext(specs), MAPPER);
+            DefaultNodeSettingsContext.createDefaultNodeSettingsContext(specs), MAPPER);
         final var nodeSettings = new NodeSettings("node_settings");
         JsonNodeSettingsMapperUtil.jsonObjectToNodeSettings(viewData, viewDataSchema, nodeSettings);
 
@@ -151,7 +151,7 @@ class DefaultNodeSettingsServiceTest {
 
         // assert that returned schema is equal to wrapped schema created via JsonFormsSchemaUtil
         final var schema = JsonFormsSchemaUtil.buildSchema(TestSettings.class,
-            DefaultNodeSettings.createDefaultNodeSettingsContext(specs), MAPPER);
+            DefaultNodeSettingsContext.createDefaultNodeSettingsContext(specs), MAPPER);
         final var wrappedSchema = MAPPER.createObjectNode();
         wrappedSchema.put("type", "object").putObject("properties").set(SettingsType.VIEW.getConfigKey(), schema);
         assertThatJson(initialData.get("schema")).isEqualTo(wrappedSchema);
@@ -163,7 +163,7 @@ class DefaultNodeSettingsServiceTest {
             JsonFormsUiSchemaUtil.buildUISchema(
                 testSettingsMap.entrySet().stream()
                     .map(e -> new WidgetTreeFactory().createTree(e.getValue(), e.getKey())).toList(),
-                DefaultNodeSettings.createDefaultNodeSettingsContext(specs));
+                DefaultNodeSettingsContext.createDefaultNodeSettingsContext(specs));
         assertThatJson(initialData.get("ui_schema").get("elements")).isEqualTo(uiSchema.get("elements"));
     }
 
@@ -192,7 +192,7 @@ class DefaultNodeSettingsServiceTest {
     @Test
     void testSettingsOverwrittenByFlowVariablesAreSetToPrevious() throws InvalidSettingsException {
         final var previousNodeSettings = new NodeSettings("previousSettings");
-        DefaultNodeSettings.saveSettings(TestSettings.class, new TestSettings("old"), previousNodeSettings);
+        NodeParameters.saveParameters(TestSettings.class, new TestSettings("old"), previousNodeSettings);
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
         final var settingsService =
@@ -213,7 +213,7 @@ class DefaultNodeSettingsServiceTest {
         assertThat(nodeSettings.getString("value")).isEqualTo("old");
     }
 
-    static class LegacySettings implements DefaultNodeSettings {
+    static class LegacySettings implements NodeParameters {
         String m_valueLegacy1;
 
         String m_valueLegacy2;
@@ -233,7 +233,7 @@ class DefaultNodeSettingsServiceTest {
             .withDeprecatedConfigPath("valueLegacy2").build());
     }
 
-    static class MigratedSettings implements DefaultNodeSettings {
+    static class MigratedSettings implements NodeParameters {
 
         static class MyLegacyPersistor implements NodeSettingsPersistor<String> {
 
@@ -285,7 +285,7 @@ class DefaultNodeSettingsServiceTest {
         throws InvalidSettingsException {
 
         final var previousNodeSettings = new NodeSettings("previousSettings");
-        DefaultNodeSettings.saveSettings(LegacySettings.class, new LegacySettings("old1", "old2"),
+        NodeParameters.saveParameters(LegacySettings.class, new LegacySettings("old1", "old2"),
             previousNodeSettings);
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
@@ -309,7 +309,7 @@ class DefaultNodeSettingsServiceTest {
         assertThat(nodeSettings.containsKey("value")).isFalse();
     }
 
-    static class MigratedSettingsWithLoad implements DefaultNodeSettings {
+    static class MigratedSettingsWithLoad implements NodeParameters {
 
         static class MyLegacyMigrator implements NodeSettingsMigration<String> {
             @Override
@@ -336,7 +336,7 @@ class DefaultNodeSettingsServiceTest {
     void testMapsPreviousSettingsToNewSettingsOnOverwrite() throws InvalidSettingsException {
 
         final var previousNodeSettings = new NodeSettings("previousSettings");
-        DefaultNodeSettings.saveSettings(LegacySettings.class, new LegacySettings("old1", "old2"),
+        NodeParameters.saveParameters(LegacySettings.class, new LegacySettings("old1", "old2"),
             previousNodeSettings);
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
@@ -360,7 +360,7 @@ class DefaultNodeSettingsServiceTest {
         assertThat(nodeSettings.getString("value")).isEqualTo("old1old2");
     }
 
-    static class MigratedSettingsWithFailingLoad implements DefaultNodeSettings {
+    static class MigratedSettingsWithFailingLoad implements NodeParameters {
 
         static class MyLegacyMigrator implements NodeSettingsMigration<String> {
             @Override
@@ -388,7 +388,7 @@ class DefaultNodeSettingsServiceTest {
     void testUsesNewSettingsInCaseLoadingTheOldSettingsFails() throws InvalidSettingsException {
 
         final var previousNodeSettings = new NodeSettings("previousSettings");
-        DefaultNodeSettings.saveSettings(LegacySettings.class, new LegacySettings("old1", "old2"),
+        NodeParameters.saveParameters(LegacySettings.class, new LegacySettings("old1", "old2"),
             previousNodeSettings);
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
@@ -416,7 +416,7 @@ class DefaultNodeSettingsServiceTest {
     void testDoesNotMapPreviousSettingsToNewSettingsOnExpose() throws InvalidSettingsException {
 
         final var previousNodeSettings = new NodeSettings("previousSettings");
-        DefaultNodeSettings.saveSettings(LegacySettings.class, new LegacySettings("old1", "old2"),
+        NodeParameters.saveParameters(LegacySettings.class, new LegacySettings("old1", "old2"),
             previousNodeSettings);
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
@@ -450,7 +450,7 @@ class DefaultNodeSettingsServiceTest {
     }
 
     @Migration(RootSettingsDeprecationsDefinition.class)
-    static class RootSettingsWithDeprecations implements DefaultNodeSettings {
+    static class RootSettingsWithDeprecations implements NodeParameters {
 
         String m_value = "the default";
     }
@@ -458,7 +458,7 @@ class DefaultNodeSettingsServiceTest {
     @Test
     void testInferrsConfigKeysFromFieldBasedDefaultPersistor() {
         final var previousNodeSettings = new NodeSettings("previousSettings");
-        DefaultNodeSettings.saveSettings(LegacySettings.class, new LegacySettings("old1", "old2"),
+        NodeParameters.saveParameters(LegacySettings.class, new LegacySettings("old1", "old2"),
             previousNodeSettings);
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
@@ -485,7 +485,7 @@ class DefaultNodeSettingsServiceTest {
     @Test
     void testInferrsConfigKeysFromFieldBasedDefaultPersistorWhenANewVariableIsSet() {
         final var previousNodeSettings = new NodeSettings("previousSettings");
-        DefaultNodeSettings.saveSettings(LegacySettings.class, new LegacySettings("old1", "old2"),
+        NodeParameters.saveParameters(LegacySettings.class, new LegacySettings("old1", "old2"),
             previousNodeSettings);
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
@@ -509,7 +509,7 @@ class DefaultNodeSettingsServiceTest {
         assertThat(nodeSettings.getString("value", "notPresent")).isEqualTo("the default");
     }
 
-    static class SettingsWithOptionalSetting implements DefaultNodeSettings {
+    static class SettingsWithOptionalSetting implements NodeParameters {
 
         @Migrate(loadDefaultIfAbsent = true)
         String m_value = "the default";
