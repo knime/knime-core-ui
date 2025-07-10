@@ -73,6 +73,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
+import org.knime.core.webui.node.util.OptionsAdder;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
@@ -85,9 +86,11 @@ import org.xml.sax.SAXException;
  * org.knime.core.webui.node.dialog.impl.TestWebUINodeFactory in org.knime.core.ui.tests.
  *
  * @param <M> the type of the {@link WebUINodeModel} created by this factory
+ * @deprecated use org.knime.node.DefaultNodeFactory instead
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
+@Deprecated(since = "5.6")
 public abstract class WebUINodeFactory<M extends NodeModel> extends NodeFactory<M>
     implements NodeDialogFactory, KaiNodeInterfaceFactory {
 

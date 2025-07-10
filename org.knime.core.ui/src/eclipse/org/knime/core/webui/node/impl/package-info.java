@@ -47,11 +47,9 @@
  *   May 2, 2023 (Paul Bärnreuther): created
  */
 /**
- * This package offers an factory for simple WebUI nodes making use of
- * {@link org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings DefaultNodeSettings}.
+ * The classes in this package have been superseded by classes in org.knime.node
  *
  * @see {@link org.knime.core.webui.node.impl.WebUINodeFactory}
  * @author Paul Bärnreuther
  */
-// TODO remove (almost) all classes in this package
 package org.knime.core.webui.node.impl;

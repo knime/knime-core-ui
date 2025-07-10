@@ -55,6 +55,8 @@ package org.knime.core.webui.node.impl;
  *
  * @param href resource URL
  * @param description resource description
+ * @deprecated use org.knime.node.DefaultNode instead
  */
+@Deprecated(since = "5.6")
 public record ExternalResource(String href, String description) {
 }

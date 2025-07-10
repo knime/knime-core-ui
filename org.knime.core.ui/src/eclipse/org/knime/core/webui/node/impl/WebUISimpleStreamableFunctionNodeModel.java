@@ -68,10 +68,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
  * {@link SimpleStreamableFunctionNodeModel}.
  *
  * @param <S> the type of model settings
+ * @deprecated use org.knime.node.DefaultNode instead
  *
  * @author Christian Albrecht, KNIME GmbH, Konstanz
  * @since 5.3
  */
+@Deprecated(since = "5.6")
 public abstract class WebUISimpleStreamableFunctionNodeModel<S extends DefaultNodeSettings>
     extends SimpleStreamableFunctionNodeModel {
 

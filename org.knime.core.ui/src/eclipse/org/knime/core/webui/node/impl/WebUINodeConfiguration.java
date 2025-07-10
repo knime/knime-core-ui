@@ -64,8 +64,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 /**
  * Configuration for a {@link WebUINodeFactory WebUI node}.
  *
+ * @deprecated use org.knime.node.DefaultNode instead
+ *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
+@Deprecated(since = "5.6")
 public final class WebUINodeConfiguration {
 
     /**
@@ -149,14 +152,14 @@ public final class WebUINodeConfiguration {
 
     PortType[] getInputPortTypes() {
         return Stream.of(m_inPortDescriptions)//
-                .map(PortDescription::getType)//
-                .toArray(PortType[]::new);
+            .map(PortDescription::getType)//
+            .toArray(PortType[]::new);
     }
 
     PortType[] getOutputPortTypes() {
         return Stream.of(m_outPortDescriptions)//
-                .map(PortDescription::getType)//
-                .toArray(PortType[]::new);
+            .map(PortDescription::getType)//
+            .toArray(PortType[]::new);
     }
 
     String[] getKeywords() {
@@ -397,6 +400,7 @@ public final class WebUINodeConfiguration {
 
         /**
          * Specify since which KNIME AP version this node is available
+         *
          * @param major major version
          * @param minor minor version
          * @param revision patch revision

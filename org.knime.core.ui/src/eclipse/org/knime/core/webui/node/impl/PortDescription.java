@@ -54,8 +54,11 @@ import org.knime.core.node.port.PortType;
 /**
  * Describes an input or output port of a node.
  *
+ * @deprecated use org.knime.node.DefaultNode instead
+ *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
+@Deprecated(since = "5.6")
 public final class PortDescription {
 
     private final String m_name;

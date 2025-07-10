@@ -76,9 +76,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
  * The {@link NodeModel} for simple WebUI nodes, see {@link WebUINodeFactory}.
  *
  * @param <S> the type of model settings
+ * @deprecated use org.knime.node.DefaultNode instead
  *
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
+@Deprecated(since = "5.6")
 public abstract class WebUINodeModel<S extends DefaultNodeSettings> extends NodeModel {
 
     private S m_modelSettings;
