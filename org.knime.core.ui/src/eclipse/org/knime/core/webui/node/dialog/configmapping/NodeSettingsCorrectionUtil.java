@@ -61,6 +61,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.VariableSettingsRO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMappingConfigsResetter.ConfigMapping;
+import org.knime.node.parameters.migration.util.ConfigPath;
 
 /**
  * A utility class used to correct provosionally applied settings (i.e. node settings that were saved without respecting

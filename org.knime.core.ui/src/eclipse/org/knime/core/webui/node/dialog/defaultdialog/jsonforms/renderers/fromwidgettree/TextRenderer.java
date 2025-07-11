@@ -54,18 +54,18 @@ import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMaxLengthValidationProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMinLengthValidationProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopPatternValidationProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MaxLengthValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MinLengthValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation;
+import org.knime.node.parameters.layout.WidgetGroup;
+import org.knime.node.parameters.widget.text.NoopMaxLengthValidationProvider;
+import org.knime.node.parameters.widget.text.NoopMinLengthValidationProvider;
+import org.knime.node.parameters.widget.text.NoopPatternValidationProvider;
+import org.knime.node.parameters.widget.text.NoopStringProvider;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.MaxLengthValidation;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.MinLengthValidation;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation;
+import org.knime.node.parameters.widget.updates.StateProvider;
 
 final class TextRenderer extends WidgetTreeControlRendererSpec implements TextRendererSpec {
 

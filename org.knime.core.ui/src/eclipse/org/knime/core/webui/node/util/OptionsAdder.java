@@ -58,18 +58,18 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TraversableLayoutTreeNode;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.DescriptionUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.util.DescriptionUtil.TitleAndDescription;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.layout.WidgetGroup;
+import org.knime.node.parameters.util.TitleAndDescription;
+import org.knime.node.parameters.widget.Widget;
 import org.w3c.dom.Element;
 
 import com.fasterxml.jackson.databind.ser.PropertyWriter;

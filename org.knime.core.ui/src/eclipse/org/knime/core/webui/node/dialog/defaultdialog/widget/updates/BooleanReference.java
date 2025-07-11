@@ -48,6 +48,11 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates;
 
+import org.knime.node.parameters.widget.updates.Effect;
+import org.knime.node.parameters.widget.updates.Predicate;
+import org.knime.node.parameters.widget.updates.PredicateProvider;
+import org.knime.node.parameters.widget.updates.Reference;
+
 /**
  * Simplifies writing {@link Effect Effects} depending on boolean values by providing the predicate that the boolean is
  * true via the reference.

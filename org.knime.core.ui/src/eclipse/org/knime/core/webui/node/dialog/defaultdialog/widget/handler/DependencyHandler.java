@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.handler;
 
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  *

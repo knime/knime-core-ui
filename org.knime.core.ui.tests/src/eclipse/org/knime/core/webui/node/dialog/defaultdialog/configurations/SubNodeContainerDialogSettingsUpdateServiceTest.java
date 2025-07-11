@@ -61,15 +61,15 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.data.DataServiceContextTest;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.UpdatesUtilImperativeUpdatesTest;
 import org.knime.core.webui.node.dialog.defaultdialog.components.SubNodeContainerDialogSettingsUpdateService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DialogSettingsUpdateService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative.ImperativeStateProvider;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.widget.updates.StateComputationFailureException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -111,7 +111,7 @@ final class SubNodeContainerDialogSettingsUpdateServiceTest {
             }
 
             @Override
-            public String computeState(final DefaultNodeSettingsContext context)
+            public String computeState(final NodeParametersInput context)
                 throws StateComputationFailureException {
                 return "Compute state for dependency:" + m_dependencySupplier.get();
             }

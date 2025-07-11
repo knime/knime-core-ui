@@ -69,6 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.JsonDat
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.ToNodeSettingsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil;
 import org.knime.core.webui.node.dialog.internal.SettingsApplier.TextToNodeSettingsConverter;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * Default implementation for applying the JSON representation of settings to {@link NodeAndVariableSettingsWO}.

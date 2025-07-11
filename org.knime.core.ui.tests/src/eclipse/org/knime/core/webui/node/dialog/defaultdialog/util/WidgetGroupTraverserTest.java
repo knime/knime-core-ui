@@ -60,9 +60,9 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.layout.WidgetGroup;
+import org.knime.node.parameters.widget.Widget;
 
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 

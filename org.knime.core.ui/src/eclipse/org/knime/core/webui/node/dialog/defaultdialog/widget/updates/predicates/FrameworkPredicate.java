@@ -48,7 +48,9 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.node.parameters.widget.updates.Predicate;
+import org.knime.node.parameters.widget.updates.predicates.ConstantPredicate;
+import org.knime.node.parameters.widget.updates.predicates.PredicateVisitor;
 
 /**
  * Predicate used to resolve predicate providers which are not scoped to a field (see {@link ScopedPredicate}) and not
@@ -61,7 +63,10 @@ public record FrameworkPredicate(Class<? extends FrameworkPredicateProvider> pro
 
     @Override
     public <T> T accept(final PredicateVisitor<T> visitor) {
-        return visitor.visit(this);
+        if (visitor instanceof ExtendedPredicateVisitor<T> extendedVisitor) {
+            return extendedVisitor.visit(this);
+        }
+        throw new IllegalStateException(
+            "The visitor must be an instance of ExtendedPredicateVisitor to visit a FrameworkPredicate.");
     }
-
 }

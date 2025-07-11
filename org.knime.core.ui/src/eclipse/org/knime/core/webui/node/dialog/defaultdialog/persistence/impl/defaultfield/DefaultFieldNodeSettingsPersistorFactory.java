@@ -69,10 +69,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.config.ConfigRO;
 import org.knime.core.node.config.base.ConfigBaseRO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsSaver;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.DateIntervalPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.IntervalPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.LocalDatePersistor;
@@ -81,13 +77,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfi
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.TimeIntervalPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.TimeZonePersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.ZonedDateTimePersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.CredentialsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.node.parameters.PersistableSettings;
+import org.knime.node.parameters.parameter.credentials.Credentials;
+import org.knime.node.parameters.parameter.singleselection.StringOrEnum;
+import org.knime.node.parameters.parameter.temporal.DateInterval;
+import org.knime.node.parameters.parameter.temporal.Interval;
+import org.knime.node.parameters.parameter.temporal.TimeInterval;
+import org.knime.node.parameters.persistence.NodeSettingsPersistor;
+import org.knime.node.parameters.persistence.SettingsLoader;
+import org.knime.node.parameters.persistence.SettingsSaver;
 
 /**
  * Factory for default persistors either for arrays or {@link PersistableSettings} or settings that store values
@@ -318,7 +319,7 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
     }
 
     private static OptionalContentPersistor<Credentials> createCredentialsPersistor(final String configKey) {
-        return new Credentials.CredentialsPersistor(configKey);
+        return new CredentialsPersistor(configKey);
     }
 
     private static OptionalContentPersistor<FSLocation> createFSLocationPersistor(final String configKey) {

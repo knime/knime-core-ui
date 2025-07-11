@@ -61,9 +61,9 @@ import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.InputPreviewMessageProvider;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.parameter.filter.column.ColumnFilter;
+import org.knime.node.parameters.widget.message.TextMessage.InputPreviewMessageProvider;
 
 /**
  *
@@ -102,7 +102,7 @@ public class TextMessageTest {
     @Test
     void testDefaultDescriptionWithNoTable() {
         var provider = new DefaultTestInputPreviewMessageProvider();
-        final var mockContext = mock(DefaultNodeSettingsContext.class);
+        final var mockContext = mock(NodeParametersInput.class);
         when(mockContext.getPortObjectSpecs()).thenReturn(new PortObjectSpec[]{null});
 
         var description = provider.description(mockContext);
@@ -113,7 +113,7 @@ public class TextMessageTest {
     @Test
     void testDefaultDescriptionWithTableNotExecuted() {
         var provider = new DefaultTestInputPreviewMessageProvider();
-        final var mockContext = mock(DefaultNodeSettingsContext.class);
+        final var mockContext = mock(NodeParametersInput.class);
         when(mockContext.getPortObjectSpecs()).thenReturn(new PortObjectSpec[]{new DataTableSpec()});
         when(mockContext.getInputPortObjects()).thenReturn(new PortObject[1]);
         when(mockContext.getDataTable(0)).thenReturn(Optional.empty());
@@ -126,7 +126,7 @@ public class TextMessageTest {
     @Test
     void testDefaultDescriptionWithNoFilterAndColumn() {
         var provider = new DefaultTestInputPreviewMessageProvider();
-        final var mockContext = mock(DefaultNodeSettingsContext.class);
+        final var mockContext = mock(NodeParametersInput.class);
         final var mockDataTable = mock(DataTable.class);
         final var mockSpec = mock(DataTableSpec.class);
         when(mockContext.getPortObjectSpecs()).thenReturn(new PortObjectSpec[]{mockSpec});
@@ -145,7 +145,7 @@ public class TextMessageTest {
         final var mockFilter = mock(ColumnFilter.class);
         when(mockFilter.filterFromFullSpec(any())).thenReturn(new String[0]);
         var provider = new DefaultTestInputPreviewMessageProvider(Optional.empty(), Optional.of(mockFilter));
-        final var mockContext = mock(DefaultNodeSettingsContext.class);
+        final var mockContext = mock(NodeParametersInput.class);
         final var mockDataTable = mock(DataTable.class);
         final var mockSpec = mock(DataTableSpec.class);
         when(mockContext.getPortObjectSpecs()).thenReturn(new PortObjectSpec[]{mockSpec});
@@ -163,7 +163,7 @@ public class TextMessageTest {
     @Test
     void testDefaultDescriptionWithNoData() {
         var provider = new DefaultTestInputPreviewMessageProvider();
-        final var mockContext = mock(DefaultNodeSettingsContext.class);
+        final var mockContext = mock(NodeParametersInput.class);
         final var mockDataTable = mock(DataTable.class);
         final var mockSpec = mock(DataTableSpec.class);
         when(mockContext.getPortObjectSpecs()).thenReturn(new PortObjectSpec[]{mockSpec});
@@ -180,7 +180,7 @@ public class TextMessageTest {
     @Test
     void testDefaultDescriptionWithData() {
         var provider = new DefaultTestInputPreviewMessageProvider(Optional.of("TestData"), Optional.empty());
-        final var mockContext = mock(DefaultNodeSettingsContext.class);
+        final var mockContext = mock(NodeParametersInput.class);
         final var mockDataTable = mock(DataTable.class);
         final var mockSpec = mock(DataTableSpec.class);
         when(mockContext.getPortObjectSpecs()).thenReturn(new PortObjectSpec[]{mockSpec});

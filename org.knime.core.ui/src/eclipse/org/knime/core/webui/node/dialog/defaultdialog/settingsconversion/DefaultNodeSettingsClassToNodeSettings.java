@@ -53,8 +53,9 @@ import java.util.Map;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  * This class is used to construct new {@link NodeSettings} to initialize them. For this the constructor of the given
@@ -64,7 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext
  */
 public final class DefaultNodeSettingsClassToNodeSettings {
 
-    private final DefaultNodeSettingsContext m_context;
+    private final NodeParametersInput m_context;
 
     private final Map<SettingsType, Class<? extends NodeParameters>> m_settingsClasses;
 
@@ -72,7 +73,7 @@ public final class DefaultNodeSettingsClassToNodeSettings {
      * @param context
      * @param settingsClasses a map associating settings types with {@link NodeParameters}
      */
-    public DefaultNodeSettingsClassToNodeSettings(final DefaultNodeSettingsContext context,
+    public DefaultNodeSettingsClassToNodeSettings(final NodeParametersInput context,
         final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses) {
         m_settingsClasses = settingsClasses;
         m_context = context;
@@ -88,7 +89,7 @@ public final class DefaultNodeSettingsClassToNodeSettings {
     }
 
     private NodeParameters constructDefaultNodeSettings(final SettingsType type) {
-        return NodeParameters.createParameters(m_settingsClasses.get(type), m_context);
+        return NodeParametersUtil.createParameters(m_settingsClasses.get(type), m_context);
     }
 
 }

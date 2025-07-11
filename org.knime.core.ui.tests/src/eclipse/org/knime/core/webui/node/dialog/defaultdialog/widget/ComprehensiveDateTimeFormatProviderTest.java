@@ -61,9 +61,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider.FormatWithoutExample;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory;
+import org.knime.node.parameters.parameter.temporal.TemporalFormat.FormatTemporalType;
+import org.knime.node.parameters.widget.temporal.ComprehensiveDateTimeFormatProvider;
+import org.knime.node.parameters.widget.temporal.ComprehensiveDateTimeFormatProvider.FormatWithoutExample;
+import org.knime.node.parameters.widget.temporal.DateTimeFormatPickerWidget.FormatCategory;
 
 /**
  *

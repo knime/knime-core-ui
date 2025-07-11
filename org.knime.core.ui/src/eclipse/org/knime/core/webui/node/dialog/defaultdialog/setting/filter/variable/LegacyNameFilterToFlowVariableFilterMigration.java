@@ -53,9 +53,10 @@ import java.util.List;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.util.filter.NameFilterConfiguration;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.LegacyNameFilterPersistor;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.NodeSettingsMigration;
+import org.knime.node.parameters.parameter.filter.variable.FlowVariableFilter;
 
 /**
  * Use this migration whenever a {@link NameFilterConfiguration} needs to be converted to a {@link FlowVariableFilter}.

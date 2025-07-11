@@ -51,12 +51,12 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.PersistableSettings;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.widget.Widget;
 
 /**
  * Contains unit tests for the {@link ConfigKeyUtil}.

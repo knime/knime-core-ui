@@ -53,8 +53,8 @@
  * <p>
  * A {@link org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeSettingsPersistor NodeSettingsPersistor} is
  * responsible for persisting one kind of java type. Such persistors can be attached to classes (via the
- * {@link org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor @Persistor} annotation) and fields (via
- * the {@link org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist @Persist} annotation) within
+ * {@link org.knime.node.parameters.persistence.Persistor @Persistor} annotation) and fields (via
+ * the {@link org.knime.node.parameters.persistence.Persist @Persist} annotation) within
  * {@link NodeParameters}.
  * </p>
  *

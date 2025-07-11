@@ -60,14 +60,14 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.layout.WidgetGroup;
+import org.knime.node.parameters.widget.Widget;
+import org.knime.node.parameters.widget.updates.Reference;
+import org.knime.node.parameters.widget.updates.StateProvider;
+import org.knime.node.parameters.widget.updates.ValueProvider;
+import org.knime.node.parameters.widget.updates.ValueReference;
 
 class UpdatesGenericsTest {
     static final class MyReference implements Reference<List<String>> {
@@ -84,7 +84,7 @@ class UpdatesGenericsTest {
         }
 
         @Override
-        public List<String> computeState(final DefaultNodeSettingsContext context) {
+        public List<String> computeState(final NodeParametersInput context) {
             return m_valueSupplier.get();
         }
 
@@ -160,7 +160,7 @@ class UpdatesGenericsTest {
                 }
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     return m_valueSupplier.get().get();
                 }
             }

@@ -56,9 +56,9 @@ import java.util.function.Consumer;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.DependencyInjector.DependencyCollector;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.ValueRefWrapper;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.widget.updates.Reference;
+import org.knime.node.parameters.widget.updates.ValueReference;
+import org.knime.node.parameters.widget.updates.StateProvider.TypeReference;
 
 final class DeclarativeDependencyCollector extends DependencyCollector<Class<? extends Reference<?>>> {
 

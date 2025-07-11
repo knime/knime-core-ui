@@ -54,18 +54,18 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.layout.CheckboxesWithVennDiagram;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.VerticalLayout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.HorizontalLayout;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.layout.VerticalLayout;
+import org.knime.node.parameters.layout.WidgetGroup;
+import org.knime.node.parameters.widget.Advanced;
+import org.knime.node.parameters.widget.Widget;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -82,7 +82,7 @@ class JsonFormsUiSchemaUtilTest {
     }
 
     static ObjectNode buildUiSchema(final Map<SettingsType, Class<? extends WidgetGroup>> settings,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         return JsonFormsUiSchemaUtil.buildUISchema(settings.entrySet().stream()
             .map(e -> new WidgetTreeFactory().createTree(e.getValue(), e.getKey())).toList(), context
             );
@@ -94,7 +94,7 @@ class JsonFormsUiSchemaUtilTest {
 
 
     static ObjectNode buildTestUiSchema(final Class<? extends NodeParameters> settingsClass,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         return buildUiSchema(Map.of(SettingsType.MODEL, settingsClass), context);
     }
 

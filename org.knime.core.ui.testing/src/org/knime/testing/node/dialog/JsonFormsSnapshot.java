@@ -62,13 +62,13 @@ import java.util.stream.Collectors;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.util.workflow.def.FallibleSupplier;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.PersistUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.UpdatesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettingsImpl;
+import org.knime.node.parameters.NodeParameters;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -124,7 +124,7 @@ final class JsonFormsSnapshot extends Snapshot {
             }));
 
         // turn it into the json-forms representation
-        final var context = DefaultNodeSettingsContext.createDefaultNodeSettingsContext(specs);
+        final var context = NodeParametersUtil.createDefaultNodeSettingsContext(specs);
         var jsonFormsSettings = new JsonFormsSettingsImpl(instances, context);
         var mapper = JsonFormsDataUtil.getMapper();
         var objectNode = mapper.createObjectNode();

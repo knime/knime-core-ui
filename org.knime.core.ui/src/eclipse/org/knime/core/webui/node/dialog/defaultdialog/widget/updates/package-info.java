@@ -47,9 +47,9 @@
  *   Apr 4, 2023 (Paul Bärnreuther): created
  */
 /**
- * Use {@link org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference} annotations to make field
- * values accessible to a {@link org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider} used within an
- * {@link org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect}.
+ * Use {@link org.knime.node.parameters.widget.updates.ValueReference} annotations to make field
+ * values accessible to a {@link org.knime.node.parameters.widget.updates.PredicateProvider} used within an
+ * {@link org.knime.node.parameters.widget.updates.Effect}.
  *
  * @author Paul Bärnreuther
  */

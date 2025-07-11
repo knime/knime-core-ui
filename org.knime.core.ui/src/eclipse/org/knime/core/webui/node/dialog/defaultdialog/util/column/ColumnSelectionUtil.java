@@ -60,7 +60,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.StringValue;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  * A utility class around selecting columns in a dialog for either filtering columns or selecting a single one.
@@ -80,7 +80,7 @@ public final class ColumnSelectionUtil {
      * @param portIndex the port index which has to be a data table port.
      * @return all columns of the specified port. Empty if not connected or no columns.
      */
-    public static List<DataColumnSpec> getAllColumns(final DefaultNodeSettingsContext context,
+    public static List<DataColumnSpec> getAllColumns(final NodeParametersInput context,
         final int portIndex) {
         return context.getDataTableSpec(portIndex).stream().flatMap(DataTableSpec::stream).toList();
     }
@@ -91,7 +91,7 @@ public final class ColumnSelectionUtil {
      * @param context the current context
      * @return all columns of the first port. Empty if not connected or no columns.
      */
-    public static List<DataColumnSpec> getAllColumnsOfFirstPort(final DefaultNodeSettingsContext context) {
+    public static List<DataColumnSpec> getAllColumnsOfFirstPort(final NodeParametersInput context) {
         return getAllColumns(context, 0);
     }
 
@@ -102,7 +102,7 @@ public final class ColumnSelectionUtil {
      * @param portIndex the port index which has to be a data table port.
      * @return the first column of the specified port. Empty if not connected or no columns.
      */
-    public static Optional<DataColumnSpec> getFirstColumn(final DefaultNodeSettingsContext context,
+    public static Optional<DataColumnSpec> getFirstColumn(final NodeParametersInput context,
         final int portIndex) {
         return context.getDataTableSpec(portIndex).stream().flatMap(DataTableSpec::stream).findFirst();
     }
@@ -113,7 +113,7 @@ public final class ColumnSelectionUtil {
      * @param context the current context
      * @return the first column of the first port. Empty if not connected or no columns.
      */
-    public static Optional<DataColumnSpec> getFirstColumnOfFirstPort(final DefaultNodeSettingsContext context) {
+    public static Optional<DataColumnSpec> getFirstColumnOfFirstPort(final NodeParametersInput context) {
         return getFirstColumn(context, 0);
     }
 
@@ -125,7 +125,7 @@ public final class ColumnSelectionUtil {
      * @param filter the condition to apply
      * @return the first matching column of the specified port. Empty if not connected or no such columns.
      */
-    public static List<DataColumnSpec> getFilteredColumns(final DefaultNodeSettingsContext context,
+    public static List<DataColumnSpec> getFilteredColumns(final NodeParametersInput context,
         final int portIndex, final Predicate<DataColumnSpec> filter) {
         return context.getDataTableSpec(portIndex).stream().flatMap(DataTableSpec::stream).filter(filter).toList();
     }
@@ -139,7 +139,7 @@ public final class ColumnSelectionUtil {
      * @return the first compatible column of the specified port. Empty if not connected or no such columns.
      */
     @SafeVarargs
-    public static List<DataColumnSpec> getCompatibleColumns(final DefaultNodeSettingsContext context,
+    public static List<DataColumnSpec> getCompatibleColumns(final NodeParametersInput context,
         final int portIndex, final Class<? extends DataValue>... valueClasses) {
         return getFilteredColumns(context, portIndex, toFilter(valueClasses));
     }
@@ -152,7 +152,7 @@ public final class ColumnSelectionUtil {
      * @return the first compatible column of the first. Empty if not connected or no such columns.
      */
     @SafeVarargs
-    public static List<DataColumnSpec> getCompatibleColumnsOfFirstPort(final DefaultNodeSettingsContext context,
+    public static List<DataColumnSpec> getCompatibleColumnsOfFirstPort(final NodeParametersInput context,
         final Class<? extends DataValue>... valueClasses) {
         return getCompatibleColumns(context, 0, valueClasses);
     }
@@ -164,7 +164,7 @@ public final class ColumnSelectionUtil {
      * @param portIndex the port index which has to be a data table port.
      * @return the first string column of the specified port. Empty if not connected or no such columns.
      */
-    public static List<DataColumnSpec> getStringColumns(final DefaultNodeSettingsContext context,
+    public static List<DataColumnSpec> getStringColumns(final NodeParametersInput context,
         final int portIndex) {
         return getCompatibleColumns(context, portIndex, StringValue.class);
     }
@@ -195,7 +195,7 @@ public final class ColumnSelectionUtil {
      * @param context the current context
      * @return the first string column of the first port. Empty if not connected or no such columns.
      */
-    public static List<DataColumnSpec> getStringColumnsOfFirstPort(final DefaultNodeSettingsContext context) {
+    public static List<DataColumnSpec> getStringColumnsOfFirstPort(final NodeParametersInput context) {
         return getStringColumns(context, 0);
     }
 
@@ -206,7 +206,7 @@ public final class ColumnSelectionUtil {
      * @param portIndex the port index which has to be a data table port.
      * @return the first double column of the specified port. Empty if not connected or no such columns.
      */
-    public static List<DataColumnSpec> getDoubleColumns(final DefaultNodeSettingsContext context,
+    public static List<DataColumnSpec> getDoubleColumns(final NodeParametersInput context,
         final int portIndex) {
         return getCompatibleColumns(context, portIndex, DoubleValue.class);
     }
@@ -237,7 +237,7 @@ public final class ColumnSelectionUtil {
      * @param context the current context
      * @return the first double column of the first port. Empty if not connected or no such columns.
      */
-    public static List<DataColumnSpec> getDoubleColumnsOfFirstPort(final DefaultNodeSettingsContext context) {
+    public static List<DataColumnSpec> getDoubleColumnsOfFirstPort(final NodeParametersInput context) {
         return getDoubleColumns(context, 0);
     }
 

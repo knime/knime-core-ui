@@ -54,8 +54,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * The location of a dialog field in the data

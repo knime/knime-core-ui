@@ -57,10 +57,11 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.testing.util.TableTestUtil;
 
 /**
- * Tests for {@link DefaultNodeSettingsContext}.
+ * Tests for {@link NodeParametersInput}.
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
@@ -68,7 +69,7 @@ class DefaultNodeSettingsContextTest {
 
     @Test
     void testGetDataTableSpecsWithInactivePortObjectSpec() {
-        var context = new DefaultNodeSettingsContext(null,
+        var context = new NodeParametersInput(null,
             new PortObjectSpec[]{new DataTableSpec("test"), InactiveBranchPortObjectSpec.INSTANCE}, null, null);
         var specs = context.getDataTableSpecs();
         assertThat(specs).isEqualTo(new PortObjectSpec[]{new DataTableSpec("test"), null});
@@ -78,7 +79,7 @@ class DefaultNodeSettingsContextTest {
     void testGetDataTable() {
         var testTable = createTestTable();
 
-        var context = new DefaultNodeSettingsContext(null, new PortObjectSpec[]{testTable.getDataTableSpec()}, null,
+        var context = new NodeParametersInput(null, new PortObjectSpec[]{testTable.getDataTableSpec()}, null,
             null, new PortObject[]{testTable});
         var specs = context.getDataTableSpecs();
         assertThat(specs).isEqualTo(new PortObjectSpec[]{testTable.getDataTableSpec()});

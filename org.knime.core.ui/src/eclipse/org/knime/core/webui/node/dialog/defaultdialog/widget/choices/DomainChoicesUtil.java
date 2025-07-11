@@ -55,8 +55,8 @@ import java.util.Optional;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.def.BooleanCell;
 import org.knime.core.data.def.StringCell;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  *
@@ -74,7 +74,7 @@ public final class DomainChoicesUtil {
      * @return the domain values for the given column
      * @throws WidgetHandlerException in case of no domain or an empty domain
      */
-    public static List<String> getChoicesByContextAndColumn(final DefaultNodeSettingsContext context,
+    public static List<String> getChoicesByContextAndColumn(final NodeParametersInput context,
         final String colName) throws WidgetHandlerException {
         final var spec = context.getDataTableSpec(0);
         if (spec.isEmpty()) {

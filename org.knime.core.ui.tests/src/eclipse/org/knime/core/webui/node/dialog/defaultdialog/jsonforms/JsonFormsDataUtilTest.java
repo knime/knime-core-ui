@@ -69,9 +69,10 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.NodeID;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.parameter.credentials.Credentials;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -109,7 +110,7 @@ class JsonFormsDataUtilTest {
         TestSettingsSpec() {
         }
 
-        TestSettingsSpec(final DefaultNodeSettingsContext context) {
+        TestSettingsSpec(final NodeParametersInput context) {
             m_fromSpec = context.getDataTableSpecs()[0].getColumnSpec(0).getName();
         }
     }
@@ -134,13 +135,13 @@ class JsonFormsDataUtilTest {
 
     @Test
     void testCreateDefaultNodeSettingsWithSpecs() {
-        assertThat(NodeParameters.createParamaters(TestSettingsSpec.class, createSpecs("bar")))
-            .isEqualTo(new TestSettingsSpec(DefaultNodeSettingsContext.createDefaultNodeSettingsContext(createSpecs("bar"))));
+        assertThat(NodeParametersUtil.createParamaters(TestSettingsSpec.class, createSpecs("bar")))
+            .isEqualTo(new TestSettingsSpec(NodeParametersUtil.createDefaultNodeSettingsContext(createSpecs("bar"))));
     }
 
     @Test
     void testCreateDefaultNodeSettingsWithSpecsDefault() {
-        assertThat(NodeParameters.createParamaters(TestSettings.class, createSpecs("bar")))
+        assertThat(NodeParametersUtil.createParamaters(TestSettings.class, createSpecs("bar")))
             .isEqualTo(new TestSettings());
     }
 

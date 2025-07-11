@@ -54,7 +54,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * An annotation to specify which setting exactly a setting with an attached {@link DependencyHandler} is dependent of

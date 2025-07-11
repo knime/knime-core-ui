@@ -53,6 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.Test;
 import org.knime.core.data.StringValue;
+import org.knime.node.parameters.parameter.filter.column.util.ColumnTypeToPossibleTypeValueUtil;
 
 /**
  *

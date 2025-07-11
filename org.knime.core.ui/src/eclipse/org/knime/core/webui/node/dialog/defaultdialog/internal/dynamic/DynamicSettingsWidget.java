@@ -56,12 +56,12 @@ import java.lang.annotation.Target;
 import java.util.Map;
 
 import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.widget.updates.StateComputationFailureException;
+import org.knime.node.parameters.widget.updates.StateProvider;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -124,7 +124,7 @@ public @interface DynamicSettingsWidget {
     interface ImperativeDialogProvider extends StateProvider<DataAndDialog<Map<String, Object>>> {
 
         @Override
-        default DataAndDialog<Map<String, Object>> computeState(final DefaultNodeSettingsContext context)
+        default DataAndDialog<Map<String, Object>> computeState(final NodeParametersInput context)
             throws StateComputationFailureException {
             final var pair = computeSettingsAndDialog(context);
             final var dialog = pair.getSecond();
@@ -143,7 +143,7 @@ public @interface DynamicSettingsWidget {
          *             way
          */
         Pair<Map<String, Object>, DialogElementRendererSpec<?>>
-            computeSettingsAndDialog(DefaultNodeSettingsContext context) throws StateComputationFailureException;
+            computeSettingsAndDialog(NodeParametersInput context) throws StateComputationFailureException;
 
     }
 

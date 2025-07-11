@@ -53,6 +53,7 @@ import java.io.IOException;
 import org.knime.core.webui.data.InitialDataService.InitialDataServiceBuilder;
 import org.knime.core.webui.data.InitialDataService.Serializer;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
+import org.knime.node.parameters.NodeParameters;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.DeserializationFeature;

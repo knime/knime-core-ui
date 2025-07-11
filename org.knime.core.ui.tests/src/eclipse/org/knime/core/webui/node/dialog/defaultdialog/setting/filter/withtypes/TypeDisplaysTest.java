@@ -52,8 +52,8 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
 import org.junit.jupiter.api.Test;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
+import org.knime.node.parameters.parameter.filter.column.ColumnFilter;
+import org.knime.node.parameters.parameter.filter.variable.FlowVariableFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

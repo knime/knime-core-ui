@@ -50,16 +50,16 @@ package org.knime.testing.node.dialog.updates;
 
 import java.util.function.Supplier;
 
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.layout.WidgetGroup;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.updates.ButtonReference;
+import org.knime.node.parameters.widget.updates.Reference;
+import org.knime.node.parameters.widget.updates.StateProvider;
+import org.knime.node.parameters.widget.updates.ValueProvider;
+import org.knime.node.parameters.widget.updates.ValueReference;
 import org.knime.testing.node.dialog.updates.TestSettings.ElementSettings.ElementTextProvider.ElementValueReference;
 import org.knime.testing.node.dialog.updates.TestSettings.MyTextProvider.MyButtonRef;
 import org.knime.testing.node.dialog.updates.TestSettings.MyTextProvider.MyValueRef;
@@ -86,7 +86,7 @@ class TestSettings implements NodeParameters {
         }
 
         @Override
-        public String computeState(final DefaultNodeSettingsContext context) {
+        public String computeState(final NodeParametersInput context) {
             return m_supplier.get();
         }
 
@@ -112,7 +112,7 @@ class TestSettings implements NodeParameters {
             }
 
             @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
+            public String computeState(final NodeParametersInput context) {
                 return m_supplier.get() + ", " + m_elementDependencySupplier.get();
             }
 

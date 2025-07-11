@@ -60,6 +60,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSetting
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.JsonDataToDefaultNodeSettingsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.NodeSettingsToDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.ToNodeSettingsUtil;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -104,7 +106,7 @@ public final class DefaultDialogDataConverterImpl implements DefaultDialogDataCo
 
     @Override
     public JsonNode nodeSettingsToDataJson(final SettingsType type, final NodeSettingsRO nodeSettings,
-        final DefaultNodeSettingsContext context) throws InvalidSettingsException {
+        final NodeParametersInput context) throws InvalidSettingsException {
         return new JsonFormsSettingsImpl(new NodeSettingsToDefaultNodeSettings(context, m_settingsClasses)
             .nodeSettingsToDefaultNodeSettings(Map.of(type, nodeSettings)), context).getData();
     }

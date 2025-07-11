@@ -54,8 +54,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.node.parameters.widget.updates.ButtonReference;
+import org.knime.node.parameters.widget.updates.StateProvider;
 
 /**
  * A widget whose whole purpose is to trigger an {@link StateProvider}

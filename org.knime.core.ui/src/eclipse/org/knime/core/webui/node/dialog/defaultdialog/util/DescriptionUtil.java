@@ -51,6 +51,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.util;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import org.knime.node.parameters.util.TitleAndDescription;
+
 import j2html.utils.EscapeUtil;
 
 /**
@@ -62,18 +64,6 @@ public final class DescriptionUtil {
 
     private DescriptionUtil() {
         // Utility
-    }
-
-    /**
-     * @param title must be non-null
-     * @param description might be null or empty
-     */
-    public record TitleAndDescription(String title, String description) {
-
-        boolean hasDescription() {
-            return description != null && description.trim().length() > 0;
-        }
-
     }
 
     /**

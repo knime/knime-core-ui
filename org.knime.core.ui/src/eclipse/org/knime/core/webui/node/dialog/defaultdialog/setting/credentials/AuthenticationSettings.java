@@ -55,18 +55,19 @@ import java.util.function.Supplier;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration.Builder;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeSettingsMigration;
+import org.knime.node.parameters.migration.ConfigMigration.Builder;
+import org.knime.node.parameters.parameter.credentials.Credentials;
+import org.knime.node.parameters.widget.Widget;
+import org.knime.node.parameters.widget.credentials.CredentialsWidget;
+import org.knime.node.parameters.widget.singleselection.Label;
+import org.knime.node.parameters.widget.updates.Effect;
+import org.knime.node.parameters.widget.updates.StateProvider;
+import org.knime.node.parameters.widget.updates.Effect.EffectType;
 
 /**
  * A switch on the type of authentication that is to be used plus a {@link Credentials} widget that is shown
@@ -125,7 +126,7 @@ public final class AuthenticationSettings extends BaseAuthenticationSettings {
     static final class RequiresUsernameProvider extends AuthenticationTypeDependentProvider {
 
         @Override
-        public Boolean computeState(final DefaultNodeSettingsContext context) {
+        public Boolean computeState(final NodeParametersInput context) {
             return m_typeSupplier.get().requiresUsername();
         }
 
@@ -134,7 +135,7 @@ public final class AuthenticationSettings extends BaseAuthenticationSettings {
     static final class RequiresPasswordProvider extends AuthenticationTypeDependentProvider {
 
         @Override
-        public Boolean computeState(final DefaultNodeSettingsContext context) {
+        public Boolean computeState(final NodeParametersInput context) {
             return m_typeSupplier.get().requiresPassword();
         }
 

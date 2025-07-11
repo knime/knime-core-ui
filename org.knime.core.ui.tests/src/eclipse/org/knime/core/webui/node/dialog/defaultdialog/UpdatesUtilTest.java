@@ -85,33 +85,35 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidge
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.CheckboxRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.MessageType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.DataTypeChoicesStateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.layout.WidgetGroup;
+import org.knime.node.parameters.parameter.filter.column.ColumnFilter;
+import org.knime.node.parameters.parameter.filter.variable.FlowVariableFilter;
+import org.knime.node.parameters.widget.Widget;
+import org.knime.node.parameters.widget.array.ArrayWidget;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.StringChoicesProvider;
+import org.knime.node.parameters.widget.choices.column.ColumnChoicesProvider;
+import org.knime.node.parameters.widget.choices.datatype.DataTypeChoicesStateProvider;
+import org.knime.node.parameters.widget.choices.singleselection.EnumChoicesProvider;
+import org.knime.node.parameters.widget.choices.variable.FlowVariableChoicesProvider;
+import org.knime.node.parameters.widget.filter.column.ColumnFilterWidget;
+import org.knime.node.parameters.widget.filter.variable.FlowVariableFilterWidget;
+import org.knime.node.parameters.widget.message.TextMessage;
+import org.knime.node.parameters.widget.message.TextMessage.MessageType;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation;
+import org.knime.node.parameters.widget.singleselection.Label;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.updates.ButtonReference;
+import org.knime.node.parameters.widget.updates.Reference;
+import org.knime.node.parameters.widget.updates.StateComputationFailureException;
+import org.knime.node.parameters.widget.updates.StateProvider;
+import org.knime.node.parameters.widget.updates.ValueProvider;
+import org.knime.node.parameters.widget.updates.ValueReference;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -123,8 +125,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @SuppressWarnings("java:S2698") // we accept assertions without messages
 public class UpdatesUtilTest {
 
-    private static DefaultNodeSettingsContext createDefaultNodeSettingsContext() {
-        return DefaultNodeSettingsContext.createDefaultNodeSettingsContext(new PortType[]{BufferedDataTable.TYPE},
+    private static NodeParametersInput createDefaultNodeSettingsContext() {
+        return NodeParametersInput.createDefaultNodeSettingsContext(new PortType[]{BufferedDataTable.TYPE},
             new PortObjectSpec[]{null}, null, null);
     }
 
@@ -133,7 +135,7 @@ public class UpdatesUtilTest {
     }
 
     static ObjectNode buildUpdates(final Map<SettingsType, WidgetGroup> settings,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         final var objectNode = new ObjectMapper().createObjectNode();
         final Map<SettingsType, Class<? extends WidgetGroup>> settingsClasses =
             MapValuesUtil.mapValues(settings, WidgetGroup::getClass);
@@ -189,7 +191,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     throw new RuntimeException("Should not be called in this test");
                 }
 
@@ -208,7 +210,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     throw new RuntimeException("Should not be called in this test");
 
                 }
@@ -251,7 +253,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context)
+                public String computeState(final NodeParametersInput context)
                     throws StateComputationFailureException {
                     return null;
                 }
@@ -292,7 +294,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     throw new RuntimeException("Should not be called in this test");
                 }
 
@@ -335,7 +337,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public Integer computeState(final DefaultNodeSettingsContext context) {
+                public Integer computeState(final NodeParametersInput context) {
                     throw new RuntimeException("Should not be called in this test");
                 }
 
@@ -375,7 +377,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     throw new RuntimeException("Should not be called in this test");
                 }
 
@@ -419,7 +421,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     throw new RuntimeException("Should not be called in this test");
                 }
 
@@ -454,7 +456,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     return "Some value computed from the context";
                 }
 
@@ -500,7 +502,7 @@ public class UpdatesUtilTest {
                 public static final String RESULT = "txt";
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     return RESULT;
                 }
 
@@ -520,7 +522,7 @@ public class UpdatesUtilTest {
                 public static final String RESULT = "updated string";
 
                 @Override
-                public MySetting computeState(final DefaultNodeSettingsContext context) {
+                public MySetting computeState(final NodeParametersInput context) {
                     return new MySetting(RESULT);
                 }
 
@@ -581,7 +583,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     return String.format("{self:%s,other:%s}", m_valueSupplier.get(), m_otherValueSupplier.get());
                 }
 
@@ -620,7 +622,7 @@ public class UpdatesUtilTest {
                 public static final String RESULT = "txt";
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     return RESULT;
                 }
 
@@ -640,7 +642,7 @@ public class UpdatesUtilTest {
                 public static final String RESULT = "updated string";
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     return RESULT;
                 }
 
@@ -678,7 +680,7 @@ public class UpdatesUtilTest {
             }
 
             @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
+            public String computeState(final NodeParametersInput context) {
                 throw new IllegalStateException("Should not be called within this test");
             }
 
@@ -743,7 +745,7 @@ public class UpdatesUtilTest {
                 static final class MyTextMessageProvider implements TextMessage.SimpleTextMessageProvider {
 
                     @Override
-                    public boolean showMessage(final DefaultNodeSettingsContext context) {
+                    public boolean showMessage(final NodeParametersInput context) {
                         return true;
                     }
 
@@ -793,7 +795,7 @@ public class UpdatesUtilTest {
                     }
 
                     @Override
-                    public ElementSettings computeState(final DefaultNodeSettingsContext context) {
+                    public ElementSettings computeState(final NodeParametersInput context) {
                         return null;
                     }
 
@@ -837,7 +839,7 @@ public class UpdatesUtilTest {
             static final List<String> RESULT = List.of("A", "B", "C");
 
             @Override
-            public List<String> choices(final DefaultNodeSettingsContext context) {
+            public List<String> choices(final NodeParametersInput context) {
                 return RESULT;
             }
 
@@ -877,7 +879,7 @@ public class UpdatesUtilTest {
         static final class MyEnumProvider implements EnumChoicesProvider<MyEnum> {
 
             @Override
-            public List<MyEnum> choices(final DefaultNodeSettingsContext context) {
+            public List<MyEnum> choices(final NodeParametersInput context) {
                 return List.of(MyEnum.A, MyEnum.B);
             }
 
@@ -912,7 +914,7 @@ public class UpdatesUtilTest {
         static final class TestColumnChoicesProvider implements ColumnChoicesProvider {
 
             @Override
-            public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+            public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
                 return List.of(new DataColumnSpecCreator("A", StringCell.TYPE).createSpec());
             }
 
@@ -984,7 +986,7 @@ public class UpdatesUtilTest {
         static final class TestFlowVariableChoicesProvider implements FlowVariableChoicesProvider {
 
             @Override
-            public List<FlowVariable> flowVariableChoices(final DefaultNodeSettingsContext context) {
+            public List<FlowVariable> flowVariableChoices(final NodeParametersInput context) {
                 return List.of(new FlowVariable("someInt", 123), new FlowVariable("someBoolean", BooleanType.INSTANCE));
             }
 
@@ -1020,7 +1022,7 @@ public class UpdatesUtilTest {
 
                 static final class OnlyStringAndDoubleChoicesProvider implements DataTypeChoicesStateProvider {
                     @Override
-                    public List<DataType> choices(final DefaultNodeSettingsContext context) {
+                    public List<DataType> choices(final NodeParametersInput context) {
                         return List.of(StringCell.TYPE, DoubleCell.TYPE);
                     }
                 }
@@ -1063,7 +1065,7 @@ public class UpdatesUtilTest {
             }
 
             @Override
-            public MinValidation computeState(final DefaultNodeSettingsContext context) {
+            public MinValidation computeState(final NodeParametersInput context) {
                 throw new IllegalStateException("Should not be called in this test");
             }
 
@@ -1096,7 +1098,7 @@ public class UpdatesUtilTest {
 
                     @Override
                     public Pair<Map<String, Object>, DialogElementRendererSpec<?>> computeSettingsAndDialog(
-                        final DefaultNodeSettingsContext context) throws StateComputationFailureException {
+                        final NodeParametersInput context) throws StateComputationFailureException {
                         final var checkbox = new CheckboxRendererSpec() {
 
                             @Override
@@ -1166,7 +1168,7 @@ public class UpdatesUtilTest {
                         }
 
                         @Override
-                        public String computeState(final DefaultNodeSettingsContext context) {
+                        public String computeState(final NodeParametersInput context) {
                             throw new IllegalStateException("Should not be called in this test");
                         }
 
@@ -1225,7 +1227,7 @@ public class UpdatesUtilTest {
                         }
 
                         @Override
-                        public String computeState(final DefaultNodeSettingsContext context) {
+                        public String computeState(final NodeParametersInput context) {
                             return m_valueSupplier.get();
                         }
 
@@ -1278,7 +1280,7 @@ public class UpdatesUtilTest {
                         }
 
                         @Override
-                        public String computeState(final DefaultNodeSettingsContext context) {
+                        public String computeState(final NodeParametersInput context) {
                             return m_valueSupplier.get();
                         }
 
@@ -1321,7 +1323,7 @@ public class UpdatesUtilTest {
                     }
 
                     @Override
-                    public String computeState(final DefaultNodeSettingsContext context) {
+                    public String computeState(final NodeParametersInput context) {
                         return null;
                     }
 

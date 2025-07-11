@@ -57,20 +57,20 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_NOT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil.getMapper;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ArrayContainsCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ConditionVisitor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.FalseCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.HasMultipleItemsCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsStringChoiceCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsEnumChoiceCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsSpecificStringCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.OneOfEnumCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.PatternCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.TrueCondition;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.layout.WidgetGroup;
+import org.knime.node.parameters.widget.updates.predicates.ArrayContainsCondition;
+import org.knime.node.parameters.widget.updates.predicates.ConditionVisitor;
+import org.knime.node.parameters.widget.updates.predicates.FalseCondition;
+import org.knime.node.parameters.widget.updates.predicates.HasMultipleItemsCondition;
+import org.knime.node.parameters.widget.updates.predicates.IsEnumChoiceCondition;
+import org.knime.node.parameters.widget.updates.predicates.IsSpecificStringCondition;
+import org.knime.node.parameters.widget.updates.predicates.IsStringChoiceCondition;
+import org.knime.node.parameters.widget.updates.predicates.OneOfEnumCondition;
+import org.knime.node.parameters.widget.updates.predicates.PatternCondition;
+import org.knime.node.parameters.widget.updates.predicates.TrueCondition;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -82,9 +82,9 @@ class JsonFormsConditionResolver implements ConditionVisitor<ObjectNode> {
 
     private final TreeNode<WidgetGroup> m_widgetTreeNode;
 
-    private final DefaultNodeSettingsContext m_context;
+    private final NodeParametersInput m_context;
 
-    JsonFormsConditionResolver(final TreeNode<WidgetGroup> node, final DefaultNodeSettingsContext context) {
+    JsonFormsConditionResolver(final TreeNode<WidgetGroup> node, final NodeParametersInput context) {
         m_widgetTreeNode = node;
         m_context = context;
     }

@@ -55,7 +55,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.webui.UIExtension;
 import org.knime.core.webui.data.RpcDataService;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * Represents a dialog of a node.

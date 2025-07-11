@@ -65,9 +65,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.OptionalContentPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
+import org.knime.node.parameters.parameter.temporal.DateInterval;
+import org.knime.node.parameters.parameter.temporal.Interval;
+import org.knime.node.parameters.parameter.temporal.TimeInterval;
 
 /**
  * Helpful persistors and utilities for saving date and time related objects (temporals, intervals, timezones, etc.).

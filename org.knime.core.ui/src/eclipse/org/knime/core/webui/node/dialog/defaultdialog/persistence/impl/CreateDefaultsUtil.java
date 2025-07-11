@@ -48,9 +48,9 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.node.parameters.PersistableSettings;
 
 final class CreateDefaultsUtil {
 

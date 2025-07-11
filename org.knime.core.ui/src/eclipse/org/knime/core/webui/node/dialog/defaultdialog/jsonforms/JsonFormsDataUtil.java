@@ -60,9 +60,9 @@ import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DataTypeSerializationUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.CredentialsSerializationUtil;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.widget.choices.datatype.DataTypeSerializationUtil;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -150,7 +150,7 @@ public final class JsonFormsDataUtil {
         final var module = new SimpleModule();
 
         module.addSerializer(BigDecimal.class, new BigDecimalSerializer());
-        Credentials.addSerializerAndDeserializer(module);
+        CredentialsSerializationUtil.addSerializerAndDeserializer(module);
         FSLocationJsonSerializationUtil.addSerializerAndDeserializer(module);
         DataTypeSerializationUtil.addSerializerAndDeserializer(module);
 

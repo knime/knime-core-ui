@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * A utility class for validating view {@link NodeParameters} instances overwritten by flow variables. Use this in
@@ -80,7 +81,7 @@ public final class DefaultViewSettingsValidationUtil {
      */
     public static void validateViewSettings(final NodeSettingsRO viewSettings,
         final Class<? extends NodeParameters> viewSettingsClass) throws InvalidSettingsException {
-        NodeParameters.loadParameters(viewSettings, viewSettingsClass);
+        NodeParametersUtil.loadParameters(viewSettings, viewSettingsClass);
     }
 
 }

@@ -60,16 +60,16 @@ import java.util.function.Supplier;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlValueReference;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.RendererSpecsToImperativeRefsAndStateProviders.ImperativeRefsAndStateProviders;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Vertex.VertexVisitor;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.RefsAndStateProviders;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.widget.updates.ButtonReference;
+import org.knime.node.parameters.widget.updates.Reference;
+import org.knime.node.parameters.widget.updates.StateProvider;
+import org.knime.node.parameters.widget.updates.StateProvider.TypeReference;
 
 final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
 
@@ -84,7 +84,7 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
      * @return the trigger vertices of the resulting tree of vertices
      */
     static Collection<TriggerVertex> refsAndStateProvidersToDependencyTree(
-        final RefsAndStateProviders valueRefsAndStateProviders, final DefaultNodeSettingsContext context) {
+        final RefsAndStateProviders valueRefsAndStateProviders, final NodeParametersInput context) {
         return new DependencyTreeCreator(valueRefsAndStateProviders, ImperativeRefsAndStateProviders.empty(), context)
             .getTriggerVertices();
     }
@@ -97,14 +97,14 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
      */
     static Collection<TriggerVertex> imperativeRefsAndStateProvidersToDependencyTree(
         final ImperativeRefsAndStateProviders imperativeRefsAndStateProviders,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         return new DependencyTreeCreator(RefsAndStateProviders.empty(), imperativeRefsAndStateProviders, context)
             .getTriggerVertices();
     }
 
     private static final class DependencyTreeCreator {
 
-        private final DefaultNodeSettingsContext m_context;
+        private final NodeParametersInput m_context;
 
         private final Set<Vertex> m_visited = new HashSet<>();
 
@@ -122,7 +122,7 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
 
         DependencyTreeCreator(final RefsAndStateProviders refsAndStateProviders,
             final ImperativeRefsAndStateProviders imperativeRefsAndStateProviders,
-            final DefaultNodeSettingsContext context) {
+            final NodeParametersInput context) {
             m_context = context;
             m_refsAndStateProviders = refsAndStateProviders;
             m_imperativeRefsAndStateProviders = imperativeRefsAndStateProviders;
@@ -277,9 +277,9 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
      */
     private static final class StateProviderDependencyReceiver extends DefaultImperativeStateProviderInitializer {
 
-        private DefaultNodeSettingsContext m_context;
+        private NodeParametersInput m_context;
 
-        private StateProviderDependencyReceiver(final DefaultNodeSettingsContext context,
+        private StateProviderDependencyReceiver(final NodeParametersInput context,
             final DependencyInjector<Class<? extends Reference<?>>> dependencyCollector,
             final DependencyInjector<ControlValueReference<?>> imperativeDependencyCollector) {
             super(dependencyCollector, imperativeDependencyCollector);
@@ -324,7 +324,7 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
         }
 
         @Override
-        public DefaultNodeSettingsContext getContext() {
+        public NodeParametersInput getContext() {
             return m_context;
         }
 

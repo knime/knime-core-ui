@@ -52,7 +52,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.widget.choices.column.ColumnChoicesProvider;
 
 /**
  * Convenience interface for providing columns from a single input table that satisfy a certain condition
@@ -62,7 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext
 public interface FilteredInputTableColumnsProvider extends InputTableIndexHolder, ColumnChoicesProvider {
 
     @Override
-    default List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+    default List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
         return context.getDataTableSpec(getInputTableIndex()) //
             .map(spec -> spec.stream().filter(this::isIncluded)) //
             .orElseGet(Stream::empty) //

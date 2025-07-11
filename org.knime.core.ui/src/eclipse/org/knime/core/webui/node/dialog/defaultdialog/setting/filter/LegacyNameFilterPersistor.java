@@ -55,9 +55,12 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.filter.NameFilterConfiguration;
 import org.knime.core.node.util.filter.PatternFilterConfiguration;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.LegacyManualFilterPersistorUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.LegacyPatternFilterPersistorUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyManualFilterPersistorUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyPatternFilterPersistorUtil;
+import org.knime.node.parameters.parameter.filter.StringFilter;
+import org.knime.node.parameters.parameter.filter.StringFilterMode;
+import org.knime.node.parameters.parameter.filter.util.PatternFilter.PatternMode;
+import org.knime.node.parameters.persistence.NodeSettingsPersistor;
 
 /**
  * {@link NodeSettingsPersistor} for {@link StringFilter} that persists it in a way compatible to
@@ -107,11 +110,14 @@ public abstract class LegacyNameFilterPersistor implements NodeSettingsPersistor
             return StringFilterMode.MANUAL;
         } else if (PatternFilterConfiguration.TYPE.equals(filterType)) {
             var patternMatchingSettings = nameFilterSettings.getNodeSettings(PatternFilterConfiguration.TYPE);
-            return StringFilterMode
-                .toNameFilterMode(LegacyPatternFilterPersistorUtil.loadPatternMode(patternMatchingSettings));
+            return toNameFilterMode(LegacyPatternFilterPersistorUtil.loadPatternMode(patternMatchingSettings));
         } else {
             throw new InvalidSettingsException("Unsupported name filter type: " + filterType);
         }
+    }
+    
+    static StringFilterMode toNameFilterMode(final PatternMode mode) {
+        return mode == PatternMode.REGEX ? StringFilterMode.REGEX : StringFilterMode.WILDCARD;
     }
 
     @SuppressWarnings("javadoc")

@@ -55,8 +55,8 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.EnumUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.util.DescriptionUtil.TitleAndDescription;
+import org.knime.node.parameters.util.EnumUtil;
+import org.knime.node.parameters.util.TitleAndDescription;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.victools.jsonschema.generator.CustomPropertyDefinition;

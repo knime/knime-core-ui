@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.function.UnaryOperator;
 
 import org.knime.core.node.NodeSettingsRO;
+import org.knime.node.parameters.migration.util.ConfigPath;
 
 /**
  * Provides necessary information required to handle, e.g., config deprecations.

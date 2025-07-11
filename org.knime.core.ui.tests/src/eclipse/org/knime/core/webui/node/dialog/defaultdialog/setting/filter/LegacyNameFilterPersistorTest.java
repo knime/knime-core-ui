@@ -57,10 +57,10 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.util.filter.NameFilterConfiguration.EnforceOption;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.LegacyNameFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilterMode;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.ManualFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.PatternFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
+import org.knime.node.parameters.parameter.filter.StringFilter;
+import org.knime.node.parameters.parameter.filter.StringFilterMode;
+import org.knime.node.parameters.parameter.filter.util.ManualFilter;
+import org.knime.node.parameters.parameter.filter.util.PatternFilter;
 import org.knime.core.node.util.filter.PatternFilterConfiguration;
 
 final class LegacyNameFilterPersistorTest {

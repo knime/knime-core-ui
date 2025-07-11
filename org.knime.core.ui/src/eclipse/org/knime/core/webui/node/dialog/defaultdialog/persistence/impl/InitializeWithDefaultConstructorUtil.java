@@ -48,9 +48,9 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeSettingsMigration;
+import org.knime.node.parameters.persistence.NodeSettingsPersistor;
 
 /**
  * Utility class to create instances of {@link NodeSettingsPersistor} and {@link NodeSettingsMigration} classes.

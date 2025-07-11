@@ -53,8 +53,8 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.function.Function;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.node.parameters.PersistableSettings;
+import org.knime.node.parameters.layout.WidgetGroup;
 
 import com.fasterxml.jackson.databind.JavaType;
 

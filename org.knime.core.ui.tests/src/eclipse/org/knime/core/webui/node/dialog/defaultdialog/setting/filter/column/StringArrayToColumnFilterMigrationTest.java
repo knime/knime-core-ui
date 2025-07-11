@@ -52,8 +52,9 @@ import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.Se
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.parameter.filter.column.ColumnFilter;
 
 class StringArrayToColumnFilterMigrationTest {
 

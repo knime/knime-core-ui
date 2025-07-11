@@ -49,7 +49,7 @@
 package org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection;
 
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ToStringOrEnumMigration.ToStringWithRowIDChoiceMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.node.parameters.parameter.singleselection.RowIDChoice;
 
 /**
  * Migration from ColumnSelection (removed since 5.5) to StringOrEnum with RowIDChoice.

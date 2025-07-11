@@ -63,14 +63,14 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.DefaultFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
+import org.knime.node.parameters.PersistableSettings;
+import org.knime.node.parameters.parameter.credentials.Credentials;
+import org.knime.node.parameters.parameter.temporal.DateInterval;
+import org.knime.node.parameters.parameter.temporal.Interval;
+import org.knime.node.parameters.parameter.temporal.TimeInterval;
 
 @SuppressWarnings("java:S2698")
 class OptionalPersistorTest {

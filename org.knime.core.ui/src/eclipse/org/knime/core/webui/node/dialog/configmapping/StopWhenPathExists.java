@@ -48,9 +48,10 @@
  */
 package org.knime.core.webui.node.dialog.configmapping;
 
-import static org.knime.core.webui.node.dialog.configmapping.NodeSettingsAtPathUtil.hasPath;
+import static org.knime.node.parameters.migration.util.NodeSettingsAtPathUtil.hasPath;
 
 import org.knime.core.node.NodeSettings;
+import org.knime.node.parameters.migration.util.ConfigPath;
 
 /**
  * Does not reset anything but prevents further resetters to be regarded when the given path exists both in new and old

@@ -49,7 +49,7 @@
 package org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection;
 
 import org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection.ToStringOrEnumMigration.ToStringWithNoneChoiceMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice;
+import org.knime.node.parameters.parameter.singleselection.NoneChoice;
 
 /**
  * Migration from ColumnSelection (removed since 5.5) to StringOrEnum with NoneChoice.

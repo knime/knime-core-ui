@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.view.flowvariable;
 
-import static org.knime.core.webui.node.view.flowvariable.FlowVariableDisplayUtil.getVariableTypeDisplay;
+import static org.knime.node.parameters.parameter.filter.variable.util.FlowVariableDisplayUtil.getVariableTypeDisplay;
 
 import org.knime.core.node.workflow.CredentialsStore;
 import org.knime.core.node.workflow.NodeID;

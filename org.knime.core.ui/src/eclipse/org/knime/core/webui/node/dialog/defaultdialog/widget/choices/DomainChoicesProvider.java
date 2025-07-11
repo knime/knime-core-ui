@@ -50,7 +50,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
 
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 
 /**
  * Used to provide the choices of the domain of a column within the table of the first port.
@@ -65,7 +66,7 @@ public interface DomainChoicesProvider extends StringChoicesProvider {
     String getColumnName();
 
     @Override
-    default List<String> choices(final DefaultNodeSettingsContext context) {
+    default List<String> choices(final NodeParametersInput context) {
         return DomainChoicesUtil.getChoicesByContextAndColumn(context, getColumnName());
     }
 

@@ -102,11 +102,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.SubNodeContainerDialogTest
 import org.knime.core.webui.node.dialog.defaultdialog.SubNodeContainerDialogTest.DynamiclyConfigurableTestConfigNodeFactory.DynamiclyConfigurableTestConfigNodeValue;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
 import org.knime.core.webui.node.dialog.internal.VariableSettings;
 import org.knime.core.webui.node.dialog.utils.AbstractSettingsDocumentBuilder;
 import org.knime.core.webui.node.dialog.utils.FlowVariablesInputNodeFactory;
 import org.knime.core.webui.node.dialog.utils.TestConfigurationNodeFactoryTemplate;
+import org.knime.node.parameters.persistence.SettingsLoader;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceRegistration;

@@ -60,8 +60,7 @@ import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettingsImpl;
@@ -70,6 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
+import org.knime.node.parameters.NodeParameters;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -226,8 +226,8 @@ public final class WebUIDialogDetailsUtil {
     private static WebUISettings extractJsonFormsSettings(
         final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses) throws JsonProcessingException {
         final Map<SettingsType, NodeParameters> settings =
-            MapValuesUtil.mapValues(settingsClasses, NodeParameters::createParameters);
-        final var context = DefaultNodeSettingsContext.createDefaultNodeSettingsContext(new PortObjectSpec[0]);
+            MapValuesUtil.mapValues(settingsClasses, NodeParametersUtil::createParameters);
+        final var context = NodeParametersUtil.createDefaultNodeSettingsContext(new PortObjectSpec[0]);
         final var jsonFormsSettings = new JsonFormsSettingsImpl(settings, context);
         return new WebUISettings(jsonFormsSettings);
     }

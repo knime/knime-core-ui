@@ -74,8 +74,8 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.util.FileUtil;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.parameter.credentials.Credentials;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.osgi.framework.FrameworkUtil;
 

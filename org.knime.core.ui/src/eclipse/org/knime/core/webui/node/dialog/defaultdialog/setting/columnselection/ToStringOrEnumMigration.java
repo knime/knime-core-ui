@@ -48,14 +48,14 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.columnselection;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice.NONE;
-import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice.ROW_ID;
+import static org.knime.node.parameters.parameter.singleselection.NoneChoice.NONE;
+import static org.knime.node.parameters.parameter.singleselection.RowIDChoice.ROW_ID;
 
 import java.util.Optional;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.node.parameters.parameter.singleselection.NoneChoice;
+import org.knime.node.parameters.parameter.singleselection.RowIDChoice;
+import org.knime.node.parameters.parameter.singleselection.StringOrEnum;
 
 interface ToStringOrEnumMigration<E extends Enum<E>> {
 

@@ -55,7 +55,7 @@ import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * Additional filters for the file chooser dialog. Used when the selection mode is 'folder' to decide which files within

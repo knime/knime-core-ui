@@ -83,10 +83,11 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.widget.Widget;
 import org.knime.testing.util.TableTestUtil;
 import org.xml.sax.SAXException;
 
@@ -263,12 +264,12 @@ class WebUINodeFactoryTest {
         final var modelSettings = new TestWebUINodeModelSettings();
         modelSettings.m_someModelSetting = 42;
         final var nodeSettings42 = new NodeSettings("test");
-        NodeParameters.saveParameters(TestWebUINodeModelSettings.class, modelSettings, nodeSettings42);
+        NodeParametersUtil.saveParameters(TestWebUINodeModelSettings.class, modelSettings, nodeSettings42);
         model.validateSettings(nodeSettings42);
         model.loadValidatedSettingsFrom(nodeSettings42);
         model.configure(testSpecs);
         model.saveSettingsTo(nodeSettings);
-        assertThat(NodeParameters.loadParameters(nodeSettings, TestWebUINodeModelSettings.class).m_someModelSetting)
+        assertThat(NodeParametersUtil.loadParameters(nodeSettings, TestWebUINodeModelSettings.class).m_someModelSetting)
             .isEqualTo(42);
     }
 

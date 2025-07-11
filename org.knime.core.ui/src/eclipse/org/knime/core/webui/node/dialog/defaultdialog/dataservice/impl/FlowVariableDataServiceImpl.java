@@ -71,11 +71,11 @@ import org.knime.core.webui.data.DataServiceException;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultDialogDataConverter;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableTypesExtractorUtil;
 import org.knime.core.webui.node.dialog.internal.VariableSettings;
+import org.knime.node.parameters.NodeParametersInput;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -112,7 +112,7 @@ public final class FlowVariableDataServiceImpl implements FlowVariableDataServic
             .collect(toMap(VariableType::getIdentifier, type -> getPossibleFlowVariables(context, type)));
     }
 
-    private static List<PossibleFlowVariable> getPossibleFlowVariables(final DefaultNodeSettingsContext context,
+    private static List<PossibleFlowVariable> getPossibleFlowVariables(final NodeParametersInput context,
         final VariableType<?> type) {
         return context.getAvailableInputFlowVariables(type).values().stream()
             .map(FlowVariableDataServiceImpl::toPossibleFlowVariable).toList();
@@ -145,7 +145,7 @@ public final class FlowVariableDataServiceImpl implements FlowVariableDataServic
     }
 
     private NodeSettings textSettingsToNodeAndVariableSettings(final String textSettings, final SettingsType type,
-        final DefaultNodeSettingsContext context) throws InvalidSettingsException {
+        final NodeParametersInput context) throws InvalidSettingsException {
         final var root = textToJson(textSettings);
         final var nodeSettings = m_converter.dataJsonToNodeSettings(root.get(FIELD_NAME_DATA), type);
         final var variableNodeSettings = new NodeSettings(type.getVariablesConfigKey());

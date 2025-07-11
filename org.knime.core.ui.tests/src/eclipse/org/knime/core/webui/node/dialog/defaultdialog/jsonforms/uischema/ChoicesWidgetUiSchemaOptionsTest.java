@@ -64,21 +64,21 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.AllFlowVariablesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.parameter.filter.column.ColumnFilter;
+import org.knime.node.parameters.parameter.filter.variable.FlowVariableFilter;
+import org.knime.node.parameters.widget.Widget;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.StringChoice;
+import org.knime.node.parameters.widget.choices.StringChoicesProvider;
+import org.knime.node.parameters.widget.choices.column.ColumnChoicesProvider;
+import org.knime.node.parameters.widget.choices.singleselection.EnumChoicesProvider;
+import org.knime.node.parameters.widget.choices.variable.AllFlowVariablesProvider;
+import org.knime.node.parameters.widget.filter.TwinlistWidget;
+import org.knime.node.parameters.widget.filter.column.ColumnFilterWidget;
+import org.knime.node.parameters.widget.filter.variable.FlowVariableFilterWidget;
 
 /**
  *
@@ -97,7 +97,7 @@ class ChoicesWidgetUiSchemaOptionsTest {
     static final class TestEnumChoicesProvider implements EnumChoicesProvider<MyEnum> {
 
         @Override
-        public List<MyEnum> choices(final DefaultNodeSettingsContext context) {
+        public List<MyEnum> choices(final NodeParametersInput context) {
             return List.of(MyEnum.A, MyEnum.B);
         }
     }
@@ -161,7 +161,7 @@ class ChoicesWidgetUiSchemaOptionsTest {
     static class TestColumnChoicesProvider implements ColumnChoicesProvider {
 
         @Override
-        public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+        public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
             return ((DataTableSpec)context.getPortObjectSpec(0).get()).stream().toList();
         }
     }
@@ -169,7 +169,7 @@ class ChoicesWidgetUiSchemaOptionsTest {
     static class TestChoicesProvider implements StringChoicesProvider {
 
         @Override
-        public List<String> choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final NodeParametersInput context) {
             return List.of("column1", "column2");
         }
     }
@@ -177,7 +177,7 @@ class ChoicesWidgetUiSchemaOptionsTest {
     static class TestChoicesProviderWithIdAndText implements StringChoicesProvider {
 
         @Override
-        public List<StringChoice> computeState(final DefaultNodeSettingsContext context) {
+        public List<StringChoice> computeState(final NodeParametersInput context) {
             return List.of(new StringChoice("id1", "text1"), new StringChoice("id2", "text2"));
         }
     }
@@ -186,9 +186,9 @@ class ChoicesWidgetUiSchemaOptionsTest {
         new DataColumnSpec[]{new DataColumnSpecCreator("column1", StringCell.TYPE).createSpec(), //
             new DataColumnSpecCreator("column2", DoubleCell.TYPE).createSpec()};
 
-    private static DefaultNodeSettingsContext createDefaultNodeSettingsContext() {
-        DefaultNodeSettingsContext defaultNodeSettingsContext =
-            DefaultNodeSettingsContext.createDefaultNodeSettingsContext(new PortType[]{BufferedDataTable.TYPE},
+    private static NodeParametersInput createDefaultNodeSettingsContext() {
+        NodeParametersInput defaultNodeSettingsContext =
+            NodeParametersInput.createDefaultNodeSettingsContext(new PortType[]{BufferedDataTable.TYPE},
                 new PortObjectSpec[]{new DataTableSpec(columnSpecs)}, null, null);
         return defaultNodeSettingsContext;
     }
@@ -212,7 +212,7 @@ class ChoicesWidgetUiSchemaOptionsTest {
 
         }
 
-        DefaultNodeSettingsContext defaultNodeSettingsContext = createDefaultNodeSettingsContext();
+        NodeParametersInput defaultNodeSettingsContext = createDefaultNodeSettingsContext();
 
         var response = buildTestUiSchema(ChoicesSettings.class, defaultNodeSettingsContext);
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("foo");

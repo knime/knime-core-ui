@@ -53,6 +53,7 @@ import org.junit.jupiter.api.Test;
 import org.knime.core.data.DataType;
 import org.knime.core.data.collection.ListCell;
 import org.knime.core.data.def.StringCell;
+import org.knime.node.parameters.widget.choices.datatype.DataTypeSerializationUtil;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;

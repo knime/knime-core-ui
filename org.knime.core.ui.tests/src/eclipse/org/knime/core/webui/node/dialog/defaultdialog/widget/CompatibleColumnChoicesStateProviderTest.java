@@ -66,15 +66,18 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.parameter.filter.column.ColumnFilter;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.widget.Widget;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.withtypes.TypedStringChoice;
+import org.knime.node.parameters.widget.singleselection.Label;
+import org.knime.node.parameters.widget.singleselection.ValueSwitchWidget;
+import org.knime.node.parameters.widget.updates.Reference;
+import org.knime.node.parameters.widget.updates.ValueReference;
 import org.knime.testing.node.dialog.updates.DialogUpdateSimulator;
 import org.knime.testing.node.dialog.updates.UpdateSimulator;
 import org.knime.testing.node.dialog.updates.UpdateSimulator.UpdateSimulatorResult;
@@ -123,7 +126,7 @@ class CompatibleColumnChoicesStateProviderTest {
         var settings = new TestSettings();
 
         UpdateSimulator simulator = new DialogUpdateSimulator(settings,
-            DefaultNodeSettingsContext.createDefaultNodeSettingsContext(
+            NodeParametersInput.createDefaultNodeSettingsContext(
                 new PortType[]{BufferedDataTable.TYPE}, new PortObjectSpec[]{testSpec}, null, null));
 
         UpdateSimulatorResult beforeOpenDialogResults = simulator.simulateBeforeOpenDialog();

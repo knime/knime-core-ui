@@ -51,8 +51,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 import java.util.function.Supplier;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative.WithImperativeInitializer.ImperativeStateProviderInitializer;
+import org.knime.node.parameters.widget.updates.Reference;
 
 abstract class DefaultImperativeStateProviderInitializer extends DefaultStateProviderInitializer
     implements ImperativeStateProviderInitializer {

@@ -68,19 +68,21 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.NodeDialogTest;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonNodeSettingsMapperUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.layout.WidgetGroup;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeSettingsMigration;
+import org.knime.node.parameters.persistence.NodeSettingsPersistor;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.persistence.SettingsLoader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -108,7 +110,7 @@ class DefaultNodeSettingsServiceTest {
             m_value = value;
         }
 
-        TestSettings(final DefaultNodeSettingsContext context) {
+        TestSettings(final NodeParametersInput context) {
             m_value = (context.getDataTableSpecs()[0]).getColumnSpec(0).getName();
         }
     }
@@ -128,7 +130,7 @@ class DefaultNodeSettingsServiceTest {
         final var specs =
             new PortObjectSpec[]{new DataTableSpec(new DataColumnSpecCreator("bar", StringCell.TYPE).createSpec())};
         final var viewDataSchema = JsonFormsSchemaUtil.buildSchema(TestSettings.class,
-            DefaultNodeSettingsContext.createDefaultNodeSettingsContext(specs), MAPPER);
+            NodeParametersUtil.createDefaultNodeSettingsContext(specs), MAPPER);
         final var nodeSettings = new NodeSettings("node_settings");
         JsonNodeSettingsMapperUtil.jsonObjectToNodeSettings(viewData, viewDataSchema, nodeSettings);
 
@@ -151,7 +153,7 @@ class DefaultNodeSettingsServiceTest {
 
         // assert that returned schema is equal to wrapped schema created via JsonFormsSchemaUtil
         final var schema = JsonFormsSchemaUtil.buildSchema(TestSettings.class,
-            DefaultNodeSettingsContext.createDefaultNodeSettingsContext(specs), MAPPER);
+            NodeParametersUtil.createDefaultNodeSettingsContext(specs), MAPPER);
         final var wrappedSchema = MAPPER.createObjectNode();
         wrappedSchema.put("type", "object").putObject("properties").set(SettingsType.VIEW.getConfigKey(), schema);
         assertThatJson(initialData.get("schema")).isEqualTo(wrappedSchema);
@@ -163,7 +165,7 @@ class DefaultNodeSettingsServiceTest {
             JsonFormsUiSchemaUtil.buildUISchema(
                 testSettingsMap.entrySet().stream()
                     .map(e -> new WidgetTreeFactory().createTree(e.getValue(), e.getKey())).toList(),
-                DefaultNodeSettingsContext.createDefaultNodeSettingsContext(specs));
+                NodeParametersUtil.createDefaultNodeSettingsContext(specs));
         assertThatJson(initialData.get("ui_schema").get("elements")).isEqualTo(uiSchema.get("elements"));
     }
 
@@ -192,7 +194,7 @@ class DefaultNodeSettingsServiceTest {
     @Test
     void testSettingsOverwrittenByFlowVariablesAreSetToPrevious() throws InvalidSettingsException {
         final var previousNodeSettings = new NodeSettings("previousSettings");
-        NodeParameters.saveParameters(TestSettings.class, new TestSettings("old"), previousNodeSettings);
+        NodeParametersUtil.saveParameters(TestSettings.class, new TestSettings("old"), previousNodeSettings);
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
         final var settingsService =
@@ -285,7 +287,7 @@ class DefaultNodeSettingsServiceTest {
         throws InvalidSettingsException {
 
         final var previousNodeSettings = new NodeSettings("previousSettings");
-        NodeParameters.saveParameters(LegacySettings.class, new LegacySettings("old1", "old2"),
+        NodeParametersUtil.saveParameters(LegacySettings.class, new LegacySettings("old1", "old2"),
             previousNodeSettings);
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
@@ -336,7 +338,7 @@ class DefaultNodeSettingsServiceTest {
     void testMapsPreviousSettingsToNewSettingsOnOverwrite() throws InvalidSettingsException {
 
         final var previousNodeSettings = new NodeSettings("previousSettings");
-        NodeParameters.saveParameters(LegacySettings.class, new LegacySettings("old1", "old2"),
+        NodeParametersUtil.saveParameters(LegacySettings.class, new LegacySettings("old1", "old2"),
             previousNodeSettings);
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
@@ -388,7 +390,7 @@ class DefaultNodeSettingsServiceTest {
     void testUsesNewSettingsInCaseLoadingTheOldSettingsFails() throws InvalidSettingsException {
 
         final var previousNodeSettings = new NodeSettings("previousSettings");
-        NodeParameters.saveParameters(LegacySettings.class, new LegacySettings("old1", "old2"),
+        NodeParametersUtil.saveParameters(LegacySettings.class, new LegacySettings("old1", "old2"),
             previousNodeSettings);
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
@@ -416,7 +418,7 @@ class DefaultNodeSettingsServiceTest {
     void testDoesNotMapPreviousSettingsToNewSettingsOnExpose() throws InvalidSettingsException {
 
         final var previousNodeSettings = new NodeSettings("previousSettings");
-        NodeParameters.saveParameters(LegacySettings.class, new LegacySettings("old1", "old2"),
+        NodeParametersUtil.saveParameters(LegacySettings.class, new LegacySettings("old1", "old2"),
             previousNodeSettings);
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
@@ -458,7 +460,7 @@ class DefaultNodeSettingsServiceTest {
     @Test
     void testInferrsConfigKeysFromFieldBasedDefaultPersistor() {
         final var previousNodeSettings = new NodeSettings("previousSettings");
-        NodeParameters.saveParameters(LegacySettings.class, new LegacySettings("old1", "old2"),
+        NodeParametersUtil.saveParameters(LegacySettings.class, new LegacySettings("old1", "old2"),
             previousNodeSettings);
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
@@ -485,7 +487,7 @@ class DefaultNodeSettingsServiceTest {
     @Test
     void testInferrsConfigKeysFromFieldBasedDefaultPersistorWhenANewVariableIsSet() {
         final var previousNodeSettings = new NodeSettings("previousSettings");
-        NodeParameters.saveParameters(LegacySettings.class, new LegacySettings("old1", "old2"),
+        NodeParametersUtil.saveParameters(LegacySettings.class, new LegacySettings("old1", "old2"),
             previousNodeSettings);
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);

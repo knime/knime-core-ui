@@ -48,9 +48,9 @@
  */
 package org.knime.testing.node.dialog;
 
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.widget.Widget;
+import org.knime.node.parameters.widget.singleselection.Label;
 
 class NestedExampleDefaultNodeSettings implements NodeParameters {
 

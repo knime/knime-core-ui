@@ -59,7 +59,7 @@ import org.knime.core.node.NodeFactory.NodeType;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Version;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * Configuration for a {@link WebUINodeFactory WebUI node}.

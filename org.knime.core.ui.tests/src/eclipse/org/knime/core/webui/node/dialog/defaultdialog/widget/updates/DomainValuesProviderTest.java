@@ -62,10 +62,10 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DomainValuesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.ErrorHandlingSingleton;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  *
@@ -99,7 +99,7 @@ class DomainValuesProviderTest {
         colSpecCreator.setDomain(colDomain);
         final var colSpec = colSpecCreator.createSpec();
 
-        final var context = DefaultNodeSettingsContext.createDefaultNodeSettingsContext(
+        final var context = NodeParametersInput.createDefaultNodeSettingsContext(
             new PortType[]{BufferedDataTable.TYPE}, new PortObjectSpec[]{new DataTableSpec(//
                 new DataColumnSpec[]{colSpec} //
             )}, null, null);
@@ -115,7 +115,7 @@ class DomainValuesProviderTest {
         final var colSpecCreator = new DataColumnSpecCreator(testColumn, StringCell.TYPE);
         final var colSpec = colSpecCreator.createSpec();
 
-        final var context = DefaultNodeSettingsContext.createDefaultNodeSettingsContext(
+        final var context = NodeParametersInput.createDefaultNodeSettingsContext(
             new PortType[]{BufferedDataTable.TYPE}, new PortObjectSpec[]{new DataTableSpec(//
                 new DataColumnSpec[]{colSpec} //
             )}, null, null);

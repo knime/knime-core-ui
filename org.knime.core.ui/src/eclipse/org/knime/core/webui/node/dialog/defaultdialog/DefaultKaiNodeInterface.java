@@ -71,6 +71,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSetting
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.NodeSettingsToDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.node.parameters.NodeParameters;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -129,7 +130,7 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
 
     private JsonFormsSettingsImpl getJsonFormsSettings(final Map<SettingsType, NodeAndVariableSettingsRO> settings,
         final PortObjectSpec[] specs) {
-        var context = DefaultNodeSettingsContext.createDefaultNodeSettingsContext(specs);
+        var context = NodeParametersUtil.createDefaultNodeSettingsContext(specs);
         final var loadedSettings = new NodeSettingsToDefaultNodeSettings(context, m_settingsClasses)
             .nodeSettingsToDefaultNodeSettingsOrDefault(map(settings));
 

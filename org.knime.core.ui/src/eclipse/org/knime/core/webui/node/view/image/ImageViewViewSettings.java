@@ -45,8 +45,8 @@
  */
 package org.knime.core.webui.node.view.image;
 
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.widget.Widget;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany

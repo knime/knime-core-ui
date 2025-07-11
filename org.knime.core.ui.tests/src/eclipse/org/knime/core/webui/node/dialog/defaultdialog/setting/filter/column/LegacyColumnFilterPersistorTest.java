@@ -60,10 +60,12 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.util.filter.NameFilterConfiguration.EnforceOption;
 import org.knime.core.node.util.filter.PatternFilterConfiguration;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.ManualFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.PatternFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypeFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilterMode;
+import org.knime.node.parameters.parameter.filter.column.ColumnFilter;
+import org.knime.node.parameters.parameter.filter.column.ColumnTypeFilter;
+import org.knime.node.parameters.parameter.filter.util.ManualFilter;
+import org.knime.node.parameters.parameter.filter.util.PatternFilter;
+import org.knime.node.parameters.parameter.filter.withtypes.TypeFilter;
+import org.knime.node.parameters.parameter.filter.withtypes.TypedStringFilterMode;
 
 final class LegacyColumnFilterPersistorTest {
 

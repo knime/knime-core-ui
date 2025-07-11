@@ -50,15 +50,15 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.validation;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil.validateFormat;
+import static org.knime.node.parameters.widget.temporal.util.DateTimeFormatValidationUtil.validateFormat;
 
 import java.util.stream.Stream;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
+import org.knime.node.parameters.parameter.temporal.TemporalFormat;
+import org.knime.node.parameters.parameter.temporal.TemporalFormat.FormatTemporalType;
 
 /**
  *

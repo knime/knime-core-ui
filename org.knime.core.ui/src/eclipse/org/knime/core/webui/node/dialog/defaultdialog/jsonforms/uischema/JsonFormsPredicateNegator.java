@@ -53,14 +53,14 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.And;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ConstantPredicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.FrameworkPredicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.Not;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.Or;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.PredicateVisitor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ExtendedPredicateVisitor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ScopedPredicate;
+import org.knime.node.parameters.widget.updates.Predicate;
+import org.knime.node.parameters.widget.updates.predicates.And;
+import org.knime.node.parameters.widget.updates.predicates.ConstantPredicate;
+import org.knime.node.parameters.widget.updates.predicates.Not;
+import org.knime.node.parameters.widget.updates.predicates.Or;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -70,9 +70,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * @author Paul Bärnreuther
  */
 @SuppressWarnings("javadoc")
-final class JsonFormsPredicateNegator implements PredicateVisitor<ObjectNode> {
+final class JsonFormsPredicateNegator implements ExtendedPredicateVisitor<ObjectNode> {
 
-    private final PredicateVisitor<ObjectNode> m_predicateResolver;
+    private final ExtendedPredicateVisitor<ObjectNode> m_predicateResolver;
 
     /**
      * @param predicateResolver

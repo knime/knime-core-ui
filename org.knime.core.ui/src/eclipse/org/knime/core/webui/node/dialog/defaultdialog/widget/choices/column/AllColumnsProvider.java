@@ -53,7 +53,8 @@ import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.widget.choices.column.ColumnChoicesProvider;
 
 /**
  * Offers all column from an input table as options. By default, the first input table is used.
@@ -62,7 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext
  */
 public class AllColumnsProvider implements ColumnChoicesProvider, InputTableIndexHolder {
     @Override
-    public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+    public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
         return context.getDataTableSpec(getInputTableIndex()) //
             .map(DataTableSpec::stream) //
             .orElseGet(Stream::empty) //

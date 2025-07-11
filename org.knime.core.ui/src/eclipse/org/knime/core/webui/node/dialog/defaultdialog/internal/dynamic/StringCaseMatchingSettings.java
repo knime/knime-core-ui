@@ -48,8 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic;
 
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.widget.singleselection.Label;
 
 /**
  * Case-matching setting provided by the framework, since we currently lack a flexible extension mechanism for

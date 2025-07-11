@@ -75,8 +75,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonChange;
@@ -103,62 +101,64 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TestButtonActionHandler.TestStates;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection.DBTableSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ComprehensiveDateTimeFormatProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget.IntervalType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextAreaWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage.MessageType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DeclaringDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil.DateTimeStringFormatValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil.DateTimeTemporalFormatValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MaxLengthValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MinLengthValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeStringFormatValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeTemporalFormatValidation;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.PersistableSettings;
+import org.knime.node.parameters.layout.WidgetGroup;
+import org.knime.node.parameters.parameter.credentials.Credentials;
+import org.knime.node.parameters.parameter.filter.StringFilter;
+import org.knime.node.parameters.parameter.filter.column.ColumnFilter;
+import org.knime.node.parameters.parameter.singleselection.StringOrEnum;
+import org.knime.node.parameters.parameter.temporal.DateInterval;
+import org.knime.node.parameters.parameter.temporal.Interval;
+import org.knime.node.parameters.parameter.temporal.TemporalFormat;
+import org.knime.node.parameters.parameter.temporal.TimeInterval;
+import org.knime.node.parameters.widget.Advanced;
+import org.knime.node.parameters.widget.Widget;
+import org.knime.node.parameters.widget.array.ArrayWidget;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.StringChoice;
+import org.knime.node.parameters.widget.choices.StringChoicesProvider;
+import org.knime.node.parameters.widget.credentials.CredentialsWidget;
+import org.knime.node.parameters.widget.credentials.PasswordWidget;
+import org.knime.node.parameters.widget.credentials.UsernameWidget;
+import org.knime.node.parameters.widget.message.TextMessage;
+import org.knime.node.parameters.widget.message.TextMessage.MessageType;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MaxValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsNonNegativeValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
+import org.knime.node.parameters.widget.singleselection.Label;
+import org.knime.node.parameters.widget.singleselection.RadioButtonsWidget;
+import org.knime.node.parameters.widget.singleselection.ValueSwitchWidget;
+import org.knime.node.parameters.widget.temporal.ComprehensiveDateTimeFormatProvider;
+import org.knime.node.parameters.widget.temporal.DateTimeFormatPickerWidget;
+import org.knime.node.parameters.widget.temporal.IntervalWidget;
+import org.knime.node.parameters.widget.temporal.IntervalWidget.IntervalType;
+import org.knime.node.parameters.widget.text.RichTextInputWidget;
+import org.knime.node.parameters.widget.text.TextAreaWidget;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.MaxLengthValidation;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.MinLengthValidation;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation;
+import org.knime.node.parameters.widget.updates.ButtonReference;
+import org.knime.node.parameters.widget.updates.Effect;
+import org.knime.node.parameters.widget.updates.Reference;
+import org.knime.node.parameters.widget.updates.StateComputationFailureException;
+import org.knime.node.parameters.widget.updates.StateProvider;
+import org.knime.node.parameters.widget.updates.ValueReference;
+import org.knime.node.parameters.widget.updates.Effect.EffectType;
 import org.mockito.Mockito;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -238,7 +238,7 @@ class UiSchemaOptionsTest {
             DBTableSelection m_dbTableSelection;
         }
 
-        var context = Mockito.mock(DefaultNodeSettingsContext.class);
+        var context = Mockito.mock(NodeParametersInput.class);
         var response = buildTestUiSchema(DefaultStylesSettings.class, context);
 
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("string");
@@ -449,7 +449,7 @@ class UiSchemaOptionsTest {
             }
 
             @Override
-            public IntervalType computeState(final DefaultNodeSettingsContext context) {
+            public IntervalType computeState(final NodeParametersInput context) {
                 return IntervalType.DATE;
             }
         }
@@ -462,7 +462,7 @@ class UiSchemaOptionsTest {
             }
 
             @Override
-            public IntervalType computeState(final DefaultNodeSettingsContext context) {
+            public IntervalType computeState(final NodeParametersInput context) {
                 return IntervalType.TIME;
             }
         }
@@ -651,7 +651,7 @@ class UiSchemaOptionsTest {
             }
 
             @Override
-            public ArrayElement computeState(final DefaultNodeSettingsContext context) {
+            public ArrayElement computeState(final NodeParametersInput context) {
                 throw new IllegalStateException();
             }
 
@@ -817,7 +817,7 @@ class UiSchemaOptionsTest {
 
             @Override
             public ButtonChange<String, TestStates> update(final OtherSettings settings,
-                final DefaultNodeSettingsContext context) throws WidgetHandlerException {
+                final NodeParametersInput context) throws WidgetHandlerException {
                 return null;
             }
 
@@ -1017,7 +1017,7 @@ class UiSchemaOptionsTest {
 
     static final class TimeZoneIdProvider implements StringChoicesProvider {
         @Override
-        public List<String> choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final NodeParametersInput context) {
             return List.of("UTC", "Europe/Berlin", "America/New_York");
         }
     }
@@ -1069,7 +1069,7 @@ class UiSchemaOptionsTest {
         }
 
         @Override
-        public Boolean computeState(final DefaultNodeSettingsContext context) {
+        public Boolean computeState(final NodeParametersInput context) {
             return true;
         }
 
@@ -1082,7 +1082,7 @@ class UiSchemaOptionsTest {
         }
 
         @Override
-        public Boolean computeState(final DefaultNodeSettingsContext context) {
+        public Boolean computeState(final NodeParametersInput context) {
             return true;
         }
 
@@ -1234,7 +1234,7 @@ class UiSchemaOptionsTest {
         }
 
         @Override
-        public String computeState(final DefaultNodeSettingsContext context) {
+        public String computeState(final NodeParametersInput context) {
             throw new RuntimeException("Should not be called within this test");
         }
 
@@ -1313,8 +1313,8 @@ class UiSchemaOptionsTest {
     }
 
     @SuppressWarnings("resource")
-    DefaultNodeSettingsContext setupFileSystemMocks(final String fileSystemType, final String fileSystemSpecifier) {
-        final var context = Mockito.mock(DefaultNodeSettingsContext.class);
+    NodeParametersInput setupFileSystemMocks(final String fileSystemType, final String fileSystemSpecifier) {
+        final var context = Mockito.mock(NodeParametersInput.class);
         final var spec = Mockito.mock(FileSystemPortObjectSpec.class);
         final var location = Mockito.mock(FSLocation.class);
         Mockito.when(location.getFileSystemSpecifier()).thenReturn(Optional.of(fileSystemSpecifier));
@@ -1471,7 +1471,7 @@ class UiSchemaOptionsTest {
         }
 
         @Override
-        public String computeState(final DefaultNodeSettingsContext context) {
+        public String computeState(final NodeParametersInput context) {
             throw new IllegalStateException("This method should never be called");
         }
 
@@ -1596,7 +1596,7 @@ class UiSchemaOptionsTest {
             static final class MyTextMessageProvider implements TextMessage.SimpleTextMessageProvider {
 
                 @Override
-                public boolean showMessage(final DefaultNodeSettingsContext context) {
+                public boolean showMessage(final NodeParametersInput context) {
                     return true;
                 }
 
@@ -1659,7 +1659,7 @@ class UiSchemaOptionsTest {
         }
 
         @Override
-        public MinValidation computeState(final DefaultNodeSettingsContext context) {
+        public MinValidation computeState(final NodeParametersInput context) {
             throw new IllegalStateException("This method should never be called");
         }
 
@@ -1674,7 +1674,7 @@ class UiSchemaOptionsTest {
         }
 
         @Override
-        public MaxValidation computeState(final DefaultNodeSettingsContext context) {
+        public MaxValidation computeState(final NodeParametersInput context) {
             throw new IllegalStateException("This method should never be called");
         }
 
@@ -1816,7 +1816,7 @@ class UiSchemaOptionsTest {
     static class RegularChoicesProvider implements StringChoicesProvider {
 
         @Override
-        public List<String> choices(final DefaultNodeSettingsContext context) {
+        public List<String> choices(final NodeParametersInput context) {
             return List.of("Regular 1", "Regular 2");
         }
     }
@@ -1862,7 +1862,7 @@ class UiSchemaOptionsTest {
 
                 @Override
                 public Pair<Map<String, Object>, DialogElementRendererSpec<?>> computeSettingsAndDialog(
-                    final DefaultNodeSettingsContext context) throws StateComputationFailureException {
+                    final NodeParametersInput context) throws StateComputationFailureException {
                     throw new UnsupportedOperationException("This method should not be called in this test");
                 }
 
@@ -1900,7 +1900,7 @@ class UiSchemaOptionsTest {
             DBTableSelection m_dbTableSelection;
         }
 
-        var context = Mockito.mock(DefaultNodeSettingsContext.class);
+        var context = Mockito.mock(NodeParametersInput.class);
         var response = buildTestUiSchema(SettingsWithoutCatalogues.class, context);
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("dbTableSelection");
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dbTableChooser");

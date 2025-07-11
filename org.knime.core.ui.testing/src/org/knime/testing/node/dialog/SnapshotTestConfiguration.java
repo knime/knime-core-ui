@@ -61,8 +61,8 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.util.workflow.def.FallibleSupplier;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
@@ -86,7 +86,7 @@ public final class SnapshotTestConfiguration {
 
         /**
          * Specify the specs of the input ports that are used in
-         * {@link DefaultNodeSettingsContext#createDefaultNodeSettingsContext(PortObjectSpec[])}
+         * {@link NodeParametersUtil#createDefaultNodeSettingsContext(PortObjectSpec[])}
          */
         interface OptionalInputTableSpec extends OptionalTests {
             /**
@@ -262,9 +262,9 @@ public final class SnapshotTestConfiguration {
                 .map(e -> Map.entry(e.getKey(), (FallibleSupplier<NodeParameters>)() -> {
                     var nodeSettings = new NodeSettings("ignore");
                     // At this point, the port object specs are already configured.
-                    var settingsObj = NodeParameters.createParamaters(e.getValue(),
+                    var settingsObj = NodeParametersUtil.createParamaters(e.getValue(),
                         m_portObjectSpecs.toArray(PortObjectSpec[]::new));
-                    NodeParameters.saveParameters(e.getValue(), settingsObj, nodeSettings);
+                    NodeParametersUtil.saveParameters(e.getValue(), settingsObj, nodeSettings);
                     return settingsObj;
                 })).collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
             return this;
@@ -299,7 +299,7 @@ public final class SnapshotTestConfiguration {
         @Override
         public BuilderStage.OptionalTests testNodeSettingsStructure(final NodeSettingsRO legacy,
             final Class<? extends NodeParameters> clazz) {
-            m_settingsAsserts.add(() -> NodeParameters.loadParameters(legacy, clazz));
+            m_settingsAsserts.add(() -> NodeParametersUtil.loadParameters(legacy, clazz));
             return this;
         }
 

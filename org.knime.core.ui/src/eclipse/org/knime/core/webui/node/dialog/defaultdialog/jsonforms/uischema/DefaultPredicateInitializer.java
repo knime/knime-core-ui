@@ -48,27 +48,27 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.Condition;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ConditionToPredicateTranslator;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ConstantPredicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.FrameworkPredicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.FrameworkPredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ScopedPredicate;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.layout.WidgetGroup;
+import org.knime.node.parameters.parameter.singleselection.StringOrEnum;
+import org.knime.node.parameters.widget.updates.Predicate;
+import org.knime.node.parameters.widget.updates.PredicateProvider;
+import org.knime.node.parameters.widget.updates.Reference;
+import org.knime.node.parameters.widget.updates.PredicateProvider.PredicateInitializer;
+import org.knime.node.parameters.widget.updates.predicates.Condition;
+import org.knime.node.parameters.widget.updates.predicates.ConditionToPredicateTranslator;
+import org.knime.node.parameters.widget.updates.predicates.ConstantPredicate;
 
 class DefaultPredicateInitializer implements PredicateInitializer {
 
     private ScopeFromReference m_scopeFromReference;
 
-    private DefaultNodeSettingsContext m_context;
+    private NodeParametersInput m_context;
 
     interface ScopeFromReference {
 
@@ -80,7 +80,7 @@ class DefaultPredicateInitializer implements PredicateInitializer {
 
     }
 
-    DefaultPredicateInitializer(final ScopeFromReference scopes, final DefaultNodeSettingsContext context) {
+    DefaultPredicateInitializer(final ScopeFromReference scopes, final NodeParametersInput context) {
         m_scopeFromReference = scopes;
         m_context = context;
     }
@@ -109,7 +109,7 @@ class DefaultPredicateInitializer implements PredicateInitializer {
     }
 
     @Override
-    public Predicate getConstant(final java.util.function.Predicate<DefaultNodeSettingsContext> predicate) {
+    public Predicate getConstant(final java.util.function.Predicate<NodeParametersInput> predicate) {
         return new ConstantPredicate(predicate.test(m_context));
     }
 

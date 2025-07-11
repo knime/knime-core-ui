@@ -48,10 +48,10 @@
  */
 package org.knime.core.webui.node.dialog.configmapping;
 
-import static org.knime.core.webui.node.dialog.configmapping.NodeSettingsAtPathUtil.deletePath;
-import static org.knime.core.webui.node.dialog.configmapping.NodeSettingsAtPathUtil.getNodeSettingsAtPath;
-import static org.knime.core.webui.node.dialog.configmapping.NodeSettingsAtPathUtil.getNodeSettingsROAtPath;
-import static org.knime.core.webui.node.dialog.configmapping.NodeSettingsAtPathUtil.replaceAtPathIfPresent;
+import static org.knime.node.parameters.migration.util.NodeSettingsAtPathUtil.deletePath;
+import static org.knime.node.parameters.migration.util.NodeSettingsAtPathUtil.getNodeSettingsAtPath;
+import static org.knime.node.parameters.migration.util.NodeSettingsAtPathUtil.getNodeSettingsROAtPath;
+import static org.knime.node.parameters.migration.util.NodeSettingsAtPathUtil.replaceAtPathIfPresent;
 
 import java.util.Collection;
 import java.util.function.Function;
@@ -60,6 +60,7 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
+import org.knime.node.parameters.migration.util.ConfigPath;
 
 /**
  * Conditionally resets node settings to previous settings by taking {@link ConfigMappings} into account.

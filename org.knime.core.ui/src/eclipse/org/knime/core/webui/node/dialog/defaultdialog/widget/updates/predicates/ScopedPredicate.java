@@ -48,9 +48,11 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.node.parameters.layout.WidgetGroup;
+import org.knime.node.parameters.widget.updates.Predicate;
+import org.knime.node.parameters.widget.updates.predicates.Condition;
+import org.knime.node.parameters.widget.updates.predicates.PredicateVisitor;
 
 /**
  * The atomic predicate that is used for json forms implementation
@@ -63,6 +65,11 @@ public record ScopedPredicate(TreeNode<WidgetGroup> node, Condition condition) i
 
     @Override
     public <T> T accept(final PredicateVisitor<T> visitor) {
-        return visitor.visit(this);
+        if (visitor instanceof ExtendedPredicateVisitor<T> extendedVisitor) {
+            return extendedVisitor.visit(this);
+        }
+        throw new IllegalStateException(
+            "The visitor must be an instance of ExtendedPredicateVisitor to visit a ScopedPredicate.");
     }
+
 }

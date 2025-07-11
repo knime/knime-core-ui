@@ -55,6 +55,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.StringValue;
+import org.knime.node.parameters.widget.choices.column.ColumnChoicesProvider;
 
 /**
  * A {@link ColumnChoicesProvider} which can be given one or multiple classes extending {@link DataValue} and provides

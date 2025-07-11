@@ -64,8 +64,8 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.data.DataServiceContext;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * Data service for the DBTableChooser dialog.

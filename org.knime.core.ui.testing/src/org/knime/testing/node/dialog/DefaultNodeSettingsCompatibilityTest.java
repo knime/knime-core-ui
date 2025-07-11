@@ -54,7 +54,8 @@ import org.junit.jupiter.api.Test;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.util.workflow.def.FallibleSupplier;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * For testing that legacy settings can still be read and provide the expected defaults.
@@ -95,7 +96,7 @@ public abstract class DefaultNodeSettingsCompatibilityTest<T extends NodeParamet
 
     static FallibleSupplier<NodeParameters> from(final NodeSettingsRO nodeSettings,
         final Class<? extends NodeParameters> clazz) {
-        return () -> NodeParameters.loadParameters(nodeSettings, clazz);
+        return () -> NodeParametersUtil.loadParameters(nodeSettings, clazz);
     }
 
     /** Creates a test that checks the equivalences defined in {@link #assertions()}. */

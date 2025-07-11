@@ -69,15 +69,15 @@ import java.time.ZonedDateTime;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.WidgetGroupModifier;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.node.parameters.PersistableSettings;
+import org.knime.node.parameters.layout.WidgetGroup;
+import org.knime.node.parameters.layout.WidgetGroup.Modification;
+import org.knime.node.parameters.layout.WidgetGroup.WidgetGroupModifier;
+import org.knime.node.parameters.widget.Widget;
+import org.knime.node.parameters.widget.singleselection.Label;
+import org.knime.node.parameters.widget.updates.Reference;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -600,7 +600,7 @@ class JsonFormsSchemaUtilTest {
     }
 
     private static JsonNode getProperties(final Class<? extends WidgetGroup> clazz, final PortObjectSpec... specs) {
-        return JsonFormsSchemaUtil.buildSchema(clazz, DefaultNodeSettingsContext.createDefaultNodeSettingsContext(specs),
+        return JsonFormsSchemaUtil.buildSchema(clazz, NodeParametersUtil.createDefaultNodeSettingsContext(specs),
             JsonFormsDataUtil.getMapper()).get("properties");
     }
 

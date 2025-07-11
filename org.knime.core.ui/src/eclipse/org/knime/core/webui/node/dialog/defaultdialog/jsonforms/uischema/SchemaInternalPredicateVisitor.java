@@ -56,15 +56,15 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil.getMapper;
 
 import org.apache.commons.lang3.NotImplementedException;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.And;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ConstantPredicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.FrameworkPredicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.Not;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.Or;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.PredicateVisitor;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ExtendedPredicateVisitor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ScopedPredicate;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.widget.updates.predicates.And;
+import org.knime.node.parameters.widget.updates.predicates.ConstantPredicate;
+import org.knime.node.parameters.widget.updates.predicates.Not;
+import org.knime.node.parameters.widget.updates.predicates.Or;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -73,11 +73,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * (e.g. if an array "contains" an element with another rule)
  *
  */
-final class SchemaInternalPredicateVisitor implements PredicateVisitor<ObjectNode> {
+final class SchemaInternalPredicateVisitor implements ExtendedPredicateVisitor<ObjectNode> {
 
-    private final DefaultNodeSettingsContext m_context;
+    private final NodeParametersInput m_context;
 
-    SchemaInternalPredicateVisitor(final DefaultNodeSettingsContext context) {
+    SchemaInternalPredicateVisitor(final NodeParametersInput context) {
         m_context = context;
     }
 

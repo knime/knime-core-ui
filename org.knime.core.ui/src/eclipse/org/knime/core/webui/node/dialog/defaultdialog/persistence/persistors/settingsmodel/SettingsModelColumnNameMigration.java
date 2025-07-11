@@ -48,17 +48,17 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice.ROW_ID;
+import static org.knime.node.parameters.parameter.singleselection.RowIDChoice.ROW_ID;
 
 import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.NodeSettingsMigration;
+import org.knime.node.parameters.parameter.singleselection.RowIDChoice;
+import org.knime.node.parameters.parameter.singleselection.StringOrEnum;
 
 /**
  * The {@link SettingsModelColumnName} is migrated to a {@link StringOrEnum} that can hold either a column name or the
