@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
@@ -107,9 +108,10 @@ public interface KaiNodeInterface {
      *            schema
      * @param previousSettings of the node
      * @param settings to write based on the response
+     * @throws InvalidSettingsException if the response cannot be applied to the node
      */
     void applyConfigureResponse(final String response,
         final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
-        final Map<SettingsType, NodeAndVariableSettingsWO> settings);
+        final Map<SettingsType, NodeAndVariableSettingsWO> settings) throws InvalidSettingsException;
 
 }

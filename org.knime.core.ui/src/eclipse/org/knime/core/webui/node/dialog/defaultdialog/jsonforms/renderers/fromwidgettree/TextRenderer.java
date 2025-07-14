@@ -54,6 +54,7 @@ import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
@@ -66,27 +67,51 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MaxLengthValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MinLengthValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation.IsSingleCharacterValidation;
 
 final class TextRenderer extends WidgetTreeControlRendererSpec implements TextRendererSpec {
 
     private Optional<TextInputWidget> m_annotation;
 
+    private final boolean m_isCharacterType;
+
+    private boolean m_isPrimitiveCharacter;
+
     TextRenderer(final TreeNode<WidgetGroup> node) {
         super(node);
         m_annotation = node.getAnnotation(TextInputWidget.class);
+        m_isCharacterType = node.getRawClass() == char.class || node.getRawClass() == Character.class;
+        m_isPrimitiveCharacter = m_isCharacterType && node.getRawClass().isPrimitive();
     }
 
     @Override
     public Optional<TextRendererOptions> getOptions() {
+        final Optional<MinLengthValidation> minLengthValidation;
+        final Optional<MaxLengthValidation> maxLengthValidation;
+        final Optional<PatternValidation> patternValidation;
+        final Optional<String> placeholder;
+
         if (m_annotation.isEmpty()) {
+            minLengthValidation = Optional.empty();
+            maxLengthValidation = Optional.empty();
+            patternValidation = getDefaultCharacterValidation();
+            placeholder = Optional.empty();
+        } else {
+            final var annotation = m_annotation.get();
+            minLengthValidation = getValidation(MinLengthValidation.class, annotation.minLengthValidation());
+            maxLengthValidation = getValidation(MaxLengthValidation.class, annotation.maxLengthValidation());
+            patternValidation = getValidation(PatternValidation.class, annotation.patternValidation())
+                .or(this::getDefaultCharacterValidation);
+            placeholder = Optional.of(annotation.placeholder()).filter(s -> !s.isEmpty());
+
+            validateCharacterTypeConstraints(minLengthValidation.isPresent(), maxLengthValidation.isPresent());
+        }
+
+        if (patternValidation.isEmpty() && minLengthValidation.isEmpty() && maxLengthValidation.isEmpty()
+            && placeholder.isEmpty()) {
             return Optional.empty();
         }
-        final var annotation = m_annotation.get();
-        final var minLengthValidation = getValidation(MinLengthValidation.class, annotation.minLengthValidation());
-        final Optional<MaxLengthValidation> maxLengthValidation =
-            getValidation(MaxLengthValidation.class, annotation.maxLengthValidation());
-        final Optional<PatternValidation> patternValidation =
-            getValidation(PatternValidation.class, annotation.patternValidation());
+
         return Optional.of(new TextRendererOptions() {
 
             @Override
@@ -115,7 +140,7 @@ final class TextRenderer extends WidgetTreeControlRendererSpec implements TextRe
 
             @Override
             public Optional<String> getPlaceholder() {
-                return Optional.of(annotation.placeholder()).filter(s -> !s.isEmpty());
+                return placeholder;
             }
 
         });
@@ -143,8 +168,46 @@ final class TextRenderer extends WidgetTreeControlRendererSpec implements TextRe
         return stateProviderClasses;
     }
 
+    private void validateCharacterTypeConstraints(final boolean hasMinLengthValidation,
+        final boolean hasMaxLengthValidation) {
+        if (!m_isCharacterType) {
+            return;
+        }
+
+        if (hasMinLengthValidation) {
+            throw new UiSchemaGenerationException("Min length validation is not applicable for character field.");
+        }
+
+        if (hasMaxLengthValidation) {
+            throw new UiSchemaGenerationException("Max length validation is not applicable for character field.");
+        }
+    }
+
     private static <T> Optional<T> getValidation(final Class<T> ignoredDefault, final Class<? extends T> clazz) {
         return Optional.of(clazz).filter(cls -> !ignoredDefault.equals(cls)).map(InstantiationUtil::createInstance);
+    }
+
+    private Optional<PatternValidation> getDefaultCharacterValidation() {
+        if (!m_isCharacterType) {
+            return Optional.empty();
+        }
+
+        final boolean isPrimitive = m_isPrimitiveCharacter;
+        if (isPrimitive) {
+            return Optional.of(new IsSingleCharacterValidation());
+        } else {
+            return Optional.of(new PatternValidation() {
+                @Override
+                protected String getPattern() {
+                    return ".{0,1}";
+                }
+
+                @Override
+                public String getErrorMessage() {
+                    return "Only one character is allowed.";
+                }
+            });
+        }
     }
 
 }

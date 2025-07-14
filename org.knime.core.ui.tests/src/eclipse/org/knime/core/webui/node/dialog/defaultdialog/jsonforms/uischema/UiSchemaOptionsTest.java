@@ -1559,6 +1559,76 @@ class UiSchemaOptionsTest {
     }
 
     @Test
+    void testCharacterTypeDefaultValidation() {
+        class CharacterDefaultValidationTestSettings implements DefaultNodeSettings {
+
+            @Widget(title = "", description = "")
+            char m_primitiveChar;
+
+            @Widget(title = "", description = "")
+            Character m_characterWrapper;
+        }
+
+        var response = buildTestUiSchema(CharacterDefaultValidationTestSettings.class);
+
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("primitiveChar");
+        assertThatJson(response).inPath("$.elements[0].options.validation.pattern.parameters.pattern").isString()
+            .isEqualTo("^.$");
+        assertThatJson(response).inPath("$.elements[0].options.validation.pattern.errorMessage").isString()
+            .isEqualTo("The string must be a single character.");
+
+        assertThatJson(response).inPath("$.elements[1].scope").isString().contains("characterWrapper");
+        assertThatJson(response).inPath("$.elements[1].options.validation.pattern.parameters.pattern").isString()
+            .isEqualTo(".{0,1}");
+        assertThatJson(response).inPath("$.elements[1].options.validation.pattern.errorMessage").isString()
+            .isEqualTo("Only one character is allowed.");
+    }
+
+    @Test
+    void testCharacterTypeValidationConstraints() {
+        class CharacterWithMinLengthValidationTestSettings implements DefaultNodeSettings {
+
+            @Widget(title = "", description = "")
+            @TextInputWidget(minLengthValidation = MinLenValidation.class)
+            char m_charWithMinLength;
+        }
+
+        assertThrows(UiSchemaGenerationException.class,
+            () -> buildTestUiSchema(CharacterWithMinLengthValidationTestSettings.class));
+    }
+
+    @Test
+    void testCharacterTypeMaxLengthValidationConstraints() {
+        class CharacterWithMaxLengthValidationTestSettings implements DefaultNodeSettings {
+
+            @Widget(title = "", description = "")
+            @TextInputWidget(maxLengthValidation = MaxLenValidation.class)
+            Character m_charWithMaxLength;
+        }
+
+        assertThrows(UiSchemaGenerationException.class,
+            () -> buildTestUiSchema(CharacterWithMaxLengthValidationTestSettings.class));
+    }
+
+    @Test
+    void testCharacterTypeWithCustomPatternValidation() {
+        class CharacterWithCustomPatternValidationTestSettings implements DefaultNodeSettings {
+
+            @Widget(title = "", description = "")
+            @TextInputWidget(patternValidation = CustomPatternValidation.class)
+            char m_charWithCustomPattern;
+        }
+
+        var response = buildTestUiSchema(CharacterWithCustomPatternValidationTestSettings.class);
+
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("charWithCustomPattern");
+        assertThatJson(response).inPath("$.elements[0].options.validation.pattern.parameters.pattern").isString()
+            .isEqualTo("a.*");
+        assertThatJson(response).inPath("$.elements[0].options.validation.pattern.errorMessage").isString()
+            .isEqualTo("The string must match the pattern: a.*");
+    }
+
+    @Test
     void testInternalArrayWidget() {
         class InternalArrayWidgetTestSettings implements DefaultNodeSettings {
 

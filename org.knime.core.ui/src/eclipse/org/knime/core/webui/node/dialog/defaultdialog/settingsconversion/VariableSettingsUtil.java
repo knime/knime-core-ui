@@ -72,6 +72,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Objects;
 
 /**
  * Utilities around {@link VariableSettingsRO} and {@link VariableSettingsWO}.
@@ -246,7 +247,7 @@ public final class VariableSettingsUtil {
         final String m_exposedFlowVariableName;
 
         @JsonProperty("controllingFlowVariableFlawed")
-        final boolean m_isControllingFlowVariableFlawed;
+        final Boolean m_isControllingFlowVariableFlawed;
 
         @JsonProperty("controllingFlowVariableAvailable")
         final Boolean m_isControllingFlowVariableAvailable;
@@ -254,18 +255,18 @@ public final class VariableSettingsUtil {
         @JsonCreator
         FlowVariableSetting(@JsonProperty("controllingFlowVariableName") final String controllingFlowVariableName,
             @JsonProperty("exposedFlowVariableName") final String exposedFlowVariableName,
-            @JsonProperty("controllingFlowVariableFlawed") final boolean isControllingFlowVariableFlawed) {
+            @JsonProperty("controllingFlowVariableFlawed") final Boolean isControllingFlowVariableFlawed) {
             this(controllingFlowVariableName, false, exposedFlowVariableName, isControllingFlowVariableFlawed);
         }
 
         private FlowVariableSetting(final String controllingFlowVariableName,
-            final boolean isControllingFlowVariableAvailable, final String exposedFlowVariableName,
-            final boolean isControllingFlowVariableFlawed) {
+            final Boolean isControllingFlowVariableAvailable, final String exposedFlowVariableName,
+            final Boolean isControllingFlowVariableFlawed) {
             m_controllingFlowVariableName = controllingFlowVariableName;
             m_isControllingFlowVariableAvailable =
                 m_controllingFlowVariableName == null ? null : isControllingFlowVariableAvailable;
             m_exposedFlowVariableName = exposedFlowVariableName;
-            m_isControllingFlowVariableFlawed = isControllingFlowVariableFlawed;
+            m_isControllingFlowVariableFlawed = Objects.equal(isControllingFlowVariableFlawed, true);
         }
 
         private FlowVariableSetting(final String controllingFlowVariableName,

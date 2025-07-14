@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.interactive.ReExecutable;
@@ -60,6 +61,7 @@ import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.webui.data.rpc.json.impl.ObjectMapperUtil;
 
+import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
@@ -158,13 +160,21 @@ public final class ApplyDataService<D> extends AbstractDataService {
             return root;
         } catch (IOException ex) {
             NodeLogger.getLogger(ApplyDataService.class).error("Error applying data", ex);
-            return root.put(IS_APPLIED, false).put(ERROR, ex.getMessage());
+            return root.put(IS_APPLIED, false).put(ERROR, extractMessage(ex));
         } finally {
             if (m_nc != null) {
                 DataServiceContext.remove();
                 NodeContext.removeLastContext();
             }
         }
+    }
+
+    private static String extractMessage(final IOException ex) {
+        if (ex.getCause() instanceof InvalidSettingsException invalidSettingsException
+            && invalidSettingsException.getCause() instanceof JacksonException jacksonException) {
+            return jacksonException.getLocalizedMessage();
+        }
+        return ex.getMessage();
     }
 
     private void applyDataWithContexts(final String dataString) throws IOException {

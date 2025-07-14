@@ -57,6 +57,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
@@ -85,7 +86,7 @@ final class DefaultTextToNodeSettingsConverter implements TextToNodeSettingsConv
     @Override
     public void toNodeSettings(final String textSettings,
         final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
-        final Map<SettingsType, NodeAndVariableSettingsWO> settings) {
+        final Map<SettingsType, NodeAndVariableSettingsWO> settings) throws InvalidSettingsException {
         final var root = textToJson(textSettings);
         final var defaultNodeSettings =
             JsonDataToDefaultNodeSettingsUtil.toDefaultNodeSettings(m_settingsClasses, root.get(FIELD_NAME_DATA));

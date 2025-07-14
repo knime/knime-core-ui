@@ -193,7 +193,7 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(FileSelection.class), FolderSelectionWidget.class), //
         new WidgetAnnotation(List.of(String.class), LocalFileReaderWidget.class), //
         new WidgetAnnotation(List.of(String.class), LocalFileWriterWidget.class), //
-        new WidgetAnnotation(List.of(String.class), TextInputWidget.class), //
+        new WidgetAnnotation(List.of(String.class, Character.class, char.class), TextInputWidget.class), //
         new WidgetAnnotation(List.of(Void.class), SimpleButtonWidget.class), //
         new WidgetAnnotation(List.of(Void.class), TextMessage.class), //
         new WidgetAnnotation(List.of(String[].class, ColumnFilter.class, StringFilter.class), TwinlistWidget.class), //
