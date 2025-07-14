@@ -97,7 +97,8 @@ public final class DefaultDialogDataConverterImpl implements DefaultDialogDataCo
     }
 
     @Override
-    public NodeSettings dataJsonToNodeSettings(final JsonNode root, final SettingsType type) {
+    public NodeSettings dataJsonToNodeSettings(final JsonNode root, final SettingsType type)
+        throws InvalidSettingsException {
         final var defaultNodeSettings =
             JsonDataToDefaultNodeSettingsUtil.toDefaultNodeSettings(m_settingsClasses.get(type), root, type);
         return ToNodeSettingsUtil.toNodeSettings(type, defaultNodeSettings);

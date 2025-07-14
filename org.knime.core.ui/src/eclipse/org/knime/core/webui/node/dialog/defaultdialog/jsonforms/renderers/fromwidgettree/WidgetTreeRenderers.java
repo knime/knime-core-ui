@@ -93,7 +93,8 @@ public class WidgetTreeRenderers {
             hasAnnotationAssertingTypeAndNoSecondInvalidAnnotation(LocalFileReaderWidget.class, String.class,
                 LocalFileWriterWidget.class)), //
         new WidgetTreeNodeTester(TextRenderer::new, //
-            node -> String.class.equals(node.getRawClass())), //
+            node -> String.class.equals(node.getRawClass())
+                || ClassUtils.primitiveToWrapper(node.getRawClass()).equals(Character.class)), //
         new WidgetTreeNodeTester(IntegerRenderer::new,
             node -> List.of(Byte.class, Integer.class, Duration.class)
                 .contains(ClassUtils.primitiveToWrapper(node.getRawClass()))), // bytes and integers
@@ -112,7 +113,8 @@ public class WidgetTreeRenderers {
         new WidgetTreeNodeTester(CredentialsRenderer::new,
             node -> Credentials.class.isAssignableFrom(node.getRawClass())), //
         new WidgetTreeNodeTester(LegacyCredentialsRenderer::new,
-            node -> LegacyCredentials.class.isAssignableFrom(node.getRawClass()))//
+            node -> LegacyCredentials.class.isAssignableFrom(node.getRawClass())) //
+
     };
 
     private static Predicate<TreeNode<WidgetGroup>> hasAnnotation(final Class<? extends Annotation> annotationClass) {

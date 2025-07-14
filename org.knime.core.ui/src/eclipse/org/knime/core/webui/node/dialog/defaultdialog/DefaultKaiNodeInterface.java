@@ -57,6 +57,7 @@ import java.util.Set;
 import java.util.stream.IntStream;
 
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowObjectStack;
@@ -211,7 +212,7 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
         if (flowObjectStack == null) {
             return jsonNode;
         }
-        
+
         final var flowVariables = jsonNode.putArray("flow_variables");
         final var allFlowVariables = flowObjectStack.getAllAvailableFlowVariables();
         allFlowVariables.values().stream().forEach(flowVar -> {
@@ -306,7 +307,7 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
     @Override
     public void applyConfigureResponse(final String response,
         final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
-        final Map<SettingsType, NodeAndVariableSettingsWO> settings) {
+        final Map<SettingsType, NodeAndVariableSettingsWO> settings) throws InvalidSettingsException {
         m_textToNodeSettingsConverter.toNodeSettings(response, previousSettings, settings);
     }
 

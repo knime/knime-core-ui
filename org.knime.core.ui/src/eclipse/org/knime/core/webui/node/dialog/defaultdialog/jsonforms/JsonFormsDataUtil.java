@@ -128,6 +128,7 @@ public final class JsonFormsDataUtil {
         mapper.registerModule(createDialogModule());
         mapper.setSerializationInclusion(Include.NON_NULL);
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        mapper.enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES);
         mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         mapper.setVisibility(PropertyAccessor.ALL, Visibility.NON_PRIVATE);
         mapper.setVisibility(PropertyAccessor.GETTER, Visibility.NONE);

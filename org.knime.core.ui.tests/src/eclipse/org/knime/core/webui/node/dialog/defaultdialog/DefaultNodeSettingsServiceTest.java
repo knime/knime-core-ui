@@ -168,7 +168,7 @@ class DefaultNodeSettingsServiceTest {
     }
 
     @Test
-    void testApplyData() {
+    void testApplyData() throws InvalidSettingsException {
         // create "foo" view data and empty node settings
         final var viewData = JsonFormsDataUtil.toJsonData(new TestSettings("foo"));
         final var nodeSettings = new NodeSettings("node_settings");
@@ -456,7 +456,7 @@ class DefaultNodeSettingsServiceTest {
     }
 
     @Test
-    void testInferrsConfigKeysFromFieldBasedDefaultPersistor() {
+    void testInferrsConfigKeysFromFieldBasedDefaultPersistor() throws InvalidSettingsException {
         final var previousNodeSettings = new NodeSettings("previousSettings");
         DefaultNodeSettings.saveSettings(LegacySettings.class, new LegacySettings("old1", "old2"),
             previousNodeSettings);
@@ -483,7 +483,7 @@ class DefaultNodeSettingsServiceTest {
     }
 
     @Test
-    void testInferrsConfigKeysFromFieldBasedDefaultPersistorWhenANewVariableIsSet() {
+    void testInferrsConfigKeysFromFieldBasedDefaultPersistorWhenANewVariableIsSet() throws InvalidSettingsException {
         final var previousNodeSettings = new NodeSettings("previousSettings");
         DefaultNodeSettings.saveSettings(LegacySettings.class, new LegacySettings("old1", "old2"),
             previousNodeSettings);
@@ -516,7 +516,7 @@ class DefaultNodeSettingsServiceTest {
     }
 
     @Test
-    void testAddsConfigForOptionalPersistor() {
+    void testAddsConfigForOptionalPersistor() throws InvalidSettingsException {
         final var previousNodeSettings = new NodeSettings("previousSettings");
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);

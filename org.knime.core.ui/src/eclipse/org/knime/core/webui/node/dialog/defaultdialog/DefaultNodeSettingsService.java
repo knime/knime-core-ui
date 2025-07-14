@@ -94,7 +94,7 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
     @Override
     public void toNodeSettings(final String textSettings,
         final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
-        final Map<SettingsType, NodeAndVariableSettingsWO> settings) {
+        final Map<SettingsType, NodeAndVariableSettingsWO> settings) throws InvalidSettingsException {
         m_textToNodeSettingsConverter.toNodeSettings(textSettings, previousSettings, settings);
 
     }
