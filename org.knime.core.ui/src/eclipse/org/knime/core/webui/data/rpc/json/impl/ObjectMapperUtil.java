@@ -2,7 +2,6 @@ package org.knime.core.webui.data.rpc.json.impl;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 /**
@@ -33,12 +32,7 @@ public final class ObjectMapperUtil {
 
     private static void configureObjectMapper(final ObjectMapper mapper) {
         mapper.registerModule(new Jdk8Module());
-
-        mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
-        mapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
-
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-
     }
 
     /**
