@@ -58,14 +58,18 @@ export const addIndexToTriggers = (indexId: string) => {
   const injectionKeyTrigger = "trigger";
   const trigger = inject(injectionKeyTrigger);
 
-  const wrapperWithIndexTrigger: Provided[typeof injectionKeyTrigger] = ({
-    id,
-    indexIds = [],
-  }) =>
+  const wrapperWithIndexTrigger: Provided[typeof injectionKeyTrigger] = (
+    triggerId: unknown,
+  ) => {
+    const { id, indexIds = [] } = triggerId as {
+      id: string;
+      indexIds?: string[];
+    };
     trigger({
       id,
       indexIds: [indexId, ...indexIds],
     });
+  };
 
   provide(injectionKeyTrigger, wrapperWithIndexTrigger);
 

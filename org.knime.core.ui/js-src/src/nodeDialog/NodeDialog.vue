@@ -116,8 +116,10 @@ const runWithDependencies = async (
   triggerCallback: ReturnType<TriggerCallback>,
 ) => (await triggerCallback(getCurrentData()))(getCurrentData());
 
-const trigger = (params: { id: string; indexIds?: string[] }) =>
-  runWithDependencies(getTriggerCallback(params));
+const trigger = (params: unknown) =>
+  runWithDependencies(
+    getTriggerCallback(params as { id: string; indexIds?: string[] }),
+  );
 const isTriggerActive = (params: { id: string; indexIds?: string[] }) =>
   getTriggerIsActiveCallback(params)(getCurrentData());
 // UPDATES
@@ -182,11 +184,8 @@ const ready = ref(false);
 
 const getPersistSchema = () => persistSchema.value ?? {};
 
-const callDataService = ({
-  method,
-  options,
-}: Parameters<Provided["getData"]>[0]) =>
-  jsonDataService?.data({ method, options })!;
+const callDataService = (parameters: Parameters<Provided["getData"]>[0]) =>
+  jsonDataService?.data(parameters as { method?: string; options?: unknown })!;
 
 const getAvailableFlowVariables = (persistPath: string) =>
   flowVariablesApi.getAvailableFlowVariables(
@@ -257,9 +256,9 @@ const performExternalValidation = async (id: string, value: any) => {
   return receivedData.result || null;
 };
 
-const onSettingsChanged = ({ data }: { data: SettingsData }) => {
+const onSettingsChanged = ({ data }: { data: unknown }) => {
   if (data) {
-    setCurrentData(data);
+    setCurrentData(data as SettingsData);
     publishSettings();
   }
 };
