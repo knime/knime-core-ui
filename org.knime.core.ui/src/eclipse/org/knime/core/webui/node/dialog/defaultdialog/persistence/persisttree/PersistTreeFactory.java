@@ -53,19 +53,19 @@ import java.util.Collection;
 import java.util.List;
 
 import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeFactory;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.Persistor;
 
 /**
- * For creating a persist tree from a {@link PersistableSettings} class.
+ * For creating a persist tree from a {@link Persistable} class.
  *
  * @author Paul Bärnreuther
  */
-public final class PersistTreeFactory extends TreeFactory<PersistableSettings> {
+public final class PersistTreeFactory extends TreeFactory<Persistable> {
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_ANNOTATIONS =
         List.of(Persist.class, Migrate.class, Persistor.class, Migration.class);
@@ -92,8 +92,8 @@ public final class PersistTreeFactory extends TreeFactory<PersistableSettings> {
     }
 
     @Override
-    protected Class<? extends PersistableSettings> getTreeSettingsClass() {
-        return PersistableSettings.class;
+    protected Class<? extends Persistable> getTreeSettingsClass() {
+        return Persistable.class;
     }
 
 }

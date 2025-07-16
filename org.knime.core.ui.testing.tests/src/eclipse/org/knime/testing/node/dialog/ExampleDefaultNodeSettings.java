@@ -49,7 +49,7 @@
 package org.knime.testing.node.dialog;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.Widget;
 
 /**
  *

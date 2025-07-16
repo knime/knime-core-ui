@@ -51,7 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates
 import java.util.Arrays;
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.node.parameters.updates.Predicate;
 
 /**
  * A logical AND {@link Operator} that combines multiple child {@link Predicate Predicates}.

@@ -54,8 +54,8 @@ import java.util.Collection;
 import java.util.List;
 
 import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  * Dependency tree creating utility for {@link DialogElementRendererSpec}s.
@@ -69,7 +69,7 @@ public class RendererSpecsToDependencyTreeUtil {
     }
 
     static Collection<TriggerVertex> rendererSpecsToDependencyTree(
-        final Collection<DialogElementRendererSpec> rendererSpecs, final DefaultNodeSettingsContext context) {
+        final Collection<DialogElementRendererSpec> rendererSpecs, final NodeParametersInput context) {
         final var valueRefsAndStateProviders =
             new RendererSpecsToImperativeRefsAndStateProviders().widgetTreesToRefsAndStateProviders(rendererSpecs);
         return RefsAndValueProvidersAndUiStateProvidersToDependencyTree
@@ -84,7 +84,7 @@ public class RendererSpecsToDependencyTreeUtil {
      */
     public static <T> Pair<List<TriggerAndDependencies>, TriggerInvocationHandler<T>>
         rendererSpecsToTriggersAndInvocationHandler(final Collection<DialogElementRendererSpec> rendererSpecs,
-            final DefaultNodeSettingsContext context) {
+            final NodeParametersInput context) {
         final var dependencyTree = rendererSpecsToDependencyTree(rendererSpecs, context);
         final var listOfTriggers = getTriggersWithDependencies(dependencyTree);
         return new Pair<>(listOfTriggers, new TriggerInvocationHandler<>(dependencyTree));

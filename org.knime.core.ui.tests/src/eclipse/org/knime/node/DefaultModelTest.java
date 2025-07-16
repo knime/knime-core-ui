@@ -75,7 +75,7 @@ import org.knime.node.DefaultModel.ConfigureInput;
 import org.knime.node.DefaultModel.ConfigureOrRearrangerConsumer;
 import org.knime.node.DefaultModel.ConfigureOutput;
 import org.knime.node.DefaultModel.ExecuteConsumer;
-import org.knime.node.DefaultModel.RequireModelSettings;
+import org.knime.node.DefaultModel.RequireModelParameters;
 import org.knime.node.DefaultNode.RequireModel;
 import org.knime.node.testing.TestWithWorkflowManager;
 
@@ -87,7 +87,7 @@ class DefaultModelTest extends TestWithWorkflowManager {
     static final ExecuteConsumer NOOP_EXECUTE = (i, o) -> {
     };
 
-    NodeContainer createAndAddNodeWithModel(final Function<RequireModelSettings, DefaultModel> model) {
+    NodeContainer createAndAddNodeWithModel(final Function<RequireModelParameters, DefaultModel> model) {
         final var node = createNodeFactoryFromStage(RequireModel.class, s -> s.model(model));
         return addNode(node);
     }
@@ -317,7 +317,7 @@ class DefaultModelTest extends TestWithWorkflowManager {
     void testModelSettings() {
         final var settingsClass = TestSettings.class;
         final var nc = createAndAddNodeWithModel(m -> m //
-            .settingsClass(settingsClass).configure((i, o) -> {
+            .parametersClass(settingsClass).configure((i, o) -> {
                 final var settings = i.getSettings();
                 assertThat(settings).isInstanceOf(settingsClass);
                 ((TestSettings)settings).m_testString = "modified in configure";
@@ -336,7 +336,7 @@ class DefaultModelTest extends TestWithWorkflowManager {
         final var createNC = addNode(createOneRow);
         final var nc = addNode(createNodeFactoryFromStage(RequirePorts.class, s -> s.ports(p -> p//
             .addInputTable("Input", "").addOutputTable("Output", "")).model(m -> m//
-                .settingsClass(settingsClass).rearrangeColumns((i, o) -> {
+                .parametersClass(settingsClass).rearrangeColumns((i, o) -> {
                     final var settings = i.getSettings();
                     assertThat(settings).isInstanceOf(settingsClass);
                     o.setColumnRearranger(new ColumnRearranger(i.getDataTableSpec()));
@@ -353,7 +353,7 @@ class DefaultModelTest extends TestWithWorkflowManager {
         String loadedValue = "modified externally";
 
         final var nc = createAndAddNodeWithModel(m -> m //
-            .settingsClass(settingsClass).configure((i, o) -> {
+            .parametersClass(settingsClass).configure((i, o) -> {
             }).execute((i, o) -> {
                 final var settings = i.getSettings();
                 assertThat(settings).isInstanceOf(settingsClass);
@@ -377,7 +377,7 @@ class DefaultModelTest extends TestWithWorkflowManager {
         final var settingsClass = TestSettings.class;
 
         final var nc = createAndAddNodeWithModel(m -> m //
-            .settingsClass(settingsClass).configure((i, o) -> {
+            .parametersClass(settingsClass).configure((i, o) -> {
             }).execute((i, o) -> {
             }));
         var nodeSettings = new NodeSettings("configuration");

@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.node.parameters.updates.Predicate;
 
 /**
  * The atomic predicate that is used for implementations supporting constant predicates (e.g. dynamic input port

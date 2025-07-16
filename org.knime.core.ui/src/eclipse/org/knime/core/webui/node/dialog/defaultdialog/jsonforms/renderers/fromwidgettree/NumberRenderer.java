@@ -54,17 +54,17 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.NumberRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMaxValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMinValidationProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.TypeDependentMaxValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.TypeDependentMinValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MaxValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation;
 
 class NumberRenderer extends WidgetTreeControlRendererSpec implements NumberRendererSpec {
 

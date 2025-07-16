@@ -51,9 +51,9 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -68,7 +68,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *            used directly as field type applies here.
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public final class StringOrEnum<E extends Enum<E>> implements PersistableSettings {
+public final class StringOrEnum<E extends Enum<E>> implements Persistable {
 
     @JsonProperty("regularChoice")
     String m_regularChoice;

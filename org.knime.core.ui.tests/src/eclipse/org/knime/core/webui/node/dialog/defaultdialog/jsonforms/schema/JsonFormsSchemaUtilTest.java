@@ -71,13 +71,13 @@ import org.junit.jupiter.api.Test;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.WidgetGroupModifier;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.WidgetGroup.Modification;
+import org.knime.node.parameters.WidgetGroup.WidgetGroupModifier;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.updates.Reference;
+import org.knime.node.parameters.widget.choices.Label;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -144,7 +144,7 @@ class JsonFormsSchemaUtilTest {
     }
 
     @Modification(ChangeDescription.class)
-    private static class ModifiedDescriptionSettings implements WidgetGroup, PersistableSettings {
+    private static class ModifiedDescriptionSettings implements WidgetGroup, Persistable {
         /**
          * containing the modified description from {@link ChangeDescription}.
          */

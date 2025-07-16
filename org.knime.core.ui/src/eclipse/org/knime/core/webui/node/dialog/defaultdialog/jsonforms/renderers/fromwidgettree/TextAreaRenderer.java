@@ -51,9 +51,9 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromw
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextAreaRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextAreaWidget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.widget.text.TextAreaWidget;
 
 final class TextAreaRenderer extends WidgetTreeControlRendererSpec implements TextAreaRendererSpec {
 

@@ -59,7 +59,8 @@ import org.junit.jupiter.api.Test;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration.Builder;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.ConfigMigration.Builder;
 
 class ConfigMigrationTest {
 

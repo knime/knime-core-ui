@@ -76,12 +76,12 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.view.NodeView;
 import org.knime.core.webui.node.view.NodeViewFactory;
 import org.knime.node.impl.description.DefaultNodeDescriptionUtil;
 import org.knime.node.impl.description.PortDescription;
 import org.knime.node.impl.port.PortGroup;
+import org.knime.node.parameters.NodeParameters;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
@@ -231,11 +231,11 @@ public abstract class DefaultNodeFactory extends ConfigurableNodeFactory<NodeMod
         return viewSettings.isPresent() || modelSettings.isPresent();
     }
 
-    private Optional<Class<? extends DefaultNodeSettings>> getModelSettingsClass() {
+    private Optional<Class<? extends NodeParameters>> getModelSettingsClass() {
         return m_node.m_model.getSettingsClass();
     }
 
-    private Optional<Class<? extends DefaultNodeSettings>> getViewSettingsClass() {
+    private Optional<Class<? extends NodeParameters>> getViewSettingsClass() {
         return m_node.getView().flatMap(DefaultView::getSettingsClass);
     }
 

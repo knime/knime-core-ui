@@ -55,9 +55,9 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.persistence.Persistable;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -97,7 +97,7 @@ class DefaultNodeSettingsToJsonFormsTest {
 
     }
 
-    static class NestedSettings implements WidgetGroup, PersistableSettings {
+    static class NestedSettings implements WidgetGroup, Persistable {
 
         @Widget(title = "", description = "")
         String nestedField = "nested field";

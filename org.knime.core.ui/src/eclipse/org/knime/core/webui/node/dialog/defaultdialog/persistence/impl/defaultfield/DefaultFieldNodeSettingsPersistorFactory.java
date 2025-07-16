@@ -69,10 +69,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.config.ConfigRO;
 import org.knime.core.node.config.base.ConfigBaseRO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsSaver;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.DateIntervalPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.IntervalPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.LocalDatePersistor;
@@ -88,9 +84,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInter
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.node.parameters.migration.SettingsLoader;
+import org.knime.node.parameters.persistence.NodeSettingsPersistor;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.SettingsSaver;
 
 /**
- * Factory for default persistors either for arrays or {@link PersistableSettings} or settings that store values
+ * Factory for default persistors either for arrays or {@link Persistable} or settings that store values
  * directly in NodeSettings.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -128,7 +128,7 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
      * @param configKey
      * @return how to save and load this node to the config key
      */
-    public static DefaultFieldPersistor<?> createPersistor(final LeafNode<PersistableSettings> node,
+    public static DefaultFieldPersistor<?> createPersistor(final LeafNode<Persistable> node,
         final String configKey) {
         if (node.getRawClass().equals(Map.class)) {
             return createMapPersistor(configKey);

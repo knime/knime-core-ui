@@ -61,7 +61,7 @@ import org.knime.core.node.FluentNodeAPI;
 import org.knime.core.node.NodeFactory.NodeType;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Version;
-import org.knime.node.DefaultModel.RequireModelSettings;
+import org.knime.node.DefaultModel.RequireModelParameters;
 import org.knime.node.DefaultView.RequireViewSettings;
 import org.knime.node.RequirePorts.DynamicPortsAdder;
 import org.knime.node.RequirePorts.PortsAdder;
@@ -202,7 +202,7 @@ public final class DefaultNode implements FluentNodeAPI {
          *            {@link DefaultModel}
          * @return the {@link DefaultNode}
          */
-        DefaultNode model(Function<RequireModelSettings, DefaultModel> model);
+        DefaultNode model(Function<RequireModelParameters, DefaultModel> model);
     }
 
     /* OPTIONAL PROPERTIES */

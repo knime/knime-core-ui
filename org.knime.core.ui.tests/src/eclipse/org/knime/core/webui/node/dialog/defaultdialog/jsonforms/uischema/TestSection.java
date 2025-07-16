@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.node.parameters.layout.Section;
 
 /**
  *

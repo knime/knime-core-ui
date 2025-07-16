@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.node.parameters.updates.PredicateProvider;
 
 /**
  * Condition applied to an array layout field (NOT to a field in the Element POJO). The condition is fulfilled if one of

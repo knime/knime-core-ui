@@ -55,7 +55,7 @@ import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * Additional filters for the file chooser dialog. Used when the selection mode is 'folder' to decide which files within
@@ -63,7 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
-public interface FileChooserFilters extends DefaultNodeSettings {
+public interface FileChooserFilters extends NodeParameters {
 
     /**
      * Should accept any file or folder as argument. If a folder passes the filter, then its children will be evaluated.

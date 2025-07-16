@@ -51,9 +51,9 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 import java.lang.reflect.Field;
 
 import org.knime.core.node.defaultnodesettings.SettingsModel;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistable;
 
 /**
  * Utilities for getting the used config keys from a {@link Field} with a {@link Persist} annotation.
@@ -72,7 +72,7 @@ public final class ConfigKeyUtil {
      * @return the configKey defined by the {@link Persist} annotation on the given field. If the field is not annotated or
      * the {@link Persist#configKey()} option is not set, a default key is extracted from the field name.
      */
-    public static String getConfigKey(final TreeNode<PersistableSettings> node) {
+    public static String getConfigKey(final TreeNode<Persistable> node) {
         var persist = node.getAnnotation(Persist.class);
         final var fieldName = node.getName().orElse(null); // should never be null
         if (persist.isEmpty()) {

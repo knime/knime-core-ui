@@ -53,7 +53,7 @@ import java.util.function.Predicate;
 
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypeFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice.PossibleTypeValue;
+import org.knime.node.parameters.widget.choices.TypedStringChoice.PossibleTypeValue;
 
 /**
  * The type filter used within a {@link FlowVariableFilter}.

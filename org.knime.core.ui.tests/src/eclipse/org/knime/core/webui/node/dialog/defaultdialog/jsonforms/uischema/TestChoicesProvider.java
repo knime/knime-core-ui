@@ -51,8 +51,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 import java.util.List;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 
 /**
  * Dummy test choices provider. We need this at multiple places since the {@link ChoicesProvider} complains if no

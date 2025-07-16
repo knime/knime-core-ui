@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.node.parameters.updates.Predicate;
 
 /**
  * Predicate used to resolve predicate providers which are not scoped to a field (see {@link ScopedPredicate}) and not

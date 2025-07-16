@@ -58,10 +58,8 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.
 import java.util.List;
 
 import org.apache.commons.lang3.NotImplementedException;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.And;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ConstantPredicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.FrameworkPredicate;
@@ -69,6 +67,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.Or;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.PredicateVisitor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ScopedPredicate;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.Predicate;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -81,9 +81,9 @@ class JsonFormsPredicateResolver implements PredicateVisitor<ObjectNode> {
 
     private final JsonFormsPredicateNegator m_negator;
 
-    private final DefaultNodeSettingsContext m_context;
+    private final NodeParametersInput m_context;
 
-    JsonFormsPredicateResolver(final DefaultNodeSettingsContext context) {
+    JsonFormsPredicateResolver(final NodeParametersInput context) {
         m_negator = new JsonFormsPredicateNegator(this);
         m_context = context;
     }

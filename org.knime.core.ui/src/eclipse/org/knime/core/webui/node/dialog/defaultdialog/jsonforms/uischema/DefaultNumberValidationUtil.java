@@ -52,9 +52,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.NumberRendererSpec.TypeBounds;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.BuiltinValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation;
+import org.knime.node.parameters.validation.BuiltinValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MaxValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation;
 
 /**
  * Utility class to generate default {@link MinValidation} and {@link MaxValidation} for specific numeric types.

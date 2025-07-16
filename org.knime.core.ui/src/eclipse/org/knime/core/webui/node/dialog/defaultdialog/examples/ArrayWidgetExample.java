@@ -48,15 +48,15 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.examples;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.examples.ArrayWidgetExample.ElementClass.ArrayWidgetElementLayout.HorizontalLayout1;
 import org.knime.core.webui.node.dialog.defaultdialog.examples.ArrayWidgetExample.ElementClass.ArrayWidgetElementLayout.HorizontalLayout2;
 import org.knime.core.webui.node.dialog.defaultdialog.examples.ArrayWidgetExample.OuterSection;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.HorizontalLayout;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
 
 /**
  * This class specifies two array widgets within one section
@@ -64,7 +64,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
  * @author Paul Bärnreuther
  */
 @Layout(OuterSection.class)
-public final class ArrayWidgetExample implements DefaultNodeSettings {
+public final class ArrayWidgetExample implements NodeParameters {
 
     @Section
     interface OuterSection {
@@ -84,7 +84,7 @@ public final class ArrayWidgetExample implements DefaultNodeSettings {
      * class but if it is it has to be static.
      */
     @Layout(HorizontalLayout1.class)
-    static final class ElementClass implements DefaultNodeSettings {
+    static final class ElementClass implements NodeParameters {
 
         /**
          * The layout of an element inside the array widget. It is independent from the layout of the parent default

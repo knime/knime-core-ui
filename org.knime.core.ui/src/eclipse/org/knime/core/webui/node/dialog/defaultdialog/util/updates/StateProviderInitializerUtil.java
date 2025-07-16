@@ -48,9 +48,9 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative.WithImperativeInitializer;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative.WithImperativeInitializer.ImperativeStateProviderInitializer;
+import org.knime.node.parameters.updates.StateProvider;
 
 final class StateProviderInitializerUtil {
 

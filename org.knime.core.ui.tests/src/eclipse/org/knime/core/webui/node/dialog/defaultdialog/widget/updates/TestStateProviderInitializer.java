@@ -51,8 +51,11 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.updates;
 import java.util.function.Supplier;
 
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
+import org.knime.node.parameters.updates.ButtonReference;
+import org.knime.node.parameters.updates.Reference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.StateProvider.StateProviderInitializer;
+import org.knime.node.parameters.updates.StateProvider.TypeReference;
 
 /**
  * To be extended and used for unit-testing state providers

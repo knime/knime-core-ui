@@ -53,8 +53,8 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.workflow.VariableTypeRegistry;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.FlowVariableDataServiceImpl;
+import org.knime.node.parameters.NodeParametersInput;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -104,7 +104,7 @@ public interface DefaultDialogDataConverter {
      *         {@link SettingsType#getConfigKey()} containing the key of the given type.
      * @throws InvalidSettingsException if loading the settings to JSON is not possible
      */
-    JsonNode nodeSettingsToDataJson(SettingsType type, NodeSettingsRO nodeSettings, DefaultNodeSettingsContext context)
+    JsonNode nodeSettingsToDataJson(SettingsType type, NodeSettingsRO nodeSettings, NodeParametersInput context)
         throws InvalidSettingsException;
 
 }

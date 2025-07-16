@@ -63,8 +63,8 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.node.DefaultModel.RearrangeColumnsInput;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * Adapter that converts a {@link DefaultModel} to a {@link SimpleStreamableFunctionNodeModel}.
@@ -79,16 +79,16 @@ final class RearrangeColumnsDefaultModelToNodeModelAdapter extends SimpleStreama
 
     private final DefaultModel.RearrangeColumnsDefaultModel m_model;
 
-    private final Class<? extends DefaultNodeSettings> m_viewSettingsClass;
+    private final Class<? extends NodeParameters> m_viewSettingsClass;
 
     // set in createColumnRearranger
     private PortObjectSpec[] m_specs;
 
     // set in setModelSettings, which is called in loadValidatedSettingsFrom or createColumnRearranger
-    private DefaultNodeSettings m_modelSettings;
+    private NodeParameters m_modelSettings;
 
     RearrangeColumnsDefaultModelToNodeModelAdapter(final DefaultModel.RearrangeColumnsDefaultModel model,
-        final Class<? extends DefaultNodeSettings> viewSettingsClass) {
+        final Class<? extends NodeParameters> viewSettingsClass) {
 
         super();
         m_model = model;
@@ -96,7 +96,7 @@ final class RearrangeColumnsDefaultModelToNodeModelAdapter extends SimpleStreama
     }
 
     @Override
-    public Optional<Class<? extends DefaultNodeSettings>> getViewSettingsClass() {
+    public Optional<Class<? extends NodeParameters>> getViewSettingsClass() {
         return Optional.ofNullable(m_viewSettingsClass);
     }
 
@@ -116,7 +116,7 @@ final class RearrangeColumnsDefaultModelToNodeModelAdapter extends SimpleStreama
 
             @SuppressWarnings("unchecked")
             @Override
-            public <S extends DefaultNodeSettings> S getSettings() {
+            public <S extends NodeParameters> S getSettings() {
                 return (S)settings;
             }
 
@@ -137,17 +137,17 @@ final class RearrangeColumnsDefaultModelToNodeModelAdapter extends SimpleStreama
     }
 
     @Override
-    public Optional<Class<? extends DefaultNodeSettings>> getModelSettingsClass() {
+    public Optional<Class<? extends NodeParameters>> getModelSettingsClass() {
         return m_model.getSettingsClass();
     }
 
     @Override
-    public DefaultNodeSettings getModelSettings() {
+    public NodeParameters getModelSettings() {
         return m_modelSettings;
     }
 
     @Override
-    public void setModelSettings(final DefaultNodeSettings modelSettings) {
+    public void setModelSettings(final NodeParameters modelSettings) {
         m_modelSettings = modelSettings;
     }
 

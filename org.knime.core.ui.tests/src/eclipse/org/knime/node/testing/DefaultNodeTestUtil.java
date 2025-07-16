@@ -53,7 +53,7 @@ import java.util.function.Function;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.node.DefaultModel;
-import org.knime.node.DefaultModel.RequireModelSettings;
+import org.knime.node.DefaultModel.RequireModelParameters;
 import org.knime.node.DefaultNode;
 import org.knime.node.DefaultNode.RequireFullDescription;
 import org.knime.node.DefaultNode.RequireIcon;
@@ -95,7 +95,7 @@ public class DefaultNodeTestUtil {
     private static final Consumer<PortsAdder> EMPTY_PORTS = p -> {
     };
 
-    private static final Function<RequireModelSettings, DefaultModel> EMPTY_MODEL = m -> m//
+    private static final Function<RequireModelParameters, DefaultModel> EMPTY_MODEL = m -> m//
         .withoutSettings()//
         .configure((i, o) -> {
         })//

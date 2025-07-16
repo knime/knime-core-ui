@@ -56,11 +56,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.WidgetGroup;
 
 /**
  * @author Paul Bärnreuther
@@ -84,7 +84,7 @@ public class TriggerInvocationHandler<I> {
      * @return a invocation handler for updates within the supplied widget trees
      */
     public static <T> TriggerInvocationHandler<T> fromWidgetTrees(final Collection<Tree<WidgetGroup>> widgetTrees,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         return new TriggerInvocationHandler<>(
             WidgetTreesToDependencyTreeUtil.widgetTreesToDependencyTree(widgetTrees, context));
     }
@@ -97,7 +97,7 @@ public class TriggerInvocationHandler<I> {
      * @return a invocation handler for updates within the supplied widget trees
      */
     public static <T> TriggerInvocationHandler<T> fromRendererSpecs(
-        final Collection<DialogElementRendererSpec> rendererSpecs, final DefaultNodeSettingsContext context) {
+        final Collection<DialogElementRendererSpec> rendererSpecs, final NodeParametersInput context) {
         return new TriggerInvocationHandler<>(
             RendererSpecsToDependencyTreeUtil.rendererSpecsToDependencyTree(rendererSpecs, context));
     }
@@ -129,7 +129,7 @@ public class TriggerInvocationHandler<I> {
      */
     public TriggerResult<I> invokeTrigger(final Trigger trigger,
         final Function<LocationAndType, List<IndexedValue<I>>> dependencyProvider,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         final var constructedTriggerVertex = toTriggerVertex(trigger);
         final var triggerVertex = m_triggers.stream().filter(constructedTriggerVertex::equals).findFirst()
             .orElseThrow(() -> new IllegalArgumentException(String
@@ -149,7 +149,7 @@ public class TriggerInvocationHandler<I> {
 
     private TriggerResult<I> invokeTrigger(final TriggerVertex triggerVertex,
         final Function<LocationAndType, List<IndexedValue<I>>> dependencyProvider,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         final var resultPerUpdateHandler =
             new InvokeTrigger<>(dependencyProvider, context).invokeTrigger(triggerVertex);
 

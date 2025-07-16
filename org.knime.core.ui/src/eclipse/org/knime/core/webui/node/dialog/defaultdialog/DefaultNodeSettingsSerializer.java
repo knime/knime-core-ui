@@ -53,6 +53,7 @@ import java.io.IOException;
 import org.knime.core.webui.data.InitialDataService.InitialDataServiceBuilder;
 import org.knime.core.webui.data.InitialDataService.Serializer;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
+import org.knime.node.parameters.NodeParameters;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -62,7 +63,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 /**
- * Serializes POJOs into strings. Uses the same object mapper as is used for {@link DefaultNodeSettings}-implementations
+ * Serializes POJOs into strings. Uses the same object mapper as is used for {@link NodeParameters}-implementations
  * if there are properties of that type. Mainly useful in case node settings are supposed to be passed as data through
  * data-services to the frontend. I.e. to be used in {@link InitialDataServiceBuilder#serializer(Serializer)}.
  *
@@ -79,11 +80,11 @@ public class DefaultNodeSettingsSerializer<D> implements Serializer<D> {
         var mapper = new ObjectMapper();
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         var module = new SimpleModule();
-        module.addSerializer(DefaultNodeSettings.class,
-            new StdSerializer<DefaultNodeSettings>(DefaultNodeSettings.class) {
+        module.addSerializer(NodeParameters.class,
+            new StdSerializer<NodeParameters>(NodeParameters.class) {
 
                 @Override
-                public void serialize(final DefaultNodeSettings value, final JsonGenerator gen,
+                public void serialize(final NodeParameters value, final JsonGenerator gen,
                     final SerializerProvider provider) throws IOException {
                     gen.writeRawValue(JSON_FORMS_DATA_MAPPER.writeValueAsString(value));
                 }

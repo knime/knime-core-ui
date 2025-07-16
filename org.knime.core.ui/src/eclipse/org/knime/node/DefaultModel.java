@@ -60,16 +60,16 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.KNIMEException;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * Fluent API to create a node model - not to be created directly but via the {@link DefaultNode}.
  *
- * The model of a node defines the logic of a node's configuration and execution. It requires the model settings, the
+ * The model of a node defines the logic of a node's configuration and execution. It requires the model parameters, the
  * configuration logic, and the execution logic.<br>
- * Model settings alter the output spec or data, i.e. whenever a model setting changes, the node needs to be
+ * Model parameters alter the output spec or data, i.e. whenever a model setting changes, the node needs to be
  * re-executed. The configuration step generates the expected output specs based on the given input specs and model
- * settings. The execution step transforms the input data.<br>
+ * parameters. The execution step transforms the input data.<br>
  * As an alternative to specifying the configuration and execution logic, the node can also be made streamable by
  * providing the logic how the columns of its input data are to be {@link ColumnRearranger rearranged}.
  *
@@ -79,29 +79,28 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
  * @author Robin Gerling, KNIME GmbH, Konstanz, Germany
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("restriction")
 public abstract sealed class DefaultModel implements FluentNodeAPI {
 
-    private final Class<? extends DefaultNodeSettings> m_settingsClass;
+    private final Class<? extends NodeParameters> m_parametersClass;
 
-    private DefaultModel(final Class<? extends DefaultNodeSettings> settingsClass) {
-        m_settingsClass = settingsClass;
+    private DefaultModel(final Class<? extends NodeParameters> parametersClass) {
+        m_parametersClass = parametersClass;
     }
 
-    static RequireModelSettings create() {
+    static RequireModelParameters create() {
 
-        return settingsClass -> new RequireConfigureOrRearrangeColumns() { // NOSONAR
+        return parametersClass -> new RequireConfigureOrRearrangeColumns() { // NOSONAR
 
             @Override
             public DefaultModel rearrangeColumns(
                 final ConfigureOrRearrangerConsumer<RearrangeColumnsInput, RearrangeColumnsOutput> rearrangeColumns) {
-                return new RearrangeColumnsDefaultModel(settingsClass, rearrangeColumns);
+                return new RearrangeColumnsDefaultModel(parametersClass, rearrangeColumns);
             }
 
             @Override
             public RequireExecute
                 configure(final ConfigureOrRearrangerConsumer<ConfigureInput, ConfigureOutput> configure) {
-                return execute -> new StandardDefaultModel(settingsClass, configure, execute);
+                return execute -> new StandardDefaultModel(parametersClass, configure, execute);
             }
         };
     }
@@ -116,10 +115,10 @@ public abstract sealed class DefaultModel implements FluentNodeAPI {
 
         final ConfigureOrRearrangerConsumer<ConfigureInput, ConfigureOutput> m_configure;
 
-        private StandardDefaultModel(final Class<? extends DefaultNodeSettings> settingsClass,
+        private StandardDefaultModel(final Class<? extends NodeParameters> paramatersClass,
             final ConfigureOrRearrangerConsumer<ConfigureInput, ConfigureOutput> configure,
             final ExecuteConsumer execute) {
-            super(settingsClass);
+            super(paramatersClass);
             m_configure = configure;
             m_execute = execute;
         }
@@ -129,21 +128,21 @@ public abstract sealed class DefaultModel implements FluentNodeAPI {
 
         final ConfigureOrRearrangerConsumer<RearrangeColumnsInput, RearrangeColumnsOutput> m_rearrangeColumns;
 
-        private RearrangeColumnsDefaultModel(final Class<? extends DefaultNodeSettings> settingsClass,
+        private RearrangeColumnsDefaultModel(final Class<? extends NodeParameters> settingsClass,
             final ConfigureOrRearrangerConsumer<RearrangeColumnsInput, RearrangeColumnsOutput> rearrangeColumns) {
             super(settingsClass);
             m_rearrangeColumns = rearrangeColumns;
         }
     }
 
-    Optional<Class<? extends DefaultNodeSettings>> getSettingsClass() {
-        return Optional.ofNullable(m_settingsClass);
+    Optional<Class<? extends NodeParameters>> getSettingsClass() {
+        return Optional.ofNullable(m_parametersClass);
     }
 
     /**
      * The build stage that requires the model settings.
      */
-    public interface RequireModelSettings {
+    public interface RequireModelParameters {
 
         /**
          * Specifies the model settings class of the node.
@@ -151,7 +150,7 @@ public abstract sealed class DefaultModel implements FluentNodeAPI {
          * @param settingsClass the model settings of the node
          * @return the subsequent build stage
          */
-        RequireConfigureOrRearrangeColumns settingsClass(Class<? extends DefaultNodeSettings> settingsClass);
+        RequireConfigureOrRearrangeColumns parametersClass(Class<? extends NodeParameters> settingsClass);
 
         /**
          * Indicates that the model does not have model settings.
@@ -159,7 +158,7 @@ public abstract sealed class DefaultModel implements FluentNodeAPI {
          * @return the subsequent build stage
          */
         default RequireConfigureOrRearrangeColumns withoutSettings() {
-            return settingsClass(null);
+            return parametersClass(null);
         }
     }
 
@@ -227,7 +226,7 @@ public abstract sealed class DefaultModel implements FluentNodeAPI {
          * @param <S> the type of the model settings
          * @return the model settings of the node
          */
-        <S extends DefaultNodeSettings> S getSettings();
+        <S extends NodeParameters> S getSettings();
 
         /**
          * Returns the input specification at the specified index.
@@ -293,7 +292,7 @@ public abstract sealed class DefaultModel implements FluentNodeAPI {
          * @param <S> the type of the model settings
          * @return the model settings of the node
          */
-        <S extends DefaultNodeSettings> S getSettings();
+        <S extends NodeParameters> S getSettings();
 
         /**
          * Returns the input data at the specified index.
@@ -376,7 +375,7 @@ public abstract sealed class DefaultModel implements FluentNodeAPI {
          * @param <S> the type of the model settings
          * @return the model settings of the node
          */
-        <S extends DefaultNodeSettings> S getSettings();
+        <S extends NodeParameters> S getSettings();
 
         /**
          * Returns the data table specification of the input.

@@ -55,13 +55,13 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.DoNotPersistSelected;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.ManualFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.PatternFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.PatternFilter.PatternMode;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.Persistor;
 
 /**
  * A class used to filter names with associated types. I.e. the names can be determined using the same filter options as
@@ -70,7 +70,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.Patter
  * @author Paul Bärnreuther
  * @param <T> the type of the type filter
  */
-public abstract class TypedStringFilter<T extends TypeFilter> implements PersistableSettings {
+public abstract class TypedStringFilter<T extends TypeFilter> implements Persistable {
 
     /**
      * The setting representing the selected columns. This field is usually null and only needs to be set when

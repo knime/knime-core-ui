@@ -60,15 +60,15 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.function.TriConsumer;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.AnnotationModifier;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.WidgetGroupModifier;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.WidgetModifier;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.WidgetGroup.AnnotationModifier;
+import org.knime.node.parameters.WidgetGroup.Modification;
+import org.knime.node.parameters.WidgetGroup.WidgetGroupModifier;
+import org.knime.node.parameters.WidgetGroup.WidgetModifier;
 
 /**
  * Resolves {@link Modification} annotations for {@link Tree}<{@link WidgetGroup}> and

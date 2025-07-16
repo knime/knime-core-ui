@@ -51,7 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 import java.util.Objects;
 
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ButtonReferenceIdInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
+import org.knime.node.parameters.updates.ButtonReference;
 
 /**
  * A trigger that is not a value trigger, i.e., currently, either one of the global triggers before or after the dialog

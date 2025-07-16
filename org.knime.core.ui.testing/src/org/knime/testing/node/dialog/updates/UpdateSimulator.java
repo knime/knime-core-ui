@@ -52,8 +52,8 @@ import java.util.List;
 
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
+import org.knime.node.parameters.updates.ButtonReference;
+import org.knime.node.parameters.updates.StateProvider.StateProviderInitializer;
 
 /**
  *

@@ -55,7 +55,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.webui.UIExtension;
 import org.knime.core.webui.data.RpcDataService;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * Represents a dialog of a node.
@@ -101,24 +101,24 @@ public interface NodeDialog extends UIExtension {
     /**
      * Can be implemented and provided to the NodeDialog upon creation. Provides a method that is called when settings
      * are applied. May optionally modify the node based on the difference between previous and updated model and view
-     * {@link DefaultNodeSettings settings}.
+     * {@link NodeParameters settings}.
      */
     @FunctionalInterface
     interface OnApplyNodeModifier {
         /**
          * Called when the dialog is closed. May optionally modify the node based on the difference difference between
-         * previous and updated model and view {@link DefaultNodeSettings settings}. Note that for any settings
+         * previous and updated model and view {@link NodeParameters settings}. Note that for any settings
          * controlled via flow variables, the "updated" value is always equal to the "previous" value, i.e., settings
          * are not updated if controlled via a flow variable.
          *
          * @param nnc the native node container which should undergo modifications based on provided settings
-         * @param previousModelSettings the previous model {@link DefaultNodeSettings settings}, i.e., the model
+         * @param previousModelSettings the previous model {@link NodeParameters settings}, i.e., the model
          *            settings prior to the apply call
-         * @param updatedModelSettings the final, updated model {@link DefaultNodeSettings settings}, i.e., the model
+         * @param updatedModelSettings the final, updated model {@link NodeParameters settings}, i.e., the model
          *            settings after the apply call
-         * @param previousViewSettings the previous view {@link DefaultNodeSettings settings}, i.e., the view settings
+         * @param previousViewSettings the previous view {@link NodeParameters settings}, i.e., the view settings
          *            prior to the apply call
-         * @param updatedViewSettings the final, updated view {@link DefaultNodeSettings settings}, i.e., the view
+         * @param updatedViewSettings the final, updated view {@link NodeParameters settings}, i.e., the view
          *            settings after the apply call
          */
         void onApply(final NativeNodeContainer nnc, NodeSettingsRO previousModelSettings,

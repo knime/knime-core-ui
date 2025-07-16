@@ -62,9 +62,9 @@ import org.knime.core.node.NodeDescription53Proxy;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeFactory.NodeType;
 import org.knime.core.util.Version;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.util.OptionsAdder;
 import org.knime.node.DefaultNodeFactory;
+import org.knime.node.parameters.NodeParameters;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
@@ -106,8 +106,8 @@ public final class DefaultNodeDescriptionUtil {
         final Collection<PortDescription> inPortDescriptions, final Collection<PortDescription> outPortDescriptions,
         final String shortDescription, final String fullDescription,
         final Collection<ExternalResource> externalResources,
-        final Class<? extends DefaultNodeSettings> modelSettingsClass,
-        final Class<? extends DefaultNodeSettings> viewSettingsClass, final String viewDescription, final NodeType type,
+        final Class<? extends NodeParameters> modelSettingsClass,
+        final Class<? extends NodeParameters> viewSettingsClass, final String viewDescription, final NodeType type,
         final Collection<String> keywords, final Version sinceVersion) {
         var fac = NodeDescription.getDocumentBuilderFactory();
         DocumentBuilder docBuilder;
@@ -191,8 +191,8 @@ public final class DefaultNodeDescriptionUtil {
         }
     }
 
-    private static Element createOptionsTab(final Class<? extends DefaultNodeSettings> modelSettingsClass,
-        final Class<? extends DefaultNodeSettings> viewSettingsClass, final DocumentBuilder docBuilder,
+    private static Element createOptionsTab(final Class<? extends NodeParameters> modelSettingsClass,
+        final Class<? extends NodeParameters> viewSettingsClass, final DocumentBuilder docBuilder,
         final Document doc) {
         var tab = doc.createElement("tab");
         tab.setAttribute("name", "Options");

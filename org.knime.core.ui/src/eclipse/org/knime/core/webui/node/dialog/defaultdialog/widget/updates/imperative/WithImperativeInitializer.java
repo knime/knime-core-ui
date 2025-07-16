@@ -51,8 +51,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative
 import java.util.function.Supplier;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.StateProvider.StateProviderInitializer;
 
 /**
  * Add this annotation to a class that implements {@link StateProvider} in order to equip the initializer to reference

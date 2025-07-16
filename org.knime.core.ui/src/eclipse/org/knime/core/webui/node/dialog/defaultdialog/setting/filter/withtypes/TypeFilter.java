@@ -54,8 +54,8 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice.PossibleTypeValue;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.widget.choices.TypedStringChoice.PossibleTypeValue;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -67,7 +67,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  *
  * @author Paul Bärnreuther
  */
-public abstract class TypeFilter implements PersistableSettings {
+public abstract class TypeFilter implements Persistable {
 
     /**
      * Additional information are necessary to display the types in the dialog in order to display previously selected

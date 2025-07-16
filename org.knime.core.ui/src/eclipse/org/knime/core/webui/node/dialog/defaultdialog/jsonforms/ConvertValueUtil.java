@@ -50,10 +50,10 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
 import java.lang.reflect.Type;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyHandler;
+import org.knime.node.parameters.NodeParametersInput;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -77,7 +77,7 @@ public final class ConvertValueUtil {
      * @return an object of the generic type of the {@link DependencyHandler}
      */
     public static Object convertDependencies(final Object objectSettings, final DependencyHandler<?> handler,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         final var settingsType = GenericTypeFinderUtil.getFirstGenericType(handler.getClass(), DependencyHandler.class);
         return convertValue(objectSettings, settingsType, context);
     }
@@ -89,7 +89,7 @@ public final class ConvertValueUtil {
      * @return an object of the given settings type
      */
     public static <T> T convertValue(final Object objectSettings, final Type settingsType,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         PasswordHolder.setCredentialsProvider(context == null ? null : context.getCredentialsProvider().orElse(null));
         final var mapper = JsonFormsDataUtil.getMapper();
         try {

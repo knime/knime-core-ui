@@ -51,7 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultf
 import java.util.List;
 import java.util.Optional;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.node.parameters.persistence.NodeSettingsPersistor;
 
 /**
  * Used for default field persistors to be able to define sub configs that should be overwritable by flow variable also

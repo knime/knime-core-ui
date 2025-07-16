@@ -257,7 +257,7 @@ class DefaultViewTest extends TestWithWorkflowManager {
         final var settingsClass = TestSettings.class;
         final var viewNC = createAndAddNodeWithSingleInputAndInternalTableContainer(//
             v -> v//
-                .settingsClass(settingsClass) //
+                .parametersClass(settingsClass) //
                 .description("A view")//
                 .page(p -> p.fromString(() -> "foo").relativePath("bar.html")) //
                 .initialData(p -> p.data(vi -> {
@@ -284,7 +284,7 @@ class DefaultViewTest extends TestWithWorkflowManager {
         final var settingsClass = TestSettings.class;
         final var viewNC = createAndAddNodeWithSingleInputAndInternalTableContainer(//
             v -> v//
-                .settingsClass(settingsClass) //
+                .parametersClass(settingsClass) //
                 .description("A view")//
                 .page(p -> p.fromString(() -> "foo").relativePath("bar.html")) //
                 .initialData(p -> p.data(vi -> {
@@ -321,7 +321,7 @@ class DefaultViewTest extends TestWithWorkflowManager {
         final var settingsClass = TestSettings.class;
         final var viewNC = createAndAddNodeWithSingleInputAndInternalTableContainer(//
             v -> v//
-                .settingsClass(settingsClass) //
+                .parametersClass(settingsClass) //
                 .description("A view")//
                 .page(p -> p.fromString(() -> "foo").relativePath("bar.html")));
 

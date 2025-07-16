@@ -52,11 +52,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.ManualFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.PatternFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoicesProvider;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 
 /**
  * A class used for filtering a list of strings. The included strings can be chosen manually or by pattern matching. Use
@@ -64,7 +64,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoic
  *
  * @author Paul Bärnreuther
  */
-public class StringFilter implements PersistableSettings {
+public class StringFilter implements Persistable {
 
     /**
      * The way the selection is determined by

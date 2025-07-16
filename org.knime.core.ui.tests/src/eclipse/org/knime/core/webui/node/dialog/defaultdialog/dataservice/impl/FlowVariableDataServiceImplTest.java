@@ -87,9 +87,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultDialogDataConverter
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDataService.PossibleFlowVariable;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.page.Page;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistable;
 import org.knime.testing.util.WorkflowManagerUtil;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -152,7 +152,7 @@ class FlowVariableDataServiceImplTest {
         String m_myViewSetting;
     }
 
-    static class NestedSetting implements PersistableSettings {
+    static class NestedSetting implements Persistable {
         @Persist(configKey = "myModelSettingConfigKey")
         boolean m_myModelSetting;
     }

@@ -50,7 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
 import java.time.ZoneId;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
+import org.knime.node.parameters.widget.choices.StringChoice;
 
 /**
  * Utility class to provide common date&time logic.

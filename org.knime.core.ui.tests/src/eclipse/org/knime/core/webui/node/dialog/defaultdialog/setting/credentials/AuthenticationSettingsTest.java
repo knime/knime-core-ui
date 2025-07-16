@@ -62,7 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Authen
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.RequiresPasswordProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.RequiresUsernameProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.TestStateProviderInitializer;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.node.parameters.updates.Reference;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;

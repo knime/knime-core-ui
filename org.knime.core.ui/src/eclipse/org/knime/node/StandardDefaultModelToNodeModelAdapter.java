@@ -63,11 +63,11 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectHolder;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.node.DefaultModel.ConfigureInput;
 import org.knime.node.DefaultModel.ConfigureOutput;
 import org.knime.node.DefaultModel.ExecuteInput;
 import org.knime.node.DefaultModel.ExecuteOutput;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * Adapter that converts a {@link DefaultModel} to a {@link NodeModel}.
@@ -84,19 +84,19 @@ final class StandardDefaultModelToNodeModelAdapter extends NodeModel
 
     private final int m_numOutputPorts;
 
-    private final Class<? extends DefaultNodeSettings> m_viewSettingsClass;
+    private final Class<? extends NodeParameters> m_viewSettingsClass;
 
     // set in configure
     private PortObjectSpec[] m_specs;
 
     // set in setModelSettings, which is called in loadValidatedSettingsFrom or configure
-    private DefaultNodeSettings m_modelSettings;
+    private NodeParameters m_modelSettings;
 
     // set in setInternalPortObjects
     private PortObject[] m_portObjects;
 
     StandardDefaultModelToNodeModelAdapter(final DefaultModel.StandardDefaultModel model, final PortType[] inputPorts,
-        final PortType[] outputPorts, final Class<? extends DefaultNodeSettings> viewSettingsClass) {
+        final PortType[] outputPorts, final Class<? extends NodeParameters> viewSettingsClass) {
         super(inputPorts, outputPorts);
         m_model = model;
         m_numOutputPorts = outputPorts.length;
@@ -104,17 +104,17 @@ final class StandardDefaultModelToNodeModelAdapter extends NodeModel
     }
 
     @Override
-    public Optional<Class<? extends DefaultNodeSettings>> getModelSettingsClass() {
+    public Optional<Class<? extends NodeParameters>> getModelSettingsClass() {
         return m_model.getSettingsClass();
     }
 
     @Override
-    public DefaultNodeSettings getModelSettings() {
+    public NodeParameters getModelSettings() {
         return m_modelSettings;
     }
 
     @Override
-    public Optional<Class<? extends DefaultNodeSettings>> getViewSettingsClass() {
+    public Optional<Class<? extends NodeParameters>> getViewSettingsClass() {
         return Optional.ofNullable(m_viewSettingsClass);
     }
 
@@ -124,7 +124,7 @@ final class StandardDefaultModelToNodeModelAdapter extends NodeModel
     }
 
     @Override
-    public void setModelSettings(final DefaultNodeSettings modelSettings) {
+    public void setModelSettings(final NodeParameters modelSettings) {
         m_modelSettings = modelSettings;
     }
 
@@ -151,7 +151,7 @@ final class StandardDefaultModelToNodeModelAdapter extends NodeModel
 
             @SuppressWarnings("unchecked")
             @Override
-            public <S extends DefaultNodeSettings> S getSettings() {
+            public <S extends NodeParameters> S getSettings() {
                 return (S)settings;
             }
 
@@ -184,7 +184,7 @@ final class StandardDefaultModelToNodeModelAdapter extends NodeModel
 
             @SuppressWarnings("unchecked")
             @Override
-            public <S extends DefaultNodeSettings> S getSettings() {
+            public <S extends NodeParameters> S getSettings() {
                 return (S)m_modelSettings;
             }
 

@@ -59,10 +59,10 @@ import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.persistence.Persistable;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -78,10 +78,10 @@ import com.fasterxml.jackson.databind.introspect.AnnotatedField;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 
 /**
- * Factory for creating persist or widget trees from a {@link DefaultNodeSettings} classes.
+ * Factory for creating persist or widget trees from a {@link NodeParameters} classes.
  *
  * @author Paul Bärnreuther
- * @param <S> the type of the [S]ettings. Either {@link PersistableSettings} or {@link WidgetGroup}
+ * @param <S> the type of the [S]ettings. Either {@link Persistable} or {@link WidgetGroup}
  */
 public abstract class TreeFactory<S> {
 

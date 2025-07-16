@@ -58,7 +58,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.Contro
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlValueReference;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.LayoutRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.node.parameters.updates.StateProvider;
 
 final class RendererSpecsToImperativeRefsAndStateProviders {
 

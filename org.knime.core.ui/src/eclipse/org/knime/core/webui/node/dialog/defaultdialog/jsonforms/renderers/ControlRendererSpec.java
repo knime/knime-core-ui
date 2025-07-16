@@ -51,8 +51,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 import java.util.Map;
 import java.util.Optional;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative.WithImperativeInitializer;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
  * The specification of a control, i.e. a widget that controls the value of one setting.

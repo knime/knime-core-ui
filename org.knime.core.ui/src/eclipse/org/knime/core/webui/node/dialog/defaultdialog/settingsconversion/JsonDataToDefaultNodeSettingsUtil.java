@@ -55,14 +55,14 @@ import java.util.Map;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
+import org.knime.node.parameters.NodeParameters;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * Used to de-serialize JSON data to {@link DefaultNodeSettings}.
+ * Used to de-serialize JSON data to {@link NodeParameters}.
  *
  * @author Paul Bärnreuther
  */
@@ -75,17 +75,17 @@ public final class JsonDataToDefaultNodeSettingsUtil {
     private static final NodeLogger LOGGER = NodeLogger.getLogger(JsonDataToDefaultNodeSettingsUtil.class);
 
     /**
-     * @param settingsClasses a map associating settings types with {@link DefaultNodeSettings}
+     * @param settingsClasses a map associating settings types with {@link NodeParameters}
      * @param data containing keys "model" and/or "view" which are the keys of the map of settingsClasses
      *
      * @return a map of the extracted default node settings. The keys are the same as the ones in the given map of
      *         classes.
      * @throws InvalidSettingsException if the JSON data cannot be converted to the given settings classes
      */
-    public static Map<SettingsType, DefaultNodeSettings> toDefaultNodeSettings(
-        final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses, final JsonNode data)
+    public static Map<SettingsType, NodeParameters> toDefaultNodeSettings(
+        final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses, final JsonNode data)
         throws InvalidSettingsException {
-        final var result = new EnumMap<SettingsType, DefaultNodeSettings>(SettingsType.class);
+        final var result = new EnumMap<SettingsType, NodeParameters>(SettingsType.class);
         for (final var entry : settingsClasses.entrySet()) {
             final var type = entry.getKey();
             final var settingsClass = entry.getValue();
@@ -102,7 +102,7 @@ public final class JsonDataToDefaultNodeSettingsUtil {
      * @return the extracted DefaultNodeSettings
      * @throws InvalidSettingsException if the JSON data cannot be converted to the given settings class
      */
-    public static DefaultNodeSettings toDefaultNodeSettings(final Class<? extends DefaultNodeSettings> settingsClass,
+    public static NodeParameters toDefaultNodeSettings(final Class<? extends NodeParameters> settingsClass,
         final JsonNode data, final SettingsType type) throws InvalidSettingsException {
         return toDefaultNodeSettings(getJsonNodeForType(data, type), settingsClass);
     }
@@ -111,8 +111,8 @@ public final class JsonDataToDefaultNodeSettingsUtil {
         return data.get(type.getConfigKey());
     }
 
-    private static DefaultNodeSettings toDefaultNodeSettings(final JsonNode node,
-        final Class<? extends DefaultNodeSettings> settingsClass) throws InvalidSettingsException {
+    private static NodeParameters toDefaultNodeSettings(final JsonNode node,
+        final Class<? extends NodeParameters> settingsClass) throws InvalidSettingsException {
         try {
             return JsonFormsDataUtil.toDefaultNodeSettings(node, settingsClass);
         } catch (JsonProcessingException e) {

@@ -50,8 +50,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
 import java.util.function.Supplier;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.StateProvider.TypeReference;
 
 /**
  * This interface is used within {@link DefaultStateProviderInitializer} and

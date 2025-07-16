@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.node.parameters.updates.Predicate;
 
 /**
  * A visitor visiting all permitted implementations of {@link Predicate} which is used to translate the predicate to a

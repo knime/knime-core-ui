@@ -56,7 +56,7 @@ import java.util.Optional;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataTypeRegistry;
 import org.knime.core.data.ExtensibleUtilityFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice.PossibleTypeValue;
+import org.knime.node.parameters.widget.choices.TypedStringChoice.PossibleTypeValue;
 
 /**
  * Used to construct possible type values used in the dialog to select types in the {@link ColumnTypeFilter}.

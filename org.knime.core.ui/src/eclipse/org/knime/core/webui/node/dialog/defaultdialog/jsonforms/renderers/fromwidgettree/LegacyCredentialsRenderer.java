@@ -49,8 +49,8 @@
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.LegacyCredentialsRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.node.parameters.WidgetGroup;
 
 class LegacyCredentialsRenderer extends CredentialsRenderer implements LegacyCredentialsRendererSpec {
 

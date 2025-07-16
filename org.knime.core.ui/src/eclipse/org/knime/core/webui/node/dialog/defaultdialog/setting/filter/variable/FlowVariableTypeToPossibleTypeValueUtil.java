@@ -57,8 +57,8 @@ import java.util.Optional;
 
 import org.knime.core.node.workflow.VariableType;
 import org.knime.core.node.workflow.VariableTypeRegistry;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice.PossibleTypeValue;
 import org.knime.core.webui.node.view.flowvariable.FlowVariableDisplayUtil;
+import org.knime.node.parameters.widget.choices.TypedStringChoice.PossibleTypeValue;
 
 /**
  * Used to construct possible type values used in the dialog to select types in the {@link FlowVariableTypeFilter}.

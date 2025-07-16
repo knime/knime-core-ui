@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.util;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.node.parameters.WidgetGroup;
 
 import com.fasterxml.jackson.core.type.ResolvedType;
 

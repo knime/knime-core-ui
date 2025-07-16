@@ -49,9 +49,9 @@
 package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
+import org.knime.node.parameters.WidgetGroup;
 
 /**
  * Utility methods around the widget tree, i.e. a tree constructed with {@link WidgetTreeFactory}.

@@ -65,6 +65,7 @@ import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.VariableSettingsRO;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
+import org.knime.node.parameters.NodeParameters;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -114,7 +115,7 @@ public final class DefaultNodeSettingsServiceWithVariables implements NodeSettin
         final Map<SettingsType, NodeAndVariableSettingsRO> settings, final PortObjectSpec[] specs) {
         final Map<SettingsType, VariableSettingsRO> variableSettings = settings.entrySet().stream()//
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        final var context = DefaultNodeSettings.createDefaultNodeSettingsContext(specs);
+        final var context = NodeParameters.createDefaultNodeSettingsContext(specs);
         addVariableSettingsToRootJson(root, variableSettings, context);
     }
 

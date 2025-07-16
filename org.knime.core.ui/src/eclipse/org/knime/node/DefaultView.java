@@ -63,10 +63,10 @@ import org.knime.core.webui.data.InitialDataService;
 import org.knime.core.webui.data.InitialDataService.Serializer;
 import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.data.RpcDataService.RpcDataServiceBuilder;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.page.Page;
 import org.knime.core.webui.page.Page.RequireFromFileOrString;
 import org.knime.node.DefaultModel.ExecuteOutput;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * Fluent API to create a node view - not to be created directly but via the {@link DefaultNode}.
@@ -86,7 +86,7 @@ import org.knime.node.DefaultModel.ExecuteOutput;
 @SuppressWarnings("restriction")
 public final class DefaultView implements FluentNodeAPI {
 
-    private final Class<? extends DefaultNodeSettings> m_settingsClass;
+    private final Class<? extends NodeParameters> m_settingsClass;
 
     final String m_description;
 
@@ -101,14 +101,14 @@ public final class DefaultView implements FluentNodeAPI {
             pageFct.apply(Page.create()));
     }
 
-    private DefaultView(final Class<? extends DefaultNodeSettings> settingsClass, final String description,
+    private DefaultView(final Class<? extends NodeParameters> settingsClass, final String description,
         final Page page) {
         m_settingsClass = settingsClass;
         m_description = description;
         m_page = page;
     }
 
-    Optional<Class<? extends DefaultNodeSettings>> getSettingsClass() {
+    Optional<Class<? extends NodeParameters>> getSettingsClass() {
         return Optional.ofNullable(m_settingsClass);
     }
 
@@ -125,7 +125,7 @@ public final class DefaultView implements FluentNodeAPI {
          * @param settingsClass the view settings of the node
          * @return the subsequent build stage
          */
-        RequireDescription settingsClass(Class<? extends DefaultNodeSettings> settingsClass);
+        RequireDescription settingsClass(Class<? extends NodeParameters> settingsClass);
 
         /**
          * Indicates that the model does not have view settings.
@@ -422,7 +422,7 @@ public final class DefaultView implements FluentNodeAPI {
          * @param <S> the type of the view settings
          * @return the view settings
          */
-        <S extends DefaultNodeSettings> S getSettings();
+        <S extends NodeParameters> S getSettings();
 
         /**
          * Return the internal tables of a node, which can be set during execution in the {@link DefaultModel} (see

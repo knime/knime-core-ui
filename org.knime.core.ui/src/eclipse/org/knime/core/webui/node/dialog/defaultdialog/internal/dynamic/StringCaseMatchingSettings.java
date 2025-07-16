@@ -48,14 +48,14 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  * Case-matching setting provided by the framework, since we currently lack a flexible extension mechanism for
  * individual widgets.
  */
-final class StringCaseMatchingSettings implements DefaultNodeSettings {
+final class StringCaseMatchingSettings implements NodeParameters {
 
     // TODO Ideally, this settings class is entirely opaque to the framework and the concrete implementation is supplied
     // by the node that uses it.

@@ -51,7 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.optio
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice;
+import org.knime.node.parameters.widget.choices.TypedStringChoice;
 
 /**
  * Common options of a typed string choices renderer, e.g. a {@link TypedStringFilter}.

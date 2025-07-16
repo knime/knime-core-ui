@@ -64,11 +64,11 @@ import java.util.stream.Stream;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.ConvertValueUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.WidgetGroup;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -103,12 +103,12 @@ public class TriggerAndDependencies {
 
     /**
      * @param settings
-     * @param context the current {@link DefaultNodeSettingsContext}
+     * @param context the current {@link NodeParametersInput}
      * @param triggerIndices the indices indicating the triggers location if it triggering from within an array layout
      * @return a mapping to the values of the required dependencies
      */
     public Map<LocationAndType, List<IndexedValue<Integer>>> extractDependencyValues(
-        final Map<SettingsType, WidgetGroup> settings, final DefaultNodeSettingsContext context,
+        final Map<SettingsType, WidgetGroup> settings, final NodeParametersInput context,
         final int... triggerIndices) {
         final var mapper = JsonFormsDataUtil.getMapper();
         final Map<SettingsType, JsonNode> jsonNodes = getDependencySettingsTypes().stream().collect(
@@ -120,12 +120,12 @@ public class TriggerAndDependencies {
      * This method can be used to extract dependencies from an already serialized data json.
      *
      * @param dataJson an object json node with top-level fields contained in ["model", "view"]
-     * @param context the current {@link DefaultNodeSettingsContext}
+     * @param context the current {@link NodeParametersInput}
      * @param triggerIndices the indices indicating the triggers location if it triggering from within an array layout
      * @return a mapping to the values of the required dependencies
      */
     public Map<LocationAndType, List<IndexedValue<Integer>>> extractDependencyValues(final ObjectNode dataJson,
-        final DefaultNodeSettingsContext context, final int... triggerIndices) {
+        final NodeParametersInput context, final int... triggerIndices) {
         final Map<SettingsType, JsonNode> dataJsonPerSettingsType = new EnumMap<>(SettingsType.class);
         Stream.of(SettingsType.values()).forEach(settingsType -> {
             final var configKey = settingsType.getConfigKey();
@@ -138,7 +138,7 @@ public class TriggerAndDependencies {
     }
 
     private Map<LocationAndType, List<IndexedValue<Integer>>> createDependenciesValuesMap(
-        final DefaultNodeSettingsContext context, final Map<SettingsType, JsonNode> jsonNodes,
+        final NodeParametersInput context, final Map<SettingsType, JsonNode> jsonNodes,
         final int[] triggerIndices) {
         final Map<LocationAndType, List<IndexedValue<Integer>>> dependencyValues = new HashMap<>();
         for (var vertex : m_dependencyVertices) {
@@ -149,7 +149,7 @@ public class TriggerAndDependencies {
     }
 
     private static List<IndexedValue<Integer>> extractValues(final DependencyVertex vertex,
-        final Map<SettingsType, JsonNode> jsonNodes, final DefaultNodeSettingsContext context,
+        final Map<SettingsType, JsonNode> jsonNodes, final NodeParametersInput context,
         final int[] triggerIndices) {
         final var locationAndType = vertex.getLocationAndType();
         final var location = locationAndType.location();

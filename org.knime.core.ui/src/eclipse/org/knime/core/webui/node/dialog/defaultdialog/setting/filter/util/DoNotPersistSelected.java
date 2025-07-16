@@ -51,7 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.node.parameters.persistence.NodeSettingsPersistor;
 
 /**
  * Selected values of a filter depend on the context so they should not be persisted.
