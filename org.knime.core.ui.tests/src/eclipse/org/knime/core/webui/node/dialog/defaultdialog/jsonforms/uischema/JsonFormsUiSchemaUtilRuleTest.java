@@ -58,8 +58,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
 import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
@@ -808,10 +808,14 @@ class JsonFormsUiSchemaUtilRuleTest {
             .isEqualTo(response.get("elements").get(0).get("scope").asText());
         assertThatJson(response).inPath("$.elements[1].rule.condition.schema.properties.specialChoice.oneOf[0].const")
             .isString().isEqualTo("NONE");
+        assertThatJson(response).inPath("$.elements[1].rule.condition.schema.required[0]").isString()
+            .isEqualTo("specialChoice");
         assertThatJson(response).inPath("$.elements[2].rule.condition.scope").isString()
             .isEqualTo(response.get("elements").get(0).get("scope").asText());
         assertThatJson(response).inPath("$.elements[2].rule.condition.schema.properties.regularChoice.pattern")
             .isString().isEqualTo("abc");
+        assertThatJson(response).inPath("$.elements[2].rule.condition.schema.required[0]").isString()
+            .isEqualTo("regularChoice");
         assertThatJson(response).inPath("$.elements[2].rule.condition.schema.properties.enforceSpecialChoice.not.const")
             .isBoolean().isTrue();
 
