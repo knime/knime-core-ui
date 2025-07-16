@@ -53,6 +53,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.Schema.TAG_ONEOF;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.Schema.TAG_PATTERN;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.Schema.TAG_PROPERTIES;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.Schema.TAG_REQUIRED;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_CONTAINS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_NOT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil.getMapper;
@@ -65,9 +66,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ConditionVisitor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.FalseCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.HasMultipleItemsCondition;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsStringChoiceCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsEnumChoiceCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsSpecificStringCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsStringChoiceCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.PatternCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.TrueCondition;
@@ -150,6 +151,7 @@ class JsonFormsConditionResolver implements ConditionVisitor<ObjectNode> {
         final var node = getMapper().createObjectNode();
         node.putObject(TAG_PROPERTIES).set(IsEnumChoiceCondition.PROPERTY_NAME,
             isSpecialChoiceCondition.condition().accept(this));
+        node.putArray(TAG_REQUIRED).add(IsEnumChoiceCondition.PROPERTY_NAME);
         return node;
     }
 
@@ -157,6 +159,7 @@ class JsonFormsConditionResolver implements ConditionVisitor<ObjectNode> {
     public ObjectNode visit(final IsStringChoiceCondition isRegularStringCondition) {
         final var node = getMapper().createObjectNode();
         final var properties = node.putObject(TAG_PROPERTIES);
+        node.putArray(TAG_REQUIRED).add(IsStringChoiceCondition.REGULAR_CHOICE_PROPERTY_NAME);
         properties.putObject(IsStringChoiceCondition.ENFORCE_SPECIAL_PROPERTY_NAME).putObject(TAG_NOT).put(TAG_CONST,
             true);
         properties.set(IsStringChoiceCondition.REGULAR_CHOICE_PROPERTY_NAME,

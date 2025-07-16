@@ -121,6 +121,8 @@ public final class JsonFormsConsts {
 
         public static final String TAG_PROPERTIES = SchemaKeyword.TAG_PROPERTIES.forVersion(VERSION);
 
+        public static final String TAG_REQUIRED = SchemaKeyword.TAG_REQUIRED.forVersion(VERSION);
+
         public static final String TAG_ITEMS = SchemaKeyword.TAG_ITEMS.forVersion(VERSION);
 
         public static final String TAG_ALLOF = SchemaKeyword.TAG_ALLOF.forVersion(VERSION);
