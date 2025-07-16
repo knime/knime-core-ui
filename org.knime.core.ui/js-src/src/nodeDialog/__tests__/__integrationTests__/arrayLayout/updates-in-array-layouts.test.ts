@@ -319,10 +319,13 @@ describe("updates in array layouts", () => {
     // @ts-expect-error since hideValue is new
     initialDataJson.data.model.values[0].hideValue = true;
 
-    const showFirstElementControl = (wrapper: Wrapper) =>
-      (wrapper
+    const showFirstElementControl = (wrapper: Wrapper) => {
+      const data = wrapper
         .findComponent(JsonFormsDialog)
-        .props("data").model.values[0].hideValue = false);
+        .props("data") as typeof initialDataJson.data;
+      // @ts-expect-error since hideValue is new
+      data.model.values[0].hideValue = false;
+    };
     return {
       showFirstElementControl,
     };
