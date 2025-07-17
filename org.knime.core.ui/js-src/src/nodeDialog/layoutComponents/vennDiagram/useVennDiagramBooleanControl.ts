@@ -12,7 +12,10 @@ export default (props: RendererProps<ControlElement>) => {
   });
 
   const disabled = computed(
-    () => !control.value.enabled || disabledByFlowVariables.value,
+    () =>
+      !control.value.enabled ||
+      disabledByFlowVariables.value ||
+      !control.value.visible,
   );
 
   const onClick = () =>
