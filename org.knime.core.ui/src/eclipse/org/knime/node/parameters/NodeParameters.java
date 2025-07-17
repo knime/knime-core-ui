@@ -99,7 +99,7 @@ import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.widget.OptionalWidget;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
-import org.knime.node.parameters.widget.choices.DataTypeChoicesStateProvider;
+import org.knime.node.parameters.widget.choices.DataTypeChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
@@ -293,7 +293,7 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
  * <tr>
  * <td>{@link DataType}</td>
  * <td>A drop down of all available data types. Add a {@link ChoicesProvider} using a
- * {@link DataTypeChoicesStateProvider}.</td>
+ * {@link DataTypeChoicesProvider}.</td>
  * <td></td>
  * <td>✓</td>
  * </tr>

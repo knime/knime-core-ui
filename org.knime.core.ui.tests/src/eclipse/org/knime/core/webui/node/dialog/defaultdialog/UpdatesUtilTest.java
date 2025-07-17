@@ -101,7 +101,7 @@ import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
-import org.knime.node.parameters.widget.choices.DataTypeChoicesStateProvider;
+import org.knime.node.parameters.widget.choices.DataTypeChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
@@ -1019,7 +1019,7 @@ public class UpdatesUtilTest {
                 @Widget(title = "Data type", description = "Select the data type to be displayed in the table")
                 DataType m_dataType = StringCell.TYPE;
 
-                static final class OnlyStringAndDoubleChoicesProvider implements DataTypeChoicesStateProvider {
+                static final class OnlyStringAndDoubleChoicesProvider implements DataTypeChoicesProvider {
                     @Override
                     public List<DataType> choices(final NodeParametersInput context) {
                         return List.of(StringCell.TYPE, DoubleCell.TYPE);

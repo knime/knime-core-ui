@@ -60,7 +60,7 @@ import org.knime.node.parameters.NodeParametersInput;
  *
  * @author Paul Bärnreuther
  */
-public non-sealed interface DataTypeChoicesStateProvider extends ChoicesStateProvider<DataTypeChoice> {
+public non-sealed interface DataTypeChoicesProvider extends ChoicesStateProvider<DataTypeChoice> {
 
     /**
      * {@inheritDoc}

@@ -53,14 +53,14 @@ import java.util.List;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataTypeRegistry;
 import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.widget.choices.DataTypeChoicesStateProvider;
+import org.knime.node.parameters.widget.choices.DataTypeChoicesProvider;
 
 /**
  * Default provider for {@link DataType} choices. Provides all available data types.
  *
  * @author Paul Bärnreuther
  */
-public final class DefaultDataTypeChoicesProvider implements DataTypeChoicesStateProvider {
+public final class DefaultDataTypeChoicesProvider implements DataTypeChoicesProvider {
 
     @Override
     public List<DataType> choices(final NodeParametersInput context) {

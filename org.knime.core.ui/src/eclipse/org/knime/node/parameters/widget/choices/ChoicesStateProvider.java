@@ -69,6 +69,6 @@ import org.knime.node.parameters.updates.StateProvider;
  * @author Paul Bärnreuther
  */
 public sealed interface ChoicesStateProvider<S> extends StateProvider<List<S>>
-    permits StringChoicesProvider, TypedStringChoicesProvider, EnumChoicesProvider, DataTypeChoicesStateProvider {
+    permits StringChoicesProvider, TypedStringChoicesProvider, EnumChoicesProvider, DataTypeChoicesProvider {
 
 }
