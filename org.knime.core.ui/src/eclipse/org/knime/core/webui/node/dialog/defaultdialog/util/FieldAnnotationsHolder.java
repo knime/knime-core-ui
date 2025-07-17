@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
 import org.knime.core.util.Pair;
 
 /**
- * A holder for annotations of a field during the traversal of nested settings of DefaultNodeSettings. It is a payload
+ * A holder for annotations of a field during the traversal of nested settings of NodeParameters. It is a payload
  * for the traversal callback for leaves and it is converted to a {@link ClassAnnotationsHolder} for nested settings.
  *
  * @author Paul Bärnreuther

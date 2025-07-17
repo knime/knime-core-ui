@@ -69,8 +69,9 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.NodeID;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -80,7 +81,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 class JsonFormsDataUtilTest {
 
     @SuppressWarnings("unused")
-    private static class TestSettings implements DefaultNodeSettings {
+    private static class TestSettings implements NodeParameters {
         String fromSettings = "def";
 
         String m_fromSpec = "def";
@@ -108,7 +109,7 @@ class JsonFormsDataUtilTest {
         TestSettingsSpec() {
         }
 
-        TestSettingsSpec(final DefaultNodeSettingsContext context) {
+        TestSettingsSpec(final NodeParametersInput context) {
             m_fromSpec = context.getDataTableSpecs()[0].getColumnSpec(0).getName();
         }
     }
@@ -133,20 +134,20 @@ class JsonFormsDataUtilTest {
 
     @Test
     void testCreateDefaultNodeSettingsWithSpecs() {
-        assertThat(DefaultNodeSettings.createSettings(TestSettingsSpec.class, createSpecs("bar")))
-            .isEqualTo(new TestSettingsSpec(DefaultNodeSettings.createDefaultNodeSettingsContext(createSpecs("bar"))));
+        assertThat(NodeParameters.createSettings(TestSettingsSpec.class, createSpecs("bar")))
+            .isEqualTo(new TestSettingsSpec(NodeParameters.createDefaultNodeSettingsContext(createSpecs("bar"))));
     }
 
     @Test
     void testCreateDefaultNodeSettingsWithSpecsDefault() {
-        assertThat(DefaultNodeSettings.createSettings(TestSettings.class, createSpecs("bar")))
+        assertThat(NodeParameters.createSettings(TestSettings.class, createSpecs("bar")))
             .isEqualTo(new TestSettings());
     }
 
     @Test
     void registersCredentialsSerializersToHidePassword() {
         @SuppressWarnings("unused")
-        final class TestCredentialsSettings implements DefaultNodeSettings {
+        final class TestCredentialsSettings implements NodeParameters {
             Credentials m_credentials = new Credentials("username", "password");
         }
 
@@ -165,7 +166,7 @@ class JsonFormsDataUtilTest {
         }
     }
 
-    final static class TestZonedDateTimeSettings implements DefaultNodeSettings {
+    final static class TestZonedDateTimeSettings implements NodeParameters {
         ZonedDateTime m_zonedDateTime = ZonedDateTime.of(2021, 11, 9, 15, 30, 0, 0, ZoneId.of("Europe/Berlin"));
     }
 

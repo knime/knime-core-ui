@@ -68,7 +68,7 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.node.parameters.widget.choices.DomainChoicesUtil;
 
@@ -78,7 +78,7 @@ import org.knime.node.parameters.widget.choices.DomainChoicesUtil;
  */
 class DomainChoicesUtilTest {
 
-    private static DefaultNodeSettingsContext createContext(final String colName, final List<String> domain) {
+    private static NodeParametersInput createContext(final String colName, final List<String> domain) {
         final var colDomainCreator = new DataColumnDomainCreator();
         colDomainCreator.setValues(domain.stream().map(StringCell::new).collect(Collectors.toSet()));
         final var colDomain = colDomainCreator.createDomain();
@@ -87,13 +87,13 @@ class DomainChoicesUtilTest {
 
     }
 
-    private static DefaultNodeSettingsContext createContextFromDomain(final String colName,
+    private static NodeParametersInput createContextFromDomain(final String colName,
         final DataColumnDomain colDomain, final DataType dataType) {
         final var colSpecCreator = new DataColumnSpecCreator(colName, dataType);
         colSpecCreator.setDomain(colDomain);
         final var colSpec = colSpecCreator.createSpec();
 
-        return DefaultNodeSettingsContext.createDefaultNodeSettingsContext(new PortType[]{BufferedDataTable.TYPE},
+        return NodeParametersInput.createDefaultNodeSettingsContext(new PortType[]{BufferedDataTable.TYPE},
             new PortObjectSpec[]{new DataTableSpec(//
                 new DataColumnSpec[]{colSpec} //
             )}, null, null);
@@ -130,7 +130,7 @@ class DomainChoicesUtilTest {
 
         final var colName = "colName";
 
-        final var context = DefaultNodeSettingsContext.createDefaultNodeSettingsContext(
+        final var context = NodeParametersInput.createDefaultNodeSettingsContext(
             new PortType[]{BufferedDataTable.TYPE}, new PortObjectSpec[]{null}, null, null);
 
         final var domainValues = DomainChoicesUtil.getChoicesByContextAndColumn(context, colName);

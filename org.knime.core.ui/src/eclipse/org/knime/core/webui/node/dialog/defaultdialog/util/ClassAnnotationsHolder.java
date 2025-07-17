@@ -62,7 +62,7 @@ import org.knime.core.util.Pair;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 
 /**
- * A holder for annotations of a class during the traversal of nested settings of DefaultNodeSettings. It is further
+ * A holder for annotations of a class during the traversal of nested settings of NodeParameters. It is further
  * converted to annotation holders for its fields.
  *
  * @author Paul Bärnreuther

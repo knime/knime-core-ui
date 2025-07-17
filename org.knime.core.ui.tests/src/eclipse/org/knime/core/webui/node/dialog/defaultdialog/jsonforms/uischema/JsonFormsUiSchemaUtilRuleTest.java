@@ -54,7 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.buildTestUiSchema;
 
 import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice;
 import org.knime.node.parameters.Widget;
@@ -80,7 +80,7 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testSimpleRule() {
 
-        final class SimpleRuleSettings implements DefaultNodeSettings {
+        final class SimpleRuleSettings implements NodeParameters {
 
             static final class SomeBoolean implements Reference<Boolean> {
             }
@@ -117,7 +117,7 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testEffect() {
 
-        final class EffectSettings implements DefaultNodeSettings {
+        final class EffectSettings implements NodeParameters {
 
             static final class DummyCondition implements PredicateProvider {
 
@@ -156,7 +156,7 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testEffectInsideWidget() {
 
-        final class EffectSettings implements DefaultNodeSettings {
+        final class EffectSettings implements NodeParameters {
 
             static final class DummyCondition implements PredicateProvider {
 
@@ -180,7 +180,7 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testThrowsOnEffectInsideWidgetAndOnField() {
 
-        final class EffectSettings implements DefaultNodeSettings {
+        final class EffectSettings implements NodeParameters {
 
             static final class DummyCondition implements PredicateProvider {
 
@@ -203,7 +203,7 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     @Test
     void testConstantEffect() {
-        final class ConstantEffectSettings implements DefaultNodeSettings {
+        final class ConstantEffectSettings implements NodeParameters {
 
             static final class AlwaysTruePredicate implements PredicateProvider {
 
@@ -244,7 +244,7 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     @Test
     void testAnd() {
-        final class OrSettings implements DefaultNodeSettings {
+        final class OrSettings implements NodeParameters {
             static final class SomeBoolean implements Reference<Boolean> {
             }
 
@@ -295,7 +295,7 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     @Test
     void testOr() {
-        final class AndSettings implements DefaultNodeSettings {
+        final class AndSettings implements NodeParameters {
             static final class SomeBoolean implements Reference<Boolean> {
             }
 
@@ -347,7 +347,7 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testNot() {
 
-        final class NotSettings implements DefaultNodeSettings {
+        final class NotSettings implements NodeParameters {
             static final class SomeBoolean implements Reference<Boolean> {
             }
 
@@ -381,7 +381,7 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testNotAnd() {
 
-        final class NotAndSettings implements DefaultNodeSettings {
+        final class NotAndSettings implements NodeParameters {
             static final class SomeBoolean implements Reference<Boolean> {
             }
 
@@ -434,7 +434,7 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testNotOr() {
 
-        final class NotOrSettings implements DefaultNodeSettings {
+        final class NotOrSettings implements NodeParameters {
             static final class SomeBoolean implements Reference<Boolean> {
             }
 
@@ -487,7 +487,7 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testDoubleNegation() {
 
-        final class DoubleNegationSettings implements DefaultNodeSettings {
+        final class DoubleNegationSettings implements NodeParameters {
             static final class SomeBoolean implements Reference<Boolean> {
             }
 
@@ -536,7 +536,7 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     }
 
-    final class EffectOnLayoutPartSettings implements DefaultNodeSettings {
+    final class EffectOnLayoutPartSettings implements NodeParameters {
 
         static final class SomeBoolean implements Reference<Boolean> {
         }
@@ -566,7 +566,7 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testHasMultipleItemsCondition() {
 
-        final class HasMultipleItemsConditionSettings implements DefaultNodeSettings {
+        final class HasMultipleItemsConditionSettings implements NodeParameters {
 
             static final class ArrayElements implements Reference<ArraySettings[]> {
             }
@@ -610,7 +610,7 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     @Test
     void testReferencesIsMissing() {
-        final class EffectWithoutReferenceSettings implements DefaultNodeSettings {
+        final class EffectWithoutReferenceSettings implements NodeParameters {
 
             static final class UnmetReference implements Reference<Boolean> {
             }
@@ -666,7 +666,7 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     @Test
     void testThrowsOnMissingReferences() {
-        final class EffectWithoutReferenceSettings implements DefaultNodeSettings {
+        final class EffectWithoutReferenceSettings implements NodeParameters {
 
             static final class UnmetReference implements Reference<Boolean> {
             }
@@ -722,7 +722,7 @@ class JsonFormsUiSchemaUtilRuleTest {
         String m_extendingWithExtraEffectSetting;
     }
 
-    static final class EffectOnClassSettings implements DefaultNodeSettings {
+    static final class EffectOnClassSettings implements NodeParameters {
 
         static final class SomeBoolean implements Reference<Boolean> {
 
@@ -766,7 +766,7 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     @Test
     void testSingleSelectionConditions() {
-        final class SingleSelectionConditionSettings implements DefaultNodeSettings {
+        final class SingleSelectionConditionSettings implements NodeParameters {
 
             static final class SingleSelectionReference implements Reference<StringOrEnum<NoneChoice>> {
             }
@@ -824,7 +824,7 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testPatternCondition() {
 
-        final class PatternConditionTestSettings implements DefaultNodeSettings {
+        final class PatternConditionTestSettings implements NodeParameters {
             static final class PatternSetting implements Reference<String> {
             }
 
@@ -860,7 +860,7 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testArrayContainsCondition() {
 
-        final class ArrayContainsConditionTestSettings implements DefaultNodeSettings {
+        final class ArrayContainsConditionTestSettings implements NodeParameters {
 
             static class Element implements WidgetGroup {
                 static final class ElementValueReference implements Reference<String> {
@@ -908,7 +908,7 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testComplexArrayContainsCondition() {
 
-        final class ArrayContainsConditionTestSettings implements DefaultNodeSettings {
+        final class ArrayContainsConditionTestSettings implements NodeParameters {
 
             static class Element implements WidgetGroup {
                 static final class StringField implements Reference<String> {
@@ -969,7 +969,7 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     @Test
     void testConditionOnNonWidget() {
-        final class SettingsWithNonWidgetReference implements DefaultNodeSettings {
+        final class SettingsWithNonWidgetReference implements NodeParameters {
 
             static final class SomeBoolean implements Reference<Boolean> {
 
@@ -1001,7 +1001,7 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     @Test
     void testEnumPredicateWorksWhenToStringIsOverwritten() {
-        final class SettingsWithEnum implements DefaultNodeSettings {
+        final class SettingsWithEnum implements NodeParameters {
             enum TestEnum {
                     VAL1("testValue1"), //
                     VAL2("testValue2");

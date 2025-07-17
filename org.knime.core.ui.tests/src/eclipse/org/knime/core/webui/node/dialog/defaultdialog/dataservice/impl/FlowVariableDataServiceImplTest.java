@@ -84,7 +84,7 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogManagerTest;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultDialogDataConverterImpl;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDataService.PossibleFlowVariable;
 import org.knime.core.webui.page.Page;
@@ -111,7 +111,7 @@ class FlowVariableDataServiceImplTest {
     }
 
     private static FlowVariableDataService
-        getDataServiceWithConverter(final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses) {
+        getDataServiceWithConverter(final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses) {
         return new FlowVariableDataServiceImpl(new DefaultDialogDataConverterImpl(settingsClasses));
     }
 
@@ -148,7 +148,7 @@ class FlowVariableDataServiceImplTest {
         NodeContext.removeLastContext();
     }
 
-    static class TestViewSettings implements DefaultNodeSettings {
+    static class TestViewSettings implements NodeParameters {
         String m_myViewSetting;
     }
 
@@ -157,11 +157,11 @@ class FlowVariableDataServiceImplTest {
         boolean m_myModelSetting;
     }
 
-    static class TestModelSettings implements DefaultNodeSettings {
+    static class TestModelSettings implements NodeParameters {
         NestedSetting m_nestedSetting;
     }
 
-    static Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses =
+    static Map<SettingsType, Class<? extends NodeParameters>> settingsClasses =
         Map.of(SettingsType.MODEL, TestModelSettings.class, SettingsType.VIEW, TestViewSettings.class);
 
     @Test
@@ -325,7 +325,7 @@ class FlowVariableDataServiceImplTest {
             + "}" //
             + "}";
 
-        static class TestSettingsWithEnum implements DefaultNodeSettings {
+        static class TestSettingsWithEnum implements NodeParameters {
             enum MyEnum {
                     A, B, C
             }

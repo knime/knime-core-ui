@@ -113,7 +113,7 @@ final class DependencyResolver {
             final var clazz = field.propertyWriter().getType().getRawClass();
             final var targetScope = findTargetScope(searchScope, declaringDefaultNodeSettings, clazz);
             /**
-             * exclude the field itself to enable using the current DefaultNodeSettings as the dependencies class to get
+             * exclude the field itself to enable using the current NodeParameters as the dependencies class to get
              * a dependency from every other setting.
              */
             if (!targetScope.equals(m_scope)) {

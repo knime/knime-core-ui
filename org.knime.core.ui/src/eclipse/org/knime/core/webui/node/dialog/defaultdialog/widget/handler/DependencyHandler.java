@@ -68,7 +68,7 @@ import org.knime.node.parameters.NodeParameters;
  *
  *            class MyActionHandler implements DialogDataServiceHandler<String, OtherSettings>
  *
- *            class MyNodeViewSettings extends DefaultNodeSettings {
+ *            class MyNodeViewSettings extends NodeParameters {
  *
  *                &#64;Widget
  *                &#64;ButtonWidget(actionHandler = MyActionHandler)
@@ -79,7 +79,7 @@ import org.knime.node.parameters.NodeParameters;
  *
  *            }
  *
- *            class MyNodeModelSettings extends DefaultNodeSettings {
+ *            class MyNodeModelSettings extends NodeParameters {
  *                &#64;Widget
  *                String m_bar;
  *            }

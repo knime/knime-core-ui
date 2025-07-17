@@ -108,7 +108,7 @@ public interface PredicateProvider {
      * referencing the array widget field via {@link PredicateInitializer#getArray}</li>
      * </ul>
      *
-     * <h5>Using the DefaultNodeSettingsContext:</h5>
+     * <h5>Using the NodeParametersInput:</h5>
      * <p>
      * Using {@link #getConstant}
      * </p>

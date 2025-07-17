@@ -61,7 +61,7 @@ final class CreateDefaultsUtil {
     static Object createDefaultSettings(final Tree<Persistable> tree) {
         final var settingsClass = tree.getRawClass();
         return ReflectionUtil.createInstance(settingsClass).orElseThrow(() -> new IllegalArgumentException(
-            String.format("The provided PersistableSettings '%s' don't provide an empty constructor.", settingsClass)));
+            String.format("The provided Persistable '%s' don't provide an empty constructor.", settingsClass)));
     }
 
     static Object createDefaultSettingsFieldValue(final TreeNode<Persistable> node) {

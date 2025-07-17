@@ -344,7 +344,7 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
 public interface NodeParameters extends Persistable, WidgetGroup {
 
     /**
-     * Use this method to validate a loaded instance of DefaultNodeSettings. Settings should be invalid if it should be
+     * Use this method to validate a loaded instance of NodeParameters. Settings should be invalid if it should be
      * impossible to apply them.
      *
      * @throws InvalidSettingsException if a setting is invalid
@@ -418,7 +418,7 @@ public interface NodeParameters extends Persistable, WidgetGroup {
      * Creates a new {@link NodeParameters} object of the specified type.
      *
      * @param <S> the type of DefaultNodeSettings
-     * @param clazz the class of the DefaultNodeSettings type
+     * @param clazz the class of the NodeParameters type
      * @return a new instance of the DefaultNodeSettingsType
      */
     static <S extends NodeParameters> S createSettings(final Class<S> clazz) {

@@ -54,7 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.CancelableActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.CancelableActionHandler.States;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
@@ -71,7 +71,7 @@ class CancelableActionHandlerTest {
         static final String RESULT = "myResult";
 
         @Override
-        protected String invoke(final Void noSettings, final DefaultNodeSettingsContext context)
+        protected String invoke(final Void noSettings, final NodeParametersInput context)
             throws WidgetHandlerException {
             return RESULT;
         }
@@ -95,7 +95,7 @@ class CancelableActionHandlerTest {
         static final String MESSAGE = "myMessage";
 
         @Override
-        protected String invoke(final Void noSettings, final DefaultNodeSettingsContext context)
+        protected String invoke(final Void noSettings, final NodeParametersInput context)
             throws WidgetHandlerException {
             throw new WidgetHandlerException(MESSAGE);
         }

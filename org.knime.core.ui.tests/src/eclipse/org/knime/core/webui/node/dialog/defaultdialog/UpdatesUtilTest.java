@@ -76,7 +76,7 @@ import org.knime.core.node.workflow.VariableType.BooleanType;
 import org.knime.core.node.workflow.VariableType.IntType;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
@@ -124,8 +124,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @SuppressWarnings("java:S2698") // we accept assertions without messages
 public class UpdatesUtilTest {
 
-    private static DefaultNodeSettingsContext createDefaultNodeSettingsContext() {
-        return DefaultNodeSettingsContext.createDefaultNodeSettingsContext(new PortType[]{BufferedDataTable.TYPE},
+    private static NodeParametersInput createDefaultNodeSettingsContext() {
+        return NodeParametersInput.createDefaultNodeSettingsContext(new PortType[]{BufferedDataTable.TYPE},
             new PortObjectSpec[]{null}, null, null);
     }
 
@@ -134,7 +134,7 @@ public class UpdatesUtilTest {
     }
 
     static ObjectNode buildUpdates(final Map<SettingsType, WidgetGroup> settings,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         final var objectNode = new ObjectMapper().createObjectNode();
         final Map<SettingsType, Class<? extends WidgetGroup>> settingsClasses =
             MapValuesUtil.mapValues(settings, WidgetGroup::getClass);
@@ -155,7 +155,7 @@ public class UpdatesUtilTest {
     @Test
     void testValueUpdates() {
 
-        class TestSettings implements DefaultNodeSettings {
+        class TestSettings implements NodeParameters {
 
             public TestSettings() {
 
@@ -190,7 +190,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     throw new RuntimeException("Should not be called in this test");
                 }
 
@@ -209,7 +209,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     throw new RuntimeException("Should not be called in this test");
 
                 }
@@ -242,7 +242,7 @@ public class UpdatesUtilTest {
 
     @Test
     void testNullValuedValueUpdate() {
-        class TestSettings implements DefaultNodeSettings {
+        class TestSettings implements NodeParameters {
 
             static final class TestStateProvider implements StateProvider<String> {
 
@@ -252,7 +252,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context)
+                public String computeState(final NodeParametersInput context)
                     throws StateComputationFailureException {
                     return null;
                 }
@@ -272,7 +272,7 @@ public class UpdatesUtilTest {
     @Test
     void testThrowsRuntimeExceptionOnWrongTypeForValueRef() {
 
-        class WrongTypeReferenceSettings implements DefaultNodeSettings {
+        class WrongTypeReferenceSettings implements NodeParameters {
             WrongTypeReferenceSettings() {
 
             }
@@ -293,7 +293,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     throw new RuntimeException("Should not be called in this test");
                 }
 
@@ -315,7 +315,7 @@ public class UpdatesUtilTest {
     @Test
     void testThrowsRuntimeExceptionOnWrongTypeForValueProvider() {
 
-        class WrongTypeReferenceSettings implements DefaultNodeSettings {
+        class WrongTypeReferenceSettings implements NodeParameters {
             WrongTypeReferenceSettings() {
 
             }
@@ -336,7 +336,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public Integer computeState(final DefaultNodeSettingsContext context) {
+                public Integer computeState(final NodeParametersInput context) {
                     throw new RuntimeException("Should not be called in this test");
                 }
 
@@ -358,7 +358,7 @@ public class UpdatesUtilTest {
     @Test
     void testThrowsRuntimeExceptionOnDanglingReference() {
 
-        class DanglingReferenceSettings implements DefaultNodeSettings {
+        class DanglingReferenceSettings implements NodeParameters {
 
             DanglingReferenceSettings() {
 
@@ -376,7 +376,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     throw new RuntimeException("Should not be called in this test");
                 }
 
@@ -398,7 +398,7 @@ public class UpdatesUtilTest {
     void testSimpleButtonWidgetUpdate() {
 
         @SuppressWarnings("unused")
-        class TestSettings implements DefaultNodeSettings {
+        class TestSettings implements NodeParameters {
 
             TestSettings() {
 
@@ -420,7 +420,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     throw new RuntimeException("Should not be called in this test");
                 }
 
@@ -443,7 +443,7 @@ public class UpdatesUtilTest {
 
     @Test
     void testUpdateDependingOnTheContext() {
-        class TestSettings implements DefaultNodeSettings {
+        class TestSettings implements NodeParameters {
 
             static final class OnlyProvideWhenContextIsNull implements StateProvider<String> {
 
@@ -455,7 +455,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     return "Some value computed from the context";
                 }
 
@@ -475,7 +475,7 @@ public class UpdatesUtilTest {
     @Test
     void testUpdateBeforeOpenDialog() {
         @SuppressWarnings("unused")
-        class TestSettings implements DefaultNodeSettings {
+        class TestSettings implements NodeParameters {
 
             TestSettings() {
 
@@ -501,7 +501,7 @@ public class UpdatesUtilTest {
                 public static final String RESULT = "txt";
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     return RESULT;
                 }
 
@@ -521,7 +521,7 @@ public class UpdatesUtilTest {
                 public static final String RESULT = "updated string";
 
                 @Override
-                public MySetting computeState(final DefaultNodeSettingsContext context) {
+                public MySetting computeState(final NodeParametersInput context) {
                     return new MySetting(RESULT);
                 }
 
@@ -551,7 +551,7 @@ public class UpdatesUtilTest {
     @Test
     void testUpdateBeforeOpenDialogWithDependency() {
 
-        class TestSettings implements DefaultNodeSettings {
+        class TestSettings implements NodeParameters {
 
             TestSettings() {
             }
@@ -582,7 +582,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     return String.format("{self:%s,other:%s}", m_valueSupplier.get(), m_otherValueSupplier.get());
                 }
 
@@ -606,7 +606,7 @@ public class UpdatesUtilTest {
 
     @Test
     void testUpdateAfterOpenDialog() {
-        class TestSettings implements DefaultNodeSettings {
+        class TestSettings implements NodeParameters {
 
             TestSettings() {
             }
@@ -621,7 +621,7 @@ public class UpdatesUtilTest {
                 public static final String RESULT = "txt";
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     return RESULT;
                 }
 
@@ -641,7 +641,7 @@ public class UpdatesUtilTest {
                 public static final String RESULT = "updated string";
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     return RESULT;
                 }
 
@@ -679,7 +679,7 @@ public class UpdatesUtilTest {
             }
 
             @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
+            public String computeState(final NodeParametersInput context) {
                 throw new IllegalStateException("Should not be called within this test");
             }
 
@@ -688,7 +688,7 @@ public class UpdatesUtilTest {
         @Test
         void testFileWriterWidgetFileExtensionProvider() {
 
-            class TestSettings implements DefaultNodeSettings {
+            class TestSettings implements NodeParameters {
 
                 @FileWriterWidget(fileExtensionProvider = MyStringProvider.class)
                 FileSelection m_fileChooser;
@@ -705,7 +705,7 @@ public class UpdatesUtilTest {
         @Test
         void testLocalFileWriterWidgetFileExtensionProvider() {
 
-            class TestSettings implements DefaultNodeSettings {
+            class TestSettings implements NodeParameters {
 
                 @LocalFileWriterWidget(fileExtensionProvider = MyStringProvider.class)
                 String m_fileChooser;
@@ -722,7 +722,7 @@ public class UpdatesUtilTest {
         @Test
         void testTextInputWidgetPlaceholderProvider() {
 
-            class TestSettings implements DefaultNodeSettings {
+            class TestSettings implements NodeParameters {
 
                 @TextInputWidget(placeholderProvider = MyStringProvider.class)
                 String m_textInput;
@@ -739,12 +739,12 @@ public class UpdatesUtilTest {
 
         @Test
         void testTextMessageProvider() {
-            class TestSettings implements DefaultNodeSettings {
+            class TestSettings implements NodeParameters {
 
                 static final class MyTextMessageProvider implements TextMessage.SimpleTextMessageProvider {
 
                     @Override
-                    public boolean showMessage(final DefaultNodeSettingsContext context) {
+                    public boolean showMessage(final NodeParametersInput context) {
                         return true;
                     }
 
@@ -780,7 +780,7 @@ public class UpdatesUtilTest {
         @Test
         void testArrayWidgetElementDefaultValueProvider() {
 
-            class TestSettings implements DefaultNodeSettings {
+            class TestSettings implements NodeParameters {
 
                 static class ElementSettings implements WidgetGroup {
 
@@ -794,7 +794,7 @@ public class UpdatesUtilTest {
                     }
 
                     @Override
-                    public ElementSettings computeState(final DefaultNodeSettingsContext context) {
+                    public ElementSettings computeState(final NodeParametersInput context) {
                         return null;
                     }
 
@@ -815,7 +815,7 @@ public class UpdatesUtilTest {
         @Test
         void testInternalArrayLayoutProviders() {
 
-            class TestSettings implements DefaultNodeSettings {
+            class TestSettings implements NodeParameters {
 
                 static class ElementSettings implements WidgetGroup {
 
@@ -838,7 +838,7 @@ public class UpdatesUtilTest {
             static final List<String> RESULT = List.of("A", "B", "C");
 
             @Override
-            public List<String> choices(final DefaultNodeSettingsContext context) {
+            public List<String> choices(final NodeParametersInput context) {
                 return RESULT;
             }
 
@@ -846,7 +846,7 @@ public class UpdatesUtilTest {
 
         @Test
         void testChoicesWidgetStringChoicesStateProvider() {
-            class TestSettings implements DefaultNodeSettings {
+            class TestSettings implements NodeParameters {
 
                 @ChoicesProvider(TestStringChoicesProvider.class)
                 String m_string;
@@ -878,7 +878,7 @@ public class UpdatesUtilTest {
         static final class MyEnumProvider implements EnumChoicesProvider<MyEnum> {
 
             @Override
-            public List<MyEnum> choices(final DefaultNodeSettingsContext context) {
+            public List<MyEnum> choices(final NodeParametersInput context) {
                 return List.of(MyEnum.A, MyEnum.B);
             }
 
@@ -886,7 +886,7 @@ public class UpdatesUtilTest {
 
         @Test
         void testEnumChoicesProvider() {
-            class TestSettings implements DefaultNodeSettings {
+            class TestSettings implements NodeParameters {
 
                 @ChoicesProvider(MyEnumProvider.class)
                 MyEnum m_enum;
@@ -913,7 +913,7 @@ public class UpdatesUtilTest {
         static final class TestColumnChoicesProvider implements ColumnChoicesProvider {
 
             @Override
-            public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+            public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
                 return List.of(new DataColumnSpecCreator("A", StringCell.TYPE).createSpec());
             }
 
@@ -921,7 +921,7 @@ public class UpdatesUtilTest {
 
         @ParameterizedTest
         @MethodSource("columnChoicesProviderSettings")
-        void testChoicesWidgetColumnChoicesStateProvider(final DefaultNodeSettings settings) {
+        void testChoicesWidgetColumnChoicesStateProvider(final NodeParameters settings) {
 
             final var response = buildUpdates(settings);
 
@@ -941,14 +941,14 @@ public class UpdatesUtilTest {
 
         static Stream<Arguments> columnChoicesProviderSettings() {
 
-            class TestCaseChoicesProvider implements DefaultNodeSettings {
+            class TestCaseChoicesProvider implements NodeParameters {
 
                 @ChoicesProvider(TestColumnChoicesProvider.class)
                 String m_columnSelection;
 
             }
 
-            class TestCaseColumnFilterWidget implements DefaultNodeSettings {
+            class TestCaseColumnFilterWidget implements NodeParameters {
 
                 @ColumnFilterWidget(choicesProvider = TestColumnChoicesProvider.class)
                 ColumnFilter m_columnFilter;
@@ -962,7 +962,7 @@ public class UpdatesUtilTest {
 
         @ParameterizedTest
         @MethodSource("flowVariableChoicesProviderSettings")
-        void testChoicesWidgetFlowVariableChoicesStateProvider(final DefaultNodeSettings settings) {
+        void testChoicesWidgetFlowVariableChoicesStateProvider(final NodeParameters settings) {
 
             final var response = buildUpdates(settings);
 
@@ -985,7 +985,7 @@ public class UpdatesUtilTest {
         static final class TestFlowVariableChoicesProvider implements FlowVariableChoicesProvider {
 
             @Override
-            public List<FlowVariable> flowVariableChoices(final DefaultNodeSettingsContext context) {
+            public List<FlowVariable> flowVariableChoices(final NodeParametersInput context) {
                 return List.of(new FlowVariable("someInt", 123), new FlowVariable("someBoolean", BooleanType.INSTANCE));
             }
 
@@ -993,14 +993,14 @@ public class UpdatesUtilTest {
 
         static Stream<Arguments> flowVariableChoicesProviderSettings() {
 
-            class TestCaseChoicesProvider implements DefaultNodeSettings {
+            class TestCaseChoicesProvider implements NodeParameters {
 
                 @ChoicesProvider(TestFlowVariableChoicesProvider.class)
                 String m_flowVariableSelection;
 
             }
 
-            class TestCaseFlowVariableFilterWidget implements DefaultNodeSettings {
+            class TestCaseFlowVariableFilterWidget implements NodeParameters {
 
                 @FlowVariableFilterWidget(choicesProvider = TestFlowVariableChoicesProvider.class)
                 FlowVariableFilter m_flowVariableFilter;
@@ -1014,14 +1014,14 @@ public class UpdatesUtilTest {
 
         @Test
         void testDataTypeChoicesStateProvider() {
-            class TestSettings implements DefaultNodeSettings {
+            class TestSettings implements NodeParameters {
 
                 @Widget(title = "Data type", description = "Select the data type to be displayed in the table")
                 DataType m_dataType = StringCell.TYPE;
 
                 static final class OnlyStringAndDoubleChoicesProvider implements DataTypeChoicesStateProvider {
                     @Override
-                    public List<DataType> choices(final DefaultNodeSettingsContext context) {
+                    public List<DataType> choices(final NodeParametersInput context) {
                         return List.of(StringCell.TYPE, DoubleCell.TYPE);
                     }
                 }
@@ -1064,7 +1064,7 @@ public class UpdatesUtilTest {
             }
 
             @Override
-            public MinValidation computeState(final DefaultNodeSettingsContext context) {
+            public MinValidation computeState(final NodeParametersInput context) {
                 throw new IllegalStateException("Should not be called in this test");
             }
 
@@ -1072,7 +1072,7 @@ public class UpdatesUtilTest {
 
         @Test
         void testNumberInputProvider() {
-            class TestSettings implements DefaultNodeSettings {
+            class TestSettings implements NodeParameters {
 
                 @NumberInputWidget(minValidationProvider = MyDynamicMinValidation.class)
                 double m_numberInput = 5;
@@ -1086,7 +1086,7 @@ public class UpdatesUtilTest {
         @Test
         void testDynamicSettingsWidgetUpdate() {
 
-            class TestSettings implements DefaultNodeSettings {
+            class TestSettings implements NodeParameters {
 
                 static final class MyUpdater implements DynamicSettingsWidget.ImperativeDialogProvider {
 
@@ -1097,7 +1097,7 @@ public class UpdatesUtilTest {
 
                     @Override
                     public Pair<Map<String, Object>, DialogElementRendererSpec<?>> computeSettingsAndDialog(
-                        final DefaultNodeSettingsContext context) throws StateComputationFailureException {
+                        final NodeParametersInput context) throws StateComputationFailureException {
                         final var checkbox = new CheckboxRendererSpec() {
 
                             @Override
@@ -1139,11 +1139,11 @@ public class UpdatesUtilTest {
         @Test
         void testUpdateWithDependenciesInsideArrayElements() {
 
-            class TestSettings implements DefaultNodeSettings {
+            class TestSettings implements NodeParameters {
                 static final class DependencyOutsideArray implements Reference<String> {
                 }
 
-                static final class ElementSettings implements DefaultNodeSettings {
+                static final class ElementSettings implements NodeParameters {
                     static final class DependencyInsideArray implements Reference<String> {
                     }
 
@@ -1167,7 +1167,7 @@ public class UpdatesUtilTest {
                         }
 
                         @Override
-                        public String computeState(final DefaultNodeSettingsContext context) {
+                        public String computeState(final NodeParametersInput context) {
                             throw new IllegalStateException("Should not be called in this test");
                         }
 
@@ -1201,9 +1201,9 @@ public class UpdatesUtilTest {
         @Test
         void testInitialTriggerWithDependencyInsideArray() {
 
-            class TestSettings implements DefaultNodeSettings {
+            class TestSettings implements NodeParameters {
 
-                static final class ElementSettings implements DefaultNodeSettings {
+                static final class ElementSettings implements NodeParameters {
                     static final class DependencyInsideArray implements Reference<String> {
                     }
 
@@ -1226,7 +1226,7 @@ public class UpdatesUtilTest {
                         }
 
                         @Override
-                        public String computeState(final DefaultNodeSettingsContext context) {
+                        public String computeState(final NodeParametersInput context) {
                             return m_valueSupplier.get();
                         }
 
@@ -1257,9 +1257,9 @@ public class UpdatesUtilTest {
 
         @Test
         void testInitialTriggerWithDependenciesInAndOutsideTheArrayWithEmptyArray() {
-            class TestSettings implements DefaultNodeSettings {
+            class TestSettings implements NodeParameters {
 
-                static final class ElementSettings implements DefaultNodeSettings {
+                static final class ElementSettings implements NodeParameters {
                     static final class DependencyInsideArray implements Reference<String> {
                     }
 
@@ -1279,7 +1279,7 @@ public class UpdatesUtilTest {
                         }
 
                         @Override
-                        public String computeState(final DefaultNodeSettingsContext context) {
+                        public String computeState(final NodeParametersInput context) {
                             return m_valueSupplier.get();
                         }
 
@@ -1311,9 +1311,9 @@ public class UpdatesUtilTest {
     @Test
     void testInternalArrayWidgetElementResetButtonId() {
 
-        class InternalArrayWidgetTestSettings implements DefaultNodeSettings {
+        class InternalArrayWidgetTestSettings implements NodeParameters {
 
-            static final class ElementSettings implements DefaultNodeSettings {
+            static final class ElementSettings implements NodeParameters {
                 static final class ElementValueResetter implements StateProvider<String> {
 
                     @Override
@@ -1322,7 +1322,7 @@ public class UpdatesUtilTest {
                     }
 
                     @Override
-                    public String computeState(final DefaultNodeSettingsContext context) {
+                    public String computeState(final NodeParametersInput context) {
                         return null;
                     }
 

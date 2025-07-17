@@ -60,7 +60,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.persistence.NodeSettingsPersistor;
 import org.knime.node.parameters.persistence.Persistor;
 
@@ -93,7 +93,7 @@ class SaveLoadTest {
         testSaveLoad(settings);
     }
 
-    private static <S extends DefaultNodeSettings> void testSaveLoad(final S settings) throws InvalidSettingsException {
+    private static <S extends NodeParameters> void testSaveLoad(final S settings) throws InvalidSettingsException {
         var nodeSettings = new NodeSettings("test");
         saveSettings(settings, nodeSettings);
         final var loaded = loadSettings(settings.getClass(), nodeSettings);
@@ -111,7 +111,7 @@ class SaveLoadTest {
     }
 
     private abstract static class AbstractTestSettings<S extends AbstractTestSettings<S>>
-        implements DefaultNodeSettings {
+        implements NodeParameters {
 
         @Override
         public final boolean equals(final Object obj) {

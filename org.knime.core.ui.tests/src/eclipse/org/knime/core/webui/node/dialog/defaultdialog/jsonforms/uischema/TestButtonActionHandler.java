@@ -50,7 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
 import java.lang.annotation.Annotation;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonChange;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonState;
@@ -127,13 +127,13 @@ class TestButtonActionHandler<S> implements ButtonActionHandler<Object, S, TestS
 
     @Override
     public ButtonChange<Object, TestStates> initialize(final Object currentValue,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         return null;
     }
 
     @Override
     public ButtonChange<Object, TestStates> invoke(final TestStates state, final S settings,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         return null;
     }
 

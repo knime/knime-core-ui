@@ -52,14 +52,14 @@ import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.Se
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.migration.Migration;
 
 class StringArrayToColumnFilterMigrationTest {
 
     private static final String ROOT_KEY = "Test";
 
-    private static final class StringArrayToColumnFilterMigrationSettings implements DefaultNodeSettings {
+    private static final class StringArrayToColumnFilterMigrationSettings implements NodeParameters {
 
         static final class FooMigrator extends StringArrayToColumnFilterMigration {
 

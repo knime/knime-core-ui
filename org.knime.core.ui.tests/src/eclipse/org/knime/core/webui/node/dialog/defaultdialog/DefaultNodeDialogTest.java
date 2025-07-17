@@ -95,12 +95,13 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.NodeDialogManagerTest;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.utils.AbstractSettingsDocumentBuilder;
 import org.knime.core.webui.node.dialog.utils.FlowVariablesInputNodeFactory;
 import org.knime.core.webui.page.Page;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.testing.node.dialog.NodeDialogNodeModel;
@@ -122,15 +123,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class DefaultNodeDialogTest {
 
     /**
-     * Widens scope of constructor of {@link DefaultNodeSettingsContext}. Only used in tests.
+     * Widens scope of constructor of {@link NodeParametersInput}. Only used in tests.
      */
     @SuppressWarnings("javadoc")
-    public static final DefaultNodeSettingsContext createDefaultNodeSettingsContext(final PortType[] inPortTypes,
+    public static final NodeParametersInput createDefaultNodeSettingsContext(final PortType[] inPortTypes,
         final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider) {
-        return new DefaultNodeSettingsContext(inPortTypes, specs, stack, credentialsProvider);
+        return new NodeParametersInput(inPortTypes, specs, stack, credentialsProvider);
     }
 
-    static class ModelSettings implements DefaultNodeSettings {
+    static class ModelSettings implements NodeParameters {
 
         static final String MODEL_SETTING_CFG = NodeDialogNodeModel.VALIDATED_MODEL_SETTING_CFG;
 
@@ -150,7 +151,7 @@ public class DefaultNodeDialogTest {
 
     }
 
-    static class ViewSettings implements DefaultNodeSettings {
+    static class ViewSettings implements NodeParameters {
 
         enum MyEnum {
                 A, B, C
@@ -202,7 +203,7 @@ public class DefaultNodeDialogTest {
         Credentials m_objectSetting = new Credentials();
     }
 
-    static class NestedViewSettings implements DefaultNodeSettings {
+    static class NestedViewSettings implements NodeParameters {
         static final String NESTED_VIEW_SETTING_CFG = "nested view setting";
 
         static final String NESTED_VIEW_SETTING = "nestedViewSettings";
@@ -926,8 +927,8 @@ public class DefaultNodeDialogTest {
             }
             var modelSettings = nodeSettings.addNodeSettings("model");
             var viewSettings = nodeSettings.addNodeSettings("view");
-            DefaultNodeSettings.saveSettings(ModelSettings.class, super.m_modelSettings, modelSettings);
-            DefaultNodeSettings.saveSettings(ViewSettings.class, super.m_viewSettings, viewSettings);
+            NodeParameters.saveSettings(ModelSettings.class, super.m_modelSettings, modelSettings);
+            NodeParameters.saveSettings(ViewSettings.class, super.m_viewSettings, viewSettings);
             return nodeSettings;
         }
 

@@ -50,7 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.updates;
 
 import java.util.function.Supplier;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.ButtonReference;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.StateProvider;
@@ -105,7 +105,7 @@ public class TestStateProviderInitializer implements StateProviderInitializer {
     }
 
     @Override
-    public DefaultNodeSettingsContext getContext() {
+    public NodeParametersInput getContext() {
         /**
          * Use the {@link DialogUpdateSimulator} instead if a non-null context is required here.
          */

@@ -50,8 +50,9 @@ package org.knime.testing.node.dialog.updates;
 
 import java.util.function.Supplier;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.updates.ButtonReference;
 import org.knime.node.parameters.updates.Reference;
@@ -64,7 +65,7 @@ import org.knime.testing.node.dialog.updates.TestSettings.MyTextProvider.MyButto
 import org.knime.testing.node.dialog.updates.TestSettings.MyTextProvider.MyValueRef;
 
 @SuppressWarnings("restriction")
-class TestSettings implements DefaultNodeSettings {
+class TestSettings implements NodeParameters {
 
     static abstract class MyTextProvider implements StateProvider<String> {
 
@@ -85,7 +86,7 @@ class TestSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String computeState(final DefaultNodeSettingsContext context) {
+        public String computeState(final NodeParametersInput context) {
             return m_supplier.get();
         }
 
@@ -111,7 +112,7 @@ class TestSettings implements DefaultNodeSettings {
             }
 
             @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
+            public String computeState(final NodeParametersInput context) {
                 return m_supplier.get() + ", " + m_elementDependencySupplier.get();
             }
 

@@ -55,7 +55,7 @@ import static org.knime.node.testing.DefaultNodeTestUtil.createStage;
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.DefaultNode;
 import org.knime.node.DefaultNode.RequireFullDescription;
 import org.knime.node.DefaultNode.RequireIcon;
@@ -168,7 +168,7 @@ class DefaultNodeDescriptionTest extends TestWithWorkflowManager {
     }
 
     @SuppressWarnings("restriction")
-    static final class MySettings implements DefaultNodeSettings {
+    static final class MySettings implements NodeParameters {
 
         static final String MY_TITLE = "My title";
 

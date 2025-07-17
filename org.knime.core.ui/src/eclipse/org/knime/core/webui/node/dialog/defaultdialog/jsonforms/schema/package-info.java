@@ -48,7 +48,7 @@
  */
 /**
  * A package containing the logic for the schema generation of the {@link DefaultNodeDialog} for
- * {@link DefaultNodeSetting DefaultNodeSettings}.
+ * {@link DefaultNodeSetting NodeParameters}.
  *
  * @see {@link org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil}
  * @author Paul Bärnreuther

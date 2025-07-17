@@ -59,7 +59,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilterMode;
 import org.knime.testing.util.TableTestUtil;
 
@@ -73,8 +73,8 @@ class ColumnFilterTest {
 
     private static final DataColumnSpec COL_SPEC = TABLE_SPEC.getColumnSpec(0);
 
-    private static final DefaultNodeSettingsContext CONTEXT =
-        DefaultNodeSettingsContext.createDefaultNodeSettingsContext(new PortType[]{BufferedDataTable.TYPE},
+    private static final NodeParametersInput CONTEXT =
+        NodeParametersInput.createDefaultNodeSettingsContext(new PortType[]{BufferedDataTable.TYPE},
             new PortObjectSpec[]{TABLE_SPEC}, null, null);
 
     @Test
