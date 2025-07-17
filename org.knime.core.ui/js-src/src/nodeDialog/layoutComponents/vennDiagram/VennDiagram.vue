@@ -8,14 +8,23 @@ import Right from "./Right.vue";
 
 const props = defineProps(
   rendererProps<{
-    elements: [
-      left: ControlElement,
-      middle: ControlElement,
-      right: ControlElement,
-    ];
+    elements:
+      | [left: ControlElement, middle: ControlElement, right: ControlElement]
+      | [left: ControlElement, right: ControlElement];
   }>(),
 );
-const [middle, left, right] = props.uischema.elements;
+const [first, second, third] = props.uischema.elements;
+let left: ControlElement,
+  middle: ControlElement | undefined,
+  right: ControlElement;
+if (typeof third === "undefined") {
+  left = first;
+  right = second;
+} else {
+  middle = first;
+  left = second;
+  right = third;
+}
 </script>
 
 <template>
@@ -28,6 +37,8 @@ const [middle, left, right] = props.uischema.elements;
   >
     <Left v-bind="{ ...props, uischema: left }" />
     <Right v-bind="{ ...props, uischema: right }" />
-    <Inner v-bind="{ ...props, uischema: middle }" />
+    <Inner
+      v-bind="{ ...props, uischema: middle as unknown as ControlElement }"
+    />
   </svg>
 </template>

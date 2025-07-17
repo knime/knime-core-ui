@@ -13,7 +13,9 @@ import { type PropType, useAttrs } from "vue";
 import type { ControlElement } from "@jsonforms/core";
 import { rendererProps } from "@jsonforms/vue";
 
-import useVennDiagramBooleanControl from "./useVennDiagramBooleanControl";
+import useVennDiagramBooleanControl, {
+  useConstantVennDiagramPart,
+} from "./useVennDiagramBooleanControl";
 
 const props = defineProps({
   ...rendererProps<ControlElement>(),
@@ -24,7 +26,10 @@ const props = defineProps({
 });
 
 const attrs = useAttrs();
-const { fillColor, onClick, disabled } = useVennDiagramBooleanControl(props);
+
+const { fillColor, onClick, disabled } = props.uischema
+  ? useVennDiagramBooleanControl(props)
+  : useConstantVennDiagramPart(true);
 </script>
 
 <style scoped lang="postcss">

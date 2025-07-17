@@ -8,22 +8,16 @@ import VennDiagram from "./VennDiagram.vue";
 
 const props = defineProps(
   rendererProps<{
-    elements: [
-      left: ControlElement,
-      middle: ControlElement,
-      right: ControlElement,
-    ];
+    elements:
+      | [left: ControlElement, middle: ControlElement, right: ControlElement]
+      | [left: ControlElement, right: ControlElement];
   }>(),
 );
-const [middle, left, right] = props.uischema.elements;
 </script>
 
 <template>
   <div class="horizontal">
-    <VerticalLayoutBase
-      #default="{ element }"
-      :elements="[middle, left, right]"
-    >
+    <VerticalLayoutBase #default="{ element }" :elements="uischema.elements">
       <DispatchRenderer v-bind="props" :uischema="element as ControlElement" />
     </VerticalLayoutBase>
     <VennDiagram v-bind="props" class="venn-diagram" />

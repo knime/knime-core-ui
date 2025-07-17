@@ -55,6 +55,31 @@
               ]
             }
           ]
+        },
+        {
+          "type": "Section",
+          "label": "Venn Diagram with disabled middle",
+          "elements": [
+            {
+              "type": "VennDiagram",
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/checked",
+                  "options": {
+                    "format": "checkbox"
+                  }
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/unchecked",
+                  "options": {
+                    "format": "checkbox"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
