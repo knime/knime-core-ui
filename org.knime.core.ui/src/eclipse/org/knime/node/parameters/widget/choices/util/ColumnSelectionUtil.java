@@ -46,7 +46,7 @@
  * History
  *   Mar 24, 2025 (paulbaernreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.util.column;
+package org.knime.node.parameters.widget.choices.util;
 
 import java.util.Collection;
 import java.util.List;

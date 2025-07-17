@@ -63,13 +63,13 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
-import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.widget.DefaultValueProvider;
 import org.knime.node.parameters.widget.OptionalWidget;
+import org.knime.node.parameters.widget.OptionalWidget.DefaultValueProvider;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.StringChoice;
 import org.knime.node.parameters.widget.text.TextInputWidget;

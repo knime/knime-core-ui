@@ -57,6 +57,8 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Optional;
 
+import org.knime.node.parameters.updates.StateProvider;
+
 /**
  * When wrapping a widget field in an {@link Optional}, the control will offer a checkbox to use the setting in addition
  * to the settings value (with few exceptions: E.g. this is not supported for boolean fields or array layouts).
@@ -104,5 +106,20 @@ public @interface OptionalWidget {
      * @return a provider that computes the default set when activating the optional widget.
      */
     Class<? extends DefaultValueProvider<?>> defaultProvider();
+
+    /**
+     * Interface for {@link OptionalWidget} annotation to compute the default of an optional widget upon activation.
+     *
+     * @author Paul Bärnreuther
+     * @param <T> The type of the default value. I.e. the corresponding field needs to be of type {@code Optional<T>}.
+     */
+    interface DefaultValueProvider<T> extends StateProvider<T> {
+
+        @Override
+        default void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+        }
+
+    }
 
 }
