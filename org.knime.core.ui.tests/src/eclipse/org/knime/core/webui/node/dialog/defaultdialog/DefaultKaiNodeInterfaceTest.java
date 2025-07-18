@@ -80,6 +80,7 @@ import org.knime.core.node.workflow.NodeOutPort;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.mockito.Mockito;
 

@@ -81,11 +81,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.PortType;
-import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.CredentialsStore;
-import org.knime.core.node.workflow.FlowObjectStack;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContext;
@@ -101,7 +97,6 @@ import org.knime.core.webui.node.dialog.utils.AbstractSettingsDocumentBuilder;
 import org.knime.core.webui.node.dialog.utils.FlowVariablesInputNodeFactory;
 import org.knime.core.webui.page.Page;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.testing.node.dialog.NodeDialogNodeModel;
@@ -122,14 +117,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @SuppressWarnings("java:S2698") // we accept assertions without messages
 public class DefaultNodeDialogTest {
 
-    /**
-     * Widens scope of constructor of {@link NodeParametersInput}. Only used in tests.
-     */
-    @SuppressWarnings("javadoc")
-    public static final NodeParametersInput createDefaultNodeSettingsContext(final PortType[] inPortTypes,
-        final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider) {
-        return new NodeParametersInput(inPortTypes, specs, stack, credentialsProvider);
-    }
 
     static class ModelSettings implements NodeParameters {
 

@@ -50,6 +50,8 @@
  * This package contains subpackages for every complex type of fields of a {@link NodeParameters} POJO. These
  * subpackages also contain specific custom persistors if present.
  *
+ * Edit: Main content of this package is now within {@link org.knime.node.parameters.widget}.
+ *
  * @author Paul Bärnreuther
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting;

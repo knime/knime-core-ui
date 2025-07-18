@@ -55,13 +55,13 @@ import static org.knime.node.testing.DefaultNodeTestUtil.createStage;
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
-import org.knime.node.parameters.NodeParameters;
 import org.knime.node.DefaultNode;
 import org.knime.node.DefaultNode.RequireFullDescription;
 import org.knime.node.DefaultNode.RequireIcon;
 import org.knime.node.DefaultNode.RequireModel;
 import org.knime.node.DefaultNode.RequireName;
 import org.knime.node.DefaultNode.RequireShortDescription;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.testing.TestWithWorkflowManager;
 
@@ -183,7 +183,7 @@ class DefaultNodeDescriptionTest extends TestWithWorkflowManager {
     void testViewSettings() {
         final var nc = addNode(complete(createStage(DefaultNode.class)//
             .addView(v -> v//
-                .parametersClass(MySettings.class) //
+                .settingsClass(MySettings.class) //
                 .description("A view") //
                 .page(p -> p.fromString(() -> "foo").relativePath("bar.html")) //
             )));
@@ -223,7 +223,7 @@ class DefaultNodeDescriptionTest extends TestWithWorkflowManager {
                     // No execute
                 }) //
             ).addView(v -> v//
-                .parametersClass(MySettings.class) //
+                .settingsClass(MySettings.class) //
                 .description("A view") //
                 .page(p -> p.fromString(() -> "foo").relativePath("bar.html")) //
             )));

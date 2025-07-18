@@ -54,6 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  *

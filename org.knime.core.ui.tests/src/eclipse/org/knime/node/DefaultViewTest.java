@@ -66,11 +66,11 @@ import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.DataServiceManager;
 import org.knime.core.webui.node.NodeWrapper;
 import org.knime.core.webui.node.PageResourceManager;
-import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.view.NodeViewManager;
 import org.knime.node.DefaultView.DefaultInitialData;
 import org.knime.node.DefaultView.RequireInitialData;
 import org.knime.node.DefaultView.RequireViewSettings;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.testing.DefaultNodeTestUtil;
 import org.knime.node.testing.TestWithWorkflowManager;
 
@@ -257,7 +257,7 @@ class DefaultViewTest extends TestWithWorkflowManager {
         final var settingsClass = TestSettings.class;
         final var viewNC = createAndAddNodeWithSingleInputAndInternalTableContainer(//
             v -> v//
-                .parametersClass(settingsClass) //
+                .settingsClass(settingsClass) //
                 .description("A view")//
                 .page(p -> p.fromString(() -> "foo").relativePath("bar.html")) //
                 .initialData(p -> p.data(vi -> {
@@ -284,7 +284,7 @@ class DefaultViewTest extends TestWithWorkflowManager {
         final var settingsClass = TestSettings.class;
         final var viewNC = createAndAddNodeWithSingleInputAndInternalTableContainer(//
             v -> v//
-                .parametersClass(settingsClass) //
+                .settingsClass(settingsClass) //
                 .description("A view")//
                 .page(p -> p.fromString(() -> "foo").relativePath("bar.html")) //
                 .initialData(p -> p.data(vi -> {
@@ -321,7 +321,7 @@ class DefaultViewTest extends TestWithWorkflowManager {
         final var settingsClass = TestSettings.class;
         final var viewNC = createAndAddNodeWithSingleInputAndInternalTableContainer(//
             v -> v//
-                .parametersClass(settingsClass) //
+                .settingsClass(settingsClass) //
                 .description("A view")//
                 .page(p -> p.fromString(() -> "foo").relativePath("bar.html")));
 

@@ -46,7 +46,7 @@
  * History
  *   Apr 9, 2024 (hornm): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog;
+package org.knime.node.parameters;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -56,8 +56,10 @@ import org.knime.core.data.def.IntCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
-import org.knime.node.parameters.NodeParametersInput;
+import org.knime.core.node.workflow.CredentialsProvider;
+import org.knime.core.node.workflow.FlowObjectStack;
 import org.knime.testing.util.TableTestUtil;
 
 /**
@@ -65,7 +67,16 @@ import org.knime.testing.util.TableTestUtil;
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
-class DefaultNodeSettingsContextTest {
+public class NodeParametersInputTest {
+
+    /**
+     * Widens scope of constructor of {@link NodeParametersInput}. Only used in tests.
+     */
+    @SuppressWarnings("javadoc")
+    public static final NodeParametersInput createDefaultNodeSettingsContext(final PortType[] inPortTypes,
+        final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider) {
+        return new NodeParametersInput(inPortTypes, specs, stack, credentialsProvider);
+    }
 
     @Test
     void testGetDataTableSpecsWithInactivePortObjectSpec() {
@@ -79,8 +90,8 @@ class DefaultNodeSettingsContextTest {
     void testGetDataTable() {
         var testTable = createTestTable();
 
-        var context = new NodeParametersInput(null, new PortObjectSpec[]{testTable.getDataTableSpec()}, null,
-            null, new PortObject[]{testTable});
+        var context = new NodeParametersInput(null, new PortObjectSpec[]{testTable.getDataTableSpec()}, null, null,
+            new PortObject[]{testTable});
         var specs = context.getDataTableSpecs();
         assertThat(specs).isEqualTo(new PortObjectSpec[]{testTable.getDataTableSpec()});
     }

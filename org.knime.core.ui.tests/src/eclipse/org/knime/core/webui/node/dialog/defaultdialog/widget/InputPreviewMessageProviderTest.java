@@ -69,7 +69,7 @@ import org.knime.node.parameters.widget.message.TextMessage.InputPreviewMessageP
  *
  * @author Martin Sillye, TNG Technology Consulting GmbH
  */
-public class TextMessageTest {
+public class InputPreviewMessageProviderTest {
 
     class DefaultTestInputPreviewMessageProvider implements InputPreviewMessageProvider {
         private Optional<String> m_cellContent;

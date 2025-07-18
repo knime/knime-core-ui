@@ -76,7 +76,6 @@ import org.knime.core.node.workflow.VariableType.BooleanType;
 import org.knime.core.node.workflow.VariableType.IntType;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
@@ -91,6 +90,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.Fl
 import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.array.ArrayWidget;

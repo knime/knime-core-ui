@@ -46,7 +46,7 @@
  * History
  *   Aug 10, 2022 (konrad-amtenbrink): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column;
+package org.knime.node.parameters.widget.choices.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -74,6 +74,7 @@ import org.knime.core.data.property.ColorModelNominal;
 import org.knime.core.data.property.ColorModelRange;
 import org.knime.core.data.vector.bitvector.SparseBitVectorCell;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColorColumnsProvider;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider;
 import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.DoubleColumnsProvider;
