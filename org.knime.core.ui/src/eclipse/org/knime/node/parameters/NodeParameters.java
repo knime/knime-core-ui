@@ -78,7 +78,6 @@ import org.knime.core.node.workflow.NodeInPort;
 import org.knime.core.webui.data.util.InputPortUtil;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMappings;
 import org.knime.core.webui.node.dialog.configmapping.NodeSettingsCorrectionUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.examples.ArrayWidgetExample;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigMappingsFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory;
@@ -86,14 +85,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsS
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval; // TODO Move to advanced/internal docs
+import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval; // TODO Move to advanced/internal docs
+import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval; // TODO Move to advanced/internal docs
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum; // TODO Move to advanced/internal docs
+import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat; // TODO Move to advanced/internal docs
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget; // TODO Move to advanced/internal docs
+import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget; // TODO Move to advanced/internal docs
+import org.knime.node.DefaultNode;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.updates.Effect;
@@ -118,31 +118,33 @@ import org.knime.node.parameters.widget.text.TextAreaWidget;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 
 /**
- * Marker interface for implementations that define a {@link DefaultNodeDialog}. The implementations allow one to
- * declare the dialog's settings and widgets in a compact manner. See
- * {@link org.knime.core.webui.node.dialog.defaultdialog package.info} for some known limitations.
+ * Marker interface for parameters of the model or a view of a {@link DefaultNode}. The implementations allow one to
+ * declare the dialog's settings and widgets in a compact manner.
  *
  * <h3>Constructors and fields</h3>
  * <p>
  * The implementations must follow the following conventions:
  * <ol>
  * <li>It must provide an empty constructor and optionally a constructor that receives a
- * {@link NodeParametersInput}.
+ * {@link NodeParametersInput}.</li>
  * <li>Fields must be of any of the supported types given in the below table overview.</li>
  * <li>Fields should be initialized with proper default values.
  * <ul>
  * <li>If no default value is provided, then the Java default is used
- * <li>Make sure that the persistors of non-primitive fields support null values if no proper default is provided
+ * <li>It is recommended to not use null values, as they are also not supported with few exceptions. Instead, it is
+ * possible to used {@link Optional} fields.</li>
  * </ul>
  * </ol>
  * <h3>Dialog widgets</h3>
  * <p>
  * All fields with visibility of at least 'package scope' and annotated with {@link Widget} are represented as dialog
- * widgets. They can additionally be annotated with {@link org.knime.core.webui.node.dialog.defaultdialog.widget other
- * widget annotations} to supply additional information (e.g. description, domain info, ...).
+ * widgets. They can additionally be annotated with {@link org.knime.node.parameters.widget other widget annotations} to
+ * supply additional information (e.g. description, domain info, ...).
  *
  * Fields without a widget annotation are still persisted and passed to the frontend as 'data' (but will not be visible
- * to the user). This can e.g. be used when a setting is only used in a dialog-less context, e.g. a port view. Refer to
+ * to the user). This can e.g. be used when a setting is only used in a dialog-less context, e.g. a port view. // TODO Move to advanced/internal docs
+ *
+ *  Refer to
  * {@link Effect} on how to hide a widget depending on other settings. With {@link Advanced}, widgets are hidden per
  * default, but can be shown when enabling advanced settings in the dialog.
  *
@@ -409,8 +411,7 @@ public interface NodeParameters extends Persistable, WidgetGroup {
      * @param context the {@link NodeParametersInput} to be used as constructor argument
      * @return a new {@link NodeParameters}-instance
      */
-    static <S extends NodeParameters> S createSettings(final Class<S> clazz,
-        final NodeParametersInput context) {
+    static <S extends NodeParameters> S createSettings(final Class<S> clazz, final NodeParametersInput context) {
         return InstantiationUtil.createDefaultNodeSettings(clazz, context);
     }
 
@@ -426,8 +427,8 @@ public interface NodeParameters extends Persistable, WidgetGroup {
     }
 
     @SuppressWarnings("javadoc")
-    static void saveSettings(final Class<? extends NodeParameters> settingsClass,
-        final NodeParameters settingsObject, final NodeSettingsWO settings) {
+    static void saveSettings(final Class<? extends NodeParameters> settingsClass, final NodeParameters settingsObject,
+        final NodeSettingsWO settings) {
         castAndSaveSettings(settingsClass, settingsObject, settings);
     }
 
@@ -488,8 +489,8 @@ public interface NodeParameters extends Persistable, WidgetGroup {
             ? new PortObject[0] // When mocked the container is not a child of a workflow manager
             : InputPortUtil.getInputPortObjectsExcludingVariablePort(nc);
 
-        return new NodeParametersInput(inPortTypes, specs, nc.getFlowObjectStack(), credentialsProvider,
-            inPortObjects, dialogNode);
+        return new NodeParametersInput(inPortTypes, specs, nc.getFlowObjectStack(), credentialsProvider, inPortObjects,
+            dialogNode);
     }
 
     private static PortType[] fallbackPortTypesFor(final PortObjectSpec[] specs) {
