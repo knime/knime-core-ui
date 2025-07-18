@@ -75,8 +75,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonChange;
@@ -127,16 +125,18 @@ import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.filehandling.core.port.FileSystemPortObject;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.node.parameters.Advanced;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.updates.ButtonReference;
 import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueReference;
-import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
@@ -1560,7 +1560,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testCharacterTypeDefaultValidation() {
-        class CharacterDefaultValidationTestSettings implements DefaultNodeSettings {
+        class CharacterDefaultValidationTestSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             char m_primitiveChar;
@@ -1586,7 +1586,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testCharacterTypeValidationConstraints() {
-        class CharacterWithMinLengthValidationTestSettings implements DefaultNodeSettings {
+        class CharacterWithMinLengthValidationTestSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @TextInputWidget(minLengthValidation = MinLenValidation.class)
@@ -1599,7 +1599,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testCharacterTypeMaxLengthValidationConstraints() {
-        class CharacterWithMaxLengthValidationTestSettings implements DefaultNodeSettings {
+        class CharacterWithMaxLengthValidationTestSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @TextInputWidget(maxLengthValidation = MaxLenValidation.class)
@@ -1612,7 +1612,7 @@ class UiSchemaOptionsTest {
 
     @Test
     void testCharacterTypeWithCustomPatternValidation() {
-        class CharacterWithCustomPatternValidationTestSettings implements DefaultNodeSettings {
+        class CharacterWithCustomPatternValidationTestSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @TextInputWidget(patternValidation = CustomPatternValidation.class)
