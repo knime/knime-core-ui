@@ -100,7 +100,7 @@ public final class ColumnTypeToPossibleTypeValueUtil {
      * @param preferredValueClass the name of the {@link DataType#getPreferredValueClass()}
      * @return the display for the given preferredValueClass
      */
-    static Optional<PossibleTypeValue> fromPreferredValueClassString(final String preferredValueClass) {
+    public static Optional<PossibleTypeValue> fromPreferredValueClassString(final String preferredValueClass) {
         return getText(preferredValueClass).map(t -> new PossibleTypeValue(preferredValueClass, t));
     }
 

@@ -66,6 +66,7 @@ import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.DataServiceManager;
 import org.knime.core.webui.node.NodeWrapper;
 import org.knime.core.webui.node.PageResourceManager;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.view.NodeViewManager;
 import org.knime.node.DefaultView.DefaultInitialData;
 import org.knime.node.DefaultView.RequireInitialData;
@@ -311,7 +312,7 @@ class DefaultViewTest extends TestWithWorkflowManager {
     private static void setViewSettingsWithValue(final NodeSettings nodeSettings, final String value) {
         final var settings = new TestSettings();
         settings.m_testString = value;
-        NodeParameters.saveSettings(TestSettings.class, settings, nodeSettings.addNodeSettings("view"));
+        NodeParametersUtil.saveSettings(TestSettings.class, settings, nodeSettings.addNodeSettings("view"));
     }
 
     @Test
@@ -330,7 +331,7 @@ class DefaultViewTest extends TestWithWorkflowManager {
         final var nodeSettings = new NodeSettings("viewSettings");
         final var settings = new TestSettings();
         settings.m_testString = TestSettings.INVALID_VALUE;
-        NodeParameters.saveSettings(settingsClass, settings, nodeSettings);
+        NodeParametersUtil.saveSettings(settingsClass, settings, nodeSettings);
 
         final var nodeViewManager = NodeViewManager.getInstance();
         assertThrows(InvalidSettingsException.class, () -> {

@@ -64,18 +64,19 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.StringChoice;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilterWidget;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
 import org.knime.node.parameters.widget.choices.filter.FlowVariableFilterWidget;
 import org.knime.node.parameters.widget.choices.filter.TwinlistWidget;
 import org.knime.node.parameters.widget.choices.util.AllFlowVariablesProvider;
@@ -188,7 +189,7 @@ class ChoicesWidgetUiSchemaOptionsTest {
 
     private static NodeParametersInput createDefaultNodeSettingsContext() {
         NodeParametersInput defaultNodeSettingsContext =
-            NodeParametersInput.createDefaultNodeSettingsContext(new PortType[]{BufferedDataTable.TYPE},
+            NodeParametersInputImpl.createDefaultNodeSettingsContext(new PortType[]{BufferedDataTable.TYPE},
                 new PortObjectSpec[]{new DataTableSpec(columnSpecs)}, null, null);
         return defaultNodeSettingsContext;
     }

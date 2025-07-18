@@ -54,7 +54,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.examples.ArrayWidgetExample;
+import org.knime.node.parameters.examples.ArrayWidgetExample;
 import org.knime.node.parameters.updates.StateProvider;
 
 /**

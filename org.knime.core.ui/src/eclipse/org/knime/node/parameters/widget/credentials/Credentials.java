@@ -44,69 +44,84 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 9, 2024 (hornm): created
+ *   12 Oct 2023 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.node.parameters;
+package org.knime.node.parameters.widget.credentials;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.jupiter.api.Test;
-import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.def.IntCell;
-import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.port.PortObject;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.PortType;
-import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
-import org.knime.core.node.workflow.CredentialsProvider;
-import org.knime.core.node.workflow.FlowObjectStack;
-import org.knime.testing.util.TableTestUtil;
+import java.util.Objects;
 
 /**
- * Tests for {@link NodeParametersInput}.
- *
- * @author Martin Horn, KNIME GmbH, Konstanz, Germany
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public class NodeParametersInputTest {
+public final class Credentials {
+
+    String m_username;
+
+    String m_password;
+
+    String m_secondFactor;
 
     /**
-     * Widens scope of constructor of {@link NodeParametersInput}. Only used in tests.
+     * Default constructor
      */
-    @SuppressWarnings("javadoc")
-    public static final NodeParametersInput createDefaultNodeSettingsContext(final PortType[] inPortTypes,
-        final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider) {
-        return new NodeParametersInput(inPortTypes, specs, stack, credentialsProvider);
+    public Credentials() {
+        this("", "", "");
     }
 
-    @Test
-    void testGetDataTableSpecsWithInactivePortObjectSpec() {
-        var context = new NodeParametersInput(null,
-            new PortObjectSpec[]{new DataTableSpec("test"), InactiveBranchPortObjectSpec.INSTANCE}, null, null);
-        var specs = context.getDataTableSpecs();
-        assertThat(specs).isEqualTo(new PortObjectSpec[]{new DataTableSpec("test"), null});
+    /**
+     * @param username
+     * @param password
+     */
+    public Credentials(final String username, final String password) {
+        this(username, password, "");
     }
 
-    @Test
-    void testGetDataTable() {
-        var testTable = createTestTable();
-
-        var context = new NodeParametersInput(null, new PortObjectSpec[]{testTable.getDataTableSpec()}, null, null,
-            new PortObject[]{testTable});
-        var specs = context.getDataTableSpecs();
-        assertThat(specs).isEqualTo(new PortObjectSpec[]{testTable.getDataTableSpec()});
+    /**
+     * @param username
+     * @param password
+     * @param secondFactor
+     */
+    public Credentials(final String username, final String password, final String secondFactor) {
+        m_username = username;
+        m_password = password;
+        m_secondFactor = secondFactor;
     }
 
-    private static BufferedDataTable createTestTable() {
+    /**
+     * @return the username
+     */
+    public String getUsername() {
+        return m_username;
+    }
 
-        var intCell = new IntCell(0);
-        var testSpec = new TableTestUtil.SpecBuilder();
-        testSpec.addColumn("testColumn", intCell.getType());
+    /**
+     * @return the password
+     */
+    public String getPassword() {
+        return m_password;
+    }
 
-        final var builder = new TableTestUtil.TableBuilder(testSpec.build());
+    /**
+     * @return the secondFactor
+     */
+    public String getSecondFactor() {
+        return m_secondFactor;
+    }
 
-        var dataCells = new Object[]{intCell};
-        builder.addRow(dataCells);
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof Credentials other) {
+            return Objects.equals(m_username, other.m_username) && Objects.equals(m_password, other.m_password)
+                && Objects.equals(m_secondFactor, other.m_secondFactor);
+        }
+        return false;
+    }
 
-        return builder.build().get();
+    @Override
+    public int hashCode() {
+        return Objects.hash(m_username, m_password, m_secondFactor);
     }
 }

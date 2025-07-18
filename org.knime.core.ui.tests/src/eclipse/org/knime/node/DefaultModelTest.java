@@ -70,6 +70,7 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.port.inactive.InactiveBranchPortObject;
 import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
 import org.knime.core.node.workflow.NodeContainer;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.DefaultModel.ConfigureInput;
 import org.knime.node.DefaultModel.ConfigureOrRearrangerConsumer;
@@ -392,7 +393,7 @@ class DefaultModelTest extends TestWithWorkflowManager {
     private static void setSettingsWithValue(final NodeSettings nodeSettings, final String value) {
         final var settings = new TestSettings();
         settings.m_testString = value;
-        NodeParameters.saveSettings(TestSettings.class, settings, nodeSettings.addNodeSettings("model"));
+        NodeParametersUtil.saveSettings(TestSettings.class, settings, nodeSettings.addNodeSettings("model"));
     }
 
 }

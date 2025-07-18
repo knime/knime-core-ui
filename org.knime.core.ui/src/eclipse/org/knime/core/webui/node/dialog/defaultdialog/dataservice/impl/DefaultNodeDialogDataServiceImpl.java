@@ -60,6 +60,7 @@ import java.util.concurrent.ExecutionException;
 
 import org.knime.core.webui.data.DataServiceContext;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DataServiceRequestHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultNodeDialogDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Result;
@@ -71,9 +72,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.UpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.ErrorHandlingSingleton;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ExternalBuiltInValidationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ExternalValidation;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
-import org.knime.node.parameters.NodeParameters;
 
 /**
  * Implementation of the DefaultNodeDialogDataService.
@@ -116,7 +117,7 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
     }
 
     static NodeParametersInput createContext() {
-        return NodeParameters.createDefaultNodeSettingsContext(DataServiceContext.get().getInputSpecs());
+        return NodeParametersUtil.createDefaultNodeSettingsContext(DataServiceContext.get().getInputSpecs());
     }
 
     @Override

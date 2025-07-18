@@ -92,13 +92,13 @@ import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.NodeDialogManagerTest;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.utils.AbstractSettingsDocumentBuilder;
 import org.knime.core.webui.node.dialog.utils.FlowVariablesInputNodeFactory;
 import org.knime.core.webui.page.Page;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.widget.credentials.Credentials;
 import org.knime.testing.node.dialog.NodeDialogNodeModel;
 import org.knime.testing.util.WorkflowManagerUtil;
 
@@ -914,8 +914,8 @@ public class DefaultNodeDialogTest {
             }
             var modelSettings = nodeSettings.addNodeSettings("model");
             var viewSettings = nodeSettings.addNodeSettings("view");
-            NodeParameters.saveSettings(ModelSettings.class, super.m_modelSettings, modelSettings);
-            NodeParameters.saveSettings(ViewSettings.class, super.m_viewSettings, viewSettings);
+            NodeParametersUtil.saveSettings(ModelSettings.class, super.m_modelSettings, modelSettings);
+            NodeParametersUtil.saveSettings(ViewSettings.class, super.m_viewSettings, viewSettings);
             return nodeSettings;
         }
 

@@ -54,9 +54,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilter;
-
 /**
  * Configure the labels used in a widget including a twin-list, i.e. e.g. for a {@link TypedStringFilter} or a
  * {@link StringFilter}.

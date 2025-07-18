@@ -58,6 +58,7 @@ import org.knime.core.node.port.PortObjectHolder;
 import org.knime.core.webui.data.ApplyDataService;
 import org.knime.core.webui.data.InitialDataService;
 import org.knime.core.webui.data.RpcDataService;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.view.NodeView;
 import org.knime.core.webui.page.Page;
 import org.knime.node.DefaultView.ViewInput;
@@ -135,7 +136,7 @@ final class DefaultViewToNodeViewAdapter implements NodeView {
         if (viewSettingsOptional.isPresent()) {
             final var viewSettingsClass = viewSettingsOptional.get();
             // This can already throw if loading from node settings throws
-            final var loadedSettings = NodeParameters.loadSettings(settings, viewSettingsClass);
+            final var loadedSettings = NodeParametersUtil.loadSettings(settings, viewSettingsClass);
             // Additional custom validation of the settings
             loadedSettings.validate();
         }
@@ -151,7 +152,7 @@ final class DefaultViewToNodeViewAdapter implements NodeView {
         if (viewSettingsOptional.isPresent()) {
             final var viewSettingsClass = viewSettingsOptional.get();
             try {
-                return NodeParameters.loadSettings(settings, viewSettingsClass);
+                return NodeParametersUtil.loadSettings(settings, viewSettingsClass);
             } catch (InvalidSettingsException ex) {
                 throw new IllegalStateException("Settings should be valid.", ex);
             }

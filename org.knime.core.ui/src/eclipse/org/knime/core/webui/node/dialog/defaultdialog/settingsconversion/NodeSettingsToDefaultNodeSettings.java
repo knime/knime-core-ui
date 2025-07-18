@@ -55,6 +55,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
 import org.knime.core.webui.node.dialog.internal.LoadWarningsUtil;
 import org.knime.node.parameters.NodeParametersInput;
@@ -126,7 +127,7 @@ public final class NodeSettingsToDefaultNodeSettings {
 
     private NodeParameters fromNodeSettingsToDefaultNodeSettings(final SettingsType type,
         final NodeSettingsRO nodeSettings) throws InvalidSettingsException {
-        return NodeParameters.loadSettings(nodeSettings, m_settingsClasses.get(type));
+        return NodeParametersUtil.loadSettings(nodeSettings, m_settingsClasses.get(type));
     }
 
     private NodeParameters fromNodeSettingsToDefaultNodeSettingsOrDefault(final SettingsType type,
@@ -135,7 +136,7 @@ public final class NodeSettingsToDefaultNodeSettings {
             return fromNodeSettingsToDefaultNodeSettings(type, nodeSettings);
         } catch (InvalidSettingsException ex) {
             LoadWarningsUtil.warnAboutDefaultSettingsBeingUsedInstead(ex);
-            return NodeParameters.createSettings(m_settingsClasses.get(type), m_context);
+            return NodeParametersUtil.createSettings(m_settingsClasses.get(type), m_context);
         }
     }
 

@@ -66,8 +66,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.Pe
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.NodeSettingsToDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -129,12 +129,12 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
     public void validateNodeSettingsAndVariables(final Map<SettingsType, NodeAndVariableSettingsRO> settings)
         throws InvalidSettingsException {
         for (var entry : settings.entrySet()) {
-            NodeParameters.loadSettings(entry.getValue(), m_settingsClasses.get(entry.getKey()));
+            NodeParametersUtil.loadSettings(entry.getValue(), m_settingsClasses.get(entry.getKey()));
         }
     }
 
     private static NodeParametersInput createContext(final PortObjectSpec[] specs) {
-        return NodeParameters.createDefaultNodeSettingsContext(specs);
+        return NodeParametersUtil.createDefaultNodeSettingsContext(specs);
     }
 
     /**

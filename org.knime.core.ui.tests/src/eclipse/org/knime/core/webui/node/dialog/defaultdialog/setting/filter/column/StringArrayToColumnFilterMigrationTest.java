@@ -54,6 +54,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 
 class StringArrayToColumnFilterMigrationTest {
 

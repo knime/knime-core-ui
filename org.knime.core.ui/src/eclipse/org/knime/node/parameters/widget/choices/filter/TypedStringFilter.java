@@ -46,7 +46,7 @@
  * History
  *   15 Dec 2022 Paul Bärnreuther: created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes;
+package org.knime.node.parameters.widget.choices.filter;
 
 import java.util.Arrays;
 import java.util.List;
@@ -55,11 +55,11 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.DoNotPersistSelected;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.ManualFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.PatternFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.PatternFilter.PatternMode;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilterMode;
 import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.persistence.Persistor;
 
@@ -84,16 +84,22 @@ public abstract class TypedStringFilter<T extends TypeFilter> implements Persist
 
     /**
      * The way the selection is determined by
+     *
+     * @noreference
      */
     public TypedStringFilterMode m_mode; //NOSONAR
 
     /**
      * Settings regarding selection by pattern matching (regex or wildcard)
+     *
+     * @noreference
      */
     public PatternFilter m_patternFilter; //NOSONAR
 
     /**
      * Settings regarding manual selection
+     *
+     * @noreference
      */
     public ManualFilter m_manualFilter; //NOSONAR
 

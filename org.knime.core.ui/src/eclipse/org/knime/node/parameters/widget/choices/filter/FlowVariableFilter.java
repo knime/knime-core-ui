@@ -46,16 +46,15 @@
  * History
  *   15 Dec 2022 Paul Bärnreuther: created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable;
+package org.knime.node.parameters.widget.choices.filter;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
 import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableTypeFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilterMode;
-import org.knime.node.parameters.widget.choices.filter.FlowVariableFilterWidget;
 
 /**
  * A class used to store several representation of column choices. I.e. the columns can be determined using one of the

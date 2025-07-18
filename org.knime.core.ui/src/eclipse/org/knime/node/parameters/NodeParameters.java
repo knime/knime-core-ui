@@ -56,45 +56,14 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.IntStream;
 
 import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.dialog.DialogNode;
-import org.knime.core.node.port.PortObject;
-import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.PortType;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.util.ColumnFilter;
-import org.knime.core.node.workflow.CredentialsProvider;
-import org.knime.core.node.workflow.NativeNodeContainer;
-import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.node.workflow.NodeInPort;
-import org.knime.core.webui.data.util.InputPortUtil;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMappings;
-import org.knime.core.webui.node.dialog.configmapping.NodeSettingsCorrectionUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.examples.ArrayWidgetExample;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigMappingsFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval; // TODO Move to advanced/internal docs
-import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval; // TODO Move to advanced/internal docs
-import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval; // TODO Move to advanced/internal docs
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum; // TODO Move to advanced/internal docs
-import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat; // TODO Move to advanced/internal docs
-import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget; // TODO Move to advanced/internal docs
-import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget; // TODO Move to advanced/internal docs
 import org.knime.node.DefaultNode;
 import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.examples.ArrayWidgetExample;
 import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.widget.OptionalWidget;
@@ -106,8 +75,11 @@ import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilterWidget;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
 import org.knime.node.parameters.widget.choices.filter.FlowVariableFilterWidget;
+import org.knime.node.parameters.widget.choices.filter.StringFilter;
 import org.knime.node.parameters.widget.choices.filter.TwinlistWidget;
+import org.knime.node.parameters.widget.credentials.Credentials;
 import org.knime.node.parameters.widget.credentials.CredentialsWidget;
 import org.knime.node.parameters.widget.credentials.PasswordWidget;
 import org.knime.node.parameters.widget.credentials.UsernameWidget;
@@ -181,8 +153,7 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
  * <td>Text Input</td>
  * <td>{@link TextAreaWidget}<br>
  * {@link TextInputWidget}<br>
- * {@link RichTextInputWidget}<br>
- * {@link DateTimeFormatPickerWidget}</td>
+ * {@link RichTextInputWidget}</td>
  * <td rowspan="2">✓</td>
  * </tr>
  * <tr>
@@ -220,30 +191,6 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
  * <td>✓</td>
  * </tr>
  * <tr>
- * <td>{@link Interval}</td>
- * <td>Date or time interval</td>
- * <td>{@link IntervalWidget} (for switching between date and time)</td>
- * <td>✓</td>
- * </tr>
- * <tr>
- * <td>{@link TimeInterval}</td>
- * <td>Time interval</td>
- * <td></td>
- * <td>✓</td>
- * </tr>
- * <tr>
- * <td>{@link DateInterval}</td>
- * <td>Date interval</td>
- * <td></td>
- * <td>✓</td>
- * </tr>
- * <tr>
- * <td>{@link TemporalFormat}</td>
- * <td></td>
- * <td>{@link DateTimeFormatPickerWidget}</td>
- * <td></td>
- * </tr>
- * <tr>
  * <td>String[]</td>
  * <td>Combo Box. Add a {@link ChoicesProvider} with a {@link StringChoicesProvider}.</td>
  * <td>{@link TwinlistWidget}</td>
@@ -255,12 +202,6 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
  * <td>{@link ValueSwitchWidget}<br>
  * {@link RadioButtonsWidget}</td>
  * <td>✓</td>
- * </tr>
- * <tr>
- * <td>{@link StringOrEnum}</td>
- * <td>Use a {@link ChoicesProvider} for setting the dynamic choices.</td>
- * <td><br>
- * <td></td>
  * </tr>
  * <tr>
  * <td>{@link Array}/{@link Collection}/{@link List} of {@link NodeParameters} (**)</td>
@@ -354,147 +295,4 @@ public interface NodeParameters extends Persistable, WidgetGroup {
     default void validate() throws InvalidSettingsException {
         // No validation per default
     }
-
-    /**
-     * Verifies a given node settings implementation, making sure that it follows the contract of
-     * {@link NodeParameters}, as defined in its documentation.
-     *
-     * @param settingsClass the settings class to verify
-     */
-    static void verifySettings(final Class<? extends NodeParameters> settingsClass) {
-        try {
-            settingsClass.getDeclaredConstructor();
-        } catch (NoSuchMethodException e) {
-            NodeLogger.getLogger(NodeParameters.class).errorWithFormat(
-                "Default node settings class %s does not provide a default constructor.",
-                settingsClass.getSimpleName());
-        } catch (SecurityException e) {
-            NodeLogger.getLogger(NodeParameters.class)
-                .error(String.format(
-                    "Exception when attempting to access default constructor of default node settings class %s.",
-                    settingsClass.getSimpleName()), e);
-        }
-    }
-
-    /**
-     * Helper to serialize a {@link NodeParameters} of specified class from a {@link NodeSettingsRO}-object.
-     *
-     * @param <S>
-     * @param settings the settings-object to create the instance from
-     * @param clazz default node settings class
-     * @return a new {@link NodeParameters}-instance
-     * @throws InvalidSettingsException if the settings are invalid
-     */
-    static <S extends NodeParameters> S loadSettings(final NodeSettingsRO settings, final Class<S> clazz)
-        throws InvalidSettingsException {
-        return SettingsLoaderFactory.loadSettings(clazz, settings);
-    }
-
-    /**
-     * Helper to create a new {@link NodeParameters} of the specified type.
-     *
-     * @param <S> the type of DefaultNodeSettings
-     * @param clazz default node settings class
-     * @param specs the specs with which to create the settings. NOTE: can contain {@code null} values, e.g., if input
-     *            port is not connected
-     * @return a new {@link NodeParameters}-instance
-     */
-    static <S extends NodeParameters> S createSettings(final Class<S> clazz, final PortObjectSpec[] specs) {
-        return InstantiationUtil.createDefaultNodeSettings(clazz, createDefaultNodeSettingsContext(specs));
-    }
-
-    /**
-     * Helper to create a new {@link NodeParameters} of the specified type.
-     *
-     * @param <S> the type of DefaultNodeSettings
-     * @param clazz default node settings class
-     * @param context the {@link NodeParametersInput} to be used as constructor argument
-     * @return a new {@link NodeParameters}-instance
-     */
-    static <S extends NodeParameters> S createSettings(final Class<S> clazz, final NodeParametersInput context) {
-        return InstantiationUtil.createDefaultNodeSettings(clazz, context);
-    }
-
-    /**
-     * Creates a new {@link NodeParameters} object of the specified type.
-     *
-     * @param <S> the type of DefaultNodeSettings
-     * @param clazz the class of the NodeParameters type
-     * @return a new instance of the DefaultNodeSettingsType
-     */
-    static <S extends NodeParameters> S createSettings(final Class<S> clazz) {
-        return InstantiationUtil.createInstance(clazz);
-    }
-
-    @SuppressWarnings("javadoc")
-    static void saveSettings(final Class<? extends NodeParameters> settingsClass, final NodeParameters settingsObject,
-        final NodeSettingsWO settings) {
-        castAndSaveSettings(settingsClass, settingsObject, settings);
-    }
-
-    @SuppressWarnings("unchecked") // we check that the cast is save
-    private static <S extends NodeParameters> void castAndSaveSettings(final Class<S> settingsClass,
-        final NodeParameters settingsObject, final NodeSettingsWO settings) {
-        CheckUtils.checkArgument(settingsClass.isInstance(settingsObject),
-            "The provided settingsObject is not an instance of the provided settingsClass.");
-        SettingsSaverFactory.saveSettings((S)settingsObject, settings);
-
-    }
-
-    /**
-     * @param <S> the type of DefaultNodeSettings
-     * @param settingsClass
-     * @param settingsObject
-     * @return the tree of modifications that needs to be traversed after saving to node settings in order to align
-     *         settings and flow variables.
-     * @see NodeSettingsCorrectionUtil
-     */
-    static <S extends NodeParameters> ConfigMappings getConfigMappings(final Class<S> settingsClass,
-        final NodeParameters settingsObject) {
-        return ConfigMappingsFactory.createConfigMappings(settingsClass, settingsObject);
-    }
-
-    /**
-     * Method to create a new {@link NodeParametersInput} from input {@link PortObjectSpec PortObjectSpecs}.
-     *
-     * @param specs the non-null specs with which to create the schema
-     * @return the newly created context
-     * @throws NullPointerException if the argument is null
-     */
-    static NodeParametersInput createDefaultNodeSettingsContext(final PortObjectSpec[] specs) {
-        Objects.requireNonNull(specs, () -> "Port object specs must not be null.");
-        final var nodeContext = NodeContext.getContext();
-        if (nodeContext == null) {
-            // can only happen during tests
-            return new NodeParametersInput(fallbackPortTypesFor(specs), specs, null, null, null, null);
-        }
-        final var nc = nodeContext.getNodeContainer();
-        final CredentialsProvider credentialsProvider;
-        final PortType[] inPortTypes;
-        DialogNode dialogNode = null;
-        if (nc instanceof NativeNodeContainer nnc) {
-            credentialsProvider = nnc.getNode().getCredentialsProvider();
-            // skip hidden flow variable input (mickey mouse ear) - not exposed to node implementation
-            inPortTypes = IntStream.range(1, nnc.getNrInPorts()).mapToObj(nnc::getInPort).map(NodeInPort::getPortType)
-                .toArray(PortType[]::new);
-            if (nnc.getNode().getNodeModel() instanceof DialogNode model) {
-                dialogNode = model;
-            }
-        } else {
-            credentialsProvider = null;
-            inPortTypes = fallbackPortTypesFor(specs);
-        }
-
-        final var inPortObjects = nc.getParent() == null // This function is used by tests that mock the container
-            ? new PortObject[0] // When mocked the container is not a child of a workflow manager
-            : InputPortUtil.getInputPortObjectsExcludingVariablePort(nc);
-
-        return new NodeParametersInput(inPortTypes, specs, nc.getFlowObjectStack(), credentialsProvider, inPortObjects,
-            dialogNode);
-    }
-
-    private static PortType[] fallbackPortTypesFor(final PortObjectSpec[] specs) {
-        return IntStream.range(0, specs.length).mapToObj(i -> PortObject.TYPE).toArray(PortType[]::new);
-    }
-
 }

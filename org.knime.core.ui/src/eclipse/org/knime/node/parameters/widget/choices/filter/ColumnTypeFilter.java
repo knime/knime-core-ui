@@ -44,29 +44,71 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 13, 2025 (paulbaernreuther): created
+ *   Mar 4, 2025 (paulbaernreuther): created
  */
-package org.knime.node.parameters.widget.choices;
+package org.knime.node.parameters.widget.choices.filter;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
 
-import org.knime.node.parameters.NodeParametersInput;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnTypeToPossibleTypeValueUtil;
+import org.knime.node.parameters.widget.choices.TypedStringChoice.PossibleTypeValue;
 
 /**
- * Used to provide the choices of the domain of a column within the table of the first port.
+ * The type filter used within a {@link ColumnFilter}.
  *
  * @author Paul Bärnreuther
  */
-public interface DomainChoicesProvider extends StringChoicesProvider {
+final class ColumnTypeFilter extends TypeFilter {
 
     /**
-     * @return The column to extract the domain from. This can be null or a missing column.
+     * Default constructor.
      */
-    String getColumnName();
+    ColumnTypeFilter() {
+        super();
+    }
+
+    /**
+     * @param selectedTypes
+     */
+    ColumnTypeFilter(final String[] selectedTypes) {
+        super(selectedTypes);
+    }
 
     @Override
-    default List<String> choices(final NodeParametersInput context) {
-        return DomainChoicesUtil.getChoicesByContextAndColumn(context, getColumnName());
+    protected Optional<PossibleTypeValue> fromTypeId(final String typeId) {
+        return ColumnTypeToPossibleTypeValueUtil.fromPreferredValueClassString(typeId);
+    }
+
+    /**
+     * Filter the columns based on the selected types
+     *
+     * @param choices the list of all possible columns
+     * @return the array of currently selected columns
+     */
+    String[] filter(final List<DataColumnSpec> choices) {
+        return choices.stream().filter(getFilterPredicate()).map(DataColumnSpec::getName).toArray(String[]::new);
+    }
+
+    /**
+     * Returns a predicate that evaluates to true for columns that match the selected types.
+     *
+     * @return the predicate for filtering columns by type
+     */
+    Predicate<DataColumnSpec> getFilterPredicate() {
+        var selectedTypes = Set.of(m_selectedTypes);
+        return col -> selectedTypes.contains(columnToTypeString(col));
+    }
+
+    /**
+     * @param colSpec the column spec
+     * @return the string representation of the data type
+     */
+    static String columnToTypeString(final DataColumnSpec colSpec) {
+        return colSpec.getType().getPreferredValueClass().getName();
     }
 
 }

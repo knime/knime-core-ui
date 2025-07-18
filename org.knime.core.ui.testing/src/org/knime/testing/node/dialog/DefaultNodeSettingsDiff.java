@@ -62,6 +62,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.node.parameters.NodeParameters;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
@@ -238,7 +239,7 @@ final class DefaultNodeSettingsDiff {
     static String toXmlString(final NodeParameters settings) throws IOException {
         try (final var os = new ByteArrayOutputStream()) {
             final var toPersist = new NodeSettings("test");
-            NodeParameters.saveSettings(settings.getClass(), settings, toPersist);
+            NodeParametersUtil.saveSettings(settings.getClass(), settings, toPersist);
             toPersist.saveToXML(os);
             return os.toString(StandardCharsets.UTF_8.name());
         }

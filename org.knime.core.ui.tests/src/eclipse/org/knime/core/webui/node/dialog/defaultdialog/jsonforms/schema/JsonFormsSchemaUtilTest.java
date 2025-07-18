@@ -69,7 +69,7 @@ import java.time.ZonedDateTime;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.node.parameters.NodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
@@ -600,7 +600,7 @@ class JsonFormsSchemaUtilTest {
     }
 
     private static JsonNode getProperties(final Class<? extends WidgetGroup> clazz, final PortObjectSpec... specs) {
-        return JsonFormsSchemaUtil.buildSchema(clazz, NodeParameters.createDefaultNodeSettingsContext(specs),
+        return JsonFormsSchemaUtil.buildSchema(clazz, NodeParametersUtil.createDefaultNodeSettingsContext(specs),
             JsonFormsDataUtil.getMapper()).get("properties");
     }
 

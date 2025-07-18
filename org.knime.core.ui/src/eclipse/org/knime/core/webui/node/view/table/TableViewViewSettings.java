@@ -54,7 +54,6 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.StringArrayToColumnFilterMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.selection.SelectionCheckboxesToSelectionModeMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.selection.SelectionMode;
@@ -82,6 +81,7 @@ import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MaxValidation;

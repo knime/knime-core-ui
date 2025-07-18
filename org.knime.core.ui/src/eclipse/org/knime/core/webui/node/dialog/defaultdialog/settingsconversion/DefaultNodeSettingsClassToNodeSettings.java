@@ -53,6 +53,7 @@ import java.util.Map;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.NodeParameters;
 
@@ -88,7 +89,7 @@ public final class DefaultNodeSettingsClassToNodeSettings {
     }
 
     private NodeParameters constructDefaultNodeSettings(final SettingsType type) {
-        return NodeParameters.createSettings(m_settingsClasses.get(type), m_context);
+        return NodeParametersUtil.createSettings(m_settingsClasses.get(type), m_context);
     }
 
 }

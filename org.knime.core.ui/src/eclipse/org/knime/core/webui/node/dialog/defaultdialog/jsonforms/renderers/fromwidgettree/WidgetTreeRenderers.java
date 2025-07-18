@@ -64,11 +64,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileRea
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.widget.credentials.Credentials;
 import org.knime.node.parameters.widget.text.TextAreaWidget;
 
 /**

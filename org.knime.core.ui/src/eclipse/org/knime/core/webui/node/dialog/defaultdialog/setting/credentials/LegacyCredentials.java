@@ -52,6 +52,7 @@ import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.widget.credentials.Credentials;
 
 /**
  * Wrapper around {@link Credentials} to help support

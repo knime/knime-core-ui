@@ -46,13 +46,13 @@
  * History
  *   Dec 14, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.examples;
+package org.knime.node.parameters.examples;
 
-import org.knime.core.webui.node.dialog.defaultdialog.examples.ArrayWidgetExample.ElementClass.ArrayWidgetElementLayout.HorizontalLayout1;
-import org.knime.core.webui.node.dialog.defaultdialog.examples.ArrayWidgetExample.ElementClass.ArrayWidgetElementLayout.HorizontalLayout2;
-import org.knime.core.webui.node.dialog.defaultdialog.examples.ArrayWidgetExample.OuterSection;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.examples.ArrayWidgetExample.OuterSection;
+import org.knime.node.parameters.examples.ArrayWidgetExample.ElementClass.ArrayWidgetElementLayout.HorizontalLayout1;
+import org.knime.node.parameters.examples.ArrayWidgetExample.ElementClass.ArrayWidgetElementLayout.HorizontalLayout2;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.HorizontalLayout;
 import org.knime.node.parameters.layout.Layout;

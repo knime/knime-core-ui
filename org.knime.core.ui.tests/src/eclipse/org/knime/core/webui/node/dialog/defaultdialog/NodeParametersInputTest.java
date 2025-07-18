@@ -44,66 +44,70 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   4 Apr 2024 (Robin Gerling): created
+ *   Apr 9, 2024 (hornm): created
  */
-package org.knime.node.parameters.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.def.BooleanCell;
-import org.knime.core.data.def.StringCell;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import org.junit.jupiter.api.Test;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.def.IntCell;
+import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortType;
+import org.knime.core.node.port.inactive.InactiveBranchPortObjectSpec;
+import org.knime.core.node.workflow.CredentialsProvider;
+import org.knime.core.node.workflow.FlowObjectStack;
 import org.knime.node.parameters.NodeParametersInput;
+import org.knime.testing.util.TableTestUtil;
 
 /**
+ * Tests for {@link NodeParametersInput}.
  *
- * @author Robin Gerling
+ * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
-public final class DomainChoicesUtil {
-
-    private DomainChoicesUtil() {
-    }
+public class NodeParametersInputTest {
 
     /**
-     *
-     * @param context the context which possibly contains the column spec to calculate the domain on
-     * @param colName the column for which the domain should be calculated
-     * @return the domain values for the given column
-     * @throws WidgetHandlerException in case of no domain or an empty domain
+     * Widens scope of constructor of {@link NodeParametersInput}. Only used in tests.
      */
-    public static List<String> getChoicesByContextAndColumn(final NodeParametersInput context,
-        final String colName) throws WidgetHandlerException {
-        final var spec = context.getDataTableSpec(0);
-        if (spec.isEmpty()) {
-            return Collections.emptyList();
-        }
-        final var colSpec = spec.get().getColumnSpec(colName);
-        if (colSpec == null) {
-            return Collections.emptyList();
-        }
-        final var colDomain = getDomainValues(colSpec);
-        if (colDomain.isEmpty()) {
-            throw new WidgetHandlerException(String.format(
-                "No column domain values present for column \"%s\". Consider using a Domain Calculator node.",
-                colName));
-        }
-        return colDomain.get();
+    @SuppressWarnings("javadoc")
+    public static final NodeParametersInput createDefaultNodeSettingsContext(final PortType[] inPortTypes,
+        final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider) {
+        return new NodeParametersInputImpl(inPortTypes, specs, stack, credentialsProvider);
     }
 
-    /**
-     * @param colSpec the {@link DataColumnSpec} to obtain the domain values from
-     * @return the possible domain values of the given {@link DataColumnSpec}
-     */
-    public static Optional<List<String>> getDomainValues(final DataColumnSpec colSpec) {
-        var colDomain = colSpec.getDomain().getValues();
-        if (colDomain == null) {
-            return Optional.empty();
-        }
-        return Optional.of((colDomain.stream().map(cell -> cell.getClass() == BooleanCell.class
-            ? ((BooleanCell)cell).toString() : ((StringCell)cell).getStringValue())).toList());
+    @Test
+    void testGetDataTableSpecsWithInactivePortObjectSpec() {
+        var context = new NodeParametersInputImpl(null,
+            new PortObjectSpec[]{new DataTableSpec("test"), InactiveBranchPortObjectSpec.INSTANCE}, null, null);
+        var specs = context.getDataTableSpecs();
+        assertThat(specs).isEqualTo(new PortObjectSpec[]{new DataTableSpec("test"), null});
     }
 
+    @Test
+    void testGetDataTable() {
+        var testTable = createTestTable();
+
+        var context = new NodeParametersInputImpl(null, new PortObjectSpec[]{testTable.getDataTableSpec()}, null, null,
+            new PortObject[]{testTable});
+        var specs = context.getDataTableSpecs();
+        assertThat(specs).isEqualTo(new PortObjectSpec[]{testTable.getDataTableSpec()});
+    }
+
+    private static BufferedDataTable createTestTable() {
+
+        var intCell = new IntCell(0);
+        var testSpec = new TableTestUtil.SpecBuilder();
+        testSpec.addColumn("testColumn", intCell.getType());
+
+        final var builder = new TableTestUtil.TableBuilder(testSpec.build());
+
+        var dataCells = new Object[]{intCell};
+        builder.addRow(dataCells);
+
+        return builder.build().get();
+    }
 }

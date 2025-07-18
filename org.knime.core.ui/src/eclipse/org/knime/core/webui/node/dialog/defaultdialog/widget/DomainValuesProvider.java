@@ -51,11 +51,11 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget;
 import java.util.Arrays;
 import java.util.List;
 
+import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.DomainChoicesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.ErrorHandlingSingleton;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.StateProvider;
-import org.knime.node.parameters.widget.choices.DomainChoicesUtil;
 
 /**
  *

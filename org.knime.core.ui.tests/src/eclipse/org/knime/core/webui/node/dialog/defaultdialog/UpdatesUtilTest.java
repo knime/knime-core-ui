@@ -85,8 +85,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidge
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.CheckboxRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
@@ -106,7 +104,9 @@ import org.knime.node.parameters.widget.choices.DataTypeChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilterWidget;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
 import org.knime.node.parameters.widget.choices.filter.FlowVariableFilterWidget;
 import org.knime.node.parameters.widget.choices.util.FlowVariableChoicesProvider;
 import org.knime.node.parameters.widget.message.TextMessage;
@@ -126,7 +126,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class UpdatesUtilTest {
 
     private static NodeParametersInput createDefaultNodeSettingsContext() {
-        return NodeParametersInput.createDefaultNodeSettingsContext(new PortType[]{BufferedDataTable.TYPE},
+        return NodeParametersInputImpl.createDefaultNodeSettingsContext(new PortType[]{BufferedDataTable.TYPE},
             new PortObjectSpec[]{null}, null, null);
     }
 

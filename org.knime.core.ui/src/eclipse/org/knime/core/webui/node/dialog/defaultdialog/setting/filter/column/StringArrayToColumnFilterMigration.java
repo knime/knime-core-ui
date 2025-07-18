@@ -54,6 +54,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.node.parameters.migration.ConfigMigration;
 import org.knime.node.parameters.migration.NodeSettingsMigration;
 import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 
 /**
  * The data structure of a TwinList changed from an array of strings to a more complex representation by a

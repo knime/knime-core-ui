@@ -46,7 +46,7 @@
  * History
  *   15 Dec 2022 Paul Bärnreuther: created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column;
+package org.knime.node.parameters.widget.choices.filter;
 
 import java.util.List;
 import java.util.Objects;
@@ -55,9 +55,7 @@ import java.util.stream.Stream;
 
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilterMode;
-import org.knime.node.parameters.widget.choices.filter.ColumnFilterWidget;
 
 /**
  * A class used to store several representation of column choices. I.e. the columns can be determined using one of the

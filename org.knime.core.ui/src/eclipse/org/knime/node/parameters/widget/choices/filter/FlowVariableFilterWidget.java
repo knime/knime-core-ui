@@ -54,7 +54,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.util.FlowVariableChoicesProvider;
 

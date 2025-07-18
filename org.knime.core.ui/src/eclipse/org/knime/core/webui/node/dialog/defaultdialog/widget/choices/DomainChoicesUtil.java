@@ -44,43 +44,66 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   13 May 2025 (Robin Gerling): created
+ *   4 Apr 2024 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.choices;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
-import org.knime.node.parameters.widget.choices.TypedStringChoice;
-import org.knime.node.parameters.widget.choices.filter.TypedStringFilter;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.def.BooleanCell;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
- * Common options of a typed string choices renderer, e.g. a {@link TypedStringFilter}.
  *
  * @author Robin Gerling
  */
-public interface TypedStringChoicesRendererOptions {
+public final class DomainChoicesUtil {
 
-    /**
-     *
-     * @return the possible static/initial choices displayed in the renderer
-     */
-    default Optional<TypedStringChoice[]> getPossibleValues() {
-        return Optional.empty();
+    private DomainChoicesUtil() {
     }
 
     /**
      *
-     * @return the text for unknown values in a {@link TypedStringFilter}.
+     * @param context the context which possibly contains the column spec to calculate the domain on
+     * @param colName the column for which the domain should be calculated
+     * @return the domain values for the given column
+     * @throws WidgetHandlerException in case of no domain or an empty domain
      */
-    default Optional<String> getUnknownValuesText() {
-        return Optional.empty();
+    public static List<String> getChoicesByContextAndColumn(final NodeParametersInput context,
+        final String colName) throws WidgetHandlerException {
+        final var spec = context.getDataTableSpec(0);
+        if (spec.isEmpty()) {
+            return Collections.emptyList();
+        }
+        final var colSpec = spec.get().getColumnSpec(colName);
+        if (colSpec == null) {
+            return Collections.emptyList();
+        }
+        final var colDomain = getDomainValues(colSpec);
+        if (colDomain.isEmpty()) {
+            throw new WidgetHandlerException(String.format(
+                "No column domain values present for column \"%s\". Consider using a Domain Calculator node.",
+                colName));
+        }
+        return colDomain.get();
     }
 
     /**
-     *
-     * @return the text for empty lists in a {@link TypedStringFilter}.
+     * @param colSpec the {@link DataColumnSpec} to obtain the domain values from
+     * @return the possible domain values of the given {@link DataColumnSpec}
      */
-    default Optional<String> getEmptyStateLabel() {
-        return Optional.empty();
+    public static Optional<List<String>> getDomainValues(final DataColumnSpec colSpec) {
+        var colDomain = colSpec.getDomain().getValues();
+        if (colDomain == null) {
+            return Optional.empty();
+        }
+        return Optional.of((colDomain.stream().map(cell -> cell.getClass() == BooleanCell.class
+            ? ((BooleanCell)cell).toString() : ((StringCell)cell).getStringValue())).toList());
     }
+
 }

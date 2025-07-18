@@ -54,8 +54,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
-
 /**
  * Add this annotation to a {@link Credentials} setting in order to display a single password input field.
  *

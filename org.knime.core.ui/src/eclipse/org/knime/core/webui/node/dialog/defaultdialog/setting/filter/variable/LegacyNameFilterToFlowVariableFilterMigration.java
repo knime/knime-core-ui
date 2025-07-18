@@ -56,6 +56,7 @@ import org.knime.core.node.util.filter.NameFilterConfiguration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.LegacyNameFilterPersistor;
 import org.knime.node.parameters.migration.ConfigMigration;
 import org.knime.node.parameters.migration.NodeSettingsMigration;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
 
 /**
  * Use this migration whenever a {@link NameFilterConfiguration} needs to be converted to a {@link FlowVariableFilter}.

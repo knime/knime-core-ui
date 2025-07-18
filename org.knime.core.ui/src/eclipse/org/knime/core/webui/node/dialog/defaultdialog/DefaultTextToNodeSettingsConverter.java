@@ -111,7 +111,7 @@ final class DefaultTextToNodeSettingsConverter implements TextToNodeSettingsConv
     ) {
         for (var key : settings.keySet()) { // NOSONAR
             final var configMappings =
-                NodeParameters.getConfigMappings(m_settingsClasses.get(key), defaultNodeSettingsMap.get(key));
+                NodeParametersUtil.getConfigMappings(m_settingsClasses.get(key), defaultNodeSettingsMap.get(key));
             NodeSettingsCorrectionUtil.correctNodeSettingsRespectingFlowVariables(configMappings, settings.get(key),
                 previousSettings.get(key), extractedVariableSettings.get(key));
         }

@@ -54,8 +54,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
-
 /**
  * The widget annotation to customize the labels of a {@link Credentials} setting.
  *

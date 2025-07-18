@@ -77,7 +77,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfi
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.TimeIntervalPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.TimeZonePersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.ZonedDateTimePersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.CredentialsUtil.CredentialsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
@@ -88,6 +88,7 @@ import org.knime.node.parameters.migration.SettingsLoader;
 import org.knime.node.parameters.persistence.NodeSettingsPersistor;
 import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.persistence.SettingsSaver;
+import org.knime.node.parameters.widget.credentials.Credentials;
 
 /**
  * Factory for default persistors either for arrays or {@link Persistable} or settings that store values
@@ -318,7 +319,7 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
     }
 
     private static OptionalContentPersistor<Credentials> createCredentialsPersistor(final String configKey) {
-        return new Credentials.CredentialsPersistor(configKey);
+        return new CredentialsPersistor(configKey);
     }
 
     private static OptionalContentPersistor<FSLocation> createFSLocationPersistor(final String configKey) {

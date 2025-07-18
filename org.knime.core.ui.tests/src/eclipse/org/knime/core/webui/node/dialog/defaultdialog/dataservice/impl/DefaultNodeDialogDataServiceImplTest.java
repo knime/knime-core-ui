@@ -81,7 +81,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonUpda
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
@@ -92,6 +91,7 @@ import org.knime.node.parameters.updates.Reference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.credentials.Credentials;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

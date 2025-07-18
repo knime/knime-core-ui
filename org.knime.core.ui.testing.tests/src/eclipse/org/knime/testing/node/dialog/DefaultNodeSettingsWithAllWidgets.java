@@ -56,9 +56,6 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -73,6 +70,9 @@ import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
+import org.knime.node.parameters.widget.credentials.Credentials;
 
 /**
  * A class with all possible widgets for testing backwards compatibility of their snapshots.

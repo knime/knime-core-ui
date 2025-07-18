@@ -70,6 +70,7 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.property.hilite.HiLiteHandler;
 import org.knime.core.node.streamable.PartitionInfo;
 import org.knime.core.node.streamable.StreamableOperator;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.node.parameters.NodeParameters;
 
 /**
@@ -115,7 +116,7 @@ public abstract class WebUINodeModel<S extends NodeParameters> extends NodeModel
     @Override
     protected final PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         if (m_modelSettings == null) {
-            m_modelSettings = NodeParameters.createSettings(m_modelSettingsClass, inSpecs);
+            m_modelSettings = NodeParametersUtil.createSettings(m_modelSettingsClass, inSpecs);
         }
         return configure(inSpecs, m_modelSettings);
     }
@@ -130,7 +131,7 @@ public abstract class WebUINodeModel<S extends NodeParameters> extends NodeModel
     @Override
     protected final DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         if (m_modelSettings == null) {
-            m_modelSettings = NodeParameters.createSettings(m_modelSettingsClass, inSpecs);
+            m_modelSettings = NodeParametersUtil.createSettings(m_modelSettingsClass, inSpecs);
         }
         return configure(inSpecs, m_modelSettings);
     }
@@ -225,7 +226,7 @@ public abstract class WebUINodeModel<S extends NodeParameters> extends NodeModel
     protected HiLiteHandler getOutHiLiteHandler(final int outIndex) {
         // We have use default settings since this method can be called before the node is configured.
         final var modelSettings = Optional.ofNullable(m_modelSettings)
-            .orElseGet(() -> NodeParameters.createSettings(m_modelSettingsClass));
+            .orElseGet(() -> NodeParametersUtil.createSettings(m_modelSettingsClass));
         return getOutHiLiteHandler(outIndex, modelSettings);
     }
 
@@ -259,13 +260,13 @@ public abstract class WebUINodeModel<S extends NodeParameters> extends NodeModel
     @Override
     protected final void saveSettingsTo(final NodeSettingsWO settings) {
         final var modelSettings =
-            m_modelSettings == null ? NodeParameters.createSettings(m_modelSettingsClass) : m_modelSettings;
-        NodeParameters.saveSettings(m_modelSettingsClass, modelSettings, settings);
+            m_modelSettings == null ? NodeParametersUtil.createSettings(m_modelSettingsClass) : m_modelSettings;
+        NodeParametersUtil.saveSettings(m_modelSettingsClass, modelSettings, settings);
     }
 
     @Override
     protected final void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        validateSettings(NodeParameters.loadSettings(settings, m_modelSettingsClass));
+        validateSettings(NodeParametersUtil.loadSettings(settings, m_modelSettingsClass));
     }
 
     /**
@@ -284,7 +285,7 @@ public abstract class WebUINodeModel<S extends NodeParameters> extends NodeModel
 
     @Override
     protected final void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_modelSettings = NodeParameters.loadSettings(settings, m_modelSettingsClass);
+        m_modelSettings = NodeParametersUtil.loadSettings(settings, m_modelSettingsClass);
     }
 
     /**

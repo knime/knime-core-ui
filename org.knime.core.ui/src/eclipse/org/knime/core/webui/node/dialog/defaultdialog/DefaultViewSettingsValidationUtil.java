@@ -81,7 +81,7 @@ public final class DefaultViewSettingsValidationUtil {
      */
     public static void validateViewSettings(final NodeSettingsRO viewSettings,
         final Class<? extends NodeParameters> viewSettingsClass) throws InvalidSettingsException {
-        NodeParameters.loadSettings(viewSettings, viewSettingsClass);
+        NodeParametersUtil.loadSettings(viewSettings, viewSettingsClass);
     }
 
 }

@@ -74,9 +74,8 @@ import org.knime.core.data.property.ColorModelNominal;
 import org.knime.core.data.property.ColorModelRange;
 import org.knime.core.data.vector.bitvector.SparseBitVectorCell;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColorColumnsProvider;
-import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider;
 import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.DoubleColumnsProvider;
 import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.StringColumnsProvider;
 import org.knime.testing.util.TableTestUtil.SpecBuilder;
@@ -109,7 +108,7 @@ class ColumnChoicesProviderTest {
         final var spec = createDefaultTestSpec();
         var choicesProvider = new StringColumnsProvider();
         assertThat(getColumnNames(choicesProvider
-            .columnChoices(NodeParameters.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec}))))
+            .columnChoices(NodeParametersUtil.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec}))))
                 .isEqualTo(new String[]{"string"});
     }
 
@@ -118,7 +117,7 @@ class ColumnChoicesProviderTest {
         final var spec = createDefaultTestSpec();
         var choicesProvider = new DoubleColumnsProvider();
         assertThat(getColumnNames(choicesProvider
-            .columnChoices(NodeParameters.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec}))))
+            .columnChoices(NodeParametersUtil.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec}))))
                 .isEqualTo(new String[]{"int", "long", "double", "boolean"});
     }
 
@@ -127,7 +126,7 @@ class ColumnChoicesProviderTest {
         final var spec = createDefaultTestSpec();
         var choicesProvider = new CompatibleColumnsProvider(List.of(DoubleValue.class, BooleanValue.class));
         assertThat(getColumnNames(choicesProvider
-            .columnChoices(NodeParameters.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec}))))
+            .columnChoices(NodeParametersUtil.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec}))))
                 .isEqualTo(new String[]{"int", "long", "double", "boolean"});
     }
 
@@ -145,7 +144,7 @@ class ColumnChoicesProviderTest {
         final var spec = new DataTableSpec(dataColumnSpecs);
         var choicesProvider = new ColorColumnsProvider();
         assertThat(getColumnNames(choicesProvider
-            .columnChoices(NodeParameters.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec}))))
+            .columnChoices(NodeParametersUtil.createDefaultNodeSettingsContext(new PortObjectSpec[]{spec}))))
                 .isEqualTo(new String[]{"foo", "bar"});
     }
 

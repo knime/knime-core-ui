@@ -55,6 +55,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.node.parameters.NodeParameters;
 
 /**
@@ -82,7 +83,7 @@ sealed interface DefaultModelToNodeModelAdapter
         final var modelSettingsClassOptional = getModelSettingsClass();
         if (modelSettingsClassOptional.isPresent()) {
             // This can already throw if loading from node settings throws
-            final var loadedSettings = NodeParameters.loadSettings(settings, modelSettingsClassOptional.get());
+            final var loadedSettings = NodeParametersUtil.loadSettings(settings, modelSettingsClassOptional.get());
             // Additional custom validation of the settings
             loadedSettings.validate();
         }
@@ -92,7 +93,7 @@ sealed interface DefaultModelToNodeModelAdapter
         final var viewSettingsClassOptional = getViewSettingsClass();
         if (viewSettingsClassOptional.isPresent()) {
             // This can already throw if loading from node settings throws
-            final var loadedSettings = NodeParameters.loadSettings(settings, viewSettingsClassOptional.get());
+            final var loadedSettings = NodeParametersUtil.loadSettings(settings, viewSettingsClassOptional.get());
             // Additional custom validation of the settings
             loadedSettings.validate();
         }
@@ -101,7 +102,7 @@ sealed interface DefaultModelToNodeModelAdapter
     default void defaultLoadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
         final var modelSettingsClassOptional = getModelSettingsClass();
         if (modelSettingsClassOptional.isPresent()) {
-            setModelSettings(NodeParameters.loadSettings(settings, modelSettingsClassOptional.get()));
+            setModelSettings(NodeParametersUtil.loadSettings(settings, modelSettingsClassOptional.get()));
         }
     }
 
@@ -112,16 +113,16 @@ sealed interface DefaultModelToNodeModelAdapter
             var modelSettings = getModelSettings();
             if (modelSettings == null) {
                 // If no model settings are set, save new ones but do not set them in the model.
-                modelSettings = NodeParameters.createSettings(modelSettingsClass);
+                modelSettings = NodeParametersUtil.createSettings(modelSettingsClass);
             }
-            NodeParameters.saveSettings(modelSettingsClass, modelSettings, settings);
+            NodeParametersUtil.saveSettings(modelSettingsClass, modelSettings, settings);
         }
     }
 
     default NodeParameters setInitialSettingsUsingSpecsIfNecessary(final PortObjectSpec[] inSpecs) {
         final var modelSettingsClassOptional = getModelSettingsClass();
         if (modelSettingsClassOptional.isPresent() && getModelSettings() == null) {
-            setModelSettings(NodeParameters.createSettings(modelSettingsClassOptional.get(), inSpecs));
+            setModelSettings(NodeParametersUtil.createSettings(modelSettingsClassOptional.get(), inSpecs));
         }
         return getModelSettings();
     }
@@ -131,9 +132,9 @@ sealed interface DefaultModelToNodeModelAdapter
         if (viewSettingsClassOptional.isPresent()) {
             final var viewSettingsClass = viewSettingsClassOptional.get();
             final var specs = getSpecs();
-            final var viewSettings = specs.isEmpty() ? NodeParameters.createSettings(viewSettingsClass) //
-                : NodeParameters.createSettings(viewSettingsClass, specs.get());
-            NodeParameters.saveSettings(viewSettingsClass, viewSettings, settings);
+            final var viewSettings = specs.isEmpty() ? NodeParametersUtil.createSettings(viewSettingsClass) //
+                : NodeParametersUtil.createSettings(viewSettingsClass, specs.get());
+            NodeParametersUtil.saveSettings(viewSettingsClass, viewSettings, settings);
         }
     }
 }

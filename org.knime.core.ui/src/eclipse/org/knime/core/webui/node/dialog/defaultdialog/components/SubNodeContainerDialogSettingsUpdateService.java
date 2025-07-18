@@ -55,6 +55,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 import org.knime.core.webui.data.DataServiceContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DataServiceRequestHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DialogSettingsUpdateService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Result;
@@ -63,7 +64,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.Dialog
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.ErrorHandlingSingleton;
 import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.NodeParameters;
 
 /**
  * RPC service enabling settings updates in sub node container dialog.
@@ -87,7 +87,7 @@ public class SubNodeContainerDialogSettingsUpdateService implements DialogSettin
     }
 
     static NodeParametersInput createContext() {
-        return NodeParameters.createDefaultNodeSettingsContext(DataServiceContext.get().getInputSpecs());
+        return NodeParametersUtil.createDefaultNodeSettingsContext(DataServiceContext.get().getInputSpecs());
     }
 
     SubNodeContainerTriggerInvocationHandler getTriggerInvocationHandler() {
@@ -106,5 +106,4 @@ public class SubNodeContainerDialogSettingsUpdateService implements DialogSettin
         return m_requestHandler.handleRequest(widgetId,
             () -> triggerInvocationHandler.trigger(trigger, rawDependencies));
     }
-
 }

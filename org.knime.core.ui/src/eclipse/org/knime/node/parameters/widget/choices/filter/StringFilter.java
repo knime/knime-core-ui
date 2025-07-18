@@ -46,12 +46,13 @@
  * History
  *   Jan 22, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.filter;
+package org.knime.node.parameters.widget.choices.filter;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilterMode;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.ManualFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.PatternFilter;
 import org.knime.node.parameters.persistence.Persistable;
@@ -68,16 +69,22 @@ public class StringFilter implements Persistable {
 
     /**
      * The way the selection is determined by
+     *
+     * @noreference
      */
     public StringFilterMode m_mode; //NOSONAR
 
     /**
      * Settings regarding selection by pattern matching (regex or wildcard)
+     *
+     * @noreference
      */
     public PatternFilter m_patternFilter; //NOSONAR
 
     /**
      * Settings regarding manual selection
+     *
+     * @noreference
      */
     public ManualFilter m_manualFilter; //NOSONAR
 

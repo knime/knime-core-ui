@@ -131,7 +131,7 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
 
     private JsonFormsSettingsImpl getJsonFormsSettings(final Map<SettingsType, NodeAndVariableSettingsRO> settings,
         final PortObjectSpec[] specs) {
-        var context = NodeParameters.createDefaultNodeSettingsContext(specs);
+        var context = NodeParametersUtil.createDefaultNodeSettingsContext(specs);
         final var loadedSettings = new NodeSettingsToDefaultNodeSettings(context, m_settingsClasses)
             .nodeSettingsToDefaultNodeSettingsOrDefault(map(settings));
 

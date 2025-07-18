@@ -66,6 +66,7 @@ import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.credentials.Credentials;
 import org.knime.node.parameters.widget.credentials.CredentialsWidget;
 
 /**

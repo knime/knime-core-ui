@@ -42,124 +42,59 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- * 
+ *
  * History
- *   Jul 16, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
+ *   Jul 18, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
 package org.knime.node.parameters;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.node.dialog.DialogNode;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.FlowObjectStack;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
 
 /**
- * A context that holds any available information that might be relevant for creating a new instance of
+ * An input that holds any available information that might be relevant for creating a new instance of
  * {@link NodeParameters}.
+ *
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public final class NodeParametersInput {
-
-    private final PortType[] m_inTypes;
-
-    private final PortObjectSpec[] m_specs;
-
-    private final FlowObjectStack m_stack;
-
-    private final CredentialsProvider m_credentialsProvider;
-
-    private final PortObject[] m_inputPortObjects;
-
-    private final DialogNode m_dialogNode;
-
-    NodeParametersInput(final PortType[] inTypes, final PortObjectSpec[] specs, final FlowObjectStack stack,
-        final CredentialsProvider credentialsProvider, final PortObject[] inputPortObjects,
-        final DialogNode dialogNode) {
-        m_inTypes = inTypes;
-        m_specs = specs;
-        m_stack = stack;
-        m_credentialsProvider = credentialsProvider;
-        m_inputPortObjects = inputPortObjects;
-        m_dialogNode = dialogNode;
-    }
-
-    NodeParametersInput(final PortType[] inTypes, final PortObjectSpec[] specs, final FlowObjectStack stack,
-        final CredentialsProvider credentialsProvider, final PortObject[] inputPortObjects) {
-        this(inTypes, specs, stack, credentialsProvider, inputPortObjects, null);
-    }
-
-    NodeParametersInput(final PortType[] inTypes, final PortObjectSpec[] specs, final FlowObjectStack stack,
-        final CredentialsProvider credentialsProvider) {
-        this(inTypes, specs, stack, credentialsProvider, null, null);
-    }
-
-    /**
-     * Widens scope of constructor of {@link NodeParametersInput}. Only used in tests.
-     */
-    @SuppressWarnings("javadoc")
-    public static NodeParametersInput createDefaultNodeSettingsContext(final PortType[] inPortTypes,
-        final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider) {
-        return new NodeParametersInput(inPortTypes, specs, stack, credentialsProvider, null, null);
-    }
-
-    /**
-     * Widens scope of constructor of {@link NodeParametersInput}. Only used in tests.
-     */
-    @SuppressWarnings("javadoc")
-    public static NodeParametersInput createDefaultNodeSettingsContext(final PortType[] inPortTypes,
-        final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider,
-        final PortObject[] inputPortObjects) {
-        return new NodeParametersInput(inPortTypes, specs, stack, credentialsProvider, inputPortObjects,
-            null);
-    }
+public interface NodeParametersInput {
 
     /**
      * The node's input types. Not null and not containing null.
      *
      * @return the inTypes
      */
-    public PortType[] getInPortTypes() {
-        return m_inTypes;
-    }
+    PortType[] getInPortTypes();
 
     /**
      * @return the input {@link PortObjectSpec PortObjectSpecs} of the node; NOTE: array of specs can contain
      *         {@code null} values, e.g., if input port is not connected!
      */
-    public PortObjectSpec[] getPortObjectSpecs() {
-        return m_specs;
-    }
+    PortObjectSpec[] getPortObjectSpecs();
 
     /**
      * @param portIndex the port for which to retrieve the spec
      * @return the {@link PortObjectSpec} at the given portIndex or {@link Optional#empty()} if it is not available
      * @throws IndexOutOfBoundsException if the portIndex does not match the ports of the node
      */
-    public Optional<PortObjectSpec> getPortObjectSpec(final int portIndex) {
-        return Optional.ofNullable(m_specs[portIndex]);
-    }
+    public Optional<PortObjectSpec> getPortObjectSpec(final int portIndex);
 
     /**
-     * @return the input {@link DataTableSpec DataTableSpecs} of the node; NOTE: array of specs can contain
-     *         {@code null} values, e.g., if input port is not connected or inactive!
+     * @return the input {@link DataTableSpec DataTableSpecs} of the node; NOTE: array of specs can contain {@code null}
+     *         values, e.g., if input port is not connected or inactive!
      * @throws ClassCastException if any of the node's input ports does not hold a {@link DataTableSpec}
      */
-    public DataTableSpec[] getDataTableSpecs() {
-        return Arrays.stream(m_specs).map(spec -> spec instanceof DataTableSpec dts ? dts : null)
-            .toArray(DataTableSpec[]::new);
-    }
+    public DataTableSpec[] getDataTableSpecs();
 
     /**
      * @param portIndex the port for which to retrieve the spec
@@ -167,25 +102,19 @@ public final class NodeParametersInput {
      * @throws ClassCastException if the requested port is not a table port
      * @throws IndexOutOfBoundsException if the portIndex does not match the ports of the node
      */
-    public Optional<DataTableSpec> getDataTableSpec(final int portIndex) {
-        return getPortObjectSpec(portIndex).map(DataTableSpec.class::cast);
-    }
+    public Optional<DataTableSpec> getDataTableSpec(final int portIndex);
 
     /**
      * @return the input {@link PortObject}s of the node
      */
-    public PortObject[] getInputPortObjects() {
-        return m_inputPortObjects;
-    }
+    public PortObject[] getInputPortObjects();
 
     /**
      * @param portIndex
      * @return the {@link PortObject} at the given portIndex or {@link Optional#empty()} if it is not available
      * @throws IndexOutOfBoundsException if the portIndex does not match the ports of the node
      */
-    public Optional<PortObject> getInputPortObject(final int portIndex) {
-        return Optional.ofNullable(m_inputPortObjects[portIndex]);
-    }
+    public Optional<PortObject> getInputPortObject(final int portIndex);
 
     /**
      * @param portIndex the port for which to retrieve the object
@@ -193,22 +122,18 @@ public final class NodeParametersInput {
      * @throws ClassCastException if the requested port is not a table port
      * @throws IndexOutOfBoundsException if the portIndex does not match the ports of the node
      */
-    public Optional<DataTable> getDataTable(final int portIndex) {
-        return getInputPortObject(portIndex).map(DataTable.class::cast);
-    }
+    public Optional<DataTable> getDataTable(final int portIndex);
 
     /**
      * @param name the name of the variable
      * @param type the {@link VariableType} of the variable
      * @param <T> the simple value type of the variable
-     * @return the simple non-null value of the top-most variable with the argument name and type, if present,
-     *         otherwise an empty {@link Optional}
+     * @return the simple non-null value of the top-most variable with the argument name and type, if present, otherwise
+     *         an empty {@link Optional}
      * @throws NullPointerException if any argument is null
      * @see FlowObjectStack#peekFlowVariable(String, VariableType)
      */
-    public <T> Optional<T> peekFlowVariable(final String name, final VariableType<T> type) {
-        return m_stack.peekFlowVariable(name, type).map(flowVariable -> flowVariable.getValue(type));
-    }
+    public <T> Optional<T> peekFlowVariable(final String name, final VariableType<T> type);
 
     /**
      * @param types the {@link VariableType VariableTypes} of the requested {@link FlowVariable FlowVariables}
@@ -216,48 +141,21 @@ public final class NodeParametersInput {
      * @throws NullPointerException if the argument is null
      * @see FlowObjectStack#getAvailableFlowVariables(VariableType[])
      */
-    public Map<String, FlowVariable> getAvailableInputFlowVariables(final VariableType<?>... types) {
-        Objects.requireNonNull(types, () -> "Variable types must not be null.");
-        return Collections.unmodifiableMap(Optional.ofNullable(m_stack)
-            .map(stack -> stack.getAvailableFlowVariables(types)).orElse(Collections.emptyMap()));
-    }
+    public Map<String, FlowVariable> getAvailableInputFlowVariables(final VariableType<?>... types);
 
     /**
      * @return the names of the available flow variables or an empty array if there are no flow variables available
      */
-    public String[] getAvailableFlowVariableNames() {
-        return m_stack != null ? m_stack.getAllAvailableFlowVariables().keySet().toArray(String[]::new)
-            : new String[0];
-    }
+    public String[] getAvailableFlowVariableNames();
 
     /**
      * @param name the name of a flow variable
      * @return the associated flow variable if it exists
      */
-    public Optional<FlowVariable> getFlowVariableByName(final String name) {
-        if (m_stack == null) {
-            return Optional.empty();
-        }
-        return Optional.ofNullable(m_stack.getAllAvailableFlowVariables().get(name));
-    }
+    public Optional<FlowVariable> getFlowVariableByName(final String name);
 
     /**
-     * @return the {@link CredentialsProvider} associated with the node. Can be empty, e.g., if the node is a
-     *         component
+     * @return the {@link CredentialsProvider} associated with the node. Can be empty, e.g., if the node is a component
      */
-    public Optional<CredentialsProvider> getCredentialsProvider() {
-        return Optional.ofNullable(m_credentialsProvider);
-    }
-
-    /**
-     * Getter for the {@link DialogNode} of a configuration node.
-     *
-     * @return the dialogNode
-     */
-    public DialogNode getDialogNode() {
-        CheckUtils.checkNotNull(m_dialogNode, "No dialog node is available in this context. "
-            + "This method should be called only for configurations.");
-        return m_dialogNode;
-    }
-
+    public Optional<CredentialsProvider> getCredentialsProvider();
 }

@@ -67,6 +67,7 @@ import org.knime.core.node.workflow.ICredentials;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.NodeID;
+import org.knime.node.parameters.widget.credentials.Credentials;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -107,7 +108,7 @@ class CredentialsTest {
             objectMapper.setSerializationInclusion(Include.NON_NULL);
             objectMapper.setVisibility(PropertyAccessor.ALL, Visibility.NON_PRIVATE);
             final var module = new SimpleModule();
-            Credentials.addSerializerAndDeserializer(module);
+            CredentialsUtil.addSerializerAndDeserializer(module);
             objectMapper.registerModule(module);
         }
 

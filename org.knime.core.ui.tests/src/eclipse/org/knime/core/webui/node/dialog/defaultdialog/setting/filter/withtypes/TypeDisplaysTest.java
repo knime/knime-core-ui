@@ -52,8 +52,8 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
 import org.junit.jupiter.api.Test;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
+import org.knime.node.parameters.widget.choices.filter.LegacyFilterUtil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -69,8 +69,7 @@ class TypeDisplaysTest {
 
         final var selectedTypes = new String[]{registeredTypeId, unregisteredTypeId};
 
-        final var columnFilter = new ColumnFilter();
-        columnFilter.m_typeFilter.m_selectedTypes = selectedTypes;
+        final var columnFilter = new LegacyFilterUtil.ColumnFilterBuilder().withSelectedTypes(selectedTypes).build();
 
         final var result = MAPPER.valueToTree(columnFilter);
 

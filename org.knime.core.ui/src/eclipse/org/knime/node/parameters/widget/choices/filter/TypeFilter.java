@@ -46,7 +46,7 @@
  * History
  *   16 Jan 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes;
+package org.knime.node.parameters.widget.choices.filter;
 
 import java.io.IOException;
 import java.util.Optional;

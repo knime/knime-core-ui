@@ -61,6 +61,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.util.workflow.def.FallibleSupplier;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.node.parameters.NodeParameters;
 
 /**
@@ -261,9 +262,9 @@ public final class SnapshotTestConfiguration {
                 .map(e -> Map.entry(e.getKey(), (FallibleSupplier<NodeParameters>)() -> {
                     var nodeSettings = new NodeSettings("ignore");
                     // At this point, the port object specs are already configured.
-                    var settingsObj = NodeParameters.createSettings(e.getValue(),
+                    var settingsObj = NodeParametersUtil.createSettings(e.getValue(),
                         m_portObjectSpecs.toArray(PortObjectSpec[]::new));
-                    NodeParameters.saveSettings(e.getValue(), settingsObj, nodeSettings);
+                    NodeParametersUtil.saveSettings(e.getValue(), settingsObj, nodeSettings);
                     return settingsObj;
                 })).collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
             return this;
@@ -298,7 +299,7 @@ public final class SnapshotTestConfiguration {
         @Override
         public BuilderStage.OptionalTests testNodeSettingsStructure(final NodeSettingsRO legacy,
             final Class<? extends NodeParameters> clazz) {
-            m_settingsAsserts.add(() -> NodeParameters.loadSettings(legacy, clazz));
+            m_settingsAsserts.add(() -> NodeParametersUtil.loadSettings(legacy, clazz));
             return this;
         }
 

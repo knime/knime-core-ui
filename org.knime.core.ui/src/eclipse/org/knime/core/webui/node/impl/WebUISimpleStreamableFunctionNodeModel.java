@@ -61,6 +61,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.streamable.simple.SimpleStreamableFunctionNodeModel;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.node.parameters.NodeParameters;
 
 /**
@@ -112,7 +113,7 @@ public abstract class WebUISimpleStreamableFunctionNodeModel<S extends NodeParam
     @Override
     protected ColumnRearranger createColumnRearranger(final DataTableSpec spec) throws InvalidSettingsException {
         if (m_modelSettings == null) {
-            m_modelSettings = NodeParameters.createSettings(m_modelSettingsClass, new PortObjectSpec[]{spec});
+            m_modelSettings = NodeParametersUtil.createSettings(m_modelSettingsClass, new PortObjectSpec[]{spec});
         }
         return createColumnRearranger(spec, m_modelSettings);
     }
@@ -146,13 +147,13 @@ public abstract class WebUISimpleStreamableFunctionNodeModel<S extends NodeParam
     @Override
     protected final void saveSettingsTo(final NodeSettingsWO settings) {
         final var modelSettings =
-                m_modelSettings == null ? NodeParameters.createSettings(m_modelSettingsClass) : m_modelSettings;
-        NodeParameters.saveSettings(m_modelSettingsClass, modelSettings, settings);
+                m_modelSettings == null ? NodeParametersUtil.createSettings(m_modelSettingsClass) : m_modelSettings;
+        NodeParametersUtil.saveSettings(m_modelSettingsClass, modelSettings, settings);
     }
 
     @Override
     protected final void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        validateSettings(NodeParameters.loadSettings(settings, m_modelSettingsClass));
+        validateSettings(NodeParametersUtil.loadSettings(settings, m_modelSettingsClass));
     }
 
     /**
@@ -167,7 +168,7 @@ public abstract class WebUISimpleStreamableFunctionNodeModel<S extends NodeParam
 
     @Override
     protected final void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        m_modelSettings = NodeParameters.loadSettings(settings, m_modelSettingsClass);
+        m_modelSettings = NodeParametersUtil.loadSettings(settings, m_modelSettingsClass);
     }
 
     @Override

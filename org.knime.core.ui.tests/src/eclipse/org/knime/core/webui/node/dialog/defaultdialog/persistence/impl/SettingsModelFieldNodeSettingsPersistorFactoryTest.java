@@ -72,7 +72,7 @@ import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.persistence.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
+import org.knime.node.parameters.widget.credentials.Credentials;
 
 /**
  *

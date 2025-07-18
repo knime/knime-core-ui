@@ -44,7 +44,7 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   12 Oct 2023 (Marc Bux, KNIME GmbH, Berlin, Germany): created
+ *   Jul 18, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.credentials;
 
@@ -55,7 +55,6 @@ import static org.knime.core.node.workflow.VariableType.CredentialsType.CFG_TRAN
 import static org.knime.core.node.workflow.VariableType.CredentialsType.CFG_TRANSIENT_SECOND_FACTOR;
 
 import java.io.IOException;
-import java.util.Objects;
 import java.util.Optional;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -65,6 +64,7 @@ import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.NodeID;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.OptionalContentPersistor;
 import org.knime.node.parameters.persistence.NodeSettingsPersistor;
+import org.knime.node.parameters.widget.credentials.Credentials;
 
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -80,7 +80,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public final class Credentials {
+public final class CredentialsUtil {
 
     private static final String IS_HIDDEN_PASSWORD_KEY = "isHiddenPassword";
 
@@ -94,74 +94,8 @@ public final class Credentials {
 
     private static final String USERNAME_KEY = "username";
 
-    String m_username;
-
-    String m_password;
-
-    String m_secondFactor;
-
-    /**
-     * Default constructor
-     */
-    public Credentials() {
-        this("", "", "");
-    }
-
-    /**
-     * @param username
-     * @param password
-     */
-    public Credentials(final String username, final String password) {
-        this(username, password, "");
-    }
-
-    /**
-     * @param username
-     * @param password
-     * @param secondFactor
-     */
-    public Credentials(final String username, final String password, final String secondFactor) {
-        m_username = username;
-        m_password = password;
-        m_secondFactor = secondFactor;
-    }
-
-    /**
-     * @return the username
-     */
-    public String getUsername() {
-        return m_username;
-    }
-
-    /**
-     * @return the password
-     */
-    public String getPassword() {
-        return m_password;
-    }
-
-    /**
-     * @return the secondFactor
-     */
-    public String getSecondFactor() {
-        return m_secondFactor;
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof Credentials other) {
-            return Objects.equals(m_username, other.m_username) && Objects.equals(m_password, other.m_password)
-                && Objects.equals(m_secondFactor, other.m_secondFactor);
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(m_username, m_password, m_secondFactor);
+    private CredentialsUtil() {
+        // utility class
     }
 
     /**
@@ -170,8 +104,8 @@ public final class Credentials {
      * @param module
      */
     public static void addSerializerAndDeserializer(final SimpleModule module) {
-        module.addSerializer(Credentials.class, new Credentials.CredentialsSerializer());
-        module.addDeserializer(Credentials.class, new Credentials.CredentialsDeserializer());
+        module.addSerializer(Credentials.class, new CredentialsSerializer());
+        module.addDeserializer(Credentials.class, new CredentialsDeserializer());
     }
 
     static final class CredentialsSerializer extends JsonSerializer<Credentials> {
@@ -337,7 +271,5 @@ public final class Credentials {
             final var emptyCredentials = new Credentials();
             save(emptyCredentials, settings);
         }
-
     }
-
 }

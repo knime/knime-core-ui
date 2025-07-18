@@ -87,6 +87,7 @@ import org.knime.core.webui.node.dialog.WebDialogNodeRepresentation;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMappings;
 import org.knime.core.webui.node.dialog.configmapping.NodeSettingsCorrectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogDataServiceUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.UpdatesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
@@ -94,7 +95,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.Dialog
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil;
 import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.NodeParameters;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -200,7 +200,7 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
     }
 
     private static NodeParametersInput createContext(final PortObjectSpec[] specs) {
-        return NodeParameters.createDefaultNodeSettingsContext(specs);
+        return NodeParametersUtil.createDefaultNodeSettingsContext(specs);
     }
 
     Collection<DialogElementRendererSpec> getRendererSpecs() {

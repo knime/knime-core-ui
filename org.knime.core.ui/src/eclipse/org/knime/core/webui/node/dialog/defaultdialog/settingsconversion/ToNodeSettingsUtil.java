@@ -54,6 +54,7 @@ import java.util.function.Function;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
 import org.knime.node.parameters.NodeParameters;
 
@@ -106,7 +107,7 @@ public final class ToNodeSettingsUtil {
      */
     private static void toNodeSettings(final NodeSettingsWO nodeSettings,
         final NodeParameters defaultNodeSettings) {
-        NodeParameters.saveSettings(defaultNodeSettings.getClass(), defaultNodeSettings, nodeSettings);
+        NodeParametersUtil.saveSettings(defaultNodeSettings.getClass(), defaultNodeSettings, nodeSettings);
     }
 
 }

@@ -56,10 +56,10 @@ import java.lang.annotation.Target;
 import java.util.Optional;
 
 import org.knime.core.data.DataTable;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 
 /**
  * A simple message that can be displayed in the dialog. E.g. to inform the user that a certain setting is not displayed

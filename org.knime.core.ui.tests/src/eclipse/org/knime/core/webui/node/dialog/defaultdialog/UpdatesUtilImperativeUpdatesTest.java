@@ -64,7 +64,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlValueReference;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
@@ -73,6 +72,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.Sectio
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative.ImperativeStateProvider;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.StateProvider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -87,7 +87,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class UpdatesUtilImperativeUpdatesTest {
 
     private static NodeParametersInput createDefaultNodeSettingsContext() {
-        return NodeParametersInput.createDefaultNodeSettingsContext(new PortType[]{BufferedDataTable.TYPE},
+        return NodeParametersInputImpl.createDefaultNodeSettingsContext(new PortType[]{BufferedDataTable.TYPE},
             new PortObjectSpec[]{null}, null, null);
     }
 
