@@ -1,4 +1,4 @@
-import { Position, editor, languages } from "monaco-editor";
+import { type Position, editor, languages } from "monaco-editor";
 import {
   ParameterInformation,
   type SignatureHelp,

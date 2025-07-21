@@ -70,10 +70,12 @@ const apiLayer: UIExtensionAPILayer = {
   onDirtyStateChange: noop,
   publishData: noop,
   sendAlert(alert) {
-    AlertingService.getInstance().then((service) =>
-      // @ts-expect-error baseService is not API but a property of the service
-      service.baseService.sendAlert(alert),
-    );
+    AlertingService.getInstance()
+      .then((service) =>
+        // @ts-expect-error baseService is not API but a property of the service
+        service.baseService.sendAlert(alert),
+      )
+      .catch(() => {});
   },
   setControlsVisibility: noop,
   setReportingContent: noop,
@@ -82,9 +84,9 @@ const apiLayer: UIExtensionAPILayer = {
 };
 
 onMounted(async () => {
-  baseService.value = (
-    (await JsonDataService.getInstance()) as any
-  ).baseService;
+  baseService.value =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ((await JsonDataService.getInstance()) as any).baseService;
 });
 
 watchEffect(() => {
@@ -99,7 +101,7 @@ watchEffect(() => {
   })
     .then((response) => {
       if (response.isSome) {
-        extensionConfig.value = response.result;
+        extensionConfig.value = response.result as ExtensionConfig;
         resourceLocation.value =
           // @ts-expect-error the baseUrl is not part of the type definition but it exists
           extensionConfig.value?.resourceInfo?.baseUrl +
@@ -118,6 +120,12 @@ onUnmounted(() => {
     nodeId: props.inputNodeId,
     portIdx: props.portIdx,
     viewIdx: props.viewIdx,
+  }).catch(() => {
+    consola.error("InputPortTableView::Failed deactivating port data service", {
+      nodeId: props.inputNodeId,
+      portIdx: props.portIdx,
+      viewIdx: props.viewIdx,
+    });
   });
   dataAvailable.value = false;
 });

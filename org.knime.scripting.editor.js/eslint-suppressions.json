@@ -14,14 +14,6 @@
       "count": 2
     }
   },
-  "src/components/InputPortTableView.vue": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 2
-    }
-  },
   "src/components/OutputConsole.vue": {
     "@typescript-eslint/no-floating-promises": {
       "count": 2
@@ -85,14 +77,6 @@
   "src/scripting-service-browser-mock.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 9
-    }
-  },
-  "src/scripting-service.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 8
-    },
-    "@typescript-eslint/no-floating-promises": {
-      "count": 1
     }
   },
   "src/settings-service.ts": {

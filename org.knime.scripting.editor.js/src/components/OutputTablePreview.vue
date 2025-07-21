@@ -30,25 +30,27 @@ const makeExtensionConfig = async (
   projectId: string,
   workflowId: string,
   baseUrl: string,
-): Promise<ExtensionConfig> => ({
-  nodeId,
-  extensionType: "dialog",
-  projectId,
-  workflowId,
-  hasNodeView: false,
-  resourceInfo: {
-    id: "someId",
-    type: "SHADOW_APP",
-    path: `${baseUrl}uiext/tableview/TableView.js`,
-  },
-  initialData: JSON.parse(
-    await (
-      await JsonDataService.getInstance()
-    ).data({
+): Promise<ExtensionConfig> => {
+  const dataService = await JsonDataService.getInstance();
+  const initialData =
+    (await dataService.data<string>({
       method: "OutputPreviewTableInitialDataRpcSupplier.getInitialData",
-    }),
-  ),
-});
+    })) ?? "{}";
+
+  return {
+    nodeId,
+    extensionType: "dialog",
+    projectId,
+    workflowId,
+    hasNodeView: false,
+    resourceInfo: {
+      id: "someId",
+      type: "SHADOW_APP",
+      path: `${baseUrl}uiext/tableview/TableView.js`,
+    },
+    initialData: JSON.parse(initialData),
+  };
+};
 
 const noop = () => {
   /* mock unused api fields */

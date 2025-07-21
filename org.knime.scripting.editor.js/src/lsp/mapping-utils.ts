@@ -1,7 +1,7 @@
 import {
   type IMarkdownString,
   type IRange,
-  Position,
+  type Position,
   editor,
 } from "monaco-editor";
 import {
