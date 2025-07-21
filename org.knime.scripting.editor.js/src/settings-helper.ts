@@ -56,8 +56,9 @@ class SettingsHelper {
 
   public async registerSettings<T>(
     modelOrView: "view" | "model",
-  ): Promise<(initialSetting: T) => SettingState> {
+  ): Promise<(initialSetting: T) => SettingState<T>> {
     const dialogService = await this.dialogService;
+
     return (initialSetting: T) =>
       dialogService.registerSettings(modelOrView)({
         initialValue: initialSetting,

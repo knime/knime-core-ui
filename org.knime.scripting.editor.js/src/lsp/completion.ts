@@ -1,4 +1,4 @@
-import { type IRange, Position, editor, languages } from "monaco-editor";
+import { type IRange, type Position, editor, languages } from "monaco-editor";
 import {
   type CompletionClientCapabilities,
   type CompletionContext,

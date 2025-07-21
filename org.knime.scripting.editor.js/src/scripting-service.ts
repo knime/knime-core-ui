@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { JsonDataService } from "@knime/ui-extension-service";
 
 import { consoleHandler } from "@/consoleHandler";
@@ -7,7 +8,7 @@ import type { PortConfig } from "./initial-data-service";
 import { MonacoLSPConnection } from "./lsp/connection";
 import { KnimeMessageReader, KnimeMessageWriter } from "./lsp/knime-io";
 
-type LanugageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
+type LanguageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
 
 // --- HELPER CLASSES ---
 
@@ -21,16 +22,17 @@ class EventPoller {
   private _eventHandlers: { [type: string]: (args: any) => void } = {};
 
   private constructor() {
-    this.startPolling();
+    this.startPolling().catch(() => {});
   }
 
   private async startPolling() {
     const jsonDataService = await JsonDataService.getInstance();
 
     while (true) {
-      const res = await jsonDataService.data({
+      const res = await jsonDataService.data<{ type: string; data: any }>({
         method: "ScriptingService.getEvent",
       });
+
       if (res) {
         if (res.type in this._eventHandlers) {
           this._eventHandlers[res.type](res.data);
@@ -119,7 +121,7 @@ const scriptingService = {
     }
     const status = (await this.sendToService(
       "connectToLanguageServer",
-    )) as LanugageServerStatus;
+    )) as LanguageServerStatus;
     if (status.status === "RUNNING") {
       return MonacoLSPConnection.create(
         editorModel,
