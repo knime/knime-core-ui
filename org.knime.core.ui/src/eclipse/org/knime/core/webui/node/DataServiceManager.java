@@ -231,7 +231,7 @@ public final class DataServiceManager<N extends NodeWrapper> {
      * @param nodeWrapper
      */
     public void deactivateDataServices(final N nodeWrapper) {
-        dataServices(nodeWrapper).forEach(ds -> ds.deactivateRunnable().ifPresent(Runnable::run));
+        getDataServices(nodeWrapper).forEach(ds -> ds.deactivateRunnable().ifPresent(Runnable::run));
     }
 
     /**
@@ -239,10 +239,18 @@ public final class DataServiceManager<N extends NodeWrapper> {
      * @return whether at least one data service has a deactivate-runnable registered
      */
     public boolean hasDeactivateRunnable(final N nodeWrapper) {
-        return dataServices(nodeWrapper).anyMatch(ds -> ds.deactivateRunnable().isPresent());
+        return getOrCreateDataServices(nodeWrapper).anyMatch(ds -> ds.deactivateRunnable().isPresent());
     }
 
-    private Stream<DataService> dataServices(final N nodeWrapper) {
+    private Stream<DataService> getDataServices(final N nodeWrapper) {
+        return Stream.of(m_initialDataServices, m_dataServices, m_applyDataServices) //
+            .map(service -> service.get(nodeWrapper)) //
+            .filter(Objects::nonNull) //
+            // AbstractDataService implements DataService, so upcast is safe
+            .map(service -> (DataService)service);
+    }
+
+    private Stream<DataService> getOrCreateDataServices(final N nodeWrapper) {
         return Stream.<DataService> of( //
             getInitialDataService(nodeWrapper).orElse(null), //
             getRpcDataService(nodeWrapper).orElse(null), //
