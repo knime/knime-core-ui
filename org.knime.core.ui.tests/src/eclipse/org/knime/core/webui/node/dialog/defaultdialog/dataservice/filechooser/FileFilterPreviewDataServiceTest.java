@@ -64,16 +64,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewUtils.AdditionalFilterConfiguration;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewUtils.PreviewResult;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
 import org.mockito.MockedConstruction;
 
 /**
@@ -263,7 +263,7 @@ final class FileFilterPreviewDataServiceTest {
             () -> m_service.listItemsForPreview("local", somePath, false, wrongFileFilterParams));
     }
 
-    static final class EmptySettings implements DefaultNodeSettings {
+    static final class EmptySettings implements NodeParameters {
 
     }
 
@@ -302,7 +302,7 @@ final class FileFilterPreviewDataServiceTest {
         return new AdditionalFilterConfiguration(json, FileFilters.class.getName());
     }
 
-    static final class TestSettings implements DefaultNodeSettings {
+    static final class TestSettings implements NodeParameters {
 
         @Widget(title = "", description = "")
         MultiFileSelection<FileFilters> m_testSetting;

@@ -66,14 +66,18 @@ import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.LegacyColumnFilterPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.TypedStringChoice;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.testing.node.dialog.updates.DialogUpdateSimulator;
 import org.knime.testing.node.dialog.updates.UpdateSimulator;
 import org.knime.testing.node.dialog.updates.UpdateSimulator.UpdateSimulatorResult;
@@ -99,7 +103,7 @@ class CompatibleColumnChoicesStateProviderTest {
     @Test
     void testChoicesFromCompatibleDataValueClassesSupplier() {
 
-        class TestSettings implements DefaultNodeSettings {
+        class TestSettings implements NodeParameters {
 
             static final class ColSelectPersistor extends LegacyColumnFilterPersistor {
                 public ColSelectPersistor() {
@@ -122,7 +126,7 @@ class CompatibleColumnChoicesStateProviderTest {
         var settings = new TestSettings();
 
         UpdateSimulator simulator = new DialogUpdateSimulator(settings,
-            DefaultNodeSettings.DefaultNodeSettingsContext.createDefaultNodeSettingsContext(
+            NodeParametersInputImpl.createDefaultNodeSettingsContext(
                 new PortType[]{BufferedDataTable.TYPE}, new PortObjectSpec[]{testSpec}, null, null));
 
         UpdateSimulatorResult beforeOpenDialogResults = simulator.simulateBeforeOpenDialog();
@@ -142,7 +146,7 @@ class CompatibleColumnChoicesStateProviderTest {
         assertThat(columnChoices.stream().map(TypedStringChoice::id).toList()).isEqualTo(List.of(expectedColumnNames));
     }
 
-    static final class ReferenceForSetting implements Reference<SettingsEnumThatDeterminesCompatibleColumnDataValues> {
+    static final class ReferenceForSetting implements ParameterReference<SettingsEnumThatDeterminesCompatibleColumnDataValues> {
     }
 
     enum SettingsEnumThatDeterminesCompatibleColumnDataValues implements CompatibleDataValueClassesSupplier {
@@ -173,7 +177,7 @@ class CompatibleColumnChoicesStateProviderTest {
         extends CompatibleColumnChoicesStateProvider<SettingsEnumThatDeterminesCompatibleColumnDataValues> {
 
         @Override
-        protected Class<? extends Reference<SettingsEnumThatDeterminesCompatibleColumnDataValues>> getReferenceClass() {
+        protected Class<? extends ParameterReference<SettingsEnumThatDeterminesCompatibleColumnDataValues>> getReferenceClass() {
             return ReferenceForSetting.class;
         }
     }

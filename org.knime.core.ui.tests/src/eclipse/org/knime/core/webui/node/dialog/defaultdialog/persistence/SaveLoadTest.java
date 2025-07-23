@@ -60,9 +60,9 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistor;
 
 /**
  * Contains tests for {@link NodeSettingsPersistorFactory}.
@@ -93,7 +93,7 @@ class SaveLoadTest {
         testSaveLoad(settings);
     }
 
-    private static <S extends DefaultNodeSettings> void testSaveLoad(final S settings) throws InvalidSettingsException {
+    private static <S extends NodeParameters> void testSaveLoad(final S settings) throws InvalidSettingsException {
         var nodeSettings = new NodeSettings("test");
         saveSettings(settings, nodeSettings);
         final var loaded = loadSettings(settings.getClass(), nodeSettings);
@@ -111,7 +111,7 @@ class SaveLoadTest {
     }
 
     private abstract static class AbstractTestSettings<S extends AbstractTestSettings<S>>
-        implements DefaultNodeSettings {
+        implements NodeParameters {
 
         @Override
         public final boolean equals(final Object obj) {
@@ -140,7 +140,7 @@ class SaveLoadTest {
 
     }
 
-    private static final class CustomPersistor implements NodeSettingsPersistor<CustomPersistorSettings> {
+    private static final class CustomPersistor implements NodeParametersPersistor<CustomPersistorSettings> {
 
         private static final String CONFIG_KEY = "custom_foo";
 

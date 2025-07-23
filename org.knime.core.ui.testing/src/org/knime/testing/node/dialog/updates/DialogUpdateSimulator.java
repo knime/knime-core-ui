@@ -56,23 +56,23 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Location;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerAndDependencies;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler.TriggerResult;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ButtonReferenceIdInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.updates.ButtonReference;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
  * Use this simulator to simulate the updates that are defined by {@link StateProvider}s within
- * {@link DefaultNodeSettings}
+ * {@link NodeParameters}
  *
  * @author Paul Bärnreuther
  */
@@ -85,7 +85,7 @@ public class DialogUpdateSimulator implements UpdateSimulator {
 
     List<TriggerAndDependencies> m_listOfTriggers;
 
-    private DefaultNodeSettingsContext m_context;
+    private NodeParametersInput m_context;
 
     /**
      * @param settings - The classes of these settigns are used to extract the dependency tree. The settings themselves
@@ -93,7 +93,7 @@ public class DialogUpdateSimulator implements UpdateSimulator {
      * @param context - Used during invocation
      */
     public DialogUpdateSimulator(final Map<SettingsType, WidgetGroup> settings,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         final var pair = settingsToTriggersAndInvocationHandler(
             settings.entrySet().stream().collect(Collectors.toMap(Entry::getKey, e -> e.getValue().getClass())),
             context);
@@ -108,7 +108,7 @@ public class DialogUpdateSimulator implements UpdateSimulator {
      *            themselves are used to extract dependencies during invocation.
      * @param context - Used during invocation
      */
-    public DialogUpdateSimulator(final WidgetGroup modelSettings, final DefaultNodeSettingsContext context) {
+    public DialogUpdateSimulator(final WidgetGroup modelSettings, final NodeParametersInput context) {
         this(Map.of(SettingsType.MODEL, modelSettings), context);
     }
 

@@ -63,19 +63,19 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory.DefaultFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.widget.credentials.Credentials;
 
 @SuppressWarnings("java:S2698")
 class OptionalPersistorTest {
 
-    static class TestClass<T> implements PersistableSettings {
+    static class TestClass<T> implements Persistable {
 
         Optional<T> m_testSetting;
 
@@ -90,7 +90,7 @@ class OptionalPersistorTest {
         createOptionalPersistor(final Class<? extends TestClass<T>> testClass) {
 
         final var tree = FACTORY.createTree(testClass);
-        final var optionalTreeNode = (LeafNode<PersistableSettings>)tree.getChildByName("testSetting");
+        final var optionalTreeNode = (LeafNode<Persistable>)tree.getChildByName("testSetting");
 
         return (DefaultFieldPersistor<Optional<T>>)DefaultFieldNodeSettingsPersistorFactory
             .createPersistor(optionalTreeNode, CFG_KEY);

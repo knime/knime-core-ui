@@ -52,14 +52,14 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelLong;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
  * Saves a Long or long field as if it was controlled by a {@link SettingsModelLong}.
  *
  * @author Paul Bärnreuther
  */
-public class SettingsModelLongPersistor implements NodeSettingsPersistor<Long> {
+public class SettingsModelLongPersistor implements NodeParametersPersistor<Long> {
 
     private final String m_configKey;
 

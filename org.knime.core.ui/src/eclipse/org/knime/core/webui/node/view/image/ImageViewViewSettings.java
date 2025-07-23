@@ -45,13 +45,13 @@
  */
 package org.knime.core.webui.node.view.image;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public final class ImageViewViewSettings implements DefaultNodeSettings {
+public final class ImageViewViewSettings implements NodeParameters {
 
     @Widget(title = "Title", description = "The title of the image.")
     String m_title = "";

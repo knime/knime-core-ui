@@ -50,12 +50,12 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ExternalValidation;
+import org.knime.node.parameters.widget.choices.filter.TypedStringFilter;
+import org.knime.node.parameters.widget.message.TextMessage;
+import org.knime.node.parameters.widget.text.TextInputWidget;
 
 import com.github.victools.jsonschema.generator.SchemaKeyword;
 import com.github.victools.jsonschema.generator.SchemaVersion;

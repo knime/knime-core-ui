@@ -54,7 +54,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
+import org.knime.node.parameters.widget.text.RichTextInputWidget;
 
 /**
  * Add this next to a {@link RichTextInputWidget} annotation to make use of {@link #useFlowVarTemplates}.

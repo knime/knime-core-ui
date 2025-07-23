@@ -59,7 +59,7 @@ import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
+import org.knime.node.parameters.WidgetGroup;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;

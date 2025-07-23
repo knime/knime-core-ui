@@ -62,7 +62,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.NodeParameters;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -79,7 +80,7 @@ import org.xmlunit.diff.Diff;
 import org.xmlunit.diff.Difference;
 
 /**
- * Serialize a {@link DefaultNodeSettings} to {@link NodeSettings} and from there to Xml. Compare the representations
+ * Serialize a {@link NodeParameters} to {@link NodeSettings} and from there to Xml. Compare the representations
  * and return differences.
  *
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
@@ -120,7 +121,7 @@ final class DefaultNodeSettingsDiff {
         }
     }
 
-    static DefaultNodeSettingsDiff of(final DefaultNodeSettings actual, final DefaultNodeSettings expected)
+    static DefaultNodeSettingsDiff of(final NodeParameters actual, final NodeParameters expected)
         throws ParserConfigurationException, SAXException, IOException {
         final var testDocument = fromSettings(expected); // somehow the order is exactly opposite of expected
         final var controlDocument = fromSettings(actual);
@@ -235,10 +236,10 @@ final class DefaultNodeSettingsDiff {
         return new DefaultNodeSettingsDiff(StreamSupport.stream(b.getDifferences().spliterator(), false).toList());
     }
 
-    static String toXmlString(final DefaultNodeSettings settings) throws IOException {
+    static String toXmlString(final NodeParameters settings) throws IOException {
         try (final var os = new ByteArrayOutputStream()) {
             final var toPersist = new NodeSettings("test");
-            DefaultNodeSettings.saveSettings(settings.getClass(), settings, toPersist);
+            NodeParametersUtil.saveSettings(settings.getClass(), settings, toPersist);
             toPersist.saveToXML(os);
             return os.toString(StandardCharsets.UTF_8.name());
         }
@@ -251,7 +252,7 @@ final class DefaultNodeSettingsDiff {
         return builder.parse(is);
     }
 
-    static Document fromSettings(final DefaultNodeSettings settings)
+    static Document fromSettings(final NodeParameters settings)
         throws ParserConfigurationException, SAXException, IOException {
         return fromString(toXmlString(settings));
     }

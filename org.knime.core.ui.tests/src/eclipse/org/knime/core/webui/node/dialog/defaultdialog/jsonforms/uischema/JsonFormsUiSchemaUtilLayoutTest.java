@@ -62,7 +62,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilLayoutTest.SuperclassAnnotationTestLayout.AfterCenterLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilLayoutTest.SuperclassAnnotationTestLayout.BeforeCenterLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilLayoutTest.SuperclassAnnotationTestLayout.CenterLayout;
@@ -70,15 +70,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFor
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.TestSettingsLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TestLayout.FirstSection;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TestLayout.SecondSection;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Inside;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Before;
+import org.knime.node.parameters.layout.HorizontalLayout;
+import org.knime.node.parameters.layout.Inside;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.persistence.Persistable;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -91,7 +91,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
  * @author Paul Baernreuther
  */
 class JsonFormsUiSchemaUtilLayoutTest {
-    class TestLayoutViewSettings implements DefaultNodeSettings {
+    class TestLayoutViewSettings implements NodeParameters {
         @Widget(title = "", description = "")
         @Layout(TestSettingsLayout.Section1.class)
         String m_testViewSetting1;
@@ -101,7 +101,7 @@ class JsonFormsUiSchemaUtilLayoutTest {
         String m_testViewSetting2;
     }
 
-    class TestLayoutModelSettings implements DefaultNodeSettings {
+    class TestLayoutModelSettings implements NodeParameters {
         @Widget(title = "", description = "")
         @Layout(TestSettingsLayout.Section1.class)
         String m_testModelSetting1;
@@ -148,7 +148,7 @@ class JsonFormsUiSchemaUtilLayoutTest {
     }
 
     @Layout(TestDefaultParentLayout.DefaultSection.class)
-    class TestDefaultParentSettings implements DefaultNodeSettings {
+    class TestDefaultParentSettings implements NodeParameters {
         @Widget(title = "", description = "")
         String m_defaultParentSetting;
 
@@ -211,7 +211,7 @@ class JsonFormsUiSchemaUtilLayoutTest {
     }
 
     @Layout(TestDefaultParentOnSuperClassLayout.SuperClassDefaultSection.class)
-    class SuperClassWithDefaultParent implements DefaultNodeSettings {
+    class SuperClassWithDefaultParent implements NodeParameters {
 
         @Widget(title = "", description = "")
         String m_defaultParentSuperClassSetting;
@@ -267,7 +267,7 @@ class JsonFormsUiSchemaUtilLayoutTest {
         }
     }
 
-    class TestNoLayoutAnnotationSettings implements DefaultNodeSettings {
+    class TestNoLayoutAnnotationSettings implements NodeParameters {
 
         @Widget(title = "", description = "")
         String m_rootSetting;
@@ -293,7 +293,7 @@ class JsonFormsUiSchemaUtilLayoutTest {
             .isEqualTo("#/properties/model/properties/sectionSetting");
     }
 
-    static class TestLayoutWithinSettingsSettings implements DefaultNodeSettings {
+    static class TestLayoutWithinSettingsSettings implements NodeParameters {
         @Section(title = "first")
         static interface Section1 {
         }
@@ -333,7 +333,7 @@ class JsonFormsUiSchemaUtilLayoutTest {
             .isEqualTo("#/properties/model/properties/bar");
     }
 
-    static class NoRootForSectionSettings implements DefaultNodeSettings {
+    static class NoRootForSectionSettings implements NodeParameters {
         @Widget(title = "", description = "")
         @Layout(SectionWithoutEnclosingClass.class)
         String m_foo;
@@ -352,7 +352,7 @@ class JsonFormsUiSchemaUtilLayoutTest {
             .isEqualTo("#/properties/model/properties/foo");
     }
 
-    static class TestMultipleRootsOne implements DefaultNodeSettings {
+    static class TestMultipleRootsOne implements NodeParameters {
         @Section
         static interface Section1 {
         }
@@ -362,7 +362,7 @@ class JsonFormsUiSchemaUtilLayoutTest {
         String m_foo;
     }
 
-    static class TestMultipleRootsTwo implements DefaultNodeSettings {
+    static class TestMultipleRootsTwo implements NodeParameters {
 
         @Widget(title = "", description = "")
         @Layout(GeneralTestLayout.GeneralSection1.class)
@@ -386,7 +386,7 @@ class JsonFormsUiSchemaUtilLayoutTest {
      */
     @Test
     void testOverwritesClassAnnotationsWithFieldAnnotationsIfBothAreGiven() {
-        class TestFieldWithTwoLayoutAnnotationsSettings implements DefaultNodeSettings {
+        class TestFieldWithTwoLayoutAnnotationsSettings implements NodeParameters {
 
             @Section(title = "Section1")
             interface Section1 {
@@ -431,7 +431,7 @@ class JsonFormsUiSchemaUtilLayoutTest {
             }
         }
 
-        class VirtualLayoutSettings implements DefaultNodeSettings {
+        class VirtualLayoutSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestVirtualSectionLayout.Section1.class)
             String m_setting1;
@@ -475,7 +475,7 @@ class JsonFormsUiSchemaUtilLayoutTest {
             }
         }
 
-        class TestEmptySectionSettings implements DefaultNodeSettings {
+        class TestEmptySectionSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestEmptySectionLayout.Section1.class)
             String m_setting1;
@@ -506,7 +506,7 @@ class JsonFormsUiSchemaUtilLayoutTest {
 
     @Test
     void testWidgetGroupContainedLayout() {
-        class TestSettings implements DefaultNodeSettings {
+        class TestSettings implements NodeParameters {
 
             MySelfContainedWidgetGroup m_myWidgetGroup = new MySelfContainedWidgetGroup();
 
@@ -566,7 +566,7 @@ class JsonFormsUiSchemaUtilLayoutTest {
     @Test
     void testWidgetGroupContainedLayoutWithFieldsWithoutLayout() {
 
-        class TestSettings implements DefaultNodeSettings {
+        class TestSettings implements NodeParameters {
 
             SelfContainedLayoutWithFieldsWithoutLayout m_selfContainedLayout =
                 new SelfContainedLayoutWithFieldsWithoutLayout();
@@ -652,7 +652,7 @@ class JsonFormsUiSchemaUtilLayoutTest {
 
     }
 
-    abstract static class NoLongerSelfContainedTestSettings<T extends WidgetGroup> implements DefaultNodeSettings {
+    abstract static class NoLongerSelfContainedTestSettings<T extends WidgetGroup> implements NodeParameters {
 
         T m_selfContainedLayout1;
 
@@ -705,7 +705,7 @@ class JsonFormsUiSchemaUtilLayoutTest {
         interface BeforeCenterLayout {
         }
 
-        class CenterLayout implements PersistableSettings, WidgetGroup {
+        class CenterLayout implements Persistable, WidgetGroup {
             @HorizontalLayout()
             interface CenterLayoutInnerLayout {
             }
@@ -736,7 +736,7 @@ class JsonFormsUiSchemaUtilLayoutTest {
     @Test
     void testAbstractLayoutDefinitionWithInsideAnnotation() {
 
-        class TestSettings implements DefaultNodeSettings {
+        class TestSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @Layout(BeforeCenterLayout.class)

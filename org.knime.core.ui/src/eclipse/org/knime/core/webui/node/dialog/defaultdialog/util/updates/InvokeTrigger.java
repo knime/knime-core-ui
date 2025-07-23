@@ -63,13 +63,13 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlValueReference;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.DependencyInjector.DependencyProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Vertex.VertexVisitor;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.ButtonReference;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
  * This class is used to convert a trigger to a map indexed by its triggered updates.
@@ -85,16 +85,16 @@ final class InvokeTrigger<I> {
 
     private final Function<LocationAndType, List<IndexedValue<I>>> m_dependencyProvider;
 
-    private final DefaultNodeSettingsContext m_context;
+    private final NodeParametersInput m_context;
 
     /**
      *
-     * @param dependencyProvider providing the values of all {@link Reference} dependencies that the triggered state
+     * @param dependencyProvider providing the values of all {@link ParameterReference} dependencies that the triggered state
      *            providers will depend on.
      * @param context the context provided to triggered state providers
      */
     InvokeTrigger(final Function<LocationAndType, List<IndexedValue<I>>> dependencyProvider,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         m_dependencyProvider = dependencyProvider;
         m_context = context;
     }
@@ -181,10 +181,10 @@ final class InvokeTrigger<I> {
              */
             private StateProviderInvocationInitializer(final StateVertex stateVertex,
                 final Function<Vertex, Object> getParentValue) {
-                super(new DependencyProvider<Class<? extends Reference<?>>>() {
+                super(new DependencyProvider<Class<? extends ParameterReference<?>>>() {
 
                     @Override
-                    public <V> Supplier<V> getValueSupplier(final Class<? extends Reference<?>> reference) {
+                    public <V> Supplier<V> getValueSupplier(final Class<? extends ParameterReference<?>> reference) {
                         return vertexToSupplier(stateVertex.getDependency(reference), getParentValue);
                     }
 
@@ -230,7 +230,7 @@ final class InvokeTrigger<I> {
             }
 
             @Override
-            public DefaultNodeSettingsContext getContext() {
+            public NodeParametersInput getNodeParametersInput() {
                 return m_context;
             }
 

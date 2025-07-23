@@ -50,9 +50,12 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.updates;
 
 import java.util.function.Supplier;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.ButtonReference;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.StateProvider.StateProviderInitializer;
+import org.knime.node.parameters.updates.StateProvider.TypeReference;
 
 /**
  * To be extended and used for unit-testing state providers
@@ -62,22 +65,22 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 public class TestStateProviderInitializer implements StateProviderInitializer {
 
     @Override
-    public <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
+    public <T> Supplier<T> computeFromValueSupplier(final Class<? extends ParameterReference<T>> ref) {
         throw new IllegalStateException("This method should not have been called in this test.");
     }
 
     @Override
-    public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
+    public <T> Supplier<T> getValueSupplier(final Class<? extends ParameterReference<T>> ref) {
         throw new IllegalStateException("This method should not have been called in this test.");
     }
 
     @Override
-    public <T> Supplier<T> getValueSupplier(final Class<? extends Reference<?>> ref, final TypeReference<T> typeRef) {
+    public <T> Supplier<T> getValueSupplier(final Class<? extends ParameterReference<?>> ref, final TypeReference<T> typeRef) {
         throw new IllegalStateException("This method should not have been called in this test.");
     }
 
     @Override
-    public <T> void computeOnValueChange(final Class<? extends Reference<T>> id) {
+    public <T> void computeOnValueChange(final Class<? extends ParameterReference<T>> id) {
         throw new IllegalStateException("This method should not have been called in this test.");
     }
 
@@ -102,7 +105,7 @@ public class TestStateProviderInitializer implements StateProviderInitializer {
     }
 
     @Override
-    public DefaultNodeSettingsContext getContext() {
+    public NodeParametersInput getNodeParametersInput() {
         /**
          * Use the {@link DialogUpdateSimulator} instead if a non-null context is required here.
          */

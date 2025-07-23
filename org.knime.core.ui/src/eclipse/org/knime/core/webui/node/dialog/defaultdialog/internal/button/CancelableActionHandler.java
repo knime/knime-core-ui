@@ -50,9 +50,9 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.button;
 
 import java.lang.annotation.Annotation;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.CancelableActionHandler.States;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  * An {@link ButtonActionHandler} with an asynchronous invocation whose result can be retrieved and canceled.
@@ -68,12 +68,12 @@ public abstract class CancelableActionHandler<R, S> implements ButtonActionHandl
      * An invocation which is triggered if a request which is not a cancel request is sent.
      *
      * @param settings the settings the invocation depends on
-     * @param context the current {@link DefaultNodeSettingsContext}
+     * @param context the current {@link NodeParametersInput}
      *
      * @return the future result.
      * @throws WidgetHandlerException if the request should fail providing the error message to the frontend
      */
-    protected abstract R invoke(S settings, DefaultNodeSettingsContext context) throws WidgetHandlerException;
+    protected abstract R invoke(S settings, NodeParametersInput context) throws WidgetHandlerException;
 
     /**
      * @return whether the button should be in an enabled state when the request was successful (i.e. if the "DONE"
@@ -92,7 +92,7 @@ public abstract class CancelableActionHandler<R, S> implements ButtonActionHandl
 
     @Override
     public ButtonChange<R, States> invoke(final States buttonState, final S settings,
-        final DefaultNodeSettingsContext context) throws WidgetHandlerException {
+        final NodeParametersInput context) throws WidgetHandlerException {
         if (States.CANCEL == buttonState) {
             return null;
         } else {
@@ -104,7 +104,7 @@ public abstract class CancelableActionHandler<R, S> implements ButtonActionHandl
      * Set the button to the initial "Ready" state
      */
     @Override
-    public ButtonChange<R, States> initialize(final R currentValue, final DefaultNodeSettingsContext context) {
+    public ButtonChange<R, States> initialize(final R currentValue, final NodeParametersInput context) {
         return new ButtonChange<>(States.READY);
     }
 
@@ -184,7 +184,7 @@ public abstract class CancelableActionHandler<R, S> implements ButtonActionHandl
          * {@inheritDoc}
          */
         @Override
-        public ButtonChange<R, States> update(final S settings, final DefaultNodeSettingsContext context)
+        public ButtonChange<R, States> update(final S settings, final NodeParametersInput context)
             throws WidgetHandlerException {
             return new ButtonChange<>(null, States.READY);
         }

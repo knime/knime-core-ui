@@ -49,8 +49,6 @@
 
 package org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.PatternFilter.PatternMode;
-
 /**
  * This enum lists the possibilities of how to choose from a set of table columns
  *
@@ -73,24 +71,4 @@ public enum TypedStringFilterMode {
          * selection by filtering by the types of the table columns with respect to a list of selected types
          */
         TYPE;
-
-    /**
-     * Transforms this enum to a {@link PatternMode}. Check that a pattern is used before using this method.
-     *
-     * @return the corresponding {@link PatternMode}
-     */
-    public PatternMode toPatternMode() {
-        return this == REGEX ? PatternMode.REGEX : PatternMode.WILDCARD;
-    }
-
-    /**
-     * Converts a {@link PatternMode} to a {@link TypedStringFilterMode}
-     *
-     * @param mode the pattern mode
-     * @return the corresponding {@link TypedStringFilterMode}
-     */
-    public static TypedStringFilterMode toTypedStringFilterMode(final PatternMode mode) {
-        return mode == PatternMode.REGEX ? REGEX : WILDCARD;
-    }
-
 }

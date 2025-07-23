@@ -54,9 +54,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
@@ -65,6 +63,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser;
 import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.TraversedField;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DeclaringDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyHandler;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.WidgetGroup;
 
 /**
  *
@@ -113,7 +113,7 @@ final class DependencyResolver {
             final var clazz = field.propertyWriter().getType().getRawClass();
             final var targetScope = findTargetScope(searchScope, declaringDefaultNodeSettings, clazz);
             /**
-             * exclude the field itself to enable using the current DefaultNodeSettings as the dependencies class to get
+             * exclude the field itself to enable using the current NodeParameters as the dependencies class to get
              * a dependency from every other setting.
              */
             if (!targetScope.equals(m_scope)) {
@@ -123,7 +123,7 @@ final class DependencyResolver {
     }
 
     private String findTargetScope(final String searchScope,
-        final Class<? extends DefaultNodeSettings> declaringDefaultNodeSettings, final Class<?> clazz) {
+        final Class<? extends NodeParameters> declaringDefaultNodeSettings, final Class<?> clazz) {
         final var candidates = m_fields.stream().filter(control -> {
             if (declaringDefaultNodeSettings != null && !control.rootClass().equals(declaringDefaultNodeSettings)) {
                 return false;

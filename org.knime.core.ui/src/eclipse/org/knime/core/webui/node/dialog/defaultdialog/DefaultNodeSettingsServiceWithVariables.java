@@ -114,7 +114,7 @@ public final class DefaultNodeSettingsServiceWithVariables implements NodeSettin
         final Map<SettingsType, NodeAndVariableSettingsRO> settings, final PortObjectSpec[] specs) {
         final Map<SettingsType, VariableSettingsRO> variableSettings = settings.entrySet().stream()//
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        final var context = DefaultNodeSettings.createDefaultNodeSettingsContext(specs);
+        final var context = NodeParametersUtil.createDefaultNodeSettingsContext(specs);
         addVariableSettingsToRootJson(root, variableSettings, context);
     }
 

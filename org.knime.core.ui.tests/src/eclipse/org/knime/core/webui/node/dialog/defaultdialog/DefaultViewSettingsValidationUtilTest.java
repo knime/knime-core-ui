@@ -54,6 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  *
@@ -62,7 +63,7 @@ import org.knime.core.node.NodeSettings;
 @SuppressWarnings("java:S2698") // we accept assertions without messages
 class DefaultViewSettingsValidationUtilTest {
 
-    static class TestViewSettings implements DefaultNodeSettings {
+    static class TestViewSettings implements NodeParameters {
         String m_viewSetting;
     }
 

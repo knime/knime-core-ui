@@ -59,10 +59,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.EnumSettingsModelStringPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelDoublePersistor;
@@ -72,7 +68,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.set
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.AuthenticationType;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.SettingsModelAuthenticationMigrator;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.widget.credentials.Credentials;
 
 /**
  *
@@ -340,13 +340,13 @@ class SettingsModelPersistorTest {
     private static <T extends PersistableSettingsWithComparableValue> void testSaveLoad(final T value)
         throws InvalidSettingsException {
         var nodeSettings = new NodeSettings(CFG_KEY);
-        SettingsSaverFactory.saveSettings((PersistableSettings)value, nodeSettings);
+        SettingsSaverFactory.saveSettings((Persistable)value, nodeSettings);
         var loaded = SettingsLoaderFactory.loadSettings(value.getClass(), nodeSettings);
         assertEquals(value.getCompareValue(), loaded.getCompareValue(),
             String.format("Should yield the initial value when saving and loading %s", value.getClass()));
     }
 
-    interface PersistableSettingsWithComparableValue extends PersistableSettings {
+    interface PersistableSettingsWithComparableValue extends Persistable {
         Object getCompareValue();
     }
 

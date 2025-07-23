@@ -51,29 +51,29 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates
 import java.util.Arrays;
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.node.parameters.updates.EffectPredicate;
 
 /**
- * A logical AND {@link Operator} that combines multiple child {@link Predicate Predicates}.
+ * A logical AND {@link Operator} that combines multiple child {@link EffectPredicate Predicates}.
  *
  * @author Paul Bärnreuther
  */
 public non-sealed class And implements Operator {
 
-    private final Predicate[] m_children;
+    private final EffectPredicate[] m_children;
 
     /**
      * @param children the predicates that are combined using this AND operator
      */
     @SafeVarargs
-    public And(final Predicate... children) {
+    public And(final EffectPredicate... children) {
         m_children = children;
     }
 
     /**
      * @return the predicates that are combined using an operation
      */
-    public List<Predicate> getChildren() {
+    public List<EffectPredicate> getChildren() {
         return Arrays.asList(m_children);
     }
 

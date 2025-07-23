@@ -62,12 +62,13 @@ import java.util.stream.Collectors;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.util.workflow.def.FallibleSupplier;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.PersistUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.UpdatesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettingsImpl;
+import org.knime.node.parameters.NodeParameters;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -84,7 +85,7 @@ final class JsonFormsSnapshot extends Snapshot {
 
     private final int m_instance;
 
-    private final Map<SettingsType, FallibleSupplier<DefaultNodeSettings>> m_settings;
+    private final Map<SettingsType, FallibleSupplier<NodeParameters>> m_settings;
 
     private final PortObjectSpec[] m_specs;
 
@@ -97,7 +98,7 @@ final class JsonFormsSnapshot extends Snapshot {
      * @param specs to configure the settings
      * @throws JsonProcessingException
      */
-    JsonFormsSnapshot(final int instance, final Map<SettingsType, FallibleSupplier<DefaultNodeSettings>> settings,
+    JsonFormsSnapshot(final int instance, final Map<SettingsType, FallibleSupplier<NodeParameters>> settings,
         final PortObjectSpec[] specs) {
         m_instance = instance;
         m_settings = settings;
@@ -109,10 +110,10 @@ final class JsonFormsSnapshot extends Snapshot {
         return m_testClassName + (m_instance == 0 ? "" : m_instance) + ".snap";
     }
 
-    private static JsonNode jsonForms(final Map<SettingsType, FallibleSupplier<DefaultNodeSettings>> settings,
+    private static JsonNode jsonForms(final Map<SettingsType, FallibleSupplier<NodeParameters>> settings,
         final PortObjectSpec[] specs) throws JsonProcessingException {
 
-        Map<SettingsType, DefaultNodeSettings> instances =
+        Map<SettingsType, NodeParameters> instances =
             settings.entrySet().stream().collect(Collectors.toMap(Entry::getKey, e -> {
                 try {
                     return e.getValue().get();
@@ -123,7 +124,7 @@ final class JsonFormsSnapshot extends Snapshot {
             }));
 
         // turn it into the json-forms representation
-        final var context = DefaultNodeSettings.createDefaultNodeSettingsContext(specs);
+        final var context = NodeParametersUtil.createDefaultNodeSettingsContext(specs);
         var jsonFormsSettings = new JsonFormsSettingsImpl(instances, context);
         var mapper = JsonFormsDataUtil.getMapper();
         var objectNode = mapper.createObjectNode();

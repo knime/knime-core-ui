@@ -73,23 +73,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.Number
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.OptionalWidgetOptionsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DefaultDataTypeChoicesProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.Configuration;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.OptionalWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBooleanProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMaxLengthValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMaxValidationProvider;
@@ -97,14 +88,23 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMinLeng
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMinValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopPatternValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.OptionalWidget;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilterWidget;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilterWidget;
+import org.knime.node.parameters.widget.message.TextMessage;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.text.TextInputWidget;
 
 final class WidgetTreesToRefsAndStateProviders {
 
-    record ValueRefWrapper(Class<? extends Reference> valueRef, Location fieldLocation) {
+    record ValueRefWrapper(Class<? extends ParameterReference> valueRef, Location fieldLocation) {
     }
 
     record ValueProviderWrapper(Class<? extends StateProvider> stateProviderClass, Location fieldLocation) {
@@ -420,10 +420,10 @@ final class WidgetTreesToRefsAndStateProviders {
             .ifPresent(valueProvider -> addValueProvider(valueProvider.value(), type, pathsWithSettingsKey));
     }
 
-    private void addValueRef(final Class<? extends Reference> valueRef, final Class<?> type,
+    private void addValueRef(final Class<? extends ParameterReference> valueRef, final Class<?> type,
         final Location pathWithSettingsKey) {
-        if (!valueRef.equals(Reference.class)) {
-            validateAgainstType(type, valueRef, Reference.class,
+        if (!valueRef.equals(ParameterReference.class)) {
+            validateAgainstType(type, valueRef, ParameterReference.class,
                 (field, annotationValue) -> annotationValue.isAssignableFrom(field));
             m_valueRefs.add(new ValueRefWrapper(valueRef, pathWithSettingsKey));
         }

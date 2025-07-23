@@ -48,8 +48,8 @@
  */
 package org.knime.core.webui.node.view.table;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Section;
 
 /**
  * The common Section Layout used by the Table View and Statistics View nodes

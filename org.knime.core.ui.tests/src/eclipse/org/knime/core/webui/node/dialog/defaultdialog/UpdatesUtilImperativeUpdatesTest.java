@@ -64,7 +64,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlValueReference;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
@@ -72,8 +71,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.Dropdo
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.SectionRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative.ImperativeStateProvider;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.StateProvider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -86,8 +86,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @SuppressWarnings("java:S2698") // we accept assertions without messages
 public class UpdatesUtilImperativeUpdatesTest {
 
-    private static DefaultNodeSettingsContext createDefaultNodeSettingsContext() {
-        return DefaultNodeSettingsContext.createDefaultNodeSettingsContext(new PortType[]{BufferedDataTable.TYPE},
+    private static NodeParametersInput createDefaultNodeSettingsContext() {
+        return NodeParametersInputImpl.createDefaultNodeSettingsContext(new PortType[]{BufferedDataTable.TYPE},
             new PortObjectSpec[]{null}, null, null);
     }
 
@@ -113,7 +113,7 @@ public class UpdatesUtilImperativeUpdatesTest {
     }
 
     static ObjectNode buildUpdates(final Collection<DialogElementRendererSpec> rendererSpecs, final ObjectNode dataJson,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         final var objectNode = new ObjectMapper().createObjectNode();
         final var modelSettingsRendererSpec =
             rendererSpecs.stream().map(UpdatesUtilImperativeUpdatesTest::setModelSettingsType).toList();
@@ -134,7 +134,7 @@ public class UpdatesUtilImperativeUpdatesTest {
     interface TestImperativeStateProvider<T> extends ImperativeStateProvider<T> {
 
         @Override
-        default T computeState(final DefaultNodeSettingsContext context) throws StateComputationFailureException {
+        default T computeState(final NodeParametersInput context) throws StateComputationFailureException {
             throw new UnsupportedOperationException("Should not be called in this test");
         }
 
@@ -311,7 +311,7 @@ public class UpdatesUtilImperativeUpdatesTest {
             }
 
             @Override
-            public String computeState(final DefaultNodeSettingsContext context)
+            public String computeState(final NodeParametersInput context)
                 throws StateComputationFailureException {
                 return m_firstDependency.get() + "/" + m_secondDependency.get();
             }

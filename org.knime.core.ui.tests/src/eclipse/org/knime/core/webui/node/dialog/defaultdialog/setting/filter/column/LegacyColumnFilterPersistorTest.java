@@ -62,8 +62,11 @@ import org.knime.core.node.util.filter.NameFilterConfiguration.EnforceOption;
 import org.knime.core.node.util.filter.PatternFilterConfiguration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.ManualFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.PatternFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypeFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilterMode;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.filter.LegacyFilterUtil;
+import org.knime.node.parameters.widget.choices.filter.LegacyFilterUtil.ColumnFilterBuilder;
+import org.knime.node.parameters.widget.choices.filter.TypeFilter;
 
 final class LegacyColumnFilterPersistorTest {
 
@@ -109,9 +112,9 @@ final class LegacyColumnFilterPersistorTest {
 
     @Test
     void testTypeSelection() throws InvalidSettingsException {
-        var columnFilter = new ColumnFilter(new String[]{"bli", "bla"});
-        columnFilter.m_mode = TypedStringFilterMode.TYPE;
-        columnFilter.m_typeFilter = new ColumnTypeFilter(new String[]{StringValue.class.getName()});
+        final var columnFilter = new LegacyFilterUtil.ColumnFilterBuilder().withMode(ColumnFilterBuilder.Mode.TYPE)
+            .withSelectedTypes(new String[]{StringValue.class.getName()})
+            .withManuallySelected(new String[]{"bli", "bla"}).build();
         testPersistence(columnFilter);
     }
 

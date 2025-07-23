@@ -70,10 +70,10 @@ import org.knime.core.webui.node.dialog.NodeDialogManager;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.core.webui.node.util.OptionsAdder;
+import org.knime.node.parameters.NodeParameters;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
@@ -81,7 +81,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
- * A convenience class for simple WebUI nodes, i.e., nodes making use of the {@link DefaultNodeSettings} and
+ * A convenience class for simple WebUI nodes, i.e., nodes making use of the {@link NodeParameters} and
  * {@link DefaultNodeDialog} classes. For an exemplary implementation, see
  * org.knime.core.webui.node.dialog.impl.TestWebUINodeFactory in org.knime.core.ui.tests.
  *
@@ -139,8 +139,8 @@ public abstract class WebUINodeFactory<M extends NodeModel> extends NodeFactory<
     public static NodeDescription createNodeDescription(final String name, final String icon, // NOSONAR
         final PortDescription[] inPortDescriptions, final PortDescription[] outPortDescriptions,
         final String shortDescription, final String fullDescription,
-        final Class<? extends DefaultNodeSettings> modelSettingsClass,
-        final Class<? extends DefaultNodeSettings> viewSettingsClass, final String viewDescription, final NodeType type,
+        final Class<? extends NodeParameters> modelSettingsClass,
+        final Class<? extends NodeParameters> viewSettingsClass, final String viewDescription, final NodeType type,
         final String[] keywords) {
         return createNodeDescription(name, icon, inPortDescriptions, outPortDescriptions, shortDescription,
             fullDescription, modelSettingsClass, viewSettingsClass, viewDescription, type, keywords, null);
@@ -164,8 +164,8 @@ public abstract class WebUINodeFactory<M extends NodeModel> extends NodeFactory<
     public static NodeDescription createNodeDescription(final String name, final String icon, // NOSONAR
         final PortDescription[] inPortDescriptions, final PortDescription[] outPortDescriptions,
         final String shortDescription, final String fullDescription,
-        final Class<? extends DefaultNodeSettings> modelSettingsClass,
-        final Class<? extends DefaultNodeSettings> viewSettingsClass, final String viewDescription, final NodeType type,
+        final Class<? extends NodeParameters> modelSettingsClass,
+        final Class<? extends NodeParameters> viewSettingsClass, final String viewDescription, final NodeType type,
         final String[] keywords, final Version sinceVersion) {
         return createNodeDescription(name, icon, inPortDescriptions, outPortDescriptions, shortDescription,
             fullDescription, null, modelSettingsClass, viewSettingsClass, viewDescription, type, keywords,
@@ -192,8 +192,8 @@ public abstract class WebUINodeFactory<M extends NodeModel> extends NodeFactory<
     public static NodeDescription createNodeDescription(final String name, final String icon, // NOSONAR
         final PortDescription[] inPortDescriptions, final PortDescription[] outPortDescriptions,
         final String shortDescription, final String fullDescription, final ExternalResource[] externalResources,
-        final Class<? extends DefaultNodeSettings> modelSettingsClass,
-        final Class<? extends DefaultNodeSettings> viewSettingsClass, final String viewDescription, final NodeType type,
+        final Class<? extends NodeParameters> modelSettingsClass,
+        final Class<? extends NodeParameters> viewSettingsClass, final String viewDescription, final NodeType type,
         final String[] keywords, final Version sinceVersion) {
         var fac = NodeDescription.getDocumentBuilderFactory();
         DocumentBuilder docBuilder;
@@ -277,8 +277,8 @@ public abstract class WebUINodeFactory<M extends NodeModel> extends NodeFactory<
         }
     }
 
-    private static Element createOptionsTab(final Class<? extends DefaultNodeSettings> modelSettingsClass,
-        final Class<? extends DefaultNodeSettings> viewSettingsClass, final DocumentBuilder docBuilder,
+    private static Element createOptionsTab(final Class<? extends NodeParameters> modelSettingsClass,
+        final Class<? extends NodeParameters> viewSettingsClass, final DocumentBuilder docBuilder,
         final Document doc) {
         var tab = doc.createElement("tab");
         tab.setAttribute("name", "Options");

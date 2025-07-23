@@ -51,7 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.booleanhelper
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
  * Temporary workaround for not persisting boolean states that are just intermediate states for effects which depend on
@@ -63,7 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
  *
  * @author Paul Bärnreuther
  */
-public class DoNotPersistBoolean implements NodeSettingsPersistor<Boolean> {
+public class DoNotPersistBoolean implements NodeParametersPersistor<Boolean> {
 
     @Override
     public Boolean load(final NodeSettingsRO settings) throws InvalidSettingsException {

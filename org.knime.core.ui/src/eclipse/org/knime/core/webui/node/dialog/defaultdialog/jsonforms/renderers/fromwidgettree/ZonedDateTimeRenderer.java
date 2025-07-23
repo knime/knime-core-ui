@@ -52,9 +52,9 @@ import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.DateTimeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ZonedDateTimeRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.widget.choices.StringChoice;
 
 final class ZonedDateTimeRenderer extends WidgetTreeControlRendererSpec implements ZonedDateTimeRendererSpec {
 

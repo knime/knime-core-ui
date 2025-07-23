@@ -48,7 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
  * Marker class used as ignored default only.
@@ -62,7 +63,7 @@ class NoopProvider<T> implements StateProvider<T> {
     }
 
     @Override
-    public T computeState(final DefaultNodeSettingsContext context) {
+    public T computeState(final NodeParametersInput context) {
         throw new IllegalStateException("This method should never be called");
     }
 

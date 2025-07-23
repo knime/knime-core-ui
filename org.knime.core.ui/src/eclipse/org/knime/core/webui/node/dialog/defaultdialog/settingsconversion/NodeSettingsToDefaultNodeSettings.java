@@ -55,30 +55,31 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
 import org.knime.core.webui.node.dialog.internal.LoadWarningsUtil;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.NodeParameters;
 
 /**
- * This class can be used to transform {@link NodeSettings} first to {@link DefaultNodeSettings} and then further to
- * {@link JsonFormsSettings}. If the first step of this transformation fails, new {@link DefaultNodeSettings} are
+ * This class can be used to transform {@link NodeSettings} first to {@link NodeParameters} and then further to
+ * {@link JsonFormsSettings}. If the first step of this transformation fails, new {@link NodeParameters} are
  * constructed instead.
  *
  * @author Paul Bärnreuther
  */
 public final class NodeSettingsToDefaultNodeSettings {
 
-    private final DefaultNodeSettingsContext m_context;
+    private final NodeParametersInput m_context;
 
-    private final Map<SettingsType, Class<? extends DefaultNodeSettings>> m_settingsClasses;
+    private final Map<SettingsType, Class<? extends NodeParameters>> m_settingsClasses;
 
     /**
      * @param context
-     * @param settingsClasses a map associating settings types with {@link DefaultNodeSettings}
+     * @param settingsClasses a map associating settings types with {@link NodeParameters}
      */
-    public NodeSettingsToDefaultNodeSettings(final DefaultNodeSettingsContext context,
-        final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses) {
+    public NodeSettingsToDefaultNodeSettings(final NodeParametersInput context,
+        final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses) {
         m_settingsClasses = settingsClasses;
         m_context = context;
     }
@@ -89,9 +90,9 @@ public final class NodeSettingsToDefaultNodeSettings {
      * @param settings
      * @return the JSON forms representation of the settings
      * @throws InvalidSettingsException if the intermediate transformation of the settings to
-     *             {@link DefaultNodeSettings} failed.
+     *             {@link NodeParameters} failed.
      */
-    public Map<SettingsType, DefaultNodeSettings> nodeSettingsToDefaultNodeSettings(
+    public Map<SettingsType, NodeParameters> nodeSettingsToDefaultNodeSettings(
         final Map<SettingsType, NodeSettingsRO> settings) throws InvalidSettingsException {
         try {
             return allNodeSettingsToDefaultNodeSettings(settings, this::fromNodeSettingsToDefaultNodeSettings);
@@ -102,20 +103,20 @@ public final class NodeSettingsToDefaultNodeSettings {
 
     /**
      * Transforms the given node settings to {@link JsonFormsSettings} using a default for the intermediate
-     * transformation to {@link DefaultNodeSettings} in case it fails.
+     * transformation to {@link NodeParameters} in case it fails.
      *
      * @param settings
      * @return the JSON forms representation of the settings
      */
-    public Map<SettingsType, DefaultNodeSettings>
+    public Map<SettingsType, NodeParameters>
         nodeSettingsToDefaultNodeSettingsOrDefault(final Map<SettingsType, NodeSettingsRO> settings) {
         return allNodeSettingsToDefaultNodeSettings(settings, this::fromNodeSettingsToDefaultNodeSettingsOrDefault);
     }
 
-    private static Map<SettingsType, DefaultNodeSettings> allNodeSettingsToDefaultNodeSettings(
+    private static Map<SettingsType, NodeParameters> allNodeSettingsToDefaultNodeSettings(
         final Map<SettingsType, NodeSettingsRO> settings, final GetSettings getSettings)
         throws GetSettings.UncheckedExceptionCausedByInvalidSettings {
-        final Map<SettingsType, DefaultNodeSettings> loadedSettings = new HashMap<>();
+        final Map<SettingsType, NodeParameters> loadedSettings = new HashMap<>();
         for (var entry : settings.entrySet()) {
             final var type = entry.getKey();
             final var nodeSettings = entry.getValue();
@@ -124,18 +125,18 @@ public final class NodeSettingsToDefaultNodeSettings {
         return loadedSettings;
     }
 
-    private DefaultNodeSettings fromNodeSettingsToDefaultNodeSettings(final SettingsType type,
+    private NodeParameters fromNodeSettingsToDefaultNodeSettings(final SettingsType type,
         final NodeSettingsRO nodeSettings) throws InvalidSettingsException {
-        return DefaultNodeSettings.loadSettings(nodeSettings, m_settingsClasses.get(type));
+        return NodeParametersUtil.loadSettings(nodeSettings, m_settingsClasses.get(type));
     }
 
-    private DefaultNodeSettings fromNodeSettingsToDefaultNodeSettingsOrDefault(final SettingsType type,
+    private NodeParameters fromNodeSettingsToDefaultNodeSettingsOrDefault(final SettingsType type,
         final NodeSettingsRO nodeSettings) {
         try {
             return fromNodeSettingsToDefaultNodeSettings(type, nodeSettings);
         } catch (InvalidSettingsException ex) {
             LoadWarningsUtil.warnAboutDefaultSettingsBeingUsedInstead(ex);
-            return DefaultNodeSettings.createSettings(m_settingsClasses.get(type), m_context);
+            return NodeParametersUtil.createSettings(m_settingsClasses.get(type), m_context);
         }
     }
 
@@ -144,10 +145,10 @@ public final class NodeSettingsToDefaultNodeSettings {
      */
     @FunctionalInterface
     private interface GetSettings {
-        DefaultNodeSettings getDefaultNodeSettings(SettingsType type, NodeSettingsRO nodeSettings)
+        NodeParameters getDefaultNodeSettings(SettingsType type, NodeSettingsRO nodeSettings)
             throws InvalidSettingsException;
 
-        default DefaultNodeSettings getDefaultNodeSettingsUnchecked(final SettingsType type,
+        default NodeParameters getDefaultNodeSettingsUnchecked(final SettingsType type,
             final NodeSettingsRO nodeSettings) throws UncheckedExceptionCausedByInvalidSettings {
             try {
                 return getDefaultNodeSettings(type, nodeSettings);

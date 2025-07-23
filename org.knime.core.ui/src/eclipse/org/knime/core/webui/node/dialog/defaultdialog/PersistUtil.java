@@ -59,12 +59,7 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigKeyUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.PersistenceFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
@@ -75,6 +70,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMapUtil;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistable;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -98,7 +99,7 @@ public final class PersistUtil {
      * @param settings
      */
     public static void constructTreesAndAddPersist(final ObjectNode parentNode,
-        final Map<SettingsType, DefaultNodeSettings> settings) {
+        final Map<SettingsType, NodeParameters> settings) {
         final var persistTreeFactory = new PersistTreeFactory();
         final var persistTrees =
             SettingsTypeMapUtil.map(settings, (type, s) -> persistTreeFactory.createTree(s.getClass(), type));
@@ -107,14 +108,14 @@ public final class PersistUtil {
 
     /**
      * Adds the information necessary for the frontend to adapt flow variable handling to custom persisting given by
-     * {@link Persist @Persist} annotations and deviations of the {@link PersistableSettings} structure from the
+     * {@link Persist @Persist} annotations and deviations of the {@link Persistable} structure from the
      * {@link WidgetGroup} structure.
      *
      * @param parentNode the parent object node to add to
      * @param persistTrees the persist trees to parse
      */
     static void addPersist(final ObjectNode parentNode,
-        final Map<SettingsType, Tree<PersistableSettings>> persistTrees) {
+        final Map<SettingsType, Tree<Persistable>> persistTrees) {
         final var persist = parentNode.putObject("persist");
         final var properties = addObjectProperties(persist);
         final var persistSchemaFactory = new PersistSchemaFactory();
@@ -132,12 +133,12 @@ public final class PersistUtil {
 
         static final ObjectMapper MAPPER = new ObjectMapper();
 
-        ObjectNode createPersistSchemaFromTree(final Tree<PersistableSettings> node) {
+        ObjectNode createPersistSchemaFromTree(final Tree<Persistable> node) {
             return super.extractFromTree(node);
         }
 
         @Override
-        protected ObjectNode getForLeaf(final LeafNode<PersistableSettings> node) {
+        protected ObjectNode getForLeaf(final LeafNode<Persistable> node) {
             final var objectNode = MAPPER.createObjectNode();
             final var configKey = ConfigKeyUtil.getConfigKey(node);
             final var defaultPersistor = DefaultFieldNodeSettingsPersistorFactory.createPersistor(node, configKey);
@@ -162,8 +163,8 @@ public final class PersistUtil {
         }
 
         @Override
-        protected ObjectNode getFromCustomPersistor(final NodeSettingsPersistor<?> nodeSettingsPersistor,
-            final TreeNode<PersistableSettings> node) {
+        protected ObjectNode getFromCustomPersistor(final NodeParametersPersistor<?> nodeSettingsPersistor,
+            final TreeNode<Persistable> node) {
             final var objectNode = MAPPER.createObjectNode();
             final var withConfigPaths =
                 addConfigPaths(objectNode, "configPaths", nodeSettingsPersistor.getConfigPaths());
@@ -171,15 +172,15 @@ public final class PersistUtil {
         }
 
         @Override
-        protected ObjectNode getFromCustomPersistorForType(final NodeSettingsPersistor<?> nodeSettingsPersistor,
-            final Tree<PersistableSettings> tree) {
+        protected ObjectNode getFromCustomPersistorForType(final NodeParametersPersistor<?> nodeSettingsPersistor,
+            final Tree<Persistable> tree) {
             final var objectNode = MAPPER.createObjectNode();
             return addConfigPaths(objectNode, "propertiesConfigPaths", nodeSettingsPersistor.getConfigPaths());
         }
 
         @Override
-        protected ObjectNode getForTree(final Tree<PersistableSettings> tree,
-            final Function<TreeNode<PersistableSettings>, ObjectNode> childNode) {
+        protected ObjectNode getForTree(final Tree<Persistable> tree,
+            final Function<TreeNode<Persistable>, ObjectNode> childNode) {
             final var objectNode = MAPPER.createObjectNode();
             final var properties = addObjectProperties(objectNode);
             tree.getChildren().stream().map(childNode::apply).forEach(properties::setAll);
@@ -187,7 +188,7 @@ public final class PersistUtil {
         }
 
         @Override
-        protected ObjectNode getForArray(final ArrayParentNode<PersistableSettings> arrayNode,
+        protected ObjectNode getForArray(final ArrayParentNode<Persistable> arrayNode,
             final ObjectNode elementNode) {
             final var objectNode = MAPPER.createObjectNode();
             objectNode.put("type", "array");
@@ -196,7 +197,7 @@ public final class PersistUtil {
         }
 
         @Override
-        protected ObjectNode getNested(final TreeNode<PersistableSettings> node, final ObjectNode property) {
+        protected ObjectNode getNested(final TreeNode<Persistable> node, final ObjectNode property) {
             resolvePersistAnnotation(property, node);
             final var objectNode = MAPPER.createObjectNode();
             objectNode.set(node.getName().orElseThrow(IllegalStateException::new), property);
@@ -206,7 +207,7 @@ public final class PersistUtil {
         @Override
         protected ObjectNode combineWithConfigsDeprecations(final ObjectNode existing,
             final List<ConfigMigration> configsDeprecations, final Supplier<String[][]> configPaths,
-            final TreeNode<PersistableSettings> node) {
+            final TreeNode<Persistable> node) {
             addDeprecatedConfigKeys((ObjectNode)existing.get(node.getName().orElseThrow(IllegalStateException::new)),
                 "deprecatedConfigKeys", configsDeprecations);
             return existing;
@@ -215,7 +216,7 @@ public final class PersistUtil {
         @Override
         protected ObjectNode combineWithConfigsDeprecationsForType(final ObjectNode withoutLoader,
             final List<ConfigMigration> configsDeprecations, final Supplier<String[][]> configPaths,
-            final Tree<PersistableSettings> node) {
+            final Tree<Persistable> node) {
             return addDeprecatedConfigKeys(withoutLoader, "propertiesDeprecatedConfigKeys", configsDeprecations);
 
         }
@@ -246,7 +247,7 @@ public final class PersistUtil {
         }
 
         private static void resolvePersistAnnotation(final ObjectNode objectNode,
-            final TreeNode<PersistableSettings> treeNode) {
+            final TreeNode<Persistable> treeNode) {
             final var persistAnnotation = treeNode.getAnnotation(Persist.class);
             final var configRename = persistAnnotation.map(Persist::configKey).filter(key -> !key.isEmpty());
             final boolean isHidden = persistAnnotation.map(Persist::hidden).orElse(false);

@@ -52,7 +52,7 @@ import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TimeRendererSpec.TimeRendererOptions;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
+import org.knime.node.parameters.widget.choices.StringChoice;
 
 /**
  * A renderer for a zoned date&time.

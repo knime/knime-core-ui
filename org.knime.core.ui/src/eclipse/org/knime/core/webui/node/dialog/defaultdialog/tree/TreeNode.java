@@ -62,9 +62,9 @@ import java.util.stream.Stream;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.persistence.Persistable;
 
 import com.fasterxml.jackson.databind.JavaType;
 
@@ -73,7 +73,7 @@ import com.fasterxml.jackson.databind.JavaType;
  * {@link LeafNode}s with no further child widgets and {@link ArrayParentNode}s with an attached separate {@link Tree}
  * for elements.
  *
- * @param <S> the type of the [S]ettings. Either {@link PersistableSettings} or {@link WidgetGroup}
+ * @param <S> the type of the [S]ettings. Either {@link Persistable} or {@link WidgetGroup}
  *
  * @author Paul Bärnreuther
  */

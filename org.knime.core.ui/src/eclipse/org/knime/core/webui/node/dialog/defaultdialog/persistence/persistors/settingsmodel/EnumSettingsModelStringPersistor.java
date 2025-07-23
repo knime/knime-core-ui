@@ -52,7 +52,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
  * Persistor for {@link SettingsModelString} that saves and loads the value as an enum.
@@ -60,7 +60,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
  * @param <E> the type of the enum
  * @author Paul Bärnreuther
  */
-public class EnumSettingsModelStringPersistor<E extends Enum<E>> implements NodeSettingsPersistor<E> {
+public class EnumSettingsModelStringPersistor<E extends Enum<E>> implements NodeParametersPersistor<E> {
 
     private final String m_configKey;
 

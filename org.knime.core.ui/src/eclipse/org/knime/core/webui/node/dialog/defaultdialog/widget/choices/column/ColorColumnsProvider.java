@@ -49,6 +49,7 @@
 package org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column;
 
 import org.knime.core.data.DataColumnSpec;
+import org.knime.node.parameters.widget.choices.util.FilteredInputTableColumnsProvider;
 
 /**
  * Offers all column from an input table which have a color handler. By default, the first input table is used.

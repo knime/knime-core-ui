@@ -64,8 +64,8 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.data.DataServiceContext;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * Data service for the DBTableChooser dialog.
@@ -79,7 +79,7 @@ public final class DBTableChooserDataService {
     /**
      * Constructor for the DBTableChooserDataService.
      *
-     * @param dbTableAdapter the DBTableAdapter to use - this should be an annotation on the {@link DefaultNodeSettings}
+     * @param dbTableAdapter the DBTableAdapter to use - this should be an annotation on the {@link NodeParameters}
      *            class that needs this service to exist.
      */
     public DBTableChooserDataService(final Class<? extends DBTableAdapter> dbTableAdapter) {
@@ -331,7 +331,7 @@ public final class DBTableChooserDataService {
     }
 
     /**
-     * Put this annotation on your {@link DefaultNodeSettings} class to indicate that you want to use the
+     * Put this annotation on your {@link NodeParameters} class to indicate that you want to use the
      * DBTableChooserDataService.
      */
     @Retention(RetentionPolicy.RUNTIME)

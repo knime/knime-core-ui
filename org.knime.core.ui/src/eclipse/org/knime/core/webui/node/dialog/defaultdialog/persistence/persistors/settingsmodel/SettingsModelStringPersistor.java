@@ -52,14 +52,14 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
  * Saves a String field if it was controlled by a {@link SettingsModelString}.
  *
  * @author Paul Bärnreuther
  */
-public abstract class SettingsModelStringPersistor implements NodeSettingsPersistor<String> {
+public abstract class SettingsModelStringPersistor implements NodeParametersPersistor<String> {
 
     private final String m_configKey;
 

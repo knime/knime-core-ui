@@ -54,7 +54,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.Patter
  *
  * @author Paul Bärnreuther
  */
-enum StringFilterMode {
+public enum StringFilterMode {
 
         /**
          * manual selection, i.e. a stored list of manually selected strings
@@ -69,12 +69,12 @@ enum StringFilterMode {
          */
         WILDCARD;
 
-    PatternMode toPatternMode() {
+    /**
+     * Converts the {@link StringFilterMode} to a {@link PatternMode}.
+     *
+     * @return the corresponding {@link PatternMode}
+     */
+    public PatternMode toPatternMode() {
         return this == REGEX ? PatternMode.REGEX : PatternMode.WILDCARD;
     }
-
-    static StringFilterMode toNameFilterMode(final PatternMode mode) {
-        return mode == PatternMode.REGEX ? REGEX : WILDCARD;
-    }
-
 }

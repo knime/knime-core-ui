@@ -56,7 +56,8 @@ import java.nio.file.StandardOpenOption;
 
 import org.knime.core.node.NodeSettings;
 import org.knime.core.util.workflow.def.FallibleSupplier;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.NodeParameters;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -70,13 +71,13 @@ final class NodeSettingsSnapshot extends Snapshot {
 
     private final int m_instance;
 
-    private final FallibleSupplier<? extends DefaultNodeSettings> m_assertion;
+    private final FallibleSupplier<? extends NodeParameters> m_assertion;
 
     /**
      * @param assertion in case the node has model and view settings
      * @throws JsonProcessingException
      */
-    NodeSettingsSnapshot(final int instance, final FallibleSupplier<? extends DefaultNodeSettings> assertion) {
+    NodeSettingsSnapshot(final int instance, final FallibleSupplier<? extends NodeParameters> assertion) {
         m_instance = instance;
         m_assertion = assertion;
     }
@@ -91,7 +92,7 @@ final class NodeSettingsSnapshot extends Snapshot {
         try {
             final var settings = m_assertion.get();
             final var toPersist = new NodeSettings("test");
-            DefaultNodeSettings.saveSettings(settings.getClass(), settings, toPersist);
+            NodeParametersUtil.saveSettings(settings.getClass(), settings, toPersist);
             try (final var os = Files.newOutputStream(snapshotFile, StandardOpenOption.CREATE)) {
                 toPersist.saveToXML(os);
             }

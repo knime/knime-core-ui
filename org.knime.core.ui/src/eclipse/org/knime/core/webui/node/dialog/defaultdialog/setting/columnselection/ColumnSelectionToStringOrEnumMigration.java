@@ -53,9 +53,9 @@ import java.util.Objects;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
 
 /**
  * With 5.5 we removed the ColumnSelection setting and nodes that used it need to use a String instead. In some cases,
@@ -68,7 +68,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.St
  * @author Paul Bärnreuther
  */
 public abstract class ColumnSelectionToStringOrEnumMigration<E extends Enum<E>>
-    implements NodeSettingsMigration<StringOrEnum<E>>, ToStringOrEnumMigration<E> {
+    implements NodeParametersMigration<StringOrEnum<E>>, ToStringOrEnumMigration<E> {
 
     private final String m_legacyColumnSelectionConfigKey;
 

@@ -57,7 +57,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.knime.core.data.DataType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
@@ -74,33 +73,34 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteD
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection.DBTableSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
+import org.knime.node.parameters.Advanced;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilterWidget;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilterWidget;
+import org.knime.node.parameters.widget.choices.filter.StringFilter;
+import org.knime.node.parameters.widget.choices.filter.TwinlistWidget;
+import org.knime.node.parameters.widget.credentials.Credentials;
+import org.knime.node.parameters.widget.credentials.CredentialsWidget;
+import org.knime.node.parameters.widget.credentials.PasswordWidget;
+import org.knime.node.parameters.widget.credentials.UsernameWidget;
+import org.knime.node.parameters.widget.message.TextMessage;
+import org.knime.node.parameters.widget.text.RichTextInputWidget;
+import org.knime.node.parameters.widget.text.TextInputWidget;
 
 /**
  * This utility class defines defaults and registers additional annotations used to define the format of an ui element.
@@ -132,7 +132,7 @@ public final class WidgetImplementationUtil {
     /**
      * Extend this by a new element for each new default format of a ui element.
      *
-     * !!! WHEN ADDING A NEW ELEMENT HERE, ALSO ADD TO THE DOCUMENTATION OF {@link DefaultNodeSettings} !!!
+     * !!! WHEN ADDING A NEW ELEMENT HERE, ALSO ADD TO THE DOCUMENTATION OF {@link NodeParameters} !!!
      *
      * @author Paul Bärnreuther
      */
@@ -165,7 +165,7 @@ public final class WidgetImplementationUtil {
     /**
      * Extend this by every new annotation defining the format of the annotated ui element.
      *
-     * !!! WHEN ADDING A NEW ELEMENT HERE, ALSO ADD TO THE DOCUMENTATION OF {@link DefaultNodeSettings} !!!
+     * !!! WHEN ADDING A NEW ELEMENT HERE, ALSO ADD TO THE DOCUMENTATION OF {@link NodeParameters} !!!
      */
     private static final WidgetAnnotation[] WIDGET_ANNOTATIONS = new WidgetAnnotation[]{//
         new WidgetAnnotation(Widget.class), //
@@ -202,7 +202,7 @@ public final class WidgetImplementationUtil {
     /**
      *
      * Extend this for every fields type which has default format set. !!! WHEN ADDING A NEW ELEMENT HERE, ALSO ADD TO
-     * THE DOCUMENTATION OF {@link DefaultNodeSettings} !!!
+     * THE DOCUMENTATION OF {@link NodeParameters} !!!
      */
     private static final DefaultWidget[] DEFAULT_WIDGETS = new DefaultWidget[]{//
         new DefaultWidget(List.of(StringFilter.class), DefaultWidgetType.NAME_FILTER), //

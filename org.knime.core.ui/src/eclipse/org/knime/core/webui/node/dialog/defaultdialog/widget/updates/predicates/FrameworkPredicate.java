@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.node.parameters.updates.EffectPredicate;
 
 /**
  * Predicate used to resolve predicate providers which are not scoped to a field (see {@link ScopedPredicate}) and not
@@ -57,7 +57,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
  * @param providerClass a special provider class defined by the framework
  * @author Paul Bärnreuther
  */
-public record FrameworkPredicate(Class<? extends FrameworkPredicateProvider> providerClass) implements Predicate {
+public record FrameworkPredicate(Class<? extends FrameworkPredicateProvider> providerClass) implements EffectPredicate {
 
     @Override
     public <T> T accept(final PredicateVisitor<T> visitor) {

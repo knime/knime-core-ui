@@ -51,11 +51,11 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget;
 import java.util.Arrays;
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.DomainChoicesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.ErrorHandlingSingleton;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
  *
@@ -64,11 +64,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvid
 public interface DomainValuesProvider extends StateProvider<List<String>> {
 
     @Override
-    default List<String> computeState(final DefaultNodeSettingsContext context) {
+    default List<String> computeState(final NodeParametersInput context) {
         return getDomainChoices(context);
     }
 
-    private List<String> getDomainChoices(final DefaultNodeSettingsContext context) {
+    private List<String> getDomainChoices(final NodeParametersInput context) {
         try {
             return DomainChoicesUtil.getChoicesByContextAndColumn(context, getSelectedColumn());
         } catch (WidgetHandlerException e) { //NOSONAR

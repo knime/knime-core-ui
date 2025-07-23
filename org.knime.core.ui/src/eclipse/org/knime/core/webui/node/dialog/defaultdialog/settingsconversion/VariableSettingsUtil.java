@@ -62,9 +62,10 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.VariableSettingsRO;
 import org.knime.core.webui.node.dialog.VariableSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.internal.InternalVariableSettings;
+import org.knime.node.parameters.NodeParametersInput;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -127,7 +128,7 @@ public final class VariableSettingsUtil {
      * @param context used to get the available flow variables
      */
     public static void addVariableSettingsToRootJson(final ObjectNode root,
-        final Map<SettingsType, VariableSettingsRO> settings, final DefaultNodeSettingsContext context) {
+        final Map<SettingsType, VariableSettingsRO> settings, final NodeParametersInput context) {
         final var variableSettingsJson = getVariableSettingsJson(settings, context);
         root.set(FLOW_VARIABLE_SETTINGS_KEY, variableSettingsJson);
     }
@@ -140,10 +141,10 @@ public final class VariableSettingsUtil {
      * @return the variable settings object
      */
     public static ObjectNode getVariableSettingsJson(final Map<SettingsType, VariableSettingsRO> settings,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         final var mapper = JsonFormsDataUtil.getMapper();
         return VariableSettingsUtil.fromVariableSettingsToJson(settings,
-            Set.of(context.getAvailableFlowVariableNames()), mapper);
+            Set.of(((NodeParametersInputImpl)context).getAvailableFlowVariableNames()), mapper);
     }
 
     /**

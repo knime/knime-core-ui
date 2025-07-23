@@ -72,39 +72,40 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSetting
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.NodeSettingsToDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
+import org.knime.node.parameters.NodeParameters;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * Default implementation of a KaiNodeInterface for nodes that use {@link DefaultNodeSettings}.
+ * Default implementation of a KaiNodeInterface for nodes that use {@link NodeParameters}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public final class DefaultKaiNodeInterface implements KaiNodeInterface {
 
-    private final Map<SettingsType, Class<? extends DefaultNodeSettings>> m_settingsClasses;
+    private final Map<SettingsType, Class<? extends NodeParameters>> m_settingsClasses;
 
     private final DefaultTextToNodeSettingsConverter m_textToNodeSettingsConverter;
 
     private final OnApplyNodeModifier m_onApplyModifier;
 
     /**
-     * Constructor for nodes that are based on {@link DefaultNodeSettings}.
+     * Constructor for nodes that are based on {@link NodeParameters}.
      *
      * @param settingsClasses the classes of settings of the node
      */
-    public DefaultKaiNodeInterface(final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses) {
+    public DefaultKaiNodeInterface(final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses) {
         this(settingsClasses, null);
     }
 
     /**
-     * Constructor for nodes that are based on {@link DefaultNodeSettings}.
+     * Constructor for nodes that are based on {@link NodeParameters}.
      *
      * @param settingsClasses the classes of settings of the node
      * @param onApplyModifier allows to modify the node when the settings are applied
      */
-    public DefaultKaiNodeInterface(final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses,
+    public DefaultKaiNodeInterface(final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses,
         final OnApplyNodeModifier onApplyModifier) {
         m_settingsClasses = settingsClasses;
         m_textToNodeSettingsConverter = new DefaultTextToNodeSettingsConverter(settingsClasses);
@@ -130,7 +131,7 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
 
     private JsonFormsSettingsImpl getJsonFormsSettings(final Map<SettingsType, NodeAndVariableSettingsRO> settings,
         final PortObjectSpec[] specs) {
-        var context = DefaultNodeSettings.createDefaultNodeSettingsContext(specs);
+        var context = NodeParametersUtil.createDefaultNodeSettingsContext(specs);
         final var loadedSettings = new NodeSettingsToDefaultNodeSettings(context, m_settingsClasses)
             .nodeSettingsToDefaultNodeSettingsOrDefault(map(settings));
 
@@ -295,7 +296,7 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
      *
      * @return the settings classes of the node
      */
-    public Map<SettingsType, Class<? extends DefaultNodeSettings>> getSettingsClasses() {
+    public Map<SettingsType, Class<? extends NodeParameters>> getSettingsClasses() {
         return m_settingsClasses;
     }
 

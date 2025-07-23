@@ -48,18 +48,18 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.node.parameters.updates.EffectPredicate;
 
 @SuppressWarnings("javadoc")
 public non-sealed class Not implements Operator {
 
-    private final Predicate m_childPredicate;
+    private final EffectPredicate m_childPredicate;
 
-    public Not(final Predicate childPredicate) {
+    public Not(final EffectPredicate childPredicate) {
         m_childPredicate = childPredicate;
     }
 
-    public Predicate getChildPredicate() {
+    public EffectPredicate getChildPredicate() {
         return m_childPredicate;
     }
 

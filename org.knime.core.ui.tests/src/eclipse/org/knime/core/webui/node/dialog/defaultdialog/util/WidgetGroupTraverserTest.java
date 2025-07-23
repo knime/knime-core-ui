@@ -60,9 +60,9 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
 
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 
@@ -94,7 +94,7 @@ class WidgetGroupTraverserTest {
             String m_sub2;
         }
 
-        class TestControlSettings implements DefaultNodeSettings {
+        class TestControlSettings implements NodeParameters {
             @Widget(title = "", description = "")
             String m_normalSetting;
 
@@ -138,7 +138,7 @@ class WidgetGroupTraverserTest {
 
         @Test
         void testDoesNotTrackAnnotationsIfNoneProvided() {
-            class TestAnnotationSettings implements DefaultNodeSettings {
+            class TestAnnotationSettings implements NodeParameters {
 
                 @Widget(title = "", description = "")
                 @TestId(2)
@@ -163,7 +163,7 @@ class WidgetGroupTraverserTest {
         void testOnlyTracksRegisteredAnnotations() {
 
 
-            class TestAnnotationSettings implements DefaultNodeSettings {
+            class TestAnnotationSettings implements NodeParameters {
 
                 @Widget(title = "", description = "")
                 @TestId(1)
@@ -198,7 +198,7 @@ class WidgetGroupTraverserTest {
             }
 
             @TestId(1)
-            class TestDefaultParentSettings implements DefaultNodeSettings {
+            class TestDefaultParentSettings implements NodeParameters {
 
                 @Widget(title = "", description = "")
                 String m_defaultParentSetting;
@@ -229,7 +229,7 @@ class WidgetGroupTraverserTest {
         @Test
         void testNoAnnotation() {
 
-            class TestNoAnnotationSettings implements DefaultNodeSettings {
+            class TestNoAnnotationSettings implements NodeParameters {
 
                 @Widget(title = "", description = "")
                 String m_setting;
@@ -259,7 +259,7 @@ class WidgetGroupTraverserTest {
                 String m_sub2;
             }
 
-            class TestConflictingAnnotationsSettings implements DefaultNodeSettings {
+            class TestConflictingAnnotationsSettings implements NodeParameters {
 
                 @TestId
                 ClusterOfSettings m_setting;

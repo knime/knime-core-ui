@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.node.parameters.updates.EffectPredicate;
 
 /**
  * The atomic predicate that is used for implementations supporting constant predicates (e.g. dynamic input port
@@ -59,7 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
  *
  * @param value
  */
-public record ConstantPredicate(boolean value) implements Predicate {
+public record ConstantPredicate(boolean value) implements EffectPredicate {
 
     @Override
     public <T> T accept(final PredicateVisitor<T> visitor) {

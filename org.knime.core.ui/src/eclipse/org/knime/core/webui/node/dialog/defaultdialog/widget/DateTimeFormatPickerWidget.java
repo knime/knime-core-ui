@@ -56,8 +56,8 @@ import java.lang.annotation.Target;
 import java.time.format.DateTimeFormatter;
 
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
  * A widget to pick a date/time/date-time format. Nodes using this widget should validate the setting via

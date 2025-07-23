@@ -51,9 +51,10 @@ import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 
 /**
  * The data structure of a TwinList changed from an array of strings to a more complex representation by a
@@ -62,7 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
  *
  * @author Paul Bärnreuther
  */
-public abstract class StringArrayToColumnFilterMigration implements NodeSettingsMigration<ColumnFilter> {
+public abstract class StringArrayToColumnFilterMigration implements NodeParametersMigration<ColumnFilter> {
 
     private final String m_legacyConfigKey;
 

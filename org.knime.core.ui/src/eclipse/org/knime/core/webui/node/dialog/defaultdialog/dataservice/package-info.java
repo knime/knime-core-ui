@@ -52,7 +52,7 @@
  * {@link DefaultNodeDialog}. This data service is currently used to invoke actions from buttons (see
  * {@link org.knime.core.webui.node.dialog.defaultdialog.widget.button}). Hereby the data service serves as a layer
  * between the calls from the frontend and different handlers in the backend. During initialization of the data service,
- * these handlers are parsed from a collection of supplied {@link DefaultNodeSettings}.
+ * these handlers are parsed from a collection of supplied {@link NodeParameters}.
  *
  * @author Paul Bärnreuther
  */

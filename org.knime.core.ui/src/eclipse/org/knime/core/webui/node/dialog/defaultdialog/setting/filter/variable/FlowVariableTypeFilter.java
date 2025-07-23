@@ -52,8 +52,9 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.knime.core.node.workflow.FlowVariable;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypeFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedStringChoice.PossibleTypeValue;
+import org.knime.node.parameters.widget.choices.TypedStringChoice.PossibleTypeValue;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
+import org.knime.node.parameters.widget.choices.filter.TypeFilter;
 
 /**
  * The type filter used within a {@link FlowVariableFilter}.
@@ -62,7 +63,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.TypedString
  */
 public final class FlowVariableTypeFilter extends TypeFilter {
 
-    FlowVariableTypeFilter() {
+    /**
+     * Default constructor.
+     */
+    public FlowVariableTypeFilter() {
         super();
     }
 
@@ -81,7 +85,7 @@ public final class FlowVariableTypeFilter extends TypeFilter {
      * @param flowVariable a flow variable which is part of the choices of this filter.
      * @return whether the value is selected
      */
-    Predicate<FlowVariable> getFilterPredicate() {
+    public Predicate<FlowVariable> getFilterPredicate() {
         final var superPredicate = super.getIsSelectedPredicate();
         return flowVar -> superPredicate.test(flowVariableToTypeString(flowVar));
     }

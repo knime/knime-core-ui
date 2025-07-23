@@ -68,11 +68,12 @@ import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.ICredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.PersistUtilTest;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.AuthenticationType;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyAuthenticationSettings.SettingsModelAuthenticationBackwardsCompatibleLoader;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.widget.credentials.Credentials;
 
 /**
  *
@@ -153,7 +154,7 @@ class LegacyAuthenticationSettingsTest {
 
         final static String CFG_KEY_USER_PWD = "authenticationSettingsUSER_PWD";
 
-        static final class TestSettings implements PersistableSettings {
+        static final class TestSettings implements Persistable {
 
             static final class PWDBackwardsCompatibleLoader
                 extends SettingsModelAuthenticationBackwardsCompatibleLoader {

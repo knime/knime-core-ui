@@ -58,21 +58,22 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.filter.PatternFilterConfiguration;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.LegacyManualFilterPersistorUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.LegacyPatternFilterPersistorUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.PatternFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypeFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilterMode;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.filter.LegacyFilterUtil;
+import org.knime.node.parameters.widget.choices.filter.LegacyFilterUtil.ColumnFilterBuilder;
+import org.knime.node.parameters.widget.choices.filter.TypedStringFilter;
 
 /**
- * {@link NodeSettingsPersistor} for {@link TypedStringFilter} that persists it in a way compatible to
+ * {@link NodeParametersPersistor} for {@link TypedStringFilter} that persists it in a way compatible to
  * {@link DataColumnSpecFilterConfiguration}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public abstract class LegacyColumnFilterPersistor implements NodeSettingsPersistor<ColumnFilter> {
+public abstract class LegacyColumnFilterPersistor implements NodeParametersPersistor<ColumnFilter> {
 
     private final String m_configKey;
 
@@ -109,48 +110,55 @@ public abstract class LegacyColumnFilterPersistor implements NodeSettingsPersist
     public static ColumnFilter load(final NodeSettingsRO nodeSettings, final String configKey)
         throws InvalidSettingsException {
         var columnFilterSettings = nodeSettings.getNodeSettings(configKey);
-        var columnFilter = new ColumnFilter();
-        columnFilter.m_mode = loadMode(columnFilterSettings);
-        columnFilter.m_manualFilter = LegacyManualFilterPersistorUtil.loadManualFilter(columnFilterSettings);
+        var builder = new ColumnFilterBuilder();
+
+        builder.withMode(loadMode(columnFilterSettings));
+
+        builder.withManuallySelected(LegacyManualFilterPersistorUtil.loadManuallySelected(columnFilterSettings))
+            .withManuallyDeselected(LegacyManualFilterPersistorUtil.loadManuallyDeselected(columnFilterSettings))
+            .withIncludeUnknownColumns(LegacyManualFilterPersistorUtil.loadIncludeUnknownColumns(columnFilterSettings));
+
         if (columnFilterSettings.containsKey(PatternFilterConfiguration.TYPE)) {
-            columnFilter.m_patternFilter = LegacyPatternFilterPersistorUtil
-                .loadPatternMatching(columnFilterSettings.getNodeSettings(PatternFilterConfiguration.TYPE));
+            var patternSettings = columnFilterSettings.getNodeSettings(PatternFilterConfiguration.TYPE);
+            builder.withPattern(LegacyPatternFilterPersistorUtil.loadPattern(patternSettings))
+                .withPatternCaseSensitive(LegacyPatternFilterPersistorUtil.loadPatternCaseSensitive(patternSettings))
+                .withPatternInverted(LegacyPatternFilterPersistorUtil.loadPatternInverted(patternSettings));
         } else {
             // in some very old workflows this field might not have been populated,
             // see knime://Testflows/Testflows%20(master)/knime-base/Flow%20Control/testGroupLoopStart
-            columnFilter.m_patternFilter = new PatternFilter();
+            builder.withPattern("").withPatternCaseSensitive(false).withPatternInverted(false);
         }
 
         if (columnFilterSettings.containsKey(OLD_FILTER_TYPE_DATATYPE)) {
-            columnFilter.m_typeFilter = loadTypeFilter(columnFilterSettings.getNodeSettings(OLD_FILTER_TYPE_DATATYPE));
+            var selectedTypes = loadTypeFilter(columnFilterSettings.getNodeSettings(OLD_FILTER_TYPE_DATATYPE));
+            builder.withSelectedTypes(selectedTypes);
         } else {
             // in some very old workflows this field might not have been populated,
             // see knime://Testflows/Testflows%20(master)/knime-base/Flow%20Control/testGroupLoopStart
-            columnFilter.m_typeFilter = new ColumnTypeFilter();
+            builder.withSelectedTypes(new String[0]);
         }
 
-        return columnFilter;
+        return builder.build();
     }
 
-    private static TypedStringFilterMode loadMode(final NodeSettingsRO columnFilterSettings)
+    private static ColumnFilterBuilder.Mode loadMode(final NodeSettingsRO columnFilterSettings)
         throws InvalidSettingsException {
         var filterType = columnFilterSettings.getString(KEY_FILTER_TYPE);
         if (KEY_FILTER_TYPE_MANUAL.equals(filterType)) {
-            return TypedStringFilterMode.MANUAL;
+            return ColumnFilterBuilder.Mode.MANUAL;
         } else if (PatternFilterConfiguration.TYPE.equals(filterType)) {
             var patternMatchingSettings = columnFilterSettings.getNodeSettings(PatternFilterConfiguration.TYPE);
-            return TypedStringFilterMode
-                .toTypedStringFilterMode(LegacyPatternFilterPersistorUtil.loadPatternMode(patternMatchingSettings));
+            return LegacyPatternFilterPersistorUtil.loadPatternMode(patternMatchingSettings).toColumnFilterMode();
         } else if (OLD_FILTER_TYPE_DATATYPE.equals(filterType)) {
-            return TypedStringFilterMode.TYPE;
+            return ColumnFilterBuilder.Mode.TYPE;
         } else {
             throw new InvalidSettingsException("Unsupported column filter type: " + filterType);
         }
     }
 
-    private static ColumnTypeFilter loadTypeFilter(final NodeSettingsRO typeFilterSettings)
+    private static String[] loadTypeFilter(final NodeSettingsRO typeFilterSettings)
         throws InvalidSettingsException {
-        return new ColumnTypeFilter(loadSelectedTypes(typeFilterSettings));
+        return loadSelectedTypes(typeFilterSettings);
     }
 
     private static String[] loadSelectedTypes(final NodeSettingsRO typeFilterSettings) throws InvalidSettingsException {
@@ -172,11 +180,14 @@ public abstract class LegacyColumnFilterPersistor implements NodeSettingsPersist
             columnFilter = new ColumnFilter();
         }
         var columnFilterSettings = settings.addNodeSettings(configKey);
-        columnFilterSettings.addString(KEY_FILTER_TYPE, toFilterType(columnFilter.m_mode));
-        LegacyManualFilterPersistorUtil.saveManualFilter(columnFilter.m_manualFilter, columnFilterSettings);
-        LegacyPatternFilterPersistorUtil.savePatternMatching(columnFilter.m_patternFilter,
-            columnFilter.m_mode.toPatternMode(), columnFilterSettings.addNodeSettings(PatternFilterConfiguration.TYPE));
-        saveTypeFilter(columnFilter.m_typeFilter, columnFilterSettings.addNodeSettings(OLD_FILTER_TYPE_DATATYPE));
+
+        LegacyFilterUtil.saveColumnFilter(columnFilter, mode -> saveMode(mode, columnFilterSettings),
+            manuallySelected -> saveManuallySelected(manuallySelected, columnFilterSettings),
+            manuallyDeselected -> saveManuallyDeselected(manuallyDeselected, columnFilterSettings),
+            includeUnknownColumns -> saveIncludeUnknownColumns(includeUnknownColumns, columnFilterSettings),
+            (pattern, caseSensitive, inverted, mode) -> savePatternData(pattern, caseSensitive, inverted, mode,
+                columnFilterSettings),
+            selectedTypes -> saveSelectedTypes(selectedTypes, columnFilterSettings));
     }
 
     private static String createFilterNullError(final String configKey) {
@@ -192,6 +203,42 @@ public abstract class LegacyColumnFilterPersistor implements NodeSettingsPersist
             + " It is replaced by a new ColumnFilter instance to prevent errors but please fix this issue anyway.";
     }
 
+    private static void saveMode(final ColumnFilterBuilder.Mode mode, final NodeSettingsWO columnFilterSettings) {
+        columnFilterSettings.addString(KEY_FILTER_TYPE, toFilterType(mode.toTypedStringFilterMode()));
+    }
+
+    private static void saveManuallySelected(final String[] manuallySelected,
+        final NodeSettingsWO columnFilterSettings) {
+        LegacyManualFilterPersistorUtil.saveManuallySelected(manuallySelected, columnFilterSettings);
+    }
+
+    private static void saveManuallyDeselected(final String[] manuallyDeselected,
+        final NodeSettingsWO columnFilterSettings) {
+        LegacyManualFilterPersistorUtil.saveManuallyDeselected(manuallyDeselected, columnFilterSettings);
+    }
+
+    private static void saveIncludeUnknownColumns(final boolean includeUnknownColumns,
+        final NodeSettingsWO columnFilterSettings) {
+        LegacyManualFilterPersistorUtil.saveIncludeUnknownColumns(includeUnknownColumns, columnFilterSettings);
+    }
+
+    private static void savePatternData(final String pattern, final boolean caseSensitive, final boolean inverted,
+        final LegacyFilterUtil.PatternMode mode, final NodeSettingsWO columnFilterSettings) {
+        var patternFilterSettings = columnFilterSettings.addNodeSettings(PatternFilterConfiguration.TYPE);
+        LegacyPatternFilterPersistorUtil.savePattern(pattern, patternFilterSettings);
+        LegacyPatternFilterPersistorUtil.savePatternCaseSensitive(caseSensitive, patternFilterSettings);
+        LegacyPatternFilterPersistorUtil.savePatternInverted(inverted, patternFilterSettings);
+        // Save the pattern mode based on the filter mode
+        var patternMode =
+            (mode == LegacyFilterUtil.PatternMode.REGEX) ? LegacyPatternFilterPersistorUtil.PatternMode.REGEX
+                : LegacyPatternFilterPersistorUtil.PatternMode.WILDCARD;
+        LegacyPatternFilterPersistorUtil.savePatternMode(patternMode, patternFilterSettings);
+    }
+
+    private static void saveSelectedTypes(final String[] selectedTypes, final NodeSettingsWO columnFilterSettings) {
+        saveTypeFilter(selectedTypes, columnFilterSettings.addNodeSettings(OLD_FILTER_TYPE_DATATYPE));
+    }
+
     private static String toFilterType(final TypedStringFilterMode mode) {
         return switch (mode) {
             case MANUAL -> KEY_FILTER_TYPE_MANUAL;
@@ -201,10 +248,10 @@ public abstract class LegacyColumnFilterPersistor implements NodeSettingsPersist
         };
     }
 
-    private static void saveTypeFilter(final TypeFilter typeFilter, final NodeSettingsWO typeFilterSettings) {
+    private static void saveTypeFilter(final String[] selectedTypes, final NodeSettingsWO typeFilterSettings) {
         var typeListSettings = typeFilterSettings.addNodeSettings(TYPELIST);
-        if (typeFilter.m_selectedTypes != null) {
-            Stream.of(typeFilter.m_selectedTypes).forEach(t -> typeListSettings.addBoolean(t, true));
+        if (selectedTypes != null) {
+            Stream.of(selectedTypes).forEach(t -> typeListSettings.addBoolean(t, true));
         }
     }
 

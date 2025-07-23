@@ -54,6 +54,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import org.knime.node.parameters.layout.Before;
+
 /**
  * An interface use to make {@Before} repeatable
  * 

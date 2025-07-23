@@ -59,9 +59,9 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.WebDialogNodeRepresentation;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.components.SubNodeContainerSettingsService.DialogSubNode;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultDialogDataConverter;
+import org.knime.node.parameters.NodeParametersInput;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -95,7 +95,7 @@ final class SubNodeContainerDialogDataConverter implements DefaultDialogDataConv
 
     @Override
     public JsonNode nodeSettingsToDataJson(final SettingsType type, final NodeSettingsRO nodeSettings,
-        final DefaultNodeSettingsContext context) throws InvalidSettingsException {
+        final NodeParametersInput context) throws InvalidSettingsException {
         final var data = FACTORY.objectNode();
         final var jsonForType = data.putObject(type.getConfigKey());
         for (var dialogSubNode : m_orderedDialogNodes.get()) {

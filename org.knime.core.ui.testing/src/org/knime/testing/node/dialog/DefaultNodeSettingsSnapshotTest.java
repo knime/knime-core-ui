@@ -74,15 +74,15 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.util.FileUtil;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.widget.credentials.Credentials;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.osgi.framework.FrameworkUtil;
 
 /**
  * <p>
- * Implemented by a junit test class in order run a snapshot-test on a {@link DefaultNodeSettings}-implementation. A
- * snapshot test computes a representation of a {@link DefaultNodeSettings} instance and makes sure that representation
+ * Implemented by a junit test class in order run a snapshot-test on a {@link NodeParameters}-implementation. A
+ * snapshot test computes a representation of a {@link NodeParameters} instance and makes sure that representation
  * does not change. For instance,
  * <ul>
  * <li>the node dialog (json forms)</li>
@@ -104,7 +104,7 @@ import org.osgi.framework.FrameworkUtil;
  * <h2>Json Forms</h2>
  * <p>
  * The snapshot file (.snap) contains the json forms representation of the default node settings class as required by
- * the frontend (data, schema, ui-schema). Usually, this is a single {@link DefaultNodeSettings} instance. However, some
+ * the frontend (data, schema, ui-schema). Usually, this is a single {@link NodeParameters} instance. However, some
  * nodes have both model settings and view settings, in which case the snapshot contains the json forms for both. See
  * {@link JsonFormsSnapshot}
  * </p>
@@ -129,7 +129,7 @@ public class DefaultNodeSettingsSnapshotTest {
      * @param specs used to create an instance of the default node settings class
      */
     protected DefaultNodeSettingsSnapshotTest(
-        final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses, final PortObjectSpec... specs) {
+        final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses, final PortObjectSpec... specs) {
         this(SnapshotTestConfiguration.builder() //
             .withInputPortObjectSpecs(specs) //
             .testJsonForms(settingsClasses).build());

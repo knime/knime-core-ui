@@ -55,7 +55,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
  * Put this annotation on a String setting in order to enable a file chooser with writer capabilities next to the string

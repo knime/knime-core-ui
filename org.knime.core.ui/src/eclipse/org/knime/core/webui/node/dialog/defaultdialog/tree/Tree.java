@@ -58,8 +58,8 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.persistence.Persistable;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.google.common.collect.BiMap;
@@ -73,7 +73,7 @@ import com.google.common.collect.HashBiMap;
  * relationship of the {@link ArrayParentNode})
  *
  *
- * @param <S> the type of the [S]ettings. Either {@link PersistableSettings} or {@link WidgetGroup}
+ * @param <S> the type of the [S]ettings. Either {@link Persistable} or {@link WidgetGroup}
  * @author Paul Bärnreuther
  */
 public final class Tree<S> extends TreeNode<S> {

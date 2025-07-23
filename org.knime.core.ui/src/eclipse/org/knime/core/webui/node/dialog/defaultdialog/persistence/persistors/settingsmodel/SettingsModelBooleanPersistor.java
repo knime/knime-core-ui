@@ -52,14 +52,14 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
  * Saves a Boolean or boolean field as if it was controlled by a {@link SettingsModelBoolean}.
  *
  * @author Paul Bärnreuther
  */
-public abstract class SettingsModelBooleanPersistor implements NodeSettingsPersistor<Boolean> {
+public abstract class SettingsModelBooleanPersistor implements NodeParametersPersistor<Boolean> {
 
     private final String m_configKey;
 

@@ -75,13 +75,13 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.knime.core.node.util.StringHistory;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.history.DateTimeFormatStringHistoryManager;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.TemporalFormat.FormatTemporalType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatCategory;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget.FormatWithExample;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
  * <p>
@@ -151,7 +151,7 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
     /**
      * A reference to the setting which specifies the locale to be used for the examples.
      */
-    public static final class LocaleValueRef implements Reference<String> {
+    public static final class LocaleValueRef implements ParameterReference<String> {
     }
 
     @Override
@@ -219,7 +219,7 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
     }
 
     @Override
-    public FormatWithExample[] computeState(final DefaultNodeSettingsContext context) {
+    public FormatWithExample[] computeState(final NodeParametersInput context) {
         var time = getTimeForExamples();
         final var locale = Locale.forLanguageTag(m_localeLanguageTag.get());
 

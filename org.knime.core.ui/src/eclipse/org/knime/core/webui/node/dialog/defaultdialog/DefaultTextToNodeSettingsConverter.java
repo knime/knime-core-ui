@@ -69,6 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.JsonDat
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.ToNodeSettingsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil;
 import org.knime.core.webui.node.dialog.internal.SettingsApplier.TextToNodeSettingsConverter;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * Default implementation for applying the JSON representation of settings to {@link NodeAndVariableSettingsWO}.
@@ -77,9 +78,9 @@ import org.knime.core.webui.node.dialog.internal.SettingsApplier.TextToNodeSetti
  */
 final class DefaultTextToNodeSettingsConverter implements TextToNodeSettingsConverter {
 
-    private final Map<SettingsType, Class<? extends DefaultNodeSettings>> m_settingsClasses;
+    private final Map<SettingsType, Class<? extends NodeParameters>> m_settingsClasses;
 
-    DefaultTextToNodeSettingsConverter(final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses) {
+    DefaultTextToNodeSettingsConverter(final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses) {
         m_settingsClasses = settingsClasses;
     }
 
@@ -106,11 +107,11 @@ final class DefaultTextToNodeSettingsConverter implements TextToNodeSettingsConv
         final Map<SettingsType, NodeSettings> settings, //
         final Map<SettingsType, NodeSettingsRO> previousSettings, //
         final Map<SettingsType, VariableSettingsRO> extractedVariableSettings, //
-        final Map<SettingsType, DefaultNodeSettings> defaultNodeSettingsMap //
+        final Map<SettingsType, NodeParameters> defaultNodeSettingsMap //
     ) {
         for (var key : settings.keySet()) { // NOSONAR
             final var configMappings =
-                DefaultNodeSettings.getConfigMappings(m_settingsClasses.get(key), defaultNodeSettingsMap.get(key));
+                NodeParametersUtil.getConfigMappings(m_settingsClasses.get(key), defaultNodeSettingsMap.get(key));
             NodeSettingsCorrectionUtil.correctNodeSettingsRespectingFlowVariables(configMappings, settings.get(key),
                 previousSettings.get(key), extractedVariableSettings.get(key));
         }

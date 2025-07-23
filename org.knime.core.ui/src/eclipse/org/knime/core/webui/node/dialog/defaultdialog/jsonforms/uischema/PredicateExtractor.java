@@ -53,14 +53,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer;
 
 /**
  * Extracts references from widget trees to enable creating predicates from predicate providers.
@@ -69,7 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueRefere
  */
 final class PredicateExtractor {
 
-    private final DefaultNodeSettingsContext m_context;
+    private final NodeParametersInput m_context;
 
     private final PredicateInitializer m_predicateInitializer;
 
@@ -77,7 +77,7 @@ final class PredicateExtractor {
      * @param widgetTrees to extract references from
      * @param context the node's context (inputs, flow vars)
      */
-    PredicateExtractor(final Collection<Tree<WidgetGroup>> widgetTrees, final DefaultNodeSettingsContext context) {
+    PredicateExtractor(final Collection<Tree<WidgetGroup>> widgetTrees, final NodeParametersInput context) {
         m_context = context;
         m_predicateInitializer = getPredicateInitializer(widgetTrees);
     }
@@ -86,7 +86,7 @@ final class PredicateExtractor {
      * @param widgetTree to extract references from
      * @param context the node's context (inputs, flow vars)
      */
-    PredicateExtractor(final Tree<WidgetGroup> widgetTree, final DefaultNodeSettingsContext context) {
+    PredicateExtractor(final Tree<WidgetGroup> widgetTree, final NodeParametersInput context) {
         this(List.of(widgetTree), context);
     }
 
@@ -107,11 +107,11 @@ final class PredicateExtractor {
             .ifPresent(referenceClass -> references.put(referenceClass, node));
     }
 
-    Predicate createPredicate(final Class<? extends PredicateProvider> predicateProviderClass) {
+    EffectPredicate createPredicate(final Class<? extends EffectPredicateProvider> predicateProviderClass) {
         return m_predicateInitializer.getPredicate(predicateProviderClass);
     }
 
-    Predicate createPredicate(final PredicateProvider predicateProvider) {
+    EffectPredicate createPredicate(final EffectPredicateProvider predicateProvider) {
         return m_predicateInitializer.getPredicate(predicateProvider);
     }
 

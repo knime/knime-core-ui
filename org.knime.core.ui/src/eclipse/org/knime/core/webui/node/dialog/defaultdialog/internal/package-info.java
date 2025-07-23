@@ -92,6 +92,7 @@
  * <td>Text Input</td>
  * <td>{@link LocalFileReaderWidget}<br>
  * {@link LocalFileWriterWidget}<br>
+ * {@link DateTimeFormatPickerWidget}<br>
  * <td>✓</td>
  * </tr>
  * <tr>
@@ -105,6 +106,36 @@
  * <td>{@link MultiFileSelection}</td>
  * <td>Path file chooser which can also accept a folder.</td>
  * <td>{@link FileReaderWidget}</td>
+ * <td></td>
+ * </tr>
+ * <tr>
+ * <td>{@link Interval}</td>
+ * <td>Date or time interval</td>
+ * <td>{@link IntervalWidget} (for switching between date and time)</td>
+ * <td>✓</td>
+ * </tr>
+ * <tr>
+ * <td>{@link TimeInterval}</td>
+ * <td>Time interval</td>
+ * <td></td>
+ * <td>✓</td>
+ * </tr>
+ * <tr>
+ * <td>{@link DateInterval}</td>
+ * <td>Date interval</td>
+ * <td></td>
+ * <td>✓</td>
+ * </tr>
+ * <tr>
+ * <td>{@link TemporalFormat}</td>
+ * <td></td>
+ * <td>{@link DateTimeFormatPickerWidget}</td>
+ * <td></td>
+ * </tr>
+ *  * <tr>
+ * <td>{@link StringOrEnum}</td>
+ * <td>Use a {@link ChoicesProvider} for setting the dynamic choices.</td>
+ * <td><br>
  * <td></td>
  * </tr>
  * </table>

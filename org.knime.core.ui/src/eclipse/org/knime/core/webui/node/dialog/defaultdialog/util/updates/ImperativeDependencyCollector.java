@@ -57,7 +57,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.Contro
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.DependencyInjector.DependencyCollector;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.RendererSpecsToImperativeRefsAndStateProviders.ImperativeValueRefWrapper;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
+import org.knime.node.parameters.updates.StateProvider.TypeReference;
 
 final class ImperativeDependencyCollector extends DependencyCollector<ControlValueReference<?>> {
 

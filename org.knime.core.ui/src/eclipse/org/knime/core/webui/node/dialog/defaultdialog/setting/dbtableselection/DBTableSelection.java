@@ -50,9 +50,9 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection;
 
 import java.util.Objects;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.persistence.Persistable;
 
 /**
  * A setting that represents a particular table from a database chosen by the user.
@@ -62,7 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
-public final class DBTableSelection implements PersistableSettings, WidgetGroup {
+public final class DBTableSelection implements Persistable, WidgetGroup {
 
     /**
      * The (optional) name of the database to use.

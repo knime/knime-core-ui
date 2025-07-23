@@ -57,10 +57,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Inside;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Before;
+import org.knime.node.parameters.layout.Inside;
+import org.knime.node.parameters.layout.Layout;
 
 /**
  * A tree of layout parts. The tree has the structure that is needed to build a JSON Forms UI Schema from it. Its nodes

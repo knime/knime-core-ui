@@ -52,9 +52,9 @@ import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
 
 /**
  * With 5.5. we introduced {@link StringOrEnum} to enable special choices in a dropdown. In case a string node setting
@@ -65,7 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.St
  * @author Paul Bärnreuther
  */
 public abstract class StringToStringOrEnumMigration<E extends Enum<E>>
-    implements NodeSettingsMigration<StringOrEnum<E>>, ToStringOrEnumMigration<E> {
+    implements NodeParametersMigration<StringOrEnum<E>>, ToStringOrEnumMigration<E> {
 
     private final String m_legacyStringKey;
 

@@ -56,7 +56,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQuery;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.node.parameters.persistence.Persistable;
 
 /**
  * A record representing a temporal format. The format is a string that can be used to format a temporal object using
@@ -64,7 +64,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistabl
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
-public class TemporalFormat implements PersistableSettings {
+public class TemporalFormat implements Persistable {
 
     String m_format;
 

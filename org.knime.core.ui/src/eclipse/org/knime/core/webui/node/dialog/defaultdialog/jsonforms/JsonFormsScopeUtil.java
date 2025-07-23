@@ -56,9 +56,9 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Location;
+import org.knime.node.parameters.WidgetGroup;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 

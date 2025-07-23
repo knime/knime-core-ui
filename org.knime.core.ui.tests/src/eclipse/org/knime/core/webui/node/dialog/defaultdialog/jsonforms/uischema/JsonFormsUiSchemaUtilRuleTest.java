@@ -54,20 +54,20 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.buildTestUiSchema;
 
 import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.NoneChoice;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.layout.HorizontalLayout;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
 
 /**
  *
@@ -80,19 +80,19 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testSimpleRule() {
 
-        final class SimpleRuleSettings implements DefaultNodeSettings {
+        final class SimpleRuleSettings implements NodeParameters {
 
-            static final class SomeBoolean implements Reference<Boolean> {
+            static final class SomeBoolean implements ParameterReference<Boolean> {
             }
 
             @Widget(title = "", description = "")
             @ValueReference(SomeBoolean.class)
             boolean m_someBoolean;
 
-            static final class SomeBooleanIsTrue implements PredicateProvider {
+            static final class SomeBooleanIsTrue implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return i.getBoolean(SomeBoolean.class).isTrue();
                 }
 
@@ -117,12 +117,12 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testEffect() {
 
-        final class EffectSettings implements DefaultNodeSettings {
+        final class EffectSettings implements NodeParameters {
 
-            static final class DummyCondition implements PredicateProvider {
+            static final class DummyCondition implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return i.getConstant(context -> true);
                 }
 
@@ -156,12 +156,12 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testEffectInsideWidget() {
 
-        final class EffectSettings implements DefaultNodeSettings {
+        final class EffectSettings implements NodeParameters {
 
-            static final class DummyCondition implements PredicateProvider {
+            static final class DummyCondition implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return i.getConstant(context -> true);
                 }
 
@@ -180,12 +180,12 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testThrowsOnEffectInsideWidgetAndOnField() {
 
-        final class EffectSettings implements DefaultNodeSettings {
+        final class EffectSettings implements NodeParameters {
 
-            static final class DummyCondition implements PredicateProvider {
+            static final class DummyCondition implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return i.getConstant(context -> true);
                 }
 
@@ -203,21 +203,21 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     @Test
     void testConstantEffect() {
-        final class ConstantEffectSettings implements DefaultNodeSettings {
+        final class ConstantEffectSettings implements NodeParameters {
 
-            static final class AlwaysTruePredicate implements PredicateProvider {
+            static final class AlwaysTruePredicate implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return i.getConstant(context -> true);
                 }
 
             }
 
-            static final class AlwaysFalsePredicate implements PredicateProvider {
+            static final class AlwaysFalsePredicate implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return i.getConstant(context -> false);
                 }
 
@@ -244,25 +244,25 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     @Test
     void testAnd() {
-        final class OrSettings implements DefaultNodeSettings {
-            static final class SomeBoolean implements Reference<Boolean> {
+        final class OrSettings implements NodeParameters {
+            static final class SomeBoolean implements ParameterReference<Boolean> {
             }
 
             @Widget(title = "", description = "")
             @ValueReference(SomeBoolean.class)
             boolean m_someBoolean;
 
-            static final class AnotherBoolean implements Reference<Boolean> {
+            static final class AnotherBoolean implements ParameterReference<Boolean> {
             }
 
             @Widget(title = "", description = "")
             @ValueReference(AnotherBoolean.class)
             boolean m_anotherBoolean;
 
-            static final class SomeBooleanAndNotAnotherBoolean implements PredicateProvider {
+            static final class SomeBooleanAndNotAnotherBoolean implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return and(//
                         i.getBoolean(SomeBoolean.class).isTrue(), //
                         i.getBoolean(AnotherBoolean.class).isFalse()//
@@ -295,25 +295,25 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     @Test
     void testOr() {
-        final class AndSettings implements DefaultNodeSettings {
-            static final class SomeBoolean implements Reference<Boolean> {
+        final class AndSettings implements NodeParameters {
+            static final class SomeBoolean implements ParameterReference<Boolean> {
             }
 
             @Widget(title = "", description = "")
             @ValueReference(SomeBoolean.class)
             boolean m_someBoolean;
 
-            static final class AnotherBoolean implements Reference<Boolean> {
+            static final class AnotherBoolean implements ParameterReference<Boolean> {
             }
 
             @Widget(title = "", description = "")
             @ValueReference(AnotherBoolean.class)
             boolean m_anotherBoolean;
 
-            static final class SomeBooleanAndNotAnotherBoolean implements PredicateProvider {
+            static final class SomeBooleanAndNotAnotherBoolean implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return or(//
                         i.getBoolean(SomeBoolean.class).isTrue(), //
                         i.getBoolean(AnotherBoolean.class).isFalse()//
@@ -347,18 +347,18 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testNot() {
 
-        final class NotSettings implements DefaultNodeSettings {
-            static final class SomeBoolean implements Reference<Boolean> {
+        final class NotSettings implements NodeParameters {
+            static final class SomeBoolean implements ParameterReference<Boolean> {
             }
 
             @Widget(title = "", description = "")
             @ValueReference(SomeBoolean.class)
             boolean m_someBoolean;
 
-            static final class MyCondition implements PredicateProvider {
+            static final class MyCondition implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return not(i.getBoolean(SomeBoolean.class).isTrue());
                 }
 
@@ -381,25 +381,25 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testNotAnd() {
 
-        final class NotAndSettings implements DefaultNodeSettings {
-            static final class SomeBoolean implements Reference<Boolean> {
+        final class NotAndSettings implements NodeParameters {
+            static final class SomeBoolean implements ParameterReference<Boolean> {
             }
 
             @Widget(title = "", description = "")
             @ValueReference(SomeBoolean.class)
             boolean m_someBoolean;
 
-            static final class AnotherBoolean implements Reference<Boolean> {
+            static final class AnotherBoolean implements ParameterReference<Boolean> {
             }
 
             @Widget(title = "", description = "")
             @ValueReference(AnotherBoolean.class)
             boolean m_anotherBoolean;
 
-            static final class MyCondition implements PredicateProvider {
+            static final class MyCondition implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return not(and(//
                         i.getBoolean(SomeBoolean.class).isTrue(), //
                         i.getBoolean(AnotherBoolean.class).isFalse()//
@@ -434,25 +434,25 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testNotOr() {
 
-        final class NotOrSettings implements DefaultNodeSettings {
-            static final class SomeBoolean implements Reference<Boolean> {
+        final class NotOrSettings implements NodeParameters {
+            static final class SomeBoolean implements ParameterReference<Boolean> {
             }
 
             @Widget(title = "", description = "")
             @ValueReference(SomeBoolean.class)
             boolean m_someBoolean;
 
-            static final class AnotherBoolean implements Reference<Boolean> {
+            static final class AnotherBoolean implements ParameterReference<Boolean> {
             }
 
             @Widget(title = "", description = "")
             @ValueReference(AnotherBoolean.class)
             boolean m_anotherBoolean;
 
-            static final class MyCondition implements PredicateProvider {
+            static final class MyCondition implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return not(or(//
                         i.getBoolean(SomeBoolean.class).isTrue(), //
                         i.getBoolean(AnotherBoolean.class).isFalse()//
@@ -487,18 +487,18 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testDoubleNegation() {
 
-        final class DoubleNegationSettings implements DefaultNodeSettings {
-            static final class SomeBoolean implements Reference<Boolean> {
+        final class DoubleNegationSettings implements NodeParameters {
+            static final class SomeBoolean implements ParameterReference<Boolean> {
             }
 
             @Widget(title = "", description = "")
             @ValueReference(SomeBoolean.class)
             boolean m_someBoolean;
 
-            static final class MyCondition implements PredicateProvider {
+            static final class MyCondition implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return not(not(i.getBoolean(SomeBoolean.class).isTrue()));
                 }
 
@@ -520,10 +520,10 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     final class LayoutWithEffect {
 
-        static final class MyCondition implements PredicateProvider {
+        static final class MyCondition implements EffectPredicateProvider {
 
             @Override
-            public Predicate init(final PredicateInitializer i) {
+            public EffectPredicate init(final PredicateInitializer i) {
                 return i.getBoolean(EffectOnLayoutPartSettings.SomeBoolean.class).isTrue();
             }
 
@@ -536,9 +536,9 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     }
 
-    final class EffectOnLayoutPartSettings implements DefaultNodeSettings {
+    final class EffectOnLayoutPartSettings implements NodeParameters {
 
-        static final class SomeBoolean implements Reference<Boolean> {
+        static final class SomeBoolean implements ParameterReference<Boolean> {
         }
 
         @Widget(title = "", description = "")
@@ -566,19 +566,19 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testHasMultipleItemsCondition() {
 
-        final class HasMultipleItemsConditionSettings implements DefaultNodeSettings {
+        final class HasMultipleItemsConditionSettings implements NodeParameters {
 
-            static final class ArrayElements implements Reference<ArraySettings[]> {
+            static final class ArrayElements implements ParameterReference<ArraySettings[]> {
             }
 
             @Widget(title = "", description = "")
             @ValueReference(ArrayElements.class)
             ArraySettings[] m_arrayElements;
 
-            static final class ArrayElementsHasMultipleItems implements PredicateProvider {
+            static final class ArrayElementsHasMultipleItems implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return i.getArray(ArrayElements.class).hasMultipleItems();
                 }
 
@@ -610,18 +610,18 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     @Test
     void testReferencesIsMissing() {
-        final class EffectWithoutReferenceSettings implements DefaultNodeSettings {
+        final class EffectWithoutReferenceSettings implements NodeParameters {
 
-            static final class UnmetReference implements Reference<Boolean> {
+            static final class UnmetReference implements ParameterReference<Boolean> {
             }
 
-            static final class MetReference implements Reference<Boolean> {
+            static final class MetReference implements ParameterReference<Boolean> {
             }
 
-            static final class UnmetReferenceIsPresent implements PredicateProvider {
+            static final class UnmetReferenceIsPresent implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     if (i.isMissing(UnmetReference.class)) {
                         return i.never();
                     }
@@ -630,10 +630,10 @@ class JsonFormsUiSchemaUtilRuleTest {
 
             }
 
-            static final class MetReferenceIsPresent implements PredicateProvider {
+            static final class MetReferenceIsPresent implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     if (i.isMissing(MetReference.class)) {
                         return i.never();
                     }
@@ -666,15 +666,15 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     @Test
     void testThrowsOnMissingReferences() {
-        final class EffectWithoutReferenceSettings implements DefaultNodeSettings {
+        final class EffectWithoutReferenceSettings implements NodeParameters {
 
-            static final class UnmetReference implements Reference<Boolean> {
+            static final class UnmetReference implements ParameterReference<Boolean> {
             }
 
-            static final class MyCondition implements PredicateProvider {
+            static final class MyCondition implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return i.getBoolean(UnmetReference.class).isTrue();
                 }
 
@@ -722,16 +722,16 @@ class JsonFormsUiSchemaUtilRuleTest {
         String m_extendingWithExtraEffectSetting;
     }
 
-    static final class EffectOnClassSettings implements DefaultNodeSettings {
+    static final class EffectOnClassSettings implements NodeParameters {
 
-        static final class SomeBoolean implements Reference<Boolean> {
+        static final class SomeBoolean implements ParameterReference<Boolean> {
 
         }
 
-        static final class SomeBooleanIsTrue implements PredicateProvider {
+        static final class SomeBooleanIsTrue implements EffectPredicateProvider {
 
             @Override
-            public Predicate init(final PredicateInitializer i) {
+            public EffectPredicate init(final PredicateInitializer i) {
                 return i.getBoolean(SomeBoolean.class).isTrue();
             }
 
@@ -766,9 +766,9 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     @Test
     void testSingleSelectionConditions() {
-        final class SingleSelectionConditionSettings implements DefaultNodeSettings {
+        final class SingleSelectionConditionSettings implements NodeParameters {
 
-            static final class SingleSelectionReference implements Reference<StringOrEnum<NoneChoice>> {
+            static final class SingleSelectionReference implements ParameterReference<StringOrEnum<NoneChoice>> {
             }
 
             @Widget(title = "Foo", description = "")
@@ -776,17 +776,17 @@ class JsonFormsUiSchemaUtilRuleTest {
             @ValueReference(SingleSelectionReference.class)
             StringOrEnum<NoneChoice> singleSelection;
 
-            static final class MySpecialChoiceCondition implements PredicateProvider {
+            static final class MySpecialChoiceCondition implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return i.getStringOrEnum(SingleSelectionReference.class).isEnumChoice(NoneChoice.NONE);
                 }
             }
 
-            static final class MyRegularChoiceCondition implements PredicateProvider {
+            static final class MyRegularChoiceCondition implements EffectPredicateProvider {
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return i.getStringOrEnum(SingleSelectionReference.class).isStringChoice().matchesPattern("abc");
                 }
             }
@@ -824,20 +824,20 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testPatternCondition() {
 
-        final class PatternConditionTestSettings implements DefaultNodeSettings {
-            static final class PatternSetting implements Reference<String> {
+        final class PatternConditionTestSettings implements NodeParameters {
+            static final class PatternSetting implements ParameterReference<String> {
             }
 
             @Widget(title = "", description = "")
             @ValueReference(PatternSetting.class)
             String patternSetting;
 
-            static final class PatternSettingMatchesMyPattern implements PredicateProvider {
+            static final class PatternSettingMatchesMyPattern implements EffectPredicateProvider {
 
                 static String PATTERN = "myPattern$";
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return i.getString(PatternSetting.class).matchesPattern(PATTERN);
                 }
             }
@@ -860,10 +860,10 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testArrayContainsCondition() {
 
-        final class ArrayContainsConditionTestSettings implements DefaultNodeSettings {
+        final class ArrayContainsConditionTestSettings implements NodeParameters {
 
             static class Element implements WidgetGroup {
-                static final class ElementValueReference implements Reference<String> {
+                static final class ElementValueReference implements ParameterReference<String> {
                 }
 
                 @ValueReference(ElementValueReference.class)
@@ -871,19 +871,19 @@ class JsonFormsUiSchemaUtilRuleTest {
 
             }
 
-            static final class ArrayReference implements Reference<Element[]> {
+            static final class ArrayReference implements ParameterReference<Element[]> {
             }
 
             @Widget(title = "", description = "")
             @ValueReference(ArrayReference.class)
             Element[] m_array;
 
-            static final class ContainsProvider implements PredicateProvider {
+            static final class ContainsProvider implements EffectPredicateProvider {
 
                 static final String FOO = "Foo";
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return i.getArray(ArrayReference.class).containsElementSatisfying(
                         element -> element.getString(Element.ElementValueReference.class).isEqualTo(FOO));
                 }
@@ -908,16 +908,16 @@ class JsonFormsUiSchemaUtilRuleTest {
     @Test
     void testComplexArrayContainsCondition() {
 
-        final class ArrayContainsConditionTestSettings implements DefaultNodeSettings {
+        final class ArrayContainsConditionTestSettings implements NodeParameters {
 
             static class Element implements WidgetGroup {
-                static final class StringField implements Reference<String> {
+                static final class StringField implements ParameterReference<String> {
                 }
 
                 @ValueReference(StringField.class)
                 String m_value1 = "myValue";
 
-                static final class BooleanField implements Reference<Boolean> {
+                static final class BooleanField implements ParameterReference<Boolean> {
                 }
 
                 @ValueReference(BooleanField.class)
@@ -925,19 +925,19 @@ class JsonFormsUiSchemaUtilRuleTest {
 
             }
 
-            static final class ArrayReference implements Reference<Element[]> {
+            static final class ArrayReference implements ParameterReference<Element[]> {
             }
 
             @Widget(title = "", description = "")
             @ValueReference(ArrayReference.class)
             Element[] m_array;
 
-            static final class ContainsProvider implements PredicateProvider {
+            static final class ContainsProvider implements EffectPredicateProvider {
 
                 static final String FOO = "Foo";
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return i.getArray(ArrayReference.class)
                         .containsElementSatisfying(element -> element.getString(Element.StringField.class)
                             .isEqualTo(FOO).and(element.getBoolean(Element.BooleanField.class).isTrue())
@@ -969,19 +969,19 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     @Test
     void testConditionOnNonWidget() {
-        final class SettingsWithNonWidgetReference implements DefaultNodeSettings {
+        final class SettingsWithNonWidgetReference implements NodeParameters {
 
-            static final class SomeBoolean implements Reference<Boolean> {
+            static final class SomeBoolean implements ParameterReference<Boolean> {
 
             }
 
             @ValueReference(SomeBoolean.class)
             Boolean m_someBoolean;
 
-            static final class SomeBooleanIsTrue implements PredicateProvider {
+            static final class SomeBooleanIsTrue implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return i.getBoolean(SomeBoolean.class).isTrue();
                 }
 
@@ -1001,7 +1001,7 @@ class JsonFormsUiSchemaUtilRuleTest {
 
     @Test
     void testEnumPredicateWorksWhenToStringIsOverwritten() {
-        final class SettingsWithEnum implements DefaultNodeSettings {
+        final class SettingsWithEnum implements NodeParameters {
             enum TestEnum {
                     VAL1("testValue1"), //
                     VAL2("testValue2");
@@ -1018,16 +1018,16 @@ class JsonFormsUiSchemaUtilRuleTest {
                 }
             }
 
-            interface Ref extends Reference<TestEnum> {
+            interface Ref extends ParameterReference<TestEnum> {
             }
 
             @ValueReference(Ref.class)
             TestEnum m_testvalue = TestEnum.VAL2;
 
-            static final class TestPredicate implements PredicateProvider {
+            static final class TestPredicate implements EffectPredicateProvider {
 
                 @Override
-                public Predicate init(final PredicateInitializer i) {
+                public EffectPredicate init(final PredicateInitializer i) {
                     return i.getEnum(Ref.class).isOneOf(TestEnum.VAL2);
                 }
             }

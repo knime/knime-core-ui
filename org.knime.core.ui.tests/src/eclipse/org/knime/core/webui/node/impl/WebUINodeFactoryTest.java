@@ -83,10 +83,11 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.Widget;
 import org.knime.testing.util.TableTestUtil;
 import org.xml.sax.SAXException;
 
@@ -149,7 +150,7 @@ class WebUINodeFactoryTest {
             new PortDescription[]{new PortDescription("Out1", BufferedDataTable.TYPE, "Output port description")};
         final var shortDescription = "Short description";
         final var longDescription = "Long description";
-        final Class<? extends DefaultNodeSettings> modelSettingsClass = TestWebUINodeModelSettings.class;
+        final Class<? extends NodeParameters> modelSettingsClass = TestWebUINodeModelSettings.class;
         final var viewDescription = "View description";
         final var nodeType = NodeType.Sink;
         final var keywords = new String[]{"keyword1", "keyword2"};
@@ -189,7 +190,7 @@ class WebUINodeFactoryTest {
 
     }
 
-    static final class TestWebUISettingsWithMultiFileSelection implements DefaultNodeSettings {
+    static final class TestWebUISettingsWithMultiFileSelection implements NodeParameters {
 
         static final class TestFileChooserFilters implements FileChooserFilters {
             @Override
@@ -221,7 +222,7 @@ class WebUINodeFactoryTest {
         final var icon = "some/icon path.png";
         final var shortDescription = "Short description";
         final var longDescription = "Long description";
-        final Class<? extends DefaultNodeSettings> modelSettingsClass = TestWebUISettingsWithMultiFileSelection.class;
+        final Class<? extends NodeParameters> modelSettingsClass = TestWebUISettingsWithMultiFileSelection.class;
 
         final var nodeDescription = WebUINodeFactory.createNodeDescription(WebUINodeConfiguration.builder()//
             .name(name)//
@@ -263,12 +264,12 @@ class WebUINodeFactoryTest {
         final var modelSettings = new TestWebUINodeModelSettings();
         modelSettings.m_someModelSetting = 42;
         final var nodeSettings42 = new NodeSettings("test");
-        DefaultNodeSettings.saveSettings(TestWebUINodeModelSettings.class, modelSettings, nodeSettings42);
+        NodeParametersUtil.saveSettings(TestWebUINodeModelSettings.class, modelSettings, nodeSettings42);
         model.validateSettings(nodeSettings42);
         model.loadValidatedSettingsFrom(nodeSettings42);
         model.configure(testSpecs);
         model.saveSettingsTo(nodeSettings);
-        assertThat(DefaultNodeSettings.loadSettings(nodeSettings, TestWebUINodeModelSettings.class).m_someModelSetting)
+        assertThat(NodeParametersUtil.loadSettings(nodeSettings, TestWebUINodeModelSettings.class).m_someModelSetting)
             .isEqualTo(42);
     }
 

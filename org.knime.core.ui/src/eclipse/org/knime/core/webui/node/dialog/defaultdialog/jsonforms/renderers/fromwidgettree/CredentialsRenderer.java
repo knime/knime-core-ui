@@ -56,13 +56,13 @@ import java.util.stream.Stream;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.CredentialsRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBooleanProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.widget.credentials.CredentialsWidget;
+import org.knime.node.parameters.widget.credentials.PasswordWidget;
+import org.knime.node.parameters.widget.credentials.UsernameWidget;
 
 class CredentialsRenderer extends WidgetTreeControlRendererSpec implements CredentialsRendererSpec {
 

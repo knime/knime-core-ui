@@ -54,11 +54,11 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * An annotation to specify which setting exactly a setting with an attached {@link DependencyHandler} is dependent of
- * in case the path of the field exists in more than one of the supplied {@link DefaultNodeSettings}
+ * in case the path of the field exists in more than one of the supplied {@link NodeParameters}
  *
  * @author Paul Bärnreuther
  */
@@ -66,7 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 @Target(FIELD)
 public @interface DeclaringDefaultNodeSettings {
     /**
-     * @return the {@link DefaultNodeSettings} class in which the field that the annotated field should reference lies.
+     * @return the {@link NodeParameters} class in which the field that the annotated field should reference lies.
      */
-    Class<? extends DefaultNodeSettings> value();
+    Class<? extends NodeParameters> value();
 }

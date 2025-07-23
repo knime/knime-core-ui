@@ -102,11 +102,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.SubNodeContainerDialogTest
 import org.knime.core.webui.node.dialog.defaultdialog.SubNodeContainerDialogTest.DynamiclyConfigurableTestConfigNodeFactory.DynamiclyConfigurableTestConfigNodeValue;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
 import org.knime.core.webui.node.dialog.internal.VariableSettings;
 import org.knime.core.webui.node.dialog.utils.AbstractSettingsDocumentBuilder;
 import org.knime.core.webui.node.dialog.utils.FlowVariablesInputNodeFactory;
 import org.knime.core.webui.node.dialog.utils.TestConfigurationNodeFactoryTemplate;
+import org.knime.node.parameters.migration.ParametersLoader;
 import org.knime.testing.util.WorkflowManagerUtil;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceRegistration;
@@ -725,7 +725,7 @@ public class SubNodeContainerDialogTest {
 
             private BiConsumer<Object, NodeSettingsWO> m_saveToNodeSettings;
 
-            private SettingsLoader<Object> m_loadFromNodeSettings;
+            private ParametersLoader<Object> m_loadFromNodeSettings;
 
             private Function<Object, JsonNode> m_toDialogJson;
 
@@ -772,7 +772,7 @@ public class SubNodeContainerDialogTest {
                 m_saveToNodeSettings = saveToNodeSettings;
             }
 
-            void setLoadFromNodeSettings(final SettingsLoader<Object> loadFromNodeSettings) {
+            void setLoadFromNodeSettings(final ParametersLoader<Object> loadFromNodeSettings) {
                 m_loadFromNodeSettings = loadFromNodeSettings;
             }
 

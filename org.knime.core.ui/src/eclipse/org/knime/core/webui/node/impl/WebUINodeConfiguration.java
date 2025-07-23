@@ -59,7 +59,7 @@ import org.knime.core.node.NodeFactory.NodeType;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Version;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * Configuration for a {@link WebUINodeFactory WebUI node}.
@@ -90,7 +90,7 @@ public final class WebUINodeConfiguration { // NOSONAR
 
     private final NodeType m_nodeType;
 
-    private final Class<? extends DefaultNodeSettings> m_modelSettingsClass;
+    private final Class<? extends NodeParameters> m_modelSettingsClass;
 
     private final PortDescription[] m_inPortDescriptions;
 
@@ -138,7 +138,7 @@ public final class WebUINodeConfiguration { // NOSONAR
         return m_nodeType;
     }
 
-    Class<? extends DefaultNodeSettings> getModelSettingsClass() {
+    Class<? extends NodeParameters> getModelSettingsClass() {
         return m_modelSettingsClass;
     }
 
@@ -234,7 +234,7 @@ public final class WebUINodeConfiguration { // NOSONAR
          * @param modelSettingsClass the type of the model settings
          * @return the subsequent build stage
          */
-        NodeOptionals modelSettingsClass(final Class<? extends DefaultNodeSettings> modelSettingsClass);
+        NodeOptionals modelSettingsClass(final Class<? extends NodeParameters> modelSettingsClass);
     }
 
     /**
@@ -254,7 +254,7 @@ public final class WebUINodeConfiguration { // NOSONAR
 
         private NodeType m_nodeType;
 
-        private final Class<? extends DefaultNodeSettings> m_modelSettingsClass;
+        private final Class<? extends NodeParameters> m_modelSettingsClass;
 
         private final List<PortDescription> m_inputPortDescriptions = new ArrayList<>();
 
@@ -265,7 +265,7 @@ public final class WebUINodeConfiguration { // NOSONAR
         private Version m_sinceVersion;
 
         NodeOptionals(final String name, final String icon, final String shortDescription, final String fullDescription,
-            final Class<? extends DefaultNodeSettings> modelSettingsClass) {
+            final Class<? extends NodeParameters> modelSettingsClass) {
             m_name = name;
             m_icon = icon;
             m_shortDescription = shortDescription;

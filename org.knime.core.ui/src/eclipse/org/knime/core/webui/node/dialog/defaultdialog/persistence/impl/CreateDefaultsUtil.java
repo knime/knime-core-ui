@@ -48,9 +48,9 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.node.parameters.persistence.Persistable;
 
 final class CreateDefaultsUtil {
 
@@ -58,13 +58,13 @@ final class CreateDefaultsUtil {
         // Utility class
     }
 
-    static Object createDefaultSettings(final Tree<PersistableSettings> tree) {
+    static Object createDefaultSettings(final Tree<Persistable> tree) {
         final var settingsClass = tree.getRawClass();
         return ReflectionUtil.createInstance(settingsClass).orElseThrow(() -> new IllegalArgumentException(
-            String.format("The provided PersistableSettings '%s' don't provide an empty constructor.", settingsClass)));
+            String.format("The provided Persistable '%s' don't provide an empty constructor.", settingsClass)));
     }
 
-    static Object createDefaultSettingsFieldValue(final TreeNode<PersistableSettings> node) {
+    static Object createDefaultSettingsFieldValue(final TreeNode<Persistable> node) {
         return node.getDefaultValueFromParent(CreateDefaultsUtil::createDefaultSettings);
     }
 

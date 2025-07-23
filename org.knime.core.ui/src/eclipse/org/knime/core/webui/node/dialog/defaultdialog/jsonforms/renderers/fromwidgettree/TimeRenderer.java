@@ -51,8 +51,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromw
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TimeRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.node.parameters.WidgetGroup;
 
 final class TimeRenderer extends WidgetTreeControlRendererSpec implements TimeRendererSpec {
 

@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
 
 /**
  * Condition applied to an array layout field (NOT to a field in the Element POJO). The condition is fulfilled if one of
@@ -66,7 +66,7 @@ public interface ArrayContainsCondition extends Condition {
     /**
      * @return the condition that should be applied to one of the fields
      */
-    PredicateProvider getElementPredicate();
+    EffectPredicateProvider getElementPredicate();
 
 
 }

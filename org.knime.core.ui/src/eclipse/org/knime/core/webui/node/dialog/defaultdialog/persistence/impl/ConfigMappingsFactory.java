@@ -62,21 +62,21 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMappings;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsSaver;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigMappingsFactory.GetConfigMappings;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.ParametersLoader;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.ParametersSaver;
 
 /**
  *
- * Factory for creating {@link ConfigMappings} from {@link PersistableSettings} classes.
+ * Factory for creating {@link ConfigMappings} from {@link Persistable} classes.
  *
  * @author Paul Bärnreuther
  */
@@ -101,38 +101,38 @@ public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMap
      * @param settingsValue
      * @return the config mappings
      */
-    public static ConfigMappings createConfigMappings(final Class<? extends PersistableSettings> settingsClass,
+    public static ConfigMappings createConfigMappings(final Class<? extends Persistable> settingsClass,
         final Object settingsValue) {
         return getInstance().extractFromSettings(settingsClass).getConfigMappings(settingsValue);
     }
 
     @Override
-    protected GetConfigMappings getForLeaf(final LeafNode<PersistableSettings> node) {
+    protected GetConfigMappings getForLeaf(final LeafNode<Persistable> node) {
         return obj -> new ConfigMappings(List.of());
     }
 
     @Override
-    protected GetConfigMappings getFromCustomPersistor(final NodeSettingsPersistor<?> nodeSettingsPersistor,
-        final TreeNode<PersistableSettings> node) {
+    protected GetConfigMappings getFromCustomPersistor(final NodeParametersPersistor<?> nodeSettingsPersistor,
+        final TreeNode<Persistable> node) {
         return obj -> new ConfigMappings(List.of());
     }
 
     @Override
-    protected GetConfigMappings getForTree(final Tree<PersistableSettings> tree,
-        final Function<TreeNode<PersistableSettings>, GetConfigMappings> childProperty) {
+    protected GetConfigMappings getForTree(final Tree<Persistable> tree,
+        final Function<TreeNode<Persistable>, GetConfigMappings> childProperty) {
         return obj -> new ConfigMappings(
             tree.getChildren().stream().map(child -> fromChild(childProperty, obj, child)).toList());
 
     }
 
     private static ConfigMappings fromChild(
-        final Function<TreeNode<PersistableSettings>, GetConfigMappings> childProperty, final Object obj,
-        final TreeNode<PersistableSettings> child) {
+        final Function<TreeNode<Persistable>, GetConfigMappings> childProperty, final Object obj,
+        final TreeNode<Persistable> child) {
         return childProperty.apply(child).getConfigMappings(child.getFromParentValue(obj));
     }
 
     @Override
-    protected GetConfigMappings getForArray(final ArrayParentNode<PersistableSettings> arrayNode,
+    protected GetConfigMappings getForArray(final ArrayParentNode<Persistable> arrayNode,
         final GetConfigMappings elementProperty) {
         return obj -> {
             final var size = extractFromArrayOrCollection(arrayNode, obj, a -> a.length, c -> c.size());
@@ -144,7 +144,7 @@ public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMap
         };
     }
 
-    static <T> T extractFromArrayOrCollection(final ArrayParentNode<PersistableSettings> arrayNode, final Object obj,
+    static <T> T extractFromArrayOrCollection(final ArrayParentNode<Persistable> arrayNode, final Object obj,
         final Function<Object[], T> fromArray, final Function<Collection, T> fromCollection) {
         if (arrayNode.getRawClass().isArray()) {
             return fromArray.apply((Object[])obj);
@@ -158,7 +158,7 @@ public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMap
     }
 
     @Override
-    protected GetConfigMappings getNested(final TreeNode<PersistableSettings> node, final GetConfigMappings property) {
+    protected GetConfigMappings getNested(final TreeNode<Persistable> node, final GetConfigMappings property) {
         final var configKey = ConfigKeyUtil.getConfigKey(node);
         return obj -> new ConfigMappings(configKey, List.of(property.getConfigMappings(obj)));
     }
@@ -166,7 +166,7 @@ public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMap
     @Override
     protected GetConfigMappings combineWithConfigsDeprecations(final GetConfigMappings withoutLoader,
         final List<ConfigMigration> configsDeprecations, final Supplier<String[][]> configPaths,
-        final TreeNode<PersistableSettings> node) {
+        final TreeNode<Persistable> node) {
         final var saver = SettingsSaverFactory.getInstance().extractFromTreeNode(node);
         final var newConfigMappings = configsDeprecationsToConfigMappings(configsDeprecations, configPaths, saver);
         return concatenateMappings(withoutLoader, newConfigMappings);
@@ -175,7 +175,7 @@ public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMap
     @Override
     protected GetConfigMappings combineWithConfigsDeprecationsForType(final GetConfigMappings withoutLoader,
         final List<ConfigMigration> configsDeprecations, final Supplier<String[][]> configPaths,
-        final Tree<PersistableSettings> node) {
+        final Tree<Persistable> node) {
         final var saver = SettingsSaverFactory.getInstance().extractFromTree(node);
         final var newConfigMappings = configsDeprecationsToConfigMappings(configsDeprecations, configPaths, saver);
         return concatenateMappings(withoutLoader, newConfigMappings);
@@ -183,7 +183,7 @@ public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMap
 
     @Override
     protected GetConfigMappings combineWithLoadDefault(final GetConfigMappings withoutLoader,
-        final Supplier<String[][]> configPaths, final TreeNode<PersistableSettings> node) {
+        final Supplier<String[][]> configPaths, final TreeNode<Persistable> node) {
         final var saver = SettingsSaverFactory.getInstance().extractFromTreeNode(node);
         GetConfigMappings defaultValueConfigMapping = getDefaultConfigMapping(configPaths, node, saver);
         return concatenateMappings(withoutLoader, defaultValueConfigMapping);
@@ -191,7 +191,7 @@ public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMap
     }
 
     private static GetConfigMappings getDefaultConfigMapping(final Supplier<String[][]> configPathsProvider,
-        final TreeNode<PersistableSettings> node, final SettingsSaver saver) {
+        final TreeNode<Persistable> node, final ParametersSaver saver) {
         final var configPaths = configPathsProvider.get();
         final UnaryOperator<NodeSettingsRO> setDefault = settings -> {
             final var newSettings = new NodeSettings("newSettings");
@@ -204,7 +204,7 @@ public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMap
 
     private static <S> GetConfigMappings configsDeprecationsToConfigMappings(
         final List<ConfigMigration> configsDeprecations, final Supplier<String[][]> configPaths,
-        final SettingsSaver<S> saver) {
+        final ParametersSaver<S> saver) {
         return obj -> new ConfigMappings(configsDeprecations.stream().map(configsDeprecation -> new ConfigMappings( //
             configsDeprecation.getDeprecatedConfigPaths(), //
             toConfigPaths(configPaths.get()), //
@@ -222,7 +222,7 @@ public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMap
         return obj -> new ConfigMappings(List.of(first.getConfigMappings(obj), second.getConfigMappings(obj)));
     }
 
-    private static <T> T loadOrDefault(final NodeSettingsRO settings, final SettingsLoader<T> deprecationLoader,
+    private static <T> T loadOrDefault(final NodeSettingsRO settings, final ParametersLoader<T> deprecationLoader,
         final T obj) {
         try {
             return deprecationLoader.load(settings);

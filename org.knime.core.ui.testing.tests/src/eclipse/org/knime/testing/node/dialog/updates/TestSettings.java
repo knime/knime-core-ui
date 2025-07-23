@@ -50,28 +50,29 @@ package org.knime.testing.node.dialog.updates;
 
 import java.util.function.Supplier;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.updates.ButtonReference;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.text.TextInputWidget;
 import org.knime.testing.node.dialog.updates.TestSettings.ElementSettings.ElementTextProvider.ElementValueReference;
 import org.knime.testing.node.dialog.updates.TestSettings.MyTextProvider.MyButtonRef;
 import org.knime.testing.node.dialog.updates.TestSettings.MyTextProvider.MyValueRef;
 
 @SuppressWarnings("restriction")
-class TestSettings implements DefaultNodeSettings {
+class TestSettings implements NodeParameters {
 
     static abstract class MyTextProvider implements StateProvider<String> {
 
         static final class MyButtonRef implements ButtonReference {
         }
 
-        static final class MyValueRef implements Reference<String> {
+        static final class MyValueRef implements ParameterReference<String> {
         }
 
         protected Supplier<String> m_supplier;
@@ -85,7 +86,7 @@ class TestSettings implements DefaultNodeSettings {
         }
 
         @Override
-        public String computeState(final DefaultNodeSettingsContext context) {
+        public String computeState(final NodeParametersInput context) {
             return m_supplier.get();
         }
 
@@ -99,7 +100,7 @@ class TestSettings implements DefaultNodeSettings {
 
         abstract static class ElementTextProvider extends MyTextProvider {
 
-            static final class ElementValueReference implements Reference<String> {
+            static final class ElementValueReference implements ParameterReference<String> {
             }
 
             private Supplier<String> m_elementDependencySupplier;
@@ -111,7 +112,7 @@ class TestSettings implements DefaultNodeSettings {
             }
 
             @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
+            public String computeState(final NodeParametersInput context) {
                 return m_supplier.get() + ", " + m_elementDependencySupplier.get();
             }
 

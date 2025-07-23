@@ -55,10 +55,10 @@ import java.util.List;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
 
 /**
  * The {@link SettingsModelColumnName} is migrated to a {@link StringOrEnum} that can hold either a column name or the
@@ -66,7 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.St
  *
  * @author Paul Bärnreuther
  */
-public class SettingsModelColumnNameMigration implements NodeSettingsMigration<StringOrEnum<RowIDChoice>> {
+public class SettingsModelColumnNameMigration implements NodeParametersMigration<StringOrEnum<RowIDChoice>> {
 
     private final String m_legacyConfigKey;
 

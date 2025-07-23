@@ -51,7 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates
 import java.util.Arrays;
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.node.parameters.updates.EffectPredicate;
 
 /**
  *
@@ -59,19 +59,19 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
  */
 public non-sealed class Or implements Operator {
 
-    private final Predicate[] m_children;
+    private final EffectPredicate[] m_children;
 
     /**
      * @param children the predicates which are combined using an or operation
      */
-    public Or(final Predicate... children) {
+    public Or(final EffectPredicate... children) {
         m_children = children;
     }
 
     /**
      * @return the predicates which are combined using an or operation
      */
-    public List<Predicate> getChildren() {
+    public List<EffectPredicate> getChildren() {
         return Arrays.asList(m_children);
     }
 

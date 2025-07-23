@@ -54,7 +54,8 @@ import org.junit.jupiter.api.Test;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.util.workflow.def.FallibleSupplier;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * For testing that legacy settings can still be read and provide the expected defaults.
@@ -79,34 +80,34 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
 @SuppressWarnings("restriction")
-public abstract class DefaultNodeSettingsCompatibilityTest<T extends DefaultNodeSettings> {
+public abstract class DefaultNodeSettingsCompatibilityTest<T extends NodeParameters> {
 
     /** To specify an expected equivalence. */
-    protected record Assert(FallibleSupplier<DefaultNodeSettings> actual, DefaultNodeSettings expected) {
+    protected record Assert(FallibleSupplier<NodeParameters> actual, NodeParameters expected) {
         /**
-         * @param input to be loaded into a DefaultNodeSettings instance
+         * @param input to be loaded into a NodeParameters instance
          * @param expected is expected to be equal to the created instance
          * @return new instance
          */
-        public static Assert of(final NodeSettingsRO input, final DefaultNodeSettings expected) {
+        public static Assert of(final NodeSettingsRO input, final NodeParameters expected) {
             return new Assert(from(input, expected.getClass()), expected);
         }
     }
 
-    static FallibleSupplier<DefaultNodeSettings> from(final NodeSettingsRO nodeSettings,
-        final Class<? extends DefaultNodeSettings> clazz) {
-        return () -> DefaultNodeSettings.loadSettings(nodeSettings, clazz);
+    static FallibleSupplier<NodeParameters> from(final NodeSettingsRO nodeSettings,
+        final Class<? extends NodeParameters> clazz) {
+        return () -> NodeParametersUtil.loadSettings(nodeSettings, clazz);
     }
 
     /** Creates a test that checks the equivalences defined in {@link #assertions()}. */
     protected DefaultNodeSettingsCompatibilityTest() {
     }
 
-    /** @return the expected {@link DefaultNodeSettings} representation of given {@link NodeSettings}. */
+    /** @return the expected {@link NodeParameters} representation of given {@link NodeSettings}. */
     protected abstract List<Assert> assertions();
 
     /**
-     * Compares the provided {@link DefaultNodeSettings} to the {@link DefaultNodeSettings} created from the provided
+     * Compares the provided {@link NodeParameters} to the {@link NodeParameters} created from the provided
      * {@link NodeSettings} instances.
      *
      * @throws Exception
@@ -116,7 +117,7 @@ public abstract class DefaultNodeSettingsCompatibilityTest<T extends DefaultNode
         List<Assert> assertions = assertions();
         for (var assertNumber = 0; assertNumber < assertions.size(); assertNumber++) {
             var assertion = assertions.get(assertNumber);
-            final DefaultNodeSettings expected = assertion.expected();
+            final NodeParameters expected = assertion.expected();
             final var actual = assertion.actual().get();
             final var diff = DefaultNodeSettingsDiff.of(actual, expected);
             if (!diff.isEmpty()) {

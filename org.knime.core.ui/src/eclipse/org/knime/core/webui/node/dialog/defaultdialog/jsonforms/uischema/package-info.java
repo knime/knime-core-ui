@@ -48,7 +48,7 @@
  */
 /**
  * This package contains the implementation of the generation of an ui schema from
- * {@link org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings DefaultNodeSettings}.
+ * {@link org.knime.node.parameters.NodeParameters NodeParameters}.
  *
  * @see {@link org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil Implementation
  *      details}

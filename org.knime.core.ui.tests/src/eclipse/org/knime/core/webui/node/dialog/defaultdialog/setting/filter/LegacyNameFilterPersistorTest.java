@@ -60,7 +60,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.LegacyNameF
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilterMode;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.ManualFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.PatternFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilter;
+import org.knime.node.parameters.widget.choices.filter.StringFilter;
 import org.knime.core.node.util.filter.PatternFilterConfiguration;
 
 final class LegacyNameFilterPersistorTest {

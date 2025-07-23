@@ -52,7 +52,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
  * Combines the two config keys present in the {@link SettingsModelColumnName} into one string by using the value
@@ -60,7 +60,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
  *
  * @author Paul Bärnreuther
  */
-public class SettingsModelColumnNamePersistor implements NodeSettingsPersistor<String> {
+public class SettingsModelColumnNamePersistor implements NodeParametersPersistor<String> {
 
     private static final String ROW_KEYS_PLACEHOLDER = "<row-keys>";
 

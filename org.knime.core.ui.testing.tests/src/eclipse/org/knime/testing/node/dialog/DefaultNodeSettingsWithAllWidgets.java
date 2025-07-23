@@ -53,25 +53,26 @@ import java.util.List;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.ButtonReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueProvider;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
+import org.knime.node.parameters.widget.credentials.Credentials;
 
 /**
  * A class with all possible widgets for testing backwards compatibility of their snapshots.
@@ -79,7 +80,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvid
  * @author Paul Bärnreuther
  */
 @SuppressWarnings("restriction")
-class DefaultNodeSettingsWithAllWidgets implements DefaultNodeSettings {
+class DefaultNodeSettingsWithAllWidgets implements NodeParameters {
 
     @Widget(title = "File Chooser", description = "")
     FileSelection m_fileSelection = new FileSelection();
@@ -123,7 +124,7 @@ class DefaultNodeSettingsWithAllWidgets implements DefaultNodeSettings {
         }
 
         @Override
-        public String computeState(final DefaultNodeSettingsContext context) {
+        public String computeState(final NodeParametersInput context) {
             throw new IllegalAccessError("Should not be called within this test");
         }
 
@@ -133,7 +134,7 @@ class DefaultNodeSettingsWithAllWidgets implements DefaultNodeSettings {
     @ValueProvider(MyValueProvider.class)
     String m_string;
 
-    static final class NestedSettings implements DefaultNodeSettings {
+    static final class NestedSettings implements NodeParameters {
         @Widget(title = "Nested String Setting", description = "")
         String m_nestedString;
     }
@@ -143,7 +144,7 @@ class DefaultNodeSettingsWithAllWidgets implements DefaultNodeSettings {
     @Persist(configKey = "myNestedSettings")
     NestedSettings m_nestedSettingsRenamed = new NestedSettings();
 
-    static final class CustomPersistor implements NodeSettingsPersistor<NestedSettings> {
+    static final class CustomPersistor implements NodeParametersPersistor<NestedSettings> {
 
         @Override
         public NestedSettings load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -162,7 +163,7 @@ class DefaultNodeSettingsWithAllWidgets implements DefaultNodeSettings {
 
     }
 
-    static final class Migrator implements NodeSettingsMigration<NestedSettings> {
+    static final class Migrator implements NodeParametersMigration<NestedSettings> {
         @Override
         public List<ConfigMigration<NestedSettings>> getConfigMigrations() {
             return List.of(ConfigMigration.<NestedSettings> builder(settings -> {

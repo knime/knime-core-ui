@@ -53,17 +53,17 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.filehandling.core.data.location.FSLocationSerializationUtils;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.reader.SettingsModelReaderFileChooser;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
- * {@link NodeSettingsPersistor} for {@link FileSelection} that persists it in a way compatible to
+ * {@link NodeParametersPersistor} for {@link FileSelection} that persists it in a way compatible to
  * {@link SettingsModelReaderFileChooser}.
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
-public abstract class LegacyReaderFileSelectionPersistor implements NodeSettingsPersistor<FileSelection> {
+public abstract class LegacyReaderFileSelectionPersistor implements NodeParametersPersistor<FileSelection> {
 
     private String m_configKey;
 

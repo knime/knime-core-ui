@@ -52,7 +52,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
+import org.knime.node.parameters.layout.Section;
 
 /**
  * This is the exposed tree structure of the layout of a dialog. It has a set of controls at the current level, which

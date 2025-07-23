@@ -61,17 +61,17 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration.Builder;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.migration.ParametersLoader;
+import org.knime.node.parameters.migration.ConfigMigration.Builder;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.Persistor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -89,14 +89,14 @@ public class PersistUtilTest {
      * @param modelSettings
      * @return a persist schema with the given settings interpreted as model settings
      */
-    public static ObjectNode getPersistSchema(final Class<? extends PersistableSettings> modelSettings) {
+    public static ObjectNode getPersistSchema(final Class<? extends Persistable> modelSettings) {
         final var persistTree = new PersistTreeFactory().createTree(modelSettings);
         final var uischema = new ObjectMapper().createObjectNode();
         PersistUtil.addPersist(uischema, Map.of(SettingsType.MODEL, persistTree));
         return (ObjectNode)uischema.get("persist");
     }
 
-    private interface TestPersistor<S> extends NodeSettingsPersistor<S> {
+    private interface TestPersistor<S> extends NodeParametersPersistor<S> {
         @Override
         default S load(final NodeSettingsRO settings) throws InvalidSettingsException {
             throw new UnsupportedOperationException("should not be called by this test");
@@ -118,7 +118,7 @@ public class PersistUtilTest {
 
     }
 
-    private static class SettingWithCustomPersistor implements PersistableSettings {
+    private static class SettingWithCustomPersistor implements Persistable {
 
         @Persistor(CustomPersistor.class)
         public int test;
@@ -142,7 +142,7 @@ public class PersistUtilTest {
 
     }
 
-    private static class SettingWithCustomPersistorWithPaths implements PersistableSettings {
+    private static class SettingWithCustomPersistorWithPaths implements Persistable {
 
         @Persistor(CustomPersistorWithPaths.class)
         public int test;
@@ -158,7 +158,7 @@ public class PersistUtilTest {
     }
 
     @SuppressWarnings("unused")
-    private static class SettingsWithDefaultPersistorWithPath implements PersistableSettings {
+    private static class SettingsWithDefaultPersistorWithPath implements Persistable {
         /**
          * the default persistor of DataType uses the sub config key "cell_class".
          */
@@ -181,7 +181,7 @@ public class PersistUtilTest {
 
     }
 
-    private static class SettingWithCustomPersistorWithKeysContainingDots implements PersistableSettings {
+    private static class SettingWithCustomPersistorWithKeysContainingDots implements Persistable {
 
         @Persistor(CustomPersistorWithKeysContainingDots.class)
         public int test;
@@ -199,7 +199,7 @@ public class PersistUtilTest {
     }
 
     @SuppressWarnings("unused")
-    private static class SettingsWithDefaultPersistorWithHiddenFlowVariables implements PersistableSettings {
+    private static class SettingsWithDefaultPersistorWithHiddenFlowVariables implements Persistable {
         /**
          * the default persistor of Map hides flow variables.
          */
@@ -215,9 +215,9 @@ public class PersistUtilTest {
         assertThatJson(result).inPath("$.properties.model.properties.fieldName.configPaths").isArray().isEmpty();
     }
 
-    private static class SettingsWithHiddenPersist implements PersistableSettings {
+    private static class SettingsWithHiddenPersist implements Persistable {
 
-        static final class NestedSettings implements PersistableSettings {
+        static final class NestedSettings implements Persistable {
             @SuppressWarnings("unused")
             public int nested;
         }
@@ -237,8 +237,8 @@ public class PersistUtilTest {
         assertThatJson(result).inPath("$.properties.model.properties.test.configPaths").isArray().isEmpty();
     }
 
-    private static class SettingsWithConfigRename implements PersistableSettings {
-        static final class NestedSettings implements PersistableSettings {
+    private static class SettingsWithConfigRename implements Persistable {
+        static final class NestedSettings implements Persistable {
             @SuppressWarnings("unused")
             public int nested;
         }
@@ -260,7 +260,7 @@ public class PersistUtilTest {
         assertThatJson(result).inPath("$.properties.model.properties.test.configKey").isString().isEqualTo("bar");
     }
 
-    private static class CustomModifierInteger implements NodeSettingsMigration<Integer> {
+    private static class CustomModifierInteger implements NodeParametersMigration<Integer> {
         @Override
         public List<ConfigMigration<Integer>> getConfigMigrations() {
             return getDummyConfigsDeprecations();
@@ -268,7 +268,7 @@ public class PersistUtilTest {
 
     }
 
-    private static class SettingWithCustomFieldPersistorWithDeprecatedConfigs implements PersistableSettings {
+    private static class SettingWithCustomFieldPersistorWithDeprecatedConfigs implements Persistable {
 
         @Migration(CustomModifierInteger.class)
         public int test;
@@ -297,7 +297,7 @@ public class PersistUtilTest {
     }
 
     private static class CustomModifier
-        implements NodeSettingsMigration<SettingWithCustomClassPersistorWithDeprecatedConfigs> {
+        implements NodeParametersMigration<SettingWithCustomClassPersistorWithDeprecatedConfigs> {
         @Override
         public List<ConfigMigration<SettingWithCustomClassPersistorWithDeprecatedConfigs>> getConfigMigrations() {
             return getDummyConfigsDeprecations();
@@ -307,7 +307,7 @@ public class PersistUtilTest {
 
     @Persistor(CustomClassPersistorWithDeprecatedConfigs.class)
     @Migration(CustomModifier.class)
-    private static class SettingWithCustomClassPersistorWithDeprecatedConfigs implements PersistableSettings {
+    private static class SettingWithCustomClassPersistorWithDeprecatedConfigs implements Persistable {
 
         @Widget(title = "my_title", description = "")
         public int test;
@@ -331,7 +331,7 @@ public class PersistUtilTest {
             .isEqualTo(new String[]{"Z"});
     }
 
-    private static class SettingsWithCustomFieldAndClassModifier implements PersistableSettings {
+    private static class SettingsWithCustomFieldAndClassModifier implements Persistable {
         @Migration(CustomModifier.class)
         public SettingWithCustomClassPersistorWithDeprecatedConfigs bothPersistors;
     }
@@ -348,7 +348,7 @@ public class PersistUtilTest {
     }
 
     private static <T> List<ConfigMigration<T>> getDummyConfigsDeprecations() {
-        SettingsLoader<T> dummyLoader = settings -> {
+        ParametersLoader<T> dummyLoader = settings -> {
             throw new IllegalStateException("Should not be called within this test");
         };
         return List.of(//
@@ -364,7 +364,7 @@ public class PersistUtilTest {
                 .build());
     }
 
-    private static class SettingsWithOptionalField implements PersistableSettings {
+    private static class SettingsWithOptionalField implements Persistable {
         @Persist(configKey = "optional_field")
         public Optional<String> optionalField;
 

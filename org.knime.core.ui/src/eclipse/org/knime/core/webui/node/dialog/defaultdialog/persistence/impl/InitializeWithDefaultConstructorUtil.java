@@ -48,12 +48,12 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
- * Utility class to create instances of {@link NodeSettingsPersistor} and {@link NodeSettingsMigration} classes.
+ * Utility class to create instances of {@link NodeParametersPersistor} and {@link NodeParametersMigration} classes.
  *
  * @author Paul Bärnreuther
  */
@@ -64,12 +64,12 @@ final class InitializeWithDefaultConstructorUtil {
     }
 
     /**
-     * Create an instance of a {@link NodeSettingsPersistor}. We use the empty constructor as per contract.
+     * Create an instance of a {@link NodeParametersPersistor}. We use the empty constructor as per contract.
      *
      * @throws IllegalStateException if the class does not have a suitable constructor, is abstract, or the constructor
      *             raises an exception
      */
-    static <P extends NodeSettingsPersistor<?>> P createPersistor(final Class<P> persistorClass) {
+    static <P extends NodeParametersPersistor<?>> P createPersistor(final Class<P> persistorClass) {
         return ReflectionUtil.createInstance(persistorClass)
             .orElseThrow(() -> new IllegalStateException(
                 String.format("The provided persistor class '%s' does not provide a default constructor ",
@@ -77,13 +77,13 @@ final class InitializeWithDefaultConstructorUtil {
     }
 
     /**
-     * Create an instance of a {@link NodeSettingsMigration}. We use the empty constructor as per contract.
+     * Create an instance of a {@link NodeParametersMigration}. We use the empty constructor as per contract.
      *
      * @throws IllegalStateException if the class does not have a suitable constructor, is abstract, or the constructor
      *             raises an exception
      */
     @SuppressWarnings("rawtypes")
-    static NodeSettingsMigration createMigrator(final Migration migration) {
+    static NodeParametersMigration createMigrator(final Migration migration) {
         final var migratorClass = migration.value();
         return ReflectionUtil.createInstance(migratorClass)
             .orElseThrow(() -> new IllegalStateException(

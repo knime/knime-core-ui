@@ -55,9 +55,9 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.migration.ParametersLoader;
 
 /**
  * With 5.5 we removed the ColumnSelection setting and nodes that used it need to use a String instead. Using this
@@ -69,7 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLo
  *
  * @author Paul Bärnreuther
  */
-public abstract class ColumnSelectionToStringMigration implements NodeSettingsMigration<String> {
+public abstract class ColumnSelectionToStringMigration implements NodeParametersMigration<String> {
 
     private final String m_legacyColumnSelectionConfigKey;
 
@@ -113,8 +113,8 @@ public abstract class ColumnSelectionToStringMigration implements NodeSettingsMi
     }
 
     static <T> List<ConfigMigration<T>> defineConfigMigrations(final String legacyColumnSelectionConfigKey,
-        final SettingsLoader<T> loadFromColumnSelection, final String legacyStringOrColumnSelectionConfigKey,
-        final SettingsLoader<T> loadFromStringOrColumnSelection) {
+        final ParametersLoader<T> loadFromColumnSelection, final String legacyStringOrColumnSelectionConfigKey,
+        final ParametersLoader<T> loadFromStringOrColumnSelection) {
         final var migrationFromColumnSelection = ConfigMigration.builder(loadFromColumnSelection)
             .withDeprecatedConfigPath(legacyColumnSelectionConfigKey).build();
         final var migrationFromStringOrColumnSelection = Optional.ofNullable(legacyStringOrColumnSelectionConfigKey)

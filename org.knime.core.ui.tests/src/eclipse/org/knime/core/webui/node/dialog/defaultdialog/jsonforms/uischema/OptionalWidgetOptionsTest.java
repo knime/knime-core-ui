@@ -63,16 +63,16 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.DefaultValueProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.OptionalWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.widget.OptionalWidget;
+import org.knime.node.parameters.widget.OptionalWidget.DefaultValueProvider;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.StringChoice;
+import org.knime.node.parameters.widget.text.TextInputWidget;
 
 /**
  * Tests for {@link Optional} fields and the associated {@link OptionalWidget}.
@@ -83,7 +83,7 @@ class OptionalWidgetOptionsTest {
 
     @Test
     void testOptionalSetting() {
-        class HidableSettings implements DefaultNodeSettings {
+        class HidableSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @TextInputWidget(placeholder = "I am still being picked up")
@@ -174,7 +174,7 @@ class OptionalWidgetOptionsTest {
         }
 
         @Override
-        public String computeState(final DefaultNodeSettingsContext context) throws StateComputationFailureException {
+        public String computeState(final NodeParametersInput context) throws StateComputationFailureException {
             return m_testChoices.get().stream().findFirst().map(StringChoice::id).orElse("");
         }
 
@@ -183,7 +183,7 @@ class OptionalWidgetOptionsTest {
     static final class DateIntervalDefault implements DefaultValueProvider<DateInterval> {
 
         @Override
-        public DateInterval computeState(final DefaultNodeSettingsContext context)
+        public DateInterval computeState(final NodeParametersInput context)
             throws StateComputationFailureException {
             return DateInterval.of(1, 2, 3, 4);
         }
@@ -192,7 +192,7 @@ class OptionalWidgetOptionsTest {
 
     @Test
     void testThrowsOnFieldTypeWithoutBuiltinDefaultAndWithoutOptionalWidget() {
-        class HidableSettings implements DefaultNodeSettings {
+        class HidableSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             Optional<DateInterval> m_interval;
@@ -205,7 +205,7 @@ class OptionalWidgetOptionsTest {
 
     @Test
     void testOptionalWidgetWithDefaultProvider() {
-        class HidableSettings implements DefaultNodeSettings {
+        class HidableSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @ChoicesProvider(TestChoicesProvider.class)

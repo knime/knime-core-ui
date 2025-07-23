@@ -55,12 +55,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.layout.After;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -111,7 +111,7 @@ public final class JsonFormsUiSchemaUtil {
      * @return the uischema
      */
     public static ObjectNode buildUISchema(final Collection<Tree<WidgetGroup>> widgetTrees,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         return buildUISchema(widgetTrees, List.of(), context);
     }
 
@@ -119,7 +119,7 @@ public final class JsonFormsUiSchemaUtil {
      * @param parentWidgetTrees of the fields of the "outside" layout. With UIEXT-1673 This can be removed again
      */
     static ObjectNode buildUISchema(final Collection<Tree<WidgetGroup>> widgetTrees,
-        final Collection<Tree<WidgetGroup>> parentWidgetTrees, final DefaultNodeSettingsContext context
+        final Collection<Tree<WidgetGroup>> parentWidgetTrees, final NodeParametersInput context
         ){
         final var layoutTreeRoot = widgetTreesToLayoutTreeRoot(widgetTrees);
         return new LayoutNodesGenerator(layoutTreeRoot, widgetTrees, parentWidgetTrees, context)

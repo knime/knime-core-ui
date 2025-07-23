@@ -60,22 +60,22 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
 import org.knime.core.node.workflow.CredentialsProvider;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration.Builder;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.AuthenticationType;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.RequiresPasswordProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.RequiresUsernameProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.migration.ConfigMigration.Builder;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.widget.credentials.CredentialsWidget;
 
 /**
  * Similarly to {@link AuthenticationSettings}, but additionally supports the
@@ -136,7 +136,7 @@ public final class LegacyAuthenticationSettings extends BaseAuthenticationSettin
         return new AuthenticationSettings(m_type, m_legacyCredentials.toCredentials());
     }
 
-    static class SettingsModelAuthenticationPersistor implements NodeSettingsPersistor<LegacyAuthenticationSettings> {
+    static class SettingsModelAuthenticationPersistor implements NodeParametersPersistor<LegacyAuthenticationSettings> {
 
         @Override
         public LegacyAuthenticationSettings load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -164,7 +164,7 @@ public final class LegacyAuthenticationSettings extends BaseAuthenticationSettin
      * @author Paul Bärnreuther
      */
     public abstract static class SettingsModelAuthenticationBackwardsCompatibleLoader
-        implements NodeSettingsMigration<LegacyAuthenticationSettings> {
+        implements NodeParametersMigration<LegacyAuthenticationSettings> {
 
         private AuthenticationSettings.SettingsModelAuthenticationMigrator m_settingsModelAuthenticationPersistor;
 

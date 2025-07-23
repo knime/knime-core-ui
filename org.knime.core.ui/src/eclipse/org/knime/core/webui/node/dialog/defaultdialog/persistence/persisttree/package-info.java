@@ -45,7 +45,7 @@
  */
 /**
  *
- * This package entails parsing {@link PersistableSettings} to a tree structure as an intermediate step to serializing
+ * This package entails parsing {@link Persistable} to a tree structure as an intermediate step to serializing
  * the structure.
  *
  * @author Paul Bärnreuther

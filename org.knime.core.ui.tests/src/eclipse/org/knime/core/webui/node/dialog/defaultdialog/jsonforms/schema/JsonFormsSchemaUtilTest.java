@@ -69,15 +69,15 @@ import java.time.ZonedDateTime;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.WidgetGroupModifier;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.widget.choices.Label;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -132,19 +132,19 @@ class JsonFormsSchemaUtilTest {
         testSettings(DescriptionSetting.class);
     }
 
-    static final class ChangeDescription implements WidgetGroup.Modifier {
+    static final class ChangeDescription implements Modification.Modifier {
         static final class FieldReference implements Modification.Reference {
         }
 
         @Override
-        public void modify(final WidgetGroupModifier group) {
+        public void modify(final Modification.WidgetGroupModifier group) {
             group.find(FieldReference.class).modifyAnnotation(Widget.class)
                 .withProperty("description", "modified description").modify();
         }
     }
 
     @Modification(ChangeDescription.class)
-    private static class ModifiedDescriptionSettings implements WidgetGroup, PersistableSettings {
+    private static class ModifiedDescriptionSettings implements WidgetGroup, Persistable {
         /**
          * containing the modified description from {@link ChangeDescription}.
          */
@@ -169,7 +169,7 @@ class JsonFormsSchemaUtilTest {
             + "{\"test\":{\"type\":\"integer\",\"format\":\"int32\",\"default\":0,\"description\":\"modified description\"}}"
             + "}}";
 
-        static final class FieldReference implements Reference<String> {
+        static final class FieldReference implements ParameterReference<String> {
 
         }
 
@@ -199,7 +199,7 @@ class JsonFormsSchemaUtilTest {
             + "{\"test\":{\"type\":\"integer\",\"format\":\"int32\",\"default\":0,\"description\":\"modified description\"}" //
             + "}}}}";
 
-        static final class FieldReference implements Reference<String> {
+        static final class FieldReference implements ParameterReference<String> {
 
         }
 
@@ -231,7 +231,7 @@ class JsonFormsSchemaUtilTest {
             + "{\"test\":{\"type\":\"integer\",\"format\":\"int32\",\"default\":0,\"description\":\"modified description\"}" //
             + "}}}}";
 
-        static final class FieldReference implements Reference<String> {
+        static final class FieldReference implements ParameterReference<String> {
 
         }
 
@@ -600,7 +600,7 @@ class JsonFormsSchemaUtilTest {
     }
 
     private static JsonNode getProperties(final Class<? extends WidgetGroup> clazz, final PortObjectSpec... specs) {
-        return JsonFormsSchemaUtil.buildSchema(clazz, DefaultNodeSettings.createDefaultNodeSettingsContext(specs),
+        return JsonFormsSchemaUtil.buildSchema(clazz, NodeParametersUtil.createDefaultNodeSettingsContext(specs),
             JsonFormsDataUtil.getMapper()).get("properties");
     }
 

@@ -72,8 +72,8 @@ import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.webui.data.DataServiceContextTest;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonChange;
@@ -81,18 +81,18 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonUpda
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil.DateTimeStringFormatValidation;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.credentials.Credentials;
+import org.knime.node.parameters.widget.text.TextInputWidget;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -101,7 +101,7 @@ class DefaultNodeDialogDataServiceImplTest {
 
     static final ObjectMapper MAPPER = new ObjectMapper();
 
-    static class TestDefaultNodeSettings implements DefaultNodeSettings {
+    static class TestDefaultNodeSettings implements NodeParameters {
         @Widget(title = "", description = "")
         String m_foo = "bar";
     }
@@ -119,14 +119,14 @@ class DefaultNodeDialogDataServiceImplTest {
     }
 
     private static DefaultNodeDialogDataServiceImpl
-        getDataService(final Class<? extends DefaultNodeSettings> modelSettingsClass) {
+        getDataService(final Class<? extends NodeParameters> modelSettingsClass) {
         return new DefaultNodeDialogDataServiceImpl(Map.of(SettingsType.MODEL, modelSettingsClass));
     }
 
     @Nested
     class UpdatesDataServiceTest {
 
-        static final class MyValueRef implements Reference<String> {
+        static final class MyValueRef implements ParameterReference<String> {
         }
 
         private static final class TestStateProvider implements StateProvider<String> {
@@ -142,7 +142,7 @@ class DefaultNodeDialogDataServiceImplTest {
              * {@inheritDoc}
              */
             @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
+            public String computeState(final NodeParametersInput context) {
                 return m_dependencySupplier.get();
             }
 
@@ -151,7 +151,7 @@ class DefaultNodeDialogDataServiceImplTest {
         @Test
         void testSingleUpdate() throws ExecutionException, InterruptedException {
 
-            class UpdateSettings implements DefaultNodeSettings {
+            class UpdateSettings implements NodeParameters {
 
                 @Widget(title = "", description = "")
                 @ValueReference(MyValueRef.class)
@@ -179,7 +179,7 @@ class DefaultNodeDialogDataServiceImplTest {
         @Test
         void testUiStateProvider() throws ExecutionException, InterruptedException {
 
-            class UpdateSettings implements DefaultNodeSettings {
+            class UpdateSettings implements NodeParameters {
 
                 @Widget(title = "", description = "")
                 @ValueReference(MyValueRef.class)
@@ -196,7 +196,7 @@ class DefaultNodeDialogDataServiceImplTest {
                     }
 
                     @Override
-                    public String computeState(final DefaultNodeSettingsContext context) {
+                    public String computeState(final NodeParametersInput context) {
                         return m_valueSupplier.get();
                     }
 
@@ -226,7 +226,7 @@ class DefaultNodeDialogDataServiceImplTest {
         @Test
         void testAbortUiStateProviderExecution() throws ExecutionException, InterruptedException {
 
-            class UpdateSettings implements DefaultNodeSettings {
+            class UpdateSettings implements NodeParameters {
 
                 @Widget(title = "", description = "")
                 @ValueReference(MyValueRef.class)
@@ -243,7 +243,7 @@ class DefaultNodeDialogDataServiceImplTest {
                     }
 
                     @Override
-                    public String computeState(final DefaultNodeSettingsContext context)
+                    public String computeState(final NodeParametersInput context)
                         throws StateComputationFailureException {
                         final var value = m_valueSupplier.get();
                         if (value.contains("throw")) {
@@ -269,7 +269,7 @@ class DefaultNodeDialogDataServiceImplTest {
                     }
 
                     @Override
-                    public String computeState(final DefaultNodeSettingsContext context) {
+                    public String computeState(final NodeParametersInput context) {
                         return String.format("%s", valueSupplier.get());
                     }
                 }
@@ -306,10 +306,10 @@ class DefaultNodeDialogDataServiceImplTest {
             assertThat((List<UpdateResult>)(resultWrapper.result())).hasSize(0);
         }
 
-        static final class MyFirstValueRef implements Reference<String> {
+        static final class MyFirstValueRef implements ParameterReference<String> {
         }
 
-        static final class MySecondValueRef implements Reference<String> {
+        static final class MySecondValueRef implements ParameterReference<String> {
         }
 
         record CommonFirstState(String first, String second) {
@@ -334,7 +334,7 @@ class DefaultNodeDialogDataServiceImplTest {
              * {@inheritDoc}
              */
             @Override
-            public CommonFirstState computeState(final DefaultNodeSettingsContext context) {
+            public CommonFirstState computeState(final NodeParametersInput context) {
                 return new CommonFirstState(m_firstDependencyProvider.get() + "_first",
                     m_secondDependencyProvider.get() + "_second");
             }
@@ -351,7 +351,7 @@ class DefaultNodeDialogDataServiceImplTest {
             }
 
             @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
+            public String computeState(final NodeParametersInput context) {
                 return m_pairProvider.get().first();
             }
 
@@ -366,7 +366,7 @@ class DefaultNodeDialogDataServiceImplTest {
             }
 
             @Override
-            public String computeState(final DefaultNodeSettingsContext context) {
+            public String computeState(final NodeParametersInput context) {
                 return m_pairProvider.get().second();
             }
         }
@@ -374,7 +374,7 @@ class DefaultNodeDialogDataServiceImplTest {
         @Test
         void testMultipleUpdatesWithOneHandler() throws ExecutionException, InterruptedException {
 
-            class UpdateSettings implements DefaultNodeSettings {
+            class UpdateSettings implements NodeParameters {
 
                 @Widget(title = "", description = "")
                 @ValueReference(MyFirstValueRef.class)
@@ -441,14 +441,14 @@ class DefaultNodeDialogDataServiceImplTest {
 
             @Override
             public ButtonChange<String, TestButtonStates> initialize(final String currentValue,
-                final DefaultNodeSettingsContext context) {
+                final NodeParametersInput context) {
                 return new ButtonChange<>(currentValue, TestButtonStates.FIRST);
 
             }
 
             @Override
             public ButtonChange<String, TestButtonStates> invoke(final TestButtonStates state,
-                final TestDefaultNodeSettings settings, final DefaultNodeSettingsContext context) {
+                final TestDefaultNodeSettings settings, final NodeParametersInput context) {
                 return new ButtonChange<>(settings.m_foo, state);
             }
 
@@ -458,7 +458,7 @@ class DefaultNodeDialogDataServiceImplTest {
 
             @Override
             public ButtonChange<String, TestButtonStates> update(final TestDefaultNodeSettings settings,
-                final DefaultNodeSettingsContext context) throws WidgetHandlerException {
+                final NodeParametersInput context) throws WidgetHandlerException {
                 return new ButtonChange<>(settings.m_foo, TestButtonStates.SECOND);
             }
 
@@ -467,7 +467,7 @@ class DefaultNodeDialogDataServiceImplTest {
         @Test
         void testInitializeButton() throws ExecutionException, InterruptedException {
 
-            class ButtonSettings implements DefaultNodeSettings {
+            class ButtonSettings implements NodeParameters {
                 @Widget(title = "", description = "")
                 @ButtonWidget(actionHandler = GenericTypesTestHandler.class)
                 String m_button;
@@ -485,7 +485,7 @@ class DefaultNodeDialogDataServiceImplTest {
         @Test
         void testInvokeButtonAction() throws ExecutionException, InterruptedException {
 
-            class ButtonSettings implements DefaultNodeSettings {
+            class ButtonSettings implements NodeParameters {
                 @Widget(title = "", description = "")
                 @ButtonWidget(actionHandler = GenericTypesTestHandler.class)
                 String m_button;
@@ -501,7 +501,7 @@ class DefaultNodeDialogDataServiceImplTest {
             assertThat(buttonChange.settingValue()).isEqualTo(testDepenenciesFooValue);
         }
 
-        static class ButtonAndCredentialsSettings implements DefaultNodeSettings {
+        static class ButtonAndCredentialsSettings implements NodeParameters {
 
             Credentials m_credentials;
 
@@ -517,13 +517,13 @@ class DefaultNodeDialogDataServiceImplTest {
 
             @Override
             public ButtonChange<String, TestButtonStates> initialize(final String currentValue,
-                final DefaultNodeSettingsContext context) throws WidgetHandlerException {
+                final NodeParametersInput context) throws WidgetHandlerException {
                 return null;
             }
 
             @Override
             public ButtonChange<String, TestButtonStates> invoke(final TestButtonStates state,
-                final ButtonAndCredentialsSettings settings, final DefaultNodeSettingsContext context)
+                final ButtonAndCredentialsSettings settings, final NodeParametersInput context)
                 throws WidgetHandlerException {
                 assertThat(settings.m_credentials.getPassword()).isEqualTo(EXPECTED_PASSWORD);
                 return new ButtonChange<>(TestButtonStates.FIRST);
@@ -597,7 +597,7 @@ class DefaultNodeDialogDataServiceImplTest {
         @Test
         void testUpdate() throws ExecutionException, InterruptedException {
 
-            class ButtonSettings implements DefaultNodeSettings {
+            class ButtonSettings implements NodeParameters {
                 @Widget(title = "", description = "")
                 @ButtonWidget(actionHandler = GenericTypesTestHandler.class,
                     updateHandler = GenericTypesUpdateHandler.class)
@@ -620,7 +620,7 @@ class DefaultNodeDialogDataServiceImplTest {
         @Test
         void testValidationExecution() throws ExecutionException, InterruptedException {
 
-            class DateTimeFormatPickerSettings implements DefaultNodeSettings {
+            class DateTimeFormatPickerSettings implements NodeParameters {
                 @Widget(title = "", description = "")
                 @DateTimeFormatPickerWidget
                 String m_dateTimeFormat;

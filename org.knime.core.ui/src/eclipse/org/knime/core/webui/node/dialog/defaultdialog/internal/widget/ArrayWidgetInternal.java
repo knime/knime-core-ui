@@ -54,14 +54,14 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.FrameworkPredicateProvider;
+import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.updates.ButtonReference;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueProvider;
 
 /**
  * In addition to {@link ArrayWidget} this annotation provides UI parts of array layouts.
@@ -78,7 +78,7 @@ public @interface ArrayWidgetInternal {
      *
      * <ul>
      * <li><b>Edit:</b> For showing widgets only when the edit button was clicked, use the {@link ElementIsEdited}
-     * predicate like you would use any other {@link PredicateProvider} class in an {@link Effect} annotation.</li>
+     * predicate like you would use any other {@link EffectPredicateProvider} class in an {@link Effect} annotation.</li>
      * <li><b>Reset:</b> The {@link ElementResetButton} has to be referenced in one ore multiple state providers used
      * within {@link ValueProvider} annotations on fields inside the element settings.</li>
      * </ul>

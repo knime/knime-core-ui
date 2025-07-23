@@ -53,8 +53,8 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.function.Function;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.persistence.Persistable;
 
 import com.fasterxml.jackson.databind.JavaType;
 
@@ -69,7 +69,7 @@ import com.fasterxml.jackson.databind.JavaType;
  * independent tree corresponding to the type of an elements of this array widget.
  * </p>
  *
- * @param <S> the type of the [S]ettings. Either {@link PersistableSettings} or {@link WidgetGroup}
+ * @param <S> the type of the [S]ettings. Either {@link Persistable} or {@link WidgetGroup}
  *
  * @author Paul Bärnreuther
  */

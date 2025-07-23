@@ -56,9 +56,9 @@ import java.time.ZonedDateTime;
 import java.util.function.Supplier;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.OptionalWidget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.widget.OptionalWidget;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

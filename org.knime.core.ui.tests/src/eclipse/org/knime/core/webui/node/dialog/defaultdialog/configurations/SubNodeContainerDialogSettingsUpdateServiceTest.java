@@ -61,7 +61,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.data.DataServiceContextTest;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.UpdatesUtilImperativeUpdatesTest;
 import org.knime.core.webui.node.dialog.defaultdialog.components.SubNodeContainerDialogSettingsUpdateService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DialogSettingsUpdateService;
@@ -111,7 +111,7 @@ final class SubNodeContainerDialogSettingsUpdateServiceTest {
             }
 
             @Override
-            public String computeState(final DefaultNodeSettingsContext context)
+            public String computeState(final NodeParametersInput context)
                 throws StateComputationFailureException {
                 return "Compute state for dependency:" + m_dependencySupplier.get();
             }

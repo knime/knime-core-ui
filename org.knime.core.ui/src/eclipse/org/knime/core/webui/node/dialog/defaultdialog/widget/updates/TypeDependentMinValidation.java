@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation;
 
 /**
  * Marker interface that is responsible for setting the min value of a byte, integer or long field in the dialog.

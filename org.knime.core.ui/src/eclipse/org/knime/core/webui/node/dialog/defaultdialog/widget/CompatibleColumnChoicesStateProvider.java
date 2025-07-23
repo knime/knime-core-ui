@@ -56,9 +56,9 @@ import java.util.stream.Stream;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
 
 /**
  * A class that provides an array of possible column choices based on a {@link CompatibleDataValueClassesSupplier}.
@@ -80,14 +80,14 @@ public abstract class CompatibleColumnChoicesStateProvider<T extends CompatibleD
     /**
      * @return the compatible data values classes for this enum.
      */
-    protected abstract Class<? extends Reference<T>> getReferenceClass();
+    protected abstract Class<? extends ParameterReference<T>> getReferenceClass();
 
     @Override
-    public List<DataColumnSpec> columnChoices(final DefaultNodeSettingsContext context) {
+    public List<DataColumnSpec> columnChoices(final NodeParametersInput context) {
         final Collection<Class<? extends DataValue>> allowedTypes =
             m_compatibleDataValueClassesSupplier.get().getCompatibleDataValueClasses();
 
-        return context.getDataTableSpec(0).map(DataTableSpec::stream) //
+        return context.getInTableSpec(0).map(DataTableSpec::stream) //
             .orElseGet(Stream::empty) //
             .filter(columnSpec -> allowedTypes.stream().anyMatch(columnSpec.getType()::isCompatible)) //
             .toList();

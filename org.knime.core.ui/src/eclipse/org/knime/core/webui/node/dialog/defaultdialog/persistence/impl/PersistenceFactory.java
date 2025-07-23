@@ -55,19 +55,19 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.NotImplementedException;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.Persistor;
 
 /**
  * An abstract factory which splits the logic on how to combine persistence logic (e.g. how to save) across the tree
@@ -80,28 +80,28 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 public abstract class PersistenceFactory<T> {
 
     /**
-     * Using this method, define how information encoded in a {@link NodeSettingsPersistor} are translated to the type
+     * Using this method, define how information encoded in a {@link NodeParametersPersistor} are translated to the type
      * T.
      *
      * @param nodeSettingsPersistor constructed from a {@link Persistor} annotation.
      * @param treeNode the node that is annotated with {@link Persistor}. In case
-     *            {@link #getFromCustomPersistorForType(NodeSettingsPersistor, Tree)} is not overwritten, this might be
+     *            {@link #getFromCustomPersistorForType(NodeParametersPersistor, Tree)} is not overwritten, this might be
      *            the tree associated to an annotated type. Otherwise, the annotation is always a field annotation.
      * @return the to be extracted property
      */
-    protected abstract T getFromCustomPersistor(NodeSettingsPersistor<?> nodeSettingsPersistor,
-        TreeNode<PersistableSettings> treeNode);
+    protected abstract T getFromCustomPersistor(NodeParametersPersistor<?> nodeSettingsPersistor,
+        TreeNode<Persistable> treeNode);
 
     /**
-     * In addition to {@link #getFromCustomPersistor(NodeSettingsPersistor, TreeNode)}, this method can be overwritten
-     * to extract the property from a type-level {@link NodeSettingsPersistor} in a different way.
+     * In addition to {@link #getFromCustomPersistor(NodeParametersPersistor, TreeNode)}, this method can be overwritten
+     * to extract the property from a type-level {@link NodeParametersPersistor} in a different way.
      *
      * @param nodeSettingsPersistor constructed from a {@link Persistor} annotation on a type.
      * @param tree the associated tree of the annotated type.
      * @return the to be extracted property
      */
-    protected T getFromCustomPersistorForType(final NodeSettingsPersistor<?> nodeSettingsPersistor,
-        final Tree<PersistableSettings> tree) {
+    protected T getFromCustomPersistorForType(final NodeParametersPersistor<?> nodeSettingsPersistor,
+        final Tree<Persistable> tree) {
         return getFromCustomPersistor(nodeSettingsPersistor, tree);
     }
 
@@ -115,7 +115,7 @@ public abstract class PersistenceFactory<T> {
      * @param node a leaf
      * @return the to be extracted property
      */
-    protected abstract T getForLeaf(LeafNode<PersistableSettings> node);
+    protected abstract T getForLeaf(LeafNode<Persistable> node);
 
     /**
      * Construct the property for a tree node. Note that the in case of a tree which is also child to another tree, the
@@ -128,8 +128,8 @@ public abstract class PersistenceFactory<T> {
      * @param childProperty a method for extracting the property for each child of the tree
      * @return the combined property for the tree.
      */
-    protected abstract T getForTree(Tree<PersistableSettings> tree,
-        Function<TreeNode<PersistableSettings>, T> childProperty);
+    protected abstract T getForTree(Tree<Persistable> tree,
+        Function<TreeNode<Persistable>, T> childProperty);
 
     /**
      * Construct the property for an array node. Note that the result of this method is nested additionally using
@@ -141,7 +141,7 @@ public abstract class PersistenceFactory<T> {
      * @param elementProperty the already extracted property associated to
      * @return the extracted property of the array
      */
-    protected abstract T getForArray(ArrayParentNode<PersistableSettings> arrayNode, T elementProperty);
+    protected abstract T getForArray(ArrayParentNode<Persistable> arrayNode, T elementProperty);
 
     /**
      * Called when a property was extracted for a {@link Tree} or a {@link ArrayParentNode} and this property is now to
@@ -153,7 +153,7 @@ public abstract class PersistenceFactory<T> {
      *            {@link #getForLeaf} or {@link #getFromCustomPersistor}.
      * @return the property
      */
-    protected abstract T getNested(final TreeNode<PersistableSettings> node, final T property);
+    protected abstract T getNested(final TreeNode<Persistable> node, final T property);
 
     /**
      * Post process step for adjusting the property if a {@link Migration} is present.
@@ -182,7 +182,7 @@ public abstract class PersistenceFactory<T> {
      * @return the adjusted property.
      */
     protected T combineWithConfigsDeprecations(final T existing, final List<ConfigMigration> configsDeprecations,
-        final Supplier<String[][]> configPaths, final TreeNode<PersistableSettings> node) {
+        final Supplier<String[][]> configPaths, final TreeNode<Persistable> node) {
         return combineWithConfigsDeprecations(existing, configsDeprecations, configPaths);
     }
 
@@ -200,7 +200,7 @@ public abstract class PersistenceFactory<T> {
      * @return the adjusted property.
      */
     protected T combineWithConfigsDeprecationsForType(final T existing, final List<ConfigMigration> configsDeprecations,
-        final Supplier<String[][]> configPaths, final Tree<PersistableSettings> node) {
+        final Supplier<String[][]> configPaths, final Tree<Persistable> node) {
         return combineWithConfigsDeprecations(existing, configsDeprecations, configPaths);
     }
 
@@ -214,7 +214,7 @@ public abstract class PersistenceFactory<T> {
      * @return the adjusted property.
      */
     protected T combineWithLoadDefault(final T existing, final Supplier<String[][]> configPathsProvider,
-        final TreeNode<PersistableSettings> node) {
+        final TreeNode<Persistable> node) {
         return existing;
     }
 
@@ -224,7 +224,7 @@ public abstract class PersistenceFactory<T> {
      * @param settingsClass
      * @return the extracted property.
      */
-    protected final T extractFromSettings(final Class<? extends PersistableSettings> settingsClass) {
+    protected final T extractFromSettings(final Class<? extends Persistable> settingsClass) {
         final var persistTree = new PersistTreeFactory().createTree(settingsClass);
         return extractFromTree(persistTree);
     }
@@ -236,7 +236,7 @@ public abstract class PersistenceFactory<T> {
      * @param node
      * @return the extracted property.
      */
-    protected final T extractFromTree(final Tree<PersistableSettings> node) {
+    protected final T extractFromTree(final Tree<Persistable> node) {
         return performExtraction(new TreeExtractionMethods(node));
     }
 
@@ -246,7 +246,7 @@ public abstract class PersistenceFactory<T> {
      * @param node
      * @return the extracted property.
      */
-    protected final T extractFromTreeNode(final TreeNode<PersistableSettings> node) {
+    protected final T extractFromTreeNode(final TreeNode<Persistable> node) {
         validateAnnotationCombinations(node);
         return performExtraction(new TreeNodeExtractionMethods(node));
 
@@ -255,7 +255,7 @@ public abstract class PersistenceFactory<T> {
     /**
      * @throws IllegalStateException if the annotations are not valid.
      */
-    private static void validateAnnotationCombinations(final TreeNode<PersistableSettings> node) {
+    private static void validateAnnotationCombinations(final TreeNode<Persistable> node) {
         if (node.getAnnotation(Persistor.class).isPresent() && node.getAnnotation(Persist.class).isPresent()) {
             throw new IllegalStateException(
                 String.format(
@@ -278,7 +278,7 @@ public abstract class PersistenceFactory<T> {
             .map(InitializeWithDefaultConstructorUtil::createPersistor);
         final var withoutLoader = customPersistor.map(ex::fromPersistor).orElseGet(ex::getDefault);
         final Supplier<String[][]> configPathsSupplier =
-            () -> customPersistor.map(NodeSettingsPersistor::getConfigPaths).orElseGet(ex::getDefaultConfigPaths);
+            () -> customPersistor.map(NodeParametersPersistor::getConfigPaths).orElseGet(ex::getDefaultConfigPaths);
         final var combinedWithLoaders = performCombineWithDeprecatedConfigs(ex, withoutLoader, configPathsSupplier);
         return ex.postProcess(combinedWithLoaders, configPathsSupplier);
     }
@@ -288,7 +288,7 @@ public abstract class PersistenceFactory<T> {
         final Supplier<String[][]> configPathsSupplier) {
         final List<ConfigMigration> deprecatedConfigs =
             ex.getAnnotation(Migration.class).map(InitializeWithDefaultConstructorUtil::createMigrator)
-                .map(NodeSettingsMigration::getConfigMigrations).orElse(List.of());
+                .map(NodeParametersMigration::getConfigMigrations).orElse(List.of());
         if (deprecatedConfigs.isEmpty()) {
             return withoutLoader;
         }
@@ -298,7 +298,7 @@ public abstract class PersistenceFactory<T> {
     interface ExtractionMethods<T> {
         <A extends Annotation> Optional<A> getAnnotation(Class<A> annotationClass);
 
-        T fromPersistor(NodeSettingsPersistor<?> persistor);
+        T fromPersistor(NodeParametersPersistor<?> persistor);
 
         T getDefault();
 
@@ -312,9 +312,9 @@ public abstract class PersistenceFactory<T> {
     }
 
     private final class TreeExtractionMethods implements ExtractionMethods<T> {
-        private final Tree<PersistableSettings> m_node;
+        private final Tree<Persistable> m_node;
 
-        private TreeExtractionMethods(final Tree<PersistableSettings> node) {
+        private TreeExtractionMethods(final Tree<Persistable> node) {
             m_node = node;
         }
 
@@ -324,7 +324,7 @@ public abstract class PersistenceFactory<T> {
         }
 
         @Override
-        public T fromPersistor(final NodeSettingsPersistor<?> persistor) {
+        public T fromPersistor(final NodeParametersPersistor<?> persistor) {
             return getFromCustomPersistorForType(persistor, m_node);
         }
 
@@ -358,9 +358,9 @@ public abstract class PersistenceFactory<T> {
     }
 
     private final class TreeNodeExtractionMethods implements ExtractionMethods<T> {
-        private final TreeNode<PersistableSettings> m_node;
+        private final TreeNode<Persistable> m_node;
 
-        private TreeNodeExtractionMethods(final TreeNode<PersistableSettings> node) {
+        private TreeNodeExtractionMethods(final TreeNode<Persistable> node) {
             m_node = node;
         }
 
@@ -370,17 +370,17 @@ public abstract class PersistenceFactory<T> {
         }
 
         @Override
-        public T fromPersistor(final NodeSettingsPersistor<?> persistor) {
+        public T fromPersistor(final NodeParametersPersistor<?> persistor) {
             return getFromCustomPersistor(persistor, m_node);
         }
 
         @Override
         public T getDefault() {
-            if (m_node instanceof Tree<PersistableSettings> tree) {
+            if (m_node instanceof Tree<Persistable> tree) {
                 return getNested(m_node, extractFromTree(tree));
-            } else if (m_node instanceof ArrayParentNode<PersistableSettings> arrayNode) {
+            } else if (m_node instanceof ArrayParentNode<Persistable> arrayNode) {
                 return getNested(m_node, getForArray(arrayNode, extractFromTree(arrayNode.getElementTree())));
-            } else if (m_node instanceof LeafNode<PersistableSettings> leaf) {
+            } else if (m_node instanceof LeafNode<Persistable> leaf) {
                 return getForLeaf(leaf);
             }
             throw new NotImplementedException("Only tree, arrayParent and leaf exist when implementing this.");

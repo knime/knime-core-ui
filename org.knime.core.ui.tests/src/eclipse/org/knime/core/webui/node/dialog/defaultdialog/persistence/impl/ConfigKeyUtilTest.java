@@ -51,12 +51,12 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistable;
 
 /**
  * Contains unit tests for the {@link ConfigKeyUtil}.
@@ -65,7 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
  */
 class ConfigKeyUtilTest {
 
-    private static class Settings implements PersistableSettings {
+    private static class Settings implements Persistable {
 
         @Widget(title = "", description = "")
         int setting0;
@@ -117,9 +117,9 @@ class ConfigKeyUtilTest {
         return ConfigKeyUtil.getConfigKey(getField(fieldName));
     }
 
-    private static Tree<PersistableSettings> SETTINGS_TREE = new PersistTreeFactory().createTree(Settings.class);
+    private static Tree<Persistable> SETTINGS_TREE = new PersistTreeFactory().createTree(Settings.class);
 
-    private static TreeNode<PersistableSettings> getField(final String fieldName) throws NoSuchFieldException {
+    private static TreeNode<Persistable> getField(final String fieldName) throws NoSuchFieldException {
         return SETTINGS_TREE.getChildByName(fieldName);
     }
 }

@@ -48,27 +48,27 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.Condition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ConditionToPredicateTranslator;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ConstantPredicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.FrameworkPredicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.FrameworkPredicateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ScopedPredicate;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer;
 
 class DefaultPredicateInitializer implements PredicateInitializer {
 
     private ScopeFromReference m_scopeFromReference;
 
-    private DefaultNodeSettingsContext m_context;
+    private NodeParametersInput m_context;
 
     interface ScopeFromReference {
 
@@ -80,12 +80,12 @@ class DefaultPredicateInitializer implements PredicateInitializer {
 
     }
 
-    DefaultPredicateInitializer(final ScopeFromReference scopes, final DefaultNodeSettingsContext context) {
+    DefaultPredicateInitializer(final ScopeFromReference scopes, final NodeParametersInput context) {
         m_scopeFromReference = scopes;
         m_context = context;
     }
 
-    private Predicate createPredicate(final Class<?> reference, final Condition condition)
+    private EffectPredicate createPredicate(final Class<?> reference, final Condition condition)
         throws InvalidReferenceException {
         final var scope = m_scopeFromReference.getScope(reference);
         if (scope == null) {
@@ -96,7 +96,7 @@ class DefaultPredicateInitializer implements PredicateInitializer {
 
     @Override
     @SuppressWarnings("unchecked") // checked by isAssignableFrom
-    public Predicate getPredicate(final Class<? extends PredicateProvider> otherConditionClass) {
+    public EffectPredicate getPredicate(final Class<? extends EffectPredicateProvider> otherConditionClass) {
         if (FrameworkPredicateProvider.class.isAssignableFrom(otherConditionClass)) {
             return new FrameworkPredicate((Class<? extends FrameworkPredicateProvider>)otherConditionClass);
         }
@@ -104,49 +104,49 @@ class DefaultPredicateInitializer implements PredicateInitializer {
     }
 
     @Override
-    public Predicate getPredicate(final PredicateProvider predicateProvider) {
+    public EffectPredicate getPredicate(final EffectPredicateProvider predicateProvider) {
         return predicateProvider.init(this);
     }
 
     @Override
-    public Predicate getConstant(final java.util.function.Predicate<DefaultNodeSettingsContext> predicate) {
+    public EffectPredicate getConstant(final java.util.function.Predicate<NodeParametersInput> predicate) {
         return new ConstantPredicate(predicate.test(m_context));
     }
 
     @Override
-    public StringReference getString(final Class<? extends Reference<String>> reference) {
+    public StringReference getString(final Class<? extends ParameterReference<String>> reference) {
         return new ConditionToPredicateTranslator.StringFieldReference(
             condition -> createPredicate(reference, condition));
     }
 
     @Override
-    public BooleanReference getBoolean(final Class<? extends Reference<Boolean>> reference) {
+    public BooleanReference getBoolean(final Class<? extends ParameterReference<Boolean>> reference) {
         return new ConditionToPredicateTranslator.BooleanFieldReference(
             condition -> createPredicate(reference, condition));
 
     }
 
     @Override
-    public <E extends Enum<E>> EnumReference<E> getEnum(final Class<? extends Reference<E>> reference) {
+    public <E extends Enum<E>> EnumReference<E> getEnum(final Class<? extends ParameterReference<E>> reference) {
         return new ConditionToPredicateTranslator.EnumFieldReference<>(
             condition -> createPredicate(reference, condition));
     }
 
     @Override
-    public <T> ArrayReference getArray(final Class<? extends Reference<T[]>> reference) {
+    public <T> ArrayReference getArray(final Class<? extends ParameterReference<T[]>> reference) {
         return new ConditionToPredicateTranslator.ArrayFieldReference(
             condition -> createPredicate(reference, condition));
     }
 
     @Override
     public <E extends Enum<E>> StringOrEnumReference<E>
-        getStringOrEnum(final Class<? extends Reference<StringOrEnum<E>>> reference) {
+        getStringOrEnum(final Class<? extends ParameterReference<StringOrEnum<E>>> reference) {
         return new ConditionToPredicateTranslator.StringOrEnumFieldReference<>(
             condition -> createPredicate(reference, condition));
     }
 
     @Override
-    public boolean isMissing(final Class<? extends Reference<?>> reference) {
+    public boolean isMissing(final Class<? extends ParameterReference<?>> reference) {
         return m_scopeFromReference.getScope(reference) == null;
     }
 

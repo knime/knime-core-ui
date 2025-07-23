@@ -56,20 +56,20 @@ import java.util.function.Consumer;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.DependencyInjector.DependencyCollector;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.ValueRefWrapper;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.StateProvider.TypeReference;
 
-final class DeclarativeDependencyCollector extends DependencyCollector<Class<? extends Reference<?>>> {
+final class DeclarativeDependencyCollector extends DependencyCollector<Class<? extends ParameterReference<?>>> {
 
     private final Collection<ValueRefWrapper> m_valueRefs;
 
-    private final BiConsumer<Class<? extends Reference<?>>, DependencyVertex> m_setDependency;
+    private final BiConsumer<Class<? extends ParameterReference<?>>, DependencyVertex> m_setDependency;
 
     private final Consumer<ValueTriggerVertex> m_setTrigger;
 
     DeclarativeDependencyCollector(final Collection<ValueRefWrapper> valueRefs,
-        final BiConsumer<Class<? extends Reference<?>>, DependencyVertex> setDependency,
+        final BiConsumer<Class<? extends ParameterReference<?>>, DependencyVertex> setDependency,
         final Consumer<ValueTriggerVertex> setTrigger) {
         m_valueRefs = valueRefs;
         m_setDependency = setDependency;
@@ -78,17 +78,17 @@ final class DeclarativeDependencyCollector extends DependencyCollector<Class<? e
     }
 
     @Override
-    public LocationAndType locate(final Class<? extends Reference<?>> reference) {
+    public LocationAndType locate(final Class<? extends ParameterReference<?>> reference) {
         return new LocationAndType(findValueRefWrapper(reference).fieldLocation(), () -> getSettingsType(reference));
     }
 
     @Override
-    protected LocationAndType locate(final Class<? extends Reference<?>> reference, final TypeReference<?> typeRef) {
+    protected LocationAndType locate(final Class<? extends ParameterReference<?>> reference, final TypeReference<?> typeRef) {
         return new LocationAndType(findValueRefWrapper(reference).fieldLocation(),
             () -> RefsAndValueProvidersAndUiStateProvidersToDependencyTree.getSettingsType(typeRef));
     }
 
-    private ValueRefWrapper findValueRefWrapper(final Class<? extends Reference> valueRef) {
+    private ValueRefWrapper findValueRefWrapper(final Class<? extends ParameterReference> valueRef) {
         return m_valueRefs.stream().filter(wrapper -> wrapper.valueRef().equals(valueRef)).findAny()
             .orElseThrow(() -> new RuntimeException(String.format(
                 "The value reference %s is used in a state provider but could not be found. "
@@ -97,7 +97,7 @@ final class DeclarativeDependencyCollector extends DependencyCollector<Class<? e
     }
 
     @Override
-    public void setDependency(final LocationAndType location, final Class<? extends Reference<?>> reference) {
+    public void setDependency(final LocationAndType location, final Class<? extends ParameterReference<?>> reference) {
         m_setDependency.accept(reference, new DependencyVertex(location));
     }
 
@@ -106,8 +106,8 @@ final class DeclarativeDependencyCollector extends DependencyCollector<Class<? e
         m_setTrigger.accept(new ValueTriggerVertex(location));
     }
 
-    private static Type getSettingsType(final Class<? extends Reference> valueRef) {
-        return GenericTypeFinderUtil.getFirstGenericType(valueRef, Reference.class);
+    private static Type getSettingsType(final Class<? extends ParameterReference> valueRef) {
+        return GenericTypeFinderUtil.getFirstGenericType(valueRef, ParameterReference.class);
     }
 
 };

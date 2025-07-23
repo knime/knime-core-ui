@@ -44,11 +44,11 @@
  * ---------------------------------------------------------------------
  */
 /**
- * This package contains custom persistors for fields in {@link PersistableSettings} which need to operate on the same
+ * This package contains custom persistors for fields in {@link Persistable} which need to operate on the same
  * {@link NodeSettings} structure as a specific {@link SettingsModel}.
  *
  * Note that these do not encompass only simple settings models, since complex settings models are mapped to custom java
- * classes (e.g. {@link org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter}) and the
+ * classes (e.g. {@link org.knime.node.parameters.widget.choices.filter.ColumnFilter}) and the
  * custom persistors reside in the respective packages.
  *
  * @author Paul Bärnreuther

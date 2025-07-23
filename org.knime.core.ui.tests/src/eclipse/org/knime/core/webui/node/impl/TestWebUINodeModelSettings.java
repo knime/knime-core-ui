@@ -48,15 +48,15 @@
  */
 package org.knime.core.webui.node.impl;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Before;
+import org.knime.node.parameters.layout.Layout;
 
 /**
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public final class TestWebUINodeModelSettings implements DefaultNodeSettings {
+public final class TestWebUINodeModelSettings implements NodeParameters {
 
     @Before(Second.class)
     interface First {
@@ -65,7 +65,7 @@ public final class TestWebUINodeModelSettings implements DefaultNodeSettings {
     interface Second {
     }
 
-    static final class Element implements DefaultNodeSettings {
+    static final class Element implements NodeParameters {
 
         /**
          * We check that the title and description are added to the description of the array field. The '&' in the title

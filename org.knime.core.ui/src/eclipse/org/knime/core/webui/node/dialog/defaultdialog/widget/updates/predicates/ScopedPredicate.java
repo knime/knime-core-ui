@@ -48,9 +48,9 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.updates.EffectPredicate;
 
 /**
  * The atomic predicate that is used for json forms implementation
@@ -59,7 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
  * @param node of the widget tree that this expcession is scoped to
  * @param condition
  */
-public record ScopedPredicate(TreeNode<WidgetGroup> node, Condition condition) implements Predicate {
+public record ScopedPredicate(TreeNode<WidgetGroup> node, Condition condition) implements EffectPredicate {
 
     @Override
     public <T> T accept(final PredicateVisitor<T> visitor) {

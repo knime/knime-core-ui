@@ -51,14 +51,14 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 import java.util.function.Function;
 
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsSaver;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.ParametersSaver;
 
 /**
  *
@@ -67,7 +67,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
  * @author Paul Bärnreuther
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public final class SettingsSaverFactory extends PersistenceFactory<SettingsSaver> {
+public final class SettingsSaverFactory extends PersistenceFactory<ParametersSaver> {
 
     private static final SettingsSaverFactory INSTANCE = new SettingsSaverFactory();
 
@@ -84,7 +84,7 @@ public final class SettingsSaverFactory extends PersistenceFactory<SettingsSaver
      * @param nodeSettings to save to
      * @param <S> the type of the to be saved settings.
      */
-    public static <S extends PersistableSettings> void saveSettings(final S settings,
+    public static <S extends Persistable> void saveSettings(final S settings,
         final NodeSettingsWO nodeSettings) {
         createSettingsSaver((Class<S>)settings.getClass()).save(settings, nodeSettings);
     }
@@ -94,31 +94,31 @@ public final class SettingsSaverFactory extends PersistenceFactory<SettingsSaver
      * @return a settings saver for the given class.
      * @param <S> the type of the settings to save.
      */
-    public static <S extends PersistableSettings> SettingsSaver<S> createSettingsSaver(final Class<S> settingsClass) {
+    public static <S extends Persistable> ParametersSaver<S> createSettingsSaver(final Class<S> settingsClass) {
         return getInstance().extractFromSettings(settingsClass);
     }
 
     @Override
-    protected SettingsSaver getForLeaf(final LeafNode<PersistableSettings> node) {
+    protected ParametersSaver getForLeaf(final LeafNode<Persistable> node) {
         final var configKey = ConfigKeyUtil.getConfigKey(node);
         final var defaultPersistor = DefaultFieldNodeSettingsPersistorFactory.createPersistor(node, configKey);
         return (obj, settings) -> uncheckedSave(defaultPersistor, obj, settings);
     }
 
-    private static <T> void uncheckedSave(final SettingsSaver<T> saver, final Object value,
+    private static <T> void uncheckedSave(final ParametersSaver<T> saver, final Object value,
         final NodeSettingsWO nodeSettings) {
         saver.save((T)value, nodeSettings);
     }
 
     @Override
-    protected SettingsSaver getFromCustomPersistor(final NodeSettingsPersistor<?> nodeSettingsPersistor,
-        final TreeNode<PersistableSettings> node) {
+    protected ParametersSaver getFromCustomPersistor(final NodeParametersPersistor<?> nodeSettingsPersistor,
+        final TreeNode<Persistable> node) {
         return (obj, settings) -> uncheckedSave(nodeSettingsPersistor, obj, settings);
     }
 
     @Override
-    protected SettingsSaver getForTree(final Tree<PersistableSettings> tree,
-        final Function<TreeNode<PersistableSettings>, SettingsSaver> childProperty) {
+    protected ParametersSaver getForTree(final Tree<Persistable> tree,
+        final Function<TreeNode<Persistable>, ParametersSaver> childProperty) {
         return (obj, settings) -> {
             for (final var child : tree.getChildren()) {
                 final var childValue = child.getFromParentValue(obj);
@@ -128,14 +128,14 @@ public final class SettingsSaverFactory extends PersistenceFactory<SettingsSaver
     }
 
     @Override
-    protected SettingsSaver getForArray(final ArrayParentNode<PersistableSettings> arrayNode,
-        final SettingsSaver elementProperty) {
+    protected ParametersSaver getForArray(final ArrayParentNode<Persistable> arrayNode,
+        final ParametersSaver elementProperty) {
         return (obj, settings) -> SettingsSaverArrayParentUtil.save(obj,
             (i, objAtI) -> elementProperty.save(objAtI, settings.addNodeSettings(Integer.toString(i))));
     }
 
     @Override
-    protected SettingsSaver getNested(final TreeNode<PersistableSettings> node, final SettingsSaver property) {
+    protected ParametersSaver getNested(final TreeNode<Persistable> node, final ParametersSaver property) {
         final var configKey = ConfigKeyUtil.getConfigKey(node);
         return (obj, settings) -> property.save(obj, settings.addNodeSettings(configKey));
     }

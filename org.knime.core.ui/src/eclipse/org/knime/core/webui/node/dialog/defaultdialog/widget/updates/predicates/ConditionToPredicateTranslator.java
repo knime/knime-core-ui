@@ -50,46 +50,46 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates
 
 import java.util.function.Function;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.ArrayReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.BooleanReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.EnumReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.StringOrEnumReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer.StringReference;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.ArrayReference;
+import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.BooleanReference;
+import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.EnumReference;
+import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.StringOrEnumReference;
+import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.StringReference;
 
 /**
  * This class allows for translating the methods provided by the reference interfaces returned by the
- * {@link PredicateProvider} back to individual condition classes to be further processed using the visitor pattern.
+ * {@link EffectPredicateProvider} back to individual condition classes to be further processed using the visitor pattern.
  *
  * @author Paul Bärnreuther
  */
 @SuppressWarnings({"javadoc"})
 public class ConditionToPredicateTranslator {
 
-    final Function<Condition, Predicate> m_conditionToPredicate;
+    final Function<Condition, EffectPredicate> m_conditionToPredicate;
 
-    ConditionToPredicateTranslator(final Function<Condition, Predicate> conditionToPredicate) {
+    ConditionToPredicateTranslator(final Function<Condition, EffectPredicate> conditionToPredicate) {
         m_conditionToPredicate = conditionToPredicate;
     }
 
-    protected <C extends Condition> Predicate createPredicate(final C condition) {
+    protected <C extends Condition> EffectPredicate createPredicate(final C condition) {
         return m_conditionToPredicate.apply(condition);
     }
 
     public static final class StringFieldReference extends ConditionToPredicateTranslator implements StringReference {
 
-        public StringFieldReference(final Function<Condition, Predicate> conditionToPredicate) {
+        public StringFieldReference(final Function<Condition, EffectPredicate> conditionToPredicate) {
             super(conditionToPredicate);
         }
 
         @Override
-        public Predicate isEqualTo(final String value) {
+        public EffectPredicate isEqualTo(final String value) {
             return this.<IsSpecificStringCondition> createPredicate(() -> value);
         }
 
         @Override
-        public Predicate matchesPattern(final String pattern) {
+        public EffectPredicate matchesPattern(final String pattern) {
             return this.<PatternCondition> createPredicate(() -> pattern);
         }
 
@@ -98,12 +98,12 @@ public class ConditionToPredicateTranslator {
     public static final class EnumFieldReference<E extends Enum<E>> extends ConditionToPredicateTranslator
         implements EnumReference<E> {
 
-        public EnumFieldReference(final Function<Condition, Predicate> conditionToPredicate) {
+        public EnumFieldReference(final Function<Condition, EffectPredicate> conditionToPredicate) {
             super(conditionToPredicate);
         }
 
         @Override
-        public Predicate isOneOf(@SuppressWarnings("unchecked") final E... values) {
+        public EffectPredicate isOneOf(@SuppressWarnings("unchecked") final E... values) {
             return this.<OneOfEnumCondition<E>> createPredicate(() -> values);
         }
 
@@ -111,17 +111,17 @@ public class ConditionToPredicateTranslator {
 
     public static final class BooleanFieldReference extends ConditionToPredicateTranslator implements BooleanReference {
 
-        public BooleanFieldReference(final Function<Condition, Predicate> conditionToPredicate) {
+        public BooleanFieldReference(final Function<Condition, EffectPredicate> conditionToPredicate) {
             super(conditionToPredicate);
         }
 
         @Override
-        public Predicate isTrue() {
+        public EffectPredicate isTrue() {
             return createPredicate(new TrueCondition());
         }
 
         @Override
-        public Predicate isFalse() {
+        public EffectPredicate isFalse() {
             return createPredicate(new FalseCondition());
         }
 
@@ -129,17 +129,17 @@ public class ConditionToPredicateTranslator {
 
     public static final class ArrayFieldReference extends ConditionToPredicateTranslator implements ArrayReference {
 
-        public ArrayFieldReference(final Function<Condition, Predicate> conditionToPredicate) {
+        public ArrayFieldReference(final Function<Condition, EffectPredicate> conditionToPredicate) {
             super(conditionToPredicate);
         }
 
         @Override
-        public Predicate hasMultipleItems() {
+        public EffectPredicate hasMultipleItems() {
             return createPredicate(new HasMultipleItemsCondition());
         }
 
         @Override
-        public Predicate containsElementSatisfying(final PredicateProvider elementPredicate) {
+        public EffectPredicate containsElementSatisfying(final EffectPredicateProvider elementPredicate) {
             return this.<ArrayContainsCondition> createPredicate(() -> elementPredicate);
         }
 
@@ -148,7 +148,7 @@ public class ConditionToPredicateTranslator {
     public static final class StringOrEnumFieldReference<E extends Enum<E>> extends ConditionToPredicateTranslator
         implements StringOrEnumReference<E> {
 
-        public StringOrEnumFieldReference(final Function<Condition, Predicate> conditionToPredicate) {
+        public StringOrEnumFieldReference(final Function<Condition, EffectPredicate> conditionToPredicate) {
             super(conditionToPredicate);
         }
 

@@ -50,7 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.optio
 
 import java.util.Optional;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.StringChoice;
+import org.knime.node.parameters.widget.choices.StringChoice;
 
 /**
  * Common options of choices renderers.

@@ -54,22 +54,22 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.persistence.Persistable;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
 /**
- * Tests various aspects of the {@link DefaultNodeSettings} to json-forms (data, json-schema, ui-schema) generation.
+ * Tests various aspects of the {@link NodeParameters} to json-forms (data, json-schema, ui-schema) generation.
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
 class DefaultNodeSettingsToJsonFormsTest {
 
-    private static class TestSettings implements DefaultNodeSettings {
+    private static class TestSettings implements NodeParameters {
 
         @Widget(title = "title", description = "desc")
         String field = "field";
@@ -97,7 +97,7 @@ class DefaultNodeSettingsToJsonFormsTest {
 
     }
 
-    static class NestedSettings implements WidgetGroup, PersistableSettings {
+    static class NestedSettings implements WidgetGroup, Persistable {
 
         @Widget(title = "", description = "")
         String nestedField = "nested field";
@@ -107,7 +107,7 @@ class DefaultNodeSettingsToJsonFormsTest {
     }
 
     /**
-     * Tests the general conversion of {@link DefaultNodeSettings} to the jsonforms-format (consisting of the
+     * Tests the general conversion of {@link NodeParameters} to the jsonforms-format (consisting of the
      * json-serialized data-object, the json-schema for the data-object and the ui-schema). It, e.g., makes sure that
      * <ul>
      * <li>getters and is-getters ignored</li>

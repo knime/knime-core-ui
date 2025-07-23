@@ -53,33 +53,34 @@ import java.util.Map;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * This class is used to construct new {@link NodeSettings} to initialize them. For this the constructor of the given
- * {@link DefaultNodeSettings} classes is called with the given context.
+ * {@link NodeParameters} classes is called with the given context.
  *
  * @author Paul Bärnreuther
  */
 public final class DefaultNodeSettingsClassToNodeSettings {
 
-    private final DefaultNodeSettingsContext m_context;
+    private final NodeParametersInput m_context;
 
-    private final Map<SettingsType, Class<? extends DefaultNodeSettings>> m_settingsClasses;
+    private final Map<SettingsType, Class<? extends NodeParameters>> m_settingsClasses;
 
     /**
      * @param context
-     * @param settingsClasses a map associating settings types with {@link DefaultNodeSettings}
+     * @param settingsClasses a map associating settings types with {@link NodeParameters}
      */
-    public DefaultNodeSettingsClassToNodeSettings(final DefaultNodeSettingsContext context,
-        final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses) {
+    public DefaultNodeSettingsClassToNodeSettings(final NodeParametersInput context,
+        final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses) {
         m_settingsClasses = settingsClasses;
         m_context = context;
     }
 
     /**
-     * Constructs new default {@link DefaultNodeSettings} and persists them in the given nodeSettings
+     * Constructs new default {@link NodeParameters} and persists them in the given nodeSettings
      *
      * @param nodeSettings
      */
@@ -87,8 +88,8 @@ public final class DefaultNodeSettingsClassToNodeSettings {
         ToNodeSettingsUtil.constructNodeSettings(nodeSettings, this::constructDefaultNodeSettings);
     }
 
-    private DefaultNodeSettings constructDefaultNodeSettings(final SettingsType type) {
-        return DefaultNodeSettings.createSettings(m_settingsClasses.get(type), m_context);
+    private NodeParameters constructDefaultNodeSettings(final SettingsType type) {
+        return NodeParametersUtil.createSettings(m_settingsClasses.get(type), m_context);
     }
 
 }

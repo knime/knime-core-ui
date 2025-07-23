@@ -60,7 +60,7 @@ import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.webui.data.ApplyDataService;
 import org.knime.core.webui.data.InitialDataService;
 import org.knime.core.webui.data.RpcDataService;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.util.NodeCleanUpCallback;
 import org.knime.core.webui.node.view.NodeTableView;
 import org.knime.core.webui.node.view.NodeView;
@@ -183,7 +183,7 @@ public final class TableNodeView implements NodeTableView {
     @Override
     public void loadValidatedSettingsFrom(final NodeSettingsRO settings) {
         try {
-            m_settings = DefaultNodeSettings.loadSettings(settings, m_settingsClass);
+            m_settings = NodeParametersUtil.loadSettings(settings, m_settingsClass);
         } catch (InvalidSettingsException ex) {
             throw new IllegalStateException("The settings should have been validated first.", ex);
         }

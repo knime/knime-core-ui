@@ -54,10 +54,10 @@ import java.util.Map;
 
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.WidgetGroup;
 
 /**
  * A utility class for parsing all update interactions between different widgets from given settings classes.
@@ -71,7 +71,7 @@ public final class WidgetTreesToDependencyTreeUtil {
     }
 
     static Collection<TriggerVertex> widgetTreesToDependencyTree(final Collection<Tree<WidgetGroup>> widgetTrees,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         final var valueRefsAndStateProviders =
             new WidgetTreesToRefsAndStateProviders().widgetTreesToRefsAndStateProviders(widgetTrees);
         return RefsAndValueProvidersAndUiStateProvidersToDependencyTree
@@ -88,7 +88,7 @@ public final class WidgetTreesToDependencyTreeUtil {
      */
     public static Pair<List<TriggerAndDependencies>, TriggerInvocationHandler<Integer>>
         settingsToTriggersAndInvocationHandler(final Map<SettingsType, Class<? extends WidgetGroup>> settingsClasses,
-            final DefaultNodeSettingsContext context) {
+            final NodeParametersInput context) {
         final var widgetTreeFactory = new WidgetTreeFactory();
         final var widgetTrees = settingsClasses.entrySet().stream()
             .map(entry -> widgetTreeFactory.createTree(entry.getValue(), entry.getKey())).toList();
@@ -103,7 +103,7 @@ public final class WidgetTreesToDependencyTreeUtil {
      */
     public static <T> Pair<List<TriggerAndDependencies>, TriggerInvocationHandler<T>>
         widgetTreesToTriggersAndInvocationHandler(final Collection<Tree<WidgetGroup>> widgetTrees,
-            final DefaultNodeSettingsContext context) {
+            final NodeParametersInput context) {
         final var dependencyTree = widgetTreesToDependencyTree(widgetTrees, context);
         final var listOfTriggers = getTriggersWithDependencies(dependencyTree);
         return new Pair<>(listOfTriggers, new TriggerInvocationHandler<>(dependencyTree));

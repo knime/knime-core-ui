@@ -56,7 +56,7 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.node.parameters.persistence.Persistable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -65,7 +65,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  *
  * @author Paul Bärnreuther
  */
-public class PatternFilter implements PersistableSettings {
+public class PatternFilter implements Persistable {
 
     /**
      * the pattern to which names are matched in case of m_mode = "REGEX" or "WILDCARD"

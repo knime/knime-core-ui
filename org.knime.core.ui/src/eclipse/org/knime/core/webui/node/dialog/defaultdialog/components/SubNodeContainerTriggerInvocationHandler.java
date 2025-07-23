@@ -57,7 +57,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.ConvertValueUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
@@ -66,6 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.Dialog
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.LocationAndType;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  * Used to convert triggers to a list of resulting updates given a map of dependencies.
@@ -76,10 +76,10 @@ final class SubNodeContainerTriggerInvocationHandler {
 
     private final TriggerInvocationHandler<String> m_triggerInvocationHandler;
 
-    private final DefaultNodeSettingsContext m_context;
+    private final NodeParametersInput m_context;
 
     SubNodeContainerTriggerInvocationHandler(final Supplier<Collection<DialogElementRendererSpec>> rendererSupplier,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         m_context = context;
         m_triggerInvocationHandler = TriggerInvocationHandler.fromRendererSpecs(rendererSupplier.get(), m_context);
     }
@@ -96,7 +96,7 @@ final class SubNodeContainerTriggerInvocationHandler {
     }
 
     private static Object parseValue(final Object rawDependencyObject, final Type type,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         return ConvertValueUtil.convertValue(rawDependencyObject, type, context);
     }
 

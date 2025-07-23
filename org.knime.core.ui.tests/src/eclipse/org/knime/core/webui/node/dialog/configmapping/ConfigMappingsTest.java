@@ -58,18 +58,19 @@ import org.junit.jupiter.api.Test;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.Persistor;
 
 @SuppressWarnings("java:S2698") // we accept assertions without messages
 class ConfigMappingsTest {
 
-    static final class Migrator implements NodeSettingsMigration<Integer> {
+    static final class Migrator implements NodeParametersMigration<Integer> {
 
         private static final String DEPRECATED = "deprecated";
 
@@ -80,7 +81,7 @@ class ConfigMappingsTest {
 
     }
 
-    static final class PeristorWithKeys implements NodeSettingsPersistor<Integer> {
+    static final class PeristorWithKeys implements NodeParametersPersistor<Integer> {
         @Override
         public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
             throw new UnsupportedOperationException("not used by tests");
@@ -98,7 +99,7 @@ class ConfigMappingsTest {
 
     }
 
-    static final class InferredConfigsFromConfigPathsTestSettings implements PersistableSettings {
+    static final class InferredConfigsFromConfigPathsTestSettings implements Persistable {
 
         @Migration(Migrator.class)
         @Persistor(PeristorWithKeys.class)
@@ -116,7 +117,7 @@ class ConfigMappingsTest {
             .isEqualTo(List.of(new ConfigPath(List.of("key1")), new ConfigPath(List.of("key2"))));
     }
 
-    static final class InferredConfigsFromConfigKeyTestSettings implements PersistableSettings {
+    static final class InferredConfigsFromConfigKeyTestSettings implements Persistable {
 
         private static final String CONFIG_KEY = "configKey";
 
@@ -136,7 +137,7 @@ class ConfigMappingsTest {
             .isEqualTo(List.of(new ConfigPath(List.of(InferredConfigsFromConfigKeyTestSettings.CONFIG_KEY))));
     }
 
-    static final class InferredConfigsFromFieldNameTestSettings implements PersistableSettings {
+    static final class InferredConfigsFromFieldNameTestSettings implements Persistable {
 
         @Migration(Migrator.class)
         int m_fieldName;
@@ -171,7 +172,7 @@ class ConfigMappingsTest {
 
     }
 
-    static final class OptionalFieldSettings implements PersistableSettings {
+    static final class OptionalFieldSettings implements Persistable {
 
         @Migrate(loadDefaultIfAbsent = true)
         int m_fieldName;

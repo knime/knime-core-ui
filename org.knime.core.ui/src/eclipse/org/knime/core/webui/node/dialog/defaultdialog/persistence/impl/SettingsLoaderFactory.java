@@ -58,17 +58,17 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
 import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NewSettingsMissingMatcher;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.ParametersLoader;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistable;
 
 /**
  * Factory responsible for loading settings
@@ -76,7 +76,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
  * @author Paul Bärnreuther
  */
 @SuppressWarnings("rawtypes")
-public final class SettingsLoaderFactory extends PersistenceFactory<SettingsLoader> {
+public final class SettingsLoaderFactory extends PersistenceFactory<ParametersLoader> {
 
     private static final SettingsLoaderFactory INSTANCE = new SettingsLoaderFactory();
 
@@ -95,7 +95,7 @@ public final class SettingsLoaderFactory extends PersistenceFactory<SettingsLoad
      * @throws InvalidSettingsException
      * @param <S> the type of the settings
      */
-    public static <S extends PersistableSettings> S loadSettings(final Class<S> settingsClass,
+    public static <S extends Persistable> S loadSettings(final Class<S> settingsClass,
         final NodeSettingsRO nodeSettings) throws InvalidSettingsException {
         return createSettingsLoader(settingsClass).load(nodeSettings);
     }
@@ -106,19 +106,19 @@ public final class SettingsLoaderFactory extends PersistenceFactory<SettingsLoad
      * @param <S> the type of the settings
      */
     @SuppressWarnings("unchecked")
-    public static <S extends PersistableSettings> SettingsLoader<S> createSettingsLoader(final Class<S> settingsClass) {
+    public static <S extends Persistable> ParametersLoader<S> createSettingsLoader(final Class<S> settingsClass) {
         return getInstance().extractFromSettings(settingsClass);
     }
 
     @Override
-    protected SettingsLoader getFromCustomPersistor(final NodeSettingsPersistor<?> nodeSettingsPersistor,
-        final TreeNode<PersistableSettings> node) {
+    protected ParametersLoader getFromCustomPersistor(final NodeParametersPersistor<?> nodeSettingsPersistor,
+        final TreeNode<Persistable> node) {
         return nodeSettingsPersistor;
     }
 
     @Override
-    protected SettingsLoader getForTree(final Tree<PersistableSettings> tree,
-        final Function<TreeNode<PersistableSettings>, SettingsLoader> getLoader) {
+    protected ParametersLoader getForTree(final Tree<Persistable> tree,
+        final Function<TreeNode<Persistable>, ParametersLoader> getLoader) {
         return settings -> {
             final var loaded = CreateDefaultsUtil.createDefaultSettings(tree);
             for (var child : tree.getChildren()) {
@@ -130,27 +130,27 @@ public final class SettingsLoaderFactory extends PersistenceFactory<SettingsLoad
     }
 
     @Override
-    protected SettingsLoader getForArray(final ArrayParentNode<PersistableSettings> arrayNode,
-        final SettingsLoader elementLoader) {
+    protected ParametersLoader getForArray(final ArrayParentNode<Persistable> arrayNode,
+        final ParametersLoader elementLoader) {
         return settings -> SettingsLoaderArrayParentUtil.instantiateFromSettings(arrayNode, settings,
             i -> elementLoader.load(settings.getNodeSettings(Integer.toString(i))));
     }
 
     @Override
-    protected SettingsLoader getForLeaf(final LeafNode<PersistableSettings> node) {
+    protected ParametersLoader getForLeaf(final LeafNode<Persistable> node) {
         final var configKey = ConfigKeyUtil.getConfigKey(node);
         return DefaultFieldNodeSettingsPersistorFactory.createPersistor(node, configKey);
     }
 
     @Override
-    protected SettingsLoader getNested(final TreeNode<PersistableSettings> node, final SettingsLoader loader) {
+    protected ParametersLoader getNested(final TreeNode<Persistable> node, final ParametersLoader loader) {
         final var configKey = ConfigKeyUtil.getConfigKey(node);
         return settings -> loader.load(settings.getNodeSettings(configKey));
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    protected final SettingsLoader combineWithConfigsDeprecations(final SettingsLoader withoutLoader,
+    protected final ParametersLoader combineWithConfigsDeprecations(final ParametersLoader withoutLoader,
         final List<ConfigMigration> configsDeprecations, final Supplier<String[][]> configPathsSupplier) {
 
         return settings -> {
@@ -184,8 +184,8 @@ public final class SettingsLoaderFactory extends PersistenceFactory<SettingsLoad
     }
 
     @Override
-    protected SettingsLoader combineWithLoadDefault(final SettingsLoader existingLoader,
-        final Supplier<String[][]> configPathsSupplier, final TreeNode<PersistableSettings> node) {
+    protected ParametersLoader combineWithLoadDefault(final ParametersLoader existingLoader,
+        final Supplier<String[][]> configPathsSupplier, final TreeNode<Persistable> node) {
         return settings -> {
             final var configPaths = configPathsSupplier.get();
             if (Stream.of(configPaths).anyMatch(path -> hasPath(settings, new ConfigPath(Arrays.asList(path))))) {

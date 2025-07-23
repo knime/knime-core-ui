@@ -56,17 +56,17 @@ import java.lang.annotation.Target;
 import java.util.Map;
 
 import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.NodeParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Put this annotation on a Map<String, Object> field in a {@link DefaultNodeSettings} class to provide a dialog to
+ * Put this annotation on a Map<String, Object> field in a {@link NodeParameters} class to provide a dialog to
  * operate on that map.
  *
  * @author Robin Gerling
@@ -119,12 +119,12 @@ public @interface DynamicSettingsWidget {
      * Use this interface to provide a dialog for a map of settings in an imperative way.
      *
      * TODO: UIEXT-2592 introduce a declarative version of this interface, which allows to specify only an instance of
-     * {@link DefaultNodeSettings} using the JsonFormsSettingsImpl
+     * {@link NodeParameters} using the JsonFormsSettingsImpl
      */
     interface ImperativeDialogProvider extends StateProvider<DataAndDialog<Map<String, Object>>> {
 
         @Override
-        default DataAndDialog<Map<String, Object>> computeState(final DefaultNodeSettingsContext context)
+        default DataAndDialog<Map<String, Object>> computeState(final NodeParametersInput context)
             throws StateComputationFailureException {
             final var pair = computeSettingsAndDialog(context);
             final var dialog = pair.getSecond();
@@ -143,7 +143,7 @@ public @interface DynamicSettingsWidget {
          *             way
          */
         Pair<Map<String, Object>, DialogElementRendererSpec<?>>
-            computeSettingsAndDialog(DefaultNodeSettingsContext context) throws StateComputationFailureException;
+            computeSettingsAndDialog(NodeParametersInput context) throws StateComputationFailureException;
 
     }
 

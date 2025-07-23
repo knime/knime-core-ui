@@ -58,21 +58,21 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.Persistor;
 
 /**
- * Contains unit tests for the {@link NodeSettingsPersistor}.
+ * Contains unit tests for the {@link NodeParametersPersistor}.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
 class PersistorAndMigratorInstantiationTest {
 
-    private interface TestPersistor<T> extends NodeSettingsPersistor<T> {
+    private interface TestPersistor<T> extends NodeParametersPersistor<T> {
 
         @Override
         public default T load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -110,7 +110,7 @@ class PersistorAndMigratorInstantiationTest {
         }
     }
 
-    static final class TestSettingsWithCustomPersistorWithDefaultConstructor implements PersistableSettings {
+    static final class TestSettingsWithCustomPersistorWithDefaultConstructor implements Persistable {
 
         @Persistor(CustomPersistorWithDefaultConstructor.class)
         Integer m_value;
@@ -138,7 +138,7 @@ class PersistorAndMigratorInstantiationTest {
 
     }
 
-    static final class TestSettingsWithConstructorWithoutSuitableConstructor implements PersistableSettings {
+    static final class TestSettingsWithConstructorWithoutSuitableConstructor implements Persistable {
 
         @Persistor(CustomPersistorWithoutSuitableConstructor.class)
         String m_value;
@@ -160,7 +160,7 @@ class PersistorAndMigratorInstantiationTest {
 
     }
 
-    static abstract class AbstractMigrator implements NodeSettingsMigration<String> {
+    static abstract class AbstractMigrator implements NodeParametersMigration<String> {
 
         AbstractMigrator() {
             throw new UnsupportedOperationException("not used by tests");
@@ -172,14 +172,14 @@ class PersistorAndMigratorInstantiationTest {
         }
     }
 
-    static final class TestSettingsWithAbstractPersistor implements PersistableSettings {
+    static final class TestSettingsWithAbstractPersistor implements Persistable {
 
         @Persistor(AbstractCustomPersistor.class)
         String m_value;
 
     }
 
-    static final class TestSettingsWithAbstractMigrator implements PersistableSettings {
+    static final class TestSettingsWithAbstractMigrator implements Persistable {
 
         @Migration(AbstractMigrator.class)
         String m_value;
@@ -196,7 +196,7 @@ class PersistorAndMigratorInstantiationTest {
                 .hasMessageContaining("AbstractMigrator", "abstract");
     }
 
-    static final class MigratorWithDefaultConstructor implements NodeSettingsMigration<Integer> {
+    static final class MigratorWithDefaultConstructor implements NodeParametersMigration<Integer> {
         final int m_loadedValue;
 
         MigratorWithDefaultConstructor() {
@@ -211,7 +211,7 @@ class PersistorAndMigratorInstantiationTest {
 
     }
 
-    static final class TestSettingsWithMigratorWithDefaultConstructor implements PersistableSettings {
+    static final class TestSettingsWithMigratorWithDefaultConstructor implements Persistable {
 
         @Migration(MigratorWithDefaultConstructor.class)
         int m_value;
@@ -227,7 +227,7 @@ class PersistorAndMigratorInstantiationTest {
             .as("should use custom migrator instance with default constructor.");
     }
 
-    static final class MigratorWithoutDefaultConstructor implements NodeSettingsMigration<String> {
+    static final class MigratorWithoutDefaultConstructor implements NodeParametersMigration<String> {
         final String m_loadedValue;
 
         MigratorWithoutDefaultConstructor(final String loadedValue) {
@@ -241,7 +241,7 @@ class PersistorAndMigratorInstantiationTest {
 
     }
 
-    static final class TestSettingsWithMigratorWithoutDefaultConstructor implements PersistableSettings {
+    static final class TestSettingsWithMigratorWithoutDefaultConstructor implements Persistable {
 
         @Migration(MigratorWithoutDefaultConstructor.class)
         String m_value;

@@ -58,9 +58,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActi
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.UpdateHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ExternalValidation;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
  * This is the interface for the rpc data service of the {@link DefaultNodeDialog}. Its use enables e.g. lazyloaded data
@@ -115,7 +115,7 @@ public interface DefaultNodeDialogDataService extends DialogSettingsUpdateServic
         throws InterruptedException, ExecutionException;
 
     /**
-     * Update method for the new updating mechanism using {@link Reference} and {@link StateProvider}. This will
+     * Update method for the new updating mechanism using {@link ParameterReference} and {@link StateProvider}. This will
      * eventually replace the {@link #update} method.
      *
      * @param widgetId identifying which pending requests came from the same widget and thus have to be canceled
@@ -126,7 +126,7 @@ public interface DefaultNodeDialogDataService extends DialogSettingsUpdateServic
      *            array layout element while the trigger is not, a list of dependency values indexed by unique ids for
      *            each element in an array is supplied. Note that these are "raw" dependencies, since the objects within
      *            the indexed values need to be converted to the correct type defined by the generic of the
-     *            {@link Reference} using a mapper
+     *            {@link ParameterReference} using a mapper
      * @return A list of instructions on what is to be updated. In case of indexed dependencies, the updates are also
      *         indexed by the same indices.
      * @throws InterruptedException if the used thread is interrupted

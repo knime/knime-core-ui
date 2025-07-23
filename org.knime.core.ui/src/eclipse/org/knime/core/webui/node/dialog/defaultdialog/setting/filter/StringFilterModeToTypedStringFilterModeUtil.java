@@ -48,8 +48,9 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.filter;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.variable.FlowVariableFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilterMode;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
+import org.knime.node.parameters.widget.choices.filter.StringFilter;
 
 /**
  * Used to convert the mode of a {@link StringFilter} to a {@link TypedStringFilterMode}. For backwards-compatibility,

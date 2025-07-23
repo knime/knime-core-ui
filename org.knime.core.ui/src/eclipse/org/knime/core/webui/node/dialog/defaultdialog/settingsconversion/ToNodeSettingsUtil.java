@@ -54,11 +54,12 @@ import java.util.function.Function;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
+import org.knime.node.parameters.NodeParameters;
 
 /**
- * Each implementation of this class provides a way to construct {@link DefaultNodeSettings} for each type of settings.
+ * Each implementation of this class provides a way to construct {@link NodeParameters} for each type of settings.
  * These can be transformed to node settings using one of the {@link ToNodeSettings#toNodeSettings} methods.
  *
  * @author Paul Bärnreuther
@@ -74,7 +75,7 @@ public final class ToNodeSettingsUtil {
      * @param defaultNodeSettings the to be converted defaultNodeSettings
      * @return the constructed {@link NodeSettings}
      */
-    public static NodeSettings toNodeSettings(final SettingsType type, final DefaultNodeSettings defaultNodeSettings) {
+    public static NodeSettings toNodeSettings(final SettingsType type, final NodeParameters defaultNodeSettings) {
         var res = new NodeSettings(type.getConfigKey());
         toNodeSettings(res, defaultNodeSettings);
         return res;
@@ -85,7 +86,7 @@ public final class ToNodeSettingsUtil {
      * @return the extracted node settings
      */
     public static Map<SettingsType, NodeSettings>
-        toNodeSettings(final Map<SettingsType, DefaultNodeSettings> defaultNodeSettings) {
+        toNodeSettings(final Map<SettingsType, NodeParameters> defaultNodeSettings) {
         return MapValuesUtil.mapValuesWithKeys(defaultNodeSettings, (k, v) -> toNodeSettings(k, v));
     }
 
@@ -94,7 +95,7 @@ public final class ToNodeSettingsUtil {
      * @param constructDefaultNodeSettings called for every key of the provided map
      */
     public static void constructNodeSettings(final Map<SettingsType, NodeSettingsWO> nodeSettings,
-        final Function<SettingsType, DefaultNodeSettings> constructDefaultNodeSettings) {
+        final Function<SettingsType, NodeParameters> constructDefaultNodeSettings) {
         nodeSettings
             .entrySet().forEach(entry -> toNodeSettings(entry.getValue(),
             constructDefaultNodeSettings.apply(entry.getKey())));
@@ -105,8 +106,8 @@ public final class ToNodeSettingsUtil {
      * @param type of the settings
      */
     private static void toNodeSettings(final NodeSettingsWO nodeSettings,
-        final DefaultNodeSettings defaultNodeSettings) {
-        DefaultNodeSettings.saveSettings(defaultNodeSettings.getClass(), defaultNodeSettings, nodeSettings);
+        final NodeParameters defaultNodeSettings) {
+        NodeParametersUtil.saveSettings(defaultNodeSettings.getClass(), defaultNodeSettings, nodeSettings);
     }
 
 }

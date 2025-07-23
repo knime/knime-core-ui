@@ -52,7 +52,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
  * A node settings persistor for loading and saving a utility boolean. It allows for the addition of flags at specific
@@ -60,7 +60,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettin
  *
  * @author Robin Gerling
  */
-public abstract class AlwaysSaveTrueBoolean implements NodeSettingsPersistor<Boolean> {
+public abstract class AlwaysSaveTrueBoolean implements NodeParametersPersistor<Boolean> {
 
     private final String m_configKey;
 

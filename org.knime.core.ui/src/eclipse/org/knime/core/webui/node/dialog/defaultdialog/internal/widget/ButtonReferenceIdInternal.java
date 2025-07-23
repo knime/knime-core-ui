@@ -51,7 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.widget;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ButtonReference;
+import org.knime.node.parameters.updates.ButtonReference;
 
 /**
  * This annotation can optionally be put on a {@link ButtonReference} in order to use the provided id instead of the

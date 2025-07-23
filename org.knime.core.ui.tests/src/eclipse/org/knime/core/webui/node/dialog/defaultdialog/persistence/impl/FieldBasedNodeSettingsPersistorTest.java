@@ -68,15 +68,15 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.DefaultProvider;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistor;
 
 /**
  * Tests for the {@link FieldBasedNodeSettingsPersistor}.
@@ -223,7 +223,7 @@ class FieldBasedNodeSettingsPersistorTest {
         assertThrows(NullPointerException.class, () -> saver.save(null, root));
     }
 
-    private interface TestNodeSettings extends DefaultNodeSettings {
+    private interface TestNodeSettings extends NodeParameters {
 
         void saveExpected(final NodeSettingsWO settings);
 
@@ -375,7 +375,7 @@ class FieldBasedNodeSettingsPersistorTest {
         }
     }
 
-    private static final class CustomFieldPersistor implements NodeSettingsPersistor<String> {
+    private static final class CustomFieldPersistor implements NodeParametersPersistor<String> {
 
         @Override
         public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -393,7 +393,7 @@ class FieldBasedNodeSettingsPersistorTest {
         }
     }
 
-    private static final class FailingConstructorFieldPersistor implements NodeSettingsPersistor<String> {
+    private static final class FailingConstructorFieldPersistor implements NodeParametersPersistor<String> {
         @SuppressWarnings("unused")
         public FailingConstructorFieldPersistor() {
             throw new IllegalArgumentException("Failing constructor.");
@@ -415,12 +415,12 @@ class FieldBasedNodeSettingsPersistorTest {
         }
     }
 
-    private static final class FailingConstructorFieldPersistorSettings implements DefaultNodeSettings {
+    private static final class FailingConstructorFieldPersistorSettings implements NodeParameters {
         @Persistor(FailingConstructorFieldPersistor.class)
         String m_foo;
     }
 
-    private static final class PrivateConstructorPersistor implements NodeSettingsPersistor<String> {
+    private static final class PrivateConstructorPersistor implements NodeParametersPersistor<String> {
         private static final String CONFIG_KEY = "foo";
 
         private PrivateConstructorPersistor() {
@@ -550,7 +550,7 @@ class FieldBasedNodeSettingsPersistorTest {
             return Objects.equals(m_foo, settings.m_foo);
         }
 
-        private static final class CustomPersistor implements NodeSettingsPersistor<InnerSettingsWithCustomPersistor> {
+        private static final class CustomPersistor implements NodeParametersPersistor<InnerSettingsWithCustomPersistor> {
 
             @Override
             public InnerSettingsWithCustomPersistor load(final NodeSettingsRO settings)
@@ -818,9 +818,9 @@ class FieldBasedNodeSettingsPersistorTest {
                 "Persist", "fieldName");
     }
 
-    static final class PersistAndPersistorUsedAtTheSameTime implements DefaultNodeSettings {
+    static final class PersistAndPersistorUsedAtTheSameTime implements NodeParameters {
 
-        static final class PersistorClass implements NodeSettingsPersistor<Integer> {
+        static final class PersistorClass implements NodeParametersPersistor<Integer> {
 
             @Override
             public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
@@ -850,9 +850,9 @@ class FieldBasedNodeSettingsPersistorTest {
                 "Migrate", "fieldName");
     }
 
-    static final class MigrationAndMigrateUsedAtTheSameTime implements DefaultNodeSettings {
+    static final class MigrationAndMigrateUsedAtTheSameTime implements NodeParameters {
 
-        static final class MigratorClass implements NodeSettingsMigration<Integer> {
+        static final class MigratorClass implements NodeParametersMigration<Integer> {
 
             @Override
             public List<ConfigMigration<Integer>> getConfigMigrations() {

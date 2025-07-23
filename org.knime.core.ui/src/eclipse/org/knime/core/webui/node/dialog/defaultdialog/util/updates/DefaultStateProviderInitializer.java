@@ -50,36 +50,36 @@ package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
 import java.util.function.Supplier;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.StateProviderInitializer;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider.TypeReference;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider.StateProviderInitializer;
+import org.knime.node.parameters.updates.StateProvider.TypeReference;
 
 abstract class DefaultStateProviderInitializer implements StateProviderInitializer {
-    private final DependencyInjector<Class<? extends Reference<?>>> m_dependencyInjector;
+    private final DependencyInjector<Class<? extends ParameterReference<?>>> m_dependencyInjector;
 
     protected DefaultStateProviderInitializer(
-        final DependencyInjector<Class<? extends Reference<?>>> dependencyInjector) {
+        final DependencyInjector<Class<? extends ParameterReference<?>>> dependencyInjector) {
         m_dependencyInjector = dependencyInjector;
     }
 
     @Override
-    public final <T> Supplier<T> computeFromValueSupplier(final Class<? extends Reference<T>> ref) {
+    public final <T> Supplier<T> computeFromValueSupplier(final Class<? extends ParameterReference<T>> ref) {
         return m_dependencyInjector.setValueTriggerAndGetValueSupplier(ref);
     }
 
     @Override
-    public final <T> Supplier<T> getValueSupplier(final Class<? extends Reference<T>> ref) {
+    public final <T> Supplier<T> getValueSupplier(final Class<? extends ParameterReference<T>> ref) {
         return m_dependencyInjector.getValueSupplier(ref);
     }
 
     @Override
-    public final <T> Supplier<T> getValueSupplier(final Class<? extends Reference<?>> ref,
+    public final <T> Supplier<T> getValueSupplier(final Class<? extends ParameterReference<?>> ref,
         final TypeReference<T> typeRef) {
         return m_dependencyInjector.getValueSupplier(ref, typeRef);
     }
 
     @Override
-    public final <T> void computeOnValueChange(final Class<? extends Reference<T>> id) {
+    public final <T> void computeOnValueChange(final Class<? extends ParameterReference<T>> id) {
         m_dependencyInjector.setValueTrigger(id);
     }
 

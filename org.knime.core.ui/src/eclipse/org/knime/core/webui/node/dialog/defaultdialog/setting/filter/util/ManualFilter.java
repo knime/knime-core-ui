@@ -56,14 +56,14 @@ import java.util.function.Predicate;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ManualFilterRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
+import org.knime.node.parameters.persistence.Persistable;
 
 /**
  * The sub-settings of the column filter which hold the information for filtering manually.
  *
  * @author Paul Bärnreuther
  */
-public class ManualFilter implements PersistableSettings {
+public class ManualFilter implements Persistable {
 
     /**
      * the manually selected values in case of m_mode = "MANUAL".

@@ -48,8 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnChoicesProvider;
+import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
 
 /**
  *

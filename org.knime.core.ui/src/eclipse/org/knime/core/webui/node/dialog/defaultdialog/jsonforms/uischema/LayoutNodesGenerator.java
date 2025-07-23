@@ -57,13 +57,13 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import java.util.Collection;
 import java.util.stream.Stream;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreeUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.updates.Effect;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -76,7 +76,7 @@ final class LayoutNodesGenerator {
 
     private final TraversableLayoutTreeNode<TreeNode<WidgetGroup>> m_layoutTreeRoot;
 
-    private final DefaultNodeSettingsContext m_defaultNodeSettingsContext;
+    private final NodeParametersInput m_defaultNodeSettingsContext;
 
     private final Collection<Tree<WidgetGroup>> m_allWidgetTrees;
 
@@ -92,7 +92,7 @@ final class LayoutNodesGenerator {
      */
     LayoutNodesGenerator(final TraversableLayoutTreeNode<TreeNode<WidgetGroup>> layoutTreeRoot,
         final Collection<Tree<WidgetGroup>> widgetTrees, final Collection<Tree<WidgetGroup>> parentWidgetTrees,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         m_rulesGenerator = new UiSchemaRulesGenerator(widgetTrees, context);
         m_allWidgetTrees = Stream.concat(widgetTrees.stream(), parentWidgetTrees.stream()).toList();
         m_layoutTreeRoot = layoutTreeRoot;

@@ -57,14 +57,14 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.migration.Migration;
 
 class SelectionCheckboxesToSelectionModeMigrationTest {
 
     private static final String ROOT_KEY = "Test";
 
-    private static final class TestSettings implements DefaultNodeSettings {
+    private static final class TestSettings implements NodeParameters {
 
         @Migration(SelectionCheckboxesToSelectionModeMigration.class)
         SelectionMode m_selectionMode;

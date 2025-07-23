@@ -60,15 +60,15 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.function.TriConsumer;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.AnnotationModifier;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.WidgetGroupModifier;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.WidgetModifier;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.AnnotationModifier;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetModifier;
+import org.knime.node.parameters.WidgetGroup;
 
 /**
  * Resolves {@link Modification} annotations for {@link Tree}<{@link WidgetGroup}> and
@@ -98,7 +98,7 @@ final class WidgetModificationUtil {
     /**
      * This modifier finds widget by reference by traversing the widget tree and its element widget trees.
      */
-    static final class WidgetTreeModifier implements WidgetGroupModifier {
+    static final class WidgetTreeModifier implements Modification.WidgetGroupModifier {
 
         private final Tree<WidgetGroup> m_widgetTree;
 
@@ -111,7 +111,7 @@ final class WidgetModificationUtil {
         }
 
         @Override
-        public WidgetModifier find(final Class<? extends Modification.Reference> reference) {
+        public Modification.WidgetModifier find(final Class<? extends Modification.Reference> reference) {
             return new WidgetTreeNodeModifier(findWidgetTreeNodeByReference(m_widgetTree, reference),
                 m_addOrReplaceAnnotation);
         }
@@ -155,7 +155,7 @@ final class WidgetModificationUtil {
      * This modifier is used to modify the annotations of a single widget tree node. When modifying or adding an
      * annotation we create a proxy around the existing or default value of the annotation, respectively.
      */
-    static final class WidgetTreeNodeModifier implements WidgetModifier {
+    static final class WidgetTreeNodeModifier implements Modification.WidgetModifier {
 
         private final TreeNode<WidgetGroup> m_widgetTreeNode;
 
@@ -168,7 +168,7 @@ final class WidgetModificationUtil {
         }
 
         @Override
-        public <T extends Annotation> AnnotationModifier modifyAnnotation(final Class<T> annotationClass) {
+        public <T extends Annotation> Modification.AnnotationModifier modifyAnnotation(final Class<T> annotationClass) {
             final var existingAnnotation =
                 m_widgetTreeNode.getAnnotation(annotationClass).orElseThrow(() -> new IllegalStateException(
                     "Annotation cannot be modified because it is not present: " + annotationClass.getSimpleName()));
@@ -176,7 +176,7 @@ final class WidgetModificationUtil {
         }
 
         @Override
-        public <T extends Annotation> AnnotationModifier addAnnotation(final Class<T> annotationClass) {
+        public <T extends Annotation> Modification.AnnotationModifier addAnnotation(final Class<T> annotationClass) {
             if (m_widgetTreeNode.getAnnotation(annotationClass).isPresent()) {
                 throw new IllegalStateException(
                     "Annotation cannot be added because it is already present: " + annotationClass.getSimpleName());
@@ -193,7 +193,7 @@ final class WidgetModificationUtil {
             m_widgetTreeNode.removeAnnotation(annotationClass);
         }
 
-        private final class WidgetTreeNodeAnnotationBuilder<T extends Annotation> implements AnnotationModifier {
+        private final class WidgetTreeNodeAnnotationBuilder<T extends Annotation> implements Modification.AnnotationModifier {
 
             private final Map<String, Object> m_properties = new HashMap<>();
 
@@ -207,7 +207,7 @@ final class WidgetModificationUtil {
             }
 
             @Override
-            public <S> AnnotationModifier withProperty(final String key, final S value) {
+            public <S> Modification.AnnotationModifier withProperty(final String key, final S value) {
                 m_properties.put(key, value);
                 return this;
             }

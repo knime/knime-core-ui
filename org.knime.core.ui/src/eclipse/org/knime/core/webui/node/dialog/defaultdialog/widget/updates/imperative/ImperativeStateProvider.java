@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
  * Use this interface to implement a state provider that is able to reference imperatively constructed other parts of

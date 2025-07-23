@@ -48,14 +48,14 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.node.parameters.updates.EffectPredicate;
 
 /**
- * A visitor visiting all permitted implementations of {@link Predicate} which is used to translate the predicate to a
+ * A visitor visiting all permitted implementations of {@link EffectPredicate} which is used to translate the predicate to a
  * implementation dependent format.
  *
  * @author Paul Bärnreuther
- * @param <T> the type of the returned value on visiting a {@link Predicate}
+ * @param <T> the type of the returned value on visiting a {@link EffectPredicate}
  */
 @SuppressWarnings("javadoc")
 public interface PredicateVisitor<T> {

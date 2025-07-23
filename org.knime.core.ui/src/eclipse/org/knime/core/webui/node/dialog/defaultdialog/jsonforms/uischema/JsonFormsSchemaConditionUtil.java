@@ -51,9 +51,9 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_NOT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil.getMapper;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ConstantPredicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ScopedPredicate;
+import org.knime.node.parameters.NodeParametersInput;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -67,7 +67,7 @@ final class JsonFormsSchemaConditionUtil {
         // Utility
     }
 
-    static ObjectNode createCondition(final ScopedPredicate scopedPredicate, final DefaultNodeSettingsContext context) {
+    static ObjectNode createCondition(final ScopedPredicate scopedPredicate, final NodeParametersInput context) {
         return scopedPredicate.condition().accept(new JsonFormsConditionResolver(scopedPredicate.node(), context));
     }
 

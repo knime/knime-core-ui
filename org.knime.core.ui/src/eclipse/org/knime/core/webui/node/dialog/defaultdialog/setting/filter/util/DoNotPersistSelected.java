@@ -51,14 +51,14 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
  * Selected values of a filter depend on the context so they should not be persisted.
  *
  * @author Paul Bärnreuther
  */
-public class DoNotPersistSelected implements NodeSettingsPersistor<String[]> {
+public class DoNotPersistSelected implements NodeParametersPersistor<String[]> {
 
     @Override
     public String[] load(final NodeSettingsRO settings) throws InvalidSettingsException {

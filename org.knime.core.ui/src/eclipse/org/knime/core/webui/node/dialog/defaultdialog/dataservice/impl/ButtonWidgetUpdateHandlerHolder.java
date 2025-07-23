@@ -54,8 +54,8 @@ import java.util.Optional;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.NoopButtonUpdateHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.TraversedField;
+import org.knime.node.parameters.WidgetGroup;
 
 /**
  *

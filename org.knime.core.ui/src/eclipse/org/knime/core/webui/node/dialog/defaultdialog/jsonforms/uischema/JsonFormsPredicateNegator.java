@@ -53,7 +53,6 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 
 import java.util.List;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.And;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ConstantPredicate;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.FrameworkPredicate;
@@ -61,6 +60,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.Or;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.PredicateVisitor;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ScopedPredicate;
+import org.knime.node.parameters.updates.EffectPredicate;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -93,8 +93,8 @@ final class JsonFormsPredicateNegator implements PredicateVisitor<ObjectNode> {
         return resolvedOperation.accept(m_predicateResolver);
     }
 
-    private static Predicate[] reverseAll(final List<Predicate> predicates) {
-        return predicates.stream().map(Not::new).toArray(Predicate[]::new);
+    private static EffectPredicate[] reverseAll(final List<EffectPredicate> predicates) {
+        return predicates.stream().map(Not::new).toArray(EffectPredicate[]::new);
     }
 
     @Override
@@ -117,7 +117,7 @@ final class JsonFormsPredicateNegator implements PredicateVisitor<ObjectNode> {
         return visitAtomicPredicate(frameworkPredicate);
     }
 
-    private ObjectNode visitAtomicPredicate(final Predicate predicate) {
+    private ObjectNode visitAtomicPredicate(final EffectPredicate predicate) {
         final var node = predicate.accept(m_predicateResolver);
         final var positiveSchema = node.get(FIELD_NAME_SCHEMA);
         node.replace(FIELD_NAME_SCHEMA,

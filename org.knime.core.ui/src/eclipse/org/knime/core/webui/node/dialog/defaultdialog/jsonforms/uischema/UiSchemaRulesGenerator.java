@@ -54,14 +54,14 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 
 import java.util.Collection;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider.PredicateInitializer;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -80,7 +80,7 @@ final class UiSchemaRulesGenerator {
      * @param widgetTrees containing the nodes that the to be generated rules can depend on
      * @param context the node's context (inputs, flow vars)
      */
-    UiSchemaRulesGenerator(final Collection<Tree<WidgetGroup>> widgetTrees, final DefaultNodeSettingsContext context) {
+    UiSchemaRulesGenerator(final Collection<Tree<WidgetGroup>> widgetTrees, final NodeParametersInput context) {
         m_predicateExtractor = new PredicateExtractor(widgetTrees, context);
         m_visitor = new JsonFormsPredicateResolver(context);
     }
@@ -101,13 +101,13 @@ final class UiSchemaRulesGenerator {
         writePredicateAsRule(effect.type(), predicate, control);
     }
 
-    private JsonNode writePredicateAsRule(final EffectType type, final Predicate predicate, final ObjectNode control) {
+    private JsonNode writePredicateAsRule(final EffectType type, final EffectPredicate predicate, final ObjectNode control) {
         return control.putObject(TAG_RULE)//
             .put(TAG_EFFECT, String.valueOf(type)) //
             .set(TAG_CONDITION, predicate.accept(m_visitor));
     }
 
-    private Predicate extractPredicateFromAnnotation(final Class<? extends PredicateProvider> predicateProviderClass) {
+    private EffectPredicate extractPredicateFromAnnotation(final Class<? extends EffectPredicateProvider> predicateProviderClass) {
         try {
             return m_predicateExtractor.createPredicate(predicateProviderClass);
         } catch (InvalidReferenceException e) {

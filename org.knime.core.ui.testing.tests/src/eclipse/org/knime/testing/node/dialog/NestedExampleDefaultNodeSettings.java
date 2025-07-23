@@ -48,11 +48,11 @@
  */
 package org.knime.testing.node.dialog;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.widget.choices.Label;
 
-class NestedExampleDefaultNodeSettings implements DefaultNodeSettings {
+class NestedExampleDefaultNodeSettings implements NodeParameters {
 
     enum DummyEnum {
             @Label("Top")

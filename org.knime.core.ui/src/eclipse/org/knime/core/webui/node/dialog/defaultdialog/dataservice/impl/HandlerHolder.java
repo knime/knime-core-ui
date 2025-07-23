@@ -57,10 +57,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser;
 import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.Configuration;
 import org.knime.core.webui.node.dialog.defaultdialog.util.WidgetGroupTraverser.TraversedField;
+import org.knime.node.parameters.WidgetGroup;
 
 /**
  * Takes care of accessing the fields in a given collection of {@link WidgetGroup}s. The implementer has to convert a

@@ -52,13 +52,13 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Before;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Inside;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.Before;
+import org.knime.node.parameters.layout.Inside;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
 
 /**
  * Test ordering layout parts in the UI schema with the {@link Before} and {@link After} annotations.
@@ -89,7 +89,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
             }
         }
 
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestOrderLayout.Section1.class)
             String m_setting1;
@@ -141,7 +141,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
             }
         }
 
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestOrderLayout.Section1.class)
             String m_setting1;
@@ -194,7 +194,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
 
         }
 
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestOrderLayout.Section1.class)
             String m_setting1;
@@ -237,7 +237,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
             }
         }
 
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(GeneralTestLayout.GeneralSection1.class)
             String m_setting1;
@@ -302,7 +302,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
             }
         }
 
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(GeneralTestLayout.GeneralSection1.class)
             String m_setting1;
@@ -359,7 +359,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
             }
         }
 
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestBeforeCycleLayout.Section1.class)
             String m_setting1;
@@ -388,7 +388,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
             }
         }
 
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestAfterCycleLayout.Section1.class)
             String m_setting1;
@@ -423,7 +423,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
             }
         }
 
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestComplexOrderCycleLayout.Section1.class)
             String m_setting1;
@@ -462,7 +462,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
             }
         }
 
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestNonSiblingsReferenceLayout.Section1.class)
             String m_setting1;
@@ -496,7 +496,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
             }
         }
 
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestNonSiblingsReferenceLayout.Section1.class)
             String m_setting1;
@@ -529,7 +529,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
             }
         }
 
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestAfterRepeatableLayout.Section1.class)
             String m_setting1;
@@ -571,7 +571,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
             }
         }
 
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestBeforeRepeatableLayout.Section1.class)
             String m_setting1;
@@ -613,7 +613,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
             }
         }
 
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestOrderByInvisibleSectionsLayout.Section1.class)
             String m_setting1;
@@ -645,7 +645,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
             }
 
         }
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestDifferentLocationsForSiblingsLayout.Section1.class)
             String m_setting1;
@@ -686,7 +686,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
             }
         }
 
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestInsideLayout.Section1.class)
             String m_setting1;
@@ -737,7 +737,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
             }
         }
 
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestConflictingAnnotationsLayout.Section1.class)
             String m_setting1;
@@ -772,7 +772,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
             }
         }
 
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestTransitiveAnnotationsLayout.Section1.class)
             String m_setting1;
@@ -805,7 +805,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
     @Test
     void throwsIfThereAreCircularDependenciesOfReferencesToNonSiblings() {
 
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(OtherGeneralTestLayout.CircularSection.class)
             String m_setting1;
@@ -819,7 +819,7 @@ class JsonFormsUiSchemaUtilOrdersTest {
 
     @Test
     void testAllowsReferencingRootAsSibling() {
-        class DummySettings implements DefaultNodeSettings {
+        class DummySettings implements NodeParameters {
             @Widget(title = "", description = "")
             OtherRootSettings m_otherRootSettings;
 

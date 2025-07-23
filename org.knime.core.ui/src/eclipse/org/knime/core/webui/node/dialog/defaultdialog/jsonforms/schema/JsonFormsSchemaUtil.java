@@ -76,18 +76,18 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.DescriptionUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.knime.node.parameters.NodeParameters;
 
 import com.fasterxml.classmate.ResolvedType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -139,8 +139,8 @@ public final class JsonFormsSchemaUtil {
      * @return a schema representation
      */
     public static ObjectNode buildCombinedSchema(
-        final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses,
-        final Map<SettingsType, Tree<WidgetGroup>> widgetTrees, final DefaultNodeSettingsContext context,
+        final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses,
+        final Map<SettingsType, Tree<WidgetGroup>> widgetTrees, final NodeParametersInput context,
         final ObjectMapper mapper) {
         final var root = mapper.createObjectNode();
         root.put(TAG_TYPE, TYPE_OBJECT);
@@ -167,13 +167,13 @@ public final class JsonFormsSchemaUtil {
 
     @SuppressWarnings("javadoc") // public for test purposes
     public static ObjectNode buildSchema(final Class<? extends WidgetGroup> settingsClass,
-        final DefaultNodeSettingsContext context, final ObjectMapper mapper) {
+        final NodeParametersInput context, final ObjectMapper mapper) {
         final var widgetTree = new WidgetTreeFactory().createTree(settingsClass, SettingsType.MODEL);
         return buildSchema(settingsClass, widgetTree, context, mapper);
     }
 
     private static ObjectNode buildSchema(final Type settingsClass, final Tree<WidgetGroup> widgetTree,
-        final DefaultNodeSettingsContext context, final ObjectMapper mapper) {
+        final NodeParametersInput context, final ObjectMapper mapper) {
         final var builder = new SchemaGeneratorConfigBuilder(mapper, VERSION, new OptionPreset(//
             Option.ADDITIONAL_FIXED_TYPES, //
             Option.EXTRA_OPEN_API_FORMAT_VALUES, //

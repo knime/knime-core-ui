@@ -54,21 +54,22 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.buildTestUiSchema;
 
 import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.text.TextInputWidget;
 
 class UiSchemaWidgetModificationTest {
 
     @Test
     void testModifiesExistingAnnotation() {
 
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -82,10 +83,10 @@ class UiSchemaWidgetModificationTest {
                 String m_field;
             }
 
-            static final class ModifyFieldTitle implements Modifier {
+            static final class ModifyFieldTitle implements Modification.Modifier {
 
                 @Override
-                public void modify(final WidgetGroupModifier group) {
+                public void modify(final Modification.WidgetGroupModifier group) {
                     group.find(TestSettings.WidgetGroupSettings.FieldReference.class)
                         .modifyAnnotation(TextInputWidget.class).withProperty("placeholder", "modified placeholder")
                         .modify();
@@ -105,7 +106,7 @@ class UiSchemaWidgetModificationTest {
     @Test
     void testWorksOnClassAnnotations() {
 
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             @Modification(ModifyPlaceholder.class)
             final class WidgetGroupSettings implements WidgetGroup {
@@ -120,10 +121,10 @@ class UiSchemaWidgetModificationTest {
                 String m_field;
             }
 
-            static final class ModifyPlaceholder implements Modifier {
+            static final class ModifyPlaceholder implements Modification.Modifier {
 
                 @Override
-                public void modify(final WidgetGroupModifier group) {
+                public void modify(final Modification.WidgetGroupModifier group) {
                     group.find(TestSettings.WidgetGroupSettings.FieldReference.class)
                         .modifyAnnotation(TextInputWidget.class).withProperty("placeholder", "modified placeholder")
                         .modify();
@@ -141,7 +142,7 @@ class UiSchemaWidgetModificationTest {
 
     @Test
     void testAddsNewAnnotation() {
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -154,10 +155,10 @@ class UiSchemaWidgetModificationTest {
                 String m_field;
             }
 
-            static final class AddPlaceholder implements Modifier {
+            static final class AddPlaceholder implements Modification.Modifier {
 
                 @Override
-                public void modify(final WidgetGroupModifier group) {
+                public void modify(final Modification.WidgetGroupModifier group) {
                     group.find(TestSettings.WidgetGroupSettings.FieldReference.class)
                         .addAnnotation(TextInputWidget.class).withProperty("placeholder", "added placeholder").modify();
                 }
@@ -174,7 +175,7 @@ class UiSchemaWidgetModificationTest {
 
     @Test
     void testRemoveAnnotation() {
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -188,10 +189,10 @@ class UiSchemaWidgetModificationTest {
                 String m_field;
             }
 
-            static final class RemoveTextInputWidget implements Modifier {
+            static final class RemoveTextInputWidget implements Modification.Modifier {
 
                 @Override
-                public void modify(final WidgetGroupModifier group) {
+                public void modify(final Modification.WidgetGroupModifier group) {
                     group.find(TestSettings.WidgetGroupSettings.FieldReference.class)
                         .removeAnnotation(TextInputWidget.class);
                 }
@@ -209,7 +210,7 @@ class UiSchemaWidgetModificationTest {
 
     @Test
     void throwsForRemoveAnnotationOnMissing() {
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -222,10 +223,10 @@ class UiSchemaWidgetModificationTest {
                 String m_field;
             }
 
-            static final class RemoveTextInputWidget implements Modifier {
+            static final class RemoveTextInputWidget implements Modification.Modifier {
 
                 @Override
-                public void modify(final WidgetGroupModifier group) {
+                public void modify(final Modification.WidgetGroupModifier group) {
                     group.find(TestSettings.WidgetGroupSettings.FieldReference.class)
                         .removeAnnotation(TextInputWidget.class);
                 }
@@ -241,7 +242,7 @@ class UiSchemaWidgetModificationTest {
 
     @Test
     void throwsForModifyAnnotationOnMissing() {
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -254,10 +255,10 @@ class UiSchemaWidgetModificationTest {
                 String m_field;
             }
 
-            static final class ModifyTextInputWidget implements Modifier {
+            static final class ModifyTextInputWidget implements Modification.Modifier {
 
                 @Override
-                public void modify(final WidgetGroupModifier group) {
+                public void modify(final Modification.WidgetGroupModifier group) {
                     group.find(TestSettings.WidgetGroupSettings.FieldReference.class)
                         .modifyAnnotation(TextInputWidget.class).withProperty("placeholder", "modified placeholder")
                         .modify();
@@ -275,7 +276,7 @@ class UiSchemaWidgetModificationTest {
 
     @Test
     void throwsForAddAnnotationIfAlreadyPresent() {
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -289,10 +290,10 @@ class UiSchemaWidgetModificationTest {
                 String m_field;
             }
 
-            static final class AddTextInputWidget implements Modifier {
+            static final class AddTextInputWidget implements Modification.Modifier {
 
                 @Override
-                public void modify(final WidgetGroupModifier group) {
+                public void modify(final Modification.WidgetGroupModifier group) {
                     group.find(TestSettings.WidgetGroupSettings.FieldReference.class)
                         .addAnnotation(TextInputWidget.class).withProperty("placeholder", "added placeholder").modify();
                 }
@@ -308,7 +309,7 @@ class UiSchemaWidgetModificationTest {
 
     @Test
     void throwsOnInvalidParameterName() {
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -322,10 +323,10 @@ class UiSchemaWidgetModificationTest {
                 String m_field;
             }
 
-            static final class ModifyTextInputWidget implements Modifier {
+            static final class ModifyTextInputWidget implements Modification.Modifier {
 
                 @Override
-                public void modify(final WidgetGroupModifier group) {
+                public void modify(final Modification.WidgetGroupModifier group) {
                     group.find(TestSettings.WidgetGroupSettings.FieldReference.class)
                         .modifyAnnotation(TextInputWidget.class).withProperty("invalidParameter", "some value").modify();
                 }
@@ -342,7 +343,7 @@ class UiSchemaWidgetModificationTest {
 
     @Test
     void throwsOnInvalidParameterType() {
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -356,10 +357,10 @@ class UiSchemaWidgetModificationTest {
                 String m_field;
             }
 
-            static final class ModifyTextInputWidget implements Modifier {
+            static final class ModifyTextInputWidget implements Modification.Modifier {
 
                 @Override
-                public void modify(final WidgetGroupModifier group) {
+                public void modify(final Modification.WidgetGroupModifier group) {
                     group.find(TestSettings.WidgetGroupSettings.FieldReference.class)
                         .modifyAnnotation(TextInputWidget.class).withProperty("placeholder", 42).modify();
                 }
@@ -377,7 +378,7 @@ class UiSchemaWidgetModificationTest {
 
     @Test
     void throwsWhenAddingAnnotationWithoutSettingRequiredProperties() {
-        final class NoEffectTypeTestSettings implements DefaultNodeSettings {
+        final class NoEffectTypeTestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -390,19 +391,19 @@ class UiSchemaWidgetModificationTest {
                 String m_field;
             }
 
-            static final class AddTextInputWidget implements Modifier {
+            static final class AddTextInputWidget implements Modification.Modifier {
 
-                static final class MyPredicateProvider implements PredicateProvider {
+                static final class MyPredicateProvider implements EffectPredicateProvider {
 
                     @Override
-                    public Predicate init(final PredicateInitializer i) {
+                    public EffectPredicate init(final PredicateInitializer i) {
                         return i.never();
                     }
 
                 }
 
                 @Override
-                public void modify(final WidgetGroupModifier group) {
+                public void modify(final Modification.WidgetGroupModifier group) {
                     group.find(NoEffectTypeTestSettings.WidgetGroupSettings.FieldReference.class)
                         .addAnnotation(Effect.class).withProperty("predicate", MyPredicateProvider.class)// No effectType
                         .modify();
@@ -418,7 +419,7 @@ class UiSchemaWidgetModificationTest {
         assertThat(assertThrows(IllegalArgumentException.class, () -> buildTestUiSchema(NoEffectTypeTestSettings.class))
             .getMessage()).isEqualTo("The property \"type\" is required for Effect");
 
-        final class NoValueReferenceTestSettings implements DefaultNodeSettings {
+        final class NoValueReferenceTestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -431,10 +432,10 @@ class UiSchemaWidgetModificationTest {
                 String m_field;
             }
 
-            static final class AddTextInputWidget implements Modifier {
+            static final class AddTextInputWidget implements Modification.Modifier {
 
                 @Override
-                public void modify(final WidgetGroupModifier group) {
+                public void modify(final Modification.WidgetGroupModifier group) {
                     group.find(NoValueReferenceTestSettings.WidgetGroupSettings.FieldReference.class)
                         .addAnnotation(ValueReference.class).modify();
                 }
@@ -454,7 +455,7 @@ class UiSchemaWidgetModificationTest {
     @Test
     void throwsOnDuplicateReferences() {
 
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -471,10 +472,10 @@ class UiSchemaWidgetModificationTest {
                 String m_field2;
             }
 
-            static final class WidgetModificationWithDuplicateReferences implements Modifier {
+            static final class WidgetModificationWithDuplicateReferences implements Modification.Modifier {
 
                 @Override
-                public void modify(final WidgetGroupModifier group) {
+                public void modify(final Modification.WidgetGroupModifier group) {
                     group.find(TestSettings.WidgetGroupSettings.DuplicateMissingReference.class);
                 }
 
@@ -493,7 +494,7 @@ class UiSchemaWidgetModificationTest {
     @Test
     void testThrowsOnMissingReferences() {
 
-        final class TestSettings implements DefaultNodeSettings {
+        final class TestSettings implements NodeParameters {
 
             final class WidgetGroupSettings implements WidgetGroup {
 
@@ -506,10 +507,10 @@ class UiSchemaWidgetModificationTest {
                 String m_field;
             }
 
-            static final class WidgetModificationWithMissingReferences implements Modifier {
+            static final class WidgetModificationWithMissingReferences implements Modification.Modifier {
 
                 @Override
-                public void modify(final WidgetGroupModifier group) {
+                public void modify(final Modification.WidgetGroupModifier group) {
                     group.find(TestSettings.WidgetGroupSettings.MissingReference.class);
                 }
 

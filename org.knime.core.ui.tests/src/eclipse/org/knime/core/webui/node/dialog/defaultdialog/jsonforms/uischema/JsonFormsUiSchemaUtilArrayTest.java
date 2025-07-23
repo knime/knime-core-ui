@@ -53,13 +53,13 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.
 import java.util.Collection;
 
 import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.layout.HorizontalLayout;
+import org.knime.node.parameters.layout.Layout;
 
 /**
  * Test UI schema generation with arrays.
@@ -72,7 +72,7 @@ class JsonFormsUiSchemaUtilArrayTest {
 
     @Test
     void testArrayLayout() {
-        class TestArrayLayoutSettings implements DefaultNodeSettings {
+        class TestArrayLayoutSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             ArrayElements[] m_arraySetting;
@@ -129,7 +129,7 @@ class JsonFormsUiSchemaUtilArrayTest {
     @Test
     void wrapsElementDetailsInAHorizontalLayoutInCaseOfSingleLineLayoutMode() {
 
-        class TestArrayWidgetSettings implements DefaultNodeSettings {
+        class TestArrayWidgetSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @ArrayWidget(elementLayout = ArrayWidget.ElementLayout.HORIZONTAL_SINGLE_LINE)
             ArrayElements[] m_arraySetting;
@@ -154,7 +154,7 @@ class JsonFormsUiSchemaUtilArrayTest {
 
     @Test
     void doesNotWrapInAnAdditionalHorizontalLayoutIfItIsAlreadyOneElement() {
-        class TestArrayWidgetSettings implements DefaultNodeSettings {
+        class TestArrayWidgetSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @ArrayWidget(elementLayout = ArrayWidget.ElementLayout.HORIZONTAL_SINGLE_LINE)
             ArrayElements[] m_arraySetting;
@@ -184,7 +184,7 @@ class JsonFormsUiSchemaUtilArrayTest {
 
     @Test
     void testArrayWidgetAnnotation() {
-        class TestArrayWidgetSettings implements DefaultNodeSettings {
+        class TestArrayWidgetSettings implements NodeParameters {
 
             private static final String EXPECTED_ADD_TEXT = "expected add text";
 
@@ -249,7 +249,7 @@ class JsonFormsUiSchemaUtilArrayTest {
         enum TestEnum {
                 A, B, C;
         }
-        class TestPrimitiveOrBoxedArraySettings implements DefaultNodeSettings {
+        class TestPrimitiveOrBoxedArraySettings implements NodeParameters {
 
             double[] m_doubleArray;
 
@@ -294,7 +294,7 @@ class JsonFormsUiSchemaUtilArrayTest {
     @Test
     void testDoesNotApplyArrayLayoutOnStringArrays() {
 
-        class TestStringArraySettings implements DefaultNodeSettings {
+        class TestStringArraySettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             String[] m_stringArray;
@@ -306,7 +306,7 @@ class JsonFormsUiSchemaUtilArrayTest {
 
     @Test
     void testInternalArrayLayoutElementCheckboxWidget() {
-        class TestArrayLayoutWithUpdateSettings implements DefaultNodeSettings {
+        class TestArrayLayoutWithUpdateSettings implements NodeParameters {
 
             @Widget(title = "", description = "")
             @ArrayWidgetInternal(withElementCheckboxes = true)
@@ -337,7 +337,7 @@ class JsonFormsUiSchemaUtilArrayTest {
      */
     @Test
     void testFieldNameToElementTitle() {
-        class TestArrayLayoutWithFieldNameElementTitle implements DefaultNodeSettings {
+        class TestArrayLayoutWithFieldNameElementTitle implements NodeParameters {
 
             @Widget(title = "", description = "")
             @ArrayWidget(elementLayout = ArrayWidget.ElementLayout.VERTICAL_CARD)
@@ -358,7 +358,7 @@ class JsonFormsUiSchemaUtilArrayTest {
 
     @Test
     void testThrowsOnSetElementTitleWhenNotRequired() {
-        class TestArrayLayoutWithFieldNameElementTitle implements DefaultNodeSettings {
+        class TestArrayLayoutWithFieldNameElementTitle implements NodeParameters {
 
             @Widget(title = "", description = "")
             @ArrayWidget(elementTitle = "My Element Title",

@@ -55,6 +55,7 @@ import java.util.Set;
 
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.NodeID;
+import org.knime.node.parameters.widget.credentials.Credentials;
 
 /**
  * Since we do not want to send passwords to the frontend when serializing {@link Credentials}, we need to store them

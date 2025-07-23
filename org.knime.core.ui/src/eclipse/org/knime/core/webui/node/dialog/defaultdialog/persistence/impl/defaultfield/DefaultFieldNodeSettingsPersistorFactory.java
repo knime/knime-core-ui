@@ -69,10 +69,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.config.ConfigRO;
 import org.knime.core.node.config.base.ConfigBaseRO;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsLoader;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.SettingsSaver;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.DateIntervalPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.IntervalPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.LocalDatePersistor;
@@ -81,16 +77,21 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfi
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.TimeIntervalPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.TimeZonePersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DateTimePersistorUtils.ZonedDateTimePersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.Credentials;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.CredentialsUtil.CredentialsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.DateInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.Interval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.interval.TimeInterval;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.node.parameters.migration.ParametersLoader;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.ParametersSaver;
+import org.knime.node.parameters.widget.credentials.Credentials;
 
 /**
- * Factory for default persistors either for arrays or {@link PersistableSettings} or settings that store values
+ * Factory for default persistors either for arrays or {@link Persistable} or settings that store values
  * directly in NodeSettings.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
@@ -101,13 +102,13 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
         .collect(toMap(PersistorImpl::getFieldType, PersistorImpl::getFieldPersistor));
 
     /**
-     * Similar to {@link NodeSettingsPersistor} but since every default persistor should persist to the given config
+     * Similar to {@link NodeParametersPersistor} but since every default persistor should persist to the given config
      * key, it is only possible to declare sub config keys if present.
      *
      * @param <S> the type of the settings object
      *
      */
-    public interface DefaultFieldPersistor<S> extends SettingsSaver<S>, SettingsLoader<S>, SubConfigPathProvider {
+    public interface DefaultFieldPersistor<S> extends ParametersSaver<S>, ParametersLoader<S>, SubConfigPathProvider {
 
     }
 
@@ -128,7 +129,7 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
      * @param configKey
      * @return how to save and load this node to the config key
      */
-    public static DefaultFieldPersistor<?> createPersistor(final LeafNode<PersistableSettings> node,
+    public static DefaultFieldPersistor<?> createPersistor(final LeafNode<Persistable> node,
         final String configKey) {
         if (node.getRawClass().equals(Map.class)) {
             return createMapPersistor(configKey);
@@ -318,7 +319,7 @@ public final class DefaultFieldNodeSettingsPersistorFactory {
     }
 
     private static OptionalContentPersistor<Credentials> createCredentialsPersistor(final String configKey) {
-        return new Credentials.CredentialsPersistor(configKey);
+        return new CredentialsPersistor(configKey);
     }
 
     private static OptionalContentPersistor<FSLocation> createFSLocationPersistor(final String configKey) {

@@ -55,17 +55,20 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.filter.NameFilterConfiguration;
 import org.knime.core.node.util.filter.PatternFilterConfiguration;
 import org.knime.core.node.workflow.NodeContext;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.LegacyManualFilterPersistorUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.LegacyPatternFilterPersistorUtil;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.widget.choices.filter.LegacyFilterUtil;
+import org.knime.node.parameters.widget.choices.filter.LegacyFilterUtil.StringFilterBuilder;
+import org.knime.node.parameters.widget.choices.filter.StringFilter;
 
 /**
- * {@link NodeSettingsPersistor} for {@link StringFilter} that persists it in a way compatible to
+ * {@link NodeParametersPersistor} for {@link StringFilter} that persists it in a way compatible to
  * {@link NameFilterConfiguration}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public abstract class LegacyNameFilterPersistor implements NodeSettingsPersistor<StringFilter> {
+public abstract class LegacyNameFilterPersistor implements NodeParametersPersistor<StringFilter> {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(LegacyNameFilterPersistor.class);
 
@@ -93,22 +96,30 @@ public abstract class LegacyNameFilterPersistor implements NodeSettingsPersistor
     public static StringFilter load(final NodeSettingsRO nodeSettings, final String configKey)
         throws InvalidSettingsException {
         var nameFilterSettings = nodeSettings.getNodeSettings(configKey);
-        var nameFilter = new StringFilter();
-        nameFilter.m_mode = loadMode(nameFilterSettings);
-        nameFilter.m_manualFilter = LegacyManualFilterPersistorUtil.loadManualFilter(nameFilterSettings);
-        nameFilter.m_patternFilter = LegacyPatternFilterPersistorUtil
-            .loadPatternMatching(nameFilterSettings.getNodeSettings(PatternFilterConfiguration.TYPE));
-        return nameFilter;
+        var builder = new StringFilterBuilder();
+
+        builder.withMode(loadMode(nameFilterSettings));
+
+        builder.withManuallySelected(LegacyManualFilterPersistorUtil.loadManuallySelected(nameFilterSettings))
+            .withManuallyDeselected(LegacyManualFilterPersistorUtil.loadManuallyDeselected(nameFilterSettings))
+            .withIncludeUnknownColumns(LegacyManualFilterPersistorUtil.loadIncludeUnknownColumns(nameFilterSettings));
+
+        var patternSettings = nameFilterSettings.getNodeSettings(PatternFilterConfiguration.TYPE);
+        builder.withPattern(LegacyPatternFilterPersistorUtil.loadPattern(patternSettings))
+            .withPatternCaseSensitive(LegacyPatternFilterPersistorUtil.loadPatternCaseSensitive(patternSettings))
+            .withPatternInverted(LegacyPatternFilterPersistorUtil.loadPatternInverted(patternSettings));
+
+        return builder.build();
     }
 
-    private static StringFilterMode loadMode(final NodeSettingsRO nameFilterSettings) throws InvalidSettingsException {
+    private static StringFilterBuilder.Mode loadMode(final NodeSettingsRO nameFilterSettings)
+        throws InvalidSettingsException {
         var filterType = nameFilterSettings.getString(KEY_FILTER_TYPE);
         if (KEY_FILTER_TYPE_MANUAL.equals(filterType)) {
-            return StringFilterMode.MANUAL;
+            return StringFilterBuilder.Mode.MANUAL;
         } else if (PatternFilterConfiguration.TYPE.equals(filterType)) {
             var patternMatchingSettings = nameFilterSettings.getNodeSettings(PatternFilterConfiguration.TYPE);
-            return StringFilterMode
-                .toNameFilterMode(LegacyPatternFilterPersistorUtil.loadPatternMode(patternMatchingSettings));
+            return LegacyPatternFilterPersistorUtil.loadPatternMode(patternMatchingSettings).toStringFilterMode();
         } else {
             throw new InvalidSettingsException("Unsupported name filter type: " + filterType);
         }
@@ -121,10 +132,13 @@ public abstract class LegacyNameFilterPersistor implements NodeSettingsPersistor
             nameFilter = new StringFilter();
         }
         var nameFilterSettings = settings.addNodeSettings(configKey);
-        nameFilterSettings.addString(KEY_FILTER_TYPE, toFilterType(nameFilter.m_mode));
-        LegacyManualFilterPersistorUtil.saveManualFilter(nameFilter.m_manualFilter, nameFilterSettings);
-        LegacyPatternFilterPersistorUtil.savePatternMatching(nameFilter.m_patternFilter,
-            nameFilter.m_mode.toPatternMode(), nameFilterSettings.addNodeSettings(PatternFilterConfiguration.TYPE));
+
+        LegacyFilterUtil.saveStringFilter(nameFilter, mode -> saveMode(mode, nameFilterSettings),
+            manuallySelected -> saveManuallySelected(manuallySelected, nameFilterSettings),
+            manuallyDeselected -> saveManuallyDeselected(manuallyDeselected, nameFilterSettings),
+            includeUnknownColumns -> saveIncludeUnknownColumns(includeUnknownColumns, nameFilterSettings),
+            (pattern, caseSensitive, inverted, mode) -> savePatternData(pattern, caseSensitive, inverted, mode,
+                nameFilterSettings));
     }
 
     private static String createFilterNullError(final String configKey) {
@@ -138,6 +152,37 @@ public abstract class LegacyNameFilterPersistor implements NodeSettingsPersistor
         }
         return prefix
             + " It is replaced by a new NameFilter instance to prevent errors but please fix this issue anyway.";
+    }
+
+    private static void saveMode(final StringFilterBuilder.Mode mode, final NodeSettingsWO nameFilterSettings) {
+        nameFilterSettings.addString(KEY_FILTER_TYPE, toFilterType(mode.toStringFilterMode()));
+    }
+
+    private static void saveManuallySelected(final String[] manuallySelected, final NodeSettingsWO nameFilterSettings) {
+        LegacyManualFilterPersistorUtil.saveManuallySelected(manuallySelected, nameFilterSettings);
+    }
+
+    private static void saveManuallyDeselected(final String[] manuallyDeselected,
+        final NodeSettingsWO nameFilterSettings) {
+        LegacyManualFilterPersistorUtil.saveManuallyDeselected(manuallyDeselected, nameFilterSettings);
+    }
+
+    private static void saveIncludeUnknownColumns(final boolean includeUnknownColumns,
+        final NodeSettingsWO nameFilterSettings) {
+        LegacyManualFilterPersistorUtil.saveIncludeUnknownColumns(includeUnknownColumns, nameFilterSettings);
+    }
+
+    private static void savePatternData(final String pattern, final boolean caseSensitive, final boolean inverted,
+        final LegacyFilterUtil.PatternMode mode, final NodeSettingsWO nameFilterSettings) {
+        var patternFilterSettings = nameFilterSettings.addNodeSettings(PatternFilterConfiguration.TYPE);
+        LegacyPatternFilterPersistorUtil.savePattern(pattern, patternFilterSettings);
+        // Save the pattern mode based on the filter mode
+        var patternMode =
+            (mode == LegacyFilterUtil.PatternMode.REGEX) ? LegacyPatternFilterPersistorUtil.PatternMode.REGEX
+                : LegacyPatternFilterPersistorUtil.PatternMode.WILDCARD;
+        LegacyPatternFilterPersistorUtil.savePatternMode(patternMode, patternFilterSettings);
+        LegacyPatternFilterPersistorUtil.savePatternCaseSensitive(caseSensitive, patternFilterSettings);
+        LegacyPatternFilterPersistorUtil.savePatternInverted(inverted, patternFilterSettings);
     }
 
     private static String toFilterType(final StringFilterMode mode) {

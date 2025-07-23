@@ -48,18 +48,18 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
 
 /**
  * Marker interface for predicates provided by the framework
  *
  * @author Paul Bärnreuther
  */
-public interface FrameworkPredicateProvider extends PredicateProvider {
+public interface FrameworkPredicateProvider extends EffectPredicateProvider {
 
     @Override
-    default Predicate init(final PredicateInitializer i) {
+    default EffectPredicate init(final PredicateInitializer i) {
         throw new IllegalAccessError("Framework predicates should be handled by the framework.");
     }
 

@@ -60,7 +60,7 @@ import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultKaiNodeInterface;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettingsImpl;
@@ -69,6 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 import org.knime.core.webui.node.impl.WebUISimpleStreamableFunctionNodeModel;
+import org.knime.node.parameters.NodeParameters;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -153,12 +154,12 @@ public final class WebUIDialogDetailsUtil {
                 .apply("Unable to extract model settings from node model since it is not webUI."));
         }
 
-        Class<? extends DefaultNodeSettings> modelSettingsClass;
+        Class<? extends NodeParameters> modelSettingsClass;
         try {
             final Class<?> genericSuperClass = WebUINodeModel.class.isAssignableFrom(nodeModelClass)
                 ? WebUINodeModel.class : WebUISimpleStreamableFunctionNodeModel.class;
             final var nodeModelType = nodeModelClassOptional.get().getFirst();
-            modelSettingsClass = (Class<? extends DefaultNodeSettings>)GenericTypeFinderUtil
+            modelSettingsClass = (Class<? extends NodeParameters>)GenericTypeFinderUtil
                 .getFirstGenericTypeFromType(nodeModelType, genericSuperClass);
         } catch (IndexOutOfBoundsException e) { // NOSONAR
             return new WebUIDialogDetails(hasWebUIDialog, true, null, null, toNotKaiNodeInterfaceMessage
@@ -212,7 +213,7 @@ public final class WebUIDialogDetailsUtil {
     }
 
     private static WebUIDialogDetails constructDetails(final boolean hasWebUIModel, final String hasWebUIModelMessage,
-        final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses) {
+        final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses) {
         try {
             final var jsonFormsSettings = extractJsonFormsSettings(settingsClasses);
             return new WebUIDialogDetails(true, hasWebUIModel, hasWebUIModelMessage, jsonFormsSettings, null);
@@ -223,10 +224,10 @@ public final class WebUIDialogDetailsUtil {
     }
 
     private static WebUISettings extractJsonFormsSettings(
-        final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses) throws JsonProcessingException {
-        final Map<SettingsType, DefaultNodeSettings> settings =
-            MapValuesUtil.mapValues(settingsClasses, DefaultNodeSettings::createSettings);
-        final var context = DefaultNodeSettings.createDefaultNodeSettingsContext(new PortObjectSpec[0]);
+        final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses) throws JsonProcessingException {
+        final Map<SettingsType, NodeParameters> settings =
+            MapValuesUtil.mapValues(settingsClasses, NodeParametersUtil::createSettings);
+        final var context = NodeParametersUtil.createDefaultNodeSettingsContext(new PortObjectSpec[0]);
         final var jsonFormsSettings = new JsonFormsSettingsImpl(settings, context);
         return new WebUISettings(jsonFormsSettings);
     }

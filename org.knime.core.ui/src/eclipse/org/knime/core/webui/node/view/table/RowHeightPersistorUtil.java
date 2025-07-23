@@ -54,10 +54,10 @@ import java.util.function.Predicate;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration.Builder;
 import org.knime.core.webui.node.view.table.TableViewViewSettings.RowHeightMode;
 import org.knime.core.webui.node.view.table.TableViewViewSettings.VerticalPaddingMode;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.ConfigMigration.Builder;
 
 /**
  * Contains utility methods to maintain backwards compatibility for the row height related settings (legacy row height

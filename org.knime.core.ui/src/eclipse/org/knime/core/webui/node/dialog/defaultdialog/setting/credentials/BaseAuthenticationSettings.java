@@ -48,23 +48,24 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.credentials;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.AuthenticationType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.EnumChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 
 /**
  * Provides a base for authentication settings in which an {@link AuthenticationType} can be selected.
  *
  * @author Martin Sillye, TNG Technology Consulting GmbH
  */
-public abstract class BaseAuthenticationSettings implements WidgetGroup, PersistableSettings {
+public abstract class BaseAuthenticationSettings implements WidgetGroup, Persistable {
 
     BaseAuthenticationSettings() {
         this.m_type = AuthenticationType.NONE;
@@ -84,10 +85,10 @@ public abstract class BaseAuthenticationSettings implements WidgetGroup, Persist
      *
      * @author Martin Sillye, TNG Technology Consulting GmbH
      */
-    public abstract static class AuthenticationTypeModification implements WidgetGroup.Modifier {
+    public abstract static class AuthenticationTypeModification implements Modification.Modifier {
 
         @Override
-        public void modify(final WidgetGroupModifier group) {
+        public void modify(final Modification.WidgetGroupModifier group) {
             group.find(AuthenticationTypeRef.class).addAnnotation(ChoicesProvider.class)
                 .withProperty("value", getAuthenticationTypeChoicesProvider()).modify();
         }
@@ -100,11 +101,11 @@ public abstract class BaseAuthenticationSettings implements WidgetGroup, Persist
 
     }
 
-    static final class AuthenticationTypeRef implements Reference<AuthenticationType>, Modification.Reference {
-        static class RequiresCredentials implements PredicateProvider {
+    static final class AuthenticationTypeRef implements ParameterReference<AuthenticationType>, Modification.Reference {
+        static class RequiresCredentials implements EffectPredicateProvider {
 
             @Override
-            public Predicate init(final PredicateInitializer i) {
+            public EffectPredicate init(final PredicateInitializer i) {
                 return i.getEnum(AuthenticationTypeRef.class).isOneOf(AuthenticationType.REQUIRE_CREDENTIALS);
             }
 

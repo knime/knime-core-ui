@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MaxValidation;
 
 /**
  * Marker class used as ignored default only.

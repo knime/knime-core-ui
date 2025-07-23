@@ -57,7 +57,7 @@
  * <li>A <b>UISchema</b> specifying the UI.</li>
  * </ul>
  *
- * See {@link org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings DefaultNodeSettings} on how to define
+ * See {@link org.knime.node.parameters.NodeParameters NodeParameters} on how to define
  * the dialog via a declarative API.
  *
  * <h4>Known limitations</h4>

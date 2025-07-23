@@ -51,7 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultf
 import java.util.List;
 import java.util.Optional;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
  * Used for default field persistors to be able to define sub configs that should be overwritable by flow variable also
@@ -66,7 +66,7 @@ interface SubConfigPathProvider {
      *         variable instead of the root config.
      *
      *         This could be changed to a method returning multiple paths if necessary. Note that this method is
-     *         different from {@link NodeSettingsPersistor#getConfigPaths()} in that it does not list the root config
+     *         different from {@link NodeParametersPersistor#getConfigPaths()} in that it does not list the root config
      *         key as part of the config path(s).
      *
      *         In case an optional of an empty list is returned, no flow variables will be selectable.

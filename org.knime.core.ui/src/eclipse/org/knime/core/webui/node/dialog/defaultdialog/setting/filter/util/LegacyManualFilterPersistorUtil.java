@@ -75,32 +75,35 @@ public final class LegacyManualFilterPersistorUtil {
         // Utility
     }
 
-    public static ManualFilter loadManualFilter(final NodeSettingsRO columnFilterSettings)
+    public static String[] loadManuallySelected(final NodeSettingsRO columnFilterSettings)
         throws InvalidSettingsException {
-        var manualFilter = new ManualFilter(columnFilterSettings.getStringArray(KEY_INCLUDED_NAMES));
-        manualFilter.m_manuallyDeselected = columnFilterSettings.getStringArray(OLD_EXCLUDED_NAMES);
-        manualFilter.m_includeUnknownColumns = loadIncludeUnknownColumns(columnFilterSettings);
-        return manualFilter;
+        return columnFilterSettings.getStringArray(KEY_INCLUDED_NAMES);
     }
 
-    private static boolean loadIncludeUnknownColumns(final NodeSettingsRO columnFilterSettings)
+    public static String[] loadManuallyDeselected(final NodeSettingsRO columnFilterSettings)
+        throws InvalidSettingsException {
+        return columnFilterSettings.getStringArray(OLD_EXCLUDED_NAMES);
+    }
+
+    public static boolean loadIncludeUnknownColumns(final NodeSettingsRO columnFilterSettings)
         throws InvalidSettingsException {
         var enforceOptionName = columnFilterSettings.getString(KEY_ENFORCE_OPTION);
         var enforceOption = EnforceOption.valueOf(enforceOptionName);
         return enforceOption == EnforceOption.EnforceExclusion;
     }
 
-    public static void saveManualFilter(final ManualFilter manualFilter, final ConfigBaseWO columnFilterSettings) {
-        columnFilterSettings.addStringArray(KEY_INCLUDED_NAMES, manualFilter.m_manuallySelected);
-        columnFilterSettings.addStringArray(OLD_EXCLUDED_NAMES, manualFilter.m_manuallyDeselected);
-        columnFilterSettings.addString(KEY_ENFORCE_OPTION, getEnforceOption(manualFilter).name());
+    public static void saveManuallySelected(final String[] manuallySelected, final ConfigBaseWO columnFilterSettings) {
+        columnFilterSettings.addStringArray(KEY_INCLUDED_NAMES, manuallySelected);
     }
 
-    private static EnforceOption getEnforceOption(final ManualFilter manualFilter) {
-        if (manualFilter.m_includeUnknownColumns) {
-            return EnforceOption.EnforceExclusion;
-        } else {
-            return EnforceOption.EnforceInclusion;
-        }
+    public static void saveManuallyDeselected(final String[] manuallyDeselected,
+        final ConfigBaseWO columnFilterSettings) {
+        columnFilterSettings.addStringArray(OLD_EXCLUDED_NAMES, manuallyDeselected);
+    }
+
+    public static void saveIncludeUnknownColumns(final boolean includeUnknownColumns,
+        final ConfigBaseWO columnFilterSettings) {
+        var enforceOption = includeUnknownColumns ? EnforceOption.EnforceExclusion : EnforceOption.EnforceInclusion;
+        columnFilterSettings.addString(KEY_ENFORCE_OPTION, enforceOption.name());
     }
 }

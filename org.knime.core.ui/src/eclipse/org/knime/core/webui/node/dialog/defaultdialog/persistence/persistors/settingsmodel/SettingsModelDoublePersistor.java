@@ -52,14 +52,14 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
  * Saves a Double or double field as if it was controlled by a {@link SettingsModelDouble}.
  *
  * @author Paul Bärnreuther
  */
-public class SettingsModelDoublePersistor implements NodeSettingsPersistor<Double> {
+public class SettingsModelDoublePersistor implements NodeParametersPersistor<Double> {
 
     private final String m_configKey;
 

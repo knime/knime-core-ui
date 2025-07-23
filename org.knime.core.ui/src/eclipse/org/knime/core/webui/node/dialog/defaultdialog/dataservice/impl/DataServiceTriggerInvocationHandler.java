@@ -56,16 +56,16 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.ConvertValueUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.LocationAndType;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.WidgetGroup;
 
 /**
  * Used to convert triggers to a list of resulting updates given a map of dependencies.
@@ -76,10 +76,10 @@ final class DataServiceTriggerInvocationHandler {
 
     private final TriggerInvocationHandler<String> m_triggerInvocationHandler;
 
-    private final DefaultNodeSettingsContext m_context;
+    private final NodeParametersInput m_context;
 
     DataServiceTriggerInvocationHandler(final Map<SettingsType, Class<? extends WidgetGroup>> settingsClasses,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         final var widgetTreeFactory = new WidgetTreeFactory();
         final var widgetTrees = settingsClasses.entrySet().stream()
             .map(entry -> widgetTreeFactory.createTree(entry.getValue(), entry.getKey())).toList();
@@ -99,7 +99,7 @@ final class DataServiceTriggerInvocationHandler {
     }
 
     private static Object parseValue(final Object rawDependencyObject, final Type type,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         return ConvertValueUtil.convertValue(rawDependencyObject, type, context);
     }
 

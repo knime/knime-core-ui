@@ -53,11 +53,11 @@ import static java.lang.reflect.Proxy.newProxyInstance;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.node.parameters.WidgetGroup;
 
 /**
  * Enhances the JSON schema for K-Ai by adding missing information that is not needed in the dialogs.

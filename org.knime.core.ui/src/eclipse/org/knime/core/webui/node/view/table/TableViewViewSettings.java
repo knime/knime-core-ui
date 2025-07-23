@@ -54,46 +54,47 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.webui.node.dialog.configmapping.ConfigMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migrate;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Migration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsMigration;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persist;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.StringArrayToColumnFilterMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.selection.SelectionCheckboxesToSelectionModeMigration;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.selection.SelectionMode;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Label;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.AllColumnsProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.BooleanReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect.EffectType;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MaxValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.view.table.TableViewLayout.DataSection;
 import org.knime.core.webui.node.view.table.TableViewLayout.InteractivitySection;
 import org.knime.core.webui.node.view.table.TableViewLayout.ViewSection;
 import org.knime.core.webui.node.view.table.TableViewViewSettings.RowHeightMode.CompactModeAndLegacyRowHeightModePersistor;
 import org.knime.core.webui.node.view.table.TableViewViewSettings.VerticalPaddingMode.VerticalPaddingModePersistor;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.Migrate;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
+import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.EffectPredicate;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.Effect.EffectType;
+import org.knime.node.parameters.updates.util.BooleanReference;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.util.AllColumnsProvider;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MaxValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  * @author Konrad Amtenbrink, KNIME GmbH, Berlin, Germany
  * @author Christian Albrecht, KNIME GmbH, Konstanz, Germany
  */
 @SuppressWarnings("java:S103") // we accept too long lines
-public class TableViewViewSettings implements DefaultNodeSettings {
+public class TableViewViewSettings implements NodeParameters {
 
     /**
      * Previously, displayedColumnsV2 was called displayedColumns and stored a string array.
@@ -115,13 +116,13 @@ public class TableViewViewSettings implements DefaultNodeSettings {
      *
      * @author Paul Bärnreuther
      */
-    public static final class RemoveDisplayedColumns implements WidgetGroup.Modifier {
+    public static final class RemoveDisplayedColumns implements Modification.Modifier {
 
         private interface DisplayedColumnsWidgetRef extends Modification.Reference {
         }
 
         @Override
-        public void modify(final WidgetGroupModifier group) {
+        public void modify(final Modification.WidgetGroupModifier group) {
             group.find(DisplayedColumnsWidgetRef.class).removeAnnotation(Widget.class);
         }
     }
@@ -240,29 +241,29 @@ public class TableViewViewSettings implements DefaultNodeSettings {
                     + " their gist.")
             CUSTOM;
 
-        class Ref implements Reference<RowHeightMode> {
+        class Ref implements ParameterReference<RowHeightMode> {
 
         }
 
-        static final class IsCustom implements PredicateProvider {
+        static final class IsCustom implements EffectPredicateProvider {
 
             @Override
-            public Predicate init(final PredicateInitializer i) {
+            public EffectPredicate init(final PredicateInitializer i) {
                 return i.getEnum(Ref.class).isOneOf(CUSTOM);
             }
 
         }
 
-        static final class IsAuto implements PredicateProvider {
+        static final class IsAuto implements EffectPredicateProvider {
 
             @Override
-            public Predicate init(final PredicateInitializer i) {
+            public EffectPredicate init(final PredicateInitializer i) {
                 return i.getEnum(Ref.class).isOneOf(AUTO);
             }
 
         }
 
-        static final class CompactModeAndLegacyRowHeightModePersistor implements NodeSettingsMigration<RowHeightMode> {
+        static final class CompactModeAndLegacyRowHeightModePersistor implements NodeParametersMigration<RowHeightMode> {
 
             @Override
             public List<ConfigMigration<RowHeightMode>> getConfigMigrations() {
@@ -286,7 +287,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
 
     static final int DEFAULT_CUSTOM_ROW_HEIGHT = 80;
 
-    static final class CustomRowHeightPersistor implements NodeSettingsMigration<Integer> {
+    static final class CustomRowHeightPersistor implements NodeParametersMigration<Integer> {
 
         @Override
         public List<ConfigMigration<Integer>> getConfigMigrations() {
@@ -334,7 +335,7 @@ public class TableViewViewSettings implements DefaultNodeSettings {
                     + " as possible in given space.")
             COMPACT;
 
-        static final class VerticalPaddingModePersistor implements NodeSettingsMigration<VerticalPaddingMode> {
+        static final class VerticalPaddingModePersistor implements NodeParametersMigration<VerticalPaddingMode> {
 
             @Override
             public List<ConfigMigration<VerticalPaddingMode>> getConfigMigrations() {
@@ -479,8 +480,8 @@ public class TableViewViewSettings implements DefaultNodeSettings {
     /**
      * @param context
      */
-    protected TableViewViewSettings(final DefaultNodeSettingsContext context) {
-        this(context.getDataTableSpecs()[0]);
+    protected TableViewViewSettings(final NodeParametersInput context) {
+        this(context.getInTableSpecs()[0]);
     }
 
     /**

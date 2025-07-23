@@ -61,17 +61,18 @@ import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettingsImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.NodeSettingsToDefaultNodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * A {@link NodeSettingsService} that translates {@link DefaultNodeSettings}-implementations into
+ * A {@link NodeSettingsService} that translates {@link NodeParameters}-implementations into
  * {@link NodeSettings}-objects (on data apply) and vice-versa (initial data).
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
@@ -79,14 +80,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 final class DefaultNodeSettingsService implements NodeSettingsService {
 
-    private final Map<SettingsType, Class<? extends DefaultNodeSettings>> m_settingsClasses;
+    private final Map<SettingsType, Class<? extends NodeParameters>> m_settingsClasses;
 
     private final DefaultTextToNodeSettingsConverter m_textToNodeSettingsConverter;
 
     /**
-     * @param settingsClasses map that associates a {@link DefaultNodeSettings} class-with a {@link SettingsType}
+     * @param settingsClasses map that associates a {@link NodeParameters} class-with a {@link SettingsType}
      */
-    public DefaultNodeSettingsService(final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses) {
+    public DefaultNodeSettingsService(final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses) {
         m_settingsClasses = settingsClasses;
         m_textToNodeSettingsConverter = new DefaultTextToNodeSettingsConverter(settingsClasses);
     }
@@ -118,7 +119,7 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
         return jsonToString(root);
     }
 
-    private static void addPersist(final ObjectNode root, final Map<SettingsType, DefaultNodeSettings> loadedSettings) {
+    private static void addPersist(final ObjectNode root, final Map<SettingsType, NodeParameters> loadedSettings) {
         final var persistTreeFactory = new PersistTreeFactory();
         final var persistTrees = map(loadedSettings, (type, s) -> persistTreeFactory.createTree(s.getClass(), type));
         PersistUtil.addPersist(root, persistTrees);
@@ -128,12 +129,12 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
     public void validateNodeSettingsAndVariables(final Map<SettingsType, NodeAndVariableSettingsRO> settings)
         throws InvalidSettingsException {
         for (var entry : settings.entrySet()) {
-            DefaultNodeSettings.loadSettings(entry.getValue(), m_settingsClasses.get(entry.getKey()));
+            NodeParametersUtil.loadSettings(entry.getValue(), m_settingsClasses.get(entry.getKey()));
         }
     }
 
-    private static DefaultNodeSettingsContext createContext(final PortObjectSpec[] specs) {
-        return DefaultNodeSettings.createDefaultNodeSettingsContext(specs);
+    private static NodeParametersInput createContext(final PortObjectSpec[] specs) {
+        return NodeParametersUtil.createDefaultNodeSettingsContext(specs);
     }
 
     /**

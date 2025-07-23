@@ -51,9 +51,9 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.ValidationOptions;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MaxLengthValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.MinLengthValidation;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.MaxLengthValidation;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.MinLengthValidation;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation;
 
 /**
  * Renderer to input a text value.

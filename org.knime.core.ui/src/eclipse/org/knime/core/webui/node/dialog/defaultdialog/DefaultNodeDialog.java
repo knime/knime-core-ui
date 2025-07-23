@@ -65,13 +65,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.Fi
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.DefaultNodeDialogDataServiceImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.FlowVariableDataServiceImpl;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.WidgetGroup;
 
 /**
  * Default node dialog implementation where all the dialog widgets are defined through a
- * {@link DefaultNodeSettings}-implementation.
+ * {@link NodeParameters}-implementation.
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
@@ -84,7 +85,7 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
 
     private final OnApplyNodeModifier m_onApplyModifier;
 
-    private final Map<SettingsType, Class<? extends DefaultNodeSettings>> m_settingsClasses;
+    private final Map<SettingsType, Class<? extends NodeParameters>> m_settingsClasses;
 
     /**
      * Creates a new instance.
@@ -93,7 +94,7 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
      * @param settingsClass the class which defining the dialog
      */
     public DefaultNodeDialog(final SettingsType settingsType,
-        final Class<? extends DefaultNodeSettings> settingsClass) {
+        final Class<? extends NodeParameters> settingsClass) {
         this(settingsType, settingsClass, null);
     }
 
@@ -106,7 +107,7 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
      *            invoked when cleaning up the {@link ApplyDataService} created in
      *            {@link NodeContainerNodeDialogAdapter#createApplyDataService()}
      */
-    public DefaultNodeDialog(final SettingsType settingsType, final Class<? extends DefaultNodeSettings> settingsClass,
+    public DefaultNodeDialog(final SettingsType settingsType, final Class<? extends NodeParameters> settingsClass,
         final OnApplyNodeModifier onApplyModifier) {
         m_settingsTypes = Set.of(settingsType);
         m_settingsClasses = Map.of(settingsType, settingsClass);
@@ -124,8 +125,8 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
      *
      */
     public DefaultNodeDialog(final SettingsType settingsType1,
-        final Class<? extends DefaultNodeSettings> settingsClass1, final SettingsType settingsType2,
-        final Class<? extends DefaultNodeSettings> settingsClass2) {
+        final Class<? extends NodeParameters> settingsClass1, final SettingsType settingsType2,
+        final Class<? extends NodeParameters> settingsClass2) {
         this(settingsType1, settingsClass1, settingsType2, settingsClass2, null);
     }
 
@@ -141,8 +142,8 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
      *            {@link NodeContainerNodeDialogAdapter#createApplyDataService()}
      */
     public DefaultNodeDialog(final SettingsType settingsType1,
-        final Class<? extends DefaultNodeSettings> settingsClass1, final SettingsType settingsType2,
-        final Class<? extends DefaultNodeSettings> settingsClass2, final OnApplyNodeModifier onApplyModifier) {
+        final Class<? extends NodeParameters> settingsClass1, final SettingsType settingsType2,
+        final Class<? extends NodeParameters> settingsClass2, final OnApplyNodeModifier onApplyModifier) {
         m_settingsTypes = Set.of(settingsType1, settingsType2);
         m_settingsClasses = Map.of(settingsType1, settingsClass1, settingsType2, settingsClass2);
         m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses);
@@ -197,7 +198,7 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
     }
 
     private static Collection<Tree<WidgetGroup>>
-        createWidgetTrees(final Collection<Class<? extends DefaultNodeSettings>> settings) {
+        createWidgetTrees(final Collection<Class<? extends NodeParameters>> settings) {
         final var factory = new WidgetTreeFactory();
         return settings.stream().map(factory::createTree).toList();
     }

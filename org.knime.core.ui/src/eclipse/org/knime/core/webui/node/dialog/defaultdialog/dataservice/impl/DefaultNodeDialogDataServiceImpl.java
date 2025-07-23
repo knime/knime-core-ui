@@ -60,20 +60,21 @@ import java.util.concurrent.ExecutionException;
 
 import org.knime.core.webui.data.DataServiceContext;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DataServiceRequestHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultNodeDialogDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Result;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActionHandler;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.UpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.ErrorHandlingSingleton;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ExternalBuiltInValidationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ExternalValidation;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.WidgetGroup;
 
 /**
  * Implementation of the DefaultNodeDialogDataService.
@@ -96,10 +97,10 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
     private DataServiceTriggerInvocationHandler m_triggerInvocationHandler;
 
     /**
-     * @param settingsClasses the classes of the {@link DefaultNodeSettings} associated to the dialog.
+     * @param settingsClasses the classes of the {@link NodeParameters} associated to the dialog.
      */
     public DefaultNodeDialogDataServiceImpl(
-        final Map<SettingsType, Class<? extends DefaultNodeSettings>> settingsClasses) {
+        final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses) {
         m_keyToSettingsClassMap = new EnumMap<>(SettingsType.class);
         settingsClasses.forEach(m_keyToSettingsClassMap::put);
         m_buttonActionHandlers = new ButtonWidgetActionHandlerHolder(m_keyToSettingsClassMap.values());
@@ -115,8 +116,8 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         return m_triggerInvocationHandler;
     }
 
-    static DefaultNodeSettingsContext createContext() {
-        return DefaultNodeSettings.createDefaultNodeSettingsContext(DataServiceContext.get().getInputSpecs());
+    static NodeParametersInput createContext() {
+        return NodeParametersUtil.createDefaultNodeSettingsContext(DataServiceContext.get().getInputSpecs());
     }
 
     @Override

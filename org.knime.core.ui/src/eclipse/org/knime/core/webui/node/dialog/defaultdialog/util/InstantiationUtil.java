@@ -52,8 +52,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import org.knime.core.node.NodeLogger;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  *
@@ -72,11 +72,11 @@ public final class InstantiationUtil {
      * @param <T> the type of the instance
      * @param clazz
      * @param context a settings creation context
-     * @return the instance provided by the constructor of clazz which takes a single {@link DefaultNodeSettingsContext}
+     * @return the instance provided by the constructor of clazz which takes a single {@link NodeParametersInput}
      *         as a parameter.
      */
-    public static <T extends DefaultNodeSettings> T createDefaultNodeSettings(final Class<T> clazz,
-        final DefaultNodeSettingsContext context) {
+    public static <T extends NodeParameters> T createDefaultNodeSettings(final Class<T> clazz,
+        final NodeParametersInput context) {
         @SuppressWarnings("unchecked")
         final var settings = (T)createInstanceWithContext(clazz, context);
         return settings;
@@ -85,12 +85,12 @@ public final class InstantiationUtil {
     /**
      * @param clazz
      * @param context a settings creation context
-     * @return the instance provided by the constructor of clazz which takes a single {@link DefaultNodeSettingsContext}
+     * @return the instance provided by the constructor of clazz which takes a single {@link NodeParametersInput}
      *         as a parameter.
      */
-    public static Object createInstanceWithContext(final Class<?> clazz, final DefaultNodeSettingsContext context) {
+    public static Object createInstanceWithContext(final Class<?> clazz, final NodeParametersInput context) {
         try {
-            return createInstance(clazz.getDeclaredConstructor(DefaultNodeSettingsContext.class), context);
+            return createInstance(clazz.getDeclaredConstructor(NodeParametersInput.class), context);
         } catch (NoSuchMethodException ex) { // NOSONAR
         }
         return createInstance(clazz);

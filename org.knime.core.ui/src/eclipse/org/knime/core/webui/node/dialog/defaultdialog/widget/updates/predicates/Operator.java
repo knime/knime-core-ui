@@ -48,12 +48,12 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Predicate;
+import org.knime.node.parameters.updates.EffectPredicate;
 
 /**
  * An predicate defining how to logically combine other predicates.
  *
  * @author Paul Bärnreuther
  */
-public sealed interface Operator extends Predicate permits And, Or, Not {
+public sealed interface Operator extends EffectPredicate permits And, Or, Not {
 }

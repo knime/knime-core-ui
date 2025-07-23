@@ -91,10 +91,10 @@ import org.knime.core.node.config.base.JSONConfig.WriterConfig;
 import org.knime.core.node.message.Message;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.NodeSettingsPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.Persistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsLoaderFactory;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.Persistor;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -112,7 +112,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * @author Paul Bärnreuther
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public final class DynamicValuesInput implements PersistableSettings {
+public final class DynamicValuesInput implements Persistable {
 
     private static final JavaToDataCellConverterRegistry TO_DATACELL = JavaToDataCellConverterRegistry.getInstance();
 
@@ -298,7 +298,7 @@ public final class DynamicValuesInput implements PersistableSettings {
     @Persistor(DynamicValuePersistor.class)
     @JsonSerialize(using = DynamicValueSerializer.class)
     @JsonDeserialize(using = DynamicValueDeserializer.class)
-    static class DynamicValue implements PersistableSettings {
+    static class DynamicValue implements Persistable {
 
         /**
          * Target type, i.e. the type of the input column at configuration time.
@@ -688,7 +688,7 @@ public final class DynamicValuesInput implements PersistableSettings {
         }
     }
 
-    static class DynamicValuePersistor implements NodeSettingsPersistor<DynamicValue> {
+    static class DynamicValuePersistor implements NodeParametersPersistor<DynamicValue> {
 
         @Override
         public DynamicValue load(final NodeSettingsRO settings) throws InvalidSettingsException {

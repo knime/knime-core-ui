@@ -54,18 +54,18 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.layout.CheckboxesWithVennDiagram;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.After;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.HorizontalLayout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Section;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.VerticalLayout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
+import org.knime.node.parameters.Advanced;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.layout.After;
+import org.knime.node.parameters.layout.HorizontalLayout;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.layout.VerticalLayout;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -82,19 +82,19 @@ class JsonFormsUiSchemaUtilTest {
     }
 
     static ObjectNode buildUiSchema(final Map<SettingsType, Class<? extends WidgetGroup>> settings,
-        final DefaultNodeSettingsContext context) {
+        final NodeParametersInput context) {
         return JsonFormsUiSchemaUtil.buildUISchema(settings.entrySet().stream()
             .map(e -> new WidgetTreeFactory().createTree(e.getValue(), e.getKey())).toList(), context
             );
     }
 
-    static ObjectNode buildTestUiSchema(final Class<? extends DefaultNodeSettings> settingsClass) {
+    static ObjectNode buildTestUiSchema(final Class<? extends NodeParameters> settingsClass) {
         return buildUiSchema(Map.of(SettingsType.MODEL, settingsClass));
     }
 
 
-    static ObjectNode buildTestUiSchema(final Class<? extends DefaultNodeSettings> settingsClass,
-        final DefaultNodeSettingsContext context) {
+    static ObjectNode buildTestUiSchema(final Class<? extends NodeParameters> settingsClass,
+        final NodeParametersInput context) {
         return buildUiSchema(Map.of(SettingsType.MODEL, settingsClass), context);
     }
 
@@ -113,7 +113,7 @@ class JsonFormsUiSchemaUtilTest {
     }
 
     @Layout(TestSettingsLayout.class)
-    class DummySettings implements DefaultNodeSettings {
+    class DummySettings implements NodeParameters {
 
         @Widget(title = "", description = "")
         @Layout(TestSettingsLayout.Section1.class)
@@ -153,7 +153,7 @@ class JsonFormsUiSchemaUtilTest {
         String m_sub2;
     }
 
-    class TestControlSettings implements DefaultNodeSettings {
+    class TestControlSettings implements NodeParameters {
         @Widget(title = "", description = "")
         String m_normalSetting;
 
@@ -180,7 +180,7 @@ class JsonFormsUiSchemaUtilTest {
     @Test
     void testHiddenSettings() throws JsonProcessingException {
         @SuppressWarnings("unused")
-        class TestHiddenSettings implements DefaultNodeSettings {
+        class TestHiddenSettings implements NodeParameters {
             @Widget(title = "", description = "")
             String m_normalSetting;
 
@@ -202,7 +202,7 @@ class JsonFormsUiSchemaUtilTest {
             }
         }
 
-        class TestHorizontalLayoutSettings implements DefaultNodeSettings {
+        class TestHorizontalLayoutSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestHorizontalLayout.HorizontalGroup.class)
             String m_setting1;
@@ -224,7 +224,7 @@ class JsonFormsUiSchemaUtilTest {
     @Test
     void testVerticalLayout() {
 
-        class TestHorizontalLayoutSettings implements DefaultNodeSettings {
+        class TestHorizontalLayoutSettings implements NodeParameters {
 
             //   [ ] Use hour   [ ] Use minute
             //   Hours          Minutes
@@ -288,7 +288,7 @@ class JsonFormsUiSchemaUtilTest {
             }
         }
 
-        class TestHorizontalLayoutSettings implements DefaultNodeSettings {
+        class TestHorizontalLayoutSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestVennDiagramLayout.Venn.class)
             String m_inner;

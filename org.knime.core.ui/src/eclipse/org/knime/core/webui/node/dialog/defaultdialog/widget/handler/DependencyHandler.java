@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.handler;
 
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
+import org.knime.node.parameters.NodeParameters;
 
 /**
  *
@@ -68,7 +68,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
  *
  *            class MyActionHandler implements DialogDataServiceHandler<String, OtherSettings>
  *
- *            class MyNodeViewSettings extends DefaultNodeSettings {
+ *            class MyNodeViewSettings extends NodeParameters {
  *
  *                &#64;Widget
  *                &#64;ButtonWidget(actionHandler = MyActionHandler)
@@ -79,15 +79,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
  *
  *            }
  *
- *            class MyNodeModelSettings extends DefaultNodeSettings {
+ *            class MyNodeModelSettings extends NodeParameters {
  *                &#64;Widget
  *                String m_bar;
  *            }
  *
  * </pre>
  *
- * For simple scenarios where there is only one {@link DefaultNodeSettings} class used and a setting should depend on
- * all other settings, the {@link DefaultNodeSettings} class itself can be directly used as the generic class.
+ * For simple scenarios where there is only one {@link NodeParameters} class used and a setting should depend on
+ * all other settings, the {@link NodeParameters} class itself can be directly used as the generic class.
  *
  * @param <S> the settings, the handler is depending on.
  *

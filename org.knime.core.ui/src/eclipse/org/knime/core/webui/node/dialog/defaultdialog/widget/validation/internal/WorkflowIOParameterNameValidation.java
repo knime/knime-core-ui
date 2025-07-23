@@ -30,7 +30,7 @@ import org.knime.core.node.dialog.DialogNode;
 import org.knime.core.node.dialog.InputNode;
 import org.knime.core.node.dialog.OutputNode;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.TextInputWidgetValidation.PatternValidation;
+import org.knime.node.parameters.widget.text.TextInputWidgetValidation.PatternValidation;
 
 /**
  * Validator for workflow input/output (cp. {@link InputNode}/{@link OutputNode}) parameter names in dialogs (see also

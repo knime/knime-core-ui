@@ -50,9 +50,9 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
 import java.util.Objects;
 
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.api.PersistableSettings;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
+import org.knime.node.parameters.persistence.Persistable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -63,7 +63,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author Paul Bärnreuther
  */
-public final class FileSelection implements PersistableSettings {
+public final class FileSelection implements Persistable {
 
     @JsonProperty("path")
     public FSLocation m_path;

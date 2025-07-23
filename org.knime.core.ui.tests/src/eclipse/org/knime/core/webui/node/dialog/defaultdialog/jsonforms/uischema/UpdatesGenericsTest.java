@@ -60,17 +60,17 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Reference;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.StateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueProvider;
+import org.knime.node.parameters.updates.ValueReference;
 
 class UpdatesGenericsTest {
-    static final class MyReference implements Reference<List<String>> {
+    static final class MyReference implements ParameterReference<List<String>> {
     }
 
     static final class MyProvider implements StateProvider<List<String>> {
@@ -84,7 +84,7 @@ class UpdatesGenericsTest {
         }
 
         @Override
-        public List<String> computeState(final DefaultNodeSettingsContext context) {
+        public List<String> computeState(final NodeParametersInput context) {
             return m_valueSupplier.get();
         }
 
@@ -93,7 +93,7 @@ class UpdatesGenericsTest {
     @Test
     void testWithGenerics() {
 
-        class TestSettings implements DefaultNodeSettings {
+        class TestSettings implements NodeParameters {
 
             @ValueReference(MyReference.class)
             List<String> m_list = List.of("a", "b");
@@ -112,7 +112,7 @@ class UpdatesGenericsTest {
      */
     @Test
     void testWithWrongGenerics() {
-        class WrongGenericTestSettings implements DefaultNodeSettings {
+        class WrongGenericTestSettings implements NodeParameters {
 
             @ValueReference(MyReference.class)
             List<Integer> m_list = List.of(1, 2);
@@ -129,7 +129,7 @@ class UpdatesGenericsTest {
 
     @Test
     void testWithWrongRawClass() {
-        class WrongRawClassTestSettings implements DefaultNodeSettings {
+        class WrongRawClassTestSettings implements NodeParameters {
 
             @ValueReference(MyReference.class)
             Map<String, String> m_list;
@@ -137,15 +137,15 @@ class UpdatesGenericsTest {
         }
         final var settings = new WrongRawClassTestSettings();
         assertThat(assertThrows(UiSchemaGenerationException.class, () -> buildUpdates(settings)).getMessage())
-            .isEqualTo("The generic type \"List\" of the Reference \"MyReference\" does not "
+            .isEqualTo("The generic type \"List\" of the ParameterReference \"MyReference\" does not "
                 + "match the type \"Map\" of the annotated field");
     }
 
     @Test
     void testValueReferenceWithTypeReference() {
-        class WildcardTestSettings implements DefaultNodeSettings {
+        class WildcardTestSettings implements NodeParameters {
 
-            static final class MyWildcardReference implements Reference<Optional<?>> {
+            static final class MyWildcardReference implements ParameterReference<Optional<?>> {
             }
 
             static final class ExtractFromOptional implements StateProvider<String> {
@@ -160,7 +160,7 @@ class UpdatesGenericsTest {
                 }
 
                 @Override
-                public String computeState(final DefaultNodeSettingsContext context) {
+                public String computeState(final NodeParametersInput context) {
                     return m_valueSupplier.get().get();
                 }
             }
@@ -188,7 +188,7 @@ class UpdatesGenericsTest {
         class MiddleSettings<C extends EmptySettings> implements WidgetGroup {
             C m_widgetGroup;
         }
-        class AbstractTestSettings<C extends EmptySettings> implements DefaultNodeSettings {
+        class AbstractTestSettings<C extends EmptySettings> implements NodeParameters {
             MiddleSettings<C> m_middleSettings;
         }
 

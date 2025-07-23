@@ -69,37 +69,37 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteD
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.Layout;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup;
-import org.knime.core.webui.node.dialog.defaultdialog.layout.WidgetGroup.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Advanced;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ArrayWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.NumberInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.OptionalWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RadioButtonsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.RichTextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextAreaWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextInputWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TextMessage;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.TwinlistWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.ValueSwitchWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Widget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.ChoicesProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.column.ColumnFilterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.choices.variable.FlowVariableFilterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.CredentialsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.PasswordWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.credentials.UsernameWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.Effect;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.PredicateProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.ValueReference;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.node.parameters.Advanced;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.updates.Effect;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ValueProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.widget.OptionalWidget;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilterWidget;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilterWidget;
+import org.knime.node.parameters.widget.choices.filter.TwinlistWidget;
+import org.knime.node.parameters.widget.credentials.CredentialsWidget;
+import org.knime.node.parameters.widget.credentials.PasswordWidget;
+import org.knime.node.parameters.widget.credentials.UsernameWidget;
+import org.knime.node.parameters.widget.message.TextMessage;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.text.RichTextInputWidget;
+import org.knime.node.parameters.widget.text.TextAreaWidget;
+import org.knime.node.parameters.widget.text.TextInputWidget;
 
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 
@@ -266,7 +266,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         final Class<T> annotationClass) {
         if (Effect.class.equals(annotationClass)) {
             final var widgetAnnotation = field.getAnnotation(Widget.class);
-            if (widgetAnnotation != null && !PredicateProvider.class.equals(widgetAnnotation.effect().predicate())) {
+            if (widgetAnnotation != null && !EffectPredicateProvider.class.equals(widgetAnnotation.effect().predicate())) {
                 if (field.getAnnotation(Effect.class) != null) {
                     throw new IllegalStateException(String.format(
                         "Conflicting Effect annotations on field and inside Widget annotation for field %s",

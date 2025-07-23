@@ -58,11 +58,11 @@ import java.util.function.BiConsumer;
 import org.knime.core.webui.node.dialog.PersistSchema;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.VariableSettingsRO;
-import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettings.DefaultNodeSettingsContext;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.TextToJsonUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil;
+import org.knime.node.parameters.NodeParametersInput;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -118,7 +118,7 @@ public final class DefaultNodeDialogDataServiceUtil {
          * @return this builder
          */
         public InitialDataBuilder withFlowVariables(final Map<SettingsType, VariableSettingsRO> flowVariables,
-            final DefaultNodeSettingsContext context) {
+            final NodeParametersInput context) {
             m_flowVariableSettings = VariableSettingsUtil.getVariableSettingsJson(flowVariables, context);
             return this;
         }
