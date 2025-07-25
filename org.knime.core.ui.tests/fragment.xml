@@ -20,5 +20,11 @@
             factory-class="org.knime.core.ui.workflowcoach.TestNodeTripleProviderFactory">
       </tripleprovider>
    </extension>
+   <extension
+         point="org.knime.core.NodeExecutionJobManagerFactory">
+      <NodeExecutionJobManagerFactory
+            JobManagerFactory="org.knime.core.webui.node.dialog.TestJobManagerFactory">
+      </NodeExecutionJobManagerFactory>
+   </extension>
 
 </fragment>

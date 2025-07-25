@@ -118,7 +118,8 @@ public final class SettingsExtractor {
 
                 final var settingsOrDefault =
                     settings.type == Result.Type.NONE ? getDefaultSettings(type) : settings.result;
-                final var variableSettings = new VariableSettings(snc.getNodeSettings(), type);
+                final var variableSettings = new VariableSettings(type == SettingsType.JOB_MANAGER
+                    ? new NodeSettings(type.getVariablesConfigKey()) : snc.getNodeSettings(), type);
                 if (settings.type == Result.Type.OVERWRITTEN && hasControllingVariables(variableSettings)) {
                     overwrittenSettingsLoaded = true;
                 }
@@ -170,14 +171,19 @@ public final class SettingsExtractor {
      */
     private static Result getSettingsOverwrittenByFlowVariables(final SettingsType settingsType,
         final SingleNodeContainer nnc) {
+        if (settingsType == SettingsType.JOB_MANAGER) {
+            return Result.nonOverwritten(getJobManagerSettings(nnc));
+        }
         if (nnc.getFlowObjectStack() != null) {
             try {
                 // a flow object stack is available (usually in case the node is connected)
-                if (settingsType == SettingsType.VIEW) {
-                    return nnc.getViewSettingsUsingFlowObjectStack().map(Result::overwritten).orElseGet(Result::none);
-                } else {
-                    return Result.overwritten(nnc.getModelSettingsUsingFlowObjectStack());
-                }
+                return switch (settingsType) {
+                    case VIEW -> nnc.getViewSettingsUsingFlowObjectStack().map(Result::overwritten)
+                        .orElseGet(Result::none);
+                    case MODEL -> Result.overwritten(nnc.getModelSettingsUsingFlowObjectStack());
+                    case JOB_MANAGER -> throw new IllegalStateException(String
+                        .format("Extracting settings of type %s should have been already handled.", settingsType));
+                };
             } catch (InvalidSettingsException ex) {
                 LoadWarningsUtil.warnAboutVariableOverridesBeingIgnored(ex);
                 return getSettingsWithoutFlowVariableOverrides(settingsType, nnc);
@@ -214,6 +220,8 @@ public final class SettingsExtractor {
             switch (type) {
                 case MODEL -> nnc.getNode().saveModelSettingsTo(settings);
                 case VIEW -> nnc.getNode().saveDefaultViewSettingsTo(settings);
+                case JOB_MANAGER -> throw new IllegalStateException(
+                    String.format("The settings type %s has no default settings.", type));
             }
             return settings;
         } else {
@@ -272,6 +280,18 @@ public final class SettingsExtractor {
             LOGGER.warn(String.format("Unable to resolve variable settings for key '%s'.", key), ex);
             return false;
         }
+    }
+
+    private static NodeSettings getJobManagerSettings(final SingleNodeContainer nnc) {
+        try {
+            final var nodeSettings = nnc.getNodeSettings();
+            if (nodeSettings.containsKey(SettingsType.JOB_MANAGER.getConfigKey())) {
+                return nodeSettings.getNodeSettings(SettingsType.JOB_MANAGER.getConfigKey());
+            }
+        } catch (InvalidSettingsException ex) { //NOSONAR
+            // should never happen because we explicitly check whether the job manager settings are available
+        }
+        return new NodeSettings("empty-job-manager");
     }
 
 }

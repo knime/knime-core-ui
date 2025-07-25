@@ -110,10 +110,16 @@ final class RendererSpecsToImperativeRefsAndStateProviders {
     }
 
     private static Location rendererPathToLocation(final List<String> path) {
-        if (path.isEmpty() || !path.get(0).equals(SettingsType.MODEL.getConfigKey())) {
-            throw new IllegalStateException("Unexpected path within control renderer: " + path);
+        if (!path.isEmpty()) {
+            final var subPath = List.of(path.subList(1, path.size()));
+            if (path.get(0).equals(SettingsType.MODEL.getConfigKeyFrontend())) {
+                return new Location(subPath, SettingsType.MODEL);
+            }
+            if (path.get(0).equals(SettingsType.JOB_MANAGER.getConfigKeyFrontend())) {
+                return new Location(subPath, SettingsType.JOB_MANAGER);
+            }
         }
-        return new Location(List.of(path.subList(1, path.size())), SettingsType.MODEL);
+        throw new IllegalStateException("Unexpected path within control renderer: " + path);
     }
 
 }

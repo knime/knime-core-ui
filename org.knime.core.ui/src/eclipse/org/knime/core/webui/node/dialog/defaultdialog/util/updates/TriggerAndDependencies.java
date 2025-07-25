@@ -128,7 +128,7 @@ public class TriggerAndDependencies {
         final NodeParametersInput context, final int... triggerIndices) {
         final Map<SettingsType, JsonNode> dataJsonPerSettingsType = new EnumMap<>(SettingsType.class);
         Stream.of(SettingsType.values()).forEach(settingsType -> {
-            final var configKey = settingsType.getConfigKey();
+            final var configKey = settingsType.getConfigKeyFrontend();
             if (dataJson.has(configKey)) {
                 dataJsonPerSettingsType.put(settingsType, dataJson.get(configKey));
             }

@@ -49,7 +49,10 @@
 package org.knime.core.webui.node.dialog.defaultdialog.components;
 
 import static org.knime.core.node.workflow.SubNodeContainer.getDialogNodeParameterName;
+import static org.knime.core.webui.node.dialog.SettingsType.JOB_MANAGER;
 import static org.knime.core.webui.node.dialog.SettingsType.MODEL;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.Schema.TAG_TYPE;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_LABEL;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil.toSchemaConstructor;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil.toUiSchemaElement;
 import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.TextToJsonUtil.textToJson;
@@ -89,6 +92,7 @@ import org.knime.core.webui.node.dialog.configmapping.NodeSettingsCorrectionUtil
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogDataServiceUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.UpdatesUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersSubNodeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
@@ -163,6 +167,29 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
             uiSchemaElements.addObject().setAll(toUiSchemaElement(renderer));
             toSchemaConstructor(renderer).apply(schema);
         }
+
+        final var modelPersistSchema = new PersistTreeSchemaRecord(persistSchemas);
+        final var persistSchemaMap = new HashMap<String, PersistSchema>();
+        persistSchemaMap.put(MODEL.getConfigKey(), modelPersistSchema);
+
+        final var jobManagerSettings = settings.get(JOB_MANAGER);
+        if (JobManagerParametersSubNodeUtil.showJobManagerSettings(jobManagerSettings)) {
+            JobManagerParametersSubNodeUtil.setSelectedValues(data, jobManagerSettings);
+            JobManagerParametersSubNodeUtil.setPersistSchema(persistSchemaMap);
+
+            final var jobManagerUiSchema = uiSchemaElements.addObject();
+            jobManagerUiSchema.put(TAG_LABEL, "Job manager selection");
+            jobManagerUiSchema.put(TAG_TYPE, "Section");
+            final var jobManagerUiSchemaElements = jobManagerUiSchema.putArray(UiSchema.TAG_ELEMENTS);
+
+            final var renderersAndUiSchemas = JobManagerParametersSubNodeUtil.getJobManagerSubNodeSettings();
+            for (var rendererAndUiSchema : renderersAndUiSchemas) {
+                m_renderers.add(rendererAndUiSchema.renderer());
+                jobManagerUiSchemaElements.addObject().setAll(rendererAndUiSchema.uiSchema());
+                toSchemaConstructor(rendererAndUiSchema.renderer()).apply(schema);
+            }
+        }
+
         final var jsonFormsSettings = new JsonFormsSettings() {
 
             @Override
@@ -181,9 +208,7 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
             }
         };
 
-        final var modelPersistSchema = new PersistTreeSchemaRecord(persistSchemas);
-        final var persistSchema =
-            new PersistTreeSchemaRecord(Map.of(SettingsType.MODEL.getConfigKey(), modelPersistSchema));
+        final var persistSchema = new PersistTreeSchemaRecord(persistSchemaMap);
 
         final var context = createContext(specs);
         return new DefaultNodeDialogDataServiceUtil.InitialDataBuilder(jsonFormsSettings)
@@ -232,11 +257,11 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
     @Override
     public void toNodeSettings(final String jsonSettings, //
         final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings, //
-        final Map<SettingsType, NodeAndVariableSettingsWO> settings //
-    ) throws InvalidSettingsException {
+        final Map<SettingsType, NodeAndVariableSettingsWO> settings) throws InvalidSettingsException {
         JsonNode root = textToJson(jsonSettings);
         final var extractedModelSettings = new NodeSettings("extracted model settings");
-        final var modelSettingsJson = root.get("data").get("model");
+        final var dataJson = root.get("data");
+        final var modelSettingsJson = dataJson.get("model");
         for (var dialogSubNode : m_orderedDialogNodes.get()) {
             saveSettingsForSubNode(previousSettings, extractedModelSettings, modelSettingsJson, dialogSubNode);
         }
@@ -246,6 +271,8 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
         extractedModelSettings.copyTo(settings.get(MODEL));
         rootJsonToVariableSettings(root, map(settings));
 
+        final var extractedJobManagerSettings = JobManagerParametersSubNodeUtil.toNodeSettings(dataJson);
+        extractedJobManagerSettings.copyTo(settings.get(JOB_MANAGER));
     }
 
     private static void alignSettingsWithFlowVariables(

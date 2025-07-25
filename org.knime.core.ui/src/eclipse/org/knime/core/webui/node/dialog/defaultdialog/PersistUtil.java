@@ -119,7 +119,7 @@ public final class PersistUtil {
         final var persist = parentNode.putObject("persist");
         final var properties = addObjectProperties(persist);
         final var persistSchemaFactory = new PersistSchemaFactory();
-        persistTrees.entrySet().forEach(entry -> properties.set(entry.getKey().getConfigKey(),
+        persistTrees.entrySet().forEach(entry -> properties.set(entry.getKey().getConfigKeyFrontend(),
             persistSchemaFactory.createPersistSchemaFromTree(entry.getValue())));
     }
 

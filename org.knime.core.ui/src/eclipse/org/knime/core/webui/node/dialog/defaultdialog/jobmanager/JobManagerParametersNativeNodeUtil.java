@@ -44,50 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 7, 2025 (Paul Bärnreuther): created
+ *   30 Jul 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
+package org.knime.core.webui.node.dialog.defaultdialog.jobmanager;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
+import static org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil.DEFAULT_JOB_MANAGER_FACTORY;
 
+import java.util.Map;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.WidgetGroup;
+import org.knime.core.webui.node.dialog.internal.SettingsApplier;
+import org.knime.shared.workflow.storage.multidir.util.IOConst;
 
 /**
- * Common adapter logic from a TreeNode<WidgetGroup> to a ControlRendererSpec
+ * Utility class to handle native node specific job manager functionality. Currently only the default job managers is
+ * supported. Selected non-default job managers must be removed to be able to apply the dialog.
  *
- * @author Paul Bärnreuther
+ * @author Robin Gerling
  */
-abstract class WidgetTreeControlRendererSpec implements ControlRendererSpec {
+public class JobManagerParametersNativeNodeUtil {
 
-    protected final TreeNode<WidgetGroup> m_node;
+    /**
+     * Transforms the job manager settings for further processing.<br/>
+     * Three options are handled:<br/>
+     * 1. settings do not contain job manager sub settings -> keep them as is<br/>
+     * 2. settings contain the factoryid of default manager -> remove factory id from the settings<br/>
+     * 3. settings contain the factoryid of another manager -> throw exception because they are not supported
+     *
+     * {@link SettingsApplier#handleJobManagerSettings} further handles the job manager settings
+     *
+     * @param extractedNodeSettings
+     * @throws InvalidSettingsException
+     */
+    public static final void toNodeSettings(final Map<SettingsType, NodeSettings> extractedNodeSettings)
+        throws InvalidSettingsException {
+        if (!extractedNodeSettings.containsKey(SettingsType.JOB_MANAGER)) {
+            return;
+        }
 
-    protected WidgetTreeControlRendererSpec(final TreeNode<WidgetGroup> node) {
-        m_node = node;
-    }
+        final var jobManagerSettings = extractedNodeSettings.get(SettingsType.JOB_MANAGER);
+        if (!jobManagerSettings.containsKey(IOConst.JOB_MANAGER_FACTORY_ID_KEY.get())) {
+            return;
+        }
 
-    @Override
-    public List<String> getPathWithinValueJsonObject() {
-        return Stream.concat(//
-            Optional.ofNullable(m_node.getSettingsType()).map(SettingsType::getConfigKeyFrontend).stream(),
-            m_node.getPath().stream()//
-        ).toList();
+        final var selectedFactoryId = jobManagerSettings.getString(IOConst.JOB_MANAGER_FACTORY_ID_KEY.get());
+        if (selectedFactoryId.isBlank() || selectedFactoryId.equals(DEFAULT_JOB_MANAGER_FACTORY.getID())) {
+            extractedNodeSettings.put(SettingsType.JOB_MANAGER,
+                new NodeSettings(SettingsType.JOB_MANAGER.getConfigKey()));
+        } else {
+            throw new InvalidSettingsException(
+                "Custom job managers for nodes are not supported. Please select the default job manager.");
+        }
 
-    }
-
-    @Override
-    public String getTitle() {
-        return m_node.getAnnotation(Widget.class).map(Widget::title).orElse("");
-    }
-
-    @Override
-    public Optional<String> getDescription() {
-        return m_node.getAnnotation(Widget.class).map(Widget::description);
     }
 
 }

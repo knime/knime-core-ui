@@ -44,50 +44,74 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 7, 2025 (Paul Bärnreuther): created
+ *   1 Aug 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
+package org.knime.core.webui.node.dialog;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
+import java.io.File;
+import java.io.IOException;
 
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.WidgetGroup;
+import org.knime.core.node.CanceledExecutionException;
+import org.knime.core.node.ExecutionMonitor;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.NodeView;
 
-/**
- * Common adapter logic from a TreeNode<WidgetGroup> to a ControlRendererSpec
- *
- * @author Paul Bärnreuther
- */
-abstract class WidgetTreeControlRendererSpec implements ControlRendererSpec {
+class TestEmptyEmptyNodeFactory extends NodeFactory<NodeModel> {
 
-    protected final TreeNode<WidgetGroup> m_node;
+    @Override
+    public NodeModel createNodeModel() {
+        return new NodeModel(0, 0) {
 
-    protected WidgetTreeControlRendererSpec(final TreeNode<WidgetGroup> node) {
-        m_node = node;
+            @Override
+            protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+                throws IOException, CanceledExecutionException {
+            }
+
+            @Override
+            protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+                throws IOException, CanceledExecutionException {
+            }
+
+            @Override
+            protected void saveSettingsTo(final NodeSettingsWO settings) {
+            }
+
+            @Override
+            protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+            }
+
+            @Override
+            protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+            }
+
+            @Override
+            protected void reset() {
+            }
+        };
     }
 
     @Override
-    public List<String> getPathWithinValueJsonObject() {
-        return Stream.concat(//
-            Optional.ofNullable(m_node.getSettingsType()).map(SettingsType::getConfigKeyFrontend).stream(),
-            m_node.getPath().stream()//
-        ).toList();
-
+    protected int getNrNodeViews() {
+        return 0;
     }
 
     @Override
-    public String getTitle() {
-        return m_node.getAnnotation(Widget.class).map(Widget::title).orElse("");
+    public NodeView<NodeModel> createNodeView(final int viewIndex, final NodeModel nodeModel) {
+        return null;
     }
 
     @Override
-    public Optional<String> getDescription() {
-        return m_node.getAnnotation(Widget.class).map(Widget::description);
+    protected boolean hasDialog() {
+        return false;
     }
 
+    @Override
+    protected NodeDialogPane createNodeDialogPane() {
+        return null;
+    }
 }

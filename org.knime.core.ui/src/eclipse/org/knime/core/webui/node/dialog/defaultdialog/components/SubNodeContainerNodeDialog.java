@@ -142,7 +142,7 @@ public final class SubNodeContainerNodeDialog implements NodeDialog, DefaultNode
 
     @Override
     public Set<SettingsType> getSettingsTypes() {
-        return Set.of(SettingsType.MODEL);
+        return Set.of(SettingsType.MODEL, SettingsType.JOB_MANAGER);
     }
 
     @Override

@@ -90,14 +90,14 @@ final class SubNodeContainerDialogDataConverter implements DefaultDialogDataConv
     }
 
     private static JsonNode getJsonNodeForType(final JsonNode dataJson, final SettingsType type) {
-        return dataJson.get(type.getConfigKey());
+        return dataJson.get(type.getConfigKeyFrontend());
     }
 
     @Override
     public JsonNode nodeSettingsToDataJson(final SettingsType type, final NodeSettingsRO nodeSettings,
         final NodeParametersInput context) throws InvalidSettingsException {
         final var data = FACTORY.objectNode();
-        final var jsonForType = data.putObject(type.getConfigKey());
+        final var jsonForType = data.putObject(type.getConfigKeyFrontend());
         for (var dialogSubNode : m_orderedDialogNodes.get()) {
             final var dialogNode = dialogSubNode.dialogNode();
             final var value = dialogNode.getDefaultValue();

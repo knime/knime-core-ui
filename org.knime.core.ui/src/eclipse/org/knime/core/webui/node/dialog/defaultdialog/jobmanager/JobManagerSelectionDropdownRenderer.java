@@ -44,50 +44,77 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 7, 2025 (Paul Bärnreuther): created
+ *   30 Jul 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
+package org.knime.core.webui.node.dialog.defaultdialog.jobmanager;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil.DEFAULT_JOB_MANAGER_FACTORY;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.WidgetGroup;
+import org.knime.core.node.workflow.NodeExecutionJobManagerFactory;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DropdownRendererSpec;
+import org.knime.node.parameters.widget.choices.StringChoice;
 
 /**
- * Common adapter logic from a TreeNode<WidgetGroup> to a ControlRendererSpec
+ * The job manager selection renderer, which uses a dropdown to display the selectable job managers.
  *
- * @author Paul Bärnreuther
+ * @author Robin Gerling
  */
-abstract class WidgetTreeControlRendererSpec implements ControlRendererSpec {
+final class JobManagerSelectionDropdownRenderer implements DropdownRendererSpec {
 
-    protected final TreeNode<WidgetGroup> m_node;
-
-    protected WidgetTreeControlRendererSpec(final TreeNode<WidgetGroup> node) {
-        m_node = node;
+    record JobManagerFactoryDescription(NodeExecutionJobManagerFactory factory, String description) {
     }
 
-    @Override
-    public List<String> getPathWithinValueJsonObject() {
-        return Stream.concat(//
-            Optional.ofNullable(m_node.getSettingsType()).map(SettingsType::getConfigKeyFrontend).stream(),
-            m_node.getPath().stream()//
-        ).toList();
+    private final List<JobManagerFactoryDescription> m_selectableJobManagers =
+        new ArrayList<>(Arrays.asList(new JobManagerFactoryDescription(DEFAULT_JOB_MANAGER_FACTORY,
+            "The job manager which executes the nodes in the component node by node.")));
 
+    public JobManagerSelectionDropdownRenderer(
+        final Optional<NodeExecutionJobManagerFactory> streamingJobManagerFactory) {
+        if (streamingJobManagerFactory.isPresent()) {
+            m_selectableJobManagers.add(new JobManagerFactoryDescription(streamingJobManagerFactory.get(),
+                "The job manager which executes the nodes in the component concurrently."));
+        }
     }
 
     @Override
     public String getTitle() {
-        return m_node.getAnnotation(Widget.class).map(Widget::title).orElse("");
+        return "Job manager selection";
     }
 
     @Override
     public Optional<String> getDescription() {
-        return m_node.getAnnotation(Widget.class).map(Widget::description);
+        StringBuilder descriptionBuilder = new StringBuilder();
+        descriptionBuilder.append("Select the execution mode of the component.");
+        descriptionBuilder.append("<ul>");
+        m_selectableJobManagers.forEach(factoryDescription -> {
+            descriptionBuilder.append(String.format("<li><b>%s:</b> %s</li>", factoryDescription.factory().getID(),
+                factoryDescription.description()));
+        });
+        descriptionBuilder.append("</ul>");
+
+        return Optional.of(descriptionBuilder.toString());
+    }
+
+    @Override
+    public Optional<DropdownRendererOptions> getOptions() {
+
+        return Optional.of(new DropdownRendererOptions() {
+
+            @Override
+            public Optional<StringChoice[]> getPossibleValues() {
+                return Optional.of(m_selectableJobManagers.stream() //
+                    .map(factoryDescription -> {
+                        final var factory = factoryDescription.factory();
+                        return new StringChoice(factory.getID(), factory.getLabel());
+                    }).toArray(StringChoice[]::new));
+            }
+
+        });
     }
 
 }

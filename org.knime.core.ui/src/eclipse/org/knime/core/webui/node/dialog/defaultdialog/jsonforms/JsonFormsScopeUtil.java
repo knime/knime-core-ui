@@ -86,7 +86,7 @@ public final class JsonFormsScopeUtil {
     public static String toScope(final List<String> path, final SettingsType settingsType) {
         final var pathWithPrefix = new ArrayList<String>(path);
         if (settingsType != null) {
-            pathWithPrefix.add(0, settingsType.getConfigKey());
+            pathWithPrefix.add(0, settingsType.getConfigKeyFrontend());
         }
         pathWithPrefix.add(0, "#");
         return toScope(pathWithPrefix);
@@ -117,7 +117,8 @@ public final class JsonFormsScopeUtil {
      */
     public static String getScopeFromLocation(final Location location) {
         final var firstScope = toScope(Stream
-            .concat(Stream.of("#", location.settingsType().getConfigKey()), location.paths().get(0).stream()).toList());
+            .concat(Stream.of("#", location.settingsType().getConfigKeyFrontend()), location.paths().get(0).stream())
+            .toList());
         final var otherScopes = IntStream.range(1, location.paths().size()).mapToObj(location.paths()::get)
             .map(JsonFormsScopeUtil::toScope);
         final var scopes = Stream.concat(Stream.of(firstScope), otherScopes).toList();

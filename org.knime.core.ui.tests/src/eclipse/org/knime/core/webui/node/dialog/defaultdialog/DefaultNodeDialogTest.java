@@ -458,7 +458,7 @@ public class DefaultNodeDialogTest {
         private static void assertStringInData(final JsonNode initialData, final SettingsType type,
             final List<String> keys, final String expectedValue) {
             final var path = String.join(".", //
-                Stream.concat(Stream.of("$", "result", "data", type.getConfigKey()), keys.stream()).toList());
+                Stream.concat(Stream.of("$", "result", "data", type.getConfigKeyFrontend()), keys.stream()).toList());
             assertThatJson(initialData).inPath(path).isString().isEqualTo(expectedValue);
         }
 

@@ -44,50 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 7, 2025 (Paul Bärnreuther): created
+ *   4 Aug 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
+package org.knime.core.webui.node.dialog;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
+import java.net.URL;
 
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.WidgetGroup;
+import org.knime.core.node.exec.LocalNodeExecutionJob;
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.workflow.AbstractNodeExecutionJobManager;
+import org.knime.core.node.workflow.NodeContainer;
+import org.knime.core.node.workflow.NodeExecutionJob;
+import org.knime.core.node.workflow.NodeExecutionJobManager;
+import org.knime.core.node.workflow.NodeExecutionJobManagerFactory;
+import org.knime.core.node.workflow.SingleNodeContainer;
 
 /**
- * Common adapter logic from a TreeNode<WidgetGroup> to a ControlRendererSpec
+ * A custom job manager for testing purposes
  *
- * @author Paul Bärnreuther
+ * @author Robin Gerling
  */
-abstract class WidgetTreeControlRendererSpec implements ControlRendererSpec {
+public final class TestJobManagerFactory implements NodeExecutionJobManagerFactory {
 
-    protected final TreeNode<WidgetGroup> m_node;
-
-    protected WidgetTreeControlRendererSpec(final TreeNode<WidgetGroup> node) {
-        m_node = node;
+    @Override
+    public String getID() {
+        return getClass().getName();
     }
 
     @Override
-    public List<String> getPathWithinValueJsonObject() {
-        return Stream.concat(//
-            Optional.ofNullable(m_node.getSettingsType()).map(SettingsType::getConfigKeyFrontend).stream(),
-            m_node.getPath().stream()//
-        ).toList();
-
+    public String getLabel() {
+        return "Test Job Manager Factory";
     }
 
     @Override
-    public String getTitle() {
-        return m_node.getAnnotation(Widget.class).map(Widget::title).orElse("");
-    }
+    public NodeExecutionJobManager getInstance() {
+        return new AbstractNodeExecutionJobManager() {
 
-    @Override
-    public Optional<String> getDescription() {
-        return m_node.getAnnotation(Widget.class).map(Widget::description);
-    }
+            @Override
+            public NodeExecutionJob submitJob(final NodeContainer nc, final PortObject[] data) {
+                if (nc instanceof SingleNodeContainer snc) {
+                    return new LocalNodeExecutionJob(null, data);
+                }
+                throw new IllegalStateException(
+                    String.format("%s is not able to execute a metanode", getClass().getSimpleName()));
+            }
 
+            @Override
+            public URL getIcon() {
+                return null;
+            }
+
+            @Override
+            public String getID() {
+                return TestJobManagerFactory.class.getName();
+            }
+        };
+    }
 }

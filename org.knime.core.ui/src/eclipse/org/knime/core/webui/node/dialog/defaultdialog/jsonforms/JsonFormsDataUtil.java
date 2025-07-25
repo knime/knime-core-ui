@@ -184,7 +184,9 @@ public final class JsonFormsDataUtil {
         final var root = getMapper().createObjectNode();
         settings.entrySet().stream() //
             .sorted(Comparator.comparing(Entry::getKey)) //
-            .forEachOrdered(e -> root.set(e.getKey().getConfigKey(), toJsonData(e.getValue())));
+            .forEachOrdered(e -> {
+                root.set(e.getKey().getConfigKeyFrontend(), toJsonData(e.getValue()));
+            });
         return root;
     }
 

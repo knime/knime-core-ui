@@ -44,50 +44,60 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 7, 2025 (Paul Bärnreuther): created
+ *   30 Jul 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
+package org.knime.core.webui.node.dialog.defaultdialog.jobmanager;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
-import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.WidgetGroup;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.IntegerRendererSpec;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MaxValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation.IsPositiveIntegerValidation;
 
 /**
- * Common adapter logic from a TreeNode<WidgetGroup> to a ControlRendererSpec
+ * The chunk size renderer for the streaming job manager using a number input.
  *
- * @author Paul Bärnreuther
+ * @author Robin Gerling
  */
-abstract class WidgetTreeControlRendererSpec implements ControlRendererSpec {
-
-    protected final TreeNode<WidgetGroup> m_node;
-
-    protected WidgetTreeControlRendererSpec(final TreeNode<WidgetGroup> node) {
-        m_node = node;
-    }
-
-    @Override
-    public List<String> getPathWithinValueJsonObject() {
-        return Stream.concat(//
-            Optional.ofNullable(m_node.getSettingsType()).map(SettingsType::getConfigKeyFrontend).stream(),
-            m_node.getPath().stream()//
-        ).toList();
-
-    }
+final class StreamingJobManagerChunkSizeRenderer implements IntegerRendererSpec {
 
     @Override
     public String getTitle() {
-        return m_node.getAnnotation(Widget.class).map(Widget::title).orElse("");
+        return "Chunk size";
+    }
+
+    /*
+     * Description copied from SimpleStreamerNodeExecutionJobManagerPanel
+     */
+    @Override
+    public Optional<String> getDescription() {
+        return Optional.of( //
+            "Determines the size of a batch that is collected at each node before it is handed off to the"
+                + " downstream node. Choosing larger values will reduce synchronization (and hence yield better"
+                + " runtime), whereas small values will make sure that less data is in transit/memory.<br/>"
+                + "For ordinary data (consisting only of strings and numbers) larger values are preferred.");
     }
 
     @Override
-    public Optional<String> getDescription() {
-        return m_node.getAnnotation(Widget.class).map(Widget::description);
+    public Optional<NumberRendererOptions> getOptions() {
+        return Optional.of(new NumberRendererOptions() {
+            @Override
+            public Optional<NumberRendererValidationOptions> getValidation() {
+                return Optional.of(new NumberRendererValidationOptions() {
+
+                    @Override
+                    public Optional<MinValidation> getMin() {
+                        return Optional.of(new IsPositiveIntegerValidation());
+                    }
+
+                    @Override
+                    public Optional<MaxValidation> getMax() {
+                        return Optional.empty();
+                    }
+                });
+            }
+        });
     }
 
 }

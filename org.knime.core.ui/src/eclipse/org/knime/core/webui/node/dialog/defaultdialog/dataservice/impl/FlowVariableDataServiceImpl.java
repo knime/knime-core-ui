@@ -167,9 +167,9 @@ public final class FlowVariableDataServiceImpl implements FlowVariableDataServic
 
     private static SettingsType extractSettingsType(final String firstPathElement) {
         final SettingsType settingsType;
-        if (SettingsType.MODEL.getConfigKey().equals(firstPathElement)) {
+        if (SettingsType.MODEL.getConfigKeyFrontend().equals(firstPathElement)) {
             settingsType = SettingsType.MODEL;
-        } else if (SettingsType.VIEW.getConfigKey().equals(firstPathElement)) {
+        } else if (SettingsType.VIEW.getConfigKeyFrontend().equals(firstPathElement)) {
             settingsType = SettingsType.VIEW;
         } else {
             throw new IllegalArgumentException(String

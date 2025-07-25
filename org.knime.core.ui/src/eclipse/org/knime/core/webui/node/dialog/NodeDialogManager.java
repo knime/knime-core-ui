@@ -67,6 +67,8 @@ import org.knime.core.webui.node.PagePathSegments;
 import org.knime.core.webui.node.PageResourceManager;
 import org.knime.core.webui.node.PageResourceManager.CreatedPage;
 import org.knime.core.webui.node.PageResourceManager.PageType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil;
 import org.knime.core.webui.node.util.NodeCleanUpCallback;
 
 /**
@@ -111,11 +113,13 @@ public final class NodeDialogManager {
      */
     public static boolean hasNodeDialog(final NodeContainer nc) {
         if (nc instanceof NativeNodeContainer nnc) {
-            if (FallbackDialogFactory.isFallbackDialogEnabled()) {
+            final var node = nnc.getNode();
+            if (FallbackDialogFactory.isFallbackDialogEnabled() && node.hasDialog()) {
                 return true;
             }
-            var nodeFactory = nnc.getNode().getFactory();
-            return nodeFactory instanceof NodeDialogFactory nodeDialogFactory && nodeDialogFactory.hasNodeDialog();
+            var nodeFactory = node.getFactory();
+            return (nodeFactory instanceof NodeDialogFactory nodeDialogFactory && nodeDialogFactory.hasNodeDialog())
+                || JobManagerParametersUtil.hasJobManagerSettings(nc.getNodeSettings());
         } else if (nc instanceof SubNodeContainer snc) {
             return new SubNodeContainerDialogFactory(snc).hasNodeDialog();
         } else {
@@ -199,16 +203,19 @@ public final class NodeDialogManager {
     }
 
     private static DialogUIExtension createNativeNodeDialog(final NativeNodeContainer nnc) {
-        var fac = nnc.getNode().getFactory();
-        NodeDialogFactory dialogFactory;
-        if (fac instanceof NodeDialogFactory df) {
-            dialogFactory = df;
-        } else {
-            dialogFactory = new FallbackDialogFactory(nnc);
-        }
+        final var node = nnc.getNode();
+        var fac = node.getFactory();
         NodeContext.pushContext(nnc);
         try {
-            return new NodeContainerNodeDialogAdapter(nnc, dialogFactory.createNodeDialog());
+            NodeDialog nodeDialog;
+            if (fac instanceof NodeDialogFactory df) {
+                nodeDialog = df.createNodeDialog();
+            } else if (FallbackDialogFactory.isFallbackDialogEnabled() && node.hasDialog()) {
+                nodeDialog = new FallbackDialogFactory(nnc).createNodeDialog();
+            } else {
+                nodeDialog = new DefaultNodeDialog();
+            }
+            return new NodeContainerNodeDialogAdapter(nnc, nodeDialog);
         } finally {
             NodeContext.removeLastContext();
         }
