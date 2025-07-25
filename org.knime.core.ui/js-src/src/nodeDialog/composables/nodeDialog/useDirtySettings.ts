@@ -61,8 +61,13 @@ export const injectionKey: InjectionKey<{
 }> = Symbol("providedByUseDirtySettings");
 
 export const provideAndGetSetupMethod = () => {
-  const getModelOrView = (persistPath: string) =>
-    persistPath.split(".")[0] as "model" | "view";
+  const getModelOrView = (persistPath: string) => {
+    const firstPathSegment = persistPath.split(".")[0] as
+      | "model"
+      | "view"
+      | "job-manager";
+    return firstPathSegment === "job-manager" ? "model" : firstPathSegment;
+  };
 
   /**
    * Maps data path to setting

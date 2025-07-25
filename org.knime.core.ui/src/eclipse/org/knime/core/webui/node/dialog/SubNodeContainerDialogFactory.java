@@ -58,6 +58,7 @@ import org.knime.core.node.dialog.DialogNodeRepresentation;
 import org.knime.core.node.workflow.NodeID;
 import org.knime.core.node.workflow.SubNodeContainer;
 import org.knime.core.node.workflow.WorkflowManager.NodeModelFilter;
+import org.knime.core.webui.node.dialog.defaultdialog.components.JobManagerSubNodeSettingsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.components.SubNodeContainerNodeDialog;
 
 /**
@@ -126,7 +127,8 @@ public final class SubNodeContainerDialogFactory {
      * @return whether a webUI dialog can be displayed for this component
      */
     public boolean hasNodeDialog() {
-        return isSubNodeContainerNodeDialogEnabled() && !getConfigurationNodes(m_snc).isEmpty();
+        return isSubNodeContainerNodeDialogEnabled() && (!getConfigurationNodes(m_snc).isEmpty()
+            || JobManagerSubNodeSettingsUtil.isStreamingExtensionInstalled());
     }
 
     /**

@@ -154,16 +154,20 @@ public final class SettingsApplier {
         final Optional<ApplyDataSettings> modelApplyDataSettings =
             getApplyDataSettings(nodeSettings, previousNodeSettings, SettingsType.MODEL);
         final var viewApplyDataSettings = getApplyDataSettings(nodeSettings, previousNodeSettings, SettingsType.VIEW);
+        final var jobManagerApplyDataSettings =
+            getApplyDataSettings(nodeSettings, previousNodeSettings, SettingsType.JOB_MANAGER);
 
         final var changedModelSettings = modelApplyDataSettings.filter(ApplyDataSettings::hasChanged);
         final var changedViewSettings = viewApplyDataSettings.filter(ApplyDataSettings::hasChanged);
+        final var changedJobManagerSettings = jobManagerApplyDataSettings.filter(ApplyDataSettings::hasChanged);
 
         // count before `applyChange` to count before settings are validated
-        if (changedViewSettings.isPresent() || changedModelSettings.isPresent()) {
+        if (changedViewSettings.isPresent() || changedModelSettings.isPresent()
+            || changedJobManagerSettings.isPresent()) {
             // count either change as settings change, but not twice if both changed
             NodeTimer.GLOBAL_TIMER.incNodeSettingsChanged(m_nc);
         }
-        applyChange(wfm, nodeID, nodeSettings, changedModelSettings, changedViewSettings);
+        applyChange(wfm, nodeID, nodeSettings, changedModelSettings, changedViewSettings, changedJobManagerSettings);
         callOnChangeModifyer(modelApplyDataSettings, viewApplyDataSettings);
     }
 
@@ -203,11 +207,13 @@ public final class SettingsApplier {
             nodeSettings.addNodeSettings(new NodeSettings(settingsType.getVariablesConfigKey()));
             settingsMap.put(settingsType, NodeAndVariableSettingsProxy.createWOProxy(//
                 ApplyDataSettings.getOrCreateSubSettings(nodeSettings, settingsType), //
-                new VariableSettings(nodeSettings, settingsType)//
+                new VariableSettings(settingsType == SettingsType.JOB_MANAGER
+                    ? new NodeSettings(settingsType.getVariablesConfigKey()) : nodeSettings, settingsType)//
             ));
             previousSettingsMap.put(settingsType, NodeAndVariableSettingsProxy.createROProxy( //
                 ApplyDataSettings.getOrCreateSubSettings(previousNodeSettings, settingsType),
-                new VariableSettings(previousNodeSettings, settingsType) //
+                new VariableSettings(settingsType == SettingsType.JOB_MANAGER
+                    ? new NodeSettings(settingsType.getVariablesConfigKey()) : previousNodeSettings, settingsType) //
             ));
         }
         m_textToNodeSettingsConverter.toNodeSettings(data, previousSettingsMap, settingsMap);
@@ -220,8 +226,16 @@ public final class SettingsApplier {
     }
 
     private void applyChange(final WorkflowManager wfm, final NodeID nodeID, final NodeSettings nodeSettings,
-        final Optional<ApplyDataSettings> changedModelSettings, final Optional<ApplyDataSettings> changedViewSettings)
-        throws InvalidSettingsException {
+        final Optional<ApplyDataSettings> changedModelSettings, final Optional<ApplyDataSettings> changedViewSettings,
+        final Optional<ApplyDataSettings> changedJobManagerSettings) throws InvalidSettingsException {
+
+        if (nodeSettings.containsKey(SettingsType.JOB_MANAGER.getConfigKey())
+            && nodeSettings.getNodeSettings(SettingsType.JOB_MANAGER.getConfigKey()).isLeaf()
+            || changedJobManagerSettings.isPresent() && changedJobManagerSettings.get().getSettings().isLeaf()) {
+            // we need to remove the job manager entry if it has no subsettings
+            // not removing would lead to an error when loading the job manager as it expects the factory id entry
+            nodeSettings.removeConfig(SettingsType.JOB_MANAGER.getConfigKey());
+        }
 
         if (changedViewSettings.isPresent()) {
             final var changedView = changedViewSettings.get();
@@ -235,17 +249,20 @@ public final class SettingsApplier {
                     throw ex;
                 }
             }
-
         }
 
-        if (changedModelSettings.isPresent()) {
-            final var changedModel = changedModelSettings.get();
+        if (changedModelSettings.isPresent() || changedJobManagerSettings.isPresent()) {
             try {
                 validateAndPersistNodeSettings(wfm, nodeID, nodeSettings);
-                setWarningOnInvalidFlowVariables(SettingsType.MODEL, changedModel);
+                if (changedModelSettings.isPresent()) {
+                    setWarningOnInvalidFlowVariables(SettingsType.MODEL, changedModelSettings.get());
+                }
             } catch (InvalidSettingsException ex) {
                 if (m_nc instanceof NativeNodeContainer nnc) {
-                    overwriteSettingsToMakeThemValid(SettingsType.MODEL, nnc, nodeSettings, changedModel, ex);
+                    if (changedModelSettings.isPresent()) {
+                        overwriteSettingsToMakeThemValid(SettingsType.MODEL, nnc, nodeSettings,
+                            changedModelSettings.get(), ex);
+                    }
                     validateAndPersistNodeSettings(wfm, nodeID, nodeSettings);
                 } else {
                     throw ex;
@@ -283,7 +300,12 @@ public final class SettingsApplier {
     }
 
     private static Object getSettingsDescription(final SettingsType settingsType) {
-        return settingsType == SettingsType.MODEL ? "settings" : "view settings";
+        return switch (settingsType) {
+            case MODEL -> "settings";
+            case VIEW -> "view settings";
+            default -> throw new UnsupportedOperationException(String.format(
+                "This method is not supposed to be called with settingsType: %s", settingsType.getConfigKey()));
+        };
     }
 
     private void setWarningOnInvalidFlowVariables(final SettingsType settingsType, final ApplyDataSettings applyData) {
@@ -314,10 +336,11 @@ public final class SettingsApplier {
 
     private static void validateSettings(final SettingsType settingsType, final NativeNodeContainer nnc,
         final NodeSettings settings) throws InvalidSettingsException {
-        if (settingsType == SettingsType.MODEL) {
-            validateModelSettings(nnc, settings);
-        } else {
-            validateViewSettings(nnc, settings);
+        switch (settingsType) {
+            case MODEL -> validateModelSettings(nnc, settings);
+            case VIEW -> validateViewSettings(nnc, settings);
+            default -> throw new UnsupportedOperationException(String.format(
+                "This method is not supposed to be called with settingsType: %s", settingsType.getConfigKey()));
         }
     }
 
@@ -448,6 +471,8 @@ public final class SettingsApplier {
      * cannot be controlled by flow variables and (ii) any changes applied to settings controlled by flow variables are
      * ignored by the close modifier. In other words, if a setting is controlled by a flow variable, its previous and
      * updated values, as passed to the close modifier, are always identical.
+     *
+     * @param jobManagerApplyDataSettings
      */
     private void callOnChangeModifyer(final Optional<ApplyDataSettings> modelApplyDataSettings,
         final Optional<ApplyDataSettings> viewApplyDataSettings) {

@@ -58,9 +58,11 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.SingleNodeContainer;
+import org.knime.core.node.workflow.SubNodeContainer;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.VariableSettingsRO;
+import org.knime.shared.workflow.storage.multidir.util.IOConst;
 
 /**
  * Applies flow variables and extracts the settings of a node.
@@ -118,7 +120,8 @@ public final class SettingsExtractor {
 
                 final var settingsOrDefault =
                     settings.type == Result.Type.NONE ? getDefaultSettings(type) : settings.result;
-                final var variableSettings = new VariableSettings(snc.getNodeSettings(), type);
+                final var variableSettings = new VariableSettings(type == SettingsType.JOB_MANAGER
+                    ? new NodeSettings(type.getVariablesConfigKey()) : snc.getNodeSettings(), type);
                 if (settings.type == Result.Type.OVERWRITTEN && hasControllingVariables(variableSettings)) {
                     overwrittenSettingsLoaded = true;
                 }
@@ -173,11 +176,12 @@ public final class SettingsExtractor {
         if (nnc.getFlowObjectStack() != null) {
             try {
                 // a flow object stack is available (usually in case the node is connected)
-                if (settingsType == SettingsType.VIEW) {
-                    return nnc.getViewSettingsUsingFlowObjectStack().map(Result::overwritten).orElseGet(Result::none);
-                } else {
-                    return Result.overwritten(nnc.getModelSettingsUsingFlowObjectStack());
-                }
+                return switch (settingsType) {
+                    case VIEW -> nnc.getViewSettingsUsingFlowObjectStack().map(Result::overwritten)
+                        .orElseGet(Result::none);
+                    case MODEL -> Result.overwritten(nnc.getModelSettingsUsingFlowObjectStack());
+                    case JOB_MANAGER -> Result.nonOverwritten(getJobManagerSettings(nnc));
+                };
             } catch (InvalidSettingsException ex) {
                 LoadWarningsUtil.warnAboutVariableOverridesBeingIgnored(ex);
                 return getSettingsWithoutFlowVariableOverrides(settingsType, nnc);
@@ -214,6 +218,8 @@ public final class SettingsExtractor {
             switch (type) {
                 case MODEL -> nnc.getNode().saveModelSettingsTo(settings);
                 case VIEW -> nnc.getNode().saveDefaultViewSettingsTo(settings);
+                case JOB_MANAGER -> throw new IllegalStateException(
+                    String.format("The settings type %s is only used in components.", type));
             }
             return settings;
         } else {
@@ -272,6 +278,21 @@ public final class SettingsExtractor {
             LOGGER.warn(String.format("Unable to resolve variable settings for key '%s'.", key), ex);
             return false;
         }
+    }
+
+    private static NodeSettings getJobManagerSettings(final SingleNodeContainer nnc) {
+        if (nnc instanceof SubNodeContainer snc) {
+            try {
+                final var nodeSettings = snc.getNodeSettings();
+                if (nodeSettings.containsKey(IOConst.JOB_MANAGER_KEY.get())) {
+                    return nodeSettings.getNodeSettings(IOConst.JOB_MANAGER_KEY.get());
+                }
+            } catch (InvalidSettingsException ex) {
+                // should never happen because we explicitly check whether the job manager settings are available
+                LOGGER.error(ex);
+            }
+        }
+        return new NodeSettings("empty-job-manager");
     }
 
 }

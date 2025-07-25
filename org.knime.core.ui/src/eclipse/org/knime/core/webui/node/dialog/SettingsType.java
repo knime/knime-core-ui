@@ -53,6 +53,7 @@ import java.util.Arrays;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.view.NodeView;
+import org.knime.shared.workflow.storage.multidir.util.IOConst;
 
 /**
  * A settings type (usually associated with {@link NodeSettings} instances) denotes whether certain settings are going
@@ -70,7 +71,12 @@ public enum SettingsType {
         /**
          * Type for settings that belong to a {@link NodeView}.
          */
-        VIEW("view");
+        VIEW("view"),
+
+        /**
+         * Type for job manager settings.
+         */
+        JOB_MANAGER(IOConst.JOB_MANAGER_KEY.get());
 
     private final String m_configKey;
 
@@ -103,9 +109,11 @@ public enum SettingsType {
     public String getVariablesConfigKey() {
         if (this == VIEW) {
             return "view_variables";
-        } else {
+        }
+        if (this == MODEL) {
             return "variables";
         }
+        return "no_variables";
     }
 
 }
