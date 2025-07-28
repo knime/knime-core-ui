@@ -111,7 +111,7 @@ public final class DataValueViewManager {
         new PageResourceManager<>(PageType.DATA_VALUE, dvw -> getDataValueView(dvw).toCreatedPage(), null, null, true);
 
     private final DataServiceManager<DataValueWrapper> m_dataServiceManager =
-        new DataServiceManager<>(dvw -> getDataValueView(dvw).view(), true);
+        new DataServiceManager<>(dvw -> getDataValueView(dvw).view());
 
     /**
      * @return a singleton instance of this class

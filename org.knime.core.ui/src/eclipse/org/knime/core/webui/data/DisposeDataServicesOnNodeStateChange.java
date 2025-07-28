@@ -44,29 +44,18 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 16, 2024 (hornm): created
+ *   Jul 28, 2025 (hornm): created
  */
-package org.knime.core.webui.node.view.table.datavalue;
-
-import java.util.Optional;
-
-import org.knime.core.data.DataValue;
-import org.knime.core.webui.UIExtension;
-import org.knime.core.webui.data.ApplyDataService;
-import org.knime.core.webui.data.DataServiceProvider;
-import org.knime.core.webui.data.DisposeDataServicesOnNodeStateChange;
+package org.knime.core.webui.data;
 
 /**
- * A view associated to a {@link DataValue} for showing data of a single cell.
+ * Implemented by {@link DataServiceProvider}s to enforce that services created by the provider are disposed (see
+ * {@link DataService#disposeRunnable()}) on node-state-change.
+ *
+ * @noimplement This interface is not intended to be implemented by clients.
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
-public interface DataValueView extends UIExtension, DataServiceProvider, DisposeDataServicesOnNodeStateChange {
-
-    @Override
-    default <D> Optional<ApplyDataService<D>> createApplyDataService() {
-        // not available to data value views
-        return Optional.empty();
-    }
+public interface DisposeDataServicesOnNodeStateChange {
 
 }
