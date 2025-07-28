@@ -58,6 +58,7 @@ import java.util.stream.Stream;
 import org.knime.core.webui.data.ApplyDataService;
 import org.knime.core.webui.data.DataService;
 import org.knime.core.webui.data.DataServiceProvider;
+import org.knime.core.webui.data.DisposeDataServicesOnNodeStateChange;
 import org.knime.core.webui.data.InitialDataService;
 import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.util.NodeCleanUpCallback;
@@ -78,25 +79,12 @@ public final class DataServiceManager<N extends NodeWrapper> {
 
     private final Function<N, DataServiceProvider> m_getDataServiceProvider;
 
-    private final boolean m_shouldCleanUpDataServicesOnNodeStateChange;
-
     /**
      * @param getDataServiceProvider function that returns the {@link DataServiceProvider}-instance for the given node
      *            wrapper
      */
     public DataServiceManager(final Function<N, DataServiceProvider> getDataServiceProvider) {
-        this(getDataServiceProvider, false);
-    }
-
-    /**
-     * @param getDataServiceProvider function that returns the {@link DataServiceProvider}-instance for the given node
-     *            wrapper
-     * @param shouldCleanUpDataServicesOnNodeStateChange
-     */
-    public DataServiceManager(final Function<N, DataServiceProvider> getDataServiceProvider,
-        final boolean shouldCleanUpDataServicesOnNodeStateChange) {
         m_getDataServiceProvider = getDataServiceProvider;
-        m_shouldCleanUpDataServicesOnNodeStateChange = shouldCleanUpDataServicesOnNodeStateChange;
     }
 
     /**
@@ -206,9 +194,12 @@ public final class DataServiceManager<N extends NodeWrapper> {
     private <S extends DataService> Optional<S> getOrCreateDataService(final N nodeWrapper,
         final Map<N, S> dataServices, final Function<DataServiceProvider, Optional<S>> createNewService) {
         if (!dataServices.containsKey(nodeWrapper)) {
-            final var optionalDataService =
-                nodeWrapper.getWithContext(() -> createNewService.apply(m_getDataServiceProvider.apply(nodeWrapper)));
-            optionalDataService.ifPresent(dataService -> {
+            final var dataServiceCreationResult = nodeWrapper.getWithContext(() -> {
+                var dataServiceProvider = m_getDataServiceProvider.apply(nodeWrapper);
+                return new DataServiceCreationResult<>(createNewService.apply(dataServiceProvider),
+                    dataServiceProvider instanceof DisposeDataServicesOnNodeStateChange);
+            });
+            dataServiceCreationResult.dataService().ifPresent(dataService -> {
                 dataServices.put(nodeWrapper, dataService);
                 NodeCleanUpCallback.builder(nodeWrapper.get(), () -> {
                     final var removedDataService = dataServices.remove(nodeWrapper);
@@ -216,12 +207,16 @@ public final class DataServiceManager<N extends NodeWrapper> {
                         removedDataService.disposeRunnable().ifPresent(Runnable::run);
                     }
 
-                }).cleanUpOnNodeStateChange(m_shouldCleanUpDataServicesOnNodeStateChange).build();
+                }).cleanUpOnNodeStateChange(dataServiceCreationResult.disposeOnNodeStateChange).build();
             });
-            return optionalDataService;
+            return dataServiceCreationResult.dataService();
         } else {
             return Optional.of(dataServices.get(nodeWrapper));
         }
+    }
+
+    private static record DataServiceCreationResult<S extends DataService>(Optional<S> dataService,
+        boolean disposeOnNodeStateChange) {
     }
 
     /**

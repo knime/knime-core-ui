@@ -94,7 +94,7 @@ public final class PortViewManager {
         new PageResourceManager<>(PageType.PORT, nw -> getPortView(nw).toCreatedPage(), null, null, true);
 
     private final DataServiceManager<NodePortWrapper> m_dataServiceManager =
-        new DataServiceManager<>(nw -> getPortView(nw).view(), true);
+        new DataServiceManager<>(nw -> getPortView(nw).view());
 
     private final TableViewManager<NodePortWrapper> m_tableViewManager = new TableViewManager<>(this::getTableView);
 

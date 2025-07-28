@@ -53,13 +53,14 @@ import java.util.Optional;
 import org.knime.core.webui.UIExtension;
 import org.knime.core.webui.data.ApplyDataService;
 import org.knime.core.webui.data.DataServiceProvider;
+import org.knime.core.webui.data.DisposeDataServicesOnNodeStateChange;
 
 /**
  * Represents a view of a port.
  *
  * @author Martin Horn, KNIME GmbH, Konstanz, Germany
  */
-public interface PortView extends UIExtension, DataServiceProvider {
+public interface PortView extends UIExtension, DataServiceProvider, DisposeDataServicesOnNodeStateChange {
 
     @Override
     default Optional<ApplyDataService<?>> createApplyDataService() {
