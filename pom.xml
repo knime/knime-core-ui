@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.knime.maven</groupId>
 		<artifactId>ap.parent</artifactId>
-		<version>5.7.0</version>
+		<version>5.6.0-devops3280</version>
 	</parent>
 
 	<groupId>org.knime</groupId>
@@ -99,7 +99,7 @@
             </repositories>
         </profile>
     </profiles>
-    
+
     <!-- List all repositories required for compilation here. The variables are defined in knime-maven-parent/pom.xml. -->
     <repositories>
         <repository>
