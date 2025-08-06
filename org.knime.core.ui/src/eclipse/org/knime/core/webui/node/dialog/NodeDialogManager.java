@@ -111,6 +111,9 @@ public final class NodeDialogManager {
      */
     public static boolean hasNodeDialog(final NodeContainer nc) {
         if (nc instanceof NativeNodeContainer nnc) {
+            if (FallbackDialogFactory.isFallbackDialogEnabled()) {
+                return true;
+            }
             var nodeFactory = nnc.getNode().getFactory();
             return nodeFactory instanceof NodeDialogFactory nodeDialogFactory && nodeDialogFactory.hasNodeDialog();
         } else if (nc instanceof SubNodeContainer snc) {
@@ -196,10 +199,16 @@ public final class NodeDialogManager {
     }
 
     private static DialogUIExtension createNativeNodeDialog(final NativeNodeContainer nnc) {
-        var fac = (NodeDialogFactory)nnc.getNode().getFactory();
+        var fac = nnc.getNode().getFactory();
+        NodeDialogFactory dialogFactory;
+        if (fac instanceof NodeDialogFactory df) {
+            dialogFactory = df;
+        } else {
+            dialogFactory = new FallbackDialogFactory(nnc);
+        }
         NodeContext.pushContext(nnc);
         try {
-            return new NodeContainerNodeDialogAdapter(nnc, fac.createNodeDialog());
+            return new NodeContainerNodeDialogAdapter(nnc, dialogFactory.createNodeDialog());
         } finally {
             NodeContext.removeLastContext();
         }
