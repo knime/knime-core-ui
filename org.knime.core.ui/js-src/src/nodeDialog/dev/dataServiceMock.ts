@@ -368,24 +368,54 @@ export default (rpcRequest: { method: string; params: any[] }) => {
             name: "stringVariable",
             value: "the string flow variable value (abbrevia...",
             abbreviated: true,
+            type: {
+              id: "STRING",
+              text: "String Variable",
+            },
           },
           {
             name: "nullVariable",
             value: null,
             abbreviated: false,
+            type: {
+              id: "STRING",
+              text: "String Variable",
+            },
           },
         ],
         BOOLEAN: [
-          { name: "booleanVariable", value: "true", abbreviated: false },
+          {
+            name: "booleanVariable",
+            value: "true",
+            abbreviated: false,
+            type: {
+              id: "BOOLEAN",
+              text: "Boolean Variable",
+            },
+          },
         ],
         CREDENTIALS: [
           {
             name: "credentialsVariable",
             value: "Credentials (...)",
             abbreviated: false,
+            type: {
+              id: "CREDENTIALS",
+              text: "Credentials Variable",
+            },
           },
         ],
-        NUMBER: [{ name: "numberVariable", value: "100", abbreviated: false }],
+        NUMBER: [
+          {
+            name: "numberVariable",
+            value: "100",
+            abbreviated: false,
+            type: {
+              id: "LONG",
+              text: "Long Variable",
+            },
+          },
+        ],
       };
     case "settings.update2": {
       return mockUpdate2(rpcRequest);

@@ -196,6 +196,7 @@ export default {
 
 <style lang="postcss">
 @import url("@knime/styles/css");
+@import url("@knime/kds-styles/kds-variables.css");
 
 body {
   margin: 10px;

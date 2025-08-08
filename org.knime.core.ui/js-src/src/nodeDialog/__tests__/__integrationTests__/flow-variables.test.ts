@@ -34,16 +34,17 @@ describe("flow variables", () => {
     value: "abbreviated value",
   };
 
-  const possibleFlowVariables: Record<string, PossibleFlowVariable[]> = {
-    STRING: [
-      {
-        abbreviated: true,
-        name: "flowVar1",
-        value: "abbreviated value",
+  const possibleFlowVariables: PossibleFlowVariable[] = [
+    {
+      abbreviated: true,
+      name: "flowVar1",
+      value: "abbreviated value",
+      type: {
+        id: "STRING",
+        text: "String",
       },
-    ],
-  };
-
+    },
+  ];
   const fetchedFlowVariableValue = "fetchedValue";
 
   type FlowVariablesMap = Record<string, FlowSettings>;

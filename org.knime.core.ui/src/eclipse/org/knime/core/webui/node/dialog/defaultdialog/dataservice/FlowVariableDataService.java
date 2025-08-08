@@ -48,14 +48,14 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
 
-import java.util.Collection;
 import java.util.LinkedList;
-import java.util.Map;
+import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.data.DataServiceException;
 import org.knime.core.webui.node.dialog.internal.VariableSettings;
+import org.knime.node.parameters.widget.choices.TypedStringChoice.PossibleTypeValue;
 
 /**
  * An instance of this interface is used as a named RPCDataService for calls regarding flow variables.
@@ -68,8 +68,9 @@ public interface FlowVariableDataService {
      * @param name the name of the flow variable
      * @param value an abbreviated string representation of the variables value
      * @param abbreviated whether the value is the actual value or was abbreviated
+     * @param type the type of the flow variable
      */
-    record PossibleFlowVariable(String name, String value, boolean abbreviated) {
+    record PossibleFlowVariable(String name, String value, boolean abbreviated, PossibleTypeValue type) {
     }
 
     /**
@@ -77,14 +78,13 @@ public interface FlowVariableDataService {
      *            fetched
      * @param persistPath the path leading to the setting as it is stored in the node settings, i.e. including its
      *            settings type ("view" or "model") and its (possibly custom) config key
-     * @return a map from the possible types of the specified setting to the present flow variables.
+     * @return a list of present flow variables including their type
      * @throws InvalidSettingsException if the path does not start with "model" or "view"
      */
-    Map<String, Collection<PossibleFlowVariable>> getAvailableFlowVariables(final String textSettings,
+    List<PossibleFlowVariable> getAvailableFlowVariables(final String textSettings,
         final LinkedList<String> persistPath) throws InvalidSettingsException;
 
     /**
-     *
      * This method first transforms the given text settings to {@link NodeSettings} and {@link VariableSettings} only to
      * then overwrite the node settings with the variables and transform them back to JSON. Hereby only those setting
      * (model or view) are transformed which are necessary as defined by the first entry of the dataPath.

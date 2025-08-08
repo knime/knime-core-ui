@@ -84,10 +84,10 @@ import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeDialogManagerTest;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultDialogDataConverterImpl;
-import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDataService.PossibleFlowVariable;
 import org.knime.core.webui.page.Page;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistable;
 import org.knime.testing.util.WorkflowManagerUtil;
@@ -164,6 +164,11 @@ class FlowVariableDataServiceImplTest {
     static Map<SettingsType, Class<? extends NodeParameters>> settingsClasses =
         Map.of(SettingsType.MODEL, TestModelSettings.class, SettingsType.VIEW, TestViewSettings.class);
 
+    static final List<PossibleFlowVariable>
+        filterFlowVariableByType(final Collection<PossibleFlowVariable> flowVariables, final VariableType type) {
+        return flowVariables.stream().filter(flowVar -> flowVar.type().id() == type.getIdentifier()).toList();
+    }
+
     @Test
     void testGetPossibleFlowVariables() throws InvalidSettingsException {
 
@@ -175,35 +180,36 @@ class FlowVariableDataServiceImplTest {
                 new LinkedList<String>(List.of("model", "nestedSetting", "myModelSettingConfigKey")));
         assertPossibleFlowVariables( //
             Set.of(stringVar1, stringVar2), //
-            viewSettingsFlowVariables.get(VariableType.StringType.INSTANCE.getIdentifier()) //
-        );
+            viewSettingsFlowVariables, //
+            VariableType.StringType.INSTANCE);
         assertPossibleFlowVariables( //
             Set.of(doubleVar), //
-            viewSettingsFlowVariables.get(VariableType.DoubleType.INSTANCE.getIdentifier()) //
-        );
+            viewSettingsFlowVariables, //
+            VariableType.DoubleType.INSTANCE);
         assertPossibleFlowVariables( //
             Set.of(intVar), //
-            viewSettingsFlowVariables.get(VariableType.IntType.INSTANCE.getIdentifier()) //
-        );
-        assertThat(viewSettingsFlowVariables.get(VariableType.StringArrayType.INSTANCE.getIdentifier()))
+            viewSettingsFlowVariables, //
+            VariableType.IntType.INSTANCE);
+        assertThat(filterFlowVariableByType(viewSettingsFlowVariables, VariableType.StringArrayType.INSTANCE))
             .isNullOrEmpty();
 
         assertPossibleFlowVariables( //
             Set.of(stringVar1, stringVar2), //
-            modelSettingsFlowVariables.get(VariableType.StringType.INSTANCE.getIdentifier()) //
-        );
+            modelSettingsFlowVariables, //
+            VariableType.StringType.INSTANCE);
         assertPossibleFlowVariables( //
             Collections.emptySet(), //
-            modelSettingsFlowVariables.get(VariableType.BooleanType.INSTANCE.getIdentifier()) //
-        );
-        assertThat(modelSettingsFlowVariables.get(VariableType.StringArrayType.INSTANCE.getIdentifier()))
+            modelSettingsFlowVariables, //
+            VariableType.BooleanType.INSTANCE);
+        assertThat(filterFlowVariableByType(modelSettingsFlowVariables, VariableType.StringArrayType.INSTANCE))
             .isNullOrEmpty();
     }
 
     private static void assertPossibleFlowVariables(final Collection<FlowVariable> expected,
-        final Collection<PossibleFlowVariable> actual) {
-        assertThat(actual)
-            .containsAll(expected.stream().map(FlowVariableDataServiceImpl::toPossibleFlowVariable).collect(toSet()));
+        final Collection<PossibleFlowVariable> unfilteredActual, final VariableType type) {
+        final var actual = filterFlowVariableByType(unfilteredActual, type);
+        assertThat(actual).containsAll(expected.stream()
+            .map(variable -> FlowVariableDataServiceImpl.toPossibleFlowVariable(variable, type)).collect(toSet()));
     }
 
     @Nested
@@ -213,11 +219,14 @@ class FlowVariableDataServiceImplTest {
         void testShortStringFlowVariable() {
             final var name = "shortString";
             final var value = "short";
-            final var possibleFlowVariable =
-                FlowVariableDataServiceImpl.toPossibleFlowVariable(new FlowVariable(name, value));
+            final var possibleFlowVariable = FlowVariableDataServiceImpl
+                .toPossibleFlowVariable(new FlowVariable(name, value), VariableType.StringType.INSTANCE);
             assertThat(possibleFlowVariable.name()).isEqualTo(name);
             assertThat(possibleFlowVariable.value()).isEqualTo(value);
             assertThat(possibleFlowVariable.abbreviated()).isFalse();
+            assertThat(possibleFlowVariable.type().id()).isEqualTo(VariableType.StringType.INSTANCE.getIdentifier());
+            assertThat(possibleFlowVariable.type().text())
+                .isEqualTo(VariableType.StringType.INSTANCE.getClass().getSimpleName());
         }
 
         @Test
@@ -225,33 +234,40 @@ class FlowVariableDataServiceImplTest {
             final var name = "longString";
             final var value =
                 "longVariableNamelongVariableNamelongVariableNamelongVariableNamelongVariableNamelongVariableNamelongVariableNamelongVariableName ( > 50 characters)";
-            final var possibleFlowVariable =
-                FlowVariableDataServiceImpl.toPossibleFlowVariable(new FlowVariable(name, value));
+            final var possibleFlowVariable = FlowVariableDataServiceImpl
+                .toPossibleFlowVariable(new FlowVariable(name, value), VariableType.StringType.INSTANCE);
             assertThat(possibleFlowVariable.name()).isEqualTo(name);
             assertThat(possibleFlowVariable.value()).isEqualTo("longVariableNamelongVariableNamelongVariableNam...");
             assertThat(possibleFlowVariable.abbreviated()).isTrue();
+            assertThat(possibleFlowVariable.type().id()).isEqualTo(VariableType.StringType.INSTANCE.getIdentifier());
+            assertThat(possibleFlowVariable.type().text())
+                .isEqualTo(VariableType.StringType.INSTANCE.getClass().getSimpleName());
         }
 
         @Test
         void testIntFlowVariable() {
             final var name = "int";
             final var value = 1;
-            final var possibleFlowVariable =
-                FlowVariableDataServiceImpl.toPossibleFlowVariable(new FlowVariable(name, value));
+            final var possibleFlowVariable = FlowVariableDataServiceImpl
+                .toPossibleFlowVariable(new FlowVariable(name, value), VariableType.IntType.INSTANCE);
             assertThat(possibleFlowVariable.name()).isEqualTo(name);
             assertThat(possibleFlowVariable.value()).isEqualTo("1");
             assertThat(possibleFlowVariable.abbreviated()).isFalse();
+            assertThat(possibleFlowVariable.type().id()).isEqualTo(VariableType.IntType.INSTANCE.getIdentifier());
+            assertThat(possibleFlowVariable.type().text()).isEqualTo(VariableType.IntType.INSTANCE.getClass().getSimpleName());
         }
 
         @Test
         void testDoubleFlowVariable() {
             final var name = "double";
             final var value = 1.0;
-            final var possibleFlowVariable =
-                FlowVariableDataServiceImpl.toPossibleFlowVariable(new FlowVariable(name, value));
+            final var possibleFlowVariable = FlowVariableDataServiceImpl
+                .toPossibleFlowVariable(new FlowVariable(name, value), VariableType.DoubleType.INSTANCE);
             assertThat(possibleFlowVariable.name()).isEqualTo(name);
             assertThat(possibleFlowVariable.value()).isEqualTo("1.0");
             assertThat(possibleFlowVariable.abbreviated()).isFalse();
+            assertThat(possibleFlowVariable.type().id()).isEqualTo(VariableType.DoubleType.INSTANCE.getIdentifier());
+            assertThat(possibleFlowVariable.type().text()).isEqualTo(VariableType.DoubleType.INSTANCE.getClass().getSimpleName());
         }
 
     }

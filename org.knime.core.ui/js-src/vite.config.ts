@@ -169,7 +169,11 @@ export default defineConfig(({ mode }) => {
       exclude: getExcludedTestFiles(testMode),
       environment: "jsdom",
       reporters: ["default", "junit"],
-      deps: { inline: ["consola", "@knime/knime-ui-table"] },
+      server: {
+        deps: {
+          inline: ["consola", "@knime/knime-ui-table", "@knime/kds-components"],
+        },
+      },
       setupFiles: [
         fileURLToPath(new URL(getTestSetupFile(testMode), import.meta.url)),
       ],

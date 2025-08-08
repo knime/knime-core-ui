@@ -534,7 +534,9 @@ public class SubNodeContainerDialogTest {
             final var availableFlowVariables = callRPCData("flowVariables.getAvailableFlowVariables",
                 TextNode.valueOf(TEST_MAPPER.writeValueAsString(applyData)),
                 TEST_MAPPER.valueToTree(List.of("model", "3", CFG_KEY)));
-            assertThatJson(availableFlowVariables).inPath("$.result.INTEGER[0].name").isString().isEqualTo("anInteger");
+            assertThatJson(availableFlowVariables).inPath("$.result[1].name").isString().isEqualTo("anInteger");
+            assertThatJson(availableFlowVariables).inPath("$.result[1].type.id").isString().isEqualTo("INTEGER");
+            assertThatJson(availableFlowVariables).inPath("$.result[1].type.text").isString().isEqualTo("IntType");
         }
 
         @Test
