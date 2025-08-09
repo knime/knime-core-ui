@@ -298,8 +298,9 @@ final class FallbackDialogFactory implements NodeDialogFactory {
         final var extractedModelSettings = new NodeSettings("extracted model settings");
         BiConsumer<String[], AbstractConfigEntry> visitor = (path, entry) -> {
             var leaf = jsonSettings;
+            var maskedPath = maskDotInPath(path);
             for (int i = 0; i < path.length; i++) {
-                leaf = leaf.get(path[i]);
+                leaf = leaf.get(maskedPath[i]);
             }
             var type = entry.getType();
             AbstractConfigEntry newEntry;
@@ -474,12 +475,17 @@ final class FallbackDialogFactory implements NodeDialogFactory {
                 }
             }
             var isInternal = Arrays.stream(path).anyMatch(p -> p.endsWith(SettingsModel.CFGKEY_INTERNAL));
-            infos.add(new ConfigInfo(path, value, isInternal ? null : renderer.at(path)));
+            var maskedPath = maskDotInPath(path);
+            infos.add(new ConfigInfo(maskedPath, value, isInternal ? null : renderer.at(maskedPath)));
         };
         var tmp = new NodeSettings("ignored");
         settings.copyTo(tmp);
         traverseConfig(tmp, new String[0], visitor);
         return infos;
+    }
+
+    private static String[] maskDotInPath(final String[] path) {
+        return Arrays.stream(path).map(p -> p.replace(".", "##dot##")).toArray(String[]::new);
     }
 
     private static record ConfigInfo(String[] path, Object value, DialogElementRendererSpec renderer) {

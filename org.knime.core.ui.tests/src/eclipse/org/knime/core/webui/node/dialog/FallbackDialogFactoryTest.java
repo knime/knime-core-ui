@@ -128,7 +128,8 @@ public class FallbackDialogFactoryTest {
                                 "password": "02BAAAAGMq_QxveL1vZ0EBjyNFzJupmiji",
                                 "sub-settings": {
                                     "nested-string": "bar"
-                                }
+                                },
+                                "key##dot##with##dot##dots": "baz"
                             }
                         },
                         "schema": {
@@ -178,6 +179,10 @@ public class FallbackDialogFactoryTest {
                                                     "title": "sub-settings/nested-string"
                                                 }
                                             }
+                                        },
+                                        "key##dot##with##dot##dots": {
+                                            "type": "string",
+                                            "title": "key.with.dots"
                                         }
                                     }
                                 }
@@ -227,6 +232,10 @@ public class FallbackDialogFactoryTest {
                                 {
                                     "type": "Control",
                                     "scope": "#/properties/model/properties/sub-settings/properties/nested-string"
+                                },
+                                {
+                                    "type": "Control",
+                                    "scope": "#/properties/model/properties/key##dot##with##dot##dots"
                                 }
                             ]
                         },
@@ -253,7 +262,8 @@ public class FallbackDialogFactoryTest {
                             "password": "02BAAAAGMq_QxveL1vZ0EBjyNFzJupmiji",
                             "sub-settings": {
                                 "nested-string": "baz"
-                            }
+                            },
+                            "key##dot##with##dot##dots": "blub"
                         }
                      }
                   }
@@ -264,6 +274,7 @@ public class FallbackDialogFactoryTest {
         assertThat(settings.getString("string")).isEqualTo("bar");
         assertThat(settings.getInt("int")).isEqualTo(43);
         assertThat(settings.getNodeSettings("sub-settings").getString("nested-string")).isEqualTo("baz");
+        assertThat(settings.getString("key.with.dots")).isEqualTo("blub");
 
     }
 
@@ -308,6 +319,7 @@ public class FallbackDialogFactoryTest {
                     settings.addByte("byte", (byte)2);
                     settings.addPassword("password", "encryption-key", "blub");
                     settings.addNodeSettings("sub-settings").addString("nested-string", "bar");
+                    settings.addString("key.with.dots", "baz");
                 }
 
                 @Override

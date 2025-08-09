@@ -217,6 +217,7 @@ public final class VariableSettingsUtil {
             if (flowVariableSetting.isEmpty()) {
                 return;
             }
+            // TODO
             var keys = compositeKey.split("\\.");
             for (SettingsType settingsType : variableSettings.keySet()) {
                 if (!settingsType.getConfigKey().equals(keys[0])) {
