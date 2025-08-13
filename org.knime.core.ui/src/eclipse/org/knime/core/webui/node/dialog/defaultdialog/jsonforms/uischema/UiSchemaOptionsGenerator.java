@@ -168,6 +168,7 @@ import org.knime.node.parameters.widget.choices.ColumnChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.FlowVariableChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.MultiSelectDropdownWidget;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
@@ -486,6 +487,10 @@ final class UiSchemaOptionsGenerator {
                 options.put("excludedLabel", twinlistWidget.excludedLabel());
             }
 
+        }
+
+        if (annotatedWidgets.contains(MultiSelectDropdownWidget.class)) {
+            options.put(TAG_FORMAT, Format.MULTI_SELECT_DROP_DOWN);
         }
 
         if (m_node.isOptional()) {

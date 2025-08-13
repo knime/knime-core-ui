@@ -88,6 +88,7 @@ import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.OptionalWidget;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.MultiSelectDropdownWidget;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilterWidget;
@@ -153,6 +154,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         LocalFileReaderWidget.class, //
         LocalFileWriterWidget.class, //
         Modification.WidgetReference.class, //
+        MultiSelectDropdownWidget.class, //
         NumberInputWidget.class, //
         OptionalWidget.class, //
         OverwriteDialogTitleInternal.class, //
