@@ -136,6 +136,7 @@ import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.MultiSelectDropdownWidget;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.StringChoice;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
@@ -2056,5 +2057,29 @@ class UiSchemaOptionsTest {
         public Optional<List<String>> listCatalogs() throws SQLException {
             return Optional.of(List.of("catalog1", "catalog2"));
         }
+    }
+
+    @Test
+    void testMultiSelectDropdown() {
+        class MultiSelectDropdownSettings implements NodeParameters {
+
+            static final class DummyChoicesProvider implements StringChoicesProvider{
+
+                @Override
+                public List<String> choices(final NodeParametersInput context) {
+                    return List.of("V1", "V2", "V3");
+                }
+            }
+
+            @Widget(title = "", description = "")
+            @ChoicesProvider(DummyChoicesProvider.class)
+            @MultiSelectDropdownWidget
+            String[] m_foo;
+        }
+
+        var response = buildTestUiSchema(MultiSelectDropdownSettings.class);
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("foo");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("multiSelectDropdown");
+        assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().contains("possibleValues");
     }
 }

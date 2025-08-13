@@ -71,6 +71,7 @@ import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.DataTypeChoicesProvider;
 import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.MultiSelectDropdownWidget;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
@@ -192,7 +193,7 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
  * <tr>
  * <td>String[]</td>
  * <td>Combo Box. Add a {@link ChoicesProvider} with a {@link StringChoicesProvider}.</td>
- * <td>{@link TwinlistWidget}</td>
+ * <td>{@link TwinlistWidget}, {@link MultiSelectDropdownWidget}</td>
  * <td>✓</td>
  * </tr>
  * <tr>

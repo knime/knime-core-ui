@@ -296,6 +296,8 @@ public final class JsonFormsConsts {
 
             public static final String COMBO_BOX = "comboBox";
 
+            public static final String MULTI_SELECT_DROP_DOWN = "multiSelectDropdown";
+
             public static final String SORT_LIST = "sortList";
 
             public static final String RADIO = "radio";
