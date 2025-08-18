@@ -103,7 +103,7 @@ export default ({
     index,
     columnName,
     filterConfig,
-    columnTypeName,
+    columnDataTypeHashId,
     contentType,
     isSortable,
     hasDataValueView,
@@ -116,7 +116,7 @@ export default ({
     filterConfig?: FilterConfig;
     isSortable: boolean;
     hasDataValueView?: boolean;
-    columnTypeName?: string;
+    columnDataTypeHashId?: string;
     contentType?: ColumnContentType;
     columnTypeRenderers?: Renderer[];
     headerColor?: string;
@@ -126,7 +126,7 @@ export default ({
     // the key is used to access the data in the TableUI
     key: index,
     header: columnName,
-    subHeader: columnTypeName,
+    subHeader: columnDataTypeHashId,
     noPadding: isImage(contentType),
     hasSlotContent:
       isImage(contentType) ||
@@ -172,9 +172,8 @@ export default ({
   }
   displayedColumns.forEach((columnName: string, index: number) => {
     const columnFormatterDescription = columnFormatterDescriptions?.[index];
-    const dataType = dataTypes[columnDataTypeIds?.[index]] as
-      | DataType
-      | undefined;
+    const columnDataTypeHashId = columnDataTypeIds?.[index];
+    const dataType = dataTypes[columnDataTypeHashId] as DataType | undefined;
     const renderers = dataType?.renderers as any[] | undefined;
     // + 2: offset for the index and rowKey, because the first column
     // (index 0) always contains the indices and the second one the row keys
@@ -185,7 +184,7 @@ export default ({
       filterConfig: columnFiltersMap?.get(columnName),
       contentType: columnContentTypes?.[index],
       ...(showColumnDataType && {
-        columnTypeName: dataType?.name,
+        columnDataTypeHashId,
       }),
       ...(enableRendererSelection && {
         columnTypeRenderers: renderers && [

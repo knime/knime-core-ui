@@ -60,6 +60,11 @@ import org.knime.core.webui.node.view.table.datavalue.DataValueViewManager;
 public interface DataType {
 
     /**
+     * @return a class name of the data type
+     */
+    String getId();
+
+    /**
      * @return a human-readable name for the data type
      */
     String getName();
@@ -83,6 +88,11 @@ public interface DataType {
      */
     static DataType create(final org.knime.core.data.DataType dataType) {
         return new DataType() {
+
+            @Override
+            public String getId() {
+                return dataType.getPreferredValueClass().getName();
+            }
 
             @Override
             public String getName() {

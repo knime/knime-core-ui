@@ -29,6 +29,7 @@ export const shallowMountDisplay = ({
 export const getDefaultProps = (): TableViewDisplayProps => {
   const dataTypes = {
     datatype1: {
+      id: "col1And2TypeId",
       name: "col1And2TypeName",
       renderers: [
         { name: "type1renderer1", id: "t1r1" },
@@ -39,6 +40,7 @@ export const getDefaultProps = (): TableViewDisplayProps => {
       hasDataValueView: true,
     },
     datatype2: {
+      id: "col3TypeId",
       name: "col3TypeName",
       renderers: [
         { name: "type2renderer1", id: "t2r1" },
@@ -47,6 +49,7 @@ export const getDefaultProps = (): TableViewDisplayProps => {
       hasDataValueView: false,
     },
     datatype3: {
+      id: "col4TypeId",
       name: "col4TypeName",
       renderers: [
         { name: "type3renderer1", id: "t3r1" },
