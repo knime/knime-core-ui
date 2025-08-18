@@ -250,8 +250,7 @@ describe("TableViewDisplay.vue", () => {
           const columnConfigs = getColumnConfigs(wrapper);
 
           expect(columnConfigs?.[1]).toMatchObject({
-            subHeader:
-              props.header.dataTypes[props.header.columnDataTypeIds[1]].name,
+            subHeader: props.header.columnDataTypeIds[1],
           });
         });
 

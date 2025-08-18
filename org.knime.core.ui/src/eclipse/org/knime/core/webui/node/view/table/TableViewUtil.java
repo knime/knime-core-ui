@@ -87,8 +87,8 @@ public final class TableViewUtil {
     /**
      * The page representing the table view.
      */
-    public static final ReusablePage PAGE = Page.create().fromFile().bundleClass(TableViewUtil.class)
-        .basePath("js-src/dist").relativeFilePath("TableView.js") //
+    public static final ReusablePage PAGE = Page.create().fromFile().bundleClass(TableViewUtil.class).basePath("js-src")
+        .relativeFilePath("dist/TableView.js").addResourceDirectory("dist") //
         .addResources(createTableCellImageResourceSupplier(),
             DataValueImageRendererRegistry.RENDERED_CELL_IMAGES_PATH_PREFIX, true) //
         .getReusablePage(TABLEVIEW_PAGE_ID);

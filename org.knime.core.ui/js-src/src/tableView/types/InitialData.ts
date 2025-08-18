@@ -7,6 +7,7 @@ export interface Renderer {
 }
 
 export interface DataType {
+  id: string;
   name: string;
   renderers: Renderer[];
   hasDataValueView: boolean;
