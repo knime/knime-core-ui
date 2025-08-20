@@ -108,7 +108,7 @@ Export-Package: org.knime.core.ui;x-internal:=true,
  org.knime.node.parameters.widget.number,
  org.knime.node.parameters.widget.text,
  org.knime.node.parameters.widget.text.util
-Require-Bundle: org.knime.shared.workflow.def;bundle-version="[5.6.0,6.0.0)",
+Require-Bundle: org.knime.shared.workflow.def;bundle-version="[5.7.0,6.0.0)",
  org.apache.commons.lang3;bundle-version="[3.2.1,4.0.0)",
  org.apache.commons.math3;bundle-version="[3.4.1,4.0.0)",
  org.knime.core.util;bundle-version="[6.7.0,7.0.0)",
