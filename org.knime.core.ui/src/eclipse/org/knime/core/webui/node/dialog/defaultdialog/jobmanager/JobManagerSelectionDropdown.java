@@ -44,65 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   30 Jul 2025 (Robin Gerling): created
+ *   Aug 20, 2025 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jobmanager;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.shared.workflow.storage.multidir.util.IOConst;
+import java.util.Optional;
+
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DropdownRendererSpec;
+import org.knime.node.parameters.widget.choices.StringChoice;
 
 /**
- * Utility class to combine functionality for the job manager settings used by native and sub nodes.
+ * The dropdown renderer for the job manager selection.
  *
- * @author Robin Gerling
+ * @author Paul Bärnreuther
  */
-public class JobManagerParametersUtil {
+abstract class JobManagerSelectionDropdown implements DropdownRendererSpec {
 
-    /**
-     * Id used to identify the default job manager in the frontend.
-     */
-    public static final String DEFAULT_JOB_MANAGER_FACTORY_ID = "default";
+    private StringChoice[] m_possibleValues;
 
-    /**
-     * Label used to identify the default job manager in the frontend.
-     */
-    public static final String DEFAULT_JOB_MANAGER_FACTORY_LABEL = "Default Job Manager";
-
-    /**
-     * The key for the job manager settings root in the frontend using dashes instead of dots
-     */
-    public static final String JOB_MANAGER_KEY_FE = replaceDotsByDashes(IOConst.JOB_MANAGER_KEY.get());
-
-    /**
-     * The key for the job manager factory id setting in the frontend using dashes instead of dots
-     */
-    public static final String JOB_MANAGER_FACTORY_ID_KEY_FE =
-        replaceDotsByDashes(IOConst.JOB_MANAGER_FACTORY_ID_KEY.get());
-
-    /**
-     * The key for the sub settings of a job manager in the frontend using dashes instead of dots
-     */
-    public static final String JOB_MANAGER_SETTINGS_KEY_FE =
-        replaceDotsByDashes(IOConst.JOB_MANAGER_SETTINGS_KEY.get());
-
-    private static String replaceDotsByDashes(final String str) {
-        return str.replace(".", "-");
+    JobManagerSelectionDropdown(final StringChoice[] possibleValues) {
+        m_possibleValues = possibleValues;
     }
 
-    /**
-     * Checks whether the node settings contain the job manager settings root key
-     *
-     * @param settings the node settings to check for the job manager root key
-     * @return whether the settings contain the job manager root key
-     */
-    public static boolean hasJobManagerSettings(final NodeSettingsRO settings) {
-        try {
-            final var jobManagerSettings = settings.getNodeSettings(IOConst.JOB_MANAGER_KEY.get());
-            return jobManagerSettings.containsKey(IOConst.JOB_MANAGER_FACTORY_ID_KEY.get());
-        } catch (InvalidSettingsException ex) { //NOSONAR
-            return false;
-        }
+    @Override
+    public String getTitle() {
+        return "Job manager";
     }
 
+    @Override
+    public Optional<DropdownRendererOptions> getOptions() {
+
+        return Optional.of(new DropdownRendererOptions() {
+
+            @Override
+            public Optional<StringChoice[]> getPossibleValues() {
+                return Optional.of(m_possibleValues);
+            }
+
+        });
+    }
 }

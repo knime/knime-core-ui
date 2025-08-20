@@ -55,6 +55,7 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.knime.core.webui.node.dialog.SettingsType;
 
@@ -79,6 +80,22 @@ public final class SettingsTypeMapUtil {
     public static <T, U> Map<SettingsType, U> map(final Map<SettingsType, T> inMap,
         final BiFunction<SettingsType, T, U> mapping) {
         return mapValuesWithKeys(inMap, mapping, SETTINGS_TYPE_COMPARATOR);
+    }
+
+    /**
+     * Keep only node-specific settings and sort keys by {@link SettingsType}.
+     *
+     * @param <T> values
+     * @param inMap the map the filtering should be applied to
+     * @return a new map with the same keys and values that are node-specific
+     */
+    public static <T> Map<SettingsType, T> keepNodeSpecificSettings(final Map<SettingsType, T> inMap) {
+        final var filteredMap = inMap.entrySet().stream().filter(entry -> entry.getKey().isNodeSpecific())
+            .collect(Collectors.toMap( //
+                Map.Entry::getKey, //
+                Map.Entry::getValue //
+            ));
+        return mapValues(filteredMap, Function.identity()); // sort
     }
 
     /**

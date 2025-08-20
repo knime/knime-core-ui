@@ -48,7 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jobmanager;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil.DEFAULT_JOB_MANAGER_FACTORY;
+import static org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil.DEFAULT_JOB_MANAGER_FACTORY_ID;
+import static org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil.DEFAULT_JOB_MANAGER_FACTORY_LABEL;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,7 +57,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.knime.core.node.workflow.NodeExecutionJobManagerFactory;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DropdownRendererSpec;
 import org.knime.node.parameters.widget.choices.StringChoice;
 
 /**
@@ -64,26 +64,31 @@ import org.knime.node.parameters.widget.choices.StringChoice;
  *
  * @author Robin Gerling
  */
-final class JobManagerSelectionDropdownRenderer implements DropdownRendererSpec {
+final class JobManagerSelectionDropdownSubNode extends JobManagerSelectionDropdown {
 
-    record JobManagerFactoryDescription(NodeExecutionJobManagerFactory factory, String description) {
+    private static List<JobManagerFactoryDescription> m_availableManagers;
+
+    record JobManagerFactoryDescription(String factoryId, String factoryTitle, String description) {
     }
 
-    private final List<JobManagerFactoryDescription> m_selectableJobManagers =
-        new ArrayList<>(Arrays.asList(new JobManagerFactoryDescription(DEFAULT_JOB_MANAGER_FACTORY,
-            "The job manager which executes the nodes in the component node by node.")));
-
-    public JobManagerSelectionDropdownRenderer(
+    public JobManagerSelectionDropdownSubNode(
         final Optional<NodeExecutionJobManagerFactory> streamingJobManagerFactory) {
+        super(createChoices(streamingJobManagerFactory));
+    }
+
+    private static StringChoice[]
+        createChoices(final Optional<NodeExecutionJobManagerFactory> streamingJobManagerFactory) {
+        m_availableManagers = new ArrayList<>(Arrays
+            .asList(new JobManagerFactoryDescription(DEFAULT_JOB_MANAGER_FACTORY_ID, DEFAULT_JOB_MANAGER_FACTORY_LABEL,
+                "The job manager which executes the nodes in the component node by node.")));
         if (streamingJobManagerFactory.isPresent()) {
-            m_selectableJobManagers.add(new JobManagerFactoryDescription(streamingJobManagerFactory.get(),
+            final var factory = streamingJobManagerFactory.get();
+            m_availableManagers.add(new JobManagerFactoryDescription(factory.getID(), factory.getLabel(),
                 "The job manager which executes the nodes in the component concurrently."));
         }
-    }
-
-    @Override
-    public String getTitle() {
-        return "Job manager selection";
+        return m_availableManagers.stream().map(factoryDescription -> {
+            return new StringChoice(factoryDescription.factoryId(), factoryDescription.factoryTitle());
+        }).toArray(StringChoice[]::new);
     }
 
     @Override
@@ -91,30 +96,13 @@ final class JobManagerSelectionDropdownRenderer implements DropdownRendererSpec 
         StringBuilder descriptionBuilder = new StringBuilder();
         descriptionBuilder.append("Select the execution mode of the component.");
         descriptionBuilder.append("<ul>");
-        m_selectableJobManagers.forEach(factoryDescription -> {
-            descriptionBuilder.append(String.format("<li><b>%s:</b> %s</li>", factoryDescription.factory().getID(),
+        m_availableManagers.forEach(factoryDescription -> {
+            descriptionBuilder.append(String.format("<li><b>%s:</b> %s</li>", factoryDescription.factoryTitle(),
                 factoryDescription.description()));
         });
         descriptionBuilder.append("</ul>");
 
         return Optional.of(descriptionBuilder.toString());
-    }
-
-    @Override
-    public Optional<DropdownRendererOptions> getOptions() {
-
-        return Optional.of(new DropdownRendererOptions() {
-
-            @Override
-            public Optional<StringChoice[]> getPossibleValues() {
-                return Optional.of(m_selectableJobManagers.stream() //
-                    .map(factoryDescription -> {
-                        final var factory = factoryDescription.factory();
-                        return new StringChoice(factory.getID(), factory.getLabel());
-                    }).toArray(StringChoice[]::new));
-            }
-
-        });
     }
 
 }

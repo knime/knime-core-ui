@@ -44,65 +44,57 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   30 Jul 2025 (Robin Gerling): created
+ *   Aug 20, 2025 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jobmanager;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.shared.workflow.storage.multidir.util.IOConst;
+import static org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil.JOB_MANAGER_KEY_FE;
+
+import java.util.HashMap;
+import java.util.Optional;
+
+import org.knime.core.webui.node.dialog.PersistSchema;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * Utility class to combine functionality for the job manager settings used by native and sub nodes.
+ * It's not possible to set flow variables for parameters in the job manager section.
  *
- * @author Robin Gerling
+ * @author Paul Bärnreuther
  */
-public class JobManagerParametersUtil {
+public class JobManagerParametersPersistUtil {
 
-    /**
-     * Id used to identify the default job manager in the frontend.
-     */
-    public static final String DEFAULT_JOB_MANAGER_FACTORY_ID = "default";
-
-    /**
-     * Label used to identify the default job manager in the frontend.
-     */
-    public static final String DEFAULT_JOB_MANAGER_FACTORY_LABEL = "Default Job Manager";
-
-    /**
-     * The key for the job manager settings root in the frontend using dashes instead of dots
-     */
-    public static final String JOB_MANAGER_KEY_FE = replaceDotsByDashes(IOConst.JOB_MANAGER_KEY.get());
-
-    /**
-     * The key for the job manager factory id setting in the frontend using dashes instead of dots
-     */
-    public static final String JOB_MANAGER_FACTORY_ID_KEY_FE =
-        replaceDotsByDashes(IOConst.JOB_MANAGER_FACTORY_ID_KEY.get());
-
-    /**
-     * The key for the sub settings of a job manager in the frontend using dashes instead of dots
-     */
-    public static final String JOB_MANAGER_SETTINGS_KEY_FE =
-        replaceDotsByDashes(IOConst.JOB_MANAGER_SETTINGS_KEY.get());
-
-    private static String replaceDotsByDashes(final String str) {
-        return str.replace(".", "-");
+    private JobManagerParametersPersistUtil() {
+        // Utility class
     }
 
+    private static final PersistSchema.PersistLeafSchema PERSIST_LEAF_SCHEMA_WITH_EMPTY_CONFIG_PATHS =
+        new PersistSchema.PersistLeafSchema() {
+
+            @Override
+            public Optional<String[][]> getConfigPaths() {
+                return Optional.of(new String[0][]);
+            }
+
+        };
+
     /**
-     * Checks whether the node settings contain the job manager settings root key
+     * This method disables flow variable support for the job manager persist schema by adding a persist schema with
+     * empty config paths
      *
-     * @param settings the node settings to check for the job manager root key
-     * @return whether the settings contain the job manager root key
+     * @param persistSchemaMap the map of persist schemas to add the job manager persist schema to
      */
-    public static boolean hasJobManagerSettings(final NodeSettingsRO settings) {
-        try {
-            final var jobManagerSettings = settings.getNodeSettings(IOConst.JOB_MANAGER_KEY.get());
-            return jobManagerSettings.containsKey(IOConst.JOB_MANAGER_FACTORY_ID_KEY.get());
-        } catch (InvalidSettingsException ex) { //NOSONAR
-            return false;
-        }
+    public static void setPersistSchema(final HashMap<String, PersistSchema> persistSchemaMap) {
+        persistSchemaMap.put(JOB_MANAGER_KEY_FE, PERSIST_LEAF_SCHEMA_WITH_EMPTY_CONFIG_PATHS);
     }
 
+    /**
+     * This method disables flow variable support for the job manager persist schema by adding a persist schema with
+     * empty config paths
+     *
+     * @param persistSchema to set the persist schema on
+     */
+    public static void setPersistSchema(final ObjectNode persistSchema) {
+        persistSchema.putObject(JOB_MANAGER_KEY_FE).putArray("configPaths"); // See {@link PersistUtil}
+    }
 }

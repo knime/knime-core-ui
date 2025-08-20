@@ -48,7 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jobmanager;
 
-import static org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil.DEFAULT_JOB_MANAGER_FACTORY;
+import static org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil.DEFAULT_JOB_MANAGER_FACTORY_ID;
 import static org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil.JOB_MANAGER_FACTORY_ID_KEY_FE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil.JOB_MANAGER_KEY_FE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil.JOB_MANAGER_SETTINGS_KEY_FE;
@@ -58,12 +58,12 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_EFFECT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_RULE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_SCOPE;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil.toSchemaConstructor;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil.toUiSchemaElement;
 
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -72,19 +72,20 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.util.NodeExecutionJobManagerPool;
 import org.knime.core.node.workflow.NodeExecutionJobManagerFactory;
 import org.knime.core.util.Pair;
-import org.knime.core.webui.node.dialog.PersistSchema;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.SectionRendererSpec;
 import org.knime.core.webui.node.dialog.internal.SettingsApplier;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.shared.workflow.storage.multidir.util.IOConst;
 import org.osgi.framework.FrameworkUtil;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -107,35 +108,6 @@ public final class JobManagerParametersSubNodeUtil {
      * Exported for testing purposes
      */
     public static final String STREAMING_MANAGER_CHUNK_SIZE_KEY = "chunk-size";
-
-    private static final PersistSchema.PersistLeafSchema PERSIST_LEAF_SCHEMA_WITH_EMPTY_CONFIG_PATHS =
-        new PersistSchema.PersistLeafSchema() {
-
-            @Override
-            public Optional<String[][]> getConfigPaths() {
-                return Optional.of(new String[0][]);
-            }
-
-        };
-
-    /**
-     * the persist tree schema for the job manager settings containing empty config paths for both settings as those
-     * settings should not be controlled via flow variable
-     */
-    private static final PersistSchema PERSIST_SCHEMA = new PersistSchema.PersistTreeSchema.PersistTreeSchemaRecord( //
-        Map.of( //
-            JOB_MANAGER_FACTORY_ID_KEY_FE, //
-            PERSIST_LEAF_SCHEMA_WITH_EMPTY_CONFIG_PATHS, //
-            JOB_MANAGER_SETTINGS_KEY_FE, //
-            new PersistSchema.PersistTreeSchema.PersistTreeSchemaRecord(
-                Map.of(STREAMING_MANAGER_CHUNK_SIZE_KEY, PERSIST_LEAF_SCHEMA_WITH_EMPTY_CONFIG_PATHS))));
-
-    /**
-     * @param persistSchemaMap the map of persist schemas to add the job manager persist schema to
-     */
-    public static void setPersistSchema(final HashMap<String, PersistSchema> persistSchemaMap) {
-        persistSchemaMap.put(JOB_MANAGER_KEY_FE, PERSIST_SCHEMA);
-    }
 
     /**
      *
@@ -162,24 +134,40 @@ public final class JobManagerParametersSubNodeUtil {
     }
 
     /**
-     * @return the dialog renderers and their corresponding ui schemas
+     * Add a job manager section to the schema and the uiSchema elements.
+     *
+     * @param schema the schema to add the fields within the job manager section to
+     * @param uiSchemaElements to append the sections ui schema to
      */
-    public static RendererAndUiSchema[] getJobManagerSubNodeSettings() {
+    public static void addJobManagerSection(final ObjectNode schema, final ArrayNode uiSchemaElements) {
         final var jobManagerSelectionRenderer =
-            new JobManagerSelectionDropdownRenderer(getSimpleStreamingJobManagerFactory()) //
-                .at(JOB_MANAGER_KEY_FE, JOB_MANAGER_FACTORY_ID_KEY_FE);
+            new JobManagerSelectionDropdownSubNode(getSimpleStreamingJobManagerFactory()) //
+                .at(JOB_MANAGER_FACTORY_ID_KEY_FE);
         final var chunkSizeRenderer = new StreamingJobManagerChunkSizeRenderer() //
-            .at(JOB_MANAGER_KEY_FE, JOB_MANAGER_SETTINGS_KEY_FE, STREAMING_MANAGER_CHUNK_SIZE_KEY);
+            .at(JOB_MANAGER_SETTINGS_KEY_FE, STREAMING_MANAGER_CHUNK_SIZE_KEY);
+        final var jobManagerSection = new SectionRendererSpec() {
 
-        final var jobManagerSelectionUiSchema = toUiSchemaElement(jobManagerSelectionRenderer);
-        final var chunkSizeUiSchema = toUiSchemaElement(chunkSizeRenderer);
-        chunkSizeUiSchema.set(TAG_RULE,
-            createShowRule(JsonFormsScopeUtil.toScope(List.of(JOB_MANAGER_FACTORY_ID_KEY_FE), SettingsType.JOB_MANAGER),
-                SIMPLE_STREAMING_JOB_MANAGER_NODE_FACTORY));
+            @Override
+            public Collection<DialogElementRendererSpec> getElements() {
+                return List.of(jobManagerSelectionRenderer, chunkSizeRenderer);
+            }
 
-        return new RendererAndUiSchema[]{
-            new RendererAndUiSchema(jobManagerSelectionRenderer, jobManagerSelectionUiSchema),
-            new RendererAndUiSchema(chunkSizeRenderer, chunkSizeUiSchema)};
+            @Override
+            public String getTitle() {
+                return "Job manager selection";
+            }
+        }.at(JOB_MANAGER_KEY_FE);
+
+        toSchemaConstructor(jobManagerSection).apply(schema);
+        // Rules are not yet supported by imperative renderers, so we need to add them manually
+        final var uiSchema = toUiSchemaElement(jobManagerSection);
+        ((ObjectNode)((ArrayNode)uiSchema.get(UiSchema.TAG_ELEMENTS)).get(1)).set(TAG_RULE, createShowRule(//
+            JsonFormsScopeUtil.toScope(List.of(JOB_MANAGER_FACTORY_ID_KEY_FE), SettingsType.JOB_MANAGER),
+            SIMPLE_STREAMING_JOB_MANAGER_NODE_FACTORY//
+        ));
+
+        uiSchemaElements.add(uiSchema);
+
     }
 
     /**
@@ -204,7 +192,7 @@ public final class JobManagerParametersSubNodeUtil {
         }
 
         final var selectedJobManagerFactory = jobManagerSettingsJson.get(JOB_MANAGER_FACTORY_ID_KEY_FE).asText();
-        if (selectedJobManagerFactory.equals(DEFAULT_JOB_MANAGER_FACTORY.getID())) {
+        if (selectedJobManagerFactory.equals(DEFAULT_JOB_MANAGER_FACTORY_ID)) {
             return extractedJobManagerSettings;
         }
 
@@ -260,23 +248,19 @@ public final class JobManagerParametersSubNodeUtil {
      * @param data the objectnode to save the settings to
      * @param jobManagerSettings the NodeSettings to parse the settings from
      */
-    public static void setSelectedValues(final ObjectNode data, final NodeSettingsRO jobManagerSettings) {
+    public static void fromNodeSettings(final ObjectNode data, final NodeSettingsRO jobManagerSettings) {
         final var selectedJobManagerAndChunkSize = getSettingsValues(jobManagerSettings);
         final var selectedJobManager = selectedJobManagerAndChunkSize.getFirst();
         final var chunkSize = selectedJobManagerAndChunkSize.getSecond();
 
-        final var mapper = new ObjectMapper();
-
-        final var jobManagerSettingsJson = data.putObject(JOB_MANAGER_KEY_FE);
-        jobManagerSettingsJson.set(JOB_MANAGER_FACTORY_ID_KEY_FE, mapper.valueToTree(selectedJobManager));
-
-        final var jobManagerSubSettingsJson = jobManagerSettingsJson.putObject(JOB_MANAGER_SETTINGS_KEY_FE);
-        jobManagerSubSettingsJson.set(STREAMING_MANAGER_CHUNK_SIZE_KEY, mapper.valueToTree(chunkSize));
+        data.putObject(JOB_MANAGER_KEY_FE)//
+            .put(JOB_MANAGER_FACTORY_ID_KEY_FE, selectedJobManager)//
+            .putObject(JOB_MANAGER_SETTINGS_KEY_FE).put(STREAMING_MANAGER_CHUNK_SIZE_KEY, chunkSize);
     }
 
     private static Pair<String, Integer> getSettingsValues(final NodeSettingsRO jobManagerSettings) {
         var chunkSize = 50;
-        var selectedJobManager = DEFAULT_JOB_MANAGER_FACTORY.getID();
+        var selectedJobManager = DEFAULT_JOB_MANAGER_FACTORY_ID;
 
         try {
             if (jobManagerSettings.containsKey(IOConst.JOB_MANAGER_FACTORY_ID_KEY.get())) {

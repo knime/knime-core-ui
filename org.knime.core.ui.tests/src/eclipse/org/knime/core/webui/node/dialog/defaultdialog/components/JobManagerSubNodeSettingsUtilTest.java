@@ -85,7 +85,7 @@ class JobManagerSubNodeSettingsUtilTest {
 
         final var mapper = new ObjectMapper();
         final var data = mapper.createObjectNode();
-        JobManagerParametersSubNodeUtil.setSelectedValues(data, jobManagerNodeSettings);
+        JobManagerParametersSubNodeUtil.fromNodeSettings(data, jobManagerNodeSettings);
         final var resultJobManagerSettings = JobManagerParametersSubNodeUtil.toNodeSettings(data);
 
         assertTrue(jobManagerNodeSettings.getString(IOConst.JOB_MANAGER_FACTORY_ID_KEY.get())
@@ -111,7 +111,7 @@ class JobManagerSubNodeSettingsUtilTest {
 
         final var mapper = new ObjectMapper();
         final var data = mapper.createObjectNode();
-        JobManagerParametersSubNodeUtil.setSelectedValues(data, jobManagerNodeSettings);
+        JobManagerParametersSubNodeUtil.fromNodeSettings(data, jobManagerNodeSettings);
         assertThat(
             assertThrows(InvalidSettingsException.class, () -> JobManagerParametersSubNodeUtil.toNodeSettings(data))
                 .getMessage()).isEqualTo(
@@ -125,7 +125,7 @@ class JobManagerSubNodeSettingsUtilTest {
             + "    </config>\n"//
             + "</config>",
         IOConst.JOB_MANAGER_KEY.get(), IOConst.JOB_MANAGER_FACTORY_ID_KEY.get(),
-        JobManagerParametersUtil.DEFAULT_JOB_MANAGER_FACTORY.getID(), IOConst.JOB_MANAGER_SETTINGS_KEY.get());
+        JobManagerParametersUtil.DEFAULT_JOB_MANAGER_FACTORY_ID, IOConst.JOB_MANAGER_SETTINGS_KEY.get());
 
     @Test
     void testReturnsEmptySettingsForTheDefaultJobManager() throws InvalidSettingsException, IOException {
@@ -134,7 +134,7 @@ class JobManagerSubNodeSettingsUtilTest {
 
         final var mapper = new ObjectMapper();
         final var data = mapper.createObjectNode();
-        JobManagerParametersSubNodeUtil.setSelectedValues(data, jobManagerNodeSettings);
+        JobManagerParametersSubNodeUtil.fromNodeSettings(data, jobManagerNodeSettings);
         final var resultJobManagerSettings = JobManagerParametersSubNodeUtil.toNodeSettings(data);
         assertTrue(resultJobManagerSettings.isLeaf());
     }

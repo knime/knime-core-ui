@@ -130,4 +130,12 @@ public enum SettingsType {
         return m_variablesConfigKey;
     }
 
+    /**
+     * Whether the settings of this type are the same or specific to a node.
+     * @return true if the settings are node specific, false otherwise
+     */
+    public boolean isNodeSpecific() {
+        return this != JOB_MANAGER;
+    }
+
 }

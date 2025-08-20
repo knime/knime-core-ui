@@ -65,7 +65,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.Fi
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.DefaultNodeDialogDataServiceImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.FlowVariableDataServiceImpl;
-import org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerNodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.node.parameters.NodeParameters;
@@ -93,7 +92,7 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
      */
     public DefaultNodeDialog() {
         m_settingsTypes = Set.of(SettingsType.JOB_MANAGER);
-        m_settingsClasses = Map.of(SettingsType.JOB_MANAGER, JobManagerNodeParameters.class);
+        m_settingsClasses = Map.of();
         m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses);
         m_onApplyModifier = null;
     }
@@ -120,8 +119,7 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
     public DefaultNodeDialog(final SettingsType settingsType, final Class<? extends NodeParameters> settingsClass,
         final OnApplyNodeModifier onApplyModifier) {
         m_settingsTypes = Set.of(settingsType, SettingsType.JOB_MANAGER);
-        m_settingsClasses =
-            Map.of(settingsType, settingsClass, SettingsType.JOB_MANAGER, JobManagerNodeParameters.class);
+        m_settingsClasses = Map.of(settingsType, settingsClass);
         m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses);
         m_onApplyModifier = onApplyModifier;
     }
@@ -155,8 +153,7 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
         final SettingsType settingsType2, final Class<? extends NodeParameters> settingsClass2,
         final OnApplyNodeModifier onApplyModifier) {
         m_settingsTypes = Set.of(settingsType1, settingsType2, SettingsType.JOB_MANAGER);
-        m_settingsClasses = Map.of(settingsType1, settingsClass1, settingsType2, settingsClass2,
-            SettingsType.JOB_MANAGER, JobManagerNodeParameters.class);
+        m_settingsClasses = Map.of(settingsType1, settingsClass1, settingsType2, settingsClass2);
         m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses);
         m_onApplyModifier = onApplyModifier;
     }

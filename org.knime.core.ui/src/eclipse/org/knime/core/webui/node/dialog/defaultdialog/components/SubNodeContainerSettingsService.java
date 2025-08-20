@@ -51,8 +51,6 @@ package org.knime.core.webui.node.dialog.defaultdialog.components;
 import static org.knime.core.node.workflow.SubNodeContainer.getDialogNodeParameterName;
 import static org.knime.core.webui.node.dialog.SettingsType.JOB_MANAGER;
 import static org.knime.core.webui.node.dialog.SettingsType.MODEL;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.Schema.TAG_TYPE;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_LABEL;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil.toSchemaConstructor;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil.toUiSchemaElement;
 import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.TextToJsonUtil.textToJson;
@@ -92,6 +90,7 @@ import org.knime.core.webui.node.dialog.configmapping.NodeSettingsCorrectionUtil
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialogDataServiceUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.UpdatesUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersPersistUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersSubNodeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
@@ -174,20 +173,9 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
 
         final var jobManagerSettings = settings.get(JOB_MANAGER);
         if (JobManagerParametersSubNodeUtil.showJobManagerSettings(jobManagerSettings)) {
-            JobManagerParametersSubNodeUtil.setSelectedValues(data, jobManagerSettings);
-            JobManagerParametersSubNodeUtil.setPersistSchema(persistSchemaMap);
-
-            final var jobManagerUiSchema = uiSchemaElements.addObject();
-            jobManagerUiSchema.put(TAG_LABEL, "Job manager selection");
-            jobManagerUiSchema.put(TAG_TYPE, "Section");
-            final var jobManagerUiSchemaElements = jobManagerUiSchema.putArray(UiSchema.TAG_ELEMENTS);
-
-            final var renderersAndUiSchemas = JobManagerParametersSubNodeUtil.getJobManagerSubNodeSettings();
-            for (var rendererAndUiSchema : renderersAndUiSchemas) {
-                m_renderers.add(rendererAndUiSchema.renderer());
-                jobManagerUiSchemaElements.addObject().setAll(rendererAndUiSchema.uiSchema());
-                toSchemaConstructor(rendererAndUiSchema.renderer()).apply(schema);
-            }
+            JobManagerParametersSubNodeUtil.fromNodeSettings(data, jobManagerSettings);
+            JobManagerParametersSubNodeUtil.addJobManagerSection(schema, uiSchemaElements);
+            JobManagerParametersPersistUtil.setPersistSchema(persistSchemaMap);
         }
 
         final var jsonFormsSettings = new JsonFormsSettings() {

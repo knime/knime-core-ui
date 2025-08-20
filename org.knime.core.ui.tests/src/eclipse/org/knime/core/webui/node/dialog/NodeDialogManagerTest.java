@@ -213,7 +213,8 @@ public class NodeDialogManagerTest {
         var nodeDialogManager = NodeDialogManager.getInstance();
         var initialData = nodeDialogManager.getDataServiceManager().callInitialDataService(NodeWrapper.of(nc));
         var resultAsJson = (ObjectNode)new ObjectMapper().readTree(initialData);
-        assertThatJson(resultAsJson).inPath("result.data.job-manager.jobManagerFactoryId").isEqualTo(selectedFactoryId);
+        assertThatJson(resultAsJson).inPath("result.data.job-manager.job-manager-factory-id")
+            .isEqualTo(selectedFactoryId);
 
         final var dataServiceManager = nodeDialogManager.getDataServiceManager();
 
@@ -227,8 +228,8 @@ public class NodeDialogManagerTest {
             .isEqualTo("Custom job managers for nodes are not supported. Please select the default job manager.");
 
         // Applying the default job manager is possible
-        ((ObjectNode)toBeApplied.get("data").get("job-manager")).put("jobManagerFactoryId",
-            JobManagerParametersUtil.DEFAULT_JOB_MANAGER_FACTORY.getID());
+        ((ObjectNode)toBeApplied.get("data").get("job-manager")).put("job-manager-factory-id",
+            JobManagerParametersUtil.DEFAULT_JOB_MANAGER_FACTORY_ID);
         toBeAppliedString = new ObjectMapper().writeValueAsString(toBeApplied);
         final var successResult = dataServiceManager.callApplyDataService(NodeWrapper.of(nc), toBeAppliedString);
         var successResultAsJson = (ObjectNode)new ObjectMapper().readTree(successResult);
@@ -443,16 +444,14 @@ public class NodeDialogManagerTest {
         assertThatJson(resultAsJson).inPath("$.result.data.job-manager.job-manager-factory-id").isString().isNotEmpty();
         assertThatJson(resultAsJson)
             .inPath("$.result.schema.properties.job-manager.properties.job-manager-factory-id.title")
-            .isEqualTo("Job manager selection");
+            .isEqualTo("Job manager");
         assertThatJson(resultAsJson).inPath("$.result.ui_schema.elements[0].elements[0].scope")
             .isEqualTo("#/properties/job-manager/properties/job-manager-factory-id");
         assertThatJson(resultAsJson).inPath("$.result.ui_schema.elements[0].elements[0].options.possibleValues")
-            .isArray().hasSize(1);
+            .isArray();
         assertThatJson(resultAsJson).inPath("$.result.ui_schema.elements[0].elements[1].rule.condition.scope")
             .isEqualTo("#/properties/job-manager/properties/job-manager-factory-id");
-        assertThatJson(resultAsJson)
-            .inPath("$.result.persist.properties.job-manager.properties.job-manager-factory-id.configPaths").isArray()
-            .isEmpty();
+        assertThatJson(resultAsJson).inPath("$.result.persist.properties.job-manager.configPaths").isArray().isEmpty();
     }
 
     /**
