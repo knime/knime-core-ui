@@ -61,7 +61,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NodeView;
 
-class TestEmptyEmptyNodeFactory extends NodeFactory<NodeModel> {
+class EmptyNodeFactory extends NodeFactory<NodeModel> {
 
     @Override
     public NodeModel createNodeModel() {

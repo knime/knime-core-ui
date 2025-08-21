@@ -83,6 +83,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @SuppressWarnings("rawtypes")
 public class JobManagerParametersNativeNodeUtil {
 
+    private JobManagerParametersNativeNodeUtil() {
+        // utility
+    }
+
     private static final DialogElementRendererSpec onlyDefaultJobManagerSelection =
         new JobManagerSelectionDropdown(new StringChoice[]{new StringChoice(//
             DEFAULT_JOB_MANAGER_FACTORY_ID, //
@@ -92,8 +96,9 @@ public class JobManagerParametersNativeNodeUtil {
             public Optional<String> getDescription() {
                 return Optional
                     .of("The selection of a custom job manager for nodes is deprecated, why previously selected job"
-                        + " managers appear as missing even though they are installed. The node can still be executed as long as"
-                        + " the node settings do not change. Changing the node settings requires a valid job manager to be set.");
+                        + " managers appear as missing even though they are installed. The node can still be executed"
+                        + " as long as the node settings do not change. Changing the node settings requires a valid"
+                        + " job manager to be set.");
             }
 
         }.at(JOB_MANAGER_KEY_FE, JOB_MANAGER_FACTORY_ID_KEY_FE);
@@ -113,7 +118,7 @@ public class JobManagerParametersNativeNodeUtil {
     /**
      * NodeSettings -> job manager id
      *
-     * @param jobManagerSettings
+     * @param jobManagerSettings node setting at the job manager root
      *
      * @return the job manager id if it is not the default job manager, otherwise an empty optional
      */
@@ -151,7 +156,6 @@ public class JobManagerParametersNativeNodeUtil {
                 data.putObject(JOB_MANAGER_KEY_FE)//
                     .put(JOB_MANAGER_FACTORY_ID_KEY_FE, jobManagerId);
                 return data;
-
             }
         };
 

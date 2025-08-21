@@ -66,7 +66,7 @@ import org.knime.node.parameters.widget.choices.StringChoice;
  */
 final class JobManagerSelectionDropdownSubNode extends JobManagerSelectionDropdown {
 
-    private static List<JobManagerFactoryDescription> m_availableManagers;
+    private static List<JobManagerFactoryDescription> availableManagers;
 
     record JobManagerFactoryDescription(String factoryId, String factoryTitle, String description) {
     }
@@ -78,17 +78,17 @@ final class JobManagerSelectionDropdownSubNode extends JobManagerSelectionDropdo
 
     private static StringChoice[]
         createChoices(final Optional<NodeExecutionJobManagerFactory> streamingJobManagerFactory) {
-        m_availableManagers = new ArrayList<>(Arrays
+        availableManagers = new ArrayList<>(Arrays
             .asList(new JobManagerFactoryDescription(DEFAULT_JOB_MANAGER_FACTORY_ID, DEFAULT_JOB_MANAGER_FACTORY_LABEL,
                 "The job manager which executes the nodes in the component node by node.")));
         if (streamingJobManagerFactory.isPresent()) {
             final var factory = streamingJobManagerFactory.get();
-            m_availableManagers.add(new JobManagerFactoryDescription(factory.getID(), factory.getLabel(),
+            availableManagers.add(new JobManagerFactoryDescription(factory.getID(), factory.getLabel(),
                 "The job manager which executes the nodes in the component concurrently."));
         }
-        return m_availableManagers.stream().map(factoryDescription -> {
-            return new StringChoice(factoryDescription.factoryId(), factoryDescription.factoryTitle());
-        }).toArray(StringChoice[]::new);
+        return availableManagers.stream().map(
+            factoryDescription -> new StringChoice(factoryDescription.factoryId(), factoryDescription.factoryTitle()))
+            .toArray(StringChoice[]::new);
     }
 
     @Override
@@ -96,7 +96,7 @@ final class JobManagerSelectionDropdownSubNode extends JobManagerSelectionDropdo
         StringBuilder descriptionBuilder = new StringBuilder();
         descriptionBuilder.append("Select the execution mode of the component.");
         descriptionBuilder.append("<ul>");
-        m_availableManagers.forEach(factoryDescription -> {
+        availableManagers.forEach(factoryDescription -> {
             descriptionBuilder.append(String.format("<li><b>%s:</b> %s</li>", factoryDescription.factoryTitle(),
                 factoryDescription.description()));
         });

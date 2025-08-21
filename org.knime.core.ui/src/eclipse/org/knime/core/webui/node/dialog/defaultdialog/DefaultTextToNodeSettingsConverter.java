@@ -103,7 +103,9 @@ final class DefaultTextToNodeSettingsConverter implements TextToNodeSettingsConv
         copyLeftToRight(extractedNodeSettings, settings);
         rootJsonToVariableSettings(root, map(settings));
 
-        JobManagerParametersNativeNodeUtil.toNodeSettings(data).copyTo(settings.get(SettingsType.JOB_MANAGER));
+        if (settings.containsKey(SettingsType.JOB_MANAGER)) {
+            JobManagerParametersNativeNodeUtil.toNodeSettings(data).copyTo(settings.get(SettingsType.JOB_MANAGER));
+        }
     }
 
     private void alignSettingsWithFlowVariables( //

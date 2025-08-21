@@ -50,7 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.jobmanager;
 
 import static org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil.JOB_MANAGER_KEY_FE;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.PersistSchema;
@@ -62,7 +62,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  *
  * @author Paul Bärnreuther
  */
-public class JobManagerParametersPersistUtil {
+public final class JobManagerParametersPersistUtil {
 
     private JobManagerParametersPersistUtil() {
         // Utility class
@@ -84,7 +84,7 @@ public class JobManagerParametersPersistUtil {
      *
      * @param persistSchemaMap the map of persist schemas to add the job manager persist schema to
      */
-    public static void setPersistSchema(final HashMap<String, PersistSchema> persistSchemaMap) {
+    public static void setPersistSchema(final Map<String, PersistSchema> persistSchemaMap) {
         persistSchemaMap.put(JOB_MANAGER_KEY_FE, PERSIST_LEAF_SCHEMA_WITH_EMPTY_CONFIG_PATHS);
     }
 

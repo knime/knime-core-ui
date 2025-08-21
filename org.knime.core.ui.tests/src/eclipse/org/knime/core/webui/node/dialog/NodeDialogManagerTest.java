@@ -76,7 +76,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.dialog.DialogNode;
 import org.knime.core.node.dialog.util.DefaultConfigurationLayoutCreator;
@@ -199,7 +198,7 @@ public class NodeDialogManagerTest {
 
     @Test
     void testNodeWithJobManagerSettings() throws IOException, InvalidSettingsException {
-        NativeNodeContainer nc = createAndAddNode(m_wfm, new TestEmptyEmptyNodeFactory());
+        NativeNodeContainer nc = createAndAddNode(m_wfm, new EmptyNodeFactory());
         assertThat(NodeDialogManager.hasNodeDialog(nc)).as("node not expected to have a node dialog").isFalse();
 
         final var nodeSettings = nc.getNodeSettings();
@@ -254,7 +253,7 @@ public class NodeDialogManagerTest {
 
         try (MockedStatic<JobManagerParametersSubNodeUtil> mocked =
             mockStatic(JobManagerParametersSubNodeUtil.class, withSettings().defaultAnswer(CALLS_REAL_METHODS))) {
-            mocked.when(() -> JobManagerParametersSubNodeUtil.showJobManagerSettings(new NodeSettings("dummy")))
+            mocked.when(() -> JobManagerParametersSubNodeUtil.isStreamingExtensionInstalled())
                 .thenReturn(false);
 
             // build workflow
@@ -408,7 +407,7 @@ public class NodeDialogManagerTest {
 
         try (MockedStatic<JobManagerParametersSubNodeUtil> mocked =
             mockStatic(JobManagerParametersSubNodeUtil.class, withSettings().defaultAnswer(CALLS_REAL_METHODS))) {
-            mocked.when(() -> JobManagerParametersSubNodeUtil.showJobManagerSettings(mock(NodeSettingsRO.class)))
+            mocked.when(() -> JobManagerParametersSubNodeUtil.isStreamingExtensionInstalled())
                 .thenReturn(true);
 
             assertThat(NodeDialogManager.hasNodeDialog(component)).as("node expected to have a node dialog").isTrue();

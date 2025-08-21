@@ -341,7 +341,7 @@ public class FallbackDialogFactoryTest {
 
         @Override
         protected boolean hasDialog() {
-            return false;
+            return true;
         }
 
         @Override

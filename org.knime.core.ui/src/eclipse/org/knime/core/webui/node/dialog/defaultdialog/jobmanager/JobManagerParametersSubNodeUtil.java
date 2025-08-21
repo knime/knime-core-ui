@@ -52,7 +52,6 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManag
 import static org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil.JOB_MANAGER_FACTORY_ID_KEY_FE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil.JOB_MANAGER_KEY_FE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil.JOB_MANAGER_SETTINGS_KEY_FE;
-import static org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil.hasJobManagerSettings;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.FIELD_NAME_SCHEMA;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_CONDITION;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_EFFECT;
@@ -110,15 +109,9 @@ public final class JobManagerParametersSubNodeUtil {
     public static final String STREAMING_MANAGER_CHUNK_SIZE_KEY = "chunk-size";
 
     /**
-     *
-     * @param settings the settings of the node
-     * @return true, if the streaming extension is installed or the node settings contain job manager settings
+     * @return whether the streaming extension is installed
      */
-    public static boolean showJobManagerSettings(final NodeSettingsRO settings) {
-        return isStreamingExtensionInstalled() || hasJobManagerSettings(settings);
-    }
-
-    private static boolean isStreamingExtensionInstalled() {
+    public static boolean isStreamingExtensionInstalled() {
         final var bundleContext = FrameworkUtil.getBundle(JobManagerParametersSubNodeUtil.class).getBundleContext();
         return Arrays.stream(bundleContext.getBundles()) //
             .anyMatch(bundle -> bundle.getSymbolicName().equals("org.knime.core.streaming"));
@@ -177,7 +170,7 @@ public final class JobManagerParametersSubNodeUtil {
      *
      * @param dataJson the job manager settings as json
      * @return from json extracted job manager settings
-     * @throws InvalidSettingsException
+     * @throws InvalidSettingsException when a custom job manager is selected
      */
     public static NodeSettings toNodeSettings(final JsonNode dataJson) throws InvalidSettingsException {
         final var extractedJobManagerSettings = new NodeSettings("extracted job manager settings");

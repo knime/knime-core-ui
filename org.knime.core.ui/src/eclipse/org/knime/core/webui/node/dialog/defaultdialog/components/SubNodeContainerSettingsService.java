@@ -92,6 +92,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.UpdatesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersPersistUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersSubNodeUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
@@ -172,7 +173,8 @@ public final class SubNodeContainerSettingsService implements NodeSettingsServic
         persistSchemaMap.put(MODEL.getConfigKey(), modelPersistSchema);
 
         final var jobManagerSettings = settings.get(JOB_MANAGER);
-        if (JobManagerParametersSubNodeUtil.showJobManagerSettings(jobManagerSettings)) {
+        if (JobManagerParametersSubNodeUtil.isStreamingExtensionInstalled()
+            || JobManagerParametersUtil.hasJobManagerFactoryId(jobManagerSettings)) {
             JobManagerParametersSubNodeUtil.fromNodeSettings(data, jobManagerSettings);
             JobManagerParametersSubNodeUtil.addJobManagerSection(schema, uiSchemaElements);
             JobManagerParametersPersistUtil.setPersistSchema(persistSchemaMap);

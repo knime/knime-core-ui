@@ -60,6 +60,7 @@ import org.knime.core.node.workflow.SubNodeContainer;
 import org.knime.core.node.workflow.WorkflowManager.NodeModelFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.components.SubNodeContainerNodeDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersSubNodeUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil;
 
 /**
  * The SubNodeContainerDialogFactory creates a {@link NodeDialog} for all the configuration nodes inside a
@@ -128,7 +129,8 @@ public final class SubNodeContainerDialogFactory {
      */
     public boolean hasNodeDialog() {
         return isSubNodeContainerNodeDialogEnabled() && (!getConfigurationNodes(m_snc).isEmpty()
-            || JobManagerParametersSubNodeUtil.showJobManagerSettings(m_snc.getNodeSettings()));
+            || JobManagerParametersSubNodeUtil.isStreamingExtensionInstalled()
+            || JobManagerParametersUtil.hasJobManagerSettings(m_snc.getNodeSettings()));
     }
 
     /**

@@ -59,6 +59,10 @@ import org.knime.shared.workflow.storage.multidir.util.IOConst;
  */
 public class JobManagerParametersUtil {
 
+    private JobManagerParametersUtil() {
+        // utility
+    }
+
     /**
      * Id used to identify the default job manager in the frontend.
      */
@@ -99,10 +103,20 @@ public class JobManagerParametersUtil {
     public static boolean hasJobManagerSettings(final NodeSettingsRO settings) {
         try {
             final var jobManagerSettings = settings.getNodeSettings(IOConst.JOB_MANAGER_KEY.get());
-            return jobManagerSettings.containsKey(IOConst.JOB_MANAGER_FACTORY_ID_KEY.get());
+            return hasJobManagerFactoryId(jobManagerSettings);
         } catch (InvalidSettingsException ex) { //NOSONAR
             return false;
         }
+    }
+
+    /**
+     * Checks whether the node settings at the job manager root contain the job manager settings factory id key
+     *
+     * @param jobManagerSettings the node settings at the job manager root
+     * @return whether the settings contain the job manager factory id key
+     */
+    public static boolean hasJobManagerFactoryId(final NodeSettingsRO jobManagerSettings) {
+        return jobManagerSettings.containsKey(IOConst.JOB_MANAGER_FACTORY_ID_KEY.get());
     }
 
 }
