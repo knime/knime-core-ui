@@ -87,7 +87,7 @@ public final class InputOutputModelNameAndTypeUtils {
                 return subItems == null ? Stream.empty() : Arrays.stream(subItems); //
             }) //
             .filter(subItem -> subItem.supported()) //
-            .map(subItem -> new NameAndType(subItem.name(), subItem.type())) //
+            .map(subItem -> new NameAndType(subItem.name(), subItem.type().displayName())) //
             .toArray(NameAndType[]::new);
     }
 
@@ -141,7 +141,7 @@ public final class InputOutputModelNameAndTypeUtils {
                 }
                 return Arrays.stream(subItems) //
                     .filter(subItem -> subItem.supported()) //
-                    .map(subItem -> new NameAndType(subItem.name(), subItem.type())) //
+                    .map(subItem -> new NameAndType(subItem.name(), subItem.type().displayName())) //
                     .toArray(NameAndType[]::new);
             }) //
             .toArray(NameAndType[][]::new);
@@ -165,7 +165,7 @@ public final class InputOutputModelNameAndTypeUtils {
 
         return Arrays.stream(flowVariableModel.subItems()) //
             .filter(subItem -> subItem.supported()) //
-            .map(subItem -> new NameAndType(subItem.name(), subItem.type())) //
+            .map(subItem -> new NameAndType(subItem.name(), subItem.type().displayName())) //
             .toArray(NameAndType[]::new);
     }
 }

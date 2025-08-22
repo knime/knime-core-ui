@@ -68,6 +68,11 @@ export default defineConfig({
     exclude: ["**/node_modules/**", "**/dist/**"],
     environment: "jsdom",
     reporters: ["default"],
+    server: {
+      deps: {
+        inline: ["@knime/kds-components"], // https://github.com/vitest-dev/vitest/issues/5283
+      },
+    },
     setupFiles: [
       fileURLToPath(new URL("./src/test-setup/setup.ts", import.meta.url)),
     ],

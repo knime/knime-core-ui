@@ -1,9 +1,18 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  type Mock,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { nextTick, ref } from "vue";
 import { mount } from "@vue/test-utils";
 import Handlebars from "handlebars";
 
 import { Collapser, useMultiSelection } from "@knime/components";
+import { DataType } from "@knime/kds-components";
 
 import { useInputOutputSelectionStore } from "@/store/io-selection";
 import InputOutputItem, {
@@ -52,13 +61,26 @@ describe("InputOutputItem", () => {
     subItems: [
       {
         name: "row 1",
-        type: "String",
+        type: {
+          id: "string-datatype",
+          title: "String DataType Title",
+          displayName: "String",
+        },
         supported: true,
       },
       {
         name: "row 2",
-        type: "Double",
+        type: {
+          displayName: "Double",
+        },
         supported: false,
+      },
+      {
+        name: "row 3",
+        type: {
+          displayName: "Row number",
+        },
+        supported: true,
       },
     ],
   };
@@ -104,10 +126,14 @@ describe("InputOutputItem", () => {
       const codeAliasInTitle = wrapper.find(".top-card").find(".code-alias");
       codeAliasInTitle.trigger("dragstart");
       expect(createDragGhost).toHaveBeenCalledWith({
-        elements: [{ text: "super.mock" }],
+        elements: [{ dragGhostContent: expect.any(HTMLElement) }],
         font: "monospace",
         numSelectedItems: 1,
       });
+      expect(
+        (createDragGhost as Mock).mock.calls[0][0].elements[0].dragGhostContent
+          .innerText,
+      ).toBe("super.mock");
       wrapper.unmount();
     });
 
@@ -136,21 +162,42 @@ describe("InputOutputItem", () => {
       wrapper.unmount();
     });
 
-    it("subitem creates drag ghost on drag start", async () => {
+    it("subitem creates drag ghost on drag start with data type component", async () => {
       const wrapper = doMount();
-      const subItem = wrapper.findAll(".interactive")[0];
+      const subItem = wrapper.findAll(".sub-item-content")[0];
       const dragGhostMock = { drag: "my drag ghost" };
       (createDragGhost as any).mockReturnValueOnce(dragGhostMock);
       await subItem.trigger("dragstart", dragEventMock);
 
-      expect(createDragGhost).toHaveBeenCalledWith({
-        elements: [
-          {
-            text: "row 1",
-          },
-        ],
-        numSelectedItems: 1,
-      });
+      const mockCall = (createDragGhost as Mock).mock.calls[0][0];
+      expect(mockCall.numSelectedItems).toBe(1);
+      const { dragGhostContent } = mockCall.elements[0];
+      expect(dragGhostContent.children.length).toBe(2);
+      expect(
+        dragGhostContent.getElementsByClassName("sub-item-name")[0].textContent,
+      ).toBe("row 1");
+      expect(dragEventMock.dataTransfer.setDragImage).toHaveBeenCalledWith(
+        dragGhostMock,
+        0,
+        0,
+      );
+      wrapper.unmount();
+    });
+
+    it("subitem creates drag ghost on drag start without data type component", async () => {
+      const wrapper = doMount();
+      const subItem = wrapper.findAll(".sub-item-content")[2];
+      const dragGhostMock = { drag: "my drag ghost" };
+      (createDragGhost as any).mockReturnValueOnce(dragGhostMock);
+      await subItem.trigger("dragstart", dragEventMock);
+
+      const mockCall = (createDragGhost as Mock).mock.calls[0][0];
+      expect(mockCall.numSelectedItems).toBe(1);
+      const { dragGhostContent } = mockCall.elements[0];
+      expect(dragGhostContent.children.length).toBe(1);
+      expect(
+        dragGhostContent.getElementsByClassName("sub-item-name")[0].textContent,
+      ).toBe("row 3");
       expect(dragEventMock.dataTransfer.setDragImage).toHaveBeenCalledWith(
         dragGhostMock,
         0,
@@ -247,10 +294,14 @@ describe("InputOutputItem", () => {
       const codeAliasInTitle = wrapper.find(".top-card").find(".code-alias");
       codeAliasInTitle.trigger("dragstart");
       expect(createDragGhost).toHaveBeenCalledWith({
-        elements: [{ text: "super.mock" }],
+        elements: [{ dragGhostContent: expect.any(HTMLElement) }],
         font: "monospace",
         numSelectedItems: 1,
       });
+      expect(
+        (createDragGhost as Mock).mock.calls[0][0].elements[0].dragGhostContent
+          .innerText,
+      ).toBe("super.mock");
       wrapper.unmount();
     });
 
@@ -394,5 +445,66 @@ describe("InputOutputItem", () => {
         }),
       );
     });
+  });
+
+  describe("rendering", () => {
+    it("renders sub items without data type icons", () => {
+      const itemIndex = 2;
+      const wrapper = doMount();
+      const content = wrapper.findAll(".sub-item-content").at(itemIndex);
+
+      expect(content?.find(".sub-item-name").text()).toStrictEqual(
+        inputOutputItemWithRowsAndAlias?.subItems?.[itemIndex].name,
+      );
+      expect(content?.findComponent(DataType).exists()).toBeFalsy();
+    });
+
+    it("renders sub items with data type icons", () => {
+      const itemIndex = 0;
+      const wrapper = doMount();
+      const content = wrapper.findAll(".sub-item-content").at(itemIndex);
+
+      const subItem = inputOutputItemWithRowsAndAlias?.subItems?.[itemIndex];
+      expect(content?.find(".sub-item-name").text()).toStrictEqual(
+        subItem?.name,
+      );
+      expect(content?.findComponent(DataType).exists()).toBeTruthy();
+      expect(content?.findComponent(DataType).props()).toStrictEqual({
+        iconName: subItem?.type.id,
+        iconTitle: subItem?.type.title,
+        size: "small",
+      });
+    });
+
+    it.each([
+      ["table", "unknown-datatype", "Unknown data type"],
+      ["flowVariable", "UNKNOWN", "Unknown variable type"],
+    ] as const)(
+      "renders sub items with fallback type icons for %s items",
+      (portType, iconName, iconTitle) => {
+        const itemIndex = 0;
+        const wrapper = doMount({
+          ...inputOutputItemWithRowsAndAlias,
+          portType,
+          subItems: [
+            {
+              name: "row 1",
+              type: {
+                displayName: "UNKNOWN",
+              },
+              supported: true,
+            },
+          ],
+        });
+        const content = wrapper.findAll(".sub-item-content").at(itemIndex);
+        expect(content?.find(".sub-item-name").text()).toBe("row 1");
+        expect(content?.findComponent(DataType).exists()).toBeTruthy();
+        expect(content?.findComponent(DataType).props()).toStrictEqual({
+          iconName,
+          iconTitle,
+          size: "small",
+        });
+      },
+    );
   });
 });
