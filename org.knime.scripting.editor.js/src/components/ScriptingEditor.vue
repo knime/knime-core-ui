@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { computed, ref, useSlots } from "vue";
 import { computedAsync, useElementBounding } from "@vueuse/core";
-import { Pane, Splitpanes } from "splitpanes";
 
-import "splitpanes/dist/splitpanes.css";
-import type { MenuItem } from "@knime/components";
+import { type MenuItem, SplitPanel } from "@knime/components";
 import "@knime/kds-styles/kds-variables.css";
 
 import type { InputOutputModel } from "@/components/InputOutputItem.vue";
-import { type PaneSizes } from "@/components/utils/paneSizes";
-import { useResizeLogic } from "@/components/utils/resizeLogic";
+import {
+  MIN_WIDTH_FOR_SHOWING_BUTTON_TEXT,
+  type PaneSizes,
+} from "@/components/utils/paneSizes";
+import { displayMode } from "@/display-mode";
 import { getInitialDataService } from "@/initial-data-service";
 import { type GenericNodeSettings } from "@/settings-service";
 
@@ -37,8 +38,11 @@ interface Props {
   rightPaneLayout?: "fixed" | "relative";
   menuItems?: MenuItem[];
   showControlBar?: boolean;
+  /**
+   * In pixels.
+   */
   initialPaneSizes?: PaneSizes;
-  rightPaneMinimumWidthInPixel?: number;
+  rightPaneMinimumWidthInPixel?: number; // TODO this is not used anymore
   toSettings?: (settings: GenericNodeSettings) => GenericNodeSettings;
   additionalBottomPaneTabContent?: SlottedTab[];
   /*
@@ -56,11 +60,7 @@ const props = withDefaults(defineProps<Props>(), {
   rightPaneLayout: "fixed",
   menuItems: () => [],
   showControlBar: true,
-  initialPaneSizes: () => ({
-    left: 20,
-    right: 25,
-    bottom: 30,
-  }),
+  initialPaneSizes: () => ({ left: 260, right: 260, bottom: 300 }),
   rightPaneMinimumWidthInPixel: () => 0,
   additionalBottomPaneTabContent: () => [] as SlottedTab[],
   toSettings: (settings: GenericNodeSettings) => settings,
@@ -82,40 +82,7 @@ const slots = defineSlots<{
 }>();
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
-const isRightPaneCollapsable = computed(
-  () => props.rightPaneMinimumWidthInPixel === 0,
-);
 const emit = defineEmits(["menu-item-clicked"]);
-
-const rootSplitPane = ref();
-const rootSplitPaneRef = useElementBounding(rootSplitPane);
-const editorSplitPane = ref();
-const editorSplitPaneRef = useElementBounding(editorSplitPane);
-
-// All the logic for resizing panes
-const {
-  doResizePane,
-  doUpdatePreviousPaneSize,
-  doUpdateRightPane,
-  doToggleCollapsePane,
-  currentPaneSizes,
-  shouldCollapseAllPanes,
-  shouldCollapseLeftPane,
-  shouldShowButtonText,
-  isBottomPaneCollapsed,
-  isLeftPaneCollapsed,
-  isRightPaneCollapsed,
-  minRatioOfRightPaneInPercent,
-  usedHorizontalCodeEditorPaneSize,
-  usedMainPaneSize,
-  usedVerticalCodeEditorPaneSize,
-} = useResizeLogic({
-  initialPaneSizes: props.initialPaneSizes,
-  rightPaneMinimumWidthInPixel: props.rightPaneMinimumWidthInPixel,
-  rightPaneLayout: props.rightPaneLayout,
-  rootSplitPaneRef,
-  editorSplitPaneRef,
-});
 
 // Dropping input/output items
 const dropEventHandler = ref<(payload: DragEvent) => void>();
@@ -131,11 +98,6 @@ const onMenuItemClicked = (args: { event: Event; item: SettingsMenuItem }) => {
   // TODO: handle click actions for common items here instead of calling the emit
   emit("menu-item-clicked", args);
 };
-
-// Convenient to have this computed property for reactive components
-const showControlBarDynamic = computed(() => {
-  return props.showControlBar && !shouldCollapseAllPanes.value;
-});
 
 // We need either filename+language, or provided editor slot
 if (props.fileName === null && !useSlots().editor) {
@@ -159,12 +121,47 @@ const defaultInputOutputItems = computedAsync<InputOutputModel[]>(async () => {
     return initialItems;
   }
 }, []);
+
+// #region ================= PANE SIZES ====================
+
+const isSmallEmbeddedMode = computed(() => displayMode.value === "small");
+
+// We need to track the expanded state of each pane (otherwise they won't be collapsible)
+const rightPaneExpanded = ref(true);
+const leftPaneExpanded = ref(true);
+const bottomPaneExpanded = ref(true);
+
+// Keep track of the pane sizes so we can pass them to components that need to know them
+const rightPaneSize = ref<number>(props.initialPaneSizes.right);
+const leftPaneSize = ref<number>(props.initialPaneSizes.left);
+const bottomPaneSize = ref<number>(props.initialPaneSizes.bottom);
+const currentPaneSizes = computed(() => ({
+  left: leftPaneSize.value,
+  right: rightPaneSize.value,
+  bottom: bottomPaneSize.value,
+}));
+
+// Determine if the editor is wide enough to show the button text in the control bar
+const editorSplitPane = ref();
+const editorSplitPaneRef = useElementBounding(editorSplitPane);
+const showButtonText = computed(
+  () =>
+    displayMode.value !== "small" &&
+    editorSplitPaneRef.width.value >= MIN_WIDTH_FOR_SHOWING_BUTTON_TEXT,
+);
+
+// The control bar is show if set in props and not in small mode
+const showControlBarDynamic = computed(
+  () => props.showControlBar && !isSmallEmbeddedMode.value,
+);
+
+// #endregion
 </script>
 
 <template>
   <div class="layout">
     <HeaderBar
-      v-if="!shouldCollapseAllPanes && title !== null"
+      v-if="!isSmallEmbeddedMode"
       :title="title!"
       :menu-items="[...commonMenuItems, ...menuItems]"
       @menu-item-click="onMenuItemClicked"
@@ -182,169 +179,122 @@ const defaultInputOutputItems = computedAsync<InputOutputModel[]>(async () => {
       </template>
     </SettingsPage>
 
-    <splitpanes
-      v-show="!showSettingsPage"
-      ref="rootSplitPane"
-      data-testid="mainSplitpane"
-      class="common-splitter unset-transition main-splitpane"
-      :dbl-click-splitter="false"
-      :class="{
-        'slim-mode': shouldCollapseAllPanes,
-        'left-facing-splitter': !isLeftPaneCollapsed,
-        'right-facing-splitter': isLeftPaneCollapsed,
-        'collapse-left-pane': shouldCollapseLeftPane,
-      }"
-      @splitter-click="
-        doToggleCollapsePane('left');
-        doUpdatePreviousPaneSize('right');
-      "
-      @resize="
-        doUpdateRightPane($event[0].size);
-        doResizePane($event[0].size, 'left', false);
-        doUpdatePreviousPaneSize('right');
-      "
-      @resized="doUpdatePreviousPaneSize('left')"
+    <SplitPanel
+      v-model:expanded="leftPaneExpanded"
+      v-model:secondary-size="leftPaneSize"
+      :hide-secondary-pane="isSmallEmbeddedMode"
+      direction="left"
+      use-pixel
+      keep-element-on-close
+      :secondary-snap-size="180"
+      class="vertical-splitpanel allow-splitter-overflow-right-pane"
     >
-      <pane
-        v-show="!shouldCollapseLeftPane"
-        data-testid="leftPane"
-        :size="currentPaneSizes.left"
-        class="scrollable-y"
-      >
+      <template #secondary>
         <slot name="left-pane">
           <InputOutputPane
             :input-output-items="defaultInputOutputItems"
             @drop-event-handler-created="onDropEventHandlerCreated"
           />
         </slot>
-      </pane>
+      </template>
 
-      <pane data-testid="mainPane" :size="usedMainPaneSize" min-size="40">
-        <splitpanes
-          data-testid="horizontalSplitpane"
-          horizontal
-          class="common-splitter horizontal-splitpane"
-          :dbl-click-splitter="false"
-          :class="{
-            'down-facing-splitter': !isBottomPaneCollapsed,
-            'up-facing-splitter': isBottomPaneCollapsed,
-          }"
-          @splitter-click="doToggleCollapsePane('bottom')"
-          @resize="doResizePane($event[1].size, 'bottom')"
+      <SplitPanel
+        v-model:expanded="bottomPaneExpanded"
+        v-model:secondary-size="bottomPaneSize"
+        :hide-secondary-pane="isSmallEmbeddedMode"
+        direction="down"
+        use-pixel
+        keep-element-on-close
+        :secondary-snap-size="200"
+        class="horizontal-splitpanel allow-splitter-overflow-top-pane"
+      >
+        <SplitPanel
+          v-model:expanded="rightPaneExpanded"
+          v-model:secondary-size="rightPaneSize"
+          :hide-secondary-pane="isSmallEmbeddedMode"
+          direction="right"
+          :secondary-snap-size="220"
+          use-pixel
+          keep-element-on-close
+          splitter-id="verticalSplitpane"
+          data-testid="verticalSplitpane"
+          class="vertical-splitpanel allow-splitter-overflow-left-pane"
         >
-          <pane
-            data-testid="topPane"
-            :size="usedVerticalCodeEditorPaneSize"
-            min-size="40"
+          <div
+            ref="editorSplitPane"
+            data-testid="editorPane"
+            class="editor-pane"
           >
-            <splitpanes
-              data-testid="verticalSplitpane"
-              class="common-splitter unset-transition vertical-splitpane"
-              :class="{
-                'slim-splitter': !isRightPaneCollapsable,
-                'left-facing-splitter': isRightPaneCollapsed,
-                'right-facing-splitter': !isRightPaneCollapsed,
-              }"
-              :dbl-click-splitter="false"
-              @splitter-click="
-                isRightPaneCollapsable
-                  ? doToggleCollapsePane('right')
-                  : undefined
-              "
-              @resized="doResizePane($event[1].size, 'right')"
-            >
-              <pane
-                ref="editorSplitPane"
-                data-testid="editorPane"
-                :size="usedHorizontalCodeEditorPaneSize"
-                min-size="25"
+            <div class="editor-and-control-bar">
+              <div
+                class="multi-editor-container"
+                :class="{ 'has-control-bar': showControlBarDynamic }"
               >
-                <div class="editor-and-control-bar">
-                  <div
-                    class="multi-editor-container"
-                    :class="{
-                      'has-control-bar': showControlBarDynamic,
-                    }"
-                  >
-                    <template v-if="$slots.editor">
-                      <div class="editor-slot-container">
-                        <slot name="editor" />
-                      </div>
-                    </template>
-                    <template v-else>
-                      <MainEditorPane
-                        :file-name="props.fileName!"
-                        :language="props.language"
-                        :show-control-bar="showControlBarDynamic"
-                        :drop-event-handler="dropEventHandler"
-                        :to-settings="props.toSettings"
-                        :model-or-view="props.modelOrView"
-                      />
-                    </template>
-                    <div class="run-button-panel">
-                      <CodeEditorControlBar
-                        v-if="showControlBarDynamic"
-                        :current-pane-sizes="currentPaneSizes"
-                        :show-button-text="shouldShowButtonText"
-                      >
-                        <template #controls>
-                          <slot
-                            name="code-editor-controls"
-                            :show-button-text="shouldShowButtonText"
-                          />
-                        </template>
-                      </CodeEditorControlBar>
-                    </div>
+                <template v-if="$slots.editor">
+                  <div class="editor-slot-container">
+                    <slot name="editor" />
                   </div>
+                </template>
+                <template v-else>
+                  <MainEditorPane
+                    :file-name="props.fileName!"
+                    :language="props.language"
+                    :show-control-bar="showControlBarDynamic"
+                    :drop-event-handler="dropEventHandler"
+                    :to-settings="props.toSettings"
+                    :model-or-view="props.modelOrView"
+                  />
+                </template>
+                <div class="run-button-panel">
+                  <CodeEditorControlBar
+                    v-if="showControlBarDynamic"
+                    :current-pane-sizes="currentPaneSizes"
+                    :show-button-text
+                  >
+                    <template #controls>
+                      <slot name="code-editor-controls" :show-button-text />
+                    </template>
+                  </CodeEditorControlBar>
                 </div>
-              </pane>
-              <pane
-                data-testid="rightPane"
-                :size="currentPaneSizes.right"
-                class="right-pane"
-                :min-size="minRatioOfRightPaneInPercent"
-              >
-                <slot name="right-pane" />
-              </pane>
-            </splitpanes>
-          </pane>
-          <pane
-            data-testid="bottomPane"
-            class="bottom-pane"
-            :size="currentPaneSizes.bottom"
+              </div>
+            </div>
+          </div>
+          <template #secondary>
+            <div data-testid="rightPane" class="right-pane">
+              <slot name="right-pane" />
+            </div>
+          </template>
+        </SplitPanel>
+        <template #secondary>
+          <ScriptingEditorBottomPane
+            :slotted-tabs="additionalBottomPaneTabContent"
           >
-            <ScriptingEditorBottomPane
-              :slotted-tabs="additionalBottomPaneTabContent"
+            <template
+              v-for="tab in additionalBottomPaneTabContent"
+              #[tab.slotName]="{ grabFocus }"
             >
-              <template
-                v-for="tab in additionalBottomPaneTabContent"
-                #[tab.slotName]="{ grabFocus }"
-              >
-                <slot :name="tab.slotName" :grab-focus="grabFocus" />
-              </template>
-              <template
-                v-for="tab in additionalBottomPaneTabContent"
-                #[tab.associatedControlsSlotName!]
-              >
-                <slot
-                  v-if="tab.associatedControlsSlotName"
-                  :name="tab.associatedControlsSlotName"
-                />
-              </template>
-              <template #status-label>
-                <slot name="bottom-pane-status-label" />
-              </template>
-            </ScriptingEditorBottomPane>
-          </pane>
-        </splitpanes>
-      </pane>
-    </splitpanes>
+              <slot :name="tab.slotName" :grab-focus="grabFocus" />
+            </template>
+            <template
+              v-for="tab in additionalBottomPaneTabContent"
+              #[tab.associatedControlsSlotName!]
+            >
+              <slot
+                v-if="tab.associatedControlsSlotName"
+                :name="tab.associatedControlsSlotName"
+              />
+            </template>
+            <template #status-label>
+              <slot name="bottom-pane-status-label" />
+            </template>
+          </ScriptingEditorBottomPane>
+        </template>
+      </SplitPanel>
+    </SplitPanel>
   </div>
 </template>
 
 <style lang="postcss" scoped>
-@import url("@/components/splitterstyles.pcss");
-
 .layout {
   display: flex;
   flex-direction: column;
@@ -388,11 +338,61 @@ const defaultInputOutputItems = computedAsync<InputOutputModel[]>(async () => {
   }
 }
 
-.right-pane {
-  background-color: var(--knime-gray-ultra-light);
+.editor-pane {
+  height: 100%;
+  width: 100%;
 }
 
 .scrollable-y {
   overflow-y: auto;
+}
+
+/* NOTE: The AI popup needs to overflow the panes but positioned relative.
+ * Therefore, this hack is needed for now. */
+.allow-splitter-overflow-right-pane {
+  overflow: visible;
+  min-height: 0;
+  min-width: 0;
+
+  &:deep(> .splitter-pane.right-pane) {
+    overflow: visible;
+    min-width: 0;
+    min-height: 0;
+  }
+}
+
+.allow-splitter-overflow-left-pane {
+  overflow: visible;
+  min-width: 0;
+  min-height: 0;
+
+  &:deep(> .splitter-pane.left-pane) {
+    overflow: visible;
+    min-width: 0;
+    min-height: 0;
+  }
+}
+
+.allow-splitter-overflow-top-pane {
+  overflow: visible;
+  min-height: 0;
+  min-width: 0;
+
+  &:deep(> .splitter-pane.top-pane) {
+    overflow: visible;
+    min-height: 0;
+    min-width: 0;
+  }
+}
+
+.vertical-splitpanel,
+.horizontal-splitpanel {
+  height: 100%;
+  width: 100%;
+}
+
+.right-pane {
+  background-color: var(--knime-gray-ultra-light);
+  height: 100%;
 }
 </style>

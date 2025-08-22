@@ -134,11 +134,12 @@ const allPossibleTabvalues = computed(() => {
 
   & .tab-content {
     display: flex;
-    height: 100%;
+    flex: 1;
     flex-direction: column;
     position: relative;
     min-height: 0;
     padding: 0 var(--space-8);
+    overflow: hidden;
   }
 
   & .tab-bar-and-buttons {
@@ -148,7 +149,7 @@ const allPossibleTabvalues = computed(() => {
     padding: 0 var(--space-8);
     border-bottom: 1px solid var(--color-border);
     height: var(--space-48);
-    flex-grow: 1;
+    flex-shrink: 0;
 
     & .tab-bar-buttons {
       position: absolute;

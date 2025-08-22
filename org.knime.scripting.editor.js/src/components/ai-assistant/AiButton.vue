@@ -74,7 +74,7 @@ onMounted(() => {
         class="ai-popup"
         data-testid="ai-popup"
         :style="{
-          '--left-splitter-position': `${leftSplitterPosition}vw`,
+          '--left-splitter-position': `${leftSplitterPosition}px`,
         }"
       >
         <AiPopupContent @request-close="showAiPopup = false" />
@@ -109,7 +109,8 @@ onMounted(() => {
     --default-ai-bar-width: 65vw;
     --arrow-size: 18px;
 
-    z-index: 10;
+    /* sufficient to make it appear above the 'release to hide' overlay in the splitpanes */
+    z-index: 100;
 
     /* Amount by which the left edge of prompt is left of the centre of AI button. */
     --left-hang: 150px;
