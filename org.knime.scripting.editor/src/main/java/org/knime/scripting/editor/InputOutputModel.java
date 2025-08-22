@@ -51,12 +51,15 @@ package org.knime.scripting.editor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
 
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.VariableType;
 
@@ -101,6 +104,78 @@ public record InputOutputModel(String name, //
     private static final String UNSUPPORTED_TYPE = "not supported";
 
     /**
+     * The type of an InputOutputModelSubItem
+     *
+     * @param id the class name of the DataType (e.g. of the {@link VariableType}/{@link DataValue})
+     * @param title the human-readable name of the DataType
+     * @param displayName the name of the DataType as displayed in the editor
+     */
+    public static record InputOutputModelSubItemType(Optional<String> id, Optional<String> title, String displayName) {
+
+        /**
+         * Creates a new sub item type from the given column spec and type name mapper
+         *
+         * @param colSpec the spec of the column to create the type for
+         * @param typeNameMapper A function that maps a {@link DataType} to a string that represents the type
+         * @return a new sub item type
+         */
+        public static InputOutputModelSubItemType fromColSpec(final DataColumnSpec colSpec,
+            final Function<DataType, String> typeNameMapper) {
+            final var dataType = colSpec.getType();
+            return InputOutputModelSubItemType.fromColSpec(colSpec, typeNameMapper.apply(dataType));
+        }
+
+        /**
+         * Creates a new sub item type from the given column spec and type name
+         *
+         * @param colSpec the spec of the column to create the type for
+         * @param typeName the display name of the type
+         * @return a new sub item type
+         */
+        public static InputOutputModelSubItemType fromColSpec(final DataColumnSpec colSpec, final String typeName) {
+            final var dataType = colSpec.getType();
+            return new InputOutputModelSubItemType(Optional.of(dataType.getPreferredValueClass().getName()),
+                Optional.of(dataType.getName()), typeName);
+        }
+
+        /**
+         * Creates a new sub item type from the given column spec and type name mapper
+         *
+         * @param flowVariable the flow variable to create the type for
+         * @param typeNameMapper A function that maps a {@link VariableType} to a string that represents the type
+         * @return a new sub item type
+         */
+        public static InputOutputModelSubItemType fromFlowVariable(final FlowVariable flowVariable,
+            final Function<VariableType<?>, String> typeNameMapper) {
+            final var variableType = flowVariable.getVariableType();
+            return InputOutputModelSubItemType.fromVariableType(variableType, typeNameMapper.apply(variableType));
+        }
+
+        /**
+         * Creates a new sub item type from the given variable type and display name
+         *
+         * @param variableType the variable type to create the type for
+         * @param displayName the variable name to display
+         * @return a new sub item type
+         */
+        public static InputOutputModelSubItemType fromVariableType(final VariableType<?> variableType,
+            final String displayName) {
+            return new InputOutputModelSubItemType(Optional.of(variableType.getIdentifier()),
+                Optional.of(variableType.getClass().getSimpleName()), displayName);
+        }
+
+        /**
+         * Creates a new sub item type from the given display name without id and title.
+         *
+         * @param displayName the name of the type to display
+         * @return sub item type without type id and title
+         */
+        public static InputOutputModelSubItemType fromDisplayName(final String displayName) {
+            return new InputOutputModelSubItemType(Optional.empty(), Optional.empty(), displayName);
+        }
+    }
+
+    /**
      * An item in an InputOutputModel, e.g. for table columns
      *
      * @param name The name of the sub item
@@ -109,7 +184,9 @@ public record InputOutputModel(String name, //
      * @param insertionText A text that is provided to the template when this sub item is inserted into the code. Note
      *            that this is optional. The template also has access to the name which can be enough.
      */
-    public static record InputOutputModelSubItem(String name, String type, boolean supported, String insertionText) {
+
+    public static record InputOutputModelSubItem(String name, InputOutputModelSubItemType type, boolean supported,
+        String insertionText) {
     }
 
     private static RequiresNameBuilder builder(final String portType, final String portIconColor) {
@@ -269,7 +346,8 @@ public record InputOutputModel(String name, //
             return subItems( //
                 StreamSupport.stream(spec.spliterator(), false) //
                     .map(colSpec -> new InputOutputModelSubItem(colSpec.getName(),
-                        fallbackTypeNameMapper.apply(colSpec.getType()), isSupported.test(colSpec.getType()), null)) //
+                        InputOutputModelSubItemType.fromColSpec(colSpec, fallbackTypeNameMapper),
+                        isSupported.test(colSpec.getType()), null)) //
                     .toList() //
             );
         }
@@ -300,13 +378,13 @@ public record InputOutputModel(String name, //
         public Builder subItems(final Collection<FlowVariable> flowVariables,
             final Function<VariableType<?>, String> typeNameMapper,
             final Predicate<VariableType<?>> isSupportedPredicate) {
-
+            Function<VariableType<?>, String> fallbackTypeNameMapper =
+                vt -> isSupportedPredicate.test(vt) ? typeNameMapper.apply(vt) : UNSUPPORTED_TYPE;
             return subItems( //
                 flowVariables.stream() //
                     .map(f -> new InputOutputModelSubItem( //
                         f.getName(), //
-                        isSupportedPredicate.test(f.getVariableType()) ? typeNameMapper.apply(f.getVariableType())
-                            : UNSUPPORTED_TYPE, //
+                        InputOutputModelSubItemType.fromFlowVariable(f, fallbackTypeNameMapper),
                         isSupportedPredicate.test(f.getVariableType()), //
                         null //
                     )).toList() //

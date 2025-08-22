@@ -60,10 +60,12 @@ import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 
 /**
  * A generic specialisation of {@link NodeSettingsService} for scripting nodes. Relies upon a
@@ -75,7 +77,9 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 @SuppressWarnings("restriction")
 public final class ScriptingNodeSettingsService implements NodeSettingsService {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper() //
+        .registerModule(new Jdk8Module()) //
+        .setSerializationInclusion(JsonInclude.Include.NON_ABSENT);
 
     private static final MapType JACKSON_HASHMAP_TYPE =
         TypeFactory.defaultInstance().constructMapType(HashMap.class, String.class, Object.class);
