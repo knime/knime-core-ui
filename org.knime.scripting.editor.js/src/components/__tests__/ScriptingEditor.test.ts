@@ -2,7 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick, ref } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import { useElementBounding } from "@vueuse/core";
-import { Pane, type PaneProps, Splitpanes } from "splitpanes";
+
+import { SplitPanel } from "@knime/components";
 
 import { defaultPortConfig } from "@/__mocks__/scripting-service";
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
@@ -19,10 +20,7 @@ import ScriptingEditorBottomPane, {
   type BottomPaneTabSlotName,
 } from "../ScriptingEditorBottomPane.vue";
 import SettingsPage from "../SettingsPage.vue";
-import {
-  MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
-  MIN_WIDTH_FOR_DISPLAYING_PANES,
-} from "../utils/paneSizes";
+import { MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE } from "../utils/paneSizes";
 
 const mocks = vi.hoisted(() => {
   return {
@@ -88,16 +86,7 @@ describe("ScriptingEditor", () => {
       slots: args.slots,
     });
 
-    const findPane = (testId: string): PaneProps =>
-      (wrapper.findComponent(`[data-testid="${testId}"]`) as any).props();
-    const leftPane = findPane("leftPane");
-    const mainPane = findPane("mainPane");
-    const topPane = findPane("topPane");
-    const bottomPane = findPane("bottomPane");
-    const editorPane = findPane("editorPane");
-    const rightPane = findPane("rightPane");
-
-    const allSplitpanes = wrapper.findAllComponents(Splitpanes);
+    const allSplitpanes = wrapper.findAllComponents(SplitPanel);
     const mainSplitpane = allSplitpanes.at(0);
     const horizontalSplitpane = allSplitpanes.at(1);
     const verticalSplitpane = allSplitpanes.at(2);
@@ -110,12 +99,6 @@ describe("ScriptingEditor", () => {
     }
     return {
       wrapper,
-      leftPane,
-      mainPane,
-      topPane,
-      bottomPane,
-      editorPane,
-      rightPane,
       mainSplitpane,
       horizontalSplitpane,
       verticalSplitpane,
@@ -125,8 +108,7 @@ describe("ScriptingEditor", () => {
   describe("renders", () => {
     it("displays splitpanes", () => {
       const { wrapper } = doMount();
-      expect(wrapper.findComponent(Splitpanes).exists()).toBeTruthy();
-      expect(wrapper.findComponent(Pane).exists()).toBeTruthy();
+      expect(wrapper.findComponent(SplitPanel).exists()).toBeTruthy();
     });
 
     it("mounts the main editor pane by default", () => {
@@ -143,219 +125,6 @@ describe("ScriptingEditor", () => {
     it("display input/output pane", () => {
       const { wrapper } = doMount();
       expect(wrapper.findComponent(InputOutputPane).exists()).toBeTruthy();
-    });
-  });
-
-  describe("resizing and collapsing", () => {
-    const resizeEvent = [{ size: 45 }, { size: 45 }];
-
-    it("sets default initial sizes", () => {
-      const { leftPane, mainPane, rightPane, bottomPane, editorPane, topPane } =
-        doMount();
-      expect(leftPane.size).toBe(20);
-      expect(mainPane.size).toBe(80);
-      expect(rightPane.size).toBe(25);
-      expect(bottomPane.size).toBe(30);
-      expect(editorPane.size).toBe(75);
-      expect(topPane.size).toBe(70);
-    });
-
-    it("uses initial pane sizes when passed as props", () => {
-      const { leftPane, mainPane, rightPane, bottomPane, editorPane, topPane } =
-        doMount({
-          props: {
-            initialPaneSizes: {
-              left: 10,
-              right: 50,
-              bottom: 40,
-            },
-          },
-        });
-      expect(leftPane.size).toBe(10);
-      expect(mainPane.size).toBe(90);
-      expect(rightPane.size).toBe(50);
-      expect(editorPane.size).toBe(50);
-      expect(bottomPane.size).toBe(40);
-      expect(topPane.size).toBe(60);
-    });
-
-    it("set left/right and console pane sizes to zero when width is small", () => {
-      vi.mocked(useElementBounding).mockReturnValue({
-        width: ref(MIN_WIDTH_FOR_DISPLAYING_PANES - 1),
-      } as ReturnType<typeof useElementBounding>);
-
-      const { leftPane, rightPane, bottomPane } = doMount();
-      expect(leftPane.size).toBe(0);
-      expect(rightPane.size).toBe(0);
-      expect(bottomPane.size).toBe(0);
-    });
-
-    it("set  and console pane sizes to zero when width is small", () => {
-      vi.mocked(useElementBounding).mockReturnValue({
-        width: ref(MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE - 1),
-      } as ReturnType<typeof useElementBounding>);
-
-      const { leftPane, rightPane, bottomPane } = doMount();
-      expect(leftPane.size).toBe(0);
-      expect(rightPane.size).not.toBe(0);
-      expect(bottomPane.size).not.toBe(0);
-    });
-
-    describe("resizing", () => {
-      it("resizes left pane", async () => {
-        const { mainSplitpane, leftPane, mainPane } = doMount();
-        await mainSplitpane.vm.$emit("resize", resizeEvent);
-        expect(leftPane.size).toBe(45);
-        expect(mainPane.size).toBe(55);
-      });
-
-      it("resizes right pane", async () => {
-        const { horizontalSplitpane, bottomPane, topPane } = doMount();
-        await horizontalSplitpane.vm.$emit("resize", resizeEvent);
-        expect(bottomPane.size).toBe(45);
-        expect(topPane.size).toBe(55);
-      });
-
-      it("resizes bottom pane", async () => {
-        const { verticalSplitpane, rightPane, editorPane } = doMount();
-        await verticalSplitpane.vm.$emit("resized", resizeEvent);
-        expect(rightPane.size).toBe(45);
-        expect(editorPane.size).toBe(55);
-      });
-    });
-
-    describe("collapsing and uncollapsing", () => {
-      it("collapses left pane", async () => {
-        const { mainSplitpane, leftPane, mainPane } = doMount();
-        await mainSplitpane.vm.$emit("splitter-click");
-        expect(leftPane.size).toBe(0);
-        expect(mainPane.size).toBe(100);
-        await mainSplitpane.vm.$emit("splitter-click");
-        expect(leftPane.size).toBe(20);
-        expect(mainPane.size).toBe(80);
-      });
-
-      it("collapses bottom pane", async () => {
-        const { horizontalSplitpane, bottomPane, topPane } = doMount();
-        await horizontalSplitpane.vm.$emit("splitter-click");
-        expect(bottomPane.size).toBe(0);
-        expect(topPane.size).toBe(100);
-        await horizontalSplitpane.vm.$emit("splitter-click");
-        expect(bottomPane.size).toBe(30);
-        expect(topPane.size).toBe(70);
-      });
-
-      it("collapses right pane", async () => {
-        const { verticalSplitpane, rightPane, editorPane } = doMount();
-        await verticalSplitpane.vm.$emit("splitter-click", resizeEvent);
-        expect(rightPane.size).toBe(0);
-        expect(editorPane.size).toBe(100);
-        await verticalSplitpane.vm.$emit("splitter-click", resizeEvent);
-        expect(rightPane.size).toBe(25);
-        expect(editorPane.size).toBe(75);
-      });
-
-      it("rotates splitter icon for left pane", async () => {
-        const { mainSplitpane } = doMount();
-        expect(mainSplitpane.classes()).toContain("left-facing-splitter");
-        expect(mainSplitpane.classes()).not.toContain("right-facing-splitter");
-        await mainSplitpane.vm.$emit("splitter-click");
-        expect(mainSplitpane.classes()).not.toContain("left-facing-splitter");
-        expect(mainSplitpane.classes()).toContain("right-facing-splitter");
-      });
-
-      it("rotates splitter icon for bottom pane", async () => {
-        const { horizontalSplitpane } = doMount();
-        expect(horizontalSplitpane.classes()).not.toContain(
-          "up-facing-splitter",
-        );
-        expect(horizontalSplitpane.classes()).toContain("down-facing-splitter");
-        await horizontalSplitpane.vm.$emit("splitter-click");
-        expect(horizontalSplitpane.classes()).toContain("up-facing-splitter");
-        expect(horizontalSplitpane.classes()).not.toContain(
-          "down-facing-splitter",
-        );
-      });
-
-      it("rotates splitter icon for right pane", async () => {
-        const { verticalSplitpane } = doMount();
-        expect(verticalSplitpane.classes()).not.toContain(
-          "left-facing-splitter",
-        );
-        expect(verticalSplitpane.classes()).toContain("right-facing-splitter");
-        await verticalSplitpane.vm.$emit("splitter-click");
-        expect(verticalSplitpane.classes()).toContain("left-facing-splitter");
-        expect(verticalSplitpane.classes()).not.toContain(
-          "right-facing-splitter",
-        );
-      });
-
-      it("uncollapses pane to correct position when collapsing after resize", async () => {
-        const { mainSplitpane, leftPane, mainPane } = doMount();
-        await mainSplitpane.vm.$emit("resize", resizeEvent);
-        expect(leftPane.size).toBe(45);
-        expect(mainPane.size).toBe(55);
-        await mainSplitpane.vm.$emit("resized", resizeEvent);
-        expect(leftPane.size).toBe(45);
-        expect(mainPane.size).toBe(55);
-        await mainSplitpane.vm.$emit("splitter-click");
-        expect(leftPane.size).toBe(0);
-        expect(mainPane.size).toBe(100);
-        await mainSplitpane.vm.$emit("splitter-click");
-        expect(leftPane.size).toBe(45);
-        expect(mainPane.size).toBe(55);
-      });
-
-      it("uncollapses to drag-start position when pane was resized to 0 size", async () => {
-        const { mainSplitpane, leftPane, mainPane } = doMount();
-        await mainSplitpane.vm.$emit("resize", resizeEvent);
-        expect(leftPane.size).toBe(45);
-        expect(mainPane.size).toBe(55);
-        await mainSplitpane.vm.$emit("resized", resizeEvent);
-        expect(leftPane.size).toBe(45);
-        expect(mainPane.size).toBe(55);
-        await mainSplitpane.vm.$emit("resize", [{ size: 0 }]);
-        expect(leftPane.size).toBe(0);
-        expect(mainPane.size).toBe(100);
-        await mainSplitpane.vm.$emit("resized", [{ size: 0 }]);
-        expect(leftPane.size).toBe(0);
-        expect(mainPane.size).toBe(100);
-        await mainSplitpane.vm.$emit("splitter-click");
-        expect(leftPane.size).toBe(45);
-        expect(mainPane.size).toBe(55);
-      });
-    });
-
-    describe("right pane resizing on change in left pane", () => {
-      const resizeEvent = [{ size: 60 }];
-
-      it("adjusts right pane size if left pane is resized and right pane uses fixed layout", async () => {
-        const { mainSplitpane, rightPane } = doMount();
-        await mainSplitpane.vm.$emit("resize", resizeEvent);
-        expect(rightPane.size).toBe(50);
-      });
-
-      it("adjusts right pane size if left pane is collapsed and right pane uses fixed layout", async () => {
-        const { mainSplitpane, rightPane } = doMount();
-        await mainSplitpane.vm.$emit("splitter-click");
-        expect(rightPane.size).toBe(20);
-      });
-
-      it("does not change right pane size if left pane is resized and right pane uses relative layout", async () => {
-        const { mainSplitpane, rightPane } = doMount({
-          props: { rightPaneLayout: "relative" },
-        });
-        await mainSplitpane.vm.$emit("resize", resizeEvent);
-        expect(rightPane.size).toBe(25);
-      });
-
-      it("does not change right pane size if left pane is collapsed and right pane uses relative layout", async () => {
-        const { mainSplitpane, rightPane } = doMount({
-          props: { rightPaneLayout: "relative" },
-        });
-        await mainSplitpane.vm.$emit("splitter-click");
-        expect(rightPane.size).toBe(25);
-      });
     });
   });
 
