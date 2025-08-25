@@ -7,6 +7,7 @@ import {
 
 import type { InputOutputModel } from "@/components/InputOutputItem.vue";
 
+import { displayMode } from "./display-mode";
 import { useMainCodeEditorStore } from "./editor";
 import { MonacoLSPConnection } from "./lsp/connection";
 import { KnimeMessageReader, KnimeMessageWriter } from "./lsp/knime-io";
@@ -343,4 +344,15 @@ export const init = async () => {
     registerSettings: (modelOrView: "model" | "view") =>
       SettingsHelper.getInstance().registerSettings(modelOrView),
   };
+
+  // Set the display mode
+  await DialogService.getInstance().then((dialogService) => {
+    // Set the initial value of displayMode
+    displayMode.value = dialogService.getInitialDisplayMode();
+
+    // Register a listener to update displayMode whenever it changes
+    dialogService.addOnDisplayModeChangeCallback(({ mode }) => {
+      displayMode.value = mode;
+    });
+  });
 };
