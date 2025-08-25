@@ -61,6 +61,7 @@ import org.knime.core.util.Pair;
 import org.knime.core.webui.data.InitialDataService;
 import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeSettingsSerializer;
+import org.knime.core.webui.node.view.table.TableNodeView.TableNodeViewReExecutable;
 import org.knime.core.webui.node.view.table.data.TableViewDataService;
 import org.knime.core.webui.node.view.table.data.TableViewDataServiceImpl;
 import org.knime.core.webui.node.view.table.data.TableViewInitialData;
@@ -161,8 +162,8 @@ public final class TableViewUtil {
     }
 
     static TableViewInitialData createInitialData(final TableViewViewSettings settings, final BufferedDataTable table,
-        final TableViewDataService dataService) {
-        return new TableViewInitialDataImpl(settings, () -> table, dataService);
+        final TableViewDataService dataService, final Integer currentRowHeight) {
+        return new TableViewInitialDataImpl(settings, () -> table, dataService, currentRowHeight);
     }
 
     /**
@@ -217,6 +218,15 @@ public final class TableViewUtil {
         createInitialDataServiceWithRPCDataService(final Supplier<TableViewViewSettings> settingsSupplier,
             final Supplier<BufferedDataTable> tableSupplier, final Supplier<Set<RowKey>> selectionSupplier,
             final String tableId, final Runnable onDeactivate, final Runnable onDispose) {
+        return createInitialDataServiceWithRPCDataService(settingsSupplier, tableSupplier, selectionSupplier, tableId,
+            onDeactivate, onDispose, null);
+    }
+
+    public static Pair<InitialDataService<TableViewInitialData>, Supplier<RpcDataService>>
+        createInitialDataServiceWithRPCDataService(final Supplier<TableViewViewSettings> settingsSupplier,
+            final Supplier<BufferedDataTable> tableSupplier, final Supplier<Set<RowKey>> selectionSupplier,
+            final String tableId, final Runnable onDeactivate, final Runnable onDispose,
+            final TableNodeViewReExecutable reExecutable) {
 
         DataServiceCache dataServiceCache = new DataServiceCache() {
             @Override
@@ -228,8 +238,9 @@ public final class TableViewUtil {
         final Supplier<RpcDataService> rpcDataServiceSupplier =
             () -> createRpcDataService(dataServiceCache.get(), tableId);
         final Supplier<TableViewInitialData> initialDataSupplier =
-            () -> createInitialData(settingsSupplier.get(), tableSupplier.get(), dataServiceCache.get());
-        final var initialDataService = createInitialDataService(initialDataSupplier, tableId, onDeactivate, onDispose);
+            () -> createInitialData(settingsSupplier.get(), tableSupplier.get(), dataServiceCache.get(), reExecutable == null ? null : reExecutable.getCurrentRowHeight());
+        final var initialDataService =
+            createInitialDataService(initialDataSupplier, tableId, onDeactivate, onDispose);
         return new Pair<>(initialDataService, rpcDataServiceSupplier);
     }
 

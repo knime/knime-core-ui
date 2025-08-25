@@ -38,4 +38,6 @@ export interface InitialData {
    * @return whether to enable the css property will-change on the container of the table
    */
   enableWillChangeOnContainer: boolean;
+
+  currentRowHeight: number | null;
 }

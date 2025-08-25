@@ -75,6 +75,8 @@ public final class TableViewInitialDataImpl implements TableViewInitialData {
 
     private final TableViewDataService m_dataService;
 
+    private final Integer m_currentRowHeight;
+
     /**
      * @param settings
      * @param table
@@ -99,9 +101,26 @@ public final class TableViewInitialDataImpl implements TableViewInitialData {
      */
     public TableViewInitialDataImpl(final TableViewViewSettings settings, final Supplier<BufferedDataTable> table,
         final TableViewDataService dataService) {
+        this(settings, table, dataService, null);
+    }
+
+    /**
+     * @param settings
+     * @param table
+     * @param dataService
+     * @param currentRowHeight
+     */
+    public TableViewInitialDataImpl(final TableViewViewSettings settings, final Supplier<BufferedDataTable> table,
+        final TableViewDataService dataService, final Integer currentRowHeight) {
         m_settings = settings;
         m_table = table;
         m_dataService = dataService;
+        m_currentRowHeight = currentRowHeight;
+    }
+
+    @Override
+    public Integer getCurrentRowHeight() {
+        return m_currentRowHeight;
     }
 
     @Override

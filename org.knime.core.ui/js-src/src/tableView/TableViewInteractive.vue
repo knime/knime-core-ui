@@ -2,11 +2,13 @@
 <script lang="ts">
 import { type PropType, inject } from "vue";
 
+import { Checkbox } from "@knime/components";
 import {
   type FilterConfig,
   constants as tableConstants,
 } from "@knime/knime-ui-table";
 import {
+  DialogService,
   JsonDataService,
   SelectionService,
   SharedDataService,
@@ -27,6 +29,7 @@ import type { InitialData } from "./types/InitialData";
 import type { ColumnContentType, Table } from "./types/Table";
 import {
   AutoSizeColumnsToContent,
+  RowHeightMode,
   type StatisticsViewSettings,
   type TableViewDialogSettings,
   type TableViewViewSettings,
@@ -64,6 +67,7 @@ interface DataRequestOptions {
 export default {
   components: {
     TableViewDisplay,
+    Checkbox,
   },
   props: {
     initialData: {
@@ -113,6 +117,7 @@ export default {
       dataValueViewIsShown: false,
       jsonDataService: null as null | JsonDataService,
       sharedDataService: null as null | SharedDataService,
+      dialogService: null as null | DialogService,
       selectionService: null as null | SelectionService,
       searchTerm: "",
       columnFiltersMap: new Map() as Map<string | symbol, FilterConfig>,
@@ -133,6 +138,7 @@ export default {
       showColumnCount: true,
       rowLabel: "",
       enableWillChangeScrollPosition: false,
+      autoApply: false,
     };
   },
   computed: {
@@ -257,7 +263,7 @@ export default {
     );
     const initialData =
       this.initialData === null
-        ? ((await this.jsonDataService.initialData()) as InitialData)
+        ? ((await this.jsonDataService!.initialData()) as InitialData)
         : this.initialData;
     // @ts-expect-error
     this.baseUrl = this.knimeService?.extensionConfig?.resourceInfo?.baseUrl;
@@ -268,6 +274,7 @@ export default {
         columnDomainValues,
         settings,
         enableWillChangeOnContainer,
+        currentRowHeight,
       } = initialData;
       this.enableWillChangeScrollPosition = enableWillChangeOnContainer;
       this.displayedColumns = table.displayedColumns;
@@ -281,7 +288,14 @@ export default {
       this.totalRowCount = table.rowCount;
       this.currentRowCount = table.rowCount;
       this.setSettings(settings);
+      if (currentRowHeight) {
+        settings.rowHeightMode = RowHeightMode.CUSTOM;
+        settings.customRowHeight = currentRowHeight;
+      }
       this.setRowHeightSettings(settings);
+      this.sharedDataService.shareData({
+        currentRowHeight: this.currentRowHeight,
+      });
       if (this.useLazyLoading) {
         await this.initializeLazyLoading();
       } else {
@@ -299,6 +313,20 @@ export default {
     }
   },
   methods: {
+    shareCurrentRowHeight(rowHeight: any) {
+      if (typeof rowHeight !== "number") {
+        return;
+      }
+      if (this.autoApply) {
+        this.jsonDataService?.applyData({
+          currentRowHeight: rowHeight,
+        });
+      } else {
+        this.sharedDataService?.shareData({
+          currentRowHeight: rowHeight,
+        });
+      }
+    },
     setSettings(settings: TableViewViewSettings) {
       this.settings = settings;
       this.showOnlySelectedRows = settings.showOnlySelectedRows;
@@ -1291,6 +1319,10 @@ export default {
 </script>
 
 <template>
+  Current Row height: {{ currentRowHeight }}
+  <Checkbox v-model="autoApply" title="Automatically apply changes">
+    Apply on change
+  </Checkbox>
   <TableViewDisplay
     ref="tableViewDisplay"
     class="table-view-display"
@@ -1356,7 +1388,12 @@ export default {
     @close-data-value-view="onCloseDataValueView"
     @column-sort="onColumnSort"
     @row-select="onRowSelect"
-    @row-height-update="onRowHeightChange"
+    @row-height-update="
+      (newHeight) => {
+        shareCurrentRowHeight(newHeight);
+        onRowHeightChange(newHeight);
+      }
+    "
     @select-all="onSelectAll"
     @search="onSearch"
     @column-filter="onColumnFilter"

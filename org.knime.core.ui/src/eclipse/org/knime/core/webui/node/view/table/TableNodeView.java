@@ -56,6 +56,7 @@ import org.knime.core.data.RowKey;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.interactive.ReExecutable;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.webui.data.ApplyDataService;
 import org.knime.core.webui.data.InitialDataService;
@@ -88,6 +89,14 @@ public final class TableNodeView implements NodeTableView {
 
     private Supplier<RpcDataService> m_rpcDataServiceSupplier;
 
+    private final TableNodeViewReExecutable m_reExecutable;
+
+    public interface TableNodeViewReExecutable extends ReExecutable<String> {
+
+        Integer getCurrentRowHeight();
+
+    }
+
     /**
      * @param tableSupplier supplier of the table which this view visualizes
      * @param selectionSupplier supplier of currently selected rowKeys
@@ -98,7 +107,20 @@ public final class TableNodeView implements NodeTableView {
      */
     public TableNodeView(final Supplier<BufferedDataTable> tableSupplier, final Supplier<Set<RowKey>> selectionSupplier,
         final NodeContainer nc, final int inputPortIndex) {
-        this(TableViewUtil.toTableId(nc.getID()), tableSupplier, selectionSupplier, inputPortIndex);
+        this(tableSupplier, selectionSupplier, nc, inputPortIndex, null);
+    }
+
+    /**
+     * @param tableSupplier supplier of the table which this view visualizes
+     * @param selectionSupplier supplier of currently selected rowKeys
+     * @param nc the node this node view belongs to; used to determine the table id (derived from the node id) and to a
+     *            {@link NodeCleanUpCallback} to free resources (caches) in case the node is, e.g., deleted
+     * @param inputPortIndex the index of the input port this table node view is created for; index starts at '0'
+     *            ignoring the flow variable port
+     */
+    public TableNodeView(final Supplier<BufferedDataTable> tableSupplier, final Supplier<Set<RowKey>> selectionSupplier,
+        final NodeContainer nc, final int inputPortIndex, final TableNodeViewReExecutable reExecutable) {
+        this(TableViewUtil.toTableId(nc.getID()), tableSupplier, selectionSupplier, inputPortIndex, reExecutable);
     }
 
     /**
@@ -133,11 +155,18 @@ public final class TableNodeView implements NodeTableView {
 
     TableNodeView(final String tableId, final Supplier<BufferedDataTable> tableSupplier,
         final Supplier<Set<RowKey>> selectionSupplier, final int inputPortIndex) {
+        this(tableId, tableSupplier, selectionSupplier, inputPortIndex, null);
+    }
+
+    TableNodeView(final String tableId, final Supplier<BufferedDataTable> tableSupplier,
+        final Supplier<Set<RowKey>> selectionSupplier, final int inputPortIndex,
+        final TableNodeViewReExecutable reExecutable) {
         m_tableId = tableId;
         m_tableSupplier = tableSupplier;
         m_selectionSupplier = selectionSupplier;
         m_inputPortIndex = inputPortIndex;
         m_settingsClass = TableViewViewSettings.class;
+        m_reExecutable = reExecutable;
     }
 
     @Override
@@ -156,7 +185,7 @@ public final class TableNodeView implements NodeTableView {
             m_settings = new TableViewViewSettings(m_tableSupplier.get().getSpec());
         }
         final var pair = TableViewUtil.createInitialDataServiceWithRPCDataService(() -> m_settings, m_tableSupplier,
-            m_selectionSupplier, m_tableId, null, null);
+            m_selectionSupplier, m_tableId, null, null, m_reExecutable);
         m_rpcDataServiceSupplier = pair.getSecond();
         return Optional.of(pair.getFirst());
     }
@@ -172,7 +201,10 @@ public final class TableNodeView implements NodeTableView {
 
     @Override
     public Optional<ApplyDataService<?>> createApplyDataService() {
-        return Optional.empty();
+        return Optional.ofNullable(m_reExecutable)
+            .map(reExec -> ApplyDataService.builder(data -> reExec.preReExecute(data, false)
+            // TODO: Link followup for default value handling
+            ).build());
     }
 
     @Override

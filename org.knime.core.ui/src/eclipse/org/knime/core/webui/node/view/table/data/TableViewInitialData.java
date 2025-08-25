@@ -80,6 +80,11 @@ public interface TableViewInitialData {
      */
     TableViewViewSettings getSettings();
 
+
+    default Integer getCurrentRowHeight() {
+        return null;
+    }
+
     /**
      *
      * @return whether to enable the css property will-change: scroll-position on the table to possibly improve
