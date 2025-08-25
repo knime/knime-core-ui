@@ -356,3 +356,18 @@ export const init = async () => {
     });
   });
 };
+
+// Alternative that uses a mock
+export type InitMockData = {
+  scriptingService: ScriptingServiceType;
+  initialDataService: InitialDataServiceType;
+  settingsService: SettingsServiceType;
+  displayMode: "small" | "large";
+};
+
+export const initMocked = (mockData: InitMockData) => {
+  scriptingService = mockData.scriptingService;
+  initialDataService = mockData.initialDataService;
+  settingsService = mockData.settingsService;
+  displayMode.value = mockData.displayMode;
+};
