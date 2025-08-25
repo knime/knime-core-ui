@@ -61,6 +61,7 @@ import org.knime.node.DefaultNode.RequireIcon;
 import org.knime.node.DefaultNode.RequireModel;
 import org.knime.node.DefaultNode.RequireName;
 import org.knime.node.DefaultNode.RequireShortDescription;
+import org.knime.node.DefaultNode.RequireSinceVersion;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.testing.TestWithWorkflowManager;
@@ -117,7 +118,7 @@ class DefaultNodeDescriptionTest extends TestWithWorkflowManager {
 
     @Test
     void testSinceVersion() {
-        final var nc = addNode(complete(createStage(DefaultNode.class)//
+        final var nc = addNode(complete(createStage(RequireSinceVersion.class)//
             .sinceVersion(1, 2, 3) //
         ));
 

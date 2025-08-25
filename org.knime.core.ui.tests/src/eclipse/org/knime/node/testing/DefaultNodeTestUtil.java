@@ -60,6 +60,7 @@ import org.knime.node.DefaultNode.RequireIcon;
 import org.knime.node.DefaultNode.RequireModel;
 import org.knime.node.DefaultNode.RequireName;
 import org.knime.node.DefaultNode.RequireShortDescription;
+import org.knime.node.DefaultNode.RequireSinceVersion;
 import org.knime.node.DefaultNodeFactory;
 import org.knime.node.RequirePorts;
 import org.knime.node.RequirePorts.PortsAdder;
@@ -91,6 +92,8 @@ public class DefaultNodeTestUtil {
 
     private static final String DEFAULT_FULL_DESCRIPTION =
         "This node is used for testing purposes. Use the methods within TestNode to construct such a node.";
+
+    private static final int DEFAULT_VERSION = 0;
 
     private static final Consumer<PortsAdder> EMPTY_PORTS = p -> {
     };
@@ -130,8 +133,12 @@ public class DefaultNodeTestUtil {
         if (RequireFullDescription.class.equals(stageClass)) {
             return (T)createStage(RequireShortDescription.class).shortDescription(DEFAULT_SHORT_DESCRIPTION);
         }
-        if (RequirePorts.class.equals(stageClass)) {
+        if (RequireSinceVersion.class.equals(stageClass)) {
             return (T)createStage(RequireFullDescription.class).fullDescription(DEFAULT_FULL_DESCRIPTION);
+        }
+        if (RequirePorts.class.equals(stageClass)) {
+            return (T)createStage(RequireSinceVersion.class).sinceVersion(DEFAULT_VERSION, DEFAULT_VERSION,
+                DEFAULT_VERSION);
         }
         if (RequireModel.class.equals(stageClass)) {
             return (T)createStage(RequirePorts.class).ports(EMPTY_PORTS);
@@ -160,6 +167,9 @@ public class DefaultNodeTestUtil {
         }
         if (stage instanceof RequirePorts s) {
             return completeStage(s.ports(EMPTY_PORTS));
+        }
+        if (stage instanceof RequireSinceVersion s) {
+            return completeStage(s.sinceVersion(DEFAULT_VERSION, DEFAULT_VERSION, DEFAULT_VERSION));
         }
         if (stage instanceof RequireFullDescription s) {
             return completeStage(s.fullDescription(DEFAULT_FULL_DESCRIPTION));
