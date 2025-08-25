@@ -1,7 +1,5 @@
 import { ref } from "vue";
 
-import { DialogService } from "@knime/ui-extension-service";
-
 /**
  * Reactive reference for the display mode of the configuration panel.
  *
@@ -12,13 +10,3 @@ import { DialogService } from "@knime/ui-extension-service";
  * It automatically updates whenever the display mode changes within the `DialogService`.
  */
 export const displayMode = ref<"small" | "large">("small");
-
-DialogService.getInstance().then((dialogService) => {
-  // Set the initial value of displayMode
-  displayMode.value = dialogService.getInitialDisplayMode();
-
-  // Register a listener to update displayMode whenever it changes
-  dialogService.addOnDisplayModeChangeCallback(({ mode }) => {
-    displayMode.value = mode;
-  });
-});
