@@ -28,6 +28,7 @@ import type {
   UseDiffEditorReturn,
 } from "@/editor";
 import editor from "@/editor";
+import { init } from "@/init";
 import {
   type GenericInitialData,
   type InitialDataServiceType,
@@ -54,19 +55,20 @@ export {
   consoleHandler,
   displayMode,
   editor,
-  initConsoleEventHandler,
   getInitialDataService,
   getScriptingService,
   getSettingsService,
+  init,
+  initConsoleEventHandler,
+  InputOutputPane,
   insertionEventHelper,
   OutputConsole,
   OutputTablePreview,
   ScriptingEditor,
-  InputOutputPane,
   setActiveEditorStoreForAi,
   setConsoleHandler,
-  useShouldFocusBePainted,
   useReadonlyStore,
+  useShouldFocusBePainted,
 };
 export type {
   ConsoleHandler,
