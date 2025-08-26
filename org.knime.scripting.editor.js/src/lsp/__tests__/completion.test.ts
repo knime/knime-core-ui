@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Position, editor, languages } from "monaco-editor";
 import {
   CompletionItemKind,
@@ -12,6 +12,11 @@ import {
   getCompletionResolveParams,
   mapCompletionResult,
 } from "../completion";
+
+vi.hoisted(() => {
+  vi.resetModules();
+  vi.doUnmock("monaco-editor");
+});
 
 describe("completion", () => {
   const editorModel = {

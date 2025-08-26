@@ -4,15 +4,12 @@ import { flushPromises, mount } from "@vue/test-utils";
 import AiButton from "@/components/ai-assistant/AiButton.vue";
 import type { PaneSizes } from "@/components/utils/paneSizes";
 import { getInitialDataService } from "@/init";
-import { type InputConnectionInfo } from "@/initial-data-service";
+import {
+  type GenericInitialData,
+  type InputConnectionInfo,
+} from "@/initial-data-service";
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
 
-vi.mock("@/scripting-service");
-vi.mock("@/initial-data-service", () => ({
-  getInitialDataService: vi.fn(() => ({
-    getInitialData: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_DATA)),
-  })),
-}));
 const doMount = async (
   args: {
     props?: Partial<InstanceType<typeof AiButton>["$props"]>;
@@ -32,22 +29,23 @@ const doMount = async (
   return wrapper;
 };
 
+const mockInitialData = (initialData: Partial<GenericInitialData>) => {
+  vi.mocked(getInitialDataService().getInitialData).mockReturnValue(
+    Promise.resolve({ ...DEFAULT_INITIAL_DATA, ...initialData }),
+  );
+};
+
 describe("AiButton", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
   it("hides ai button if K-AI is disabled", async () => {
-    vi.mocked(getInitialDataService).mockReturnValue({
-      getInitialData: vi.fn(() =>
-        Promise.resolve({
-          ...DEFAULT_INITIAL_DATA,
-          kAiConfig: {
-            ...DEFAULT_INITIAL_DATA.kAiConfig,
-            isKaiEnabled: false,
-          },
-        }),
-      ),
+    mockInitialData({
+      kAiConfig: {
+        ...DEFAULT_INITIAL_DATA.kAiConfig,
+        isKaiEnabled: false,
+      },
     });
 
     const wrapper = await doMount();
@@ -108,11 +106,7 @@ describe("AiButton", () => {
   });
 
   it("test aiButton is enabled if the node has no input ports", async () => {
-    vi.mocked(getInitialDataService).mockReturnValue({
-      getInitialData: vi.fn(() =>
-        Promise.resolve({ ...DEFAULT_INITIAL_DATA, inputConnectionInfo: [] }),
-      ),
-    });
+    mockInitialData({ inputConnectionInfo: [] });
 
     const wrapper = await doMount();
     const button = wrapper.findComponent({ ref: "aiButtonRef" });
@@ -120,17 +114,12 @@ describe("AiButton", () => {
   });
 
   it("test aiButton is enabled if optional ports are not connected", async () => {
-    vi.mocked(getInitialDataService).mockReturnValue({
-      getInitialData: vi.fn(() =>
-        Promise.resolve({
-          ...DEFAULT_INITIAL_DATA,
-          inputConnectionInfo: [
-            { status: "MISSING_CONNECTION", isOptional: true },
-            { status: "UNCONFIGURED_CONNECTION", isOptional: true },
-            { status: "OK", isOptional: false },
-          ] satisfies InputConnectionInfo[],
-        }),
-      ),
+    mockInitialData({
+      inputConnectionInfo: [
+        { status: "MISSING_CONNECTION", isOptional: true },
+        { status: "UNCONFIGURED_CONNECTION", isOptional: true },
+        { status: "OK", isOptional: false },
+      ] satisfies InputConnectionInfo[],
     });
 
     const wrapper = await doMount();
@@ -139,16 +128,11 @@ describe("AiButton", () => {
   });
 
   it("test aiButton is disabled if inputs are not available", async () => {
-    vi.mocked(getInitialDataService).mockReturnValue({
-      getInitialData: vi.fn(() =>
-        Promise.resolve({
-          ...DEFAULT_INITIAL_DATA,
-          inputConnectionInfo: [
-            { status: "OK", isOptional: true },
-            { status: "MISSING_CONNECTION", isOptional: false },
-          ] satisfies InputConnectionInfo[],
-        }),
-      ),
+    mockInitialData({
+      inputConnectionInfo: [
+        { status: "OK", isOptional: true },
+        { status: "MISSING_CONNECTION", isOptional: false },
+      ] satisfies InputConnectionInfo[],
     });
 
     const wrapper = await doMount();

@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 
+import { getScriptingService } from "@/init";
 import { type ConsoleHandler } from "../OutputConsole.vue";
 import ScriptingEditorBottomPane from "../ScriptingEditorBottomPane.vue";
 
@@ -21,7 +22,6 @@ describe("ScriptingEditorBottomPane", () => {
   }));
   vi.mock("xterm");
 
-  vi.mock("@/scripting-service");
   vi.mock("@/editor");
 
   const doMount = async (
@@ -45,6 +45,12 @@ describe("ScriptingEditorBottomPane", () => {
 
     return { wrapper, consoleHandler };
   };
+
+  beforeEach(() => {
+    vi.mocked(getScriptingService().isCallKnimeUiApiAvailable).mockReturnValue(
+      Promise.resolve(false),
+    );
+  });
 
   afterEach(() => {
     vi.clearAllMocks();

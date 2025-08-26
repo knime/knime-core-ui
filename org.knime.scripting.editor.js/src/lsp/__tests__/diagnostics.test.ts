@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { MarkerSeverity, MarkerTag } from "monaco-editor";
 import {
   DiagnosticSeverity,
@@ -7,6 +7,11 @@ import {
 } from "vscode-languageserver-protocol";
 
 import { mapDiagnosticToMarkerData } from "../diagnostics";
+
+vi.hoisted(() => {
+  vi.resetModules();
+  vi.doUnmock("monaco-editor");
+});
 
 describe("diagnostics", () => {
   describe("mapDiagnosticToMarkerData", () => {

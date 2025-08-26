@@ -23,6 +23,11 @@ import * as docSync from "../doc-sync";
 import * as hover from "../hover";
 import * as signatureHelp from "../signature-help";
 
+vi.hoisted(() => {
+  vi.resetModules();
+  vi.doUnmock("monaco-editor");
+});
+
 // Install spies on monaco APIs
 vi.spyOn(languages, "registerHoverProvider");
 vi.spyOn(languages, "registerCompletionItemProvider");

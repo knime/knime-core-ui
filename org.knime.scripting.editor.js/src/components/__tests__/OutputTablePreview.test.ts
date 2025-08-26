@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 
-import { getScriptingService } from "../../__mocks__/scripting-service";
+import { getScriptingService } from "@/init";
 import OutputTablePreview from "../OutputTablePreview.vue";
 
 const mocks = vi.hoisted(() => {
@@ -44,8 +44,6 @@ vi.mock("@knime/ui-extension-service", async (importOriginal) => {
     },
   };
 });
-
-vi.mock("@/scripting-service");
 
 describe("OutputTablePreview", () => {
   const propsForOutputTablePreview = [

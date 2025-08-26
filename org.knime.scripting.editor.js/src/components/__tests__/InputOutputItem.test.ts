@@ -24,7 +24,6 @@ import { createDragGhost, removeDragGhost } from "../utils/dragGhost";
 import { insertionEventHelper } from "../utils/insertionEventHelper";
 
 vi.mock("monaco-editor");
-vi.mock("@/scripting-service");
 vi.mock("../utils/dragGhost", () => ({
   createDragGhost: vi.fn(),
   removeDragGhost: vi.fn(),
