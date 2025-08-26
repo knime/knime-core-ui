@@ -149,7 +149,10 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
     public void validateNodeSettingsAndVariables(final Map<SettingsType, NodeAndVariableSettingsRO> settings)
         throws InvalidSettingsException {
         for (var entry : settings.entrySet()) {
-            NodeParametersUtil.loadSettings(entry.getValue(), m_settingsClasses.get(entry.getKey()));
+            final var key = entry.getKey();
+            if (key != SettingsType.JOB_MANAGER) {
+                NodeParametersUtil.loadSettings(entry.getValue(), m_settingsClasses.get(key));
+            }
         }
     }
 
