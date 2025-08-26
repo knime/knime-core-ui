@@ -46,7 +46,7 @@
  * History
  *   Jan 13, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.filter;
+package org.knime.node.parameters.persistence.legacy;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
@@ -54,10 +54,13 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.util.filter.NameFilterConfiguration;
 import org.knime.core.node.util.filter.PatternFilterConfiguration;
+import org.knime.core.node.util.filter.variable.FlowVariableFilterConfiguration;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilterMode;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.LegacyManualFilterPersistorUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.LegacyPatternFilterPersistorUtil;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
 import org.knime.node.parameters.widget.choices.filter.LegacyFilterUtil;
 import org.knime.node.parameters.widget.choices.filter.LegacyFilterUtil.StringFilterBuilder;
 import org.knime.node.parameters.widget.choices.filter.StringFilter;
@@ -65,6 +68,12 @@ import org.knime.node.parameters.widget.choices.filter.StringFilter;
 /**
  * {@link NodeParametersPersistor} for {@link StringFilter} that persists it in a way compatible to
  * {@link NameFilterConfiguration}.
+ *
+ * <p>
+ * Note that the {@link FlowVariableFilterConfiguration} extends that configuration without adding any functionality, so
+ * if a node should be migrated without touching the model implementation, do not use {@link FlowVariableFilter} in that
+ * case (for which no legacy equivalent exists) but instead also use a {@link StringFilter} and this persistor.
+ * </p>
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */

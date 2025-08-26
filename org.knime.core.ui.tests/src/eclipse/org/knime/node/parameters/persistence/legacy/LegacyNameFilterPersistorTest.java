@@ -46,105 +46,88 @@
  * History
  *   Jan 20, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column;
+package org.knime.node.parameters.persistence.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.knime.core.webui.node.dialog.defaultdialog.setting.choices.withtypes.TypeFilterTestUtil.getSelectedTypes;
 
 import org.junit.jupiter.api.Test;
-import org.knime.core.data.StringValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.util.filter.NameFilterConfiguration.EnforceOption;
 import org.knime.core.node.util.filter.PatternFilterConfiguration;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.StringFilterMode;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.ManualFilter;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.util.PatternFilter;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.withtypes.TypedStringFilterMode;
-import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
-import org.knime.node.parameters.widget.choices.filter.LegacyFilterUtil;
-import org.knime.node.parameters.widget.choices.filter.LegacyFilterUtil.ColumnFilterBuilder;
-import org.knime.node.parameters.widget.choices.filter.TypeFilter;
+import org.knime.node.parameters.widget.choices.filter.StringFilter;
 
-final class LegacyColumnFilterPersistorTest {
+final class LegacyNameFilterPersistorTest {
 
-    private final LegacyColumnFilterPersistor m_persistor = createPersistor();
+    private final LegacyNameFilterPersistor m_persistor = createPersistor();
 
-    static final class TestLegacyColumnFilterPersistor extends LegacyColumnFilterPersistor {
-        TestLegacyColumnFilterPersistor() {
+    static final class TestLegacyNameFilterPersistor extends LegacyNameFilterPersistor {
+        TestLegacyNameFilterPersistor() {
             super("config_key");
         }
     }
 
-    private static LegacyColumnFilterPersistor createPersistor() {
-        return new TestLegacyColumnFilterPersistor();
+    private static LegacyNameFilterPersistor createPersistor() {
+        return new TestLegacyNameFilterPersistor();
     }
 
     @Test
     void testManualSelection() throws InvalidSettingsException {
-        var columnFilter = new ColumnFilter(new String[]{"foo", "bar"});
-        var manualFilter = columnFilter.m_manualFilter;
+        var nameFilter = new StringFilter(new String[]{"foo", "bar"});
+        var manualFilter = nameFilter.m_manualFilter;
         manualFilter.m_manuallySelected = new String[]{"foo"};
         manualFilter.m_manuallyDeselected = new String[]{"bar"};
         manualFilter.m_includeUnknownColumns = true;
-        testPersistence(columnFilter);
+        testPersistence(nameFilter);
     }
 
     @Test
     void testRegexSelection() throws Exception {
-        var columnFilter = new ColumnFilter(new String[]{"bar", "baz"});
-        columnFilter.m_mode = TypedStringFilterMode.REGEX;
-        columnFilter.m_patternFilter.m_pattern = "ba.+";
-        columnFilter.m_patternFilter.m_isCaseSensitive = true;
-        testPersistence(columnFilter);
+        var nameFilter = new StringFilter(new String[]{"bar", "baz"});
+        nameFilter.m_mode = StringFilterMode.REGEX;
+        nameFilter.m_patternFilter.m_pattern = "ba.+";
+        nameFilter.m_patternFilter.m_isCaseSensitive = true;
+        testPersistence(nameFilter);
     }
 
     @Test
     void testWildcardSelection() throws InvalidSettingsException {
-        var columnFilter = new ColumnFilter(new String[]{"bar", "baz"});
-        columnFilter.m_mode = TypedStringFilterMode.WILDCARD;
-        columnFilter.m_patternFilter.m_pattern = "ba*";
-        columnFilter.m_patternFilter.m_isInverted = true;
-        testPersistence(columnFilter);
+        var nameFilter = new StringFilter(new String[]{"bar", "baz"});
+        nameFilter.m_mode = StringFilterMode.WILDCARD;
+        nameFilter.m_patternFilter.m_pattern = "ba*";
+        nameFilter.m_patternFilter.m_isInverted = true;
+        testPersistence(nameFilter);
     }
 
-    @Test
-    void testTypeSelection() throws InvalidSettingsException {
-        final var columnFilter = new LegacyFilterUtil.ColumnFilterBuilder().withMode(ColumnFilterBuilder.Mode.TYPE)
-            .withSelectedTypes(new String[]{StringValue.class.getName()})
-            .withManuallySelected(new String[]{"bli", "bla"}).build();
-        testPersistence(columnFilter);
-    }
-
-    private void testPersistence(final ColumnFilter columnFilter) throws InvalidSettingsException {
+    private void testPersistence(final StringFilter nameFilter) throws InvalidSettingsException {
         var settings = new NodeSettings("test");
-        m_persistor.save(columnFilter, settings);
-        checkSettingsStructure(columnFilter, settings);
+        m_persistor.save(nameFilter, settings);
+        checkSettingsStructure(nameFilter, settings);
         var loaded = m_persistor.load(settings);
-        checkEqual(columnFilter, loaded);
+        checkEqual(nameFilter, loaded);
     }
 
-    private static void checkSettingsStructure(final ColumnFilter columnFilter, final NodeSettingsRO settings)
+    private static void checkSettingsStructure(final StringFilter nameFilter, final NodeSettingsRO settings)
         throws InvalidSettingsException {
         var columnFilterSettings = settings.getNodeSettings("config_key");
-        assertEquals(getExpectedMode(columnFilter.m_mode), columnFilterSettings.getString("filter-type"),
+        assertEquals(getExpectedMode(nameFilter.m_mode), columnFilterSettings.getString("filter-type"),
             "Unexpected mode");
-        checkManualSettings(columnFilter.m_manualFilter, columnFilterSettings);
-        checkPatternSettings(columnFilter, columnFilterSettings.getNodeSettings(PatternFilterConfiguration.TYPE));
-        checkTypeSettings(columnFilter.m_typeFilter, columnFilterSettings.getNodeSettings("datatype"));
+        checkManualSettings(nameFilter.m_manualFilter, columnFilterSettings);
+        checkPatternSettings(nameFilter, columnFilterSettings.getNodeSettings(PatternFilterConfiguration.TYPE));
     }
 
-    private static String getExpectedMode(final TypedStringFilterMode mode) {
+    private static String getExpectedMode(final StringFilterMode mode) {
         switch (mode) {
             case MANUAL:
                 return "STANDARD";
             case REGEX:
             case WILDCARD:
                 return PatternFilterConfiguration.TYPE;
-            case TYPE:
-                return "datatype";
             default:
                 throw new IllegalArgumentException("Unknown mode: " + mode);
 
@@ -163,11 +146,11 @@ final class LegacyColumnFilterPersistorTest {
             settings.getString("enforce_option"), "The enforce option was not EnforceInclusion");
     }
 
-    private static void checkPatternSettings(final ColumnFilter columnFilter, final NodeSettingsRO settings)
+    private static void checkPatternSettings(final StringFilter columnFilter, final NodeSettingsRO settings)
         throws InvalidSettingsException {
         var mode = columnFilter.m_mode;
         var patternFilter = columnFilter.m_patternFilter;
-        assertEquals(mode == TypedStringFilterMode.REGEX ? "Regex" : "Wildcard", settings.getString("type"),
+        assertEquals(mode == StringFilterMode.REGEX ? "Regex" : "Wildcard", settings.getString("type"),
             "Unexpected pattern matching type");
         assertEquals(patternFilter.m_isCaseSensitive, settings.getBoolean("caseSensitive"),
             "Unexpected case sensitivity");
@@ -176,24 +159,10 @@ final class LegacyColumnFilterPersistorTest {
         assertEquals(patternFilter.m_pattern, settings.getString("pattern"), "Unexpected pattern");
     }
 
-    private static void checkTypeSettings(final TypeFilter typeFilter, final NodeSettingsRO settings)
-        throws InvalidSettingsException {
-        var typeListSettings = settings.getNodeSettings("typelist");
-        for (var type : getSelectedTypes(typeFilter)) {
-            assertTrue(typeListSettings.getBoolean(type),
-                String.format("The selected type %s was not selected in settings", type));
-        }
-    }
-
-    private static void checkEqual(final ColumnFilter left, final ColumnFilter right) {
+    private static void checkEqual(final StringFilter left, final StringFilter right) {
         assertEquals(left.m_mode, right.m_mode, "Unexpected mode");
         checkEqual(left.m_manualFilter, right.m_manualFilter);
         checkEqual(left.m_patternFilter, right.m_patternFilter);
-        checkEqual(left.m_typeFilter, right.m_typeFilter);
-    }
-
-    private static void checkEqual(final TypeFilter left, final TypeFilter right) {
-        assertArrayEquals(getSelectedTypes(left), getSelectedTypes(right), "Unexpected selected types");
     }
 
     private static void checkEqual(final PatternFilter left, final PatternFilter right) {

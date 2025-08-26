@@ -46,7 +46,7 @@
  * History
  *   Jan 13, 2023 (Adrian Nembach, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column;
+package org.knime.node.parameters.persistence.legacy;
 
 import java.util.ArrayList;
 import java.util.stream.Stream;
@@ -55,6 +55,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModelColumnFilter2;
 import org.knime.core.node.util.filter.PatternFilterConfiguration;
 import org.knime.core.node.util.filter.column.DataColumnSpecFilterConfiguration;
 import org.knime.core.node.workflow.NodeContext;
@@ -69,7 +70,7 @@ import org.knime.node.parameters.widget.choices.filter.TypedStringFilter;
 
 /**
  * {@link NodeParametersPersistor} for {@link TypedStringFilter} that persists it in a way compatible to
- * {@link DataColumnSpecFilterConfiguration}.
+ * {@link DataColumnSpecFilterConfiguration} as it is used within the {@link SettingsModelColumnFilter2}.
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
@@ -156,8 +157,7 @@ public abstract class LegacyColumnFilterPersistor implements NodeParametersPersi
         }
     }
 
-    private static String[] loadTypeFilter(final NodeSettingsRO typeFilterSettings)
-        throws InvalidSettingsException {
+    private static String[] loadTypeFilter(final NodeSettingsRO typeFilterSettings) throws InvalidSettingsException {
         return loadSelectedTypes(typeFilterSettings);
     }
 
@@ -270,6 +270,7 @@ public abstract class LegacyColumnFilterPersistor implements NodeParametersPersi
         return getConfigPaths(m_configKey);
     }
 
+    @SuppressWarnings("javadoc")
     public static String[][] getConfigPaths(final String configKey) {
         return new String[][]{//
             {configKey, KEY_FILTER_TYPE}, //
