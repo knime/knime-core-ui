@@ -108,8 +108,7 @@ public class TriggerAndDependencies {
      * @return a mapping to the values of the required dependencies
      */
     public Map<LocationAndType, List<IndexedValue<Integer>>> extractDependencyValues(
-        final Map<SettingsType, WidgetGroup> settings, final NodeParametersInput context,
-        final int... triggerIndices) {
+        final Map<SettingsType, WidgetGroup> settings, final NodeParametersInput context, final int... triggerIndices) {
         final var mapper = JsonFormsDataUtil.getMapper();
         final Map<SettingsType, JsonNode> jsonNodes = getDependencySettingsTypes().stream().collect(
             Collectors.toMap(Function.identity(), settingsType -> mapper.valueToTree(settings.get(settingsType))));
@@ -138,8 +137,7 @@ public class TriggerAndDependencies {
     }
 
     private Map<LocationAndType, List<IndexedValue<Integer>>> createDependenciesValuesMap(
-        final NodeParametersInput context, final Map<SettingsType, JsonNode> jsonNodes,
-        final int[] triggerIndices) {
+        final NodeParametersInput context, final Map<SettingsType, JsonNode> jsonNodes, final int[] triggerIndices) {
         final Map<LocationAndType, List<IndexedValue<Integer>>> dependencyValues = new HashMap<>();
         for (var vertex : m_dependencyVertices) {
             dependencyValues.put(vertex.getLocationAndType(),
@@ -149,16 +147,17 @@ public class TriggerAndDependencies {
     }
 
     private static List<IndexedValue<Integer>> extractValues(final DependencyVertex vertex,
-        final Map<SettingsType, JsonNode> jsonNodes, final NodeParametersInput context,
-        final int[] triggerIndices) {
+        final Map<SettingsType, JsonNode> jsonNodes, final NodeParametersInput context, final int[] triggerIndices) {
         final var locationAndType = vertex.getLocationAndType();
         final var location = locationAndType.location();
         var groupJsonNode = jsonNodes.get(location.settingsType());
 
         final var paths = location.paths();
         var indexedFieldValues = getIndexedFieldValues(groupJsonNode, paths, triggerIndices);
-        return indexedFieldValues.stream().map(pair -> new IndexedValue<Integer>(pair.getFirst(),
-            ConvertValueUtil.convertValue(pair.getSecond(), locationAndType.getType(), context))).toList();
+        return indexedFieldValues.stream()
+            .map(pair -> new IndexedValue<Integer>(pair.getFirst(), ConvertValueUtil.convertValue(pair.getSecond(),
+                locationAndType.getType(), locationAndType.getSpecialDeserializer(), context)))
+            .toList();
     }
 
     private static List<Pair<List<Integer>, JsonNode>> getIndexedFieldValues(final JsonNode jsonNode,

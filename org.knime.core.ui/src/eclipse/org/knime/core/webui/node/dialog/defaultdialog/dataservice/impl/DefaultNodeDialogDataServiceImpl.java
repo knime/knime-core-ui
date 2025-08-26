@@ -99,8 +99,7 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
     /**
      * @param settingsClasses the classes of the {@link NodeParameters} associated to the dialog.
      */
-    public DefaultNodeDialogDataServiceImpl(
-        final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses) {
+    public DefaultNodeDialogDataServiceImpl(final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses) {
         m_keyToSettingsClassMap = new EnumMap<>(SettingsType.class);
         settingsClasses.forEach(m_keyToSettingsClassMap::put);
         m_buttonActionHandlers = new ButtonWidgetActionHandlerHolder(m_keyToSettingsClassMap.values());
@@ -136,7 +135,7 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         final var handler = getButtonActionHandler(handlerClass);
         final var resultType = GenericTypeFinderUtil.getFirstGenericType(handler.getClass(), ButtonActionHandler.class);
         final var context = createContext();
-        final var convertedCurrentValue = convertValue(currentValue, resultType, context);
+        final var convertedCurrentValue = convertValue(currentValue, resultType, Optional.empty(), context);
         return m_requestHandler.handleRequest(widgetId,
             () -> handler.castAndInitialize(convertedCurrentValue, context));
 
@@ -167,7 +166,6 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         return buttonHandler;
     }
 
-
     @Override
     public Result<?> update2(final String widgetId, final Trigger triggerClass,
         final Map<String, List<IndexedValue<String>>> rawDependenciesUnparsed)
@@ -191,7 +189,7 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         throws InterruptedException, ExecutionException {
         final var handler = getExternalValidationHandler(validatorClass);
         final var resultType = GenericTypeFinderUtil.getFirstGenericType(handler.getClass(), ExternalValidation.class);
-        final var convertedCurrentValue = convertValue(currentValue, resultType, null);
+        final var convertedCurrentValue = convertValue(currentValue, resultType, Optional.empty(), null);
         return m_requestHandler.handleRequest(validatorClass, () -> handler.castAndValidate(convertedCurrentValue));
     }
 

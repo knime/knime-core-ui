@@ -96,8 +96,7 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
      * @return the trigger vertices of the resulting tree of vertices
      */
     static Collection<TriggerVertex> imperativeRefsAndStateProvidersToDependencyTree(
-        final ImperativeRefsAndStateProviders imperativeRefsAndStateProviders,
-        final NodeParametersInput context) {
+        final ImperativeRefsAndStateProviders imperativeRefsAndStateProviders, final NodeParametersInput context) {
         return new DependencyTreeCreator(RefsAndStateProviders.empty(), imperativeRefsAndStateProviders, context)
             .getTriggerVertices();
     }
@@ -121,8 +120,7 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
         private final ImperativeRefsAndStateProviders m_imperativeRefsAndStateProviders;
 
         DependencyTreeCreator(final RefsAndStateProviders refsAndStateProviders,
-            final ImperativeRefsAndStateProviders imperativeRefsAndStateProviders,
-            final NodeParametersInput context) {
+            final ImperativeRefsAndStateProviders imperativeRefsAndStateProviders, final NodeParametersInput context) {
             m_context = context;
             m_refsAndStateProviders = refsAndStateProviders;
             m_imperativeRefsAndStateProviders = imperativeRefsAndStateProviders;
@@ -162,7 +160,7 @@ final class RefsAndValueProvidersAndUiStateProvidersToDependencyTree {
         private void collectVertices() {
             m_refsAndStateProviders.valueProviders()
                 .forEach(update -> addToQueue(new LocationUpdateVertex(update.fieldLocation(),
-                    new ResolvedStateProvider(update.stateProviderClass()))));
+                    new ResolvedStateProvider(update.stateProviderClass()), update.specialSerializer())));
             m_refsAndStateProviders.idUiStateProviders().forEach(update -> addToQueue(new IdUpdateVertex(update.id(),
                 update.providedOptionName(), new ResolvedStateProvider(update.stateProviderClass()))));
             m_refsAndStateProviders.locationUiStateProviders()

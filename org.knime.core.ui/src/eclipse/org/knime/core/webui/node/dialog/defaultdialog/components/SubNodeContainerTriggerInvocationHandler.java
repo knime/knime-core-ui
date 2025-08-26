@@ -54,6 +54,7 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -97,7 +98,7 @@ final class SubNodeContainerTriggerInvocationHandler {
 
     private static Object parseValue(final Object rawDependencyObject, final Type type,
         final NodeParametersInput context) {
-        return ConvertValueUtil.convertValue(rawDependencyObject, type, context);
+        return ConvertValueUtil.convertValue(rawDependencyObject, type, Optional.empty(), context);
     }
 
 }

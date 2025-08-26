@@ -82,6 +82,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonUpda
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.Icon;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
@@ -1950,6 +1952,41 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().containsExactly("dynamicSettings");
     }
 
+    interface TestDynamicParams extends DynamicParameters.DynamicNodeParameters {
+    }
+
+    @Test
+    void testDynamicInterfaceParameters() {
+
+        class TestSettings implements NodeParameters {
+            static final class TestProvider implements DynamicParameters.DynamicParametersProvider<TestDynamicParams> {
+
+                @Override
+                public void init(final StateProviderInitializer initializer) {
+                    throw new UnsupportedOperationException("This method should not be called in this test");
+                }
+
+                @Override
+                public ClassIdStrategy<TestDynamicParams> getClassIdStrategy() {
+                    throw new UnsupportedOperationException("This method should not be called in this test");
+                }
+
+                @Override
+                public TestDynamicParams computeParameters(final NodeParametersInput parametersInput)
+                    throws StateComputationFailureException {
+                    throw new UnsupportedOperationException("This method should not be called in this test");
+                }
+            }
+
+            @DynamicParameters(TestProvider.class)
+            TestDynamicParams m_dynamicParametersField;
+        }
+        final var response = buildTestUiSchema(TestSettings.class);
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("dynamicParametersField");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dynamicInput");
+        assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().containsExactly("dynamicSettings");
+    }
+
     @Test
     void testMapFieldThrowsIfWithoutDynamicSettingsWidget() {
         class TestSettings implements NodeParameters {
@@ -2003,7 +2040,8 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].options.validateSchema").isBoolean().isFalse();
         assertThatJson(response).inPath("$.elements[0].options.validateTable").isBoolean().isFalse();
 
-        @DBTableAdapterProvider(value= DummyDbAdapterWithoutCatalogues.class, validateSchema = true, validateTable = true)
+        @DBTableAdapterProvider(value = DummyDbAdapterWithoutCatalogues.class, validateSchema = true,
+            validateTable = true)
         class SettingWithChangedValues implements NodeParameters {
             @Widget(title = "", description = "")
             DBTableSelection m_dbTableSelection;

@@ -49,21 +49,45 @@
 package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
 import java.lang.reflect.Type;
+import java.util.Optional;
 import java.util.function.Supplier;
+
+import com.fasterxml.jackson.databind.JsonDeserializer;
 
 /**
  * Necessary information to construct a java value from unstructured data
  *
  * @param location the location of the value
  * @param type the type of the value
+ * @param specialDeserializer an optional special deserializer to use instead of the default one. Null if not needed.
  */
-public record LocationAndType(Location location, Supplier<Type> type) {
+public record LocationAndType(Location location, Supplier<Type> type, JsonDeserializer<?> specialDeserializer) {
+
+    /**
+     * Constructor without special deserializer.
+     *
+     * @param location the location of the value
+     * @param type the type of the value
+     */
+    public LocationAndType(final Location location, final Supplier<Type> type) {
+        this(location, type, null);
+    }
 
     /**
      * @return the type of the value
      */
     public Type getType() {
         return type.get();
+    }
+
+    /**
+     * Get a special deserializer if available. This is used e.g. in case the deserialization depends on field
+     * annotations of a field at the location.
+     *
+     * @return the special deserializer
+     */
+    public Optional<JsonDeserializer<?>> getSpecialDeserializer() {
+        return Optional.ofNullable(specialDeserializer);
     }
 
 }

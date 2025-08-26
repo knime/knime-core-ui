@@ -57,8 +57,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.DependencyInjector.DependencyCollector;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToRefsAndStateProviders.ValueRefWrapper;
 import org.knime.node.parameters.updates.ParameterReference;
-import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.updates.StateProvider.TypeReference;
+import org.knime.node.parameters.updates.ValueReference;
 
 final class DeclarativeDependencyCollector extends DependencyCollector<Class<? extends ParameterReference<?>>> {
 
@@ -79,13 +79,18 @@ final class DeclarativeDependencyCollector extends DependencyCollector<Class<? e
 
     @Override
     public LocationAndType locate(final Class<? extends ParameterReference<?>> reference) {
-        return new LocationAndType(findValueRefWrapper(reference).fieldLocation(), () -> getSettingsType(reference));
+        final var valueRefWrapper = findValueRefWrapper(reference);
+        return new LocationAndType(valueRefWrapper.fieldLocation(), () -> getSettingsType(reference),
+            valueRefWrapper.specialDeserializer());
     }
 
     @Override
-    protected LocationAndType locate(final Class<? extends ParameterReference<?>> reference, final TypeReference<?> typeRef) {
-        return new LocationAndType(findValueRefWrapper(reference).fieldLocation(),
-            () -> RefsAndValueProvidersAndUiStateProvidersToDependencyTree.getSettingsType(typeRef));
+    protected LocationAndType locate(final Class<? extends ParameterReference<?>> reference,
+        final TypeReference<?> typeRef) {
+        final var valueRefWrapper = findValueRefWrapper(reference);
+        return new LocationAndType(valueRefWrapper.fieldLocation(),
+            () -> RefsAndValueProvidersAndUiStateProvidersToDependencyTree.getSettingsType(typeRef),
+            valueRefWrapper.specialDeserializer());
     }
 
     private ValueRefWrapper findValueRefWrapper(final Class<? extends ParameterReference> valueRef) {

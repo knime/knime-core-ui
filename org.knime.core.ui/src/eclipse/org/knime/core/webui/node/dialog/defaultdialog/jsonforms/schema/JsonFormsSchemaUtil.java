@@ -172,7 +172,17 @@ public final class JsonFormsSchemaUtil {
         return buildSchema(settingsClass, widgetTree, context, mapper);
     }
 
-    private static ObjectNode buildSchema(final Type settingsClass, final Tree<WidgetGroup> widgetTree,
+    /**
+     * Build a schema from a provided class together with an already computed widget tree. The settings type of the
+     * widget tree is ignored.
+     *
+     * @param settingsClass the class to build the schema for
+     * @param widgetTree the widget tree to take annotations from
+     * @param context the creation context with access to the input ports
+     * @param mapper the object mapper to be used
+     * @return a schema representation of settingsClass
+     */
+    public static ObjectNode buildSchema(final Type settingsClass, final Tree<WidgetGroup> widgetTree,
         final NodeParametersInput context, final ObjectMapper mapper) {
         final var builder = new SchemaGeneratorConfigBuilder(mapper, VERSION, new OptionPreset(//
             Option.ADDITIONAL_FIXED_TYPES, //

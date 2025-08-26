@@ -44,60 +44,52 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 19, 2025 (Paul Bärnreuther): created
+ *   Aug 29, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
+package org.knime.core.webui.node.dialog.defaultdialog.util;
 
-import java.util.Optional;
+import java.io.IOException;
+import java.io.StringWriter;
 
+import org.knime.core.node.NodeLogger;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
 
-final class LocationUpdateVertex extends UpdateVertex {
+/**
+ * Utilities for manual handling of jackson serializers and deserializers.
+ *
+ * @author Paul Bärnreuther
+ */
+public class JacksonSerializationUtil {
 
-    private final Location m_location;
+    private JacksonSerializationUtil() {
+        // utility class
+    }
 
-    private final String m_providedOption;
-
-    private JsonSerializer<Object> m_customSerializer;
+    static final NodeLogger LOGGER = NodeLogger.getLogger(JacksonSerializationUtil.class);
 
     /**
-     * Use this constructor to update the value at the given location.
+     * Manually serialize a value using the given serializer.
      *
-     * @param customSerializer used in case serialization depends on field context. Can be null.
+     * @param value to serialize
+     * @param serializer to use
+     * @return the serialized value as a JsonNode
      */
-    LocationUpdateVertex(final Location location, final ResolvedStateProvider resolvedStateProvider,
-        final JsonSerializer<Object> customSerializer) {
-        this(location, null, resolvedStateProvider);
-        m_customSerializer = customSerializer;
-    }
-
-    /**
-     * Use this constructor to update a ui state on a widget operating on the given location.
-     */
-    LocationUpdateVertex(final Location location, final String providedOption,
-        final ResolvedStateProvider resolvedStateProvider) {
-        super(resolvedStateProvider);
-        m_location = location;
-        m_providedOption = providedOption;
-    }
-
-    /**
-     * @return the location at which the update takes place.
-     */
-    Location getLocation() {
-        return m_location;
-    }
-
-    /**
-     * @return the identifier of the option that is provided by this update or empty if no option but the value is
-     *         updated.
-     */
-    Optional<String> getProvidedOption() {
-        return Optional.ofNullable(m_providedOption);
-    }
-
-    Optional<JsonSerializer<Object>> getCustomSerializer() {
-        return Optional.ofNullable(m_customSerializer);
+    public static JsonNode serialize(final Object value, final JsonSerializer<Object> serializer) {
+        final var mapper = JsonFormsDataUtil.getMapper();
+        final var stringWriter = new StringWriter();
+        try (var jsonGenerator = mapper.getFactory().createGenerator(stringWriter);) {
+            final var serializerProvider = mapper.getSerializerProviderInstance();
+            serializer.serialize(value, jsonGenerator, serializerProvider);
+            jsonGenerator.flush();
+            return mapper.readTree(stringWriter.toString());
+        } catch (IOException ex) {
+            final var message = String.format("Error during manual serialization of %s", value);
+            LOGGER.error(message, ex);
+            throw new IllegalStateException(message, ex);
+        }
     }
 
 }
