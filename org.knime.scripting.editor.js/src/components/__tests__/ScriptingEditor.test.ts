@@ -6,8 +6,8 @@ import { useElementBounding } from "@vueuse/core";
 import { SplitPanel } from "@knime/components";
 
 import { defaultPortConfig } from "@/__mocks__/scripting-service";
+import { getScriptingService } from "@/init";
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
-import { getScriptingService } from "@/scripting-service";
 import {
   DEFAULT_INITIAL_SETTINGS,
   registerSettingsMock,

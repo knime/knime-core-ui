@@ -4,12 +4,12 @@ import { computedAsync } from "@vueuse/core";
 
 import CompactTabBar from "@/components/CompactTabBar.vue";
 import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
+import { getScriptingService } from "@/init";
 import {
   type PortConfig,
   type PortConfigs,
   getInitialDataService,
 } from "@/initial-data-service";
-import { getScriptingService } from "@/scripting-service";
 
 import InputPortTables from "./InputPortTables.vue";
 
