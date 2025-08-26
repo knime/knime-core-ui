@@ -61,6 +61,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.WidgetTreeToLayoutTree.IntermediateState.LeafState;
@@ -137,16 +138,23 @@ final class WidgetTreeToLayoutTree {
      * This method is also responsible for attaching the layout annotation to the state if it is present.
      */
     private static IntermediateState processTreeNode(final TreeNode<WidgetGroup> treeNode) {
-        final var state =
-            (treeNode instanceof Tree<WidgetGroup> tree && !MultiFileSelection.class.equals(tree.getRawClass())
-                && !DBTableSelection.class.equals(tree.getRawClass())) ? processGroup(tree)
-                    : new LeafState.TreeNodeState(treeNode);
+        final var state = (treeNode instanceof Tree<WidgetGroup> tree && !isLeafWidgetGroup(tree.getRawClass()))
+            ? processGroup(tree) : new LeafState.TreeNodeState(treeNode);
         final var layoutAnnotation = treeNode.getAnnotation(Layout.class);
         return layoutAnnotation.map(Layout::value).<IntermediateState> map(state::atLayout).orElse(state);
     }
 
+    /**
+     * I.e. the frontend has a dedicated renderer for these widget groups and they should not be traversed during ui
+     * schema generation
+     */
+    private static boolean isLeafWidgetGroup(final Class<?> rawClass) {
+        return MultiFileSelection.class.equals(rawClass) || DBTableSelection.class.equals(rawClass)
+            || rawClass.isInterface();
+    }
+
     private static final List<Class<? extends Annotation>> VISIBLE_WITHOUT_WIDGET_ANNOTATION =
-        List.of(TextMessage.class, DynamicSettingsWidget.class);
+        List.of(TextMessage.class, DynamicSettingsWidget.class, DynamicParameters.class);
 
     private static boolean isHidden(final TreeNode<WidgetGroup> node) {
         if (node instanceof Tree<WidgetGroup>) {

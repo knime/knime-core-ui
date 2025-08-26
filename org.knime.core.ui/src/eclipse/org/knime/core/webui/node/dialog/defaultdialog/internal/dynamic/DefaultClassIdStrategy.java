@@ -44,60 +44,51 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 19, 2025 (Paul Bärnreuther): created
+ *   Aug 29, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic;
 
-import java.util.Optional;
+import java.util.Collection;
 
-import com.fasterxml.jackson.databind.JsonSerializer;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicNodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.OriginalClassName;
 
-final class LocationUpdateVertex extends UpdateVertex {
+/**
+ * Identifies classes by their name or, if present the value of a {@link OriginalClassName} annotation.
+ *
+ * @param <T> the type of DynamicNodeParameters
+ * @author Paul Bärnreuther
+ */
+public final class DefaultClassIdStrategy<T extends DynamicNodeParameters> implements ClassIdStrategy<T> {
 
-    private final Location m_location;
-
-    private final String m_providedOption;
-
-    private JsonSerializer<Object> m_customSerializer;
+    private final Collection<Class<? extends T>> m_classes;
 
     /**
-     * Use this constructor to update the value at the given location.
+     * Defines a id strategy for a given set of classes.
      *
-     * @param customSerializer used in case serialization depends on field context. Can be null.
+     * @param classes the classes to register
      */
-    LocationUpdateVertex(final Location location, final ResolvedStateProvider resolvedStateProvider,
-        final JsonSerializer<Object> customSerializer) {
-        this(location, null, resolvedStateProvider);
-        m_customSerializer = customSerializer;
+    public DefaultClassIdStrategy(final Collection<Class<? extends T>> classes) {
+        m_classes = classes;
     }
 
-    /**
-     * Use this constructor to update a ui state on a widget operating on the given location.
-     */
-    LocationUpdateVertex(final Location location, final String providedOption,
-        final ResolvedStateProvider resolvedStateProvider) {
-        super(resolvedStateProvider);
-        m_location = location;
-        m_providedOption = providedOption;
+    @Override
+    public final Class<? extends T> fromIdentifier(final String classIdentifier) {
+        for (Class<? extends T> clazz : m_classes) {
+            if (toIdentifier(clazz).equals(classIdentifier)) {
+                return clazz;
+            }
+        }
+        throw new IllegalArgumentException("No class registered for identifier '" + classIdentifier + "'");
     }
 
-    /**
-     * @return the location at which the update takes place.
-     */
-    Location getLocation() {
-        return m_location;
-    }
-
-    /**
-     * @return the identifier of the option that is provided by this update or empty if no option but the value is
-     *         updated.
-     */
-    Optional<String> getProvidedOption() {
-        return Optional.ofNullable(m_providedOption);
-    }
-
-    Optional<JsonSerializer<Object>> getCustomSerializer() {
-        return Optional.ofNullable(m_customSerializer);
+    @Override
+    public String toIdentifier(final Class<?> clazz) {
+        final var annotation = clazz.getAnnotation(OriginalClassName.class);
+        if (annotation != null) {
+            return annotation.value();
+        }
+        return clazz.getName();
     }
 
 }

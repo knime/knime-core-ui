@@ -55,6 +55,8 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
+import org.knime.core.node.NodeLogger;
+import org.knime.core.webui.node.dialog.defaultdialog.util.JacksonSerializationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler.TriggerResult;
@@ -67,6 +69,8 @@ import org.knime.node.parameters.WidgetGroup;
  * @author Paul Bärnreuther
  */
 public final class UpdateResultsUtil {
+
+    static final NodeLogger LOGGER = NodeLogger.getLogger(UpdateResultsUtil.class);
 
     private UpdateResultsUtil() {
         // Utility
@@ -189,8 +193,16 @@ public final class UpdateResultsUtil {
 
     private static <I> List<IndexedValue<I>> serializeValues(final List<IndexedValue<I>> values,
         final UnaryOperator<Object> serialize) {
-        return values.stream().map(value -> new IndexedValue<I>(value.indices(), serialize.apply(value.value())))
-            .toList();
+        return values.stream().map(value -> serializeValue(serialize, value)).toList();
+    }
+
+    private static <I> IndexedValue<I> serializeValue(final UnaryOperator<Object> serialize,
+        final IndexedValue<I> value) {
+        if (value.specialSerializer() != null) {
+            final var serializedValue = JacksonSerializationUtil.serialize(value, value.specialSerializer());
+            return new IndexedValue<>(value.indices(), serializedValue);
+        }
+        return new IndexedValue<I>(value.indices(), serialize.apply(value.value()));
     }
 
     /**

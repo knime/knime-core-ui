@@ -165,7 +165,7 @@ public abstract class TreeFactory<S> {
 
     /**
      * @param rootClass implementing {@link WidgetGroup}.
-     * @param settingsType "view" or "model" or null for element trees of array widgets
+     * @param settingsType "view" or "model" or null for element trees of array or dynamic widgets
      * @return the full tree
      */
     public Tree<S> createTree(final Class<? extends S> rootClass, final SettingsType settingsType) {

@@ -63,6 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUt
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.NullNode;
@@ -88,6 +89,7 @@ public final class RendererToJsonFormsUtil {
         final var mapper = new ObjectMapper();
         mapper.registerModule(new Jdk8Module());
         mapper.setSerializationInclusion(JsonInclude.Include.NON_ABSENT);
+        mapper.enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY); // For making snapshots stable
         return mapper;
     }
 

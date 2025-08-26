@@ -49,6 +49,7 @@
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
 import static org.knime.core.webui.node.dialog.configmapping.NodeSettingsAtPathUtil.hasPath;
+import static org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil.createInstance;
 
 import java.util.Arrays;
 import java.util.List;
@@ -59,6 +60,7 @@ import java.util.stream.Stream;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NewSettingsMissingMatcher;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
@@ -120,6 +122,22 @@ public final class SettingsLoaderFactory extends PersistenceFactory<ParametersLo
     protected ParametersLoader getForTree(final Tree<Persistable> tree,
         final Function<TreeNode<Persistable>, ParametersLoader> getLoader) {
         return settings -> {
+            if (tree.isDynamic()) {
+                final var classId = settings.getString("@class", "");
+                if (classId == null) {
+                    return null;
+                }
+                final var dynamicParametersProvider = createInstance(
+                    tree.getAnnotation(DynamicParameters.class).orElseThrow(IllegalStateException::new).value());
+                final var parametersClass =
+                    dynamicParametersProvider.getClassIdStrategy().fromIdentifierInternal(classId);
+                if (parametersClass == null) {
+                    throw new InvalidSettingsException("Could not find class '" + classId + "' for dynamic settings.");
+                }
+                final var loader = SettingsLoaderFactory.createSettingsLoader(parametersClass);
+                return loader.load(settings);
+
+            }
             final var loaded = CreateDefaultsUtil.createDefaultSettings(tree);
             for (var child : tree.getChildren()) {
                 final var loadedChildValue = getLoader.apply(child).load(settings);

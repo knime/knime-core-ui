@@ -58,6 +58,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.persistence.Persistable;
 
@@ -194,6 +195,13 @@ public final class Tree<S> extends TreeNode<S> {
     @SuppressWarnings("unchecked")
     public <T extends Annotation> Optional<T> getTypeAnnotation(final Class<T> annotationClass) {
         return Optional.ofNullable((T)this.m_treeClassAnnotations.get(annotationClass));
+    }
+
+    /**
+     * Whether the contents of this tree are dynamically loaded on runtime.
+     */
+    public boolean isDynamic() {
+        return getAnnotation(DynamicParameters.class).isPresent();
     }
 
 }

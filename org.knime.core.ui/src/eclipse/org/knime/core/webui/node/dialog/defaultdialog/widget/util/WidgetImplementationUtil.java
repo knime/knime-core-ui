@@ -60,6 +60,7 @@ import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
@@ -172,6 +173,7 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(WidgetInternal.class), //
         new WidgetAnnotation(Advanced.class), //
         new WidgetAnnotation(DynamicSettingsWidget.class), //
+        new WidgetAnnotation(DynamicParameters.class), //
         new WidgetAnnotation(OverwriteDialogTitleInternal.class), //
         new WidgetAnnotation(List.of(Enum.class), RadioButtonsWidget.class), //
         new WidgetAnnotation(List.of(Enum.class), ValueSwitchWidget.class), //

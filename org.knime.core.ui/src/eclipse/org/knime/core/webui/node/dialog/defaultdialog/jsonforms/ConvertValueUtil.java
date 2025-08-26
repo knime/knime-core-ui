@@ -48,14 +48,19 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.Optional;
 
+import org.knime.core.node.NodeLogger;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyHandler;
 import org.knime.node.parameters.NodeParametersInput;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -65,6 +70,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Paul Bärnreuther
  */
 public final class ConvertValueUtil {
+    static final NodeLogger LOGGER = NodeLogger.getLogger(ConvertValueUtil.class);
 
     private ConvertValueUtil() {
         // Utility
@@ -80,17 +86,33 @@ public final class ConvertValueUtil {
     public static Object convertDependencies(final Object objectSettings, final DependencyHandler<?> handler,
         final NodeParametersInput context) {
         final var settingsType = GenericTypeFinderUtil.getFirstGenericType(handler.getClass(), DependencyHandler.class);
-        return convertValue(objectSettings, settingsType, context);
+        return convertValue(objectSettings, settingsType, Optional.empty(), context);
     }
 
     /**
      * @param objectSettings
      * @param settingsType
+     * @param specialDeserializer
      * @param context
      * @return an object of the given settings type
      */
+    @SuppressWarnings("unchecked")
     public static <T> T convertValue(final Object objectSettings, final Type settingsType,
-        final NodeParametersInput context) {
+        final Optional<JsonDeserializer<?>> specialDeserializer, final NodeParametersInput context) {
+        if (specialDeserializer.isPresent()) {
+            final var mapper = JsonFormsDataUtil.getMapper();
+            try {
+                final var jsonString = mapper.writeValueAsString(objectSettings);
+                try (JsonParser parser = mapper.getFactory().createParser(jsonString)) {
+                    parser.nextToken();
+                    final var ctx = mapper.getDeserializationContext();
+                    return (T)specialDeserializer.get().deserialize(parser, ctx);
+                }
+            } catch (IOException ex) {
+                LOGGER.error("Error during manual deserialization of dependency", ex);
+            }
+        }
+
         PasswordHolder.setCredentialsProvider(
             context == null ? null : ((NodeParametersInputImpl)context).getCredentialsProvider().orElse(null));
         final var mapper = JsonFormsDataUtil.getMapper();

@@ -77,6 +77,9 @@ import org.knime.core.node.workflow.VariableType.IntType;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DefaultClassIdStrategy;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
@@ -134,8 +137,7 @@ public class UpdatesUtilTest {
         return buildUpdates(settings, createDefaultNodeSettingsContext());
     }
 
-    static ObjectNode buildUpdates(final Map<SettingsType, WidgetGroup> settings,
-        final NodeParametersInput context) {
+    static ObjectNode buildUpdates(final Map<SettingsType, WidgetGroup> settings, final NodeParametersInput context) {
         final var objectNode = new ObjectMapper().createObjectNode();
         final Map<SettingsType, Class<? extends WidgetGroup>> settingsClasses =
             MapValuesUtil.mapValues(settings, WidgetGroup::getClass);
@@ -253,8 +255,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public String computeState(final NodeParametersInput context)
-                    throws StateComputationFailureException {
+                public String computeState(final NodeParametersInput context) throws StateComputationFailureException {
                     return null;
                 }
             }
@@ -1130,6 +1131,55 @@ public class UpdatesUtilTest {
                 .contains("My dynamic checkbox");
             assertThatJson(response).inPath("$.initialUpdates[0].values[0].value.uiSchema").isString()
                 .contains("checkbox");
+        }
+
+        interface TestDynamicParams extends DynamicParameters.DynamicNodeParameters {
+        }
+
+        static class TestDynamicImpl implements TestDynamicParams {
+            @Widget(title = "Test Field", description = "A test field for dynamic parameters")
+            public String testField = "test value";
+
+            @Widget(title = "Test Number", description = "A test number field")
+            public int testNumber = 42;
+        }
+
+        @Test
+        void testDynamicInterfaceParametersUpdate() {
+
+            class TestSettings implements NodeParameters {
+
+                static final class MyDynamicProvider
+                    implements DynamicParameters.DynamicParametersProvider<TestDynamicParams> {
+
+                    @Override
+                    public void init(final StateProviderInitializer initializer) {
+                        initializer.computeAfterOpenDialog();
+                    }
+
+                    @Override
+                    public ClassIdStrategy<TestDynamicParams> getClassIdStrategy() {
+                        return new DefaultClassIdStrategy<>(List.of(TestDynamicImpl.class));
+                    }
+
+                    @Override
+                    public TestDynamicParams computeParameters(final NodeParametersInput parametersInput)
+                        throws StateComputationFailureException {
+                        return new TestDynamicImpl();
+                    }
+                }
+
+                @DynamicParameters(MyDynamicProvider.class)
+                TestDynamicParams m_dynamicParameters;
+            }
+
+            final var settings = new TestSettings();
+            final var response = buildUpdates(settings);
+
+            assertThatJson(response).inPath("$.globalUpdates").isArray().hasSize(1);
+            assertThatJson(response).inPath("$.globalUpdates[0].trigger.id").isString().isEqualTo("after-open-dialog");
+            assertThatJson(response).inPath("$.globalUpdates[0].triggerInitially").isBoolean().isTrue();
+            assertThatJson(response).inPath("$.globalUpdates[0].dependencies").isArray().hasSize(0);
         }
 
     }

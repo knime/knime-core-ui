@@ -53,6 +53,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeFactory;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.migration.Migrate;
@@ -69,7 +70,7 @@ import org.knime.node.parameters.persistence.Persistor;
 public final class PersistTreeFactory extends TreeFactory<Persistable> {
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_TREE_ANNOTATIONS =
-        List.of(Persist.class, Migrate.class, Persistor.class, Migration.class);
+        List.of(Persist.class, Migrate.class, Persistor.class, Migration.class, DynamicParameters.class);
 
     /**
      * Peristors and backwards compatible loaders on classes are interpreted differently than the same annotation on a

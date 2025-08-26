@@ -44,60 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 19, 2025 (Paul Bärnreuther): created
+ *   Aug 27, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic;
 
-import java.util.Optional;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import com.fasterxml.jackson.databind.JsonSerializer;
+/**
+ * The provided value of the given state provider. This will update the value of the annotated field in case a non-null
+ * value is provided and it will define the next dialog specification that is to be used.
+ *
+ * @author Paul Bärnreuther
+ * @param <T> the type of data that is provided by the state provider
+ */
+public class DataAndDialog<T> {
 
-final class LocationUpdateVertex extends UpdateVertex {
+    @JsonProperty("data")
+    T m_data;
 
-    private final Location m_location;
+    @JsonProperty("schema")
+    String m_schema;
 
-    private final String m_providedOption;
-
-    private JsonSerializer<Object> m_customSerializer;
+    @JsonProperty("uiSchema")
+    String m_uiSchema;
 
     /**
-     * Use this constructor to update the value at the given location.
+     * Creates a new instance of {@link DataAndDialog}.
      *
-     * @param customSerializer used in case serialization depends on field context. Can be null.
+     * @param data the data to be used in the dialog. Use null to prevent an update
+     * @param schema the JSON schema to be used in the dialog.
+     * @param uiSchema the JSON UI schema to be used in the dialog.
      */
-    LocationUpdateVertex(final Location location, final ResolvedStateProvider resolvedStateProvider,
-        final JsonSerializer<Object> customSerializer) {
-        this(location, null, resolvedStateProvider);
-        m_customSerializer = customSerializer;
+    DataAndDialog(final T data, final String schema, final String uiSchema) {
+        m_data = data;
+        m_schema = schema;
+        m_uiSchema = uiSchema;
     }
 
     /**
-     * Use this constructor to update a ui state on a widget operating on the given location.
+     * Public for tests
+     *
+     * @return the data
      */
-    LocationUpdateVertex(final Location location, final String providedOption,
-        final ResolvedStateProvider resolvedStateProvider) {
-        super(resolvedStateProvider);
-        m_location = location;
-        m_providedOption = providedOption;
-    }
-
-    /**
-     * @return the location at which the update takes place.
-     */
-    Location getLocation() {
-        return m_location;
-    }
-
-    /**
-     * @return the identifier of the option that is provided by this update or empty if no option but the value is
-     *         updated.
-     */
-    Optional<String> getProvidedOption() {
-        return Optional.ofNullable(m_providedOption);
-    }
-
-    Optional<JsonSerializer<Object>> getCustomSerializer() {
-        return Optional.ofNullable(m_customSerializer);
+    public T getData() {
+        return m_data;
     }
 
 }

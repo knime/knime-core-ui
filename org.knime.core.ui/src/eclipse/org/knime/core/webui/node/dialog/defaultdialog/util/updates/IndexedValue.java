@@ -53,6 +53,9 @@ import java.util.List;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.DefaultNodeDialogDataServiceImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonSerializer;
+
 /**
  * To reference values (either within an {@link UpdateResult} or values of dependencies within
  * {@link DefaultNodeDialogDataServiceImpl#update2}), we need to account for locations nested in array layouts. We
@@ -62,7 +65,19 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUti
  * @param <I> the type of the indices. Either Integer for indices or String for indexIds.
  * @param indices defining the location of the value relative to the location of the trigger
  * @param value
+ * @param specialSerializer optional serializer to use for the value (if null the default serializer for the value is
+ *            used)
  */
-public record IndexedValue<I>(List<I> indices, Object value) {
+public record IndexedValue<I>(List<I> indices, Object value, @JsonIgnore JsonSerializer<Object> specialSerializer) {
+
+    /**
+     * Constructor without special serializer. This is the common case.
+     *
+     * @param indices defining the location of the value relative to the location of the trigger
+     * @param value
+     */
+    public IndexedValue(final List<I> indices, final Object value) {
+        this(indices, value, null);
+    }
 
 }

@@ -58,6 +58,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelectionWidget;
@@ -122,7 +123,8 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         ValueProvider.class, //
         Modification.class, //
         Modification.WidgetReference.class, //
-        DBTableAdapterProvider.class //
+        DBTableAdapterProvider.class, //
+        DynamicParameters.class //
     );
 
     private static final Collection<ClassAnnotationSpec> POSSIBLE_TREE_CLASS_ANNOTATIONS = List.of( //

@@ -1,0 +1,170 @@
+/*
+ * ------------------------------------------------------------------------
+ *
+ *  Copyright by KNIME AG, Zurich, Switzerland
+ *  Website: http://www.knime.com; Email: contact@knime.com
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License, Version 3, as
+ *  published by the Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful, but
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, see <http://www.gnu.org/licenses>.
+ *
+ *  Additional permission under GNU GPL version 3 section 7:
+ *
+ *  KNIME interoperates with ECLIPSE solely via ECLIPSE's plug-in APIs.
+ *  Hence, KNIME and ECLIPSE are both independent programs and are not
+ *  derived from each other. Should, however, the interpretation of the
+ *  GNU GPL Version 3 ("License") under any applicable laws result in
+ *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
+ *  you the additional permission to use and propagate KNIME together with
+ *  ECLIPSE with only the license terms in place for ECLIPSE applying to
+ *  ECLIPSE and the GNU GPL Version 3 applying for KNIME, provided the
+ *  license terms of ECLIPSE themselves allow for the respective use and
+ *  propagation of ECLIPSE together with KNIME.
+ *
+ *  Additional permission relating to nodes for KNIME that extend the Node
+ *  Extension (and in particular that are based on subclasses of NodeModel,
+ *  NodeDialog, and NodeView) and that only interoperate with KNIME through
+ *  standard APIs ("Nodes"):
+ *  Nodes are deemed to be separate and independent programs and to not be
+ *  covered works.  Notwithstanding anything to the contrary in the
+ *  License, the License does not apply to Nodes, you are not required to
+ *  license Nodes under the License, and you are granted a license to
+ *  prepare and propagate Nodes, in each case even if such Nodes are
+ *  propagated with or for interoperation with KNIME.  The owner of a Node
+ *  may freely choose the license terms applicable to such Node, including
+ *  when such Node is propagated with or for interoperation with KNIME.
+ * ---------------------------------------------------------------------
+ *
+ * History
+ *   18 Mar 2025 (Robin Gerling): created
+ */
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic;
+
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil.buildSchema;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil.buildUISchema;
+import static org.knime.core.webui.node.dialog.defaultdialog.util.JacksonSerializationUtil.serialize;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import java.util.List;
+
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.StateProvider;
+
+import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+/**
+ * Put this annotation on a field of an interface/abstract class type extending {@link DynamicNodeParameters} in order
+ * to provide concrete implementations of that type within the dialog.
+ *
+ * This is mandatory, as there will be a runtime exception if such fields are not annotated with this annotation.
+ *
+ * @author Paul Bärnreuther
+ */
+@Retention(RUNTIME)
+@Target(FIELD)
+@JacksonAnnotationsInside
+@JsonDeserialize(using = DynamicNodeParametersDeserializer.class)
+@JsonSerialize(using = DynamicNodeParametersSerializer.class)
+public @interface DynamicParameters {
+
+    /**
+     * The class of the {@link StateProvider} that provides the dialog.
+     *
+     * @return the class of the {@link StateProvider} that provides the dialog
+     */
+    Class<? extends DynamicParametersProvider<?>> value();
+
+    /**
+     * Value of the {@link DynamicParameters} annotation. Use this to define a dynamic part of a dialog by providing the
+     * {@link NodeParameters} of that part as state.
+     *
+     * @param <T> the common interface/abstract class used for these dynamic settings. I.e. this should be the type of
+     *            the annotated field.
+     */
+    interface DynamicParametersProvider<T extends DynamicNodeParameters> extends StateProvider<DataAndDialog<Object>> {
+
+        /**
+         * Provides the strategy for handling class identification. This method returns an instance that can map
+         * between class identifiers and actual classes, supporting backwards compatibility and custom naming.
+         *
+         * @return the class identification strategy for this provider
+         */
+        ClassIdStrategy<T> getClassIdStrategy();
+
+        /**
+         * @noimplement this default-implementation should not be overwritten.
+         */
+        @Override
+        default DataAndDialog<Object> computeState(final NodeParametersInput parametersInput)
+            throws StateComputationFailureException {
+            final var data = computeParameters(parametersInput);
+            final var dataClass = data.getClass();
+            final var dataMapper = JsonFormsDataUtil.getMapper();
+            final var widgetTree = new WidgetTreeFactory().createTree(dataClass);
+
+            final var serializedData = serialize(data, new DynamicNodeParametersSerializer(this));
+            final var schema = buildSchema(dataClass, widgetTree, parametersInput, dataMapper);
+            final var uiSchema = buildUISchema(List.of(widgetTree), parametersInput);
+
+            return new DataAndDialog<>(//
+                serializedData, //
+                schema.toString(), //
+                uiSchema.toString()//
+            );
+
+        }
+
+        /**
+         * Compute method taking value suppliers provided by the {@link #init} method and returns the to be used
+         * parameters.
+         *
+         * Note that it might be useful to self-reference the current field using a value reference in order to preserve
+         * state from one dynamic parameters implementation to the next.
+         *
+         * @param parametersInput the current input of parameter creation.
+         * @return the next parameters as they should be updated in the dialog.
+         * @throws StateComputationFailureException if this computation should be cancelled for some reason.
+         */
+        T computeParameters(NodeParametersInput parametersInput) throws StateComputationFailureException;
+
+    }
+
+    /**
+     * Extend this interface and use the sub-interface as field in {@link NodeParameters} together with a
+     * {@link DynamicParameters} annotation for non-concrete dynamic parts of dialogs.
+     */
+    interface DynamicNodeParameters extends NodeParameters {
+
+    }
+
+    /**
+     * Use this annotation on implementations of {@link DynamicNodeParameters} in order to maintain
+     * backwards-compatibility when moving or renaming the class. I.e. when no such annotation is set on a class, the
+     * class name is used when persisting and restoring the settings and when it is set, the value of the annotation is
+     * used instead.
+     */
+    @Retention(RUNTIME)
+    @Target(TYPE)
+    @interface OriginalClassName {
+        String value();
+    }
+
+}

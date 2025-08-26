@@ -51,14 +51,16 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 import java.util.function.Function;
 
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
-import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.persistence.ParametersSaver;
+import org.knime.node.parameters.persistence.Persistable;
 
 /**
  *
@@ -84,8 +86,7 @@ public final class SettingsSaverFactory extends PersistenceFactory<ParametersSav
      * @param nodeSettings to save to
      * @param <S> the type of the to be saved settings.
      */
-    public static <S extends Persistable> void saveSettings(final S settings,
-        final NodeSettingsWO nodeSettings) {
+    public static <S extends Persistable> void saveSettings(final S settings, final NodeSettingsWO nodeSettings) {
         createSettingsSaver((Class<S>)settings.getClass()).save(settings, nodeSettings);
     }
 
@@ -120,6 +121,16 @@ public final class SettingsSaverFactory extends PersistenceFactory<ParametersSav
     protected ParametersSaver getForTree(final Tree<Persistable> tree,
         final Function<TreeNode<Persistable>, ParametersSaver> childProperty) {
         return (obj, settings) -> {
+            if (tree.isDynamic()) {
+                if (obj == null) {
+                    settings.addString("@class", null);
+                } else {
+                    final var dynamicParametersProvider = InstantiationUtil
+                        .createInstance(tree.getAnnotation(DynamicParameters.class).orElseThrow().value());
+                    settings.addString("@class", dynamicParametersProvider.getClassIdStrategy().toIdentifier(obj.getClass()));
+                    SettingsSaverFactory.saveSettings((Persistable)obj, settings);
+                }
+            }
             for (final var child : tree.getChildren()) {
                 final var childValue = child.getFromParentValue(obj);
                 childProperty.apply(child).save(childValue, settings);

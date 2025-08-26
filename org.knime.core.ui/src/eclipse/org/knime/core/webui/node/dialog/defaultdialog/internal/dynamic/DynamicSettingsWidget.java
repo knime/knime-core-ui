@@ -59,15 +59,13 @@ import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.StateProvider;
-import org.knime.node.parameters.NodeParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Put this annotation on a Map<String, Object> field in a {@link NodeParameters} class to provide a dialog to
- * operate on that map.
+ * Put this annotation on a Map<String, Object> field in a {@link NodeParameters} class to provide a dialog to operate
+ * on that map.
  *
  * @author Robin Gerling
  */
@@ -81,39 +79,6 @@ public @interface DynamicSettingsWidget {
      * @return the class of the {@link StateProvider} that provides the dialog
      */
     Class<? extends StateProvider<? extends DataAndDialog<?>>> value();
-
-    /**
-     * The provided value of the given state provider. This will update the value of the annotated field in case a
-     * non-null value is provided and it will define the next dialog specification that is to be used.
-     *
-     * @author Paul Bärnreuther
-     * @param <T> the type of data that is provided by the state provider
-     */
-    class DataAndDialog<T> {
-
-        @JsonProperty("data")
-        T m_data;
-
-        @JsonProperty("schema")
-        String m_schema;
-
-        @JsonProperty("uiSchema")
-        String m_uiSchema;
-
-        /**
-         * Creates a new instance of {@link DataAndDialog}.
-         *
-         * @param data the data to be used in the dialog. Use null to prevent an update
-         * @param schema the JSON schema to be used in the dialog.
-         * @param uiSchema the JSON UI schema to be used in the dialog.
-         */
-        public DataAndDialog(final T data, final String schema, final String uiSchema) {
-            m_data = data;
-            m_schema = schema;
-            m_uiSchema = uiSchema;
-        }
-
-    }
 
     /**
      * Use this interface to provide a dialog for a map of settings in an imperative way.
@@ -142,8 +107,8 @@ public @interface DynamicSettingsWidget {
          * @throws StateComputationFailureException if the computation of the settings or dialog fails in an expected
          *             way
          */
-        Pair<Map<String, Object>, DialogElementRendererSpec<?>>
-            computeSettingsAndDialog(NodeParametersInput context) throws StateComputationFailureException;
+        Pair<Map<String, Object>, DialogElementRendererSpec<?>> computeSettingsAndDialog(NodeParametersInput context)
+            throws StateComputationFailureException;
 
     }
 

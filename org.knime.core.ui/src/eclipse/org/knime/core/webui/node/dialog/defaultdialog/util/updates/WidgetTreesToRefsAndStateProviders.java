@@ -61,6 +61,9 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.ClassUtils;
 import org.knime.core.data.DataType;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicNodeParametersDeserializer;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicNodeParametersSerializer;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
@@ -102,12 +105,18 @@ import org.knime.node.parameters.widget.message.TextMessage;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
+
 final class WidgetTreesToRefsAndStateProviders {
 
-    record ValueRefWrapper(Class<? extends ParameterReference> valueRef, Location fieldLocation) {
+    record ValueRefWrapper(Class<? extends ParameterReference> valueRef, Location fieldLocation,
+        JsonDeserializer<?> specialDeserializer) {
     }
 
-    record ValueProviderWrapper(Class<? extends StateProvider> stateProviderClass, Location fieldLocation) {
+    record ValueProviderWrapper(Class<? extends StateProvider> stateProviderClass, Location fieldLocation,
+        JsonSerializer<Object> specialSerializer) {
+
     }
 
     record LocationUiStateProviderWrapper(Class<? extends StateProvider> stateProviderClass, Location fieldLocation,
@@ -385,6 +394,12 @@ final class WidgetTreesToRefsAndStateProviders {
                 DynamicSettingsWidget.class, //
                 DynamicSettingsWidget::value, //
                 null //
+            ), //
+            new UiStateProviderAnnotationSpec<>( //
+                UiSchema.TAG_DYNAMIC_SETTINGS, //
+                DynamicParameters.class, //
+                DynamicParameters::value, //
+                null //
             ));
 
     static final List<UiStateProviderSpec> uiStateProviderSpecs = Stream.of( //
@@ -415,26 +430,38 @@ final class WidgetTreesToRefsAndStateProviders {
         final var pathsWithSettingsKey = Location.fromTreeNode(node);
         final var type = node.isOptional() ? Optional.class : node.getRawClass();
         node.getAnnotation(ValueReference.class)
-            .ifPresent(valueReference -> addValueRef(valueReference.value(), type, pathsWithSettingsKey));
+            .ifPresent(valueReference -> addValueRef(valueReference.value(), type, pathsWithSettingsKey, node));
         node.getAnnotation(ValueProvider.class)
-            .ifPresent(valueProvider -> addValueProvider(valueProvider.value(), type, pathsWithSettingsKey));
+            .ifPresent(valueProvider -> addValueProvider(valueProvider.value(), type, pathsWithSettingsKey, node));
     }
 
     private void addValueRef(final Class<? extends ParameterReference> valueRef, final Class<?> type,
-        final Location pathWithSettingsKey) {
+        final Location pathWithSettingsKey, final TreeNode<WidgetGroup> node) {
         if (!valueRef.equals(ParameterReference.class)) {
             validateAgainstType(type, valueRef, ParameterReference.class,
                 (field, annotationValue) -> annotationValue.isAssignableFrom(field));
-            m_valueRefs.add(new ValueRefWrapper(valueRef, pathWithSettingsKey));
+            DynamicNodeParametersDeserializer specialDeserializer = null;
+            if (node instanceof Tree<WidgetGroup> tree && tree.isDynamic()) {
+                specialDeserializer = new DynamicNodeParametersDeserializer();
+                specialDeserializer.setDynamicParametersProviderClass(
+                    node.getAnnotation(DynamicParameters.class).orElseThrow().value());
+
+            }
+            m_valueRefs.add(new ValueRefWrapper(valueRef, pathWithSettingsKey, specialDeserializer));
         }
     }
 
     private void addValueProvider(final Class<? extends StateProvider> valueProviderClass, final Class<?> fieldType,
-        final Location pathWithSettingsKey) {
+        final Location pathWithSettingsKey, final TreeNode<WidgetGroup> node) {
         if (!valueProviderClass.equals(StateProvider.class)) {
+            DynamicNodeParametersSerializer specialSerializer = null;
+            if (node instanceof Tree<WidgetGroup> tree && tree.isDynamic()) {
+                specialSerializer = new DynamicNodeParametersSerializer(
+                    node.getAnnotation(DynamicParameters.class).orElseThrow().value());
+            }
             validateAgainstType(fieldType, valueProviderClass, StateProvider.class,
                 (field, annotationValue) -> field.isAssignableFrom(annotationValue));
-            m_valueProviders.add(new ValueProviderWrapper(valueProviderClass, pathWithSettingsKey));
+            m_valueProviders.add(new ValueProviderWrapper(valueProviderClass, pathWithSettingsKey, specialSerializer));
         }
     }
 

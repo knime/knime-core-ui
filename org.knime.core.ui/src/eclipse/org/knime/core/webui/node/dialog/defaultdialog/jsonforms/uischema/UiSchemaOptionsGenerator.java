@@ -118,6 +118,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidg
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.Icon;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.NoopButtonUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
@@ -208,8 +209,8 @@ final class UiSchemaOptionsGenerator {
      *            {@link ChoicesProvider}s.
      * @param widgetTrees the widgetTrees to resolve dependencies from. With UIEXT-1673 This can be removed again
      */
-    UiSchemaOptionsGenerator(final TreeNode<WidgetGroup> node, final NodeParametersInput context,
-        final String scope, final Collection<Tree<WidgetGroup>> widgetTrees) {
+    UiSchemaOptionsGenerator(final TreeNode<WidgetGroup> node, final NodeParametersInput context, final String scope,
+        final Collection<Tree<WidgetGroup>> widgetTrees) {
         m_node = node;
         m_fieldType = node.getType();
         m_fieldClass = node.getRawClass();
@@ -497,6 +498,15 @@ final class UiSchemaOptionsGenerator {
         } else if (m_node.getRawClass().equals(Map.class)) {
             throw new UiSchemaGenerationException(String.format("Map fields are only supported with the %s annotation.",
                 DynamicSettingsWidget.class.getSimpleName()));
+        }
+
+        if (annotatedWidgets.contains(DynamicParameters.class)) {
+            options.put(TAG_FORMAT, Format.DYNAMIC_INPUT_TYPE);
+            getOrCreateProvidedOptions(control).add(TAG_DYNAMIC_SETTINGS);
+        } else if (m_node.getRawClass().isInterface()) {
+            throw new UiSchemaGenerationException(
+                String.format("Interface or abstract fields are only supported with the %s annotation.",
+                    DynamicParameters.class.getSimpleName()));
         }
 
         if (m_node instanceof ArrayParentNode<WidgetGroup> arrayWidgetNode) {

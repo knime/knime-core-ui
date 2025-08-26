@@ -89,8 +89,8 @@ final class InvokeTrigger<I> {
 
     /**
      *
-     * @param dependencyProvider providing the values of all {@link ParameterReference} dependencies that the triggered state
-     *            providers will depend on.
+     * @param dependencyProvider providing the values of all {@link ParameterReference} dependencies that the triggered
+     *            state providers will depend on.
      * @param context the context provided to triggered state providers
      */
     InvokeTrigger(final Function<LocationAndType, List<IndexedValue<I>>> dependencyProvider,
@@ -293,7 +293,20 @@ final class InvokeTrigger<I> {
 
         @Override
         public ValuesWithLevelOfNesting<I> accept(final UpdateVertex updateVertex) {
-            return getParentStateVertex(updateVertex, updateVertex.getResolvedStateProvider()).visit(this);
+            final var computedState =
+                getParentStateVertex(updateVertex, updateVertex.getResolvedStateProvider()).visit(this);
+            if (!(updateVertex instanceof LocationUpdateVertex)) {
+                return computedState;
+            }
+            final var customSerializerOpt = ((LocationUpdateVertex)updateVertex).getCustomSerializer();
+            if (customSerializerOpt.isPresent()) {
+                final var customSerializer = customSerializerOpt.get();
+                return new ValuesWithLevelOfNesting<>(
+                    computedState.indexedValues().stream()
+                        .map(iv -> new IndexedValue<>(iv.indices(), iv.value(), customSerializer)).toList(),
+                    computedState.levelsOfNesting());
+            }
+            return computedState;
         }
 
         private ValuesWithLevelOfNesting<I> cached(final Vertex key,

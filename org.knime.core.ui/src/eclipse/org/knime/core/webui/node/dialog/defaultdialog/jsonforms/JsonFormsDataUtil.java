@@ -143,7 +143,6 @@ public final class JsonFormsDataUtil {
                 return StringUtils.removeStart(defaultName, "m_");
             }
         });
-
         return mapper;
     }
 
@@ -157,7 +156,6 @@ public final class JsonFormsDataUtil {
 
         module.addSerializer(ZonedDateTime.class, new ZonedDateTimeSerializer());
         module.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
-
 
         return module;
     }
@@ -197,8 +195,8 @@ public final class JsonFormsDataUtil {
      * @return an instance of type <T> deserialized from the json representation.
      * @throws JsonProcessingException
      */
-    public static <T extends NodeParameters> T toDefaultNodeSettings(final JsonNode jsonFormsData,
-        final Class<T> clazz) throws JsonProcessingException {
+    public static <T extends NodeParameters> T toDefaultNodeSettings(final JsonNode jsonFormsData, final Class<T> clazz)
+        throws JsonProcessingException {
         return getMapper().treeToValue(jsonFormsData, clazz);
     }
 
@@ -249,4 +247,5 @@ public final class JsonFormsDataUtil {
             return ZonedDateTime.of(dateTime, timeZone);
         }
     }
+
 }

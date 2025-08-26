@@ -68,7 +68,12 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DefaultClassIdStrategy;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.migration.ConfigMigration;
 import org.knime.node.parameters.migration.DefaultProvider;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
@@ -222,6 +227,14 @@ class FieldBasedNodeSettingsPersistorTest {
         final var saver = createSettingsSaver(ArraySettings.class);
         var root = new NodeSettings(ROOT_KEY);
         assertThrows(NullPointerException.class, () -> saver.save(null, root));
+    }
+
+    @Test
+    void testDynamicParameterInterface() throws InvalidSettingsException {
+        testSaveLoad(new SettingsWithParametersInterface());
+        final var settingsWithNullValue = new SettingsWithParametersInterface();
+        settingsWithNullValue.m_params = null;
+        testSaveLoad(settingsWithNullValue);
     }
 
     private interface TestNodeSettings extends NodeParameters {
@@ -740,6 +753,120 @@ class FieldBasedNodeSettingsPersistorTest {
             throw new UnsupportedOperationException(
                 "This method should not be called, as the persistor does not support collections.");
         }
+    }
+
+    interface MyParameters extends DynamicParameters.DynamicNodeParameters {
+
+    }
+
+    static class MyParametersImpl implements MyParameters {
+
+        int m_foo = 42;
+    }
+
+    @DynamicParameters.OriginalClassName(MyOtherParametersImpl.ORIGINAL_CLASS_NAME)
+    static class MyOtherParametersImpl implements MyParameters {
+
+        static final String ORIGINAL_CLASS_NAME = "some.other.OriginalClassName";
+
+        String m_bar = "test";
+    }
+
+    static final class SettingsWithParametersInterface implements TestNodeSettings {
+        @DynamicParameters(MyParametersProvider.class)
+        MyParameters m_params = new MyParametersImpl();
+
+        @DynamicParameters(MyParametersProvider.class)
+        MyParameters m_otherParams = new MyOtherParametersImpl();
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void saveExpected(final NodeSettingsWO settings) {
+            final var params = settings.addNodeSettings("params");
+            if (m_params == null) {
+                params.addString("@class", null);
+            } else {
+                params.addString("@class", m_params.getClass().getName());
+                params.addInt("foo", ((MyParametersImpl)m_params).m_foo);
+            }
+
+            final var otherParams = settings.addNodeSettings("otherParams");
+            otherParams.addString("@class", MyOtherParametersImpl.ORIGINAL_CLASS_NAME);
+            otherParams.addString("bar", ((MyOtherParametersImpl)m_otherParams).m_bar);
+        }
+
+        @Override
+        public int hashCode() {
+            return java.util.Objects.hash(paramHash(m_params), paramHash(m_otherParams));
+        }
+
+        private static int paramHash(final Object p) {
+            if (p instanceof MyParametersImpl mp) {
+                return Integer.hashCode(mp.m_foo);
+            }
+            if (p instanceof MyOtherParametersImpl mo) {
+                return java.util.Objects.hashCode(mo.m_bar);
+            }
+            return 0;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof SettingsWithParametersInterface other)) {
+                return false;
+            }
+            return equalParam(m_params, other.m_params) && equalParam(m_otherParams, other.m_otherParams);
+        }
+
+        private static boolean equalParam(final Object a, final Object b) {
+            if (a == b) {
+                return true;
+            }
+            if (a == null || b == null) {
+                return false;
+            }
+            if (a.getClass() != b.getClass()) {
+                return false;
+            }
+
+            if (a instanceof MyParametersImpl pA && b instanceof MyParametersImpl pB) {
+                return pA.m_foo == pB.m_foo;
+            }
+            if (a instanceof MyOtherParametersImpl pA && b instanceof MyOtherParametersImpl pB) {
+                return java.util.Objects.equals(pA.m_bar, pB.m_bar);
+            }
+            return false;
+        }
+    }
+
+    static final class MyParametersProvider implements DynamicParameters.DynamicParametersProvider<MyParameters> {
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            throw new UnsupportedOperationException("Not used in tests");
+        }
+
+        static final List<Class<? extends MyParameters>> SUPPORTED_CLASSES =
+            List.of(MyParametersImpl.class, MyOtherParametersImpl.class);
+
+
+
+        @Override
+        public ClassIdStrategy<MyParameters> getClassIdStrategy() {
+            return new DefaultClassIdStrategy<>(SUPPORTED_CLASSES);
+        }
+
+        @Override
+        public MyParameters computeParameters(final NodeParametersInput parametersInput)
+            throws StateComputationFailureException {
+            throw new UnsupportedOperationException("Not used in tests");
+        }
+
     }
 
     @Test
