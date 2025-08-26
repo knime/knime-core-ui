@@ -44,74 +44,30 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Dec 23, 2024 (Paul Bärnreuther): created
+ *   Aug 26, 2025 (Paul Bärnreuther): created
  */
 package org.knime.node.parameters.migration;
 
-import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.util.valueformat.NumberFormatter.Persistor;
-import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.NodeParameters;
 
 /**
- * Defines how a field is migrated from a pervious version of settings.
+ * This annotation serves as an alternative to {@link Migrate} to indicate that default values should be loaded for
+ * every field that is absent in the loaded settings. This is useful when migrating from a version of the node that did
+ * not use {@link NodeParameters} where it is not evident whether a field existed since the first version of the node or
+ * was added at a later version (and therefore could be absent for a given node).
  *
- * <p>
- * A migration - in contrast to a {@link Persistor} - is needed when the structure of the settings has changed, i.e.
- * there can exist versions of the node saved with settings that characterize the state of the node to before a certain
- * point in time when the saved settings structure was changed. Defining a migration is necessary for two reasons:
- * <ul>
- * <li>To be able to still load from these old settings.</li>
- * <li>To not break flow variables set for old configs that are not saved to again.</li>
- * </ul>
- * Note that the first point could be achieved by using a {@link Persistor} but the second one cannot.
- *
- *
- * <p>
- * This is it the simple alternative to {@link Migration @Migration} and only one of the two can be used. Use
- * {@link Migration} instead for more complex migrations or for migrations on class level. Every field of this
- * annotation can be achieved by using {@link Migration @Migration} as well as described in the individual javadocs.
- * </p>
+ * I.e. setting this annotation on a {@link NodeParameters} is equivalent to setting @Migrate(loadDefaultIfAbsent=true)
+ * on every field that does not have a custom {@link Migration}.
  *
  * @author Paul Bärnreuther
  */
 @Retention(RUNTIME)
-@Target(FIELD)
-public @interface Migrate {
-
-    /**
-     * Use this annotation for a field that has been added to the settings after the initial release of the node.
-     *
-     * If it isn't present, during load, then the default value of this field from the declaring NodeParameters
-     * class is used.
-     *
-     * In case a custom {@link Persistor} is used, being present means that any of the specified config paths in
-     * {@link NodeParametersPersistor#getConfigPaths()} is present.
-     *
-     * <h5>@Migration Alternative:</h5>
-     * <p>
-     * This annotation might not suffice because
-     * <ol>
-     * <li>a different value than the field's default value is needed (in case the default changed with the
-     * migration)</li>
-     * <li>a second migration is required additionally.</li>
-     * </ol>
-     * For 1. one can use a {@link Migration @Migration} using a {@link DefaultProvider}. For 2. the same effect can be
-     * achieved by using a {@link NodeParametersMigration} including the following configs deprecation (usually as the
-     * last in the provided list):
-     *
-     * <pre>
-     * {@code
-     * new ConfigsDeprecation.builder(settings -> myDefaultValue).build()
-     * }
-     * </pre>
-     *
-     * @return true if the default value should be used if the field does not exist in the saved settings.
-     */
-    boolean loadDefaultIfAbsent() default false;
-
+@Target(TYPE)
+public @interface LoadDefaultsForAbsentFields {
 }

@@ -348,4 +348,18 @@ public sealed class TreeNode<S> permits LeafNode, Tree, ArrayParentNode {
         return String.format("%s%s at %s", isOptional() ? "Optional " : "", getRawClass().getSimpleName(), getPath());
     }
 
+    /**
+     * This method allows for retrieving annotations from the parent node of this tree node.
+     *
+     * @param <T> the type of the annotation
+     * @param annotation the annotation class
+     * @return the annotation on the parent class if present
+     */
+    public <T extends Annotation> Optional<T> getParentAnnotation(final Class<T> annotation) {
+        if (getParent() == null) {
+            return Optional.empty();
+        }
+        return getParent().getTypeAnnotation(annotation);
+    }
+
 }

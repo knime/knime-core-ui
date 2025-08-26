@@ -71,6 +71,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.migration.ConfigMigration;
 import org.knime.node.parameters.migration.DefaultProvider;
+import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.migration.NodeParametersMigration;
@@ -550,7 +551,8 @@ class FieldBasedNodeSettingsPersistorTest {
             return Objects.equals(m_foo, settings.m_foo);
         }
 
-        private static final class CustomPersistor implements NodeParametersPersistor<InnerSettingsWithCustomPersistor> {
+        private static final class CustomPersistor
+            implements NodeParametersPersistor<InnerSettingsWithCustomPersistor> {
 
             @Override
             public InnerSettingsWithCustomPersistor load(final NodeSettingsRO settings)
@@ -771,6 +773,43 @@ class FieldBasedNodeSettingsPersistorTest {
             return m_foo == settings.m_foo;
         }
 
+    }
+
+    @Test
+    void testOptionalSettingsForAllAbsentFields() throws InvalidSettingsException {
+        var optionalSettings = new OptionalSettingsForEachAbsentField();
+        optionalSettings.m_foo = 13;
+        optionalSettings.m_bar = "other string";
+        testSaveLoad(optionalSettings);
+
+        var nodeSettings = new NodeSettings(ROOT_KEY);
+        var loadedSettings = loadSettings(OptionalSettingsForEachAbsentField.class, nodeSettings);
+        assertEquals(new OptionalSettingsForEachAbsentField(), loadedSettings);
+    }
+
+    @LoadDefaultsForAbsentFields
+    private static final class OptionalSettingsForEachAbsentField
+        extends AbstractTestNodeSettings<OptionalSettingsForEachAbsentField> {
+
+        int m_foo = 42;
+
+        String m_bar = "some string";
+
+        @Override
+        public void saveExpected(final NodeSettingsWO settings) {
+            settings.addInt("foo", m_foo);
+            settings.addString("bar", m_bar);
+        }
+
+        @Override
+        protected int computeHashCode() {
+            return Objects.hash(m_foo, m_bar);
+        }
+
+        @Override
+        protected boolean equalSettings(final OptionalSettingsForEachAbsentField settings) {
+            return m_foo == settings.m_foo && m_bar.equals(settings.m_bar);
+        }
     }
 
     @Test
