@@ -8,7 +8,7 @@ import {
   MessageWriter,
 } from "vscode-languageserver-protocol";
 
-import { getScriptingService } from "../scripting-service";
+import { getScriptingService } from "../init";
 
 /**
  * This class is used to read messages from the language server. The callback

@@ -3,7 +3,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 
 import InfinityLoadingBar from "@/components/InfinityLoadingBar.vue";
 import AiDisclaimer from "@/components/ai-assistant/AiDisclaimer.vue";
-import { getScriptingService } from "@/scripting-service";
+import { getScriptingService } from "@/init";
 
 vi.mock("@/scripting-service");
 

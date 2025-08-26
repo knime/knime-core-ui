@@ -12,7 +12,7 @@ import {
   type UIExtensionService,
 } from "@knime/ui-extension-service";
 
-import { getScriptingService } from "@/scripting-service";
+import { getScriptingService } from "@/init";
 
 const baseService = ref<UIExtensionService<UIExtensionAPILayer> | null>(null);
 const extensionConfig = ref<ExtensionConfig | null>(null);
