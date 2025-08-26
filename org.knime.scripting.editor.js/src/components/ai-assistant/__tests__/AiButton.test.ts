@@ -3,10 +3,8 @@ import { flushPromises, mount } from "@vue/test-utils";
 
 import AiButton from "@/components/ai-assistant/AiButton.vue";
 import type { PaneSizes } from "@/components/utils/paneSizes";
-import {
-  type InputConnectionInfo,
-  getInitialDataService,
-} from "@/initial-data-service";
+import { getInitialDataService } from "@/init";
+import { type InputConnectionInfo } from "@/initial-data-service";
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
 
 vi.mock("@/scripting-service");

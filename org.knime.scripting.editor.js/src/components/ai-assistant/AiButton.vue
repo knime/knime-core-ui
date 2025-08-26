@@ -13,7 +13,7 @@ import { Button } from "@knime/components";
 import AiCodeIcon from "@knime/styles/img/icons/ai-general.svg";
 
 import type { PaneSizes } from "@/components/utils/paneSizes";
-import { getInitialDataService } from "@/initial-data-service";
+import { getInitialDataService } from "@/init";
 
 import AiPopupContent from "./AiPopupContent.vue";
 

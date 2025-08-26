@@ -11,7 +11,7 @@ import {
   type PaneSizes,
 } from "@/components/utils/paneSizes";
 import { displayMode } from "@/display-mode";
-import { getInitialDataService } from "@/initial-data-service";
+import { getInitialDataService } from "@/init";
 import { type GenericNodeSettings } from "@/settings-service";
 
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";

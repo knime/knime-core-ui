@@ -1,82 +1,28 @@
-import {
-  DialogService,
-  JsonDataService,
-} from "@knime/ui-extension-service";
-
-import type { InputOutputModel } from "@/components/InputOutputItem.vue";
+import { DialogService, JsonDataService } from "@knime/ui-extension-service";
 
 import { displayMode } from "./display-mode";
+import type {
+  GenericInitialData,
+  InitialDataServiceType,
+} from "./initial-data-service";
 import {
   ScriptingService,
   type ScriptingServiceType,
 } from "./scripting-service";
-import { type GenericNodeSettings, SettingsService, type SettingsServiceType } from "./settings-service";
-
-// --- TYPES ---
-
-export type PortViewConfig = {
-  label: string;
-  portViewIdx: number;
-};
-
-export type PortConfig = {
-  /**
-   * null if no node is connected to an input port
-   */
-  nodeId: string | null;
-  portIdx: number;
-  portViewConfigs: PortViewConfig[];
-  portName: string;
-};
-
-export type PortConfigs = {
-  inputPorts: PortConfig[];
-};
-
-export type ConnectionStatus =
-  /** The input is not connected */
-  | "MISSING_CONNECTION"
-  /** The input is connected, but the predecessor is not configured */
-  | "UNCONFIGURED_CONNECTION"
-  /** The input is connected and configured, but the predecessor is not executed */
-  | "UNEXECUTED_CONNECTION"
-  /** The input is connected, configured, and executed */
-  | "OK";
-
-export type InputConnectionInfo = {
-  status: ConnectionStatus;
-  isOptional: boolean;
-};
-
-export type KAIConfig = {
-  hubId: string;
-  isKaiEnabled: boolean;
-};
-
-export type GenericInitialData = {
-  inputPortConfigs: PortConfigs;
-  inputObjects: InputOutputModel[];
-  flowVariables: InputOutputModel;
-  inputConnectionInfo: InputConnectionInfo[];
-  outputObjects?: InputOutputModel[];
-  kAiConfig: KAIConfig;
-};
-
-type InitialDataAndSettings = {
-  initialData: GenericInitialData;
-  settings: GenericNodeSettings;
-};
-
-export type InitialDataServiceType = {
-  getInitialData: () => Promise<GenericInitialData>;
-};
+import {
+  type GenericNodeSettings,
+  SettingsService,
+  type SettingsServiceType,
+} from "./settings-service";
 
 // --- INSTANCES ---
 
 let scriptingService: ScriptingServiceType;
 export const getScriptingService = (): ScriptingServiceType => scriptingService;
 
-export let initialDataService: InitialDataServiceType;
+let initialDataService: InitialDataServiceType;
+export const getInitialDataService = (): InitialDataServiceType =>
+  initialDataService;
 
 let settingsService: SettingsServiceType;
 export const getSettingsService = (): SettingsServiceType => settingsService;
@@ -90,8 +36,10 @@ export const init = async () => {
 
   scriptingService = new ScriptingService(jsonDataService);
 
-  const initialDataAndSettings: InitialDataAndSettings =
-    await jsonDataService.initialData();
+  const initialDataAndSettings: {
+    initialData: GenericInitialData;
+    settings: GenericNodeSettings;
+  } = await jsonDataService.initialData();
 
   initialDataService = {
     // TODO this can now return the initial data, not a promise
