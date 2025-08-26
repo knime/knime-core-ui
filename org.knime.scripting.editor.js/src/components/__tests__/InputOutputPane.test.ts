@@ -4,7 +4,6 @@ import { flushPromises, mount } from "@vue/test-utils";
 
 import { useMainCodeEditorStore } from "@/editor";
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
-import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
 import {
   type InputOutputSelectionStore,
   useInputOutputSelectionStore,
@@ -16,19 +15,7 @@ import InputOutputItem, {
 import InputOutputPane from "../InputOutputPane.vue";
 
 vi.mock("monaco-editor");
-vi.mock("@/scripting-service");
 vi.mock("@/editor");
-vi.mock("@/initial-data-service", () => ({
-  getInitialDataService: vi.fn(() => ({
-    getInitialData: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_DATA)),
-  })),
-}));
-vi.mock("@/settings-service", () => ({
-  getSettingsService: vi.fn(() => ({
-    registerSettingsGetterForApply: vi.fn(() => Promise.resolve()),
-    getSettings: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_SETTINGS)),
-  })),
-}));
 
 describe("InputOutputPane", () => {
   afterEach(() => {

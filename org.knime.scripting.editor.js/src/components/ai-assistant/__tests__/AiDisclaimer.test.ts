@@ -5,8 +5,6 @@ import InfinityLoadingBar from "@/components/InfinityLoadingBar.vue";
 import AiDisclaimer from "@/components/ai-assistant/AiDisclaimer.vue";
 import { getScriptingService } from "@/init";
 
-vi.mock("@/scripting-service");
-
 const doMount = async () => {
   const wrapper = mount(AiDisclaimer);
   await flushPromises();

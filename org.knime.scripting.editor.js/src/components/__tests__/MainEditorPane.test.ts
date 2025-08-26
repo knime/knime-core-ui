@@ -3,11 +3,9 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { onKeyStroke } from "@vueuse/core";
 
 import { useMainCodeEditor } from "@/editor";
+import { getSettingsService } from "@/init";
 import { type GenericNodeSettings } from "@/settings-service";
-import {
-  DEFAULT_INITIAL_SETTINGS,
-  registerSettingsMock,
-} from "@/settings-service-browser-mock";
+import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
 import MainEditorPane from "../MainEditorPane.vue";
 
 vi.mock("@vueuse/core", async (importOriginal) => {
@@ -17,20 +15,11 @@ vi.mock("@vueuse/core", async (importOriginal) => {
     onKeyStroke: vi.fn(),
   };
 });
-vi.mock("@/scripting-service");
 vi.mock("@/editor");
 
-const registerSettingsGetterForApplyMock = vi.hoisted(() =>
-  vi.fn((_settingsGetter: () => GenericNodeSettings) => Promise.resolve()),
+const registerSettingsGetterForApplyMock = vi.mocked(
+  getSettingsService().registerSettingsGetterForApply,
 );
-
-vi.mock("@/settings-service", () => ({
-  getSettingsService: vi.fn(() => ({
-    getSettings: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_SETTINGS)),
-    registerSettingsGetterForApply: registerSettingsGetterForApplyMock,
-    registerSettings: vi.fn(registerSettingsMock),
-  })),
-}));
 
 const doMount = (
   props?: Partial<InstanceType<typeof MainEditorPane>["$props"]>,

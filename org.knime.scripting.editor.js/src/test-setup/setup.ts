@@ -1,6 +1,13 @@
 import { vi } from "vitest";
 import { consola } from "consola";
 
+import { initMocked } from "@/init";
+import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
+import type { GenericNodeSettings } from "@/settings-service";
+import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
+
+vi.mock("monaco-editor");
+
 window.consola = consola;
 
 vi.mock("@xterm/xterm", () => {
@@ -19,4 +26,28 @@ vi.mock("@xterm/xterm", () => {
   Terminal.prototype.unicodeSerivce = vi.fn();
 
   return { Terminal };
+});
+
+initMocked({
+  scriptingService: {
+    sendToService: vi.fn(),
+    registerEventHandler: vi.fn(),
+    connectToLanguageServer: vi.fn(),
+    isCallKnimeUiApiAvailable: vi.fn(() => Promise.resolve(true)),
+    isKaiEnabled: vi.fn(() => Promise.resolve(true)),
+    isLoggedIntoHub: vi.fn(() => Promise.resolve(true)),
+    getAiDisclaimer: vi.fn(() => Promise.resolve("AI Disclaimer")),
+    getAiUsage: vi.fn(() => Promise.resolve(null)),
+  },
+  initialDataService: {
+    getInitialData: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_DATA)),
+  },
+  settingsService: {
+    getSettings: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_SETTINGS)),
+    registerSettingsGetterForApply: vi.fn(
+      (_settingsGetter: () => GenericNodeSettings) => Promise.resolve(),
+    ),
+    registerSettings: vi.fn(() => Promise.resolve(vi.fn())),
+  },
+  displayMode: "large",
 });

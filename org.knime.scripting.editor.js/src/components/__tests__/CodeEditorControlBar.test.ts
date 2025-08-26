@@ -1,16 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 
-import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
 import AiButton from "../ai-assistant/AiButton.vue";
-
-vi.mock("@/scripting-service");
-vi.mock("@/initial-data-service", () => ({
-  getInitialDataService: vi.fn(() => ({
-    getInitialData: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_DATA)),
-  })),
-}));
 
 const doMount = async (
   args: {

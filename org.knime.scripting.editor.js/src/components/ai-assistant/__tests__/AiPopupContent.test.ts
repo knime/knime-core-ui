@@ -7,10 +7,7 @@ import AiPopupContent from "@/components/ai-assistant/AiPopupContent.vue";
 import AiSuggestion from "@/components/ai-assistant/AiSuggestion.vue";
 import { getScriptingService, getSettingsService } from "@/init";
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
-import {
-  DEFAULT_INITIAL_SETTINGS,
-  registerSettingsMock,
-} from "@/settings-service-browser-mock";
+import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
 import {
   clearPromptResponseStore,
   currentInputOutputItems,
@@ -19,20 +16,7 @@ import {
   usePromptResponseStore,
 } from "@/store/ai-bar";
 
-vi.mock("@/scripting-service");
 vi.mock("@/editor");
-vi.mock("@/initial-data-service", () => ({
-  getInitialDataService: vi.fn(() => ({
-    getInitialData: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_DATA)),
-  })),
-}));
-vi.mock("@/settings-service", () => ({
-  getSettingsService: vi.fn(() => ({
-    registerSettingsGetterForApply: vi.fn(() => Promise.resolve()),
-    getSettings: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_SETTINGS)),
-    registerSettings: vi.fn(registerSettingsMock),
-  })),
-}));
 
 const doMount = async () => {
   const wrapper = mount(AiPopupContent);
@@ -255,18 +239,14 @@ describe("AiPopup", () => {
   });
 
   it("show flow variable message if readonly", async () => {
-    vi.mocked(getSettingsService).mockReturnValue({
-      getSettings: vi.fn(() =>
-        Promise.resolve({
-          ...DEFAULT_INITIAL_SETTINGS,
-          scriptUsedFlowVariable: "myVar",
-          settingsAreOverriddenByFlowVariable: true,
-          script: "myScript",
-        }),
-      ),
-      registerSettingsGetterForApply: vi.fn(() => Promise.resolve()),
-      registerSettings: vi.fn(registerSettingsMock),
-    });
+    vi.mocked(getSettingsService().getSettings).mockReturnValue(
+      Promise.resolve({
+        ...DEFAULT_INITIAL_SETTINGS,
+        scriptUsedFlowVariable: "myVar",
+        settingsAreOverriddenByFlowVariable: true,
+        script: "myScript",
+      }),
+    );
 
     const bar = await doMount();
     await flushPromises();

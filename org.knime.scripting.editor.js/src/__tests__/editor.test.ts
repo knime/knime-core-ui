@@ -12,8 +12,6 @@ import {
   useMainCodeEditorStore,
 } from "@/editor";
 
-vi.mock("monaco-editor");
-
 describe("editor", () => {
   const testComponent = <T>(
     composable: (params: any) => T,
