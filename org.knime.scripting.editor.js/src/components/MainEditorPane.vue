@@ -5,10 +5,8 @@ import { onKeyStroke } from "@vueuse/core";
 import { COLUMN_INSERTION_EVENT } from "@/components/InputOutputItem.vue";
 import { insertionEventHelper } from "@/components/utils/insertionEventHelper";
 import { useMainCodeEditor } from "@/editor";
-import {
-  type GenericNodeSettings,
-  getSettingsService,
-} from "@/settings-service";
+import { getSettingsService } from "@/init";
+import { type GenericNodeSettings } from "@/settings-service";
 import { useReadonlyStore } from "@/store/readOnly";
 
 interface Props {

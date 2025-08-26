@@ -3,10 +3,6 @@ import type {
   JsonDataService,
 } from "@knime/ui-extension-service";
 
-import {
-  // type SettingsServiceType,
-  settingsService,
-} from "./init";
 import type { PublicAPI } from "./types/public-api";
 
 export type GenericNodeSettings = {
@@ -64,5 +60,3 @@ export class SettingsService {
 
 /** Type representing the public API of SettingsService */
 export type SettingsServiceType = PublicAPI<SettingsService>;
-
-export const getSettingsService = (): SettingsServiceType => settingsService;

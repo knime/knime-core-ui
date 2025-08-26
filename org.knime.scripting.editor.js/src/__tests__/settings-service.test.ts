@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getSettingsService } from "@/settings-service";
+import { getSettingsService } from "@/init";
 
 const { mockedJsonDataService, mockedDialogueService } = vi.hoisted(() => {
   const mockedJsonDataService = {

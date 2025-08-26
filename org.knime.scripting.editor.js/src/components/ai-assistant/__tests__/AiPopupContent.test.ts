@@ -5,9 +5,8 @@ import { flushPromises, mount } from "@vue/test-utils";
 import InfinityLoadingBar from "@/components/InfinityLoadingBar.vue";
 import AiPopupContent from "@/components/ai-assistant/AiPopupContent.vue";
 import AiSuggestion from "@/components/ai-assistant/AiSuggestion.vue";
-import { getScriptingService } from "@/init";
+import { getScriptingService, getSettingsService } from "@/init";
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
-import { getSettingsService } from "@/settings-service";
 import {
   DEFAULT_INITIAL_SETTINGS,
   registerSettingsMock,
