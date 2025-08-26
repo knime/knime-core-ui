@@ -82,75 +82,10 @@ export type SettingsServiceType = {
   registerSettingsGetterForApply: (
     settingsGetter: () => GenericNodeSettings,
   ) => Promise<void>;
-  registerSettings: (
+  registerSettings: <T>(
     modelOrView: "model" | "view",
-  ) => Promise<(initialSetting: unknown) => SettingState<unknown>>;
+  ) => Promise<(initialSetting: T) => SettingState<T>>;
 };
-
-// --- HELPER CLASSES ---
-
-// /// MOVED FROM settings-helper.ts
-
-class SettingsHelper {
-  private static instance: SettingsHelper;
-  private jsonDataService: Promise<JsonDataService>;
-  private readonly dialogService: Promise<DialogService>;
-
-  private cachedInitialDataAndSettings: InitialDataAndSettings | null = null;
-
-  private constructor() {
-    this.jsonDataService = JsonDataService.getInstance();
-    this.dialogService = DialogService.getInstance();
-  }
-
-  private async loadDataIntoCache(): Promise<void> {
-    this.cachedInitialDataAndSettings = (await (
-      await this.jsonDataService
-    ).initialData()) as InitialDataAndSettings;
-  }
-
-  public async getInitialDataAndSettings(): Promise<InitialDataAndSettings> {
-    if (!this.cachedInitialDataAndSettings) {
-      await this.loadDataIntoCache();
-    }
-
-    return this.cachedInitialDataAndSettings!;
-  }
-
-  public async registerApplyListener(
-    settingsGetter: () => GenericNodeSettings,
-  ): Promise<void> {
-    const dialogService = await this.dialogService;
-    dialogService.setApplyListener(async () => {
-      const settings = settingsGetter();
-      try {
-        await (await this.jsonDataService).applyData(settings);
-        return { isApplied: true };
-      } catch (e) {
-        consola.warn("Failed to apply settings", e);
-        return { isApplied: false };
-      }
-    });
-  }
-
-  public async registerSettings<T>(
-    modelOrView: "view" | "model",
-  ): Promise<(initialSetting: T) => SettingState<T>> {
-    const dialogService = await this.dialogService;
-
-    return (initialSetting: T) =>
-      dialogService.registerSettings(modelOrView)({
-        initialValue: initialSetting,
-      });
-  }
-
-  public static getInstance(): SettingsHelper {
-    if (!SettingsHelper.instance) {
-      SettingsHelper.instance = new SettingsHelper();
-    }
-    return SettingsHelper.instance;
-  }
-}
 
 // --- INSTANCES ---
 
@@ -165,11 +100,12 @@ export let settingsService: SettingsServiceType;
 // TODO jsdoc
 export const init = async () => {
   const jsonDataService = await JsonDataService.getInstance();
+  const dialogService = await DialogService.getInstance();
 
   scriptingService = new ScriptingService(jsonDataService);
 
-  const initialDataAndSettings =
-    await SettingsHelper.getInstance().getInitialDataAndSettings();
+  const initialDataAndSettings: InitialDataAndSettings =
+    await jsonDataService.initialData();
 
   initialDataService = {
     // TODO this can now return the initial data, not a promise
@@ -180,20 +116,36 @@ export const init = async () => {
     getSettings: () => Promise.resolve(initialDataAndSettings.settings),
     registerSettingsGetterForApply: (
       settingsGetter: () => GenericNodeSettings,
-    ) => SettingsHelper.getInstance().registerApplyListener(settingsGetter),
-    registerSettings: (modelOrView: "model" | "view") =>
-      SettingsHelper.getInstance().registerSettings(modelOrView),
+    ) => {
+      dialogService.setApplyListener(async () => {
+        const settings = settingsGetter();
+        try {
+          await jsonDataService.applyData(settings);
+          return { isApplied: true };
+        } catch (e) {
+          consola.warn("Failed to apply settings", e);
+          return { isApplied: false };
+        }
+      });
+      // TODO this does not have to be async anymore
+      return Promise.resolve();
+    },
+    registerSettings: (modelOrView: "model" | "view") => {
+      // TODO this does not have to be async anymore
+      return Promise.resolve(<T>(initialSetting: T) =>
+        dialogService.registerSettings(modelOrView)({
+          initialValue: initialSetting,
+        }),
+      );
+    },
   };
 
-  // Set the display mode
-  await DialogService.getInstance().then((dialogService) => {
-    // Set the initial value of displayMode
-    displayMode.value = dialogService.getInitialDisplayMode();
+  // Set the initial value of displayMode
+  displayMode.value = dialogService.getInitialDisplayMode();
 
-    // Register a listener to update displayMode whenever it changes
-    dialogService.addOnDisplayModeChangeCallback(({ mode }) => {
-      displayMode.value = mode;
-    });
+  // Register a listener to update displayMode whenever it changes
+  dialogService.addOnDisplayModeChangeCallback(({ mode }) => {
+    displayMode.value = mode;
   });
 };
 
