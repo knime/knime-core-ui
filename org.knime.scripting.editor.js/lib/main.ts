@@ -31,6 +31,7 @@ import editor from "@/editor";
 import {
   type InitMockData,
   getScriptingService,
+  getSettingsService,
   init,
   initMocked,
 } from "@/init";
@@ -46,10 +47,7 @@ import {
   type ScriptingServiceType,
   initConsoleEventHandler,
 } from "@/scripting-service";
-import {
-  type GenericNodeSettings,
-  getSettingsService,
-} from "@/settings-service";
+import { type GenericNodeSettings } from "@/settings-service";
 import { setActiveEditorStoreForAi } from "@/store/ai-bar";
 import { useReadonlyStore } from "@/store/readOnly";
 

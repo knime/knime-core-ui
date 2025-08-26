@@ -77,7 +77,9 @@ let scriptingService: ScriptingServiceType;
 export const getScriptingService = (): ScriptingServiceType => scriptingService;
 
 export let initialDataService: InitialDataServiceType;
-export let settingsService: SettingsServiceType;
+
+let settingsService: SettingsServiceType;
+export const getSettingsService = (): SettingsServiceType => settingsService;
 
 // --- INIT FUNCTION ---
 
