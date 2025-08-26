@@ -48,10 +48,5 @@
     "@typescript-eslint/no-explicit-any": {
       "count": 9
     }
-  },
-  "src/settings-service.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
   }
 }

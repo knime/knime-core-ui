@@ -6,6 +6,7 @@ import { useMainCodeEditorStore } from "./editor";
 import { type PortConfig, getScriptingService } from "./init";
 import { MonacoLSPConnection } from "./lsp/connection";
 import { KnimeMessageReader, KnimeMessageWriter } from "./lsp/knime-io";
+import type { PublicAPI } from "./types/public-api";
 
 type LanguageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
 
@@ -133,21 +134,8 @@ export class ScriptingService {
   }
 }
 
-/**
- * Type representing the public API of ScriptingService.
- * Automatically excludes private members and constructor.
- * Use this type for mocking and ensuring type safety.
- */
-export type ScriptingServiceType = Pick<
-  ScriptingService,
-  {
-    [K in keyof ScriptingService]: ScriptingService[K] extends (
-      ...args: any[]
-    ) => any
-      ? K
-      : never;
-  }[keyof ScriptingService]
->;
+/** Type representing the public API of ScriptingService */
+export type ScriptingServiceType = PublicAPI<ScriptingService>;
 
 // TODO move?
 export const initConsoleEventHandler = () => {

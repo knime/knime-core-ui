@@ -1,7 +1,6 @@
 import {
   DialogService,
   JsonDataService,
-  type SettingState,
 } from "@knime/ui-extension-service";
 
 import type { InputOutputModel } from "@/components/InputOutputItem.vue";
@@ -11,6 +10,7 @@ import {
   ScriptingService,
   type ScriptingServiceType,
 } from "./scripting-service";
+import { type GenericNodeSettings, SettingsService, type SettingsServiceType } from "./settings-service";
 
 // --- TYPES ---
 
@@ -62,12 +62,6 @@ export type GenericInitialData = {
   kAiConfig: KAIConfig;
 };
 
-export type GenericNodeSettings = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
-  settingsAreOverriddenByFlowVariable?: boolean;
-};
-
 type InitialDataAndSettings = {
   initialData: GenericInitialData;
   settings: GenericNodeSettings;
@@ -75,16 +69,6 @@ type InitialDataAndSettings = {
 
 export type InitialDataServiceType = {
   getInitialData: () => Promise<GenericInitialData>;
-};
-
-export type SettingsServiceType = {
-  getSettings: () => Promise<GenericNodeSettings>;
-  registerSettingsGetterForApply: (
-    settingsGetter: () => GenericNodeSettings,
-  ) => Promise<void>;
-  registerSettings: <T>(
-    modelOrView: "model" | "view",
-  ) => Promise<(initialSetting: T) => SettingState<T>>;
 };
 
 // --- INSTANCES ---
@@ -112,33 +96,11 @@ export const init = async () => {
     getInitialData: () => Promise.resolve(initialDataAndSettings.initialData),
   };
 
-  settingsService = {
-    getSettings: () => Promise.resolve(initialDataAndSettings.settings),
-    registerSettingsGetterForApply: (
-      settingsGetter: () => GenericNodeSettings,
-    ) => {
-      dialogService.setApplyListener(async () => {
-        const settings = settingsGetter();
-        try {
-          await jsonDataService.applyData(settings);
-          return { isApplied: true };
-        } catch (e) {
-          consola.warn("Failed to apply settings", e);
-          return { isApplied: false };
-        }
-      });
-      // TODO this does not have to be async anymore
-      return Promise.resolve();
-    },
-    registerSettings: (modelOrView: "model" | "view") => {
-      // TODO this does not have to be async anymore
-      return Promise.resolve(<T>(initialSetting: T) =>
-        dialogService.registerSettings(modelOrView)({
-          initialValue: initialSetting,
-        }),
-      );
-    },
-  };
+  settingsService = new SettingsService(
+    initialDataAndSettings.settings,
+    dialogService,
+    jsonDataService,
+  );
 
   // Set the initial value of displayMode
   displayMode.value = dialogService.getInitialDisplayMode();
