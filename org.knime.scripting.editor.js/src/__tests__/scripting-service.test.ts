@@ -1,14 +1,41 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { nextTick } from "vue";
 
-import { DialogService, JsonDataService } from "@knime/ui-extension-service";
-import { sleep } from "@knime/utils";
+import type { JsonDataService } from "@knime/ui-extension-service";
 
-vi.mock("monaco-editor");
+import { ScriptingService } from "@/scripting-service";
 
-vi.mock("@knime/ui-extension-service", () => ({
-  JsonDataService: vi.fn(),
-  DialogService: vi.fn(),
-}));
+type MockBackend = {
+  [key: string]: (options: any[]) => Promise<any> | undefined;
+};
+const dataFnMock = (backend: MockBackend) => {
+  // By default we add a method that stops the event loop
+  backend = {
+    getEvent: () => Promise.resolve({ type: "STOP" }),
+    ...backend,
+  };
+
+  return vi.fn(({ method, options }: { method: string; options: any[] }) => {
+    // Remove ScriptingService. prefix
+    if (method.startsWith("ScriptingService.")) {
+      method = method.replace("ScriptingService.", "");
+    } else {
+      return Promise.reject(new Error(`Unexpected method call ${method}`));
+    }
+
+    // Get the method
+    const backendMethod = backend[method];
+
+    // Call the method if it exists
+    if (backendMethod) {
+      return backendMethod(options);
+    } else {
+      return Promise.reject(
+        new Error(`Method ${method} not found in backend mock`),
+      );
+    }
+  });
+};
 
 const lock = <T = void>() => {
   let resolve: (resolvedValue: T) => void = () => {};
@@ -19,65 +46,144 @@ const lock = <T = void>() => {
 };
 
 describe("scripting-service", () => {
-  let _jsonDataService: any, _dialogService: any;
+  describe("class EventHandler", () => {
+    it("should call event handler on received events", async () => {
+      type Event = { type: string; data: any };
+      const { promise: promiseA, resolve: resolveA } = lock<Event>();
+      const { promise: promiseB, resolve: resolveB } = lock<Event>();
 
-  const getScriptingService = async () =>
-    (await import("../scripting-service")).getScriptingService();
+      const events = [promiseA, promiseB, Promise.resolve({ type: "STOP" })];
 
-  beforeEach(() => {
-    // Make sure the module is reloaded to reset the singleton instance
-    vi.resetModules();
+      const service = new ScriptingService({
+        data: dataFnMock({ getEvent: () => events.shift() }),
+      } as any as JsonDataService);
+      await nextTick();
 
-    // Mock the services
-    _jsonDataService = {
-      registerDataGetter: vi.fn(() => {}),
-      initialData: vi.fn(() => ({ script: "foo" })),
-      data: vi.fn(() => Promise.resolve()),
-      applyData: vi.fn(() => {}),
-    };
-    _dialogService = {
-      setApplyListener: vi.fn(),
-    };
-    JsonDataService.getInstance = vi.fn().mockResolvedValue(_jsonDataService);
-    DialogService.getInstance = vi.fn().mockResolvedValue(_dialogService);
+      const eventHandlerA = vi.fn();
+      service.registerEventHandler("a", eventHandlerA);
+      const eventHandlerB = vi.fn();
+      service.registerEventHandler("b", eventHandlerB);
+
+      // Resolve the first event - expect eventHandlerA to be called
+      resolveA({ type: "a", data: "foo" });
+
+      await nextTick();
+      expect(eventHandlerA).toHaveBeenCalledWith("foo");
+      expect(eventHandlerB).not.toHaveBeenCalled();
+
+      // Resolve the second event - expect eventHandlerB to be called
+      resolveB({ type: "b", data: "bar" });
+
+      await nextTick();
+      expect(eventHandlerB).toHaveBeenCalledWith("bar");
+    });
+
+    it("should handle null events gracefully (no timeout)", async () => {
+      type Event = { type: string; data: any };
+      const { promise: realEventPromise, resolve: resolveRealEvent } =
+        lock<Event>();
+
+      // Mix null events with a real event, then stop
+      const events = [
+        Promise.resolve(null),
+        Promise.resolve(null),
+        realEventPromise,
+        Promise.resolve({ type: "STOP" }),
+      ];
+
+      const service = new ScriptingService({
+        data: dataFnMock({ getEvent: () => events.shift() }),
+      } as any as JsonDataService);
+      await nextTick();
+
+      const eventHandler = vi.fn();
+      service.registerEventHandler("test", eventHandler);
+
+      // Resolve the real event after null events
+      resolveRealEvent({ type: "test", data: "after-nulls" });
+
+      // Wait multiple ticks for all async operations to complete
+      await nextTick();
+      await nextTick();
+      await nextTick();
+
+      // The handler should still be called despite null events
+      expect(eventHandler).toHaveBeenCalledWith("after-nulls");
+      expect(eventHandler).toHaveBeenCalledTimes(1);
+    });
   });
 
-  afterEach(() => {
-    vi.clearAllMocks();
+  describe("sendToService", () => {
+    it("should call backend methods correctly", async () => {
+      const expectedResult = { success: true };
+      const testMethodSpy = vi.fn(() => Promise.resolve(expectedResult));
+      const anotherMethodSpy = vi.fn(() => Promise.resolve(expectedResult));
+
+      const service = new ScriptingService({
+        data: dataFnMock({
+          testMethod: testMethodSpy,
+          anotherMethod: anotherMethodSpy,
+        }),
+      } as any as JsonDataService);
+
+      // Test without options
+      const result1 = await service.sendToService("testMethod");
+      expect(testMethodSpy).toHaveBeenCalledWith(undefined);
+      expect(result1).toBe(expectedResult);
+
+      // Test with options
+      const testOptions = ["param1", "param2"];
+      const result2 = await service.sendToService("anotherMethod", testOptions);
+      expect(anotherMethodSpy).toHaveBeenCalledWith(testOptions);
+      expect(result2).toBe(expectedResult);
+    });
   });
 
-  it("waits for knime service initialization", async () => {
-    const sendToServiceResolved = vi.fn();
-    const sendToServiceRejected = vi.fn();
+  describe("service methods", () => {
+    it("isKaiEnabled should call backend correctly", async () => {
+      const isKaiEnabledSpy = vi.fn(() => Promise.resolve(true));
 
-    // Replace the mock such that we can block the initialization
-    const { promise, resolve } = lock<JsonDataService>();
-    JsonDataService.getInstance = vi.fn().mockReturnValue(promise);
-    const sendToServicePromise = (await getScriptingService())
-      .sendToService("dummy")
-      .then(() => {
-        sendToServiceResolved();
-      })
-      .catch(() => {
-        sendToServiceRejected();
-      });
-    await sleep(20);
-    expect(sendToServiceResolved).not.toHaveBeenCalled();
-    expect(sendToServiceRejected).not.toHaveBeenCalled();
+      const service = new ScriptingService({
+        data: dataFnMock({
+          isKaiEnabled: isKaiEnabledSpy,
+        }),
+      } as any as JsonDataService);
 
-    // Now the initialization should be resolved
-    resolve(_jsonDataService);
+      const result = await service.isKaiEnabled();
 
-    await sendToServicePromise;
-    expect(sendToServiceResolved).toHaveBeenCalled();
-    expect(sendToServiceRejected).not.toHaveBeenCalled();
-  });
+      expect(isKaiEnabledSpy).toHaveBeenCalledWith(undefined);
+      expect(result).toBe(true);
+    });
 
-  it("sends requests to the JsonDataService", async () => {
-    await (await getScriptingService()).sendToService("dummy", ["foo", "bar"]);
-    expect(_jsonDataService.data).toHaveBeenCalledWith({
-      method: "ScriptingService.dummy",
-      options: ["foo", "bar"],
+    it("isLoggedIntoHub should call backend correctly", async () => {
+      const isLoggedIntoHubSpy = vi.fn(() => Promise.resolve(false));
+
+      const service = new ScriptingService({
+        data: dataFnMock({
+          isLoggedIntoHub: isLoggedIntoHubSpy,
+        }),
+      } as any as JsonDataService);
+
+      const result = await service.isLoggedIntoHub();
+
+      expect(isLoggedIntoHubSpy).toHaveBeenCalledWith(undefined);
+      expect(result).toBe(false);
+    });
+
+    it("getAiDisclaimer should call backend correctly", async () => {
+      const disclaimer = "AI disclaimer text";
+      const getAiDisclaimerSpy = vi.fn(() => Promise.resolve(disclaimer));
+
+      const service = new ScriptingService({
+        data: dataFnMock({
+          getAiDisclaimer: getAiDisclaimerSpy,
+        }),
+      } as any as JsonDataService);
+
+      const result = await service.getAiDisclaimer();
+
+      expect(getAiDisclaimerSpy).toHaveBeenCalledWith(undefined);
+      expect(result).toBe(disclaimer);
     });
   });
 });
