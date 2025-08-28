@@ -309,14 +309,17 @@ const getDaysLeftInMonth = (date: Date = new Date()): number => {
           </div>
         </Transition>
         <InfinityLoadingBar v-if="status === 'waiting'" />
-        <!-- TODO use slot for the description to be able to use a link -->
         <InlineMessage
           v-if="!isWithinLimit"
           variant="info"
           title="All free monthly AI interactions used"
-          :description="`Upgrade to continue building with AI or wait ${getDaysLeftInMonth()} days to use it again`"
           class="limit-exceeded-message"
-        />
+        >
+          <a href="https://www.knime.com/knime-hub-pricing">Upgrade</a> to
+          continue building with AI or wait
+          {{ getDaysLeftInMonth() }}
+          days to use it again.
+        </InlineMessage>
         <div v-else class="chat-controls-text-input">
           <textarea
             ref="textarea"
