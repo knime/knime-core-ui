@@ -20,7 +20,7 @@ import {
   type GenericInitialData,
   getInitialDataService,
 } from "@/initial-data-service";
-import { getScriptingService } from "@/scripting-service";
+import { type UsageData, getScriptingService } from "@/scripting-service";
 import { getSettingsService } from "@/settings-service";
 import {
   type Message,
@@ -81,11 +81,6 @@ type CodeSuggestion = {
   code: string;
   status: "SUCCESS" | "ERROR" | "CANCELLED";
   error: string | undefined;
-};
-
-type UsageData = {
-  limit: number;
-  used: number;
 };
 
 type AIResponseData = {
@@ -174,7 +169,10 @@ onMounted(async () => {
     status.value = "newlyDisabled";
   } else if (settings.settingsAreOverriddenByFlowVariable) {
     status.value = "readonly";
-  } else if (!(await getScriptingService().isLoggedIntoHub())) {
+  } else if (await getScriptingService().isLoggedIntoHub()) {
+    // Fetch initial usage data if K-AI is available and user is logged in
+    fetchUsageData();
+  } else {
     status.value = "unauthorized";
   }
 });
@@ -188,6 +186,7 @@ onUnmounted(() => {
 const handleLoginStatus = (loginStatus: boolean) => {
   if (loginStatus) {
     status.value = "idle";
+    fetchUsageData();
   }
 };
 
@@ -228,12 +227,22 @@ getInitialDataService()
     }
   });
 
-// Usage limit tracking - will be populated from backend
-const usageLimit = ref<number | null>(100);
-const usageUsed = ref<number | null>(101);
+// Usage limit tracking - populated from backend via fetchUsageData()
+const usageLimit = ref<number | null>(null);
+const usageUsed = ref<number | null>(null);
 
-// TODO: Fetch initial usage values from backend
-// This should be done when the component mounts or when the AI popup opens
+/** Fetch usage data in background and update reactive values */
+const fetchUsageData = () => {
+  getScriptingService()
+    .getAiUsage()
+    .then((usage) => {
+      usageUsed.value = usage.used;
+      usageLimit.value = usage.limit;
+    })
+    .catch((error) => {
+      consola.warn("Failed to fetch AI usage data:", error);
+    });
+};
 
 /** false if the usage limit is exceeded and the message prompt should not be shown */
 const isWithinLimit = computed(() => {
