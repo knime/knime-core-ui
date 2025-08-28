@@ -1,3 +1,4 @@
+/* eslint-disable no-magic-numbers */
 import { sleep } from "@knime/utils";
 
 import { log } from "@/log";
@@ -28,7 +29,7 @@ export const createScriptingServiceMock = (
 ): ScriptingServiceType & {
   eventHandlers: Map<string, (args: any) => void>;
 } => {
-  let usage = 498;
+  let aiUsage = 498;
   const eventHandlers = new Map<string, (args: any) => void>();
   const sendToServiceMockResponses: Record<
     string,
@@ -45,7 +46,7 @@ export const createScriptingServiceMock = (
             interactionId: "mock-interaction-id",
             usage: {
               limit: 500,
-              used: usage++,
+              used: aiUsage++,
             },
           }),
         });
@@ -113,6 +114,14 @@ export const createScriptingServiceMock = (
       return Promise.resolve(
         "This is a fake AI disclaimer. Enjoy the AI. It does nothing!",
       );
+    },
+
+    getAiUsage() {
+      log("Called scriptingService.getAiUsage");
+      return Promise.resolve({
+        limit: 500,
+        used: aiUsage,
+      });
     },
 
     // Console handling

@@ -68,6 +68,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.VariableType;
+import org.knime.gateway.api.webui.entity.KaiUsageEnt;
 import org.knime.gateway.impl.webui.kai.CodeKaiHandler;
 import org.knime.scripting.editor.lsp.LanguageServerProxy;
 
@@ -362,6 +363,14 @@ public abstract class ScriptingService {
          */
         public String getAiDisclaimer() {
             return getCodeKaiHandler().map(CodeKaiHandler::getDisclaimer).orElseThrow();
+        }
+
+        /**
+         * @return get the current AI usage data for the user
+         */
+        public KaiUsageEnt getAiUsage() {
+            var projectId = getProjectId();
+            return getCodeKaiHandler().map(h -> h.getUsage(projectId)).orElseThrow();
         }
 
         /**

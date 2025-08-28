@@ -33,6 +33,7 @@ export const scriptingServiceMock: ScriptingServiceType = {
   isKaiEnabled: vi.fn(() => Promise.resolve(true)),
   isLoggedIntoHub: vi.fn(() => Promise.resolve(true)),
   getAiDisclaimer: vi.fn(() => Promise.resolve("AI Disclaimer")),
+  getAiUsage: vi.fn(() => Promise.resolve({ limit: 100, used: 42 })),
 };
 
 export const getScriptingService = vi.fn(() => scriptingServiceMock);
