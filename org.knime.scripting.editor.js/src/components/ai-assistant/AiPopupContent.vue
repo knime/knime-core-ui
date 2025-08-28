@@ -236,8 +236,14 @@ const fetchUsageData = () => {
   getScriptingService()
     .getAiUsage()
     .then((usage) => {
-      usageUsed.value = usage.used;
-      usageLimit.value = usage.limit;
+      if (usage === null) {
+        // Old backend that doesn't support usage tracking - don't show usage line
+        usageUsed.value = null;
+        usageLimit.value = null;
+      } else {
+        usageUsed.value = usage.used;
+        usageLimit.value = usage.limit;
+      }
     })
     .catch((error) => {
       consola.warn("Failed to fetch AI usage data:", error);

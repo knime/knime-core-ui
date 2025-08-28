@@ -154,7 +154,7 @@ const scriptingService = {
     return this.sendToService("getAiDisclaimer");
   },
 
-  getAiUsage(): Promise<UsageData> {
+  getAiUsage(): Promise<UsageData | null> {
     return this.sendToService("getAiUsage");
   },
 };
