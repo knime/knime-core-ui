@@ -336,6 +336,7 @@ const usageUsed = ref<number | null>(null);
         </div>
         <div class="usage-limit">
           {{ usageUsed ?? "−" }}/{{ usageLimit ?? "−" }} monthly interactions
+          <span class="usage-disclaimer"> K-AI can make mistakes </span>
         </div>
       </div>
     </div>
@@ -464,6 +465,10 @@ const usageUsed = ref<number | null>(null);
       /* Ensure usage text appears above the arrow (z-index: 1 in AiButton.vue) */
       position: relative;
       z-index: 2;
+
+      & .usage-disclaimer {
+        margin-left: auto;
+      }
     }
 
     & .chat-controls-text-input {
