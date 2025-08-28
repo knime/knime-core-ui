@@ -2,6 +2,7 @@ import { type Ref, reactive, ref, shallowRef, watch } from "vue";
 
 import type { InputOutputModel } from "@/components/InputOutputItem.vue";
 import { type UseCodeEditorReturn, useMainCodeEditorStore } from "@/editor";
+import type { UsageData } from "@/scripting-service";
 
 export interface Message {
   role: "reply" | "request";
@@ -52,3 +53,8 @@ watch(() => useMainCodeEditorStore().value, setActiveEditorStoreForAi);
 export const currentInputOutputItems: Ref<InputOutputModel[]> = ref<
   InputOutputModel[]
 >([]);
+
+// Cache for AI usage data to avoid loading delays when opening the popup
+// null = no data available (not fetched, fetch failed, or old backend)
+// UsageData = valid usage data
+export const usageData = ref<UsageData | null>(null);
