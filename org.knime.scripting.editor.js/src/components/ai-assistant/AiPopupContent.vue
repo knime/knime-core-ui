@@ -335,7 +335,9 @@ const usageUsed = ref<number | null>(null);
           </span>
         </div>
         <div class="usage-limit">
-          {{ usageUsed ?? "−" }}/{{ usageLimit ?? "−" }} monthly interactions
+          <span v-if="usageLimit !== null" class="usage-counter">
+            {{ usageUsed ?? "−" }}/{{ usageLimit ?? "−" }} monthly interactions
+          </span>
           <span class="usage-disclaimer"> K-AI can make mistakes </span>
         </div>
       </div>
