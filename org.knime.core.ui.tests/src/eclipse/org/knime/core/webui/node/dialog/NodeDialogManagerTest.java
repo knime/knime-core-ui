@@ -519,7 +519,7 @@ public class NodeDialogManagerTest {
             @Override
             public String fromNodeSettings(final Map<SettingsType, NodeAndVariableSettingsRO> settings,
                 final PortObjectSpec[] specs) {
-                assertThat(settings.size()).isEqualTo(2);
+                assertThat(settings.size()).isEqualTo(3);
                 return "the node settings";
             }
 

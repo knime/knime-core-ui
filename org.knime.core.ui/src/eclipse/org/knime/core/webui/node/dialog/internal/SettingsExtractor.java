@@ -118,8 +118,7 @@ public final class SettingsExtractor {
 
                 final var settingsOrDefault =
                     settings.type == Result.Type.NONE ? getDefaultSettings(type) : settings.result;
-                final var variableSettings = new VariableSettings(type == SettingsType.JOB_MANAGER
-                    ? new NodeSettings(type.getVariablesConfigKey()) : snc.getNodeSettings(), type);
+                final var variableSettings = getVariableSettings(snc, type);
                 if (settings.type == Result.Type.OVERWRITTEN && hasControllingVariables(variableSettings)) {
                     overwrittenSettingsLoaded = true;
                 }
@@ -200,6 +199,9 @@ public final class SettingsExtractor {
 
     private static Result getSettingsWithoutFlowVariableOverrides(final SettingsType settingsType,
         final SingleNodeContainer nnc) {
+        if (settingsType == SettingsType.JOB_MANAGER) {
+            return Result.nonOverwritten(getJobManagerSettings(nnc));
+        }
         try {
             return Result.nonOverwritten(nnc.getNodeSettings().getNodeSettings(settingsType.getConfigKey()));
         } catch (InvalidSettingsException ex) { //NOSONAR
@@ -245,8 +247,8 @@ public final class SettingsExtractor {
             LoadWarningsUtil.warnAboutVariableOverridesBeingIgnored(ex);
             m_settingsTypes.forEach(type -> {
                 final var nodeSettings = getSettingsWithoutFlowVariableOverrides(type, nnc);
-                settings.put(type, NodeAndVariableSettingsProxy.createROProxy(nodeSettings.result,
-                    new VariableSettings(nnc.getNodeSettings(), type)));
+                settings.put(type,
+                    NodeAndVariableSettingsProxy.createROProxy(nodeSettings.result, getVariableSettings(nnc, type)));
             });
         }
     }
@@ -280,6 +282,12 @@ public final class SettingsExtractor {
             LOGGER.warn(String.format("Unable to resolve variable settings for key '%s'.", key), ex);
             return false;
         }
+    }
+
+    private static VariableSettings getVariableSettings(final SingleNodeContainer snc, final SettingsType type) {
+        return new VariableSettings(
+            type == SettingsType.JOB_MANAGER ? new NodeSettings(type.getVariablesConfigKey()) : snc.getNodeSettings(),
+            type);
     }
 
     private static NodeSettings getJobManagerSettings(final SingleNodeContainer nnc) {
