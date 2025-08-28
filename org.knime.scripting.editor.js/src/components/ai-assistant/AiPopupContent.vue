@@ -10,7 +10,7 @@ export default {};
 import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useTextareaAutosize } from "@vueuse/core";
 
-import { Button, FunctionButton } from "@knime/components";
+import { Button, FunctionButton, InlineMessage } from "@knime/components";
 import AbortIcon from "@knime/styles/img/icons/cancel-execution.svg";
 import WarningIcon from "@knime/styles/img/icons/circle-warning.svg";
 import SendIcon from "@knime/styles/img/icons/paper-flier.svg";
@@ -229,11 +229,27 @@ getInitialDataService()
   });
 
 // Usage limit tracking - will be populated from backend
-const usageLimit = ref<number | null>(null);
-const usageUsed = ref<number | null>(null);
+const usageLimit = ref<number | null>(100);
+const usageUsed = ref<number | null>(101);
 
 // TODO: Fetch initial usage values from backend
 // This should be done when the component mounts or when the AI popup opens
+
+/** false if the usage limit is exceeded and the message prompt should not be shown */
+const isWithinLimit = computed(() => {
+  // Pro users (null limit) or users without data loaded are within limit
+  if (usageLimit.value === null || usageUsed.value === null) {
+    return true;
+  }
+  // Check if used is less than limit
+  return usageUsed.value < usageLimit.value;
+});
+
+/** @returns the days left in the current month */
+const getDaysLeftInMonth = (date: Date = new Date()): number => {
+  const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  return endOfMonth.getDate() - date.getDate();
+};
 </script>
 
 <template>
@@ -267,7 +283,7 @@ const usageUsed = ref<number | null>(null);
     >
       <Transition name="disclaimer-slide-fade">
         <AiDisclaimer
-          v-if="showDisclaimer"
+          v-if="showDisclaimer && isWithinLimit"
           @accept-disclaimer="showDisclaimer = false"
         />
       </Transition>
@@ -288,7 +304,15 @@ const usageUsed = ref<number | null>(null);
           </div>
         </Transition>
         <InfinityLoadingBar v-if="status === 'waiting'" />
-        <div class="chat-controls-text-input">
+        <!-- TODO use slot for the description to be able to use a link -->
+        <InlineMessage
+          v-if="!isWithinLimit"
+          variant="info"
+          title="All free monthly AI interactions used"
+          :description="`Upgrade to continue building with AI or wait ${getDaysLeftInMonth()} days to use it again`"
+          class="limit-exceeded-message"
+        />
+        <div v-else class="chat-controls-text-input">
           <textarea
             ref="textarea"
             v-model="input"
@@ -335,7 +359,10 @@ const usageUsed = ref<number | null>(null);
           </span>
         </div>
         <div class="usage-limit">
-          <span v-if="usageLimit !== null" class="usage-counter">
+          <span
+            v-if="usageLimit !== null && isWithinLimit"
+            class="usage-counter"
+          >
             {{ usageUsed ?? "−" }}/{{ usageLimit ?? "−" }} monthly interactions
           </span>
           <span class="usage-disclaimer"> K-AI can make mistakes </span>
@@ -471,6 +498,10 @@ const usageUsed = ref<number | null>(null);
       & .usage-disclaimer {
         margin-left: auto;
       }
+    }
+
+    & .limit-exceeded-message {
+      margin: var(--ai-bar-margin);
     }
 
     & .chat-controls-text-input {
