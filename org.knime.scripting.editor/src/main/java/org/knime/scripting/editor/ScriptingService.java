@@ -370,7 +370,14 @@ public abstract class ScriptingService {
          */
         public KaiUsageEnt getAiUsage() {
             var projectId = getProjectId();
-            return getCodeKaiHandler().map(h -> h.getUsage(projectId)).orElseThrow();
+            return getCodeKaiHandler().map(h -> {
+                try {
+                    return h.getUsage(projectId);
+                } catch (Exception e) { // NOSONAR - throws KaiUsageException but this cannot be imported here
+                    LOGGER.warn("Retrieving AI usage data failed: " + e.getMessage(), e);
+                    return null;
+                }
+            }).orElse(null);
         }
 
         /**

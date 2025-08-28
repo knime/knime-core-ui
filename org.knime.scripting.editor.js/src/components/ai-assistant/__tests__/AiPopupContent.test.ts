@@ -479,6 +479,17 @@ describe("AiPopup", () => {
       expect(scriptingService.getAiUsage).toHaveBeenCalledTimes(2); // Once on mount, once on login
     });
 
+    it("hides usage counter when backend returns null (old backend)", async () => {
+      const scriptingService = getScriptingService();
+      vi.mocked(scriptingService.getAiUsage).mockResolvedValue(null);
+
+      const bar = await doMount();
+      await flushPromises();
+
+      const usageCounter = bar.find(".usage-counter");
+      expect(usageCounter.exists()).toBeFalsy();
+    });
+
     it("calculates days left in month correctly", async () => {
       const bar = await doMount();
 
