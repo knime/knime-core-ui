@@ -16,6 +16,7 @@ import {
   clearPromptResponseStore,
   currentInputOutputItems,
   setActiveEditorStoreForAi,
+  usageData,
   usePromptResponseStore,
 } from "@/store/ai-bar";
 
@@ -59,6 +60,7 @@ describe("AiPopup", () => {
   beforeEach(() => {
     vi.resetModules();
     clearPromptResponseStore();
+    usageData.value = null; // Clear usage data for each test
     setActiveEditorStoreForAi({
       text: ref(""),
       editorModel: "myEditorModel",

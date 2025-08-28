@@ -29,6 +29,7 @@ import {
   clearPromptResponseStore,
   currentInputOutputItems,
   showDisclaimer,
+  usageData,
   usePromptResponseStore,
 } from "@/store/ai-bar";
 
@@ -105,8 +106,7 @@ const handleCodeSuggestion = (codeSuggestion: CodeSuggestion) => {
 
     // Update usage data if provided
     if (responseData.usage) {
-      usageUsed.value = responseData.usage.used;
-      usageLimit.value = responseData.usage.limit;
+      usageData.value = responseData.usage;
     }
 
     message = { role: "request", content: input.value };
@@ -227,37 +227,27 @@ getInitialDataService()
     }
   });
 
-// Usage limit tracking - populated from backend via fetchUsageData()
-const usageLimit = ref<number | null>(null);
-const usageUsed = ref<number | null>(null);
-
-/** Fetch usage data in background and update reactive values */
+/** Fetch usage data in background and update store */
 const fetchUsageData = () => {
   getScriptingService()
     .getAiUsage()
     .then((usage) => {
-      if (usage === null) {
-        // Old backend that doesn't support usage tracking - don't show usage line
-        usageUsed.value = null;
-        usageLimit.value = null;
-      } else {
-        usageUsed.value = usage.used;
-        usageLimit.value = usage.limit;
-      }
+      usageData.value = usage;
     })
     .catch((error) => {
       consola.warn("Failed to fetch AI usage data:", error);
+      usageData.value = null;
     });
 };
 
 /** false if the usage limit is exceeded and the message prompt should not be shown */
 const isWithinLimit = computed(() => {
   // Pro users (null limit) or users without data loaded are within limit
-  if (usageLimit.value === null || usageUsed.value === null) {
+  if (usageData.value === null || usageData.value.limit === null) {
     return true;
   }
   // Check if used is less than limit
-  return usageUsed.value < usageLimit.value;
+  return usageData.value.used < usageData.value.limit;
 });
 
 /** @returns the days left in the current month */
@@ -375,10 +365,11 @@ const getDaysLeftInMonth = (date: Date = new Date()): number => {
         </div>
         <div class="usage-limit">
           <span
-            v-if="usageLimit !== null && isWithinLimit"
+            v-if="usageData && usageData.limit !== null && isWithinLimit"
             class="usage-counter"
           >
-            {{ usageUsed ?? "−" }}/{{ usageLimit ?? "−" }} monthly interactions
+            {{ usageData?.used ?? "−" }}/{{ usageData?.limit ?? "−" }} monthly
+            interactions
           </span>
           <span class="usage-disclaimer"> K-AI can make mistakes </span>
         </div>
