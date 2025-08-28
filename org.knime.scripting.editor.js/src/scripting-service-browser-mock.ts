@@ -28,6 +28,7 @@ export const createScriptingServiceMock = (
 ): ScriptingServiceType & {
   eventHandlers: Map<string, (args: any) => void>;
 } => {
+  let usage = 498;
   const eventHandlers = new Map<string, (args: any) => void>();
   const sendToServiceMockResponses: Record<
     string,
@@ -39,7 +40,14 @@ export const createScriptingServiceMock = (
       if (typeof fn !== "undefined") {
         fn({
           status: "SUCCESS",
-          code: JSON.stringify({ code: "// THIS IS A FAKE AI SUGGESTION" }),
+          code: JSON.stringify({
+            code: "// THIS IS A FAKE AI SUGGESTION",
+            interactionId: "mock-interaction-id",
+            usage: {
+              limit: 500,
+              used: usage++,
+            },
+          }),
         });
       }
       return {};

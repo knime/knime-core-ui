@@ -83,6 +83,17 @@ type CodeSuggestion = {
   error: string | undefined;
 };
 
+type UsageData = {
+  limit: number;
+  used: number;
+};
+
+type AIResponseData = {
+  code: string;
+  interactionId: string;
+  usage?: UsageData;
+};
+
 const errorText = ref<string | null>(null);
 
 const handleCodeSuggestion = (codeSuggestion: CodeSuggestion) => {
@@ -94,7 +105,15 @@ const handleCodeSuggestion = (codeSuggestion: CodeSuggestion) => {
   } else if (codeSuggestion.status === "CANCELLED") {
     status.value = "idle";
   } else {
-    const suggestedCode = JSON.parse(codeSuggestion.code).code;
+    const responseData: AIResponseData = JSON.parse(codeSuggestion.code);
+    const suggestedCode = responseData.code;
+
+    // Update usage data if provided
+    if (responseData.usage) {
+      usageUsed.value = responseData.usage.used;
+      usageLimit.value = responseData.usage.limit;
+    }
+
     message = { role: "request", content: input.value };
     promptResponseStore.promptResponse = { suggestedCode, message };
     status.value = "idle";
@@ -212,6 +231,9 @@ getInitialDataService()
 // Usage limit tracking - will be populated from backend
 const usageLimit = ref<number | null>(null);
 const usageUsed = ref<number | null>(null);
+
+// TODO: Fetch initial usage values from backend
+// This should be done when the component mounts or when the AI popup opens
 </script>
 
 <template>
