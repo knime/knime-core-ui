@@ -208,6 +208,10 @@ getInitialDataService()
       hubId.value = id;
     }
   });
+
+// Usage limit tracking - will be populated from backend
+const usageLimit = ref<number | null>(null);
+const usageUsed = ref<number | null>(null);
 </script>
 
 <template>
@@ -307,6 +311,9 @@ getInitialDataService()
             "The prompt is too long. Please shorten it to
             {{ MAX_PROMPT_LENGTH }} characters or less."
           </span>
+        </div>
+        <div class="usage-limit">
+          {{ usageUsed ?? "−" }}/{{ usageLimit ?? "−" }} monthly interactions
         </div>
       </div>
     </div>
@@ -420,6 +427,21 @@ getInitialDataService()
         word-wrap: break-word;
         font-size: 12px;
       }
+    }
+
+    & .usage-limit {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      height: 10px;
+      margin: 0 var(--ai-bar-margin) var(--ai-bar-margin) var(--ai-bar-margin);
+      font-weight: 700;
+      font-size: 10px;
+      flex-grow: 0;
+
+      /* Ensure usage text appears above the arrow (z-index: 1 in AiButton.vue) */
+      position: relative;
+      z-index: 2;
     }
 
     & .chat-controls-text-input {
