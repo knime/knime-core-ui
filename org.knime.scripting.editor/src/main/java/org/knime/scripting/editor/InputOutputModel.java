@@ -106,7 +106,8 @@ public record InputOutputModel(String name, //
     /**
      * The type of an InputOutputModelSubItem
      *
-     * @param id the class name of the DataType (e.g. of the {@link VariableType}/{@link DataValue})
+     * @param id the class name of the DataType (e.g. of the {@link DataValue}) or the
+     *            {@link VariableType#getIdentifier() unique identifier of the VariableType}
      * @param title the human-readable name of the DataType
      * @param displayName the name of the DataType as displayed in the editor
      */
