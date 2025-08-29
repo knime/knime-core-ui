@@ -4,6 +4,21 @@
       "count": 1
     }
   },
+  "demo/App.vue": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "demo/main.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "demo/mock-services.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
   "postcss.config.cjs": {
     "@typescript-eslint/no-require-imports": {
       "count": 1
