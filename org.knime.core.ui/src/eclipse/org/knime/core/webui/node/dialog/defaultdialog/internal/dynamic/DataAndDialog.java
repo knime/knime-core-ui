@@ -57,16 +57,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Paul Bärnreuther
  * @param <T> the type of data that is provided by the state provider
  */
-public class DataAndDialog<T> {
+public final class DataAndDialog<T> {
 
     @JsonProperty("data")
-    T m_data;
+    final T m_data;
 
     @JsonProperty("schema")
-    String m_schema;
+    final String m_schema;
 
     @JsonProperty("uiSchema")
-    String m_uiSchema;
+    final String m_uiSchema;
 
     /**
      * Creates a new instance of {@link DataAndDialog}.

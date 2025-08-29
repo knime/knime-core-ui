@@ -44,51 +44,33 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Aug 29, 2025 (Paul Bärnreuther): created
+ *   Sep 10, 2024 (hornm): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.createcell;
 
-import java.util.Collection;
-
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicNodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.OriginalClassName;
+import org.knime.core.data.DataType;
 
 /**
- * Identifies classes by their name or, if present the value of a {@link OriginalClassName} annotation.
+ * Provide this factory via the "org.knime.core.ui.createDataCellParameters" extension point to provide custom
+ * parameters for creating data cells of a certain type.
  *
- * @param <T> the type of DynamicNodeParameters
  * @author Paul Bärnreuther
  */
-public final class DefaultClassIdStrategy<T extends DynamicNodeParameters> implements ClassIdStrategy<T> {
-
-    private final Collection<Class<? extends T>> m_classes;
+public interface CreateDataCellParametersFactory {
 
     /**
-     * Defines a id strategy for a given set of classes.
+     * Creates the parameters for creating a data cell of the given type.
      *
-     * @param classes the classes to register
+     * @param dataCellClass the class of the data cell to create
+     * @return the parameters for creating a data cell of the given type
      */
-    public DefaultClassIdStrategy(final Collection<Class<? extends T>> classes) {
-        m_classes = classes;
-    }
+    Class<? extends CreateDataCellParameters> getNodeParametersClass();
 
-    @Override
-    public Class<? extends T> fromIdentifier(final String classIdentifier) {
-        for (Class<? extends T> clazz : m_classes) {
-            if (toIdentifier(clazz).equals(classIdentifier)) {
-                return clazz;
-            }
-        }
-        throw new IllegalArgumentException("No class registered for identifier '" + classIdentifier + "'");
-    }
-
-    @Override
-    public String toIdentifier(final Class<?> clazz) {
-        final var annotation = clazz.getAnnotation(OriginalClassName.class);
-        if (annotation != null) {
-            return annotation.value();
-        }
-        return clazz.getName();
-    }
+    /**
+     * Returns the one data type this factory is used for. There should not be more than one factory per data type.
+     *
+     * @return the one data type this factory is used for.
+     */
+    DataType getDataType();
 
 }

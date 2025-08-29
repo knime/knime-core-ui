@@ -71,6 +71,8 @@ import org.knime.node.parameters.persistence.Persistable;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public final class SettingsSaverFactory extends PersistenceFactory<ParametersSaver> {
 
+    static final String CLASS_ID_CFG_KEY = "@class";
+
     private static final SettingsSaverFactory INSTANCE = new SettingsSaverFactory();
 
     private SettingsSaverFactory() {
@@ -123,11 +125,12 @@ public final class SettingsSaverFactory extends PersistenceFactory<ParametersSav
         return (obj, settings) -> {
             if (tree.isDynamic()) {
                 if (obj == null) {
-                    settings.addString("@class", null);
+                    settings.addString(CLASS_ID_CFG_KEY, null);
                 } else {
                     final var dynamicParametersProvider = InstantiationUtil
                         .createInstance(tree.getAnnotation(DynamicParameters.class).orElseThrow().value());
-                    settings.addString("@class", dynamicParametersProvider.getClassIdStrategy().toIdentifier(obj.getClass()));
+                    settings.addString(CLASS_ID_CFG_KEY,
+                        dynamicParametersProvider.getClassIdStrategy().toIdentifier(obj.getClass()));
                     SettingsSaverFactory.saveSettings((Persistable)obj, settings);
                 }
             }

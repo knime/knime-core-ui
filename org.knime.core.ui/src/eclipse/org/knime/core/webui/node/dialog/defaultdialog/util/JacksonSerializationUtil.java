@@ -54,6 +54,8 @@ import java.io.StringWriter;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
 
@@ -62,7 +64,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
  *
  * @author Paul Bärnreuther
  */
-public class JacksonSerializationUtil {
+public final class JacksonSerializationUtil {
 
     private JacksonSerializationUtil() {
         // utility class
@@ -80,7 +82,7 @@ public class JacksonSerializationUtil {
     public static JsonNode serialize(final Object value, final JsonSerializer<Object> serializer) {
         final var mapper = JsonFormsDataUtil.getMapper();
         final var stringWriter = new StringWriter();
-        try (var jsonGenerator = mapper.getFactory().createGenerator(stringWriter);) {
+        try (var jsonGenerator = mapper.getFactory().createGenerator(stringWriter)) {
             final var serializerProvider = mapper.getSerializerProviderInstance();
             serializer.serialize(value, jsonGenerator, serializerProvider);
             jsonGenerator.flush();
@@ -89,6 +91,30 @@ public class JacksonSerializationUtil {
             final var message = String.format("Error during manual serialization of %s", value);
             LOGGER.error(message, ex);
             throw new IllegalStateException(message, ex);
+        }
+    }
+
+    /**
+     * Manually deserialize a value using the given deserializer.
+     *
+     * @param objectSettings the object to deserialize
+     * @param specialDeserializer the deserializer to use
+     * @return the deserialized object
+     * @throws IOException if deserialization fails
+     */
+    public static Object deserialize(final Object objectSettings, final JsonDeserializer<?> specialDeserializer)
+        throws IOException {
+        final var mapper = JsonFormsDataUtil.getMapper();
+        try {
+            final var jsonString = mapper.writeValueAsString(objectSettings);
+            try (JsonParser parser = mapper.getFactory().createParser(jsonString)) {
+                parser.nextToken();
+                final var ctx = mapper.getDeserializationContext();
+                return specialDeserializer.deserialize(parser, ctx);
+            }
+        } catch (IOException ex) {
+            LOGGER.error(String.format("Error during manual deserialization of %s", objectSettings), ex);
+            throw ex;
         }
     }
 

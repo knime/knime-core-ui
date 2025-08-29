@@ -48,6 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy.fromIdentifierConsistent;
+import static org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicNodeParametersSerializer.CLASS_ID_KEY;
 import static org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil.createInstance;
 
 import java.io.IOException;
@@ -56,9 +58,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicPa
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicParametersProvider;
 
 import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -71,7 +71,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * This deserializer is used (only) for fields annotated with {@link DynamicParameters}. {@link DynamicNodeParameters}
  * are serialized with the {@link DynamicNodeParametersSerializer} and store a class identifier defined by
- * {@link DynamicParametersProvider#getClassIdentifier(Class)}.
+ * {@link ClassIdStrategy#toIdentifier(Class)}.
  *
  * For deserialization, we access the counterpart method {@link DynamicParametersProvider#getClass(String)}
  *
@@ -92,7 +92,7 @@ public class DynamicNodeParametersDeserializer extends JsonDeserializer<DynamicN
      * value before deserialization.
      */
     public DynamicNodeParametersDeserializer() {
-        // default constructor. This is only called if createContextual is called with a field value before serialization.
+        // default constructor.
     }
 
     /**
@@ -128,26 +128,25 @@ public class DynamicNodeParametersDeserializer extends JsonDeserializer<DynamicN
 
     @Override
     public DynamicNodeParameters deserialize(final JsonParser jsonParser, final DeserializationContext context)
-        throws IOException, JsonProcessingException {
+        throws IOException {
         final var codec = jsonParser.getCodec();
         final var root = codec.readTree(jsonParser);
         if (root instanceof NullNode) {
             return null;
         }
         final var obj = (ObjectNode)root;
-        final var classNode = obj.get("@class");
+        final var classNode = obj.get(CLASS_ID_KEY);
         if (classNode == null || !classNode.isTextual()) {
             throw new JsonMappingException(jsonParser, "Missing or non-textual '@class' property.");
         }
         final var requested = classNode.asText();
         final var dynamicParametersProvider = createInstance(m_dynamicParametersProviderClass);
-        final var targetClass = dynamicParametersProvider.getClassIdStrategy().fromIdentifierInternal(requested);
+        final var targetClass = fromIdentifierConsistent(dynamicParametersProvider.getClassIdStrategy(), requested);
         if (targetClass == null) {
             throw new JsonMappingException(jsonParser,
                 "Class '" + requested + "' is not allowed for dynamic deserialization.");
         }
-        final var classPropertyKey = JsonTypeInfo.Id.CLASS.getDefaultPropertyName(); // @class
-        obj.remove(classPropertyKey);
+        obj.remove(CLASS_ID_KEY);
         return codec.treeToValue(obj, targetClass);
 
     }

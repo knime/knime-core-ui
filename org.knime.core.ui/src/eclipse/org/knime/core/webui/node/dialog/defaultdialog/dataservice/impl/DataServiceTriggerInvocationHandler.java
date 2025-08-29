@@ -53,7 +53,6 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 
 import org.knime.core.webui.node.dialog.SettingsType;
@@ -94,7 +93,7 @@ final class DataServiceTriggerInvocationHandler {
         final Function<LocationAndType, List<IndexedValue<String>>> dependencyProvider =
             locationAndType -> rawDependencies.get(getScopeFromLocation(locationAndType.location())).stream()
                 .map(raw -> new IndexedValue<>(raw.indices(), parseValue(raw.value(), locationAndType.getType(),
-                    locationAndType.getSpecialDeserializer(), m_context)))
+                    locationAndType.getSpecialDeserializer().orElse(null), m_context)))
                 .toList();
 
         final var triggerResult = m_triggerInvocationHandler.invokeTrigger(trigger, dependencyProvider, m_context);
@@ -102,7 +101,7 @@ final class DataServiceTriggerInvocationHandler {
     }
 
     private static Object parseValue(final Object rawDependencyObject, final Type type,
-        final Optional<JsonDeserializer<?>> specialDeserializer, final NodeParametersInput context) {
+        final JsonDeserializer<?> specialDeserializer, final NodeParametersInput context) {
 
         return ConvertValueUtil.convertValue(rawDependencyObject, type, specialDeserializer, context);
     }

@@ -119,6 +119,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.Icon;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.NoopButtonUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicNodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
@@ -503,7 +504,8 @@ final class UiSchemaOptionsGenerator {
         if (annotatedWidgets.contains(DynamicParameters.class)) {
             options.put(TAG_FORMAT, Format.DYNAMIC_INPUT_TYPE);
             getOrCreateProvidedOptions(control).add(TAG_DYNAMIC_SETTINGS);
-        } else if (m_node.getRawClass().isInterface()) {
+        } else if (m_node.getRawClass().isInterface()
+            && DynamicNodeParameters.class.isAssignableFrom(m_node.getRawClass())) {
             throw new UiSchemaGenerationException(
                 String.format("Interface or abstract fields are only supported with the %s annotation.",
                     DynamicParameters.class.getSimpleName()));

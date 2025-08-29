@@ -74,13 +74,16 @@ import com.fasterxml.jackson.databind.ser.ContextualSerializer;
  */
 public class DynamicNodeParametersSerializer extends JsonSerializer<Object> implements ContextualSerializer {
 
+    static final String CLASS_ID_KEY = "@class";
+
     private DynamicParametersProvider<?> m_dynamicParametersProvider;
 
     /**
-     * Default constructor for serialization by jackson.
+     * Default constructor for serialization by jackson. This is only called if createContextual is called with a field
+     * value before serialization.
      */
     public DynamicNodeParametersSerializer() {
-        // default constructor. This is only called if createContextual is called with a field value before serialization.
+        // default constructor.
     }
 
     /**
@@ -126,10 +129,10 @@ public class DynamicNodeParametersSerializer extends JsonSerializer<Object> impl
         final var classIdentifier = getClassIdentifier(value);
         final var withoutClassField = getDefaultSerializedValue(value, serializers);
         gen.writeStartObject();
-        gen.writeStringField("@class", classIdentifier);
+        gen.writeStringField(CLASS_ID_KEY, classIdentifier);
         for (var entry = withoutClassField.fields(); entry.hasNext();) {
             var e = entry.next();
-            if (!"@class".equals(e.getKey())) {
+            if (!CLASS_ID_KEY.equals(e.getKey())) {
                 gen.writeFieldName(e.getKey());
                 gen.writeTree(e.getValue());
             }
@@ -140,8 +143,7 @@ public class DynamicNodeParametersSerializer extends JsonSerializer<Object> impl
     private static JsonNode getDefaultSerializedValue(final Object value, final SerializerProvider serializers)
         throws JsonMappingException {
         final var defaultSerializer = serializers.findValueSerializer(value.getClass());
-        final var withoutClassField = JacksonSerializationUtil.serialize(value, defaultSerializer);
-        return withoutClassField;
+        return JacksonSerializationUtil.serialize(value, defaultSerializer);
     }
 
     private String getClassIdentifier(final Object value) throws IOException {

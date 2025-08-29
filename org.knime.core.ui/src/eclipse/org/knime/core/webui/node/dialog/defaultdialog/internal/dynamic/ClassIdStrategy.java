@@ -69,7 +69,7 @@ public interface ClassIdStrategy<T> {
     Class<? extends T> fromIdentifier(String classIdentifier);
 
     /**
-     * Mapping from a java class to a class identifier. Per default, the identifier is the fully qualified class name
+     * Mapping from a java class to a class identifier.
      *
      * @param clazz the class of an implementation of T. The generic T is omitted for convenience, but it is always true
      *            that T is assignable from clazz.
@@ -78,16 +78,20 @@ public interface ClassIdStrategy<T> {
     String toIdentifier(final Class<?> clazz);
 
     /**
-     * @noimplement this method is not intended to be implemented or overridden by clients. It is provided here to
-     *              simplify consistency checks.
+     * The framework never calls {@link #fromIdentifier(String)} directly. It instead uses this method to simplify
+     * consistency checks. It ensures that the mapping is consistent, i.e. that the identifier of the class returned by
+     * {@link #fromIdentifier(String)} is equal to the provided classIdentifier.
+     *
+     * @param strategy the strategy to use
      * @param classIdentifier see {@link #fromIdentifier(String)}
      * @return see {@link #toIdentifier(Class)}
      * @throws IllegalStateException if the mapping is not consistent, i.e. if the identifier of the class returned by
      *             {@link #fromIdentifier(String)} is not equal to the provided classIdentifier.
      */
-    default Class<? extends T> fromIdentifierInternal(final String classIdentifier) {
-        final var identifiedClass = fromIdentifier(classIdentifier);
-        final var id = toIdentifier(identifiedClass);
+    static <T> Class<? extends T> fromIdentifierConsistent(final ClassIdStrategy<T> strategy,
+        final String classIdentifier) {
+        final var identifiedClass = strategy.fromIdentifier(classIdentifier);
+        final var id = strategy.toIdentifier(identifiedClass);
         if (!id.equals(classIdentifier)) {
             throw new IllegalStateException("The class identifier '" + classIdentifier + "' was mapped to the class '"
                 + identifiedClass.getName() + "' but the identifier of this class is '" + id + "'. The mapping is not"

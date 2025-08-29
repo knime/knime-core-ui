@@ -49,6 +49,8 @@
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
 import static org.knime.core.webui.node.dialog.configmapping.NodeSettingsAtPathUtil.hasPath;
+import static org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy.fromIdentifierConsistent;
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverFactory.CLASS_ID_CFG_KEY;
 import static org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil.createInstance;
 
 import java.util.Arrays;
@@ -123,14 +125,14 @@ public final class SettingsLoaderFactory extends PersistenceFactory<ParametersLo
         final Function<TreeNode<Persistable>, ParametersLoader> getLoader) {
         return settings -> {
             if (tree.isDynamic()) {
-                final var classId = settings.getString("@class", "");
+                final var classId = settings.getString(CLASS_ID_CFG_KEY, "");
                 if (classId == null) {
                     return null;
                 }
                 final var dynamicParametersProvider = createInstance(
                     tree.getAnnotation(DynamicParameters.class).orElseThrow(IllegalStateException::new).value());
                 final var parametersClass =
-                    dynamicParametersProvider.getClassIdStrategy().fromIdentifierInternal(classId);
+                    fromIdentifierConsistent(dynamicParametersProvider.getClassIdStrategy(), classId);
                 if (parametersClass == null) {
                     throw new InvalidSettingsException("Could not find class '" + classId + "' for dynamic settings.");
                 }

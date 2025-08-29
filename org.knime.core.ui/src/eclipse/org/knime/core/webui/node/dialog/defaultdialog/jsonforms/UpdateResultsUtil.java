@@ -202,7 +202,7 @@ public final class UpdateResultsUtil {
             final var serializedValue = JacksonSerializationUtil.serialize(value, value.specialSerializer());
             return new IndexedValue<>(value.indices(), serializedValue);
         }
-        return new IndexedValue<I>(value.indices(), serialize.apply(value.value()));
+        return new IndexedValue<>(value.indices(), serialize.apply(value.value()));
     }
 
     /**

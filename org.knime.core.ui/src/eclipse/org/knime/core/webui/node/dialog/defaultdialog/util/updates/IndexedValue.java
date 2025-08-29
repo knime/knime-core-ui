@@ -64,7 +64,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
  * @author Paul Bärnreuther
  * @param <I> the type of the indices. Either Integer for indices or String for indexIds.
  * @param indices defining the location of the value relative to the location of the trigger
- * @param value
+ * @param value the java value
  * @param specialSerializer optional serializer to use for the value (if null the default serializer for the value is
  *            used)
  */
