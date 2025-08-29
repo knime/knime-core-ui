@@ -12,6 +12,16 @@ This package contains the Scripting Editor framework for KNIME Analytics Platfor
 npm install
 ```
 
+### Run Demo for UI Development
+
+```sh
+npm run demo
+```
+
+Opens a standalone demo at [http://localhost:3000](http://localhost:3000) with mocked backend services. Perfect for developing and testing UI components without needing to link to other projects or rebuild constantly.
+
+See [demo/README.md](demo/README.md) for detailed documentation.
+
 ### Compile and Hot-Reload for Development
 
 ```sh
