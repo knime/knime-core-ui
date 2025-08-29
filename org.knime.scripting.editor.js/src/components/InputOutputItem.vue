@@ -519,14 +519,14 @@ const fallbackType = computed(() => {
   transition: background-color 0.1s ease;
   padding: 2px var(--space-8);
 
+  &.selected {
+    background-color: var(--knime-cornflower-semi);
+  }
+
   .sub-item-name {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-
-    &.selected {
-      background-color: var(--knime-cornflower-semi);
-    }
   }
 }
 
