@@ -3,7 +3,7 @@ export const GO_INTO_FOLDER_INJECTION_KEY = "goIntoFolderInjectionKey";
 </script>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, useTemplateRef } from "vue";
 
 import { Button } from "@knime/components";
 import { SettingsSubPanel } from "@knime/jsonforms";
@@ -30,21 +30,30 @@ const emitApplyAndClose = () => {
   close();
 };
 
+const applyButtonTemplateRef = "applyButton";
+const applyButton = useTemplateRef<HTMLElement>(applyButtonTemplateRef);
 const {
   text: applyText,
   disabled: applyDisabled,
-  element: applyButton,
   onApply,
-} = setUpApplyButton();
+} = setUpApplyButton({ element: applyButton, initialValue: { text: "Apply" } });
 
+const goIntoFolderButtonTemplateRef = "goIntoFolderButton";
+const goIntoFolderButton = useTemplateRef<HTMLElement>(
+  goIntoFolderButtonTemplateRef,
+);
 const {
   text: enterFolderButtonText,
   disabled: enterFolderButtonDisabled,
   shown: enterFolderButtonShown,
-  element: goIntoFolderButton,
   onApply: onEnterFolderButtonClicked,
-} = setUpApplyButton(GO_INTO_FOLDER_INJECTION_KEY);
-enterFolderButtonText.value = "Open folder";
+} = setUpApplyButton({
+  key: GO_INTO_FOLDER_INJECTION_KEY,
+  element: goIntoFolderButton,
+  initialValue: {
+    text: "Open folder",
+  },
+});
 
 const apply = () =>
   onApply
@@ -71,7 +80,7 @@ const apply = () =>
         <div>
           <Button
             v-if="enterFolderButtonShown"
-            ref="goIntoFolderButton"
+            :ref="goIntoFolderButtonTemplateRef"
             with-border
             compact
             :disabled="enterFolderButtonDisabled"

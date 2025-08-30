@@ -63,9 +63,12 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.data.DataServiceContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter.AdapterTable;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 
 /**
  * Data service for the DBTableChooser dialog.
@@ -76,28 +79,41 @@ public final class DBTableChooserDataService {
 
     private final DBTableAdapter m_adapterInstance;
 
+    private final boolean m_allowViews;
+
     /**
      * Constructor for the DBTableChooserDataService.
      *
      * @param dbTableAdapter the DBTableAdapter to use - this should be an annotation on the {@link NodeParameters}
      *            class that needs this service to exist.
+     * @param allowViews whether views are sent to the frontend next to tables. See
+     *            {@link DBTableAdapterProvider#allowViews()}.
      */
-    public DBTableChooserDataService(final Class<? extends DBTableAdapter> dbTableAdapter) {
+    public DBTableChooserDataService(final Class<? extends DBTableAdapter> dbTableAdapter, final boolean allowViews) {
         Objects.requireNonNull(dbTableAdapter, "dbTableAdapter must not be null");
 
         m_adapterInstance = DBTableAdapterProvider.DBTableAdapter.instantiate(dbTableAdapter,
             () -> DataServiceContext.get().getInputSpecs());
+        m_allowViews = allowViews;
+    }
+
+    DBTableChooserDataService(final Class<? extends DBTableAdapter> dbTableAdapter) {
+        this(dbTableAdapter, false);
     }
 
     enum DBItemType {
-            ROOT, CATALOG, SCHEMA, TABLE;
+            ROOT, CATALOG, SCHEMA,
+            /**
+             * Including views, see {@link DBTableType}.
+             */
+            TABLE;
 
         DBItemType nextDown(final boolean supportsCatalogues) {
             return switch (this) {
                 case ROOT -> supportsCatalogues ? CATALOG : SCHEMA;
                 case CATALOG -> SCHEMA;
                 case SCHEMA -> TABLE;
-                case TABLE -> throw new IllegalArgumentException("Nothing comes below table");
+                default -> throw new IllegalArgumentException("Nothing comes below table");
             };
         }
 
@@ -106,14 +122,18 @@ public final class DBTableChooserDataService {
         }
     }
 
+    enum DBTableType {
+            TABLE, VIEW;
+    }
+
     record DBContainerAndChildren(List<String> pathParts, List<DBItem> children) {
 
         private static <T> List<T> append(final List<T> list1, final T newItem) {
             return Stream.concat(list1.stream(), Stream.of(newItem)).toList();
         }
 
-        private DBContainerAndChildren childToContainer(final DBItem childOfThisContainer, final DBTableAdapter adapter)
-            throws SQLException {
+        private DBContainerAndChildren childToContainer(final DBItem childOfThisContainer, final DBTableAdapter adapter,
+            final boolean allowViews) throws SQLException {
 
             var newPathParts = append(pathParts, childOfThisContainer.name);
 
@@ -124,23 +144,35 @@ public final class DBTableChooserDataService {
                     );
                 case SCHEMA -> new DBContainerAndChildren( //
                     newPathParts, //
-                    adapter.listTables(newPathParts.get(0), newPathParts.get(newPathParts.size() - 1)).stream() //
-                        .map(DBItem::table) //
-                        .toList());
-                case TABLE -> throw new IllegalArgumentException("Table can't be viewed as a container");
-                case ROOT -> throw new IllegalArgumentException("Root can't be a child");
+                    Stream.concat( //
+                        getTables(newPathParts.get(0), childOfThisContainer.name, adapter), //
+                        allowViews ? getViews(newPathParts.get(0), childOfThisContainer.name, adapter) //
+                            : Stream.<DBItem> empty() //
+                    ).toList()); //
+                default -> throw new IllegalArgumentException("Only catalogues and schemas can be listed.");
+
             };
         }
 
-        DBContainerAndChildren childToContainer(final String childOfThisContainer, final DBTableAdapter adapter)
-            throws SQLException {
+        private static Stream<DBItem> getTables(final String catalogue, final String schema,
+            final DBTableAdapter adapter) throws SQLException {
+            return adapter.listTables(catalogue, schema).stream().map(t -> DBItem.table(t, DBTableType.TABLE));
+        }
+
+        private static Stream<DBItem> getViews(final String catalogue, final String schema,
+            final DBTableAdapter adapter) throws SQLException {
+            return adapter.listViews(catalogue, schema).stream().map(t -> DBItem.table(t, DBTableType.VIEW));
+        }
+
+        DBContainerAndChildren childToContainer(final String childOfThisContainer, final DBTableAdapter adapter,
+            final boolean allowViews) throws SQLException {
 
             var childAsDBItem = children.stream() //
                 .filter(item -> item.name.equalsIgnoreCase(childOfThisContainer)) //
                 .findFirst() //
                 .orElseThrow(() -> new IllegalArgumentException("Child not found: " + childOfThisContainer));
 
-            return childToContainer(childAsDBItem, adapter);
+            return childToContainer(childAsDBItem, adapter, allowViews);
         }
 
         boolean hasChild(final String childName) {
@@ -148,10 +180,23 @@ public final class DBTableChooserDataService {
         }
     }
 
-    record DBItem(String name, DBItemType type) {
+    /**
+     * The representation of an item in the database - either a catalogue, schema, or table.
+     *
+     * @param name the name of the item
+     * @param type the type of the item
+     * @param tableMetadata present metadata when the item type is TABLE, otherwise null.
+     */
+    record DBItem(String name, DBItemType type, DBTableMetadata tableMetadata) {
 
-        static DBItem table(final String name) {
-            return new DBItem(name, DBItemType.TABLE);
+        DBItem(final String name, final DBItemType type) {
+            this(name, type, null);
+            CheckUtils.checkArgument(type != DBItemType.TABLE, "Table metadata must be provided for table items");
+        }
+
+        static DBItem table(final AdapterTable table, final DBTableType tableType) {
+            return new DBItem(table.name(), DBItemType.TABLE,
+                new DBTableMetadata(tableType, table.containingSchema(), table.containingCatalogue()));
         }
 
         static DBItem schema(final String name) {
@@ -161,6 +206,9 @@ public final class DBTableChooserDataService {
         static DBItem catalog(final String name) {
             return new DBItem(name, DBItemType.CATALOG);
         }
+    }
+
+    record DBTableMetadata(DBTableType tableType, String containingSchema, String containingCatalogue) {
     }
 
     /**
@@ -236,7 +284,7 @@ public final class DBTableChooserDataService {
         if (s == null || s.isEmpty()) {
             return s;
         }
-        return s.substring(0, 1).toUpperCase() + s.substring(1);
+        return s.substring(0, 1).toUpperCase(Locale.getDefault()) + s.substring(1);
     }
 
     /**
@@ -283,7 +331,7 @@ public final class DBTableChooserDataService {
                     );
                 }
 
-                currentContainer = currentContainer.childToContainer(nextPart, m_adapterInstance);
+                currentContainer = currentContainer.childToContainer(nextPart, m_adapterInstance, m_allowViews);
                 currentContainerType = currentContainerType.nextDown(supportsCatalogues);
                 pathParts = pathParts.subList(1, pathParts.size());
             }
@@ -337,7 +385,7 @@ public final class DBTableChooserDataService {
             // we shouldn't do this if this is the last part since it could be
             // a table, which is not a container
             if (i != pathParts.size() - 1) {
-                level = level.childToContainer(pathParts.get(i), m_adapterInstance);
+                level = level.childToContainer(pathParts.get(i), m_adapterInstance, m_allowViews);
             }
         }
 
@@ -358,37 +406,46 @@ public final class DBTableChooserDataService {
         Class<? extends DBTableAdapter> value();
 
         /**
-         * Show validation error for the schema. When set to true, the component checks if the specified schema exists
-         * in the database, showing a validation error if it does not. Useful for selecting existing schemas.
+         * Show validation error for the schema. When set to true (default), the component checks if the specified
+         * schema exists in the database, showing a validation error if it does not. Useful for selecting existing
+         * schemas.
          */
-        boolean validateSchema() default false;
+        boolean validateSchema() default true;
 
         /**
-         * Show validation error for the table. When set to true, the component checks if the specified table exists in
-         * the database, showing a validation error if it does not. Useful for selecting existing tables. Setting to
-         * false allows for the creation of new tables without validation errors.
+         * Show validation error for the table. When set to true (default), the component checks if the specified table
+         * exists in the database, showing a validation error if it does not. Useful for selecting existing tables.
+         * Setting to false allows for the creation of new tables without validation errors.
          */
-        boolean validateTable() default false;
+        boolean validateTable() default true;
+
+        /**
+         * If true, views are enabled next to tables.
+         *
+         * I.e. set this to false if the operation is not read-only.
+         *
+         * @return true if views should be shown
+         */
+        boolean allowViews();
 
         /**
          * Intended to be subclassed by the user of this annotation. Note that the class must have a constructor with a
          * single argument of type {@link DataServiceContext} - this will be provided by the service so you don't need
          * to worry about where it comes from.
+         *
+         * Contract: Define a constructor like this:
+         *
+         * <code>
+         * public YourDBTableAdapter(final Supplier<PortObjectSpec[]> portObjectSpecSupplier) {
+         *
+         * }
+         * </code>
+         *
+         * It is guaranteed that {@link #getDbConnectionError} is called before (not in the same instance!) any of the
+         * other methods, so you can assume that the specs are of the correct type if the specs from the node parameters
+         * input are validated there .
          */
         abstract class DBTableAdapter {
-
-            protected final Supplier<PortObjectSpec[]> m_inputPortSpecSupplier;
-
-            /**
-             * Constructor for the DBTableAdapter.
-             *
-             * @param inputPortSpecSupplier the supplier for the input ports specced to use, which should be passed by
-             *            the subclass. The subclass can get it from the service by providing a single-argument
-             *            constructor that takes a {@link Supplier} supplier parameter.
-             */
-            protected DBTableAdapter(final Supplier<PortObjectSpec[]> inputPortSpecSupplier) {
-                m_inputPortSpecSupplier = inputPortSpecSupplier;
-            }
 
             /**
              * Lists the catalogues in the database. If the database does not support catalogues (e.g. SQLite and most
@@ -403,8 +460,8 @@ public final class DBTableChooserDataService {
              * Lists the schemas in the database. If the database does not support schemas (e.g. MySQL) this will still
              * be a list of strings, which will contain one entry 'default'.
              *
-             * @param catalogue the catalogue to list schemas from. If the database does not support catalogues this
-             *            should be ignored (and most databases don't support it).
+             * @param catalogue to list schemas from. If the database does not support catalogues this should be ignored
+             *            (and most databases don't support it).
              *
              * @return the list of schemas in the database
              * @throws SQLException if a database error occurs while listing the schemas
@@ -414,21 +471,49 @@ public final class DBTableChooserDataService {
             /**
              * Lists the tables in the database under the given schema.
              *
-             * @param catalogue the catalogue to list tables from. If the database does not support catalogues this
-             *            should be ignored.
+             * @param catalogue to list tables from. If the database does not support catalogues this should be ignored.
              * @param schema the schema to list tables from. If the database does not support schemas this should be
              *            ignored.
-             * @return the list of tables in the schema
+             * @return the list of tables in the schema excluding views
              * @throws SQLException if a database error occurs while listing the tables
              */
-            public abstract List<String> listTables(String catalogue, String schema) throws SQLException;
+            public abstract List<AdapterTable> listTables(String catalogue, String schema) throws SQLException;
+
+            /**
+             * Lists the views in the database under the given schema.
+             *
+             * @param catalogue to list views from. If the database does not support catalogues this should be ignored.
+             * @param schema the schema to list views from. If the database does not support schemas this should be
+             *            ignored.
+             * @return the list of views in the schema excluding tables
+             * @throws SQLException if a database error occurs while listing the views
+             */
+            public abstract List<AdapterTable> listViews(String catalogue, String schema) throws SQLException;
+
+            /**
+             * The representation of a table or view in the database. This is used to provide additional metadata about
+             * the table or view.
+             *
+             * @param name the name of the table or view
+             * @param containingSchema the schema that contains the table or view. This does not need to be the name of
+             *            the schema name used to list the tables, since that is sometimes just a dummy display name.
+             *            Can be null.
+             * @param containingCatalogue the catalogue that contains the table or view.
+             *
+             * @author Paul Bärnreuther
+             */
+            public record AdapterTable(String name, String containingSchema, String containingCatalogue) {
+            }
 
             /**
              * Checks if the database is connected.
              *
+             * @param input the node parameters input, which can be used to get and validate the specs of the input
+             *            ports.
+             *
              * @return true if the database is connected, false otherwise.
              */
-            public abstract boolean isDbConnected();
+            public abstract Optional<String> getDbConnectionError(NodeParametersInput input);
 
             /**
              * Helper method to instantiate a DBTableAdapter subclass. Node developers will probably not need this, but

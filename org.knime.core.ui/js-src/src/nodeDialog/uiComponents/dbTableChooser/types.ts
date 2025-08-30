@@ -1,5 +1,5 @@
 export type DBTableSelection = {
   catalogName: string | null;
-  schemaName: string;
+  schemaName: string | null;
   tableName: string;
 };

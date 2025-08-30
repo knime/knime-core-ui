@@ -33,7 +33,11 @@ const { appendedExtension, filteredExtensions, isLoaded, isWriter } =
       compact
       @update:model-value="changeValue"
     />
-    <FileBrowserButton :disabled="disabled" @apply="onApply">
+    <FileBrowserButton
+      #default="{ applyAndClose }"
+      :disabled="disabled"
+      @apply="onApply"
+    >
       <DialogFileExplorer
         v-if="isLoaded"
         :backend-type="'local'"
@@ -44,6 +48,7 @@ const { appendedExtension, filteredExtensions, isLoaded, isWriter } =
         :appended-extension="appendedExtension"
         :initial-file-path="sideDrawerValue"
         @choose-item="updateSideDrawerValue"
+        @apply-and-close="applyAndClose"
       />
     </FileBrowserButton>
   </div>

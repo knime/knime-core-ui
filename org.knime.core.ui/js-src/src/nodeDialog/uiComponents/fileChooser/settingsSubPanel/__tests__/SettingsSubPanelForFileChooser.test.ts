@@ -107,6 +107,7 @@ describe("SettingsSubPanelForFileChoooser", () => {
     await applyButton.trigger("click");
     await flushPromises();
     await nextTick();
+    expect(onApply).toHaveBeenCalled();
 
     await new Promise((resolve) => setTimeout(resolve, 100));
 

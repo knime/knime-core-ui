@@ -60,6 +60,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,6 +71,9 @@ import org.knime.core.webui.data.DataServiceContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBItem;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBItemType;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableMetadata;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableType;
+import org.knime.node.parameters.NodeParametersInput;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -124,16 +128,20 @@ final class DBTableChooserDataServiceTest {
             assertNull(tablesInSchema1.errorMessage(), "expected no errors");
 
             assertEquals(2, tablesInSchema1.nextValidData().children().size());
-            assertTrue(tablesInSchema1.nextValidData().children().contains(new DBItem("table1", DBItemType.TABLE)));
-            assertTrue(tablesInSchema1.nextValidData().children().contains(new DBItem("table2", DBItemType.TABLE)));
+            assertTrue(tablesInSchema1.nextValidData().children().contains(new DBItem("table1", DBItemType.TABLE,
+                new DBTableMetadata(DBTableType.TABLE, "Schema of table1", null))));
+            assertTrue(tablesInSchema1.nextValidData().children().contains(new DBItem("table2", DBItemType.TABLE,
+                new DBTableMetadata(DBTableType.TABLE, "Schema of table2", null))));
 
             var tablesInSchema2 = service.listItems(List.of("schema2"), null);
             assertNotNull(tablesInSchema2.nextValidData(), "expected valid data");
             assertNull(tablesInSchema2.errorMessage(), "expected no errors");
 
             assertEquals(2, tablesInSchema2.nextValidData().children().size());
-            assertTrue(tablesInSchema2.nextValidData().children().contains(new DBItem("table3", DBItemType.TABLE)));
-            assertTrue(tablesInSchema2.nextValidData().children().contains(new DBItem("table4", DBItemType.TABLE)));
+            assertTrue(tablesInSchema2.nextValidData().children().contains(new DBItem("table3", DBItemType.TABLE,
+                new DBTableMetadata(DBTableType.TABLE, "Schema of table3", null))));
+            assertTrue(tablesInSchema2.nextValidData().children().contains(new DBItem("table4", DBItemType.TABLE,
+                new DBTableMetadata(DBTableType.TABLE, "Schema of table4", null))));
 
             var emptyResult = service.listItems(List.of("nonexistent_schema"), null);
             assertNotNull(emptyResult.nextValidData(), "expected errors");
@@ -232,8 +240,10 @@ final class DBTableChooserDataServiceTest {
             assertNull(tablesInSchema1.errorMessage(), "expected no errors");
 
             assertEquals(2, tablesInSchema1.nextValidData().children().size());
-            assertTrue(tablesInSchema1.nextValidData().children().contains(new DBItem("table1", DBItemType.TABLE)));
-            assertTrue(tablesInSchema1.nextValidData().children().contains(new DBItem("table2", DBItemType.TABLE)));
+            assertTrue(tablesInSchema1.nextValidData().children().contains(new DBItem("table1", DBItemType.TABLE,
+                new DBTableMetadata(DBTableType.TABLE, "Schema of table1", "Catalog of table1"))));
+            assertTrue(tablesInSchema1.nextValidData().children().contains(new DBItem("table2", DBItemType.TABLE,
+                new DBTableMetadata(DBTableType.TABLE, "Schema of table2", "Catalog of table2"))));
 
             var tablesInSchema2 = service.listItems(List.of("catalogue1", "schema2"), null);
 
@@ -241,8 +251,10 @@ final class DBTableChooserDataServiceTest {
             assertNull(tablesInSchema2.errorMessage(), "expected no errors");
 
             assertEquals(2, tablesInSchema2.nextValidData().children().size());
-            assertTrue(tablesInSchema2.nextValidData().children().contains(new DBItem("table3", DBItemType.TABLE)));
-            assertTrue(tablesInSchema2.nextValidData().children().contains(new DBItem("table4", DBItemType.TABLE)));
+            assertTrue(tablesInSchema2.nextValidData().children().contains(new DBItem("table3", DBItemType.TABLE,
+                new DBTableMetadata(DBTableType.TABLE, "Schema of table3", "Catalog of table3"))));
+            assertTrue(tablesInSchema2.nextValidData().children().contains(new DBItem("table4", DBItemType.TABLE,
+                new DBTableMetadata(DBTableType.TABLE, "Schema of table4", "Catalog of table4"))));
 
             // test empty result for non-existent schema
             var invalidResult = service.listItems(List.of("catalogue1", "nonexistent_schema"), null);
@@ -259,6 +271,25 @@ final class DBTableChooserDataServiceTest {
             var nonExistentResult = service.listItems(List.of("nonexistent_catalogue", "nonexistent_schema"), null);
             assertNotNull(nonExistentResult.errorMessage(), "expected errors");
             assertTrue(nonExistentResult.nextValidData().pathParts().isEmpty(), "expected root to be returned");
+        }
+
+        @Test
+        void testListTablesAndViews() {
+            var service = new DBTableChooserDataService(AdapterWithCatalogues.class, true);
+
+            var tablesInSchema1 = service.listItems(List.of("catalogue1", "schema1"), null);
+
+            assertNotNull(tablesInSchema1.nextValidData(), "expected valid data");
+            assertNull(tablesInSchema1.errorMessage(), "expected no errors");
+
+            assertEquals(3, tablesInSchema1.nextValidData().children().size());
+            assertTrue(tablesInSchema1.nextValidData().children().contains(new DBItem("table1", DBItemType.TABLE,
+                new DBTableMetadata(DBTableType.TABLE, "Schema of table1", "Catalog of table1"))));
+            assertTrue(tablesInSchema1.nextValidData().children().contains(new DBItem("table2", DBItemType.TABLE,
+                new DBTableMetadata(DBTableType.TABLE, "Schema of table2", "Catalog of table2"))));
+            assertTrue(tablesInSchema1.nextValidData().children().contains(
+                new DBItem("view1", DBItemType.TABLE, new DBTableMetadata(DBTableType.VIEW, "schema1", "catalogue1"))));
+
         }
 
         @Test
@@ -305,8 +336,10 @@ final class DBTableChooserDataServiceTest {
             assertNull(tables.errorMessage(), "expected no errors");
 
             assertEquals(2, tables.nextValidData().children().size());
-            assertTrue(tables.nextValidData().children().contains(new DBItem("table1", DBItemType.TABLE)));
-            assertTrue(tables.nextValidData().children().contains(new DBItem("table2", DBItemType.TABLE)));
+            assertTrue(tables.nextValidData().children().contains(new DBItem("table1", DBItemType.TABLE,
+                new DBTableMetadata(DBTableType.TABLE, "Schema of table1", "Catalog of table1"))));
+            assertTrue(tables.nextValidData().children().contains(new DBItem("table2", DBItemType.TABLE,
+                new DBTableMetadata(DBTableType.TABLE, "Schema of table2", "Catalog of table2"))));
 
             var tablesWithInvalidTableArg = service.listItems(List.of("catalogue1", "schema1"), "nonexistent_table");
             assertNotNull(tablesWithInvalidTableArg.errorMessage(), "expected errors");
@@ -355,7 +388,6 @@ final class DBTableChooserDataServiceTest {
     static class BaseTestAdapter extends DBTableAdapter {
 
         protected BaseTestAdapter(final Supplier<PortObjectSpec[]> context) {
-            super(context);
         }
 
         @Override
@@ -369,17 +401,28 @@ final class DBTableChooserDataServiceTest {
         }
 
         @Override
-        public List<String> listTables(final String catalogue, final String schema) {
+        public List<AdapterTable> listTables(final String catalogue, final String schema) {
             return switch (schema) {
-                case "schema1" -> List.of("table1", "table2");
-                case "schema2" -> List.of("table3", "table4");
+                case "schema1" -> Stream.of("table1", "table2").map(t -> new AdapterTable(t, schema, catalogue))
+                    .toList();
+                case "schema2" -> Stream.of("table3", "table4").map(t -> new AdapterTable(t, schema, catalogue))
+                    .toList();
                 default -> throw new IllegalArgumentException("Unknown schema: " + schema);
             };
         }
 
         @Override
-        public boolean isDbConnected() {
-            return true;
+        public List<AdapterTable> listViews(final String catalogue, final String schema) throws SQLException {
+            return switch (schema) {
+                case "schema1" -> List.of(new AdapterTable("view1", schema, catalogue));
+                case "schema2" -> List.of();
+                default -> throw new IllegalArgumentException("Unknown schema: " + schema);
+            };
+        }
+
+        @Override
+        public Optional<String> getDbConnectionError(final NodeParametersInput input) {
+            return Optional.empty();
         }
     }
 
@@ -403,14 +446,15 @@ final class DBTableChooserDataServiceTest {
         }
 
         @Override
-        public List<String> listTables(final String catalogue, final String schema) {
-            return switch (schema) {
-                case "schema1" -> List.of("table1", "table2");
-                case "schema2" -> List.of("table3", "table4");
-                case "schema3" -> List.of("table5", "table6");
-                case "schema4" -> List.of("table7", "table8");
+        public List<AdapterTable> listTables(final String catalogue, final String schema) {
+            return (switch (schema) {
+                case "schema1" -> Stream.of("table1", "table2");
+                case "schema2" -> Stream.of("table3", "table4");
+                case "schema3" -> Stream.of("table5", "table6");
+                case "schema4" -> Stream.of("table7", "table8");
                 default -> throw new IllegalArgumentException("Unknown schema: " + schema);
-            };
+            }).map(t -> new AdapterTable(t, String.format("Schema of %s", t), String.format("Catalog of %s", t)))
+                .toList();
         }
     }
 
@@ -430,12 +474,12 @@ final class DBTableChooserDataServiceTest {
         }
 
         @Override
-        public List<String> listTables(final String catalogue, final String schema) {
-            return switch (schema) {
-                case "schema1" -> List.of("table1", "table2");
-                case "schema2" -> List.of("table3", "table4");
+        public List<AdapterTable> listTables(final String catalogue, final String schema) {
+            return (switch (schema) {
+                case "schema1" -> Stream.of("table1", "table2");
+                case "schema2" -> Stream.of("table3", "table4");
                 default -> throw new IllegalArgumentException("Unknown schema: " + schema);
-            };
+            }).map(t -> new AdapterTable(t, String.format("Schema of %s", t), null)).toList();
         }
     }
 
@@ -468,8 +512,8 @@ final class DBTableChooserDataServiceTest {
         }
 
         @Override
-        public boolean isDbConnected() {
-            return false;
+        public Optional<String> getDbConnectionError(final NodeParametersInput input) {
+            return Optional.of("Please connect a DB!");
         }
     }
 }

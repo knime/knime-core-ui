@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable complexity */
 import type { Result } from "../api/types/Result";
+import { makeTableChooserBackendMock } from "../mocks/dbTableChooserMock";
 import type { IndicesValuePairs, UpdateResult } from "../types/Update";
 import type { PreviewResult } from "../uiComponents/fileChooser/composables/useFileFilterPreviewBackend";
 
@@ -359,6 +360,9 @@ const mockFileFilterPreview = (rpcRequest: {
   };
 };
 
+// Create DB table chooser backend with catalogs enabled
+const dbTableChooserBackend = makeTableChooserBackendMock(true);
+
 export default (rpcRequest: { method: string; params: any[] }) => {
   switch (rpcRequest.method) {
     case "flowVariables.getAvailableFlowVariables":
@@ -534,6 +538,13 @@ export default (rpcRequest: { method: string; params: any[] }) => {
             : "The only valid format is: MM/DD/YYYY",
         state: "SUCCESS",
       };
+    case "dbTableChooser.listItems":
+      return dbTableChooserBackend.listItems(
+        rpcRequest.params[0],
+        rpcRequest.params[1],
+      );
+    case "dbTableChooser.itemType":
+      return dbTableChooserBackend.itemType(rpcRequest.params[0]);
     default:
       return null;
   }

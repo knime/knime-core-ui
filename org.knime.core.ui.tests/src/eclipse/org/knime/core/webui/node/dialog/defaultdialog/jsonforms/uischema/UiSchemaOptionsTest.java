@@ -178,7 +178,7 @@ class UiSchemaOptionsTest {
     @Test
     void testDefaultFormats() {
         @SuppressWarnings("unused")
-        @DBTableAdapterProvider(DummyDbAdapterWithoutCatalogues.class)
+        @DBTableAdapterProvider(value = DummyDbAdapterWithoutCatalogues.class, allowViews = false)
         class DefaultStylesSettings implements NodeParameters {
             @Widget(title = "", description = "")
             String m_string;
@@ -2001,7 +2001,7 @@ class UiSchemaOptionsTest {
     @Test
     void testThatDbTableAdapterSetsSupportsCatalogues() {
 
-        @DBTableAdapterProvider(DummyDbAdapterWithoutCatalogues.class)
+        @DBTableAdapterProvider(value = DummyDbAdapterWithoutCatalogues.class, allowViews = true)
         class SettingsWithoutCatalogues implements NodeParameters {
             @Widget(title = "", description = "")
             DBTableSelection m_dbTableSelection;
@@ -2011,10 +2011,9 @@ class UiSchemaOptionsTest {
         var response = buildTestUiSchema(SettingsWithoutCatalogues.class, context);
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("dbTableSelection");
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dbTableChooser");
-        assertThatJson(response).inPath("$.elements[0].options.dbConnected").isBoolean().isTrue();
         assertThatJson(response).inPath("$.elements[0].options.catalogsSupported").isBoolean().isFalse();
 
-        @DBTableAdapterProvider(DummyDbAdapterWithCatalogues.class)
+        @DBTableAdapterProvider(value = DummyDbAdapterWithCatalogues.class, allowViews = true)
         class SettingsWithCatalogues implements NodeParameters {
             @Widget(title = "", description = "")
             DBTableSelection m_dbTableSelection;
@@ -2023,13 +2022,12 @@ class UiSchemaOptionsTest {
         response = buildTestUiSchema(SettingsWithCatalogues.class, context);
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("dbTableSelection");
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dbTableChooser");
-        assertThatJson(response).inPath("$.elements[0].options.dbConnected").isBoolean().isTrue();
         assertThatJson(response).inPath("$.elements[0].options.catalogsSupported").isBoolean().isTrue();
     }
 
     @Test
     void testThatDbTableValidationOptionsAreAdded() {
-        @DBTableAdapterProvider(DummyDbAdapterWithoutCatalogues.class)
+        @DBTableAdapterProvider(value = DummyDbAdapterWithoutCatalogues.class, allowViews = true)
         class SettingWithDefaultValues implements NodeParameters {
             @Widget(title = "", description = "")
             DBTableSelection m_dbTableSelection;
@@ -2037,30 +2035,24 @@ class UiSchemaOptionsTest {
 
         var input = Mockito.mock(NodeParametersInput.class);
         var response = buildTestUiSchema(SettingWithDefaultValues.class, input);
-        assertThatJson(response).inPath("$.elements[0].options.validateSchema").isBoolean().isFalse();
-        assertThatJson(response).inPath("$.elements[0].options.validateTable").isBoolean().isFalse();
+        assertThatJson(response).inPath("$.elements[0].options.validateSchema").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[0].options.validateTable").isBoolean().isTrue();
 
-        @DBTableAdapterProvider(value = DummyDbAdapterWithoutCatalogues.class, validateSchema = true,
-            validateTable = true)
+        @DBTableAdapterProvider(value = DummyDbAdapterWithoutCatalogues.class, validateSchema = false,
+            validateTable = false, allowViews = true)
         class SettingWithChangedValues implements NodeParameters {
             @Widget(title = "", description = "")
             DBTableSelection m_dbTableSelection;
         }
 
         response = buildTestUiSchema(SettingWithChangedValues.class, input);
-        assertThatJson(response).inPath("$.elements[0].options.validateSchema").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[0].options.validateTable").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[0].options.validateSchema").isBoolean().isFalse();
+        assertThatJson(response).inPath("$.elements[0].options.validateTable").isBoolean().isFalse();
     }
 
     static class DummyDbAdapterWithoutCatalogues extends DBTableAdapter {
 
         DummyDbAdapterWithoutCatalogues(final Supplier<PortObjectSpec[]> inputPortSpecSupplier) {
-            super(inputPortSpecSupplier);
-        }
-
-        @Override
-        public boolean isDbConnected() {
-            return true;
         }
 
         @Override
@@ -2074,8 +2066,18 @@ class UiSchemaOptionsTest {
         }
 
         @Override
-        public List<String> listTables(final String catalogue, final String schema) throws SQLException {
+        public List<AdapterTable> listTables(final String catalogue, final String schema) throws SQLException {
             return List.of();
+        }
+
+        @Override
+        public List<AdapterTable> listViews(final String catalogue, final String schema) throws SQLException {
+            return List.of();
+        }
+
+        @Override
+        public Optional<String> getDbConnectionError(final NodeParametersInput input) {
+            return Optional.empty();
         }
     }
 
@@ -2083,11 +2085,6 @@ class UiSchemaOptionsTest {
 
         DummyDbAdapterWithCatalogues(final Supplier<PortObjectSpec[]> inputPortSpecSupplier) {
             super(inputPortSpecSupplier);
-        }
-
-        @Override
-        public boolean isDbConnected() {
-            return true;
         }
 
         @Override

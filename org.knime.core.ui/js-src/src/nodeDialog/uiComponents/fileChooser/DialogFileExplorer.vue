@@ -256,7 +256,7 @@ watch(
       :disable-context-menu="true"
       :disable-multi-select="true"
       :disable-dragging="true"
-      :click-outside-exception="clickOutsideExceptions"
+      :click-outside-exceptions="clickOutsideExceptions"
       @change-directory="changeDirectory"
       @open-file="openFile"
       @update:selected-item-ids="onChangeSelectedItemIds"

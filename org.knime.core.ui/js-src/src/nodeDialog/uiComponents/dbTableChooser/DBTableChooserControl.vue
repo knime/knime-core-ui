@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref, useTemplateRef, watch } from "vue";
 
 import { Button, InlineMessage } from "@knime/components";
 import { SettingsSubPanel, type VueControlProps } from "@knime/jsonforms";
@@ -19,76 +19,49 @@ const props = defineProps<VueControlProps<DBTableSelection>>();
 
 const { itemType } = useDbTableChooserBackend();
 
+const options = computed(() => props.control.uischema.options!);
 const areCatalogsSupported = computed<boolean>(
-  () => props.control.uischema.options!.catalogsSupported,
+  () => options.value.catalogsSupported,
 );
-
+const dbConnectionError = computed<string | undefined>(
+  () => options.value.dbConnectionError,
+);
 const isDbConnected = computed<boolean>(
-  () => props.control.uischema.options!.dbConnected,
+  () => typeof dbConnectionError.value === "undefined",
 );
+const validateSchema = computed<boolean>(() => options.value.validateSchema);
+const validateTable = computed<boolean>(() => options.value.validateTable);
 
-const validateSchema = computed<boolean>(
-  () => props.control.uischema.options!.validateSchema,
-);
-
-const validateTable = computed<boolean>(
-  () => props.control.uischema.options!.validateTable,
-);
-
-const pathParts = computed<string[]>({
-  get: () => {
-    const output: string[] = [];
-    if (areCatalogsSupported.value) {
-      if (props.control.data.catalogName) {
-        output.push(props.control.data.catalogName);
-      } else {
-        return [];
-      }
-    }
-    if (props.control.data.schemaName || props.control.data.tableName) {
-      output.push(props.control.data.schemaName);
-      if (props.control.data.tableName) {
-        output.push(props.control.data.tableName);
-      }
-    }
-
-    return output;
-  },
-  set: (value: string[]) => {
-    if (areCatalogsSupported.value) {
-      props.changeValue({
-        catalogName: value[0],
-        schemaName: value[1],
-        tableName: value[2],
-      });
+const initialPathParts = computed<(string | null)[]>(() => {
+  const output: (string | null)[] = [];
+  if (areCatalogsSupported.value) {
+    const catalogName = props.control.data.catalogName;
+    if (catalogName) {
+      output.push(catalogName);
     } else {
-      props.changeValue({
-        catalogName: null,
-        schemaName: value[0],
-        tableName: value[1],
-      });
+      return [];
     }
-  },
-});
-
-const currentFolderPath = computed<string[]>(() => {
-  const pathPossiblyIncludingTable = pathParts.value;
-
-  const lengthIfTableIsIncluded = areCatalogsSupported.value ? 3 : 2;
-
-  return pathPossiblyIncludingTable.slice(
-    0,
-    Math.min(lengthIfTableIsIncluded - 1, pathPossiblyIncludingTable.length),
-  );
+  }
+  const schemaName = props.control.data.schemaName;
+  if (schemaName) {
+    output.push(schemaName);
+  }
+  return output;
 });
 
 const settingsSubPanelRef = ref<typeof SettingsSubPanel | null>(null);
 
-const onTableSelected = (pathParts: string[]) => {
+const lastIndex = -1;
+const secondToLastIndex = -2;
+const thirdToLastIndex = -3;
+
+const onTableSelected = (pathParts: (string | null)[]) => {
   let newData: DBTableSelection = {
-    tableName: pathParts.at(-1) ?? "",
-    schemaName: pathParts.at(-2) ?? "",
-    catalogName: areCatalogsSupported.value ? pathParts.at(-3) ?? "" : "",
+    tableName: pathParts.at(lastIndex) ?? "",
+    schemaName: pathParts.at(secondToLastIndex) ?? null,
+    catalogName: areCatalogsSupported.value
+      ? pathParts.at(thirdToLastIndex) ?? ""
+      : "",
   };
   props.changeValue(newData);
   settingsSubPanelRef.value?.close();
@@ -98,20 +71,30 @@ const close = () => {
   settingsSubPanelRef.value?.close();
 };
 
+const applyButtonTemplateRef = "applyButton";
+const applyButton = useTemplateRef<HTMLElement>(applyButtonTemplateRef);
 const {
   text: applyText,
   disabled: applyDisabled,
-  element: applyButton,
   onApply,
-} = setUpApplyButton();
-applyText.value = "Choose table";
+} = setUpApplyButton({
+  element: applyButton,
+  initialValue: { text: "Choose table" },
+});
 
+const goIntoFolderButtonTemplateRef = "goIntoFolderButton";
+const goIntoFolderButton = useTemplateRef<HTMLElement>(
+  goIntoFolderButtonTemplateRef,
+);
 const {
   text: enterFolderButtonText,
   disabled: enterFolderButtonDisabled,
-  element: goIntoFolderButton,
   onApply: onEnterFolderButtonClicked,
-} = setUpApplyButton(GO_INTO_FOLDER_INJECTION_KEY);
+} = setUpApplyButton({
+  key: GO_INTO_FOLDER_INJECTION_KEY,
+  element: goIntoFolderButton,
+  initialValue: { text: "Go into" },
+});
 
 const apply = () =>
   onApply
@@ -146,18 +129,15 @@ const {
   validateTable,
   enable: enableErrorMessages,
 });
-
-const errorMessageDescription =
-  "No database is currently connected. To proceed, connect a database to the input port, or re-execute any upstream connector nodes.";
 </script>
 
 <template>
   <div class="flex-column">
     <InlineMessage
-      v-if="!isDbConnected"
+      v-if="dbConnectionError"
       variant="info"
       title="Database not connected"
-      :description="errorMessageDescription"
+      :description="dbConnectionError"
     />
 
     <template v-if="areCatalogsSupported">
@@ -206,7 +186,7 @@ const errorMessageDescription =
         </template>
         <template #default>
           <DBTableChooserFileExplorer
-            :initial-path-parts="currentFolderPath"
+            :initial-path-parts="initialPathParts"
             :initial-table="tableName"
             @table-selected="onTableSelected"
           />
@@ -216,7 +196,7 @@ const errorMessageDescription =
             <Button with-border compact @click="close"> Cancel </Button>
             <div>
               <Button
-                ref="goIntoFolderButton"
+                :ref="goIntoFolderButtonTemplateRef"
                 with-border
                 compact
                 :disabled="enterFolderButtonDisabled"
@@ -225,7 +205,7 @@ const errorMessageDescription =
                 {{ enterFolderButtonText }}
               </Button>
               <Button
-                ref="applyButton"
+                :ref="applyButtonTemplateRef"
                 compact
                 primary
                 :disabled="applyDisabled"
@@ -240,7 +220,9 @@ const errorMessageDescription =
       <MessageWithLoadingIcon
         :error-message="
           schemaName === null
-            ? 'Validation disabled when using default schema.'
+            ? validateTable
+              ? 'Validation disabled when using default schema.'
+              : null
             : tableErrorMessage
         "
         :is-loading="tableErrorMessageIsLoading && schemaName !== null"

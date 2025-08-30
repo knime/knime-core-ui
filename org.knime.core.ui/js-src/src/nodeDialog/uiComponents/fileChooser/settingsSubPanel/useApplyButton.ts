@@ -11,6 +11,12 @@ type ProvidedType = {
   onApply: Ref<undefined | (() => Promise<void>)>;
 };
 
+type InitialValue = {
+  text: string;
+  disabled?: true;
+  shown?: false;
+};
+
 const otherKeys: {
   [key: string]: InjectionKey<ProvidedType>;
 } = {};
@@ -34,14 +40,21 @@ export const applyButtonInjectionKey = createOrGetInjectionKey(
   "applyButtonInjectionKey",
 );
 
-export const setUpApplyButton = (key?: string) => {
-  const applyButton = ref(null);
-  const applyText = ref("Apply");
-  const applyButtonShown = ref(false);
-  const applyDisabled = ref(false);
+export const setUpApplyButton = ({
+  key,
+  initialValue,
+  element,
+}: {
+  key?: string;
+  element: Ref<HTMLElement | null>;
+  initialValue: InitialValue;
+}) => {
+  const applyText = ref(initialValue.text);
+  const applyButtonShown = ref(initialValue.shown ?? true);
+  const applyDisabled = ref(initialValue.disabled ?? false);
   const onClick = ref<undefined | (() => Promise<void>)>();
   const provided: ProvidedType = {
-    element: applyButton,
+    element,
     disabled: applyDisabled,
     shown: applyButtonShown,
     text: applyText,
