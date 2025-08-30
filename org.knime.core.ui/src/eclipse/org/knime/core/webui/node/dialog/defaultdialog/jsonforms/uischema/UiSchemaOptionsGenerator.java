@@ -192,7 +192,7 @@ final class UiSchemaOptionsGenerator {
 
     private final Class<?> m_fieldClass;
 
-    private final NodeParametersInput m_defaultNodeSettingsContext;
+    private final NodeParametersInput m_nodeParametersInput;
 
     private final String m_scope;
 
@@ -215,7 +215,7 @@ final class UiSchemaOptionsGenerator {
         m_node = node;
         m_fieldType = node.getType();
         m_fieldClass = node.getRawClass();
-        m_defaultNodeSettingsContext = context;
+        m_nodeParametersInput = context;
         m_scope = scope;
         m_widgetTrees = widgetTrees;
         m_rendererSpec = WidgetTreeRenderers.getRendererSpec(node);
@@ -597,7 +597,7 @@ final class UiSchemaOptionsGenerator {
     }
 
     private void addFileSystemInformation(final ObjectNode options) {
-        getFirstFileSystemPortIndex(m_defaultNodeSettingsContext)
+        getFirstFileSystemPortIndex(m_nodeParametersInput)
             .ifPresent(portIndex -> addFileSystemInformation(options, portIndex));
     }
 
@@ -610,8 +610,8 @@ final class UiSchemaOptionsGenerator {
 
     private void addFileSystemInformation(final ObjectNode options, final int portIndex) {
         options.put("portIndex", portIndex);
-        final var portObjectSpec = m_defaultNodeSettingsContext.getInPortSpec(portIndex)
-            .map(spec -> toFileSystemPortObjectSpec(spec, portIndex));
+        final var portObjectSpec =
+            m_nodeParametersInput.getInPortSpec(portIndex).map(spec -> toFileSystemPortObjectSpec(spec, portIndex));
         portObjectSpec.ifPresent(spec -> {
             options.put("fileSystemType", spec.getFileSystemType());
             spec.getFSLocationSpec().getFileSystemSpecifier()
@@ -790,8 +790,8 @@ final class UiSchemaOptionsGenerator {
 
     private void applyArrayLayoutOptions(final ObjectNode control, final ObjectNode options,
         final Tree<WidgetGroup> elementTree, final ArrayWidget.ElementLayout elementLayout) {
-        var details = JsonFormsUiSchemaUtil
-            .buildUISchema(List.of(elementTree), m_widgetTrees, m_defaultNodeSettingsContext).get(TAG_ELEMENTS);
+        var details = JsonFormsUiSchemaUtil.buildUISchema(List.of(elementTree), m_widgetTrees, m_nodeParametersInput)
+            .get(TAG_ELEMENTS);
         if (elementLayout == ArrayWidget.ElementLayout.HORIZONTAL_SINGLE_LINE && details.isArray()
             && StreamSupport.stream(details.spliterator(), false).count() > 1) {
             options.putArray(TAG_ARRAY_LAYOUT_DETAIL)//
@@ -917,7 +917,7 @@ final class UiSchemaOptionsGenerator {
         var elementTree = new WidgetTreeFactory().createTree(cls, null);
 
         var filterSubUiSchema =
-            JsonFormsUiSchemaUtil.buildUISchema(List.of(elementTree), m_widgetTrees, m_defaultNodeSettingsContext);
+            JsonFormsUiSchemaUtil.buildUISchema(List.of(elementTree), m_widgetTrees, m_nodeParametersInput);
 
         options.set("filterSubUiSchema", filterSubUiSchema);
     }
@@ -925,41 +925,38 @@ final class UiSchemaOptionsGenerator {
     private void setDbTableChooserOptions(final ObjectNode options) {
         var rootNode = m_node.getRoot();
 
-        var annotation = Optional.ofNullable(rootNode.getRawClass().getAnnotation(DBTableAdapterProvider.class));
+        var annotation = rootNode.getRawClass().getAnnotation(DBTableAdapterProvider.class);
 
-        var provider = annotation.map(DBTableAdapterProvider::value);
-        var validateSchema = annotation.map(DBTableAdapterProvider::validateSchema);
-        var validateTable = annotation.map(DBTableAdapterProvider::validateTable);
-
-        if (provider.isPresent()) {
-            var adapterClass = provider.get();
-            Supplier<PortObjectSpec[]> supplier = m_defaultNodeSettingsContext::getInPortSpecs;
-            var adapter = DBTableAdapter.instantiate(adapterClass, supplier);
-            try {
-                var isDbConnected = adapter.isDbConnected();
-                options.put("dbConnected", isDbConnected);
-                if (isDbConnected) {
-                    options.put("catalogsSupported", adapter.listCatalogs().isPresent());
-                }
-                if (validateSchema.isPresent()) {
-                    options.put("validateSchema", validateSchema.get());
-                }
-                if (validateTable.isPresent()) {
-                    options.put("validateTable", validateTable.get());
-                }
-            } catch (SQLException ex) {
-                throw new UiSchemaGenerationException("""
-                        Could not check whether the underlying DBTableAdapter supports catalogues, \
-                        because an SQL error occurred while trying to query the database.
-                        """, ex);
-            }
-        } else {
+        if (annotation == null) {
             var dbTableAdapterClassName = DBTableAdapterProvider.class.getSimpleName();
             var widgetClassName = DBTableSelection.class.getSimpleName();
             throw new UiSchemaGenerationException("""
                     The %s widget requires a @%s annotation on the root node of the \
                     widget tree to determine whether catalogues are supported.
                     """.formatted(widgetClassName, dbTableAdapterClassName));
+        }
+
+        var adapterClass = annotation.value();
+
+        Supplier<PortObjectSpec[]> inputPortsSupplier = m_nodeParametersInput::getInPortSpecs;
+        var adapter = DBTableAdapter.instantiate(adapterClass, inputPortsSupplier);
+        final var dbConnectionError = adapter.getDbConnectionError(m_nodeParametersInput);
+        dbConnectionError.ifPresent(message -> options.put("dbConnectionError", message));
+        if (dbConnectionError.isEmpty()) {
+            options.put("catalogsSupported", isCatalogsSupported(adapter));
+        }
+        options.put("validateSchema", annotation.validateSchema());
+        options.put("validateTable", annotation.validateTable());
+    }
+
+    private static boolean isCatalogsSupported(final DBTableAdapter adapter) {
+        try {
+            return adapter.listCatalogs().isPresent();
+        } catch (SQLException ex) {
+            throw new UiSchemaGenerationException("""
+                    Could not check whether the underlying DBTableAdapter supports catalogues, \
+                    because an SQL error occurred while trying to query the database.
+                    """, ex);
         }
     }
 }

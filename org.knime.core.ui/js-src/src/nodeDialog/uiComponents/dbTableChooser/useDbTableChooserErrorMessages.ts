@@ -182,15 +182,17 @@ export default ({
     schemaErrorMessage,
     schemaErrorMessageIsLoading: computed(
       () =>
-        schemaErrorMessageIsLoading.value ||
-        catalogueErrorMessageIsLoading.value,
+        validateSchema.value &&
+        (schemaErrorMessageIsLoading.value ||
+          catalogueErrorMessageIsLoading.value),
     ),
     tableErrorMessage,
     tableErrorMessageIsLoading: computed(
       () =>
-        tableErrorMessageIsLoading.value ||
-        schemaErrorMessageIsLoading.value ||
-        catalogueErrorMessageIsLoading.value,
+        validateTable.value &&
+        (tableErrorMessageIsLoading.value ||
+          schemaErrorMessageIsLoading.value ||
+          catalogueErrorMessageIsLoading.value),
     ),
   };
 };

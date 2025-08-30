@@ -14,7 +14,9 @@ import DBTableChooserFileExplorer from "../DBTableChooserFileExplorer.vue";
 const shouldUseCatalogs = vi.hoisted(() => vi.fn(() => true));
 
 vi.mock("../useDbTableChooserBackend.ts", async () => {
-  const { makeTableChooserBackendMock } = await import("./mockedBackendData");
+  const { makeTableChooserBackendMock } = await import(
+    "../../../mocks/dbTableChooserMock"
+  );
   return {
     useDbTableChooserBackend: () =>
       makeTableChooserBackendMock(shouldUseCatalogs()),

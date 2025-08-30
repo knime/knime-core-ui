@@ -68,25 +68,39 @@ import org.knime.node.parameters.persistence.Persistable;
  */
 public final class DBTableSelection implements Persistable, WidgetGroup {
 
-    /**
-     * The (optional) name of the database to use.
-     */
     @Widget(title = "Database name", description = "The name of the database (or catalogue) to use.")
     @Modification.WidgetReference(CatalogNameRef.class)
-    public String m_catalogName;
+    String m_catalogName = "";
+
+    /**
+     * Access this method only if the database supports catalogues.
+     *
+     * @return the name of the database to use.
+     */
+    public String getCatalogName() {
+        return m_catalogName;
+    }
 
     interface CatalogNameRef extends Modification.Reference {
     }
 
-    /**
-     * The name of the schema to use.
-     */
     @Widget(title = "Schema name", description = """
             The database schema to read the table from. If not provided, \
             the default schema of the database will be used.
             """)
     @Modification.WidgetReference(SchemaNameRef.class)
-    public Optional<String> m_schemaName;
+    String m_schemaName; // null means default schema
+
+    /**
+     * Gets the name of the schema to use. When an empty optional is returned, the default schema of the database should
+     * be used.
+     *
+     * @return The name of the schema to use. Never null, but possibly an empty. If validated, it is guaranteed that the
+     *         value is not blank if it is non-empty.
+     */
+    public String getSchemaName() {
+        return m_schemaName == null ? "" : m_schemaName;
+    }
 
     interface SchemaNameRef extends Modification.Reference {
     }
@@ -99,40 +113,47 @@ public final class DBTableSelection implements Persistable, WidgetGroup {
             table name as it appears in the selected schema.
             """)
     @Modification.WidgetReference(TableNameRef.class)
-    public String m_tableName;
+    String m_tableName = "";
+
+    /**
+     * Gets the name of the table to use.
+     *
+     * @return The name of the table to use.
+     */
+    public String getTableName() {
+        return m_tableName;
+    }
 
     interface TableNameRef extends Modification.Reference {
     }
 
     /**
-     * Only for deserialization.
+     * Use to create an empty instance. Empty table and catalogue name, null schema name (i.e. default schema).
      */
-    DBTableSelection() {
-        this("", "", "");
+    public DBTableSelection() {
     }
 
     /**
      * Constructor. If this is used, the catalogue name is not set. This makes sense if the database does not support
      * catalogues.
      *
-     * @param schemaName the name of the schema to use, not null.
      * @param tableName the name of the table to use, not null.
      */
-    public DBTableSelection(final String schemaName, final String tableName) {
-        m_schemaName = Optional.of(Objects.requireNonNull(schemaName));
+    public DBTableSelection(final String tableName) {
         m_tableName = Objects.requireNonNull(tableName);
     }
 
     /**
      * Constructor. This is used if the database supports catalogues.
      *
-     * @param catalogName the name of the catalogue to use, not null.
-     * @param schemaName the name of the schema to use, not null.
+     * @param catalogName the name of the catalogue to use, not null. Use an empty string if the database does not
+     *            support catalogues.
+     * @param schemaName the name of the schema to use, possibly null.
      * @param tableName the name of the table to use, not null.
      */
     public DBTableSelection(final String catalogName, final String schemaName, final String tableName) {
         m_catalogName = Objects.requireNonNull(catalogName);
-        m_schemaName = Optional.of(Objects.requireNonNull(schemaName));
+        m_schemaName = schemaName;
         m_tableName = Objects.requireNonNull(tableName);
     }
 
@@ -187,13 +208,16 @@ public final class DBTableSelection implements Persistable, WidgetGroup {
     }
 
     /**
-     * Validates the settings of this table selection.
+     * Validates the settings of this table selection excluding catalogue name.
      *
      * @throws InvalidSettingsException if the schema is present but blank.
      */
-    public void validate() throws InvalidSettingsException {
-        if (m_schemaName.isPresent() && m_schemaName.get().isBlank()) {
+    public void validateSchemaAndTable() throws InvalidSettingsException {
+        if (m_schemaName != null && !m_schemaName.isEmpty() && m_schemaName.isBlank()) {
             throw new InvalidSettingsException("The schema name must not be blank.");
+        }
+        if (m_tableName.isBlank()) {
+            throw new InvalidSettingsException("The table name must not be blank.");
         }
     }
 }

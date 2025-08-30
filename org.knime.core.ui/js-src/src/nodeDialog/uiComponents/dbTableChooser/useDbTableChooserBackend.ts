@@ -1,11 +1,26 @@
 import inject from "../../utils/inject";
 
 export type DBItemType = "TABLE" | "SCHEMA" | "CATALOG";
+export type DBTableType = "TABLE" | "VIEW";
+export interface DBTableMetadata {
+  tableType: DBTableType;
+  containingSchema: string | null;
+  containingCatalogue: string | null;
+}
 
-export type DBItem = {
+export type ContainerDBItem = {
   name: string;
-  type: DBItemType;
+  type: "CATALOG" | "SCHEMA";
+  tableMetadata: null;
 };
+
+export type TableDBItem = {
+  name: string;
+  type: "TABLE";
+  tableMetadata: DBTableMetadata;
+};
+
+export type DBItem = ContainerDBItem | TableDBItem;
 
 export type DBContainer = {
   pathParts: string[];
@@ -25,7 +40,7 @@ type ListItems = (params: {
     /**
      * The path of the folder containing the file.
      */
-    string[],
+    (string | null)[],
     /**
      * The selected table name, which will affect the error message iff the path leads
      * to a schema and the table does not exist. It will not affect the data returned
@@ -41,25 +56,28 @@ type ItemType = (params: {
     /**
      * The path of the item.
      */
-    string[],
+    (string | null)[],
   ];
 }) => Promise<ItemTypeResult>;
 
 export type DbTableChooserBackend = {
-  listItems: (path: string[], table: string | null) => Promise<ListItemsResult>;
-  itemType: (path: string[]) => Promise<ItemTypeResult>;
+  listItems: (
+    path: (string | null)[],
+    table: string | null,
+  ) => Promise<ListItemsResult>;
+  itemType: (path: (string | null)[]) => Promise<ItemTypeResult>;
 };
 
 export const useDbTableChooserBackend = (): DbTableChooserBackend => {
   const getData = inject("getData") as ListItems & ItemType;
 
-  const listItems = (path: string[], table: string | null) =>
+  const listItems = (path: (string | null)[], table: string | null) =>
     getData({
       method: "dbTableChooser.listItems",
       options: [path, table],
     });
 
-  const itemType = (path: string[]) =>
+  const itemType = (path: (string | null)[]) =>
     getData({
       method: "dbTableChooser.itemType",
       options: [path],

@@ -43,7 +43,7 @@ withDefaults(
   gap: var(--space-8);
 
   & .error-text {
-    color: var(--knime-coral);
+    color: var(--theme-color-error);
   }
 
   & .info-text {

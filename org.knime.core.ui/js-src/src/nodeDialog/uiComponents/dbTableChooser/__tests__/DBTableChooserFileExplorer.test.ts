@@ -16,7 +16,7 @@ describe("DBTableChooserFileExplorer", () => {
   const dataServiceSpyCreator = (useCatalogues: boolean) =>
     vi.fn(async ({ method, options }: { method: string; options: any[] }) => {
       const backendMock = (
-        await import("./mockedBackendData")
+        await import("../../../mocks/dbTableChooserMock")
       ).makeTableChooserBackendMock(useCatalogues);
       if (method === "dbTableChooser.listItems") {
         return backendMock.listItems(options[0], options[1]);
@@ -133,16 +133,24 @@ describe("DBTableChooserFileExplorer", () => {
   it("opens a file (aka table) via FileExplorer event", async () => {
     const { wrapper } = await doMount(true, "testCatalog/testSchema");
 
-    wrapper
-      .findComponent(FileExplorer)
-      .vm.$emit("openFile", { name: "testTable" });
+    wrapper.findComponent(FileExplorer).vm.$emit("openFile", {
+      name: "testTable",
+      meta: {
+        type: "TABLE",
+        tableMetadata: {
+          tableType: "TABLE",
+          containingSchema: "mySchema",
+          containingCatalogue: "myCatalog",
+        },
+      },
+    });
 
     const emitted = wrapper.emitted("tableSelected");
 
     expect(emitted).toBeDefined();
     expect(emitted![0][0]).toStrictEqual([
-      "testCatalog",
-      "testSchema",
+      "myCatalog",
+      "mySchema",
       "testTable",
     ]);
   });

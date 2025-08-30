@@ -164,18 +164,19 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
     }
 
     private Optional<DBTableChooserDataService> createDBTableChooserService() {
-        // check if we have a model settings class with a DBTableAdapter
-        var dbTableAdapters = m_settingsClasses.values().stream() //
+        var dbTableAdapterProviders = m_settingsClasses.values().stream() //
             .filter(c -> c.isAnnotationPresent(DBTableAdapterProvider.class)) //
             .map(c -> c.getAnnotation(DBTableAdapterProvider.class)) //
-            .map(DBTableAdapterProvider::value) //
             .toList();
-        if (dbTableAdapters.size() > 1) {
+        if (dbTableAdapterProviders.size() > 1) {
             throw new IllegalStateException("Only one DBTableAdapter is allowed per node dialogue.");
+        } else if (dbTableAdapterProviders.isEmpty()) {
+            return Optional.empty();
         }
-        return dbTableAdapters.stream() //
-            .findFirst() // get first adapter or empty optional
-            .map(DBTableChooserDataService::new);
+        final var adapterProvider = dbTableAdapterProviders.get(0);
+        final var dbTableAdapter = adapterProvider.value();
+        final var allowViews = adapterProvider.allowViews();
+        return Optional.of(new DBTableChooserDataService(dbTableAdapter, allowViews));
     }
 
     @Override
