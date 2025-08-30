@@ -10,7 +10,7 @@ export default {};
 import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useTextareaAutosize } from "@vueuse/core";
 
-import { Button, FunctionButton } from "@knime/components";
+import { Button, FunctionButton, InlineMessage } from "@knime/components";
 import AbortIcon from "@knime/styles/img/icons/cancel-execution.svg";
 import WarningIcon from "@knime/styles/img/icons/circle-warning.svg";
 import SendIcon from "@knime/styles/img/icons/paper-flier.svg";
@@ -20,7 +20,7 @@ import {
   type GenericInitialData,
   getInitialDataService,
 } from "@/initial-data-service";
-import { getScriptingService } from "@/scripting-service";
+import { type UsageData, getScriptingService } from "@/scripting-service";
 import { getSettingsService } from "@/settings-service";
 import {
   type Message,
@@ -29,6 +29,7 @@ import {
   clearPromptResponseStore,
   currentInputOutputItems,
   showDisclaimer,
+  usageData,
   usePromptResponseStore,
 } from "@/store/ai-bar";
 
@@ -83,6 +84,12 @@ type CodeSuggestion = {
   error: string | undefined;
 };
 
+type AIResponseData = {
+  code: string;
+  interactionId: string;
+  usage?: UsageData;
+};
+
 const errorText = ref<string | null>(null);
 
 const handleCodeSuggestion = (codeSuggestion: CodeSuggestion) => {
@@ -94,7 +101,14 @@ const handleCodeSuggestion = (codeSuggestion: CodeSuggestion) => {
   } else if (codeSuggestion.status === "CANCELLED") {
     status.value = "idle";
   } else {
-    const suggestedCode = JSON.parse(codeSuggestion.code).code;
+    const responseData: AIResponseData = JSON.parse(codeSuggestion.code);
+    const suggestedCode = responseData.code;
+
+    // Update usage data if provided
+    if (responseData.usage) {
+      usageData.value = responseData.usage;
+    }
+
     message = { role: "request", content: input.value };
     promptResponseStore.promptResponse = { suggestedCode, message };
     status.value = "idle";
@@ -155,7 +169,10 @@ onMounted(async () => {
     status.value = "newlyDisabled";
   } else if (settings.settingsAreOverriddenByFlowVariable) {
     status.value = "readonly";
-  } else if (!(await getScriptingService().isLoggedIntoHub())) {
+  } else if (await getScriptingService().isLoggedIntoHub()) {
+    // Fetch initial usage data if K-AI is available and user is logged in
+    fetchUsageData();
+  } else {
     status.value = "unauthorized";
   }
 });
@@ -169,6 +186,7 @@ onUnmounted(() => {
 const handleLoginStatus = (loginStatus: boolean) => {
   if (loginStatus) {
     status.value = "idle";
+    fetchUsageData();
   }
 };
 
@@ -208,6 +226,35 @@ getInitialDataService()
       hubId.value = id;
     }
   });
+
+/** Fetch usage data in background and update store */
+const fetchUsageData = () => {
+  getScriptingService()
+    .getAiUsage()
+    .then((usage) => {
+      usageData.value = usage;
+    })
+    .catch((error) => {
+      consola.warn("Failed to fetch AI usage data:", error);
+      usageData.value = null;
+    });
+};
+
+/** false if the usage limit is exceeded and the message prompt should not be shown */
+const isWithinLimit = computed(() => {
+  // Pro users (null limit) or users without data loaded are within limit
+  if (usageData.value === null || usageData.value.limit === null) {
+    return true;
+  }
+  // Check if used is less than limit
+  return usageData.value.used < usageData.value.limit;
+});
+
+/** @returns the days left in the current month */
+const getDaysLeftInMonth = (date: Date = new Date()): number => {
+  const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  return endOfMonth.getDate() - date.getDate();
+};
 </script>
 
 <template>
@@ -241,7 +288,7 @@ getInitialDataService()
     >
       <Transition name="disclaimer-slide-fade">
         <AiDisclaimer
-          v-if="showDisclaimer"
+          v-if="showDisclaimer && isWithinLimit"
           @accept-disclaimer="showDisclaimer = false"
         />
       </Transition>
@@ -262,7 +309,18 @@ getInitialDataService()
           </div>
         </Transition>
         <InfinityLoadingBar v-if="status === 'waiting'" />
-        <div class="chat-controls-text-input">
+        <InlineMessage
+          v-if="!isWithinLimit"
+          variant="info"
+          title="All free monthly AI interactions used"
+          class="limit-exceeded-message"
+        >
+          <a href="https://www.knime.com/knime-hub-pricing">Upgrade</a> to
+          continue building with AI or wait
+          {{ getDaysLeftInMonth() }}
+          days to use it again.
+        </InlineMessage>
+        <div v-else class="chat-controls-text-input">
           <textarea
             ref="textarea"
             v-model="input"
@@ -307,6 +365,16 @@ getInitialDataService()
             "The prompt is too long. Please shorten it to
             {{ MAX_PROMPT_LENGTH }} characters or less."
           </span>
+        </div>
+        <div class="usage-limit">
+          <span
+            v-if="usageData && usageData.limit !== null && isWithinLimit"
+            class="usage-counter"
+          >
+            {{ usageData?.used ?? "−" }}/{{ usageData?.limit ?? "−" }} monthly
+            interactions
+          </span>
+          <span class="usage-disclaimer"> K-AI can make mistakes </span>
         </div>
       </div>
     </div>
@@ -420,6 +488,29 @@ getInitialDataService()
         word-wrap: break-word;
         font-size: 12px;
       }
+    }
+
+    & .usage-limit {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      height: 10px;
+      margin: 0 var(--ai-bar-margin) var(--ai-bar-margin) var(--ai-bar-margin);
+      font-weight: 700;
+      font-size: 10px;
+      flex-grow: 0;
+
+      /* Ensure usage text appears above the arrow (z-index: 1 in AiButton.vue) */
+      position: relative;
+      z-index: 2;
+
+      & .usage-disclaimer {
+        margin-left: auto;
+      }
+    }
+
+    & .limit-exceeded-message {
+      margin: var(--ai-bar-margin);
     }
 
     & .chat-controls-text-input {

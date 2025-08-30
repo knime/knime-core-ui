@@ -34,19 +34,17 @@ const createBadge = (numSelectedItems: number) => {
 
 const createDragGhostContent = (
   elements: {
-    text: string;
+    dragGhostContent: HTMLElement;
   }[],
 ) => {
-  const dragGhostContent = elements.map(({ text }) => {
-    const el = document.createElement("div");
-    el.innerText = text;
+  const dragGhostContent = elements.map(({ dragGhostContent }) => {
     const flex = `${Math.floor(100 / elements.length)}%`;
-    applyStyles(el, {
+    applyStyles(dragGhostContent, {
       flex,
       padding: "var(--space-4) var(--space-8)",
       translate: "-var(--space-4)",
     });
-    return el;
+    return dragGhostContent;
   });
   return dragGhostContent;
 };
@@ -56,7 +54,7 @@ export const createDragGhost = ({
   numSelectedItems,
   font,
 }: {
-  elements: { text: string }[];
+  elements: { dragGhostContent: HTMLElement }[];
   numSelectedItems: number;
   font?: string;
 }) => {

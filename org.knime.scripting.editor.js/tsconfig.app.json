@@ -4,7 +4,7 @@
     "src/**/*",
     "src/**/*.vue",
     "lib/**/*",
-    "node_modules/@knime/**/*.vue"
+    "node_modules/@knime/**/*"
   ],
   "exclude": ["**/__tests__/*", "**/__mocks__/*"],
   "compilerOptions": {
@@ -13,6 +13,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "strict": true
+    "strict": true,
+    "allowJs": true
   }
 }

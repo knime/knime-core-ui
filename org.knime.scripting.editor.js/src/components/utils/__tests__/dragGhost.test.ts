@@ -2,6 +2,12 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { createDragGhost, removeDragGhost } from "../dragGhost";
 
+const createDragGhostContent = (text: string) => {
+  const el = document.createElement("div");
+  el.innerText = text;
+  return { dragGhostContent: el };
+};
+
 describe("draghGhost", () => {
   afterEach(() => {
     removeDragGhost();
@@ -9,7 +15,10 @@ describe("draghGhost", () => {
 
   it("create drag ghost for single element", () => {
     const dragGhost = createDragGhost({
-      elements: [{ text: "elem 1" }, { text: "elem 2" }],
+      elements: [
+        { ...createDragGhostContent("elem 1") },
+        { ...createDragGhostContent("elem 2") },
+      ],
       numSelectedItems: 1,
     });
     const ghost = document.getElementById("drag-ghost");
@@ -18,7 +27,10 @@ describe("draghGhost", () => {
 
   it("sets drag ghost content", () => {
     createDragGhost({
-      elements: [{ text: "elem 1" }, { text: "elem 2" }],
+      elements: [
+        { ...createDragGhostContent("elem 1") },
+        { ...createDragGhostContent("elem 2") },
+      ],
       numSelectedItems: 1,
     });
     const ghost = document.getElementById("drag-ghost");
@@ -30,7 +42,10 @@ describe("draghGhost", () => {
 
   it("create badge for multiple elements", () => {
     createDragGhost({
-      elements: [{ text: "elem 1" }, { text: "elem 2" }],
+      elements: [
+        { ...createDragGhostContent("elem 1") },
+        { ...createDragGhostContent("elem 2") },
+      ],
       numSelectedItems: 10,
     });
     const ghost = document.getElementById("drag-ghost");
@@ -42,7 +57,10 @@ describe("draghGhost", () => {
 
   it("remove drag ghost", () => {
     createDragGhost({
-      elements: [{ text: "elem 1" }, { text: "elem 2" }],
+      elements: [
+        { ...createDragGhostContent("elem 1") },
+        { ...createDragGhostContent("elem 2") },
+      ],
       numSelectedItems: 10,
     });
     expect(document.getElementById("drag-ghost")).not.toBeNull();

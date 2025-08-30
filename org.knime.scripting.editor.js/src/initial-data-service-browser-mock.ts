@@ -14,17 +14,17 @@ export const DEFAULT_INPUT_OBJECTS: InputOutputModel[] = [
     subItems: [
       {
         name: "Column 1",
-        type: "Number",
+        type: { displayName: "Number" },
         supported: true,
       },
       {
         name: "Column 2",
-        type: "String",
+        type: { displayName: "String", id: "string-datatype", title: "String" },
         supported: true,
       },
       {
         name: "Column 3",
-        type: "Something weird",
+        type: { displayName: "Something weird" },
         supported: false,
       },
     ],
@@ -57,17 +57,21 @@ export const DEFAULT_FLOW_VARIABLE_INPUTS: InputOutputModel = {
   subItems: [
     {
       name: "flowVar1",
-      type: "Number",
+      type: { displayName: "Number" },
       supported: true,
     },
     {
       name: "flowVar2",
-      type: "String",
+      type: { displayName: "String", id: "string-datatype", title: "String" },
       supported: true,
     },
     {
       name: "flowVar3",
-      type: "Bit Vector",
+      type: {
+        displayName: "Bit Vector",
+        id: "bit-byte-vector-datatype",
+        title: "Bit Vector",
+      },
       supported: false,
     },
   ],
