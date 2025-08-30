@@ -108,7 +108,7 @@ public final class JsonDataToDefaultNodeSettingsUtil {
     }
 
     private static JsonNode getJsonNodeForType(final JsonNode data, final SettingsType type) {
-        return data.get(type.getConfigKey());
+        return data.get(type.getConfigKeyFrontend());
     }
 
     private static NodeParameters toDefaultNodeSettings(final JsonNode node,

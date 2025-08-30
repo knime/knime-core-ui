@@ -48,6 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.setting.credentials;
 
+import java.util.Optional;
+
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.AuthenticationType;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.Widget;
@@ -91,6 +93,11 @@ public abstract class BaseAuthenticationSettings implements WidgetGroup, Persist
         public void modify(final Modification.WidgetGroupModifier group) {
             group.find(AuthenticationTypeRef.class).addAnnotation(ChoicesProvider.class)
                 .withProperty("value", getAuthenticationTypeChoicesProvider()).modify();
+            final var authTypeDesc = getAuthenticationTypeDescription();
+            if (authTypeDesc.isPresent()) {
+                group.find(AuthenticationTypeRef.class).modifyAnnotation(Widget.class)
+                    .withProperty("description", authTypeDesc.get()).modify();
+            }
         }
 
         /**
@@ -98,6 +105,13 @@ public abstract class BaseAuthenticationSettings implements WidgetGroup, Persist
          */
         protected abstract Class<? extends EnumChoicesProvider<AuthenticationType>>
             getAuthenticationTypeChoicesProvider();
+
+        /**
+         * @return an optional description for the authentication type widget
+         */
+        protected Optional<String> getAuthenticationTypeDescription() {
+            return Optional.empty();
+        }
 
     }
 

@@ -74,7 +74,7 @@ abstract class WidgetTreeControlRendererSpec implements ControlRendererSpec {
     @Override
     public List<String> getPathWithinValueJsonObject() {
         return Stream.concat(//
-            Optional.ofNullable(m_node.getSettingsType()).map(SettingsType::getConfigKey).stream(),
+            Optional.ofNullable(m_node.getSettingsType()).map(SettingsType::getConfigKeyFrontend).stream(),
             m_node.getPath().stream()//
         ).toList();
 

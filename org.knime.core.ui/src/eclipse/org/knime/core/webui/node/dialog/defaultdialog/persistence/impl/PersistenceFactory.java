@@ -61,6 +61,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.migration.NodeParametersMigration;
@@ -85,8 +86,8 @@ public abstract class PersistenceFactory<T> {
      *
      * @param nodeSettingsPersistor constructed from a {@link Persistor} annotation.
      * @param treeNode the node that is annotated with {@link Persistor}. In case
-     *            {@link #getFromCustomPersistorForType(NodeParametersPersistor, Tree)} is not overwritten, this might be
-     *            the tree associated to an annotated type. Otherwise, the annotation is always a field annotation.
+     *            {@link #getFromCustomPersistorForType(NodeParametersPersistor, Tree)} is not overwritten, this might
+     *            be the tree associated to an annotated type. Otherwise, the annotation is always a field annotation.
      * @return the to be extracted property
      */
     protected abstract T getFromCustomPersistor(NodeParametersPersistor<?> nodeSettingsPersistor,
@@ -128,8 +129,7 @@ public abstract class PersistenceFactory<T> {
      * @param childProperty a method for extracting the property for each child of the tree
      * @return the combined property for the tree.
      */
-    protected abstract T getForTree(Tree<Persistable> tree,
-        Function<TreeNode<Persistable>, T> childProperty);
+    protected abstract T getForTree(Tree<Persistable> tree, Function<TreeNode<Persistable>, T> childProperty);
 
     /**
      * Construct the property for an array node. Note that the result of this method is nested additionally using
@@ -399,10 +399,19 @@ public abstract class PersistenceFactory<T> {
 
         @Override
         public T postProcess(final T result, final Supplier<String[][]> configPathsProvider) {
-            if (m_node.getAnnotation(Migrate.class).map(Migrate::loadDefaultIfAbsent).orElse(false)) {
+            if (shouldLoadDefaultIfAbsent()) {
                 return combineWithLoadDefault(result, configPathsProvider, m_node);
             }
             return result;
+        }
+
+        private boolean shouldLoadDefaultIfAbsent() {
+            final var shouldFromFieldAnnotation =
+                m_node.getAnnotation(Migrate.class).map(Migrate::loadDefaultIfAbsent).orElse(false);
+            final var shouldFromClassAnnotation =
+                m_node.getParentAnnotation(LoadDefaultsForAbsentFields.class).isPresent()
+                    && m_node.getAnnotation(Migration.class).isEmpty();
+            return shouldFromFieldAnnotation || shouldFromClassAnnotation;
         }
     }
 

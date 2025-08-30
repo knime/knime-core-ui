@@ -49,9 +49,11 @@
 package org.knime.core.webui.node.dialog.defaultdialog;
 
 import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.TextToJsonUtil.jsonToString;
+import static org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMapUtil.keepNodeSpecificSettings;
 import static org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMapUtil.map;
 
 import java.util.Map;
+import java.util.Optional;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
@@ -61,6 +63,9 @@ import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersNativeNodeUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersPersistUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettingsImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
@@ -103,19 +108,34 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
     @Override
     public String fromNodeSettings(final Map<SettingsType, NodeAndVariableSettingsRO> settings,
         final PortObjectSpec[] specs) {
+        final var nodeSpecificSettings = keepNodeSpecificSettings(settings);
         var context = createContext(specs);
         final var loadedSettings = new NodeSettingsToDefaultNodeSettings(context, m_settingsClasses)
-            .nodeSettingsToDefaultNodeSettingsOrDefault(map(settings));
+            .nodeSettingsToDefaultNodeSettingsOrDefault(map(nodeSpecificSettings));
 
         final var widgetTreeFactory = new WidgetTreeFactory();
         final var widgetTrees = map(loadedSettings, (type, s) -> widgetTreeFactory.createTree(s.getClass(), type));
 
-        final var jsonFormsSettings = new JsonFormsSettingsImpl(loadedSettings, context, widgetTrees);
+        JsonFormsSettings jsonFormsSettings = new JsonFormsSettingsImpl(loadedSettings, context, widgetTrees);
+
+        final Optional<String> nonDefaultJobManagerId = settings.containsKey(SettingsType.JOB_MANAGER)
+            ? JobManagerParametersNativeNodeUtil.getNonDefaultJobManagerId(settings.get(SettingsType.JOB_MANAGER))
+            : Optional.empty();
+        if (nonDefaultJobManagerId.isPresent()) {
+            jsonFormsSettings = JobManagerParametersNativeNodeUtil.addJobManagerSelection(//
+                jsonFormsSettings, nonDefaultJobManagerId.get());
+        }
+
         final var root = new DefaultNodeDialogDataServiceUtil.InitialDataBuilder(jsonFormsSettings)
             .withUpdates(
                 (rootJson, dataJson) -> UpdatesUtil.addUpdates(rootJson, widgetTrees.values(), dataJson, context))
-            .withFlowVariables(map(settings), context).buildJson();
+            .withFlowVariables(map(nodeSpecificSettings), context).buildJson();
+
         addPersist(root, loadedSettings);
+        if (nonDefaultJobManagerId.isPresent()) {
+            JobManagerParametersPersistUtil
+                .setPersistSchema(((ObjectNode)((ObjectNode)root.get("persist")).get("properties")));
+        }
         return jsonToString(root);
     }
 
@@ -129,7 +149,10 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
     public void validateNodeSettingsAndVariables(final Map<SettingsType, NodeAndVariableSettingsRO> settings)
         throws InvalidSettingsException {
         for (var entry : settings.entrySet()) {
-            NodeParametersUtil.loadSettings(entry.getValue(), m_settingsClasses.get(entry.getKey()));
+            final var key = entry.getKey();
+            if (key != SettingsType.JOB_MANAGER) {
+                NodeParametersUtil.loadSettings(entry.getValue(), m_settingsClasses.get(key));
+            }
         }
     }
 

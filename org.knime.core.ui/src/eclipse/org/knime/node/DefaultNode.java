@@ -94,8 +94,9 @@ public final class DefaultNode implements FluentNodeAPI {
      * @return the first stage of the creator
      */
     public static RequireName create() {
-        return name -> icon -> shortDescription -> fullDescription -> portsFct -> modelFct -> new DefaultNode(name,
-            icon, shortDescription, fullDescription, portsFct, modelFct.apply(DefaultModel.create()));
+        return name -> icon -> shortDescription -> fullDescription -> (major, minor,
+            revision) -> portsFct -> modelFct -> new DefaultNode(name, icon, shortDescription, fullDescription,
+                new Version(major, minor, revision), portsFct, modelFct.apply(DefaultModel.create()));
     }
 
     final String m_name;
@@ -122,19 +123,21 @@ public final class DefaultNode implements FluentNodeAPI {
 
     List<String> m_keywords = new ArrayList<>();
 
-    Version m_sinceVersion;
+    final Version m_sinceVersion;
 
     /*
      * Constructor that receives all the required properties.
      */
     private DefaultNode(final String name, final String icon, final String shortDescription,
-        final String fullDescription, final Consumer<DynamicPortsAdder> portsFct, final DefaultModel model) {
+        final String fullDescription, final Version sinceVersion, final Consumer<DynamicPortsAdder> portsFct,
+        final DefaultModel model) {
         m_name = name;
         m_icon = icon;
         m_shortDescription = shortDescription;
         m_fullDescription = fullDescription;
         m_ports = new DefaultNodePorts().extractPortDefinitions(portsFct);
         m_model = model;
+        m_sinceVersion = sinceVersion;
     }
 
     /* REQUIRED PROPERTIES */
@@ -188,7 +191,22 @@ public final class DefaultNode implements FluentNodeAPI {
          * @param fullDescription the full node description
          * @return the subsequent build stage
          */
-        RequirePorts fullDescription(final String fullDescription);
+        RequireSinceVersion fullDescription(final String fullDescription);
+    }
+
+    /**
+     * The build stage that requires the since version.
+     */
+    public interface RequireSinceVersion { // NOSONAR
+        /**
+         * Specify since which KNIME AP version this node is available.
+         *
+         * @param major major version
+         * @param minor minor version
+         * @param revision patch revision
+         * @return the subsequent build stage
+         */
+        RequirePorts sinceVersion(final int major, final int minor, final int revision);
     }
 
     /**
@@ -252,23 +270,6 @@ public final class DefaultNode implements FluentNodeAPI {
         CheckUtils.checkArgumentNotNull(keywords);
         CheckUtils.checkArgument(!ArrayUtils.contains(keywords, null), "keywords list must not contain null values");
         m_keywords.addAll(Arrays.asList(keywords));
-        return this;
-    }
-
-    /**
-     * Specify since which KNIME AP version this node is available.
-     *
-     * @param major major version
-     * @param minor minor version
-     * @param revision patch revision
-     * @return this build stage
-     */
-    public DefaultNode sinceVersion(final int major, final int minor, final int revision) {
-        if (m_sinceVersion != null) {
-            throw new IllegalStateException(
-                "sinceVersion() has already been called; a node can only have one version.");
-        }
-        m_sinceVersion = new Version(major, minor, revision);
         return this;
     }
 

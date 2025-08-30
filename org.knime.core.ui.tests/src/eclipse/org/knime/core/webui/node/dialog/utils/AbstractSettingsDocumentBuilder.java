@@ -299,7 +299,7 @@ public abstract class AbstractSettingsDocumentBuilder<T extends AbstractSettings
         }
 
         private static String toJsonPath(final SettingsType settingsType, final List<String> path) {
-            return settingsType.getConfigKey() + "." + String.join(".", path);
+            return settingsType.getConfigKeyFrontend() + "." + String.join(".", path);
         }
 
         private static void addInvalidValue(final ObjectNode data, final CustomSettingAt customSettingAt) {
@@ -311,7 +311,7 @@ public abstract class AbstractSettingsDocumentBuilder<T extends AbstractSettings
         }
 
         private static String toJsonPointer(final SettingsType settingsType, final List<String> path) {
-            final var segments = Stream.concat(Stream.of(settingsType.getConfigKey()), path.stream()).toList();
+            final var segments = Stream.concat(Stream.of(settingsType.getConfigKeyFrontend()), path.stream()).toList();
             return "/" + String.join("/", segments);
         }
     }

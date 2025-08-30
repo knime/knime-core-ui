@@ -138,7 +138,9 @@ const onDirectoryChanged = (newPathId: string) =>
   );
 
 const onBreadcrumbItemClick = (item: BreadcrumbItem) => {
-  loadNewFolderContent(item.path?.split("/") ?? []);
+  loadNewFolderContent(
+    typeof item.path === "string" ? item.path.split("/") : [],
+  );
 };
 
 const itemIconRenderer = (item: FileExplorerItem) => {
@@ -182,7 +184,7 @@ const selectedItemChanged = (selectedItemIds: string[]) => {
     selectedItem.value = item!;
 
     goIntoFolderButtonDisabled.value = !item?.isDirectory;
-    if (item?.isDirectory) {
+    if (item?.isDirectory && typeof item.meta?.type === "string") {
       goIntoFolderButtonText.value = `Go into ${item.meta?.type.toLowerCase()}`;
     } else {
       goIntoFolderButtonText.value = "Go into";

@@ -86,7 +86,7 @@ public @interface Migrate {
     /**
      * Use this annotation for a field that has been added to the settings after the initial release of the node.
      *
-     * If it isn't present, during load, then the default value of this field from the declaring DefaultNodeSettings
+     * If it isn't present, during load, then the default value of this field from the declaring NodeParameters
      * class is used.
      *
      * In case a custom {@link Persistor} is used, being present means that any of the specified config paths in

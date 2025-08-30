@@ -52,7 +52,9 @@ import java.util.Arrays;
 
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil;
 import org.knime.core.webui.node.view.NodeView;
+import org.knime.shared.workflow.storage.multidir.util.IOConst;
 
 /**
  * A settings type (usually associated with {@link NodeSettings} instances) denotes whether certain settings are going
@@ -65,17 +67,34 @@ public enum SettingsType {
         /**
          * Type for settings that belong to the {@link NodeModel}.
          */
-        MODEL("model"),
+        MODEL("model", "variables"),
 
         /**
          * Type for settings that belong to a {@link NodeView}.
          */
-        VIEW("view");
+        VIEW("view", "view_variables"),
+
+        /**
+         * Type for job manager settings.
+         */
+        JOB_MANAGER(IOConst.JOB_MANAGER_KEY.get(), JobManagerParametersUtil.JOB_MANAGER_KEY_FE, "no_variables");
 
     private final String m_configKey;
 
-    private SettingsType(final String configKey) {
+    private final String m_configKeyFrontend;
+
+    private final String m_variablesConfigKey;
+
+    private SettingsType(final String configKey, final String configKeyFrontend, final String variablesConfigKey) {
         m_configKey = configKey;
+        m_configKeyFrontend = configKeyFrontend;
+        m_variablesConfigKey = variablesConfigKey;
+    }
+
+    private SettingsType(final String configKey, final String variablesConfigKey) {
+        m_configKey = configKey;
+        m_configKeyFrontend = configKey;
+        m_variablesConfigKey = variablesConfigKey;
     }
 
     /**
@@ -86,13 +105,20 @@ public enum SettingsType {
     }
 
     /**
-     * Inverse method of {@link #getConfigKey()}
+     * @return the config key used to reference the settings in the frontend
+     */
+    public String getConfigKeyFrontend() {
+        return m_configKeyFrontend;
+    }
+
+    /**
+     * Inverse method of {@link #getConfigKeyFrontend()}
      *
      * @param configKey the config key used to store the settings with the node
      * @return the settings type for the given config key
      */
     public static SettingsType fromConfigKey(final String configKey) {
-        return Arrays.stream(values()).filter(type -> type.getConfigKey().equals(configKey)).findFirst()
+        return Arrays.stream(values()).filter(type -> type.getConfigKeyFrontend().equals(configKey)).findFirst()
             .orElseThrow(() -> new IllegalArgumentException("Unknown config key: " + configKey));
     }
 
@@ -101,11 +127,15 @@ public enum SettingsType {
      *         exposed as flow variables) with the node
      */
     public String getVariablesConfigKey() {
-        if (this == VIEW) {
-            return "view_variables";
-        } else {
-            return "variables";
-        }
+        return m_variablesConfigKey;
+    }
+
+    /**
+     * Whether the settings of this type are the same or specific to a node.
+     * @return true if the settings are node specific, false otherwise
+     */
+    public boolean isNodeSpecific() {
+        return this != JOB_MANAGER;
     }
 
 }

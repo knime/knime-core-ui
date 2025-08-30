@@ -147,7 +147,7 @@ public final class NodeDialogTestUtil {
 
             @Override
             public Set<SettingsType> getSettingsTypes() {
-                return Set.of(SettingsType.MODEL, SettingsType.VIEW);
+                return Set.of(SettingsType.MODEL, SettingsType.VIEW, SettingsType.JOB_MANAGER);
             }
 
             @Override

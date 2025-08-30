@@ -68,10 +68,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerAndDep
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreesToDependencyTreeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.updates.StateProvider;
-import org.knime.node.parameters.NodeParameters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -177,7 +177,7 @@ public final class UpdatesUtil {
         final var mapper = JsonFormsDataUtil.getMapper();
         final var jsonData = mapper.createObjectNode();
         loadedSettings
-            .forEach((type, widgetGroup) -> jsonData.set(type.getConfigKey(), mapper.valueToTree(widgetGroup)));
+            .forEach((type, widgetGroup) -> jsonData.set(type.getConfigKeyFrontend(), mapper.valueToTree(widgetGroup)));
         addUpdates(rootNode, pair, jsonData, context);
     }
 

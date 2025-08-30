@@ -49,7 +49,10 @@
 package org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection;
 
 import java.util.Objects;
+import java.util.Optional;
 
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.persistence.Persistable;
@@ -68,13 +71,21 @@ public final class DBTableSelection implements Persistable, WidgetGroup {
      * The (optional) name of the database to use.
      */
     @Widget(title = "Database name", description = "The name of the database (or catalogue) to use.")
+    @Modification.WidgetReference(CatalogNameRef.class)
     public String m_catalogName;
+
+    interface CatalogNameRef extends Modification.Reference {
+    }
 
     /**
      * The name of the schema to use.
      */
     @Widget(title = "Schema name", description = "The database schema to read the table from.")
+    @Modification.WidgetReference(SchemaNameRef.class)
     public String m_schemaName;
+
+    interface SchemaNameRef extends Modification.Reference {
+    }
 
     /**
      * The name of the table to use.
@@ -83,7 +94,11 @@ public final class DBTableSelection implements Persistable, WidgetGroup {
             Name of the database table to read data from. Must match the \
             table name as it appears in the selected schema.
             """)
+    @Modification.WidgetReference(TableNameRef.class)
     public String m_tableName;
+
+    interface TableNameRef extends Modification.Reference {
+    }
 
     /**
      * Only for deserialization.
@@ -115,5 +130,55 @@ public final class DBTableSelection implements Persistable, WidgetGroup {
         m_catalogName = Objects.requireNonNull(catalogName);
         m_schemaName = Objects.requireNonNull(schemaName);
         m_tableName = Objects.requireNonNull(tableName);
+    }
+
+    /**
+     * Modification class to override descriptions.
+     *
+     * @author Martin Sillye, TNG Technology Consulting GmbH
+     */
+    public abstract static class DBTableSelectionModification implements Modification.Modifier {
+
+        private static final String DESCRIPTION = "description";
+
+        @Override
+        public void modify(final WidgetGroupModifier group) {
+            final var catalogDesc = getCatalogNameDescription();
+            if (catalogDesc.isPresent()) {
+                group.find(CatalogNameRef.class).modifyAnnotation(Widget.class) //
+                    .withProperty(DESCRIPTION, catalogDesc.get()).modify();
+            }
+            final var schemaDesc = getSchemaNameDescription();
+            if (schemaDesc.isPresent()) {
+                group.find(SchemaNameRef.class).modifyAnnotation(Widget.class) //
+                    .withProperty(DESCRIPTION, schemaDesc.get()).modify();
+            }
+            final var tableDesc = getTableNameDescription();
+            if (tableDesc.isPresent()) {
+                group.find(TableNameRef.class).modifyAnnotation(Widget.class) //
+                    .withProperty(DESCRIPTION, tableDesc.get()).modify();
+            }
+        }
+
+        /**
+         * @return the description of the Catalog field.
+         */
+        protected Optional<String> getCatalogNameDescription() {
+            return Optional.empty();
+        }
+
+        /**
+         * @return the description of the Schema field.
+         */
+        protected Optional<String> getSchemaNameDescription() {
+            return Optional.empty();
+        }
+
+        /**
+         * @return the description of the Table field.
+         */
+        protected Optional<String> getTableNameDescription() {
+            return Optional.empty();
+        }
     }
 }

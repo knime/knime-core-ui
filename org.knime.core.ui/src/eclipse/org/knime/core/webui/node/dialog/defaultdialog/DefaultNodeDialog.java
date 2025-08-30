@@ -89,12 +89,21 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
 
     /**
      * Creates a new instance.
+     */
+    public DefaultNodeDialog() {
+        m_settingsTypes = Set.of(SettingsType.JOB_MANAGER);
+        m_settingsClasses = Map.of();
+        m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses);
+        m_onApplyModifier = null;
+    }
+
+    /**
+     * Creates a new instance.
      *
      * @param settingsType the type of settings this dialog provides
      * @param settingsClass the class which defining the dialog
      */
-    public DefaultNodeDialog(final SettingsType settingsType,
-        final Class<? extends NodeParameters> settingsClass) {
+    public DefaultNodeDialog(final SettingsType settingsType, final Class<? extends NodeParameters> settingsClass) {
         this(settingsType, settingsClass, null);
     }
 
@@ -109,7 +118,7 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
      */
     public DefaultNodeDialog(final SettingsType settingsType, final Class<? extends NodeParameters> settingsClass,
         final OnApplyNodeModifier onApplyModifier) {
-        m_settingsTypes = Set.of(settingsType);
+        m_settingsTypes = Set.of(settingsType, SettingsType.JOB_MANAGER);
         m_settingsClasses = Map.of(settingsType, settingsClass);
         m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses);
         m_onApplyModifier = onApplyModifier;
@@ -124,9 +133,8 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
      * @param settingsClass2 dialog definition for the second settings type
      *
      */
-    public DefaultNodeDialog(final SettingsType settingsType1,
-        final Class<? extends NodeParameters> settingsClass1, final SettingsType settingsType2,
-        final Class<? extends NodeParameters> settingsClass2) {
+    public DefaultNodeDialog(final SettingsType settingsType1, final Class<? extends NodeParameters> settingsClass1,
+        final SettingsType settingsType2, final Class<? extends NodeParameters> settingsClass2) {
         this(settingsType1, settingsClass1, settingsType2, settingsClass2, null);
     }
 
@@ -141,10 +149,10 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
      *            invoked when cleaning up the {@link ApplyDataService} created in
      *            {@link NodeContainerNodeDialogAdapter#createApplyDataService()}
      */
-    public DefaultNodeDialog(final SettingsType settingsType1,
-        final Class<? extends NodeParameters> settingsClass1, final SettingsType settingsType2,
-        final Class<? extends NodeParameters> settingsClass2, final OnApplyNodeModifier onApplyModifier) {
-        m_settingsTypes = Set.of(settingsType1, settingsType2);
+    public DefaultNodeDialog(final SettingsType settingsType1, final Class<? extends NodeParameters> settingsClass1,
+        final SettingsType settingsType2, final Class<? extends NodeParameters> settingsClass2,
+        final OnApplyNodeModifier onApplyModifier) {
+        m_settingsTypes = Set.of(settingsType1, settingsType2, SettingsType.JOB_MANAGER);
         m_settingsClasses = Map.of(settingsType1, settingsClass1, settingsType2, settingsClass2);
         m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses);
         m_onApplyModifier = onApplyModifier;

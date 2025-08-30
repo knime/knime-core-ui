@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type FunctionalComponent, computed, toRef } from "vue";
+import { type Component, computed, toRef } from "vue";
 
 import { TabBar } from "@knime/components";
 import ComputerDesktopIcon from "@knime/styles/img/icons/computer-desktop.svg";
@@ -55,7 +55,7 @@ const {
 type TabSpec = {
   value: keyof typeof FSCategory;
   label: string;
-  icon: FunctionalComponent;
+  icon: Component;
 };
 
 const localFileSystemTab: TabSpec[] = isLocal.value

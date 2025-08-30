@@ -185,16 +185,16 @@
                 "id": "foo",
                 "text": "Foo",
                 "type": {
-                  "id": "typeA",
-                  "text": "Type A"
+                  "id": "collection-list-datatype",
+                  "text": "Collection List"
                 }
               },
               {
                 "id": "bar",
                 "text": "Bar",
                 "type": {
-                  "id": "typeB",
-                  "text": "Type B"
+                  "id": "image-svg-datatype",
+                  "text": "Image SVG"
                 }
               }
             ]
@@ -212,16 +212,16 @@
                 "id": "foo",
                 "text": "Foo",
                 "type": {
-                  "id": "typeA",
-                  "text": "Type A"
+                  "id": "image-png-datatype",
+                  "text": "Image PNG"
                 }
               },
               {
                 "id": "bar",
                 "text": "Bar",
                 "type": {
-                  "id": "typeB",
-                  "text": "Type B"
+                  "id": "duration-date-based-datatype",
+                  "text": "Duration Date Based"
                 }
               }
             ]

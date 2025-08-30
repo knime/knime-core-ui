@@ -54,6 +54,7 @@ import java.util.List;
 
 import org.knime.core.node.NodeSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeFactory;
+import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.persistence.Persist;
@@ -74,8 +75,11 @@ public final class PersistTreeFactory extends TreeFactory<Persistable> {
      * Peristors and backwards compatible loaders on classes are interpreted differently than the same annotation on a
      * containing field. The level of the {@link NodeSettings} that the persistor operates on is different.
      */
-    static final Collection<ClassAnnotationSpec> POSSIBLE_TREE_CLASS_ANNOTATIONS =
-        List.of(new ClassAnnotationSpec(Persistor.class, false), new ClassAnnotationSpec(Migration.class, false));
+    static final Collection<ClassAnnotationSpec> POSSIBLE_TREE_CLASS_ANNOTATIONS = List.of(//
+        new ClassAnnotationSpec(Persistor.class, false), //
+        new ClassAnnotationSpec(Migration.class, false), //
+        new ClassAnnotationSpec(LoadDefaultsForAbsentFields.class, false) //
+    );
 
     private static final Collection<Class<? extends Annotation>> POSSIBLE_LEAF_ANNOTATIONS =
         List.of(Persist.class, Migrate.class, Persistor.class, Migration.class);

@@ -2,6 +2,7 @@
 import { type Ref, computed, onMounted, ref } from "vue";
 
 import { Dropdown } from "@knime/components";
+import { DataType } from "@knime/kds-components";
 
 import type { PossibleFlowVariable } from "../../../api/types";
 import { injectForFlowVariables } from "../../../utils/inject";
@@ -26,6 +27,7 @@ const dropdownPossibleValues: Ref<
     id: string | number;
     text: string;
     title: string;
+    slotData: { typeId?: string; typeText?: string; text?: string };
   }[]
 > = ref([]);
 const nameToFlowVariable: Ref<Record<string, PossibleFlowVariable>> = ref({});
@@ -34,6 +36,7 @@ const noFlowVariableOption = {
   id: "",
   text: "None",
   title: "No flow variable selected",
+  slotData: { text: "None" },
 };
 
 const toDropdownValues = (allPossibleValues: PossibleFlowVariable[]) => [
@@ -42,6 +45,11 @@ const toDropdownValues = (allPossibleValues: PossibleFlowVariable[]) => [
     id: flowVar.name,
     text: flowVar.name,
     title: `${flowVar.name} (currently "${flowVar.value}")`,
+    slotData: {
+      typeId: flowVar.type.id,
+      typeText: flowVar.type.text,
+      text: flowVar.name,
+    },
   })),
 ];
 
@@ -125,5 +133,43 @@ const placeholder = computed(() => {
     :disabled="!availableVariablesLoaded || noOptionsPresent"
     compact
     @update:model-value="selectValue"
-  />
+    ><template
+      #option="{ slotData, selectedValue, isMissing, expanded } = {
+        slotData: {},
+      }"
+    >
+      <template v-if="expanded || selectedValue !== '' || isMissing">
+        <div
+          :class="[
+            'data-type-entry',
+            { 'with-type': isMissing || slotData.typeId },
+          ]"
+        >
+          <template v-if="isMissing">
+            <DataType size="small" />
+            <span>(MISSING) {{ selectedValue }}</span>
+          </template>
+          <template v-else>
+            <template v-if="slotData.typeId">
+              <DataType
+                :icon-name="slotData.typeId"
+                :icon-title="slotData.typeText"
+                size="small"
+              />
+            </template>
+            <span>{{ slotData.text }}</span>
+          </template>
+        </div>
+      </template>
+      <template v-else>{{ placeholder }}</template>
+    </template></Dropdown
+  >
 </template>
+
+<style lang="css" scoped>
+.data-type-entry.with-type {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+</style>

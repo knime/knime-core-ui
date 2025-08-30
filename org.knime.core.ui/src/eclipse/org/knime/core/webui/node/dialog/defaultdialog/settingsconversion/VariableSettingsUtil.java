@@ -219,7 +219,7 @@ public final class VariableSettingsUtil {
             }
             var keys = compositeKey.split("\\.");
             for (SettingsType settingsType : variableSettings.keySet()) {
-                if (!settingsType.getConfigKey().equals(keys[0])) {
+                if (!settingsType.getConfigKeyFrontend().equals(keys[0])) {
                     continue;
                 }
                 var nestedVariableSettings = variableSettings.get(settingsType);

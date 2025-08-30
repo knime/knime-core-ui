@@ -9,6 +9,7 @@ import {
 } from "@knime/knime-ui-table";
 import type { DataValueViewConfig } from "@knime/ui-extension-service/internal";
 
+import SubHeaderTypeRenderer from "./components/SubHeaderTypeRenderer.vue";
 import useAutoSizes from "./composables/useAutoSizes";
 import useColumnSizes from "./composables/useColumnSizes";
 import { BORDER_BOTTOM_WIDTH } from "./constants";
@@ -373,6 +374,12 @@ const useCodeRenderer = (index: number) =>
           v-else-if="useCodeRenderer(index)"
           :content="cell"
           :language="getContentType(index)"
+        />
+      </template>
+      <template #subHeader="{ subHeader }">
+        <SubHeaderTypeRenderer
+          :data-types="header.dataTypes"
+          :sub-header="subHeader"
         />
       </template>
     </TableUIWithAutoSizeCalculation>

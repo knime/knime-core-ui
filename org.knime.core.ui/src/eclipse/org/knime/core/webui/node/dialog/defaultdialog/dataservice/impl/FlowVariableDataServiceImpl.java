@@ -48,17 +48,16 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl;
 
-import static java.util.stream.Collectors.toMap;
 import static org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.DefaultNodeDialogDataServiceImpl.createContext;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.FIELD_NAME_DATA;
 import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.TextToJsonUtil.textToJson;
 import static org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil.rootJsonToVariableSettings;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.knime.core.node.InvalidSettingsException;
@@ -77,6 +76,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDa
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableTypesExtractorUtil;
 import org.knime.core.webui.node.dialog.internal.VariableSettings;
 import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.widget.choices.TypedStringChoice.PossibleTypeValue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -101,7 +101,7 @@ public final class FlowVariableDataServiceImpl implements FlowVariableDataServic
     }
 
     @Override
-    public Map<String, Collection<PossibleFlowVariable>> getAvailableFlowVariables(final String textSettings,
+    public List<PossibleFlowVariable> getAvailableFlowVariables(final String textSettings,
         final LinkedList<String> path) throws InvalidSettingsException {
         final var firstPathElement = path.pollFirst();
         final SettingsType settingsType = extractSettingsType(firstPathElement);
@@ -109,24 +109,25 @@ public final class FlowVariableDataServiceImpl implements FlowVariableDataServic
             m_converter.dataJsonToNodeSettings(textToJson(textSettings).get(FIELD_NAME_DATA), settingsType);
         final var variableTypes = FlowVariableTypesExtractorUtil.getTypes(nodeSettings, path);
         final var context = createContext();
-        return Arrays.asList(variableTypes).stream()
-            .collect(toMap(VariableType::getIdentifier, type -> getPossibleFlowVariables(context, type)));
+        return Arrays.asList(variableTypes).stream().flatMap(type -> getPossibleFlowVariables(context, type).stream())
+            .collect(Collectors.toList());
     }
 
     private static List<PossibleFlowVariable> getPossibleFlowVariables(final NodeParametersInput context,
         final VariableType<?> type) {
         return ((NodeParametersInputImpl)context).getAvailableInputFlowVariables(type).values().stream()
-            .map(FlowVariableDataServiceImpl::toPossibleFlowVariable).toList();
+            .map(flowVar -> toPossibleFlowVariable(flowVar, type)).toList();
     }
 
-    static PossibleFlowVariable toPossibleFlowVariable(final FlowVariable flowVariable) {
+    static PossibleFlowVariable toPossibleFlowVariable(final FlowVariable flowVariable, final VariableType type) {
         var value = flowVariable.getValueAsString();
         boolean abbreviated = false;
         if (value != null && value.length() > ABBREVIATION_THRESHOLD) {
             value = StringUtils.abbreviate(value, ABBREVIATION_THRESHOLD);
             abbreviated = true;
         }
-        return new PossibleFlowVariable(flowVariable.getName(), value, abbreviated);
+        return new PossibleFlowVariable(flowVariable.getName(), value, abbreviated,
+            new PossibleTypeValue(type.getIdentifier(), type.getClass().getSimpleName()));
     }
 
     @Override
@@ -166,9 +167,9 @@ public final class FlowVariableDataServiceImpl implements FlowVariableDataServic
 
     private static SettingsType extractSettingsType(final String firstPathElement) {
         final SettingsType settingsType;
-        if (SettingsType.MODEL.getConfigKey().equals(firstPathElement)) {
+        if (SettingsType.MODEL.getConfigKeyFrontend().equals(firstPathElement)) {
             settingsType = SettingsType.MODEL;
-        } else if (SettingsType.VIEW.getConfigKey().equals(firstPathElement)) {
+        } else if (SettingsType.VIEW.getConfigKeyFrontend().equals(firstPathElement)) {
             settingsType = SettingsType.VIEW;
         } else {
             throw new IllegalArgumentException(String

@@ -65,6 +65,7 @@ import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.VariableSettingsRO;
 import org.knime.core.webui.node.dialog.configmapping.NodeSettingsCorrectionUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersNativeNodeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.JsonDataToDefaultNodeSettingsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.ToNodeSettingsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil;
@@ -89,8 +90,9 @@ final class DefaultTextToNodeSettingsConverter implements TextToNodeSettingsConv
         final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
         final Map<SettingsType, NodeAndVariableSettingsWO> settings) throws InvalidSettingsException {
         final var root = textToJson(textSettings);
+        final var data = root.get(FIELD_NAME_DATA);
         final var defaultNodeSettings =
-            JsonDataToDefaultNodeSettingsUtil.toDefaultNodeSettings(m_settingsClasses, root.get(FIELD_NAME_DATA));
+            JsonDataToDefaultNodeSettingsUtil.toDefaultNodeSettings(m_settingsClasses, data);
         final var extractedNodeSettings = ToNodeSettingsUtil.toNodeSettings(defaultNodeSettings);
         final var extractedVariableSettings = VariableSettingsUtil.extractVariableSettings(settings.keySet(), root);
 
@@ -101,6 +103,9 @@ final class DefaultTextToNodeSettingsConverter implements TextToNodeSettingsConv
         copyLeftToRight(extractedNodeSettings, settings);
         rootJsonToVariableSettings(root, map(settings));
 
+        if (settings.containsKey(SettingsType.JOB_MANAGER)) {
+            JobManagerParametersNativeNodeUtil.toNodeSettings(data).copyTo(settings.get(SettingsType.JOB_MANAGER));
+        }
     }
 
     private void alignSettingsWithFlowVariables( //

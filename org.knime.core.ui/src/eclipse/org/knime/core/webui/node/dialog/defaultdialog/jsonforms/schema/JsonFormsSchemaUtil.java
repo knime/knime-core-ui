@@ -83,11 +83,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.DescriptionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.widget.text.TextInputWidget;
-import org.knime.node.parameters.NodeParameters;
 
 import com.fasterxml.classmate.ResolvedType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -147,7 +147,7 @@ public final class JsonFormsSchemaUtil {
         final var properties = root.putObject(TAG_PROPERTIES);
         settingsClasses.entrySet().stream() //
             .sorted(Comparator.comparing(Entry::getKey)) //
-            .forEachOrdered(e -> properties.set(e.getKey().getConfigKey(),
+            .forEachOrdered(e -> properties.set(e.getKey().getConfigKeyFrontend(),
                 buildSchema(e.getValue(), widgetTrees.get(e.getKey()), context, mapper)));
         return root;
     }

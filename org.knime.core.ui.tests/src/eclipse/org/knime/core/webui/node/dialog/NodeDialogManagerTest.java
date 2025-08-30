@@ -53,10 +53,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.knime.core.webui.page.PageTest.BUNDLE_ID;
 import static org.knime.testing.node.ui.NodeDialogTestUtil.createNodeDialog;
 import static org.knime.testing.util.WorkflowManagerUtil.createAndAddNode;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.withSettings;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -92,13 +95,19 @@ import org.knime.core.webui.data.DataServiceContext;
 import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.data.rpc.json.impl.ObjectMapperUtil;
 import org.knime.core.webui.node.NodeWrapper;
+import org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersSubNodeUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersUtil;
 import org.knime.core.webui.node.view.NodeViewManager;
 import org.knime.core.webui.node.view.NodeViewManagerTest;
 import org.knime.core.webui.page.Page;
+import org.knime.node.DefaultNode.RequireModel;
+import org.knime.node.testing.DefaultNodeTestUtil;
+import org.knime.shared.workflow.storage.multidir.util.IOConst;
 import org.knime.testing.node.dialog.NodeDialogNodeFactory;
 import org.knime.testing.node.dialog.NodeDialogNodeModel;
 import org.knime.testing.node.dialog.NodeDialogNodeView;
 import org.knime.testing.util.WorkflowManagerUtil;
+import org.mockito.MockedStatic;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.osgi.framework.FrameworkUtil;
@@ -187,6 +196,48 @@ public class NodeDialogManagerTest {
         verify(nodeSettingsService, times(1)).deactivate();
     }
 
+    @Test
+    void testNodeWithJobManagerSettings() throws IOException, InvalidSettingsException {
+        NativeNodeContainer nc = createAndAddNode(m_wfm, new EmptyNodeFactory());
+        assertThat(NodeDialogManager.hasNodeDialog(nc)).as("node not expected to have a node dialog").isFalse();
+
+        final var nodeSettings = nc.getNodeSettings();
+        final var jobManagerSettings = nodeSettings.addNodeSettings(SettingsType.JOB_MANAGER.getConfigKey());
+        jobManagerSettings.addNodeSettings(IOConst.JOB_MANAGER_SETTINGS_KEY.get());
+        final var selectedFactoryId = new TestJobManagerFactory().getID();
+        jobManagerSettings.addString(IOConst.JOB_MANAGER_FACTORY_ID_KEY.get(), selectedFactoryId);
+        m_wfm.loadNodeSettings(nc.getID(), nodeSettings);
+
+        assertThat(NodeDialogManager.hasNodeDialog(nc)).as("node expected to have a node dialog").isTrue();
+        var nodeDialogManager = NodeDialogManager.getInstance();
+        var initialData = nodeDialogManager.getDataServiceManager().callInitialDataService(NodeWrapper.of(nc));
+        var resultAsJson = (ObjectNode)new ObjectMapper().readTree(initialData);
+        assertThatJson(resultAsJson).inPath("result.data.job-manager.job-manager-factory-id")
+            .isEqualTo(selectedFactoryId);
+
+        final var dataServiceManager = nodeDialogManager.getDataServiceManager();
+
+        // Applying another job manager than the default one is not possible
+        final var toBeApplied = getObject(resultAsJson, "result");
+        var toBeAppliedString = new ObjectMapper().writeValueAsString(toBeApplied);
+        final var errorResult = dataServiceManager.callApplyDataService(NodeWrapper.of(nc), toBeAppliedString);
+        final var errorResultAsJson = (ObjectNode)new ObjectMapper().readTree(errorResult);
+        assertThatJson(errorResultAsJson).inPath("isApplied").isBoolean().isFalse();
+        assertThatJson(errorResultAsJson).inPath("error")
+            .isEqualTo("Custom job managers for nodes are not supported. Please select the default job manager.");
+
+        // Applying the default job manager is possible
+        ((ObjectNode)toBeApplied.get("data").get("job-manager")).put("job-manager-factory-id",
+            JobManagerParametersUtil.DEFAULT_JOB_MANAGER_FACTORY_ID);
+        toBeAppliedString = new ObjectMapper().writeValueAsString(toBeApplied);
+        final var successResult = dataServiceManager.callApplyDataService(NodeWrapper.of(nc), toBeAppliedString);
+        var successResultAsJson = (ObjectNode)new ObjectMapper().readTree(successResult);
+        assertThatJson(successResultAsJson).inPath("isApplied").isBoolean().isTrue();
+
+        // If the default node manager is selected, the job manager entry is removed from the settings
+        assertThat(nc.getNodeSettings().containsKey(IOConst.JOB_MANAGER_KEY.get())).isFalse();
+    }
+
     /**
      * Tests a {@link SubNodeContainer} dialog
      *
@@ -198,37 +249,13 @@ public class NodeDialogManagerTest {
         var componentUiMode = System.setProperty(uiModeProperty, "js");
         var bundleContext = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
         var serviceRegistration = bundleContext.registerService(DefaultConfigurationLayoutCreator.class.getName(),
-            new DefaultConfigurationLayoutCreator() { // NOSONAR
+            createLayoutCreator(), new Hashtable<>());
 
-                @Override
-                public String createDefaultConfigurationLayout(final Map<NodeIDSuffix, DialogNode> configurationNodes)
-                    throws IOException {
-                    return null;
-                }
+        try (MockedStatic<JobManagerParametersSubNodeUtil> mocked =
+            mockStatic(JobManagerParametersSubNodeUtil.class, withSettings().defaultAnswer(CALLS_REAL_METHODS))) {
+            mocked.when(() -> JobManagerParametersSubNodeUtil.isStreamingExtensionInstalled())
+                .thenReturn(false);
 
-                @Override
-                public void addUnreferencedDialogNodes(
-                    final SubnodeContainerConfigurationStringProvider configurationStringProvider,
-                    final Map<NodeIDSuffix, DialogNode> allNodes) {
-                    //
-                }
-
-                @Override
-                public void updateConfigurationLayout(
-                    final SubnodeContainerConfigurationStringProvider configurationStringProvider) {
-                    //
-                }
-
-                @Override
-                public List<Integer> getConfigurationOrder(
-                    final SubnodeContainerConfigurationStringProvider configurationStringProvider,
-                    final Map<NodeID, DialogNode> nodes, final WorkflowManager wfm) {
-                    return Collections.singletonList(0);
-                }
-
-            }, new Hashtable<>());
-
-        try {
             // build workflow
             var wfm = WorkflowManagerUtil.createEmptyWorkflow();
             var nnc = WorkflowManagerUtil.createAndAddNode(wfm, new TestConfigurationNodeFactory());
@@ -294,9 +321,41 @@ public class NodeDialogManagerTest {
         }
     }
 
+    private static DefaultConfigurationLayoutCreator createLayoutCreator() {
+        return new DefaultConfigurationLayoutCreator() { // NOSONAR
+
+            @Override
+            public String createDefaultConfigurationLayout(final Map<NodeIDSuffix, DialogNode> configurationNodes)
+                throws IOException {
+                return null;
+            }
+
+            @Override
+            public void addUnreferencedDialogNodes(
+                final SubnodeContainerConfigurationStringProvider configurationStringProvider,
+                final Map<NodeIDSuffix, DialogNode> allNodes) {
+                //
+            }
+
+            @Override
+            public void updateConfigurationLayout(
+                final SubnodeContainerConfigurationStringProvider configurationStringProvider) {
+                //
+            }
+
+            @Override
+            public List<Integer> getConfigurationOrder(
+                final SubnodeContainerConfigurationStringProvider configurationStringProvider,
+                final Map<NodeID, DialogNode> nodes, final WorkflowManager wfm) {
+                return Collections.singletonList(0);
+            }
+
+        };
+    }
+
     private static NativeNodeContainer findSubNodeWithName(final SubNodeContainer component, final String nodeName) {
-        return (NativeNodeContainer)component.getWorkflowManager().getNodeContainers()
-            .stream().filter(nc -> nc.getName().equals(nodeName)).findFirst().orElseThrow();
+        return (NativeNodeContainer)component.getWorkflowManager().getNodeContainers().stream()
+            .filter(nc -> nc.getName().equals(nodeName)).findFirst().orElseThrow();
     }
 
     private static void assertInitialSubNodeContainerData(final JsonNode resultAsJson, final int nodeIndex) {
@@ -311,7 +370,6 @@ public class NodeDialogManagerTest {
             .isEqualTo("ConfigurationNodeNotSupported");
         assertThatJson(resultAsJson).inPath("$.result.ui_schema.elements[1].options.nodeName")
             .isEqualTo("Non-supported Configuration Node (used in tests)");
-
     }
 
     private static void setTestData(final int nodeIndex, final ObjectNode result, final String testData) {
@@ -323,6 +381,76 @@ public class NodeDialogManagerTest {
 
     private static ObjectNode getObject(final ObjectNode node, final String key) {
         return (ObjectNode)node.get(key);
+    }
+
+    /**
+     * Tests a {@link SubNodeContainer} dialog with job manager
+     *
+     * @throws IOException
+     * @throws InvalidSettingsException
+     */
+    @Test
+    void testSubNodeContainerDialogWithJobManager() throws IOException, InvalidSettingsException {
+        final var uiModeProperty = "org.knime.component.ui.mode";
+        var componentUiMode = System.setProperty(uiModeProperty, "js");
+        var bundleContext = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
+        var serviceRegistration = bundleContext.registerService(DefaultConfigurationLayoutCreator.class.getName(),
+            createLayoutCreator(), new Hashtable<>());
+
+        var nnc = createNodeWithoutNodeDialog(m_wfm);
+        var componentId =
+            m_wfm.collapseIntoMetaNode(new NodeID[]{nnc.getID()}, new WorkflowAnnotationID[0], "TestComponent")
+                .getCollapsedMetanodeID();
+        m_wfm.convertMetaNodeToSubNode(componentId);
+
+        SubNodeContainer component = (SubNodeContainer)m_wfm.getNodeContainer(componentId);
+
+        try (MockedStatic<JobManagerParametersSubNodeUtil> mocked =
+            mockStatic(JobManagerParametersSubNodeUtil.class, withSettings().defaultAnswer(CALLS_REAL_METHODS))) {
+            mocked.when(() -> JobManagerParametersSubNodeUtil.isStreamingExtensionInstalled())
+                .thenReturn(true);
+
+            assertThat(NodeDialogManager.hasNodeDialog(component)).as("node expected to have a node dialog").isTrue();
+            var nodeDialogManager = NodeDialogManager.getInstance();
+            var initialData =
+                nodeDialogManager.getDataServiceManager().callInitialDataService(NodeWrapper.of(component));
+            var resultAsJson = (ObjectNode)new ObjectMapper().readTree(initialData);
+            assertInitialSubNodeContainerJobManagerSettings(resultAsJson);
+
+            final var result = getObject(resultAsJson, "result");
+            final var toBeAppliedNoJobManagerString = new ObjectMapper().writeValueAsString(result);
+
+            final var componentWrapper = NodeWrapper.of(component);
+            final var dataServiceManager = nodeDialogManager.getDataServiceManager();
+
+            var nodeSettings = component.getNodeSettings();
+            // check that node settings do not contain the job manager settings if the default job manager is set
+            dataServiceManager.callApplyDataService(componentWrapper, toBeAppliedNoJobManagerString);
+            nodeSettings = component.getNodeSettings();
+            assertThat(nodeSettings.containsKey(IOConst.JOB_MANAGER_KEY.get())).isFalse();
+
+        } finally {
+            if (componentUiMode != null) {
+                System.setProperty(uiModeProperty, componentUiMode);
+            } else {
+                System.clearProperty(uiModeProperty);
+            }
+            serviceRegistration.unregister();
+        }
+    }
+
+    private static void assertInitialSubNodeContainerJobManagerSettings(final JsonNode resultAsJson) {
+        assertThatJson(resultAsJson).inPath("$.result.data.job-manager.job-manager-factory-id").isString().isNotEmpty();
+        assertThatJson(resultAsJson)
+            .inPath("$.result.schema.properties.job-manager.properties.job-manager-factory-id.title")
+            .isEqualTo("Job manager");
+        assertThatJson(resultAsJson).inPath("$.result.ui_schema.elements[0].elements[0].scope")
+            .isEqualTo("#/properties/job-manager/properties/job-manager-factory-id");
+        assertThatJson(resultAsJson).inPath("$.result.ui_schema.elements[0].elements[0].options.possibleValues")
+            .isArray();
+        assertThatJson(resultAsJson).inPath("$.result.ui_schema.elements[0].elements[1].rule.condition.scope")
+            .isEqualTo("#/properties/job-manager/properties/job-manager-factory-id");
+        assertThatJson(resultAsJson).inPath("$.result.persist.properties.job-manager.configPaths").isArray().isEmpty();
     }
 
     /**
@@ -391,7 +519,7 @@ public class NodeDialogManagerTest {
             @Override
             public String fromNodeSettings(final Map<SettingsType, NodeAndVariableSettingsRO> settings,
                 final PortObjectSpec[] specs) {
-                assertThat(settings.size()).isEqualTo(2);
+                assertThat(settings.size()).isEqualTo(3);
                 return "the node settings";
             }
 
@@ -474,6 +602,16 @@ public class NodeDialogManagerTest {
     private static NativeNodeContainer createNodeWithNodeDialog(final WorkflowManager wfm,
         final Supplier<NodeDialog> nodeDialogCreator, final BooleanSupplier hasDialog) {
         return createAndAddNode(wfm, new NodeDialogNodeFactory(nodeDialogCreator, hasDialog));
+    }
+
+    private static NativeNodeContainer createNodeWithoutNodeDialog(final WorkflowManager wfm) {
+        return createAndAddNode(wfm, DefaultNodeTestUtil.createNodeFactoryFromStage(RequireModel.class, m -> m.//
+            model(rmp -> rmp. //
+                withoutParameters() //
+                .configure((i, o) -> {
+                }) //
+                .execute((i, o) -> {
+                }))));
     }
 
     public static class TestService {

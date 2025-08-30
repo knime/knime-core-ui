@@ -14,6 +14,14 @@
         "amet",
         "consetetur",
         "sadipscing"
+      ],
+      "sortListWithTypes": [
+        "xml",
+        "<any unknown new column>",
+        "string",
+        "missing1",
+        "double",
+        "path"
       ]
     },
     "schema": {
@@ -47,6 +55,47 @@
               {
                 "id": "unknown 2",
                 "text": "Unknown 2"
+              }
+            ]
+          }
+        },
+        {
+          "type": "Control",
+          "scope": "properties/sortListWithTypes",
+          "options": {
+            "format": "sortList",
+            "possibleValues": [
+              {
+                "id": "xml",
+                "text": "XML",
+                "type": {
+                  "id": "xml-datatype",
+                  "text": "Document"
+                }
+              },
+              {
+                "id": "string",
+                "text": "String",
+                "type": {
+                  "id": "string-datatype",
+                  "text": "String"
+                }
+              },
+              {
+                "id": "double",
+                "text": "Double",
+                "type": {
+                  "id": "number-double-datatype",
+                  "text": "Double"
+                }
+              },
+              {
+                "id": "path",
+                "text": "Path",
+                "type": {
+                  "id": "path-datatype",
+                  "text": "Path"
+                }
               }
             ]
           }

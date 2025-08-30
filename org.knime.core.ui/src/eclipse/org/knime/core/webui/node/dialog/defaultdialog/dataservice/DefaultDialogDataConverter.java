@@ -81,8 +81,8 @@ public interface DefaultDialogDataConverter {
      * </ul>
      *
      * @param dataJson the JSON representation of the data. The top level keys are values of
-     *            {@link SettingsType#getConfigKey()}, i.e. either "model" or "view" and it is given that the key for
-     *            the given type exists.
+     *            {@link SettingsType#getConfigKeyFrontend()}, i.e. "model", "view", "or job-manager" and it is given
+     *            that the key for the given type exists.
      * @param type the type of the to be extracted node settings
      * @return the node settings of the given type
      * @throws InvalidSettingsException if creating node settings from the JSON is not possible

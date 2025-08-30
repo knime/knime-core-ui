@@ -13,6 +13,7 @@ import { mount } from "@vue/test-utils";
 import flushPromises from "flush-promises";
 
 import { Dropdown } from "@knime/components";
+import { DataType } from "@knime/kds-components";
 
 import { type FlowSettings } from "../../../../api/types";
 import { injectionKey as providedByComponentKey } from "../../../../composables/components/useFlowVariables";
@@ -113,11 +114,15 @@ describe("FlowVariableSelector.vue", () => {
 
   const constructValue = (name: string) => `${name}_test_value`;
 
-  const constructFlowVar = (name: string) => {
+  const constructFlowVar = (name: string, type: string) => {
     return {
       name,
       value: constructValue(name),
       abbreviated: false,
+      type: {
+        id: type,
+        text: type.toLowerCase(),
+      },
     };
   };
 
@@ -129,9 +134,9 @@ describe("FlowVariableSelector.vue", () => {
     };
   };
 
-  const flowVar1 = constructFlowVar("var1");
-  const flowVar2 = constructFlowVar("var2");
-  const flowVar3 = constructFlowVar("var3");
+  const flowVar1 = constructFlowVar("var1", "STRING");
+  const flowVar2 = constructFlowVar("var2", "INT");
+  const flowVar3 = constructFlowVar("var3", "BOOLEAN");
   const getAvailableFlowVariablesMock = vi.fn((_path) =>
     Promise.resolve({ STRING: [flowVar1, flowVar2], BOOLEAN: [flowVar3] }),
   );
@@ -268,5 +273,48 @@ describe("FlowVariableSelector.vue", () => {
     await noneOption.trigger("click");
     expect(flowVariablesMap[props.dataPath]).toBeUndefined();
     expect(wrapper.emitted("controllingFlowVariableSet")).toBeUndefined();
+  });
+
+  describe("slot rendering", () => {
+    it("renders an untyped value", async () => {
+      const wrapper = mountFlowVariableSelector({
+        props,
+        getAvailableFlowVariables: getAvailableFlowVariablesMock,
+      });
+      await flushPromises();
+      const noneOption = wrapper.findComponent(Dropdown).find("li");
+      expect(noneOption.text()).toBe("None");
+      expect(noneOption.find(".data-type-entry").exists()).toBeTruthy();
+      expect(noneOption.findComponent(DataType).exists()).toBeFalsy();
+    });
+
+    it("renders a typed value", async () => {
+      const wrapper = mountFlowVariableSelector({
+        props,
+        getAvailableFlowVariables: getAvailableFlowVariablesMock,
+      });
+      await flushPromises();
+      const noneOption = wrapper.findComponent(Dropdown).findAll("li");
+      expect(noneOption[1].text()).toBe("var1");
+      expect(noneOption[1].find(".data-type-entry").exists()).toBeTruthy();
+      expect(noneOption[1].findComponent(DataType).exists()).toBeTruthy();
+    });
+
+    it("renders a missing value", async () => {
+      flowVariablesMap[props.persistPath] = {
+        controllingFlowVariableAvailable: true,
+        controllingFlowVariableName: "varMissing",
+        exposedFlowVariableName: null,
+      };
+      const wrapper = mountFlowVariableSelector({
+        props,
+        getAvailableFlowVariables: getAvailableFlowVariablesMock,
+      });
+      await flushPromises();
+      const dataTypeEntry = wrapper.find(".data-type-entry");
+      expect(dataTypeEntry.exists()).toBeTruthy();
+      expect(dataTypeEntry.text()).toBe("(MISSING) varMissing");
+      expect(dataTypeEntry.findComponent(DataType).exists()).toBeTruthy();
+    });
   });
 });
