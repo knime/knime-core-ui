@@ -5,6 +5,7 @@ import { Pane, Splitpanes } from "splitpanes";
 
 import "splitpanes/dist/splitpanes.css";
 import type { MenuItem } from "@knime/components";
+import "@knime/kds-styles/kds-variables.css";
 
 import type { InputOutputModel } from "@/components/InputOutputItem.vue";
 import { type PaneSizes } from "@/components/utils/paneSizes";

@@ -3,6 +3,7 @@ import {
   COLUMN_INSERTION_EVENT,
   type InputOutputModel,
   type SubItem,
+  type SubItemType,
 } from "@/components/InputOutputItem.vue";
 import InputOutputPane from "@/components/InputOutputPane.vue";
 import OutputConsole, {
@@ -79,6 +80,7 @@ export type {
   GenericNodeSettings,
   InitialDataServiceType,
   SubItem,
+  SubItemType,
   InputOutputModel,
   InsertionEvent,
   KAIConfig,

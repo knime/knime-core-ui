@@ -2,19 +2,20 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: KNIME Scripting Utilities
 Bundle-SymbolicName: org.knime.scripting.editor;singleton:=true
-Bundle-Version: 5.6.0.qualifier
+Bundle-Version: 5.7.0.qualifier
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Eclipse-BundleShape: dir
 Automatic-Module-Name: org.knime.scripting.editor
-Require-Bundle: org.knime.core;bundle-version="[5.6.0,6.0.0)",
- org.knime.core.ui;bundle-version="[5.6.0,6.0.0)",
+Require-Bundle: org.knime.core;bundle-version="[5.7.0,6.0.0)",
+ org.knime.core.ui;bundle-version="[5.7.0,6.0.0)",
  org.eclipse.jface;bundle-version="[3.29.0,4.0.0)",
  com.fasterxml.jackson.core.jackson-annotations;bundle-version="2.13.2",
  com.fasterxml.jackson.core.jackson-core;bundle-version="2.13.2",
  com.fasterxml.jackson.core.jackson-databind;bundle-version="2.13.2",
- org.knime.gateway.api;bundle-version="[5.6.0,6.0.0)",
- org.knime.gateway.impl;bundle-version="[5.6.0,6.0.0)"
+ org.knime.gateway.api;bundle-version="[5.7.0,6.0.0)",
+ org.knime.gateway.impl;bundle-version="[5.7.0,6.0.0)"
 Bundle-ClassPath: knime-scripting-editor.jar
 Export-Package: org.knime.scripting.editor;x-friends:="org.knime.python3.scripting.nodes,org.knime.base.expressions,org.knime.base.views",
  org.knime.scripting.editor.lsp;x-friends:="org.knime.python3.scripting.nodes"
+Import-Package: com.fasterxml.jackson.datatype.jdk8;version="[2.13.0,3.0.0]"

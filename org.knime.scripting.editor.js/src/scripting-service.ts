@@ -10,6 +10,11 @@ import { KnimeMessageReader, KnimeMessageWriter } from "./lsp/knime-io";
 
 type LanguageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
 
+export type UsageData = {
+  limit: number | null;
+  used: number;
+};
+
 // --- HELPER CLASSES ---
 
 // TODO AP-19341: use Java-to-JS events
@@ -147,6 +152,10 @@ const scriptingService = {
 
   getAiDisclaimer(): Promise<string> {
     return this.sendToService("getAiDisclaimer");
+  },
+
+  getAiUsage(): Promise<UsageData | null> {
+    return this.sendToService("getAiUsage");
   },
 };
 

@@ -16,6 +16,7 @@ import {
   clearPromptResponseStore,
   currentInputOutputItems,
   setActiveEditorStoreForAi,
+  usageData,
   usePromptResponseStore,
 } from "@/store/ai-bar";
 
@@ -59,6 +60,7 @@ describe("AiPopup", () => {
   beforeEach(() => {
     vi.resetModules();
     clearPromptResponseStore();
+    usageData.value = null; // Clear usage data for each test
     setActiveEditorStoreForAi({
       text: ref(""),
       editorModel: "myEditorModel",
@@ -351,5 +353,154 @@ describe("AiPopup", () => {
     expect(scriptingService.sendToService).not.toHaveBeenCalledWith(
       "abortSuggestCodeRequest",
     );
+  });
+
+  describe("usage limit functionality", () => {
+    it("fetches initial usage data when user is logged in", async () => {
+      const scriptingService = getScriptingService();
+      vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        limit: 100,
+        used: 25,
+      });
+
+      await doMount();
+      await flushPromises();
+
+      expect(scriptingService.getAiUsage).toHaveBeenCalledOnce();
+    });
+
+    it("does not fetch usage data when user is not logged in", async () => {
+      const scriptingService = getScriptingService();
+      vi.mocked(scriptingService.isLoggedIntoHub).mockResolvedValue(false);
+
+      await doMount();
+      await flushPromises();
+
+      expect(scriptingService.getAiUsage).not.toHaveBeenCalled();
+    });
+
+    it("displays usage counter for regular users within limit", async () => {
+      const scriptingService = getScriptingService();
+      vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        limit: 100,
+        used: 25,
+      });
+
+      const bar = await doMount();
+      await flushPromises();
+
+      const usageCounter = bar.find(".usage-counter");
+      expect(usageCounter.exists()).toBeTruthy();
+      expect(usageCounter.text()).toBe("25/100 monthly interactions");
+    });
+
+    it("hides usage counter for pro users (null limit)", async () => {
+      const scriptingService = getScriptingService();
+      vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        limit: null,
+        used: 500,
+      });
+
+      const bar = await doMount();
+      await flushPromises();
+
+      const usageCounter = bar.find(".usage-counter");
+      expect(usageCounter.exists()).toBeFalsy();
+    });
+
+    it("shows limit exceeded message when usage exceeds limit", async () => {
+      const scriptingService = getScriptingService();
+      vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        limit: 100,
+        used: 100,
+      });
+
+      const bar = await doMount();
+      await flushPromises();
+
+      const limitMessage = bar.find(".limit-exceeded-message");
+      expect(limitMessage.exists()).toBeTruthy();
+      expect(limitMessage.text()).toContain(
+        "All free monthly AI interactions used",
+      );
+    });
+
+    it("hides text input when limit is exceeded", async () => {
+      const scriptingService = getScriptingService();
+      vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        limit: 100,
+        used: 100,
+      });
+
+      const bar = await doMount();
+      await flushPromises();
+
+      const textarea = bar.find(".textarea");
+      expect(textarea.exists()).toBeFalsy();
+    });
+
+    it("updates usage data from AI response", async () => {
+      const bar = await doMount();
+      await flushPromises();
+
+      await (bar.vm as any).handleCodeSuggestion({
+        code: JSON.stringify({
+          code: "some code",
+          interactionId: "test-id",
+          usage: { limit: 100, used: 50 },
+        }),
+        status: "SUCCESS",
+      });
+
+      const usageCounter = bar.find(".usage-counter");
+      expect(usageCounter.text()).toBe("50/100 monthly interactions");
+    });
+
+    it("shows usage disclaimer for all users", async () => {
+      const bar = await doMount();
+      await flushPromises();
+
+      const disclaimer = bar.find(".usage-disclaimer");
+      expect(disclaimer.exists()).toBeTruthy();
+      expect(disclaimer.text().trim()).toBe("K-AI can make mistakes");
+    });
+
+    it("fetches usage data after successful login", async () => {
+      const scriptingService = getScriptingService();
+      vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        limit: 100,
+        used: 10,
+      });
+
+      const bar = await doMount();
+      await flushPromises();
+
+      // Simulate login event
+      await (bar.vm as any).handleLoginStatus(true);
+
+      expect(scriptingService.getAiUsage).toHaveBeenCalledTimes(2); // Once on mount, once on login
+    });
+
+    it("hides usage counter when backend returns null (old backend)", async () => {
+      const scriptingService = getScriptingService();
+      vi.mocked(scriptingService.getAiUsage).mockResolvedValue(null);
+
+      const bar = await doMount();
+      await flushPromises();
+
+      const usageCounter = bar.find(".usage-counter");
+      expect(usageCounter.exists()).toBeFalsy();
+    });
+
+    it("calculates days left in month correctly", async () => {
+      const bar = await doMount();
+
+      // Mock date to January 15th, 2024
+      const mockDate = new Date("2024-01-15");
+      const daysLeft = (bar.vm as any).getDaysLeftInMonth(mockDate);
+
+      // January has 31 days, so 31 - 15 = 16 days left
+      expect(daysLeft).toBe(16);
+    });
   });
 });
