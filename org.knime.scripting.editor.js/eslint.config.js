@@ -14,4 +14,8 @@ export default [
       "vitest/no-import-node-test": "error",
     },
   },
+  {
+    files: ["demo/**/*"],
+    rules: { "no-magic-numbers": "off" },
+  },
 ];
