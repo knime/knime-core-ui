@@ -4,7 +4,9 @@
     "src/**/*",
     "src/**/*.vue",
     "lib/**/*",
-    "node_modules/@knime/**/*"
+    "node_modules/@knime/**/*",
+    "demo/**/*",
+    "demo/**/*.vue"
   ],
   "exclude": ["**/__tests__/*", "**/__mocks__/*"],
   "compilerOptions": {
