@@ -51,6 +51,7 @@ package org.knime.node.impl.description;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -105,10 +106,38 @@ public final class DefaultNodeDescriptionUtil {
     public static NodeDescription createNodeDescription(final String name, final String icon, // NOSONAR
         final Collection<PortDescription> inPortDescriptions, final Collection<PortDescription> outPortDescriptions,
         final String shortDescription, final String fullDescription,
-        final Collection<ExternalResource> externalResources,
-        final Class<? extends NodeParameters> modelSettingsClass,
+        final Collection<ExternalResource> externalResources, final Class<? extends NodeParameters> modelSettingsClass,
         final Class<? extends NodeParameters> viewSettingsClass, final String viewDescription, final NodeType type,
         final Collection<String> keywords, final Version sinceVersion) {
+        return createNodeDescription(name, icon, inPortDescriptions, outPortDescriptions, shortDescription,
+            fullDescription, externalResources, modelSettingsClass, //
+            viewDescription != null ? List.of(new ViewDescription(name, viewDescription, viewSettingsClass)) : null, //
+            type, keywords, sinceVersion);
+    }
+
+    /**
+     * Creates the node description
+     *
+     * @param name the name of the node
+     * @param icon relative path to the node icon
+     * @param inPortDescriptions the descriptions of the node's input ports
+     * @param outPortDescriptions the descriptions of the node's output ports
+     * @param shortDescription the short node description
+     * @param fullDescription the full node description
+     * @param externalResources links to external resources
+     * @param modelSettingsClass the type of the model settings, or null, if the node has no model settings
+     * @param viewDescriptions the view description, or null, if the node has no view
+     * @param type the type of the node, or null, if it should be determined automatically
+     * @param keywords the keywords for search, or null.
+     * @param sinceVersion the KNIME AP version since which this node is available, or null
+     * @return a description for this node
+     */
+    public static NodeDescription createNodeDescription(final String name, final String icon, // NOSONAR
+        final Collection<PortDescription> inPortDescriptions, final Collection<PortDescription> outPortDescriptions,
+        final String shortDescription, final String fullDescription,
+        final Collection<ExternalResource> externalResources, final Class<? extends NodeParameters> modelSettingsClass,
+        final Collection<ViewDescription> viewDescriptions, final NodeType type, final Collection<String> keywords,
+        final Version sinceVersion) {
         var fac = NodeDescription.getDocumentBuilderFactory();
         DocumentBuilder docBuilder;
         try {
@@ -145,6 +174,10 @@ public final class DefaultNodeDescriptionUtil {
         node.appendChild(shortDesc);
         node.appendChild(fullDesc);
 
+        var viewSettingsClass = viewDescriptions != null
+            ? viewDescriptions.stream().findFirst().orElse(new ViewDescription("", "", null)).viewSettingsClass()
+            : null;
+
         fullDesc.appendChild(createOptionsTab(modelSettingsClass, viewSettingsClass, docBuilder, doc));
 
         if (!externalResources.isEmpty()) {
@@ -162,14 +195,18 @@ public final class DefaultNodeDescriptionUtil {
         addPorts(docBuilder, doc, ports, outPortDescriptions, pd -> pd.configurable() ? "dynOutPort" : "outPort");
         node.appendChild(ports);
 
-        // create view (if exists)
-        if (viewDescription != null) {
+        // create view descriptions (if existent)
+        if (viewDescriptions != null && viewDescriptions.size() > 0) {
             final var views = doc.createElement("views");
-            var view = doc.createElement("view");
-            view.setAttribute("index", "0");
-            view.setAttribute("name", name);
-            view.appendChild(parseDocumentFragment(viewDescription, docBuilder, doc));
-            views.appendChild(view);
+            int viewNumber = 0;
+            for (var viewDescription : viewDescriptions) {
+                var view = doc.createElement("view");
+                view.setAttribute("index", String.valueOf(viewNumber));
+                view.setAttribute("name", viewDescription.name());
+                view.appendChild(parseDocumentFragment(viewDescription.description(), docBuilder, doc));
+                views.appendChild(view);
+                viewNumber++;
+            }
             node.appendChild(views);
         }
 
@@ -192,8 +229,7 @@ public final class DefaultNodeDescriptionUtil {
     }
 
     private static Element createOptionsTab(final Class<? extends NodeParameters> modelSettingsClass,
-        final Class<? extends NodeParameters> viewSettingsClass, final DocumentBuilder docBuilder,
-        final Document doc) {
+        final Class<? extends NodeParameters> viewSettingsClass, final DocumentBuilder docBuilder, final Document doc) {
         var tab = doc.createElement("tab");
         tab.setAttribute("name", "Options");
         OptionsAdder.addOptionsToTab(tab, modelSettingsClass, viewSettingsClass, (title, desc) -> {
