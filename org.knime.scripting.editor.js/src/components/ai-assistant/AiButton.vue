@@ -7,7 +7,7 @@ export default {};
 
 <script setup lang="ts">
 import { type Ref, computed, defineProps, onMounted, ref } from "vue";
-import { type MaybeElement, computedAsync, onClickOutside } from "@vueuse/core";
+import { type MaybeElement, onClickOutside } from "@vueuse/core";
 
 import { Button } from "@knime/components";
 import AiCodeIcon from "@knime/styles/img/icons/ai-general.svg";
@@ -19,18 +19,16 @@ import AiPopupContent from "./AiPopupContent.vue";
 
 const showAiPopup = ref(false);
 
-const showAiButton = computedAsync<boolean>(
-  async () =>
-    (await getInitialDataService().getInitialData()).kAiConfig.isKaiEnabled,
-  false,
+const showAiButton = computed<boolean>(
+  () => getInitialDataService().getInitialData().kAiConfig.isKaiEnabled,
 );
-const enableAiButton = computedAsync<boolean>(async () => {
-  const inputConnectionInfo = (await getInitialDataService().getInitialData())
-    .inputConnectionInfo;
+const enableAiButton = computed<boolean>(() => {
+  const inputConnectionInfo =
+    getInitialDataService().getInitialData().inputConnectionInfo;
   return inputConnectionInfo.every(
     (connection) => connection.isOptional || connection.status === "OK",
   );
-}, false);
+});
 
 type AiButtonPropType = {
   currentPaneSizes: PaneSizes;

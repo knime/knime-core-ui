@@ -167,7 +167,7 @@ describe("init", () => {
       jsonDataServiceInstance.initialData.mockResolvedValue(mockInitialData);
 
       await init();
-      await expect(getInitialDataService().getInitialData()).resolves.toBe(
+      expect(getInitialDataService().getInitialData()).toBe(
         mockInitialData.initialData,
       );
     });

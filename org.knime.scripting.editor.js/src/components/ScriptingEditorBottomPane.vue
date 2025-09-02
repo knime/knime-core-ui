@@ -44,9 +44,9 @@ const makeGrabFocusFunction = (tabValue: string) => {
 
 const portConfigs: Ref<PortConfigs> = computedAsync(
   async () => {
-    const inputPorts = (
-      await getInitialDataService().getInitialData()
-    ).inputPortConfigs.inputPorts.filter((port) => port.nodeId !== null);
+    const inputPorts = getInitialDataService()
+      .getInitialData()
+      .inputPortConfigs.inputPorts.filter((port) => port.nodeId !== null);
 
     if (
       !(await getScriptingService().isCallKnimeUiApiAvailable(inputPorts[0]))

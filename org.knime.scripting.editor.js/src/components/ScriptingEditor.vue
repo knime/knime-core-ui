@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, useSlots } from "vue";
-import { computedAsync, useElementBounding } from "@vueuse/core";
+import { useElementBounding } from "@vueuse/core";
 
 import { type MenuItem, SplitPanel } from "@knime/components";
 import "@knime/kds-styles/kds-variables.css";
@@ -100,11 +100,11 @@ if (props.fileName === null && !useSlots().editor) {
   throw new Error("either fileName or editor slot must be provided");
 }
 
-const defaultInputOutputItems = computedAsync<InputOutputModel[]>(async () => {
+const defaultInputOutputItems = computed<InputOutputModel[]>(() => {
   if (slots["left-pane"]) {
     return [];
   } else {
-    const initialData = await getInitialDataService().getInitialData();
+    const initialData = getInitialDataService().getInitialData();
     const initialItems = [
       ...initialData.inputObjects,
       initialData.flowVariables,

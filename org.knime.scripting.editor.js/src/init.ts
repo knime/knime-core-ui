@@ -42,8 +42,7 @@ export const init = async () => {
   } = await jsonDataService.initialData();
 
   initialDataService = {
-    // TODO this can now return the initial data, not a promise
-    getInitialData: () => Promise.resolve(initialDataAndSettings.initialData),
+    getInitialData: () => initialDataAndSettings.initialData,
   };
 
   settingsService = new SettingsService(
