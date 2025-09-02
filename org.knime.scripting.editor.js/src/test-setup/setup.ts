@@ -40,7 +40,7 @@ initMocked({
     getAiUsage: vi.fn(() => Promise.resolve(null)),
   },
   initialDataService: {
-    getInitialData: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_DATA)),
+    getInitialData: vi.fn(() => DEFAULT_INITIAL_DATA),
   },
   settingsService: {
     getSettings: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_SETTINGS)),

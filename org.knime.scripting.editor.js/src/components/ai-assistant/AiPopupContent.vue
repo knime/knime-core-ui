@@ -21,7 +21,6 @@ import {
   getScriptingService,
   getSettingsService,
 } from "@/init";
-import { type GenericInitialData } from "@/initial-data-service";
 import { type UsageData } from "@/scripting-service";
 import {
   type Message,
@@ -219,14 +218,10 @@ const promptTooLong = computed(() => {
 // The id of the hub is used to display the name of the hub in the login button
 // Updated with the actual hub id once the scripting service is ready
 const hubId = ref<string>("KNIME Hub");
-getInitialDataService()
-  .getInitialData()
-  .then((data: GenericInitialData) => {
-    const id = data.kAiConfig.hubId;
-    if (id !== null) {
-      hubId.value = id;
-    }
-  });
+const id = getInitialDataService().getInitialData().kAiConfig.hubId;
+if (id !== null) {
+  hubId.value = id;
+}
 
 /** Fetch usage data in background and update store */
 const fetchUsageData = () => {

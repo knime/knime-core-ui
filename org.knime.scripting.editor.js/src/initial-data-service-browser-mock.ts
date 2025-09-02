@@ -117,6 +117,6 @@ export const createInitialDataServiceMock = (
 ): InitialDataServiceType => ({
   getInitialData: () => {
     log("Called initial data service mock getInitialData");
-    return Promise.resolve(data ?? DEFAULT_INITIAL_DATA);
+    return data ?? DEFAULT_INITIAL_DATA;
   },
 });

@@ -49,5 +49,5 @@ export type GenericInitialData = {
 };
 
 export type InitialDataServiceType = {
-  getInitialData: () => Promise<GenericInitialData>;
+  getInitialData: () => GenericInitialData;
 };

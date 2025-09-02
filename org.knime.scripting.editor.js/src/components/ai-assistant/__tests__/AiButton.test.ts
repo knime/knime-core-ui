@@ -30,9 +30,10 @@ const doMount = async (
 };
 
 const mockInitialData = (initialData: Partial<GenericInitialData>) => {
-  vi.mocked(getInitialDataService().getInitialData).mockReturnValue(
-    Promise.resolve({ ...DEFAULT_INITIAL_DATA, ...initialData }),
-  );
+  vi.mocked(getInitialDataService().getInitialData).mockReturnValue({
+    ...DEFAULT_INITIAL_DATA,
+    ...initialData,
+  });
 };
 
 describe("AiButton", () => {
