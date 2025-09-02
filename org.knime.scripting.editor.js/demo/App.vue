@@ -15,6 +15,8 @@ import {
   setConsoleHandler,
 } from "../lib/main";
 
+import DebugToolbar from "./DebugToolbar.vue";
+
 const menuItems: MenuItem[] = [
   {
     text: "Demo Settings",
@@ -60,6 +62,7 @@ const runSelectedLines = () => {
 
 <template>
   <main>
+    <DebugToolbar />
     <template v-if="initialDataLoaded">
       <ScriptingEditor
         title="Demo Scripting Editor"
