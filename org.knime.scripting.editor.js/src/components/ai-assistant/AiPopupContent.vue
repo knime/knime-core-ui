@@ -496,7 +496,7 @@ const getDaysLeftInMonth = (date: Date = new Date()): number => {
       align-items: center;
       height: 10px;
       margin: 0 var(--ai-bar-margin) var(--ai-bar-margin) var(--ai-bar-margin);
-      font-weight: 700;
+      font-weight: 500;
       font-size: 10px;
       flex-grow: 0;
 
