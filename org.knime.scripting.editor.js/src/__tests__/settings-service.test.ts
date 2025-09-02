@@ -1,61 +1,135 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { getSettingsService } from "@/init";
+import type {
+  DialogService,
+  JsonDataService,
+} from "@knime/ui-extension-service";
 
-const { mockedJsonDataService, mockedDialogueService } = vi.hoisted(() => {
-  const mockedJsonDataService = {
-    registerDataGetter: vi.fn(() => {}),
-    initialData: vi.fn(() => ({ script: "foo" })),
-    data: vi.fn(() => Promise.resolve()),
-    applyData: vi.fn(() => {}),
-  };
-  const mockedDialogueService = {
-    setApplyListener: vi.fn(),
-  };
+import { type GenericNodeSettings, SettingsService } from "@/settings-service";
 
-  return {
-    mockedJsonDataService: {
-      ...mockedJsonDataService,
-      getInstance: vi.fn(() => Promise.resolve(mockedJsonDataService)),
-    },
-    mockedDialogueService: {
-      ...mockedDialogueService,
-      getInstance: vi.fn(() => Promise.resolve(mockedDialogueService)),
-    },
-  };
-});
-vi.mock("@knime/ui-extension-service", () => ({
-  JsonDataService: mockedJsonDataService,
-  DialogService: mockedDialogueService,
-}));
+describe("settings-service", () => {
+  it("should create SettingsService instance", () => {
+    const initialSettings: GenericNodeSettings = { script: "test" };
+    const mockDialogService = {} as DialogService;
+    const mockJsonDataService = {} as JsonDataService;
 
-describe("settings", () => {
-  afterEach(() => {
-    vi.clearAllMocks();
+    const service = new SettingsService(
+      initialSettings,
+      mockDialogService,
+      mockJsonDataService,
+    );
+
+    expect(service).toBeDefined();
   });
 
-  describe("registerSettingsGetterForApply", () => {
-    it("adds listener in DialogService to apply data in JsonDataService", async () => {
-      const settings = { script: "myScript" };
-      const settingsService = getSettingsService();
-      await settingsService.registerSettingsGetterForApply(() => settings);
-      expect(mockedDialogueService.setApplyListener).toHaveBeenCalled();
-      const applyListener =
-        mockedDialogueService.setApplyListener.mock.calls[0][0];
-      expect(await applyListener()).toStrictEqual({ isApplied: true });
-      expect(mockedJsonDataService.applyData).toHaveBeenCalledWith(settings);
-    });
+  it("should return initial settings from getSettings", async () => {
+    const initialSettings: GenericNodeSettings = { script: "test script" };
+    const mockDialogService = {} as DialogService;
+    const mockJsonDataService = {} as JsonDataService;
 
-    it("does not apply settings if they are invalid", async () => {
-      const settings = { script: "myScript" };
-      const settingsService = getSettingsService();
-      await settingsService.registerSettingsGetterForApply(() => settings);
-      const applyListener =
-        mockedDialogueService.setApplyListener.mock.calls[0][0];
-      mockedJsonDataService.applyData.mockReturnValue(
-        Promise.reject(new Error("invalid settings")) as any,
-      );
-      expect(await applyListener()).toStrictEqual({ isApplied: false });
+    const service = new SettingsService(
+      initialSettings,
+      mockDialogService,
+      mockJsonDataService,
+    );
+
+    await expect(service.getSettings()).resolves.toBe(initialSettings);
+  });
+
+  it("should register apply listener successfully", async () => {
+    const initialSettings: GenericNodeSettings = { script: "initial" };
+    const settingsToApply: GenericNodeSettings = { script: "updated" };
+
+    const mockSetApplyListener = vi.fn();
+    const mockDialogService = {
+      setApplyListener: mockSetApplyListener,
+    } as any as DialogService;
+
+    const mockApplyData = vi.fn().mockResolvedValue(undefined);
+    const mockJsonDataService = {
+      applyData: mockApplyData,
+    } as any as JsonDataService;
+
+    const service = new SettingsService(
+      initialSettings,
+      mockDialogService,
+      mockJsonDataService,
+    );
+
+    const settingsGetter = vi.fn(() => settingsToApply);
+    await service.registerSettingsGetterForApply(settingsGetter);
+
+    expect(mockSetApplyListener).toHaveBeenCalledTimes(1);
+
+    // Call the registered listener
+    const registeredListener = mockSetApplyListener.mock.calls[0][0];
+    const result = await registeredListener();
+
+    expect(settingsGetter).toHaveBeenCalledTimes(1);
+    expect(mockApplyData).toHaveBeenCalledWith(settingsToApply);
+    expect(result).toEqual({ isApplied: true });
+  });
+
+  it("should handle apply errors gracefully", async () => {
+    const initialSettings: GenericNodeSettings = { script: "initial" };
+    const settingsToApply: GenericNodeSettings = { script: "updated" };
+
+    const mockSetApplyListener = vi.fn();
+    const mockDialogService = {
+      setApplyListener: mockSetApplyListener,
+    } as any as DialogService;
+
+    const mockApplyData = vi.fn().mockRejectedValue(new Error("Apply failed"));
+    const mockJsonDataService = {
+      applyData: mockApplyData,
+    } as any as JsonDataService;
+
+    const service = new SettingsService(
+      initialSettings,
+      mockDialogService,
+      mockJsonDataService,
+    );
+
+    const settingsGetter = vi.fn(() => settingsToApply);
+    await service.registerSettingsGetterForApply(settingsGetter);
+
+    // Call the registered listener
+    const registeredListener = mockSetApplyListener.mock.calls[0][0];
+    const result = await registeredListener();
+
+    expect(settingsGetter).toHaveBeenCalledTimes(1);
+    expect(mockApplyData).toHaveBeenCalledWith(settingsToApply);
+    expect(result).toEqual({ isApplied: false });
+  });
+
+  it("should register settings and return function", async () => {
+    const initialSettings: GenericNodeSettings = { script: "test" };
+    const testInitialValue = { testProp: "testValue" };
+
+    const mockSettingsRegistrar = vi.fn();
+    const mockRegisterSettings = vi.fn(() => mockSettingsRegistrar);
+    const mockDialogService = {
+      registerSettings: mockRegisterSettings,
+    } as any as DialogService;
+
+    const mockJsonDataService = {} as JsonDataService;
+
+    const service = new SettingsService(
+      initialSettings,
+      mockDialogService,
+      mockJsonDataService,
+    );
+
+    const registerFunction = await service.registerSettings("model");
+
+    expect(typeof registerFunction).toBe("function");
+
+    const result = registerFunction(testInitialValue);
+
+    expect(mockRegisterSettings).toHaveBeenCalledWith("model");
+    expect(mockSettingsRegistrar).toHaveBeenCalledWith({
+      initialValue: testInitialValue,
     });
+    expect(result).toBe(mockSettingsRegistrar.mock.results[0].value);
   });
 });
