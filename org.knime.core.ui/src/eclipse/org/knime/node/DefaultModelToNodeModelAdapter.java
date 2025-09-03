@@ -118,10 +118,13 @@ sealed interface DefaultModelToNodeModelAdapter
         }
     }
 
-    default NodeParameters setInitialSettingsUsingSpecsIfNecessary(final PortObjectSpec[] inSpecs) {
+    default NodeParameters setInitialSettingsUsingSpecsIfNecessary(final PortObjectSpec[] inSpecs)
+        throws InvalidSettingsException {
         final var modelSettingsClassOptional = getModelParametersClass();
         if (modelSettingsClassOptional.isPresent() && getModelParameters() == null) {
-            setModelParameters(NodeParametersUtil.createSettings(modelSettingsClassOptional.get(), inSpecs));
+            final var modelParamters = NodeParametersUtil.createSettings(modelSettingsClassOptional.get(), inSpecs);
+            setModelParameters(modelParamters);
+            modelParamters.validate();
         }
         return getModelParameters();
     }

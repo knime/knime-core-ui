@@ -117,6 +117,7 @@ public abstract class WebUINodeModel<S extends NodeParameters> extends NodeModel
     protected final PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
         if (m_modelSettings == null) {
             m_modelSettings = NodeParametersUtil.createSettings(m_modelSettingsClass, inSpecs);
+            validateSettings(m_modelSettings);
         }
         return configure(inSpecs, m_modelSettings);
     }
@@ -132,6 +133,7 @@ public abstract class WebUINodeModel<S extends NodeParameters> extends NodeModel
     protected final DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
         if (m_modelSettings == null) {
             m_modelSettings = NodeParametersUtil.createSettings(m_modelSettingsClass, inSpecs);
+            validateSettings(m_modelSettings);
         }
         return configure(inSpecs, m_modelSettings);
     }
@@ -276,11 +278,14 @@ public abstract class WebUINodeModel<S extends NodeParameters> extends NodeModel
      * configure or execute.
      * </p>
      *
+     * @deprecated use {@link NodeParameters#validate()} instead
+     *
      * @param settings to validate
      * @throws InvalidSettingsException if the settings are invalid
      */
+    @Deprecated(since = "5.7", forRemoval = true)
     protected void validateSettings(final S settings) throws InvalidSettingsException {
-        // hook that can be overwritten by extending classes
+        settings.validate();
     }
 
     @Override
