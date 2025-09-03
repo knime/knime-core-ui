@@ -17,7 +17,7 @@ const paintFocus = useShouldFocusBePainted();
 
 export type BottomPaneTabSlotName = `bottomPaneTabSlot:${string}`;
 export type BottomPaneTabControlsSlotName =
-  `bottomPaneControlsTabSlot:${string}`;
+  `bottomPaneTabControlsSlot:${string}`;
 export type SlottedTab = {
   label: string;
   slotName: BottomPaneTabSlotName;

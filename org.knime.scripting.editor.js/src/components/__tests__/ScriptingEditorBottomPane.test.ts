@@ -84,7 +84,7 @@ describe("ScriptingEditorBottomPane", () => {
             slotName: "bottomPaneTabSlot:someSlottedThing",
             label: "SomeSlottedThing",
             associatedControlsSlotName:
-              "bottomPaneControlsTabSlot:someSlottedThingControls",
+              "bottomPaneTabControlsSlot:someSlottedThingControls",
           },
           {
             slotName: "bottomPaneTabSlot:someSlottedThingControls",
@@ -94,7 +94,7 @@ describe("ScriptingEditorBottomPane", () => {
             slotName: "bottomPaneTabSlot:someSlottedThing2",
             label: "SomeSlottedThing2",
             associatedControlsSlotName:
-              "bottomPaneControlsTabSlot:someSlottedThing2Controls",
+              "bottomPaneTabControlsSlot:someSlottedThing2Controls",
           },
           {
             slotName: "bottomPaneTabSlot:someSlottedThing2Controls",
@@ -105,11 +105,11 @@ describe("ScriptingEditorBottomPane", () => {
       slots: {
         "bottomPaneTabSlot:someSlottedThing":
           "<div id='test-slotted-id'>Test</div>",
-        "bottomPaneControlsTabSlot:someSlottedThingControls":
+        "bottomPaneTabControlsSlot:someSlottedThingControls":
           "<div id='test-slotted-id-2'>Test</div>",
         "bottomPaneTabSlot:someSlottedThing2":
           "<div id='test-slotted-id-3'>Test</div>",
-        "bottomPaneControlsTabSlot:someSlottedThing2Controls":
+        "bottomPaneTabControlsSlot:someSlottedThing2Controls":
           "<div id='test-slotted-id-4'>Test</div>",
       },
     });
@@ -127,7 +127,7 @@ describe("ScriptingEditorBottomPane", () => {
           {
             slotName: "bottomPaneTabSlot:someSlottedThing",
             associatedControlsSlotName:
-              "bottomPaneControlsTabSlot:someSlottedThingControls",
+              "bottomPaneTabControlsSlot:someSlottedThingControls",
             label: "SomeSlottedThing",
           },
           {
@@ -139,7 +139,7 @@ describe("ScriptingEditorBottomPane", () => {
       slots: {
         "bottomPaneTabSlot:someSlottedThing":
           "<div id='test-slotted-id-1a'>Test</div>",
-        "bottomPaneControlsTabSlot:someSlottedThingControls":
+        "bottomPaneTabControlsSlot:someSlottedThingControls":
           "<div id='test-slotted-id-1b'>Test</div>",
         "bottomPaneTabSlot:someSlottedThing2":
           "<div id='test-slotted-id-2'>Test</div>",
