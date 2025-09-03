@@ -30,7 +30,7 @@ import type {
 import editor from "@/editor";
 import {
   type InitMockData,
-  getInitialDataService,
+  getInitialData,
   getScriptingService,
   getSettingsService,
   init,
@@ -38,7 +38,6 @@ import {
 } from "@/init";
 import {
   type GenericInitialData,
-  type InitialDataServiceType,
   type InputConnectionInfo,
   type KAIConfig,
   type PortConfigs,
@@ -57,7 +56,7 @@ export {
   consoleHandler,
   displayMode,
   editor,
-  getInitialDataService,
+  getInitialData,
   getScriptingService,
   getSettingsService,
   init,
@@ -78,7 +77,6 @@ export type {
   ConsoleText,
   GenericInitialData,
   GenericNodeSettings,
-  InitialDataServiceType,
   InitMockData,
   InputConnectionInfo,
   InputOutputModel,

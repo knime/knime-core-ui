@@ -1,11 +1,9 @@
 import type { InputOutputModel } from "@/components/InputOutputItem.vue";
 import {
   type GenericInitialData,
-  type InitialDataServiceType,
   type InputConnectionInfo,
   type PortConfigs,
 } from "@/initial-data-service";
-import { log } from "@/log";
 
 export const DEFAULT_INPUT_OBJECTS: InputOutputModel[] = [
   {
@@ -111,12 +109,3 @@ export const DEFAULT_INITIAL_DATA: GenericInitialData = {
   },
   inputConnectionInfo: DEFAULT_PORT_INFORMATION,
 };
-
-export const createInitialDataServiceMock = (
-  data?: GenericInitialData,
-): InitialDataServiceType => ({
-  getInitialData: () => {
-    log("Called initial data service mock getInitialData");
-    return data ?? DEFAULT_INITIAL_DATA;
-  },
-});

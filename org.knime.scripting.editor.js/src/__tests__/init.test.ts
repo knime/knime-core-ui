@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { displayMode } from "@/display-mode";
 import {
-  getInitialDataService,
+  getInitialData,
   getScriptingService,
   getSettingsService,
   init,
@@ -81,12 +81,12 @@ describe("init", () => {
       expect(settingsService).toBeInstanceOf(Object);
     });
 
-    it("creates and assigns initial data service", async () => {
+    it("sets initial data", async () => {
       await init();
 
-      const initialDataService = getInitialDataService();
-      expect(initialDataService).toBeDefined();
-      expect(typeof initialDataService.getInitialData).toBe("function");
+      const initialData = getInitialData();
+      expect(initialData).toBeDefined();
+      expect(initialData).toBe(mockInitialData.initialData);
     });
 
     it("makes all services accessible via getters after initialization", async () => {
@@ -94,7 +94,7 @@ describe("init", () => {
 
       expect(getScriptingService()).toBeDefined();
       expect(getSettingsService()).toBeDefined();
-      expect(getInitialDataService()).toBeDefined();
+      expect(getInitialData()).toBeDefined();
     });
   });
 
@@ -163,13 +163,11 @@ describe("init", () => {
   });
 
   describe("initial data handling", () => {
-    it("sets initial data", async () => {
+    it("sets initial data from service", async () => {
       jsonDataServiceInstance.initialData.mockResolvedValue(mockInitialData);
 
       await init();
-      expect(getInitialDataService().getInitialData()).toBe(
-        mockInitialData.initialData,
-      );
+      expect(getInitialData()).toBe(mockInitialData.initialData);
     });
 
     it("passes correct settings to settings service", async () => {

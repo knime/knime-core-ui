@@ -1,10 +1,7 @@
 import { DialogService, JsonDataService } from "@knime/ui-extension-service";
 
 import { displayMode } from "./display-mode";
-import type {
-  GenericInitialData,
-  InitialDataServiceType,
-} from "./initial-data-service";
+import type { GenericInitialData } from "./initial-data-service";
 import {
   ScriptingService,
   type ScriptingServiceType,
@@ -20,9 +17,8 @@ import {
 let scriptingService: ScriptingServiceType;
 export const getScriptingService = (): ScriptingServiceType => scriptingService;
 
-let initialDataService: InitialDataServiceType;
-export const getInitialDataService = (): InitialDataServiceType =>
-  initialDataService;
+let initialData: GenericInitialData;
+export const getInitialData = (): GenericInitialData => initialData;
 
 let settingsService: SettingsServiceType;
 export const getSettingsService = (): SettingsServiceType => settingsService;
@@ -41,9 +37,7 @@ export const init = async () => {
     settings: GenericNodeSettings;
   } = await jsonDataService.initialData();
 
-  initialDataService = {
-    getInitialData: () => initialDataAndSettings.initialData,
-  };
+  initialData = initialDataAndSettings.initialData;
 
   settingsService = new SettingsService(
     initialDataAndSettings.settings,
@@ -62,15 +56,23 @@ export const init = async () => {
 
 // Alternative that uses a mock
 export type InitMockData = {
-  scriptingService: ScriptingServiceType;
-  initialDataService: InitialDataServiceType;
-  settingsService: SettingsServiceType;
-  displayMode: "small" | "large";
+  scriptingService?: ScriptingServiceType;
+  initialData?: GenericInitialData;
+  settingsService?: SettingsServiceType;
+  displayMode?: "small" | "large";
 };
 
 export const initMocked = (mockData: InitMockData) => {
-  scriptingService = mockData.scriptingService;
-  initialDataService = mockData.initialDataService;
-  settingsService = mockData.settingsService;
-  displayMode.value = mockData.displayMode;
+  if (mockData.scriptingService) {
+    scriptingService = mockData.scriptingService;
+  }
+  if (mockData.initialData) {
+    initialData = mockData.initialData;
+  }
+  if (mockData.settingsService) {
+    settingsService = mockData.settingsService;
+  }
+  if (mockData.displayMode) {
+    displayMode.value = mockData.displayMode;
+  }
 };

@@ -4,7 +4,7 @@ import { computedAsync } from "@vueuse/core";
 
 import CompactTabBar from "@/components/CompactTabBar.vue";
 import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
-import { getInitialDataService, getScriptingService } from "@/init";
+import { getInitialData, getScriptingService } from "@/init";
 import { type PortConfig, type PortConfigs } from "@/initial-data-service";
 
 import InputPortTables from "./InputPortTables.vue";
@@ -44,9 +44,9 @@ const makeGrabFocusFunction = (tabValue: string) => {
 
 const portConfigs: Ref<PortConfigs> = computedAsync(
   async () => {
-    const inputPorts = getInitialDataService()
-      .getInitialData()
-      .inputPortConfigs.inputPorts.filter((port) => port.nodeId !== null);
+    const inputPorts = getInitialData().inputPortConfigs.inputPorts.filter(
+      (port) => port.nodeId !== null,
+    );
 
     if (
       !(await getScriptingService().isCallKnimeUiApiAvailable(inputPorts[0]))
