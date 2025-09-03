@@ -61,4 +61,28 @@ import org.knime.core.node.ConfigurableNodeFactory;
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
 public record PortDescription(String id, String name, String description, boolean configurable) {
+
+    /**
+     * Utility method used by the AI Migration Pipeline to generate descriptions for non-dynamic ports.
+     *
+     * @param name the name of the port
+     * @param description the description of the port
+     * @return a new port description
+     */
+    public static PortDescription fixedPort(final String name, final String description) {
+        return new PortDescription(null, name, description, false);
+    }
+
+    /**
+     * Utility method used by the AI Migration Pipeline to generate descriptions for dynamic ports.
+     *
+     * @param id the group identifier of the dynamic port
+     * @param name the name of the port
+     * @param description the description of the port
+     * @return a new port description
+     */
+    public static PortDescription dynamicPort(final String id, final String name, final String description) {
+        return new PortDescription(id, name, description, true);
+    }
+
 }
