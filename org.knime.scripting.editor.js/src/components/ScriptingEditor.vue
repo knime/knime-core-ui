@@ -5,13 +5,12 @@ import { useElementBounding } from "@vueuse/core";
 import { type MenuItem, SplitPanel } from "@knime/components";
 import "@knime/kds-styles/kds-variables.css";
 
-import type { InputOutputModel } from "@/components/InputOutputItem.vue";
 import {
   MIN_WIDTH_FOR_SHOWING_BUTTON_TEXT,
   type PaneSizes,
 } from "@/components/utils/paneSizes";
 import { displayMode } from "@/display-mode";
-import { getInitialDataService } from "@/init";
+import { getInitialData } from "@/init";
 import { type GenericNodeSettings } from "@/settings-service";
 
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
@@ -100,23 +99,17 @@ if (props.fileName === null && !useSlots().editor) {
   throw new Error("either fileName or editor slot must be provided");
 }
 
-const defaultInputOutputItems = computed<InputOutputModel[]>(() => {
-  if (slots["left-pane"]) {
-    return [];
-  } else {
-    const initialData = getInitialDataService().getInitialData();
-    const initialItems = [
-      ...initialData.inputObjects,
-      initialData.flowVariables,
-    ];
-
-    if (initialData.outputObjects) {
-      initialItems.push(...initialData.outputObjects);
-    }
-
-    return initialItems;
-  }
-}, []);
+const getInputOutputItemsFromInitialData = () => {
+  const initialData = getInitialData();
+  return [
+    ...initialData.inputObjects,
+    initialData.flowVariables,
+    ...(initialData.outputObjects ?? []),
+  ];
+};
+const defaultInputOutputItems = slots["left-pane"]
+  ? []
+  : getInputOutputItemsFromInitialData();
 
 // #region ================= PANE SIZES ====================
 

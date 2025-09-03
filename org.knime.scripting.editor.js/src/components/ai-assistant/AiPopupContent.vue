@@ -17,7 +17,7 @@ import SendIcon from "@knime/styles/img/icons/paper-flier.svg";
 
 import InfinityLoadingBar from "@/components/InfinityLoadingBar.vue";
 import {
-  getInitialDataService,
+  getInitialData,
   getScriptingService,
   getSettingsService,
 } from "@/init";
@@ -155,11 +155,11 @@ const acceptSuggestion = (acceptedCode: string) => {
 };
 
 onMounted(async () => {
-  const [settings, initialData, currentIsKaiEnabledStatus] = await Promise.all([
+  const [settings, currentIsKaiEnabledStatus] = await Promise.all([
     getSettingsService().getSettings(),
-    getInitialDataService().getInitialData(),
     getScriptingService().isKaiEnabled(),
   ]);
+  const initialData = getInitialData();
 
   if (!initialData.kAiConfig.isKaiEnabled) {
     // K-AI is disabled on launch of the scripting editor
@@ -218,7 +218,7 @@ const promptTooLong = computed(() => {
 // The id of the hub is used to display the name of the hub in the login button
 // Updated with the actual hub id once the scripting service is ready
 const hubId = ref<string>("KNIME Hub");
-const id = getInitialDataService().getInitialData().kAiConfig.hubId;
+const id = getInitialData().kAiConfig.hubId;
 if (id !== null) {
   hubId.value = id;
 }

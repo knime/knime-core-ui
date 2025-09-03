@@ -1,4 +1,3 @@
-import { createInitialDataServiceMock } from "../src/initial-data-service-browser-mock";
 import { createScriptingServiceMock } from "../src/scripting-service-browser-mock";
 import { createSettingsServiceMock } from "../src/settings-service-browser-mock";
 
@@ -36,12 +35,11 @@ const scriptingService = createScriptingServiceMock({
   },
 });
 
-const initialDataService = createInitialDataServiceMock(DEFAULT_INITIAL_DATA);
 const settingsService = createSettingsServiceMock(DEFAULT_INITIAL_SETTINGS);
 
 export default {
   scriptingService,
-  initialDataService,
+  initialData: DEFAULT_INITIAL_DATA,
   settingsService,
   displayMode: "large" as const,
 };

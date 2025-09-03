@@ -13,18 +13,17 @@ import { Button } from "@knime/components";
 import AiCodeIcon from "@knime/styles/img/icons/ai-general.svg";
 
 import type { PaneSizes } from "@/components/utils/paneSizes";
-import { getInitialDataService } from "@/init";
+import { getInitialData } from "@/init";
 
 import AiPopupContent from "./AiPopupContent.vue";
 
 const showAiPopup = ref(false);
 
 const showAiButton = computed<boolean>(
-  () => getInitialDataService().getInitialData().kAiConfig.isKaiEnabled,
+  () => getInitialData().kAiConfig.isKaiEnabled,
 );
 const enableAiButton = computed<boolean>(() => {
-  const inputConnectionInfo =
-    getInitialDataService().getInitialData().inputConnectionInfo;
+  const inputConnectionInfo = getInitialData().inputConnectionInfo;
   return inputConnectionInfo.every(
     (connection) => connection.isOptional || connection.status === "OK",
   );

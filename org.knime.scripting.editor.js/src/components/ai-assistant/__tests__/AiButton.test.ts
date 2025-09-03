@@ -3,7 +3,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 
 import AiButton from "@/components/ai-assistant/AiButton.vue";
 import type { PaneSizes } from "@/components/utils/paneSizes";
-import { getInitialDataService } from "@/init";
+import { initMocked } from "@/init";
 import {
   type GenericInitialData,
   type InputConnectionInfo,
@@ -29,15 +29,16 @@ const doMount = async (
   return wrapper;
 };
 
-const mockInitialData = (initialData: Partial<GenericInitialData>) => {
-  vi.mocked(getInitialDataService().getInitialData).mockReturnValue({
-    ...DEFAULT_INITIAL_DATA,
-    ...initialData,
+/** Override some initial data for tests */
+const mockInitialData = (initialData: Partial<GenericInitialData>) =>
+  initMocked({
+    initialData: { ...DEFAULT_INITIAL_DATA, ...initialData },
   });
-};
 
 describe("AiButton", () => {
   afterEach(() => {
+    // Restore the default initial data mock
+    initMocked({ initialData: DEFAULT_INITIAL_DATA });
     vi.restoreAllMocks();
   });
 

@@ -39,9 +39,7 @@ initMocked({
     getAiDisclaimer: vi.fn(() => Promise.resolve("AI Disclaimer")),
     getAiUsage: vi.fn(() => Promise.resolve(null)),
   },
-  initialDataService: {
-    getInitialData: vi.fn(() => DEFAULT_INITIAL_DATA),
-  },
+  initialData: DEFAULT_INITIAL_DATA,
   settingsService: {
     getSettings: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_SETTINGS)),
     registerSettingsGetterForApply: vi.fn(

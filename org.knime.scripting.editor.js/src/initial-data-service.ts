@@ -47,7 +47,3 @@ export type GenericInitialData = {
   outputObjects?: InputOutputModel[];
   kAiConfig: KAIConfig;
 };
-
-export type InitialDataServiceType = {
-  getInitialData: () => GenericInitialData;
-};
