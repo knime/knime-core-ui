@@ -44,59 +44,36 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   24 Jan 2024 (carlwitt): created
+ *   Sep 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.testing.node.dialog;
-
-import java.io.IOException;
-import java.nio.file.Path;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
 /**
- * Snapshots supply a value that can be compared to a previous state
+ * Base interface for filter operators providing essential identification methods.
+ * All filter operator interfaces should extend this base interface.
  *
- * @author Carl Witt, KNIME AG, Zurich, Switzerland
+ * @author Paul Bärnreuther
+ *
+ * @noreference This class is not intended to be referenced by clients.
  */
-abstract class Snapshot {
-
-    /** The name of the class that defines the test. Used as basis for the snapshot file name. */
-    protected String m_testClassName;
-
-    /** @return of the file that holds the expected state */
-    abstract String getFilename();
+public interface FilterOperatorBase {
 
     /**
-     * @param snapshotFile to compare the current state to
-     * @throws IOException
-     */
-    abstract void compareWithSnapshotAndWriteDebugFile(final Path snapshotFile) throws IOException;
-
-    /**
-     * @param snapshotFile to write the current value to
-     * @throws IOException
-     */
-    abstract void writeGroundTruth(final Path snapshotFile) throws IOException;
-
-    /** @return name of the file that holds the current state, if it is different from the expected state */
-    String getDebugFilename() {
-        return getFilename() + ".debug";
-    }
-
-    /**
-     * @param name used as base for the file name, typically the test class name, e.g.,
-     *            org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettingsTest$RegexSplitNodeSettingsSnapshotTest
-     *            or org.knime.base.node.snapshot.NodeSettingsSnapshotTests$AppendedRowsSettingsTest
-     */
-    void setBaseName(final String name) {
-        m_testClassName = name;
-    }
-
-    /**
-     * Label for the snapshot test, used in test reports. The default contains the test class name set via
-     * {@link #setBaseName(String)} or {@link #getFilename()} if the base name has not been set.
+     * Gets the ID, which must be unique among the set of all operators applicable on a given type, for which this
+     * operator is defined.
      *
-     * @return label for the snapshot test
+     * @apiNote In case there are duplicate IDs, the internal operators will take precedence over extension-defined
+     *          ones, the order among those is undefined. In case duplicates are detected, a coding issue is logged.
+     *
+     * @return ID
      */
-    String getTestLabel() {
-        return String.format("Snapshot [%s]", m_testClassName != null ? m_testClassName : getFilename());
-    }
+    String getId();
+
+    /**
+     * Gets a label for the operator, which is shown in the UI and should not be used in cases where a stable ID would
+     * be appropriate.
+     *
+     * @return label
+     */
+    String getLabel();
 }

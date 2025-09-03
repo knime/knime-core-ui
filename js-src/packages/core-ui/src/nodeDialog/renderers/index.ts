@@ -31,7 +31,6 @@ import { controlWithSubParametersRenderer } from "./controlWithSubParametersRend
 import { credentialsRenderer } from "./credentialsRenderer";
 import { dbTableChooserRenderer } from "./dbTableChooserRenderer";
 import { dynamicInputRenderer } from "./dynamicInputRenderer";
-import { dynamicValueRenderer } from "./dynamicValueRenderer";
 import { editResetButtonRenderer } from "./editResetButtonRenderer";
 import { elementCheckboxRenderer } from "./elementCheckboxRenderer";
 import {
@@ -51,7 +50,6 @@ const coreUIControls: Record<string, VueControlRenderer> = {
   multiFileChooserRenderer,
   dbTableChooserRenderer,
   fileChooserForMultiFileRenderer,
-  dynamicValueRenderer, // since it will change a lot and is no use to the hub
   dynamicInputRenderer,
   credentialsRenderer, // since it contains flowSettings logic (that a flow variable is set is important for the backend to resolve the value properly, since we do not load the password in the frontend in this case)
   legacyCredentialsRenderer,

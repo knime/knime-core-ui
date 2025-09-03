@@ -16,10 +16,6 @@
         "isHiddenSecondFactor" : false,
         "username" : ""
       },
-      "dynamicValuesInput" : {
-        "values" : [ ],
-        "inputKind" : "SINGLE"
-      },
       "columnFilter" : {
         "mode" : "MANUAL",
         "patternFilter" : {
@@ -198,34 +194,6 @@
               "isHiddenPassword" : false,
               "isHiddenSecondFactor" : false,
               "username" : ""
-            }
-          },
-          "dynamicValuesInput" : {
-            "type" : "object",
-            "properties" : {
-              "inputKind" : {
-                "oneOf" : [ {
-                  "const" : "SINGLE",
-                  "title" : "Single"
-                }, {
-                  "const" : "DOUBLE",
-                  "title" : "Double"
-                }, {
-                  "const" : "COLLECTION",
-                  "title" : "Collection"
-                } ]
-              },
-              "values" : {
-                "type" : "array",
-                "items" : {
-                  "type" : "object"
-                }
-              }
-            },
-            "title" : "Dynamic Values Input",
-            "default" : {
-              "values" : [ ],
-              "inputKind" : "SINGLE"
             }
           },
           "fileSelection" : {
@@ -424,12 +392,6 @@
       }
     }, {
       "type" : "Control",
-      "scope" : "#/properties/model/properties/dynamicValuesInput",
-      "options" : {
-        "format" : "dynamicValue"
-      }
-    }, {
-      "type" : "Control",
       "scope" : "#/properties/model/properties/columnSelection",
       "options" : {
         "format" : "dropDown"
@@ -485,18 +447,6 @@
             }
           },
           "credentials" : { },
-          "dynamicValuesInput" : {
-            "type" : "object",
-            "properties" : {
-              "values" : {
-                "type" : "array",
-                "items" : {
-                  "propertiesConfigPaths" : [ ]
-                }
-              },
-              "inputKind" : { }
-            }
-          },
           "columnSelection" : { },
           "columnFilter" : {
             "type" : "object",

@@ -44,59 +44,52 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   24 Jan 2024 (carlwitt): created
  */
-package org.knime.testing.node.dialog;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
-import java.io.IOException;
-import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.knime.core.data.DataType;
 
 /**
- * Snapshots supply a value that can be compared to a previous state
+ * Provide this factory via the "org.knime.core.ui.filterOperators" extension point to provide filter operators for a
+ * {@link DataType}.
  *
- * @author Carl Witt, KNIME AG, Zurich, Switzerland
+ * @author Paul Bärnreuther
+ *
+ * @noreference This class is not intended to be referenced by clients.
  */
-abstract class Snapshot {
-
-    /** The name of the class that defines the test. Used as basis for the snapshot file name. */
-    protected String m_testClassName;
-
-    /** @return of the file that holds the expected state */
-    abstract String getFilename();
+public interface FilterOperators {
 
     /**
-     * @param snapshotFile to compare the current state to
-     * @throws IOException
-     */
-    abstract void compareWithSnapshotAndWriteDebugFile(final Path snapshotFile) throws IOException;
-
-    /**
-     * @param snapshotFile to write the current value to
-     * @throws IOException
-     */
-    abstract void writeGroundTruth(final Path snapshotFile) throws IOException;
-
-    /** @return name of the file that holds the current state, if it is different from the expected state */
-    String getDebugFilename() {
-        return getFilename() + ".debug";
-    }
-
-    /**
-     * @param name used as base for the file name, typically the test class name, e.g.,
-     *            org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettingsTest$RegexSplitNodeSettingsSnapshotTest
-     *            or org.knime.base.node.snapshot.NodeSettingsSnapshotTests$AppendedRowsSettingsTest
-     */
-    void setBaseName(final String name) {
-        m_testClassName = name;
-    }
-
-    /**
-     * Label for the snapshot test, used in test reports. The default contains the test class name set via
-     * {@link #setBaseName(String)} or {@link #getFilename()} if the base name has not been set.
+     * Returns the one data type this factory is used for. There must not be more than one factory per data type.
      *
-     * @return label for the snapshot test
+     * @return the one data type this factory is used for
      */
-    String getTestLabel() {
-        return String.format("Snapshot [%s]", m_testClassName != null ? m_testClassName : getFilename());
+    DataType getDataType();
+
+    /**
+     * Returns the operator families provided by this factory.
+     *
+     * @return the operator families provided by this factory
+     */
+    List<FilterOperatorFamily<? extends FilterValueParameters>> getOperatorFamilies(); // NOSONAR we need the wildcard here
+
+    /**
+     * Returns all operators provided by this factory. The default implementation collects all operators of all
+     * families.
+     *
+     * @return all operators provided by this factory
+     */
+    @SuppressWarnings("unchecked")
+    default List<FilterOperator<FilterValueParameters>> getOperators() {
+        final List<FilterOperator<FilterValueParameters>> ops = new ArrayList<>();
+        for (final var fam : getOperatorFamilies()) {
+            for (final FilterOperator<? extends FilterValueParameters> op : fam.getOperators()) {
+                ops.add((FilterOperator<FilterValueParameters>)op);
+            }
+        }
+        return ops;
     }
 }

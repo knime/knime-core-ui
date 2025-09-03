@@ -44,59 +44,26 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   24 Jan 2024 (carlwitt): created
+ *   Sep 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.testing.node.dialog;
-
-import java.io.IOException;
-import java.nio.file.Path;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
 /**
- * Snapshots supply a value that can be compared to a previous state
+ * Common interface providing metadata for filter operators. Defines the essential methods that all filter operators
+ * must implement.
  *
- * @author Carl Witt, KNIME AG, Zurich, Switzerland
+ * @param <P> the parameter type for this operator
+ * @author Paul Bärnreuther
+ *
+ * @noreference This class is not intended to be referenced by clients.
  */
-abstract class Snapshot {
-
-    /** The name of the class that defines the test. Used as basis for the snapshot file name. */
-    protected String m_testClassName;
-
-    /** @return of the file that holds the expected state */
-    abstract String getFilename();
+public interface FilterOperatorDefinition<P extends FilterValueParameters> extends FilterOperatorBase {
 
     /**
-     * @param snapshotFile to compare the current state to
-     * @throws IOException
-     */
-    abstract void compareWithSnapshotAndWriteDebugFile(final Path snapshotFile) throws IOException;
-
-    /**
-     * @param snapshotFile to write the current value to
-     * @throws IOException
-     */
-    abstract void writeGroundTruth(final Path snapshotFile) throws IOException;
-
-    /** @return name of the file that holds the current state, if it is different from the expected state */
-    String getDebugFilename() {
-        return getFilename() + ".debug";
-    }
-
-    /**
-     * @param name used as base for the file name, typically the test class name, e.g.,
-     *            org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettingsTest$RegexSplitNodeSettingsSnapshotTest
-     *            or org.knime.base.node.snapshot.NodeSettingsSnapshotTests$AppendedRowsSettingsTest
-     */
-    void setBaseName(final String name) {
-        m_testClassName = name;
-    }
-
-    /**
-     * Label for the snapshot test, used in test reports. The default contains the test class name set via
-     * {@link #setBaseName(String)} or {@link #getFilename()} if the base name has not been set.
+     * Gets the parameters class for creating the node parameters of the operator. Return null if the operator does not
+     * have any parameters.
      *
-     * @return label for the snapshot test
+     * @return the node parameters class or null if no parameters
      */
-    String getTestLabel() {
-        return String.format("Snapshot [%s]", m_testClassName != null ? m_testClassName : getFilename());
-    }
+    Class<P> getNodeParametersClass();
 }

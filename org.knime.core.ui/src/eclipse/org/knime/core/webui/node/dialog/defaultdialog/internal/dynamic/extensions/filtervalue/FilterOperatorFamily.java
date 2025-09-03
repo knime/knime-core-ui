@@ -44,59 +44,45 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   24 Jan 2024 (carlwitt): created
+ *   19 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.testing.node.dialog;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
-import java.io.IOException;
-import java.nio.file.Path;
+import java.util.List;
+
+import org.knime.core.data.DataType;
 
 /**
- * Snapshots supply a value that can be compared to a previous state
+ * A family of related filter operators for a specific {@link DataType}.
  *
- * @author Carl Witt, KNIME AG, Zurich, Switzerland
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @param <P> the type of parameters the operators take
+ *
+ * @noreference This class is not intended to be referenced by clients.
  */
-abstract class Snapshot {
-
-    /** The name of the class that defines the test. Used as basis for the snapshot file name. */
-    protected String m_testClassName;
-
-    /** @return of the file that holds the expected state */
-    abstract String getFilename();
+public interface FilterOperatorFamily<P extends FilterValueParameters> {
 
     /**
-     * @param snapshotFile to compare the current state to
-     * @throws IOException
+     * @return the list of operators in this family
      */
-    abstract void compareWithSnapshotAndWriteDebugFile(final Path snapshotFile) throws IOException;
+    List<FilterOperator<P>> getOperators();
 
     /**
-     * @param snapshotFile to write the current value to
-     * @throws IOException
-     */
-    abstract void writeGroundTruth(final Path snapshotFile) throws IOException;
-
-    /** @return name of the file that holds the current state, if it is different from the expected state */
-    String getDebugFilename() {
-        return getFilename() + ".debug";
-    }
-
-    /**
-     * @param name used as base for the file name, typically the test class name, e.g.,
-     *            org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettingsTest$RegexSplitNodeSettingsSnapshotTest
-     *            or org.knime.base.node.snapshot.NodeSettingsSnapshotTests$AppendedRowsSettingsTest
-     */
-    void setBaseName(final String name) {
-        m_testClassName = name;
-    }
-
-    /**
-     * Label for the snapshot test, used in test reports. The default contains the test class name set via
-     * {@link #setBaseName(String)} or {@link #getFilename()} if the base name has not been set.
+     * A family consisting of a single operator.
      *
-     * @return label for the snapshot test
+     * @param <P> the type of parameters the operator takes
      */
-    String getTestLabel() {
-        return String.format("Snapshot [%s]", m_testClassName != null ? m_testClassName : getFilename());
+    class Single<P extends FilterValueParameters> implements FilterOperatorFamily<P> {
+        private final FilterOperator<P> m_operator;
+
+        public Single(final FilterOperator<P> operator) {
+            m_operator = operator;
+        }
+
+        @Override
+        public List<FilterOperator<P>> getOperators() {
+            return List.of(m_operator);
+        }
+
     }
 }

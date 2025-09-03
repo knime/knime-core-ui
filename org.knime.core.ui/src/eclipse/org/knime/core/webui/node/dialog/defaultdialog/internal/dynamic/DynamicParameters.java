@@ -163,6 +163,9 @@ public @interface DynamicParameters {
         default DataAndDialog<Object> computeState(final NodeParametersInput parametersInput)
             throws StateComputationFailureException {
             final var data = computeParameters(parametersInput);
+            if (data == null) {
+                return null;
+            }
             final var dataClass = data.getClass();
             final var dataMapper = JsonFormsDataUtil.getMapper();
             final var serializedData = serialize(data, new DynamicNodeParametersSerializer(this));

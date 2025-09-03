@@ -44,57 +44,36 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   15 May 2024 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin;
 
-import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.widget.choices.Label;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorBase;
 
 /**
- * Case-matching setting provided by the framework, since we currently lack a flexible extension mechanism for
- * individual widgets.
+ * Interface for not equals filter operators that provides the standard ID and label. Concrete equals operators can
+ * implement this interface to automatically get the correct not equals operator identification without having to
+ * implement getId() and getLabel().
+ *
+ * @author Paul Bärnreuther
+ *
+ * @noreference This interface is not intended to be referenced by clients.
  */
-final class StringCaseMatchingSettings implements NodeParameters {
+public interface NotEqualsOperator extends FilterOperatorBase {
 
-    // TODO Ideally, this settings class is entirely opaque to the framework and the concrete implementation is supplied
-    // by the node that uses it.
+    /**
+     * Don't use this id in any other operator, don't change it, don't overwrite it for implementations of this
+     * interface.
+     */
+    String ID = "NEQ";
 
-    // Actual labels/description is hard-coded in the frontend!
-    enum CaseMatching {
-            /** Respect case when matching strings. */
-            @Label("Case sensitive")
-            CASESENSITIVE, //
-            /** Disregard case when matching strings. */
-            @Label("Case insensitive")
-            CASEINSENSITIVE;
-
-        /** Recommended default setting. */
-        public static final CaseMatching DEFAULT = CASESENSITIVE;
-    }
-
-    CaseMatching m_caseMatching = CaseMatching.DEFAULT;
-
-    public boolean isCaseSensitive() {
-        return this.m_caseMatching == CaseMatching.CASESENSITIVE;
+    @Override
+    default String getId() {
+        return ID;
     }
 
     @Override
-    public boolean equals(final Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (!(obj instanceof StringCaseMatchingSettings mod)) {
-            return false;
-        }
-        return m_caseMatching == mod.m_caseMatching;
-    }
-
-    @Override
-    public int hashCode() {
-        return m_caseMatching.hashCode();
+    default String getLabel() {
+        return "Is not equal";
     }
 }
