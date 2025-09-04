@@ -46,12 +46,13 @@
  * History
  *   Aug 28, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl;
 
 import static org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil.createInstance;
 
 import java.io.IOException;
 
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicParametersProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.util.JacksonSerializationUtil;
 
