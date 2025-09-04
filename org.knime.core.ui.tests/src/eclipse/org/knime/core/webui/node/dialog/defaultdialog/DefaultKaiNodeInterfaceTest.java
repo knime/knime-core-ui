@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog;
 
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -80,10 +81,18 @@ import org.knime.core.node.workflow.NodeOutPort;
 import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicNodeParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicParametersProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.mockito.Mockito;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -94,18 +103,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @SuppressWarnings("static-method")
 final class DefaultKaiNodeInterfaceTest {
 
-    private static final PortType[] EXPLICIT_PORT_TYPES = new PortType[] {
-        BufferedDataTable.TYPE,
-        BufferedDataTable.TYPE,
-        FlowVariablePortObject.TYPE,
+    private static final PortType[] EXPLICIT_PORT_TYPES =
+        new PortType[]{BufferedDataTable.TYPE, BufferedDataTable.TYPE, FlowVariablePortObject.TYPE,
 
-    };
-    private static final PortObjectSpec[] PORT_SPECS = new PortObjectSpec[]{
-        new DataTableSpec(new DataColumnSpecCreator("bar", StringCell.TYPE).createSpec()),
-        new DataTableSpec(new DataColumnSpecCreator("baz", StringCell.TYPE).createSpec()),
-        FlowVariablePortObjectSpec.INSTANCE,
-    };
+        };
 
+    private static final PortObjectSpec[] PORT_SPECS =
+        new PortObjectSpec[]{new DataTableSpec(new DataColumnSpecCreator("bar", StringCell.TYPE).createSpec()),
+            new DataTableSpec(new DataColumnSpecCreator("baz", StringCell.TYPE).createSpec()),
+            FlowVariablePortObjectSpec.INSTANCE,};
 
     @Test
     void testGetConfigurePrompt() throws Exception {
@@ -119,13 +125,12 @@ final class DefaultKaiNodeInterfaceTest {
 
             final var configurePrompt = kaiNodeInterface.getConfigurePrompt(settingsMap, PORT_SPECS);
             // this model parameter is coming from TestSettings class
-            assertThat(configurePrompt.toString()).contains("someModelSetting").contains("\"title\":\"Some Model Setting\"",
-                "\"description\":\"Some Description\"");
+            assertThat(configurePrompt.toString()).contains("someModelSetting")
+                .contains("\"title\":\"Some Model Setting\"", "\"description\":\"Some Description\"");
         } finally {
             NodeContext.removeLastContext();
         }
     }
-
 
     @Test
     void testConstructSystemMessage() throws Exception {
@@ -139,24 +144,18 @@ final class DefaultKaiNodeInterfaceTest {
                     """;
 
             final var result = DefaultKaiNodeInterface.constructSystemMessage(testSettings, PORT_SPECS);
-            assertThat(result).as("Unexpected settings").contains("# Current settings",
-                testSettings, "# Inputs", ", "
-                    + "(bar, String)]\n"
-                    + ", (baz, String)]\n"
-                    + "Flow Variable",
-                    "# Flow Variables");
-
+            assertThat(result).as("Unexpected settings").contains("# Current settings", testSettings, "# Inputs",
+                ", " + "(bar, String)]\n" + ", (baz, String)]\n" + "Flow Variable", "# Flow Variables");
 
         } finally {
             NodeContext.removeLastContext();
         }
     }
 
-
     @Test
     final void testWriteFlowVarsAsJson() throws Exception {
-        final var credentials = CredentialsStore.newCredentialsFlowVariable(
-            "credentials flow variable", "varUsername", "varPassword", "varSecondFactor");
+        final var credentials = CredentialsStore.newCredentialsFlowVariable("credentials flow variable", "varUsername",
+            "varPassword", "varSecondFactor");
 
         final var flowVariables = List.of(new FlowVariable("foo", 42), credentials);
         final var flowObjectStack = FlowObjectStack.createFromFlowVariableList(flowVariables, new NodeID(0));
@@ -175,7 +174,6 @@ final class DefaultKaiNodeInterfaceTest {
 
     }
 
-
     @Test
     void testWriteInputFlowVarsAsJson() throws Exception {
         final var flowVariables = List.of(new FlowVariable("inputVar", "inputValue"));
@@ -187,7 +185,7 @@ final class DefaultKaiNodeInterfaceTest {
             assertInstanceOf(ObjectNode.class, inputJson);
             assertThat(inputJson.has("flow_variables")).isTrue();
 
-            final ArrayNode flowVars = (ArrayNode) inputJson.get("flow_variables");
+            final ArrayNode flowVars = (ArrayNode)inputJson.get("flow_variables");
             assertThat(flowVars).isNotEmpty();
             final var inputVar = flowVars.get(0);
             assertEquals("inputVar", inputVar.get("name").asText());
@@ -207,7 +205,7 @@ final class DefaultKaiNodeInterfaceTest {
             assertInstanceOf(ObjectNode.class, outputJson);
             assertThat(outputJson.has("flow_variables")).isTrue();
 
-            final ArrayNode flowVars = (ArrayNode) outputJson.get("flow_variables");
+            final ArrayNode flowVars = (ArrayNode)outputJson.get("flow_variables");
             assertThat(flowVars).isNotEmpty();
             final var outputVar = flowVars.get(0);
             assertEquals("outputVar", outputVar.get("name").asText());
@@ -216,7 +214,8 @@ final class DefaultKaiNodeInterfaceTest {
         }
     }
 
-    private static NodeContainer mockNodeContainer(final PortType[] explicitPortTypes, final List<FlowVariable> flowVariables) {
+    private static NodeContainer mockNodeContainer(final PortType[] explicitPortTypes,
+        final List<FlowVariable> flowVariables) {
         final var nodeContainer = Mockito.mock(NativeNodeContainer.class);
         final var port = Mockito.mock(NodeOutPort.class);
 
@@ -227,14 +226,14 @@ final class DefaultKaiNodeInterfaceTest {
         when(nodeContainer.getNrOutPorts()).thenReturn(explicitPortTypes.length + 2);
         when(nodeContainer.getOutPort(0)).thenReturn(port);
 
-
         for (int i = 0; i < explicitPortTypes.length; i++) {
             when(nodeContainer.getInPort(i + 1)).thenReturn(new NodeInPort(i + 1, explicitPortTypes[i]));
         }
         when(nodeContainer.getOutputType(0)).thenReturn(FlowVariablePortObject.TYPE);
 
         // set flow object stack
-        final FlowObjectStack flowObjectStack = FlowObjectStack.createFromFlowVariableList(flowVariables, new NodeID(0));
+        final FlowObjectStack flowObjectStack =
+            FlowObjectStack.createFromFlowVariableList(flowVariables, new NodeID(0));
         when(nodeContainer.getFlowObjectStack()).thenReturn(flowObjectStack);
         when(nodeContainer.getOutPort(0).getFlowObjectStack()).thenReturn(flowObjectStack);
 
@@ -253,4 +252,92 @@ final class DefaultKaiNodeInterfaceTest {
         int m_someModelSetting;
 
     }
+
+    @Test
+    void testGetConfigurePromptWithDynamicParameters() throws Exception {
+        final var kaiNodeInterface =
+            new DefaultKaiNodeInterface(Map.of(SettingsType.MODEL, ParametersWithDynamicParameters.class));
+        final var mockSettings = mock(NodeAndVariableSettingsRO.class);
+        final var settingsMap = Map.of(SettingsType.MODEL, mockSettings);
+        final var nodeContainer = mockNodeContainer(EXPLICIT_PORT_TYPES, new ArrayList<>());
+
+        NodeContext.pushContext(nodeContainer);
+        try {
+
+            final var configurePrompt = kaiNodeInterface.getConfigurePrompt(settingsMap, PORT_SPECS);
+            // this model parameter is coming from TestSettings class
+            final var outputSchema = new ObjectMapper().readTree(configurePrompt.outputSchema());
+            assertThatJson(outputSchema).inPath("$.properties.model.properties.dynamicParameters.properties").isObject()
+                .containsKey("someParameter");
+            assertThatJson(outputSchema).inPath(
+                "$.properties.model.properties.listOfElementSettings.items.properties.dynamicParametersInArray.properties")
+                .isObject().containsKey("forInArray");
+        } finally {
+            NodeContext.removeLastContext();
+        }
+    }
+
+    static final class TestDynamicParametersProvider implements DynamicParametersProvider<MyDynamicParameters> {
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            throw new UnsupportedOperationException("Unimplemented method 'init'");
+        }
+
+        @Override
+        public ClassIdStrategy<MyDynamicParameters> getClassIdStrategy() {
+            throw new UnsupportedOperationException("Unimplemented method 'getClassIdStrategy'");
+        }
+
+        @Override
+        public MyDynamicParameters computeParameters(final NodeParametersInput parametersInput)
+            throws StateComputationFailureException {
+            throw new UnsupportedOperationException("Unimplemented method 'computeParameters'");
+        }
+
+    }
+
+    interface MyDynamicParameters extends DynamicNodeParameters {
+    }
+
+    @LoadDefaultsForAbsentFields
+    static final class ParametersWithDynamicParameters implements NodeParameters {
+
+        static final String DYNAMIC_SCHEMA = """
+                {
+                  "type": "object",
+                  "properties": {
+                    "someParameter": {}
+                  }
+                }
+                """;
+
+        static final String DYNAMIC_SCHEMA_IN_ARRAY = """
+                {
+                  "type": "object",
+                  "properties": {
+                    "forInArray": {}
+                  }
+                }
+                """;
+
+        static final class ElementSettings implements NodeParameters {
+            @DynamicParameters(value = TestDynamicParametersProvider.class,
+                schemaForDefaultKaiNodeInterface = DYNAMIC_SCHEMA_IN_ARRAY)
+            MyDynamicParameters m_dynamicParametersInArray;
+
+        }
+
+        @DynamicParameters(value = TestDynamicParametersProvider.class,
+            schemaForDefaultKaiNodeInterface = DYNAMIC_SCHEMA)
+        MyDynamicParameters m_dynamicParameters;
+
+        @DynamicParameters(TestDynamicParametersProvider.class)
+        MyDynamicParameters m_dynamicParametersWithoutSchema;
+
+        @Widget(title = "List of Element Settings", description = "An array of elements with dynamic parameters")
+        List<ElementSettings> m_listOfElementSettings = new ArrayList<>();
+
+    }
+
 }

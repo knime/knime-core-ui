@@ -49,6 +49,8 @@
 package org.knime.core.webui.node.dialog.defaultdialog;
 
 import static java.util.stream.Collectors.joining;
+import static org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicParametersSchemaReplacementUtil.getSchemaReplacements;
+import static org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicParametersSchemaReplacementUtil.performSchemaReplacements;
 import static org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMapUtil.map;
 
 import java.util.Map;
@@ -63,6 +65,7 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowObjectStack;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.NodeDialog.OnApplyNodeModifier;
@@ -70,9 +73,11 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettingsImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.NodeSettingsToDefaultNodeSettings;
+import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterface;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.WidgetGroup;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -115,12 +120,15 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
     @Override
     public ConfigurePrompt getConfigurePrompt(final Map<SettingsType, NodeAndVariableSettingsRO> settings,
         final PortObjectSpec[] specs) {
-        var jsonFormsSettings = getJsonFormsSettings(settings, specs);
+        final var pair = getJsonFormsSettings(settings, specs);
+        final var jsonFormsSettings = pair.getFirst();
+        final var widgetTrees = pair.getSecond();
 
-        var currentSettings = jsonFormsSettings.getData();
-        var schema = jsonFormsSettings.getSchema();
+        final var currentSettings = jsonFormsSettings.getData();
+        final var schema = jsonFormsSettings.getSchema();
+        performSchemaReplacements(schema, getSchemaReplacements(widgetTrees));
 
-        var systemMessage = constructSystemMessage(currentSettings.toPrettyString(), specs);
+        final var systemMessage = constructSystemMessage(currentSettings.toPrettyString(), specs);
 
         try {
             return new ConfigurePrompt(systemMessage, JsonFormsDataUtil.getMapper().writeValueAsString(schema));
@@ -129,8 +137,8 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
         }
     }
 
-    private JsonFormsSettingsImpl getJsonFormsSettings(final Map<SettingsType, NodeAndVariableSettingsRO> settings,
-        final PortObjectSpec[] specs) {
+    private Pair<JsonFormsSettingsImpl, Map<SettingsType, Tree<WidgetGroup>>> getJsonFormsSettings(
+        final Map<SettingsType, NodeAndVariableSettingsRO> settings, final PortObjectSpec[] specs) {
         var context = NodeParametersUtil.createDefaultNodeSettingsContext(specs);
         final var loadedSettings = new NodeSettingsToDefaultNodeSettings(context, m_settingsClasses)
             .nodeSettingsToDefaultNodeSettingsOrDefault(map(settings));
@@ -139,8 +147,7 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
         final var widgetTrees = map(loadedSettings, (type, s) -> widgetTreeFactory.createTree(s.getClass(), type));
 
         widgetTrees.values().forEach(KaiSchemaEnhancer::enhanceForKai);
-
-        return new JsonFormsSettingsImpl(loadedSettings, context, widgetTrees);
+        return new Pair<>(new JsonFormsSettingsImpl(loadedSettings, context, widgetTrees), widgetTrees);
     }
 
     /**
@@ -225,14 +232,12 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
         return jsonNode;
     }
 
-
     /**
-     * Extracts and serializes the input flow variables of the given {@link NodeContainer}
-     * into a JSON representation.
+     * Extracts and serializes the input flow variables of the given {@link NodeContainer} into a JSON representation.
      * <p>
-     * This method retrieves the {@link FlowObjectStack} representing input flow variables
-     * from the specified {@code NodeContainer} and converts it to a JSON object following
-     * the same schema as {@link #writeFlowVarsAsJson(FlowObjectStack)}.
+     * This method retrieves the {@link FlowObjectStack} representing input flow variables from the specified
+     * {@code NodeContainer} and converts it to a JSON object following the same schema as
+     * {@link #writeFlowVarsAsJson(FlowObjectStack)}.
      *
      * @param nc the {@link NodeContainer} from which to extract input flow variables
      * @return a {@link JsonNode} containing the serialized input flow variables
@@ -244,14 +249,12 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
         return writeFlowVarsAsJson(inputFlowObjectStack);
     }
 
-
     /**
-     * Extracts and serializes the output flow variables of the given {@link NodeContainer}
-     * into a JSON representation.
+     * Extracts and serializes the output flow variables of the given {@link NodeContainer} into a JSON representation.
      * <p>
-     * This method retrieves the {@link FlowObjectStack} representing output flow variables
-     * from the specified {@code NodeContainer} and converts it to a JSON object following
-     * the same schema as {@link #writeFlowVarsAsJson(FlowObjectStack)}.
+     * This method retrieves the {@link FlowObjectStack} representing output flow variables from the specified
+     * {@code NodeContainer} and converts it to a JSON object following the same schema as
+     * {@link #writeFlowVarsAsJson(FlowObjectStack)}.
      *
      * @param nc the {@link NodeContainer} from which to extract output flow variables
      * @return a {@link JsonNode} containing the serialized output flow variables
@@ -263,11 +266,10 @@ public final class DefaultKaiNodeInterface implements KaiNodeInterface {
         return writeFlowVarsAsJson(outputFlowObjectStack);
     }
 
-
     /**
-     * Retrieves the {@link FlowObjectStack} from the implicit flow variable output port (index 0)
-     * of the given {@link NodeContainer}. Implicit flow variable output port contains all flow variables
-     * (also the ones pushed by the node).
+     * Retrieves the {@link FlowObjectStack} from the implicit flow variable output port (index 0) of the given
+     * {@link NodeContainer}. Implicit flow variable output port contains all flow variables (also the ones pushed by
+     * the node).
      *
      * @param nc the {@link NodeContainer} instance from which to get the output port's flow object stack
      * @return the {@link FlowObjectStack} associated with the first output port of the given {@link NodeContainer}

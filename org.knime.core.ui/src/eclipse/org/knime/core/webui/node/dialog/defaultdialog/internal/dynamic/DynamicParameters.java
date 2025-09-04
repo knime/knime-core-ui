@@ -59,6 +59,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.List;
 
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersDeserializer;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersSerializer;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
@@ -93,6 +95,30 @@ public @interface DynamicParameters {
     Class<? extends DynamicParametersProvider<?>> value();
 
     /**
+     * Dynamic parameters result in a schema `{ "type": "object" }` that is not useful for KAI to configure them
+     * correctly.
+     *
+     * With this field one can adjust that schema to another constant schema. This schema should mention explicit
+     * '@class' values, e.g. like so: <code>
+     *  {
+     *   "type": "object",
+     *   "properties": {
+     *     "@class": {
+     *       "const": "org.knime.fully.qualified.ClassName$OfClassThatCanHandleThis"
+     *     },
+     *     "otherProperty": {
+     *        "type": "string",
+     *        "title": "A title",
+     *        "description": "A description"
+     *     }
+     *  }
+     *  </code>
+     *
+     * @return the schema to present to KAI instead of the default `{ "type": "object" }` schema
+     */
+    String schemaForDefaultKaiNodeInterface() default "";
+
+    /**
      * Value of the {@link DynamicParameters} annotation. Use this to define a dynamic part of a dialog by providing the
      * {@link NodeParameters} of that part as state.
      *
@@ -102,8 +128,8 @@ public @interface DynamicParameters {
     interface DynamicParametersProvider<T extends DynamicNodeParameters> extends StateProvider<DataAndDialog<Object>> {
 
         /**
-         * Provides the strategy for handling class identification. This method returns an instance that can map
-         * between class identifiers and actual classes, supporting backwards compatibility and custom naming.
+         * Provides the strategy for handling class identification. This method returns an instance that can map between
+         * class identifiers and actual classes, supporting backwards compatibility and custom naming.
          *
          * @return the class identification strategy for this provider
          */

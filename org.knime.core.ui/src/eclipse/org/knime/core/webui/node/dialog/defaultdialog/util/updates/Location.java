@@ -67,10 +67,12 @@ import org.knime.node.parameters.NodeParameters;
 public record Location(List<List<String>> paths, SettingsType settingsType) implements Comparable<Location> {
 
     /**
+     * Determines a location of a tree node.
+     *
      * @param node
      * @return the paths leading to that node in its tree together with the settingsKey of the root
      */
-    static <S> Location fromTreeNode(final TreeNode<S> node) {
+    public static <S> Location fromTreeNode(final TreeNode<S> node) {
         final var listOfFields = Stream.concat(node.getContainingArrayWidgetNodes().stream(), Stream.of(node)).toList();
         final var settingsKey = listOfFields.get(0).getSettingsType();
         final var listOfPaths = listOfFields.stream().map(TreeNode<S>::getPath).toList();
