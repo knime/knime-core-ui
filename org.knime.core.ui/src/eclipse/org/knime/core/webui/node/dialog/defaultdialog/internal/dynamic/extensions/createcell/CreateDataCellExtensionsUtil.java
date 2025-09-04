@@ -85,6 +85,8 @@ public final class CreateDataCellExtensionsUtil {
             Map.entry(StringCellFactory.TYPE, CoreCreateDataCellParameters.FromStringCellParameters.class) //
         );
 
+    private static Map<DataType, Class<? extends CreateDataCellParameters>> EXTENSION_PROVIDED_CLASSES;
+
     private CreateDataCellExtensionsUtil() {
         // utility class
     }
@@ -95,9 +97,23 @@ public final class CreateDataCellExtensionsUtil {
      * @return a map from data type to the corresponding to be preferred parameters class to create a cell of that type
      */
     public static Map<DataType, Class<? extends CreateDataCellParameters>> getCreateDataCellParametersExtensions() {
+        return Stream
+            .concat(PARAMETER_CLASSES_CORE.entrySet().stream(),
+                getOrCreateExtensionProvidedClasses().entrySet().stream())
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> b));
+    }
+
+    private static Map<DataType, Class<? extends CreateDataCellParameters>> getOrCreateExtensionProvidedClasses() {
+        if (EXTENSION_PROVIDED_CLASSES == null) {
+            EXTENSION_PROVIDED_CLASSES = createExtensionProvidedClasses();
+        }
+        return EXTENSION_PROVIDED_CLASSES;
+    }
+
+    private static Map<DataType, Class<? extends CreateDataCellParameters>> createExtensionProvidedClasses() {
         final var registry = Platform.getExtensionRegistry();
         final var point = registry.getExtensionPoint(EXT_POINT_ID);
-        final var extensionProvidedClasses = Stream.of(point.getExtensions()) //
+        return Stream.of(point.getExtensions()) //
             .flatMap(ext -> Stream.of(ext.getConfigurationElements())) //
             .map(CreateDataCellExtensionsUtil::readCreateDataCellParametersFactory) //
             .filter(Objects::nonNull) //
@@ -105,8 +121,6 @@ public final class CreateDataCellExtensionsUtil {
                 CreateDataCellParametersFactory::getDataType, //
                 CreateDataCellParametersFactory::getNodeParametersClass //
             ));
-        return Stream.concat(PARAMETER_CLASSES_CORE.entrySet().stream(), extensionProvidedClasses.entrySet().stream())
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> b));
     }
 
     /**
