@@ -135,7 +135,13 @@ public final class JsonFormsUiSchemaUtil {
     public static TraversableLayoutTreeNode<TreeNode<WidgetGroup>>
         resolveLayout(final Map<SettingsType, Class<? extends WidgetGroup>> settingsClasses) {
         final var widgetTrees = constructWidgetTrees(settingsClasses);
-        return widgetTreesToLayoutTreeRoot(widgetTrees);
+        final var x=widgetTreesToLayoutTreeRoot(widgetTrees);
+        if (settingsClasses.get(SettingsType.MODEL)!= null) {
+            if (settingsClasses.get(SettingsType.MODEL).getName().endsWith("ConstantValueColumnNodeSettings")) {
+                System.out.println("debug");
+            }
+        }
+        return x;
     }
 
     private static List<Tree<WidgetGroup>>
