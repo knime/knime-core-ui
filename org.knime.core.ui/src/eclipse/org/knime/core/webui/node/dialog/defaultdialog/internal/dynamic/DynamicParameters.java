@@ -66,6 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputat
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.updates.StateProvider;
 
 import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
@@ -117,6 +118,14 @@ public @interface DynamicParameters {
      * @return the schema to present to KAI instead of the default `{ "type": "object" }` schema
      */
     String schemaForDefaultKaiNodeInterface() default "";
+
+    /**
+     * Title and description provided here are only shown in the node description. If this field is not set, the dynamic
+     * parameters are omitted from the node description.
+     *
+     * @return the title of the dynamic parameters
+     */
+    Widget widgetAppearingInNodeDescription() default @Widget(title = "", description = "");
 
     /**
      * Value of the {@link DynamicParameters} annotation. Use this to define a dynamic part of a dialog by providing the

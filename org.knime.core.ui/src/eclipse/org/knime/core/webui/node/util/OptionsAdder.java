@@ -58,6 +58,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TraversableLayoutTreeNode;
@@ -129,7 +130,7 @@ public final class OptionsAdder {
 
     private static void addControl(final TreeNode<WidgetGroup> control,
         final Consumer<TreeNode<WidgetGroup>> addField) {
-        if (control instanceof Tree<WidgetGroup> tree) {
+        if (control instanceof Tree<WidgetGroup> tree && !tree.isDynamic()) {
             tree.getChildren().forEach(child -> addControl(child, addField));
         } else {
             addField.accept(control);
@@ -147,7 +148,13 @@ public final class OptionsAdder {
 
     private static Optional<TitleAndDescription> getTitleAndDescription(final TreeNode<WidgetGroup> field) {
 
-        final var widgetAnnotation = field.getAnnotation(Widget.class);
+        final Optional<Widget> widgetAnnotation;
+        if (field instanceof Tree<WidgetGroup> tree && tree.isDynamic()) {
+            widgetAnnotation = field.getAnnotation(DynamicParameters.class)
+                .map(DynamicParameters::widgetAppearingInNodeDescription).filter(w -> !w.title().isEmpty());
+        } else {
+            widgetAnnotation = field.getAnnotation(Widget.class);
+        }
         if (widgetAnnotation.isPresent()) {
             final var widget = widgetAnnotation.get();
             var description = JsonFormsSchemaUtil.resolveDescription(widget, field.getRawClass()).orElse("");
@@ -158,7 +165,6 @@ public final class OptionsAdder {
             return Optional.of(new TitleAndDescription(widget.title(), description));
         }
         return Optional.empty();
-
     }
 
     private static String getDescriptionPlusChildDescriptions(final String description,
