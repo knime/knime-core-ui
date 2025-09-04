@@ -66,8 +66,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.temporalformat.Tem
  */
 public class DateTimeFormatValidationUtilTest {
 
+    /*
+     * See DateTimeFormatter for restrictions on patterns:
+     * https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html#patterns
+     */
+
     static Stream<String> getValidStringFormats() {
-        return Stream.of("yyyy-MM-dd", "HH:mm:ss", "yyyyyyyy-MM-dd");
+        return Stream.of("yyyy-MM-dd", "HH:mm:ss", "yyyyyyyy-MM-dd", "yyyyyyyyyyyyyyy-MM-dd");
     }
 
     static Stream<TemporalFormat> getValidTemporalFormats() {
@@ -92,7 +97,10 @@ public class DateTimeFormatValidationUtilTest {
     }
 
     static Stream<String> getInvalidStringFormats() {
-        return Stream.of("b", "yyyy-MM-dddd", "yyyyyyyyyyyyyyy-MM-dd");
+        return Stream.of(
+            "b", // reserved but undefined
+            "yyyy-MM-dddd" // 'd' can be specified only up to 2 times
+            );
     }
 
     static Stream<TemporalFormat> getInvalidTemporalFormats() {
