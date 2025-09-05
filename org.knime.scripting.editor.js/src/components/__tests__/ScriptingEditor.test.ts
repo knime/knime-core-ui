@@ -20,7 +20,6 @@ import ScriptingEditorBottomPane, {
   type BottomPaneTabSlotName,
 } from "../ScriptingEditorBottomPane.vue";
 import SettingsPage from "../SettingsPage.vue";
-import { MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE } from "../utils/paneSizes";
 
 const mocks = vi.hoisted(() => {
   return {
@@ -59,7 +58,7 @@ vi.mock("@/display-mode", () => ({ displayMode: ref("large") }));
 describe("ScriptingEditor", () => {
   beforeEach(() => {
     vi.mocked(useElementBounding).mockReturnValue({
-      width: ref(MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE + 1),
+      width: ref(1000),
     } as ReturnType<typeof useElementBounding>);
     vi.mocked(getScriptingService().sendToService).mockResolvedValue({});
   });
