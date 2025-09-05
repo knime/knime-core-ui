@@ -75,7 +75,6 @@ describe("ScriptingEditor", () => {
       props: {
         title: "myTitle",
         language: "someLanguage",
-        rightPaneLayout: "fixed",
         fileName: "myFile.ts",
       },
     },
@@ -202,7 +201,6 @@ describe("ScriptingEditor", () => {
       props: {
         title: "myTitle",
         language: "someLanguage",
-        rightPaneLayout: "fixed",
         fileName: "myFile.ts",
       },
       slots: {

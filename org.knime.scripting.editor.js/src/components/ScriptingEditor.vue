@@ -35,14 +35,12 @@ interface Props {
   title?: string | null;
   language: string;
   fileName?: string | null;
-  rightPaneLayout?: "fixed" | "relative";
   menuItems?: MenuItem[];
   showControlBar?: boolean;
   /**
    * In pixels.
    */
   initialPaneSizes?: PaneSizes;
-  rightPaneMinimumWidthInPixel?: number; // TODO this is not used anymore
   toSettings?: (settings: GenericNodeSettings) => GenericNodeSettings;
   additionalBottomPaneTabContent?: SlottedTab[];
   /*
@@ -57,11 +55,9 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   title: null,
   fileName: null,
-  rightPaneLayout: "fixed",
   menuItems: () => [],
   showControlBar: true,
   initialPaneSizes: () => ({ left: 260, right: 260, bottom: 300 }),
-  rightPaneMinimumWidthInPixel: () => 0,
   additionalBottomPaneTabContent: () => [] as SlottedTab[],
   toSettings: (settings: GenericNodeSettings) => settings,
   modelOrView: "model",
