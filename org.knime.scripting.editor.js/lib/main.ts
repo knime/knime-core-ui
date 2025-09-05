@@ -17,10 +17,7 @@ import {
   type InsertionEvent,
   insertionEventHelper,
 } from "@/components/utils/insertionEventHelper";
-import {
-  MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
-  MIN_WIDTH_FOR_DISPLAYING_PANES,
-} from "@/components/utils/paneSizes";
+import { type PaneSizes } from "@/components/utils/paneSizes";
 import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
 import { consoleHandler, setConsoleHandler } from "@/consoleHandler";
 import { displayMode } from "@/display-mode";
@@ -62,8 +59,6 @@ export {
   getScriptingService,
   getSettingsService,
   insertionEventHelper,
-  MIN_WIDTH_FOR_DISPLAYING_LEFT_PANE,
-  MIN_WIDTH_FOR_DISPLAYING_PANES,
   OutputConsole,
   OutputTablePreview,
   ScriptingEditor,
@@ -84,6 +79,7 @@ export type {
   InputOutputModel,
   InsertionEvent,
   KAIConfig,
+  PaneSizes,
   PortConfigs,
   InputConnectionInfo,
   ScriptingServiceType,
