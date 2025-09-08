@@ -33,7 +33,6 @@ export class SettingsService {
     return this.initialSettings;
   }
 
-  // TODO this does not have to be async anymore
   registerSettingsGetterForApply(settingsGetter: () => GenericNodeSettings) {
     this.dialogService.setApplyListener(async () => {
       const settings = settingsGetter();
@@ -45,16 +44,13 @@ export class SettingsService {
         return { isApplied: false };
       }
     });
-    return Promise.resolve();
   }
 
-  // TODO this does not have to be async anymore
   registerSettings(modelOrView: "model" | "view") {
-    return Promise.resolve(<T>(initialSetting: T) =>
+    return <T>(initialSetting: T) =>
       this.dialogService.registerSettings(modelOrView)({
         initialValue: initialSetting,
-      }),
-    );
+      });
   }
 }
 

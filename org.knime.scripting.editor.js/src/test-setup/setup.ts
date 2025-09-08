@@ -43,9 +43,9 @@ initMocked({
   settingsService: {
     getSettings: vi.fn(() => DEFAULT_INITIAL_SETTINGS),
     registerSettingsGetterForApply: vi.fn(
-      (_settingsGetter: () => GenericNodeSettings) => Promise.resolve(),
+      (_settingsGetter: () => GenericNodeSettings) => {},
     ),
-    registerSettings: vi.fn(() => Promise.resolve(vi.fn())),
+    registerSettings: vi.fn(() => vi.fn()),
   },
   displayMode: "large",
 });
