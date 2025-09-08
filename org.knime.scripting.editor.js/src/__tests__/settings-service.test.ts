@@ -22,7 +22,7 @@ describe("settings-service", () => {
     expect(service).toBeDefined();
   });
 
-  it("should return initial settings from getSettings", async () => {
+  it("should return initial settings from getSettings", () => {
     const initialSettings: GenericNodeSettings = { script: "test script" };
     const mockDialogService = {} as DialogService;
     const mockJsonDataService = {} as JsonDataService;
@@ -33,7 +33,7 @@ describe("settings-service", () => {
       mockJsonDataService,
     );
 
-    await expect(service.getSettings()).resolves.toBe(initialSettings);
+    expect(service.getSettings()).toBe(initialSettings);
   });
 
   it("should register apply listener successfully", async () => {

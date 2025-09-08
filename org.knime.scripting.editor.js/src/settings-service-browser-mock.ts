@@ -55,7 +55,7 @@ export const createSettingsServiceMock = (
 ): SettingsServiceType => ({
   getSettings: () => {
     log("Called settings service mock getSettings");
-    return Promise.resolve(data ?? DEFAULT_INITIAL_SETTINGS);
+    return data ?? DEFAULT_INITIAL_SETTINGS;
   },
   registerSettingsGetterForApply: () => {
     log("Called settings service mock registerSettingsGetterForApply");

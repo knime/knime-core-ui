@@ -190,7 +190,7 @@ describe("init", () => {
       await init();
 
       const settingsService = getSettingsService();
-      const retrievedSettings = await settingsService.getSettings();
+      const retrievedSettings = settingsService.getSettings();
 
       expect(retrievedSettings).toEqual(customSettings);
     });
