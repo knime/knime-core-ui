@@ -26,7 +26,15 @@ export const getSettingsService = (): SettingsServiceType => settingsService;
 
 // --- INIT FUNCTION ---
 
-// TODO jsdoc
+/**
+ * Initializes the scripting editor services and sets up the display mode.
+ *
+ * This function must be called before using any other scripting editor functionality.
+ * It creates and configures the singleton instances of ScriptingService and SettingsService,
+ * fetches initial data from the backend, and sets up display mode management.
+ *
+ * @returns A Promise that resolves when all services are initialized
+ */
 export const init = async () => {
   const jsonDataService = await JsonDataService.getInstance();
   const dialogService = await DialogService.getInstance();
