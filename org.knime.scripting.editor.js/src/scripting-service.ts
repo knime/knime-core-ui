@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { JsonDataService } from "@knime/ui-extension-service";
 
-import { consoleHandler } from "./consoleHandler";
 import { useMainCodeEditorStore } from "./editor";
-import { getScriptingService } from "./init";
 import type { PortConfig } from "./initial-data-service";
 import { MonacoLSPConnection } from "./lsp/connection";
 import { KnimeMessageReader, KnimeMessageWriter } from "./lsp/knime-io";
@@ -137,8 +135,3 @@ export class ScriptingService {
 
 /** Type representing the public API of ScriptingService */
 export type ScriptingServiceType = PublicAPI<ScriptingService>;
-
-// TODO move?
-export const initConsoleEventHandler = () => {
-  getScriptingService().registerEventHandler("console", consoleHandler.write);
-};
