@@ -27,7 +27,7 @@ const setUnsetHelper = (qualifier?: string) => ({
 
 export const registerSettingsMock = () => {
   log("Called settings service mock registerSettings");
-  return Promise.resolve(() => {
+  return () => {
     log("Called settings service mock registerSettings callback");
     const settingState: SettingState = {
       setValue: () => {
@@ -47,7 +47,7 @@ export const registerSettingsMock = () => {
       },
     };
     return settingState;
-  });
+  };
 };
 
 export const createSettingsServiceMock = (
@@ -59,7 +59,6 @@ export const createSettingsServiceMock = (
   },
   registerSettingsGetterForApply: () => {
     log("Called settings service mock registerSettingsGetterForApply");
-    return Promise.resolve();
   },
   registerSettings: registerSettingsMock,
 });

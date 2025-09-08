@@ -57,7 +57,7 @@ describe("settings-service", () => {
     );
 
     const settingsGetter = vi.fn(() => settingsToApply);
-    await service.registerSettingsGetterForApply(settingsGetter);
+    service.registerSettingsGetterForApply(settingsGetter);
 
     expect(mockSetApplyListener).toHaveBeenCalledTimes(1);
 
@@ -91,7 +91,7 @@ describe("settings-service", () => {
     );
 
     const settingsGetter = vi.fn(() => settingsToApply);
-    await service.registerSettingsGetterForApply(settingsGetter);
+    service.registerSettingsGetterForApply(settingsGetter);
 
     // Call the registered listener
     const registeredListener = mockSetApplyListener.mock.calls[0][0];
@@ -102,7 +102,7 @@ describe("settings-service", () => {
     expect(result).toEqual({ isApplied: false });
   });
 
-  it("should register settings and return function", async () => {
+  it("should register settings and return function", () => {
     const initialSettings: GenericNodeSettings = { script: "test" };
     const testInitialValue = { testProp: "testValue" };
 
@@ -120,7 +120,7 @@ describe("settings-service", () => {
       mockJsonDataService,
     );
 
-    const registerFunction = await service.registerSettings("model");
+    const registerFunction = service.registerSettings("model");
 
     expect(typeof registerFunction).toBe("function");
 

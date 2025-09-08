@@ -40,7 +40,7 @@ insertionEventHelper
     );
   });
 
-onMounted(async () => {
+onMounted(() => {
   const initialSettings = getSettingsService().getSettings();
 
   codeEditorState.setInitialText(initialSettings.script);
@@ -55,9 +55,7 @@ onMounted(async () => {
     renderValidationDecorations: "on",
   });
 
-  const register = await getSettingsService().registerSettings(
-    props.modelOrView,
-  );
+  const register = getSettingsService().registerSettings(props.modelOrView);
   const onScriptChange = register(initialSettings.script);
   watch(codeEditorState.text, () => {
     onScriptChange.setValue(codeEditorState.text.value ?? "");
