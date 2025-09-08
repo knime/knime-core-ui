@@ -31,11 +31,8 @@ const makeExtensionConfig = async (
   workflowId: string,
   baseUrl: string,
 ): Promise<ExtensionConfig> => {
-  const dataService = await JsonDataService.getInstance();
   const initialData =
-    (await dataService.data<string>({
-      method: "OutputPreviewTableInitialDataRpcSupplier.getInitialData",
-    })) ?? "{}";
+    (await getScriptingService().getOutputPreviewTableInitialData()) ?? "{}";
 
   return {
     nodeId,
