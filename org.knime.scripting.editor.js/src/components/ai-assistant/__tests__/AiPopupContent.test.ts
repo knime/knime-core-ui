@@ -239,14 +239,12 @@ describe("AiPopup", () => {
   });
 
   it("show flow variable message if readonly", async () => {
-    vi.mocked(getSettingsService().getSettings).mockReturnValue(
-      Promise.resolve({
-        ...DEFAULT_INITIAL_SETTINGS,
-        scriptUsedFlowVariable: "myVar",
-        settingsAreOverriddenByFlowVariable: true,
-        script: "myScript",
-      }),
-    );
+    vi.mocked(getSettingsService().getSettings).mockReturnValue({
+      ...DEFAULT_INITIAL_SETTINGS,
+      scriptUsedFlowVariable: "myVar",
+      settingsAreOverriddenByFlowVariable: true,
+      script: "myScript",
+    });
 
     const bar = await doMount();
     await flushPromises();

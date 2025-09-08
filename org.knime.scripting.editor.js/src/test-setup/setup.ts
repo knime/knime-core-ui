@@ -41,7 +41,7 @@ initMocked({
   },
   initialData: DEFAULT_INITIAL_DATA,
   settingsService: {
-    getSettings: vi.fn(() => Promise.resolve(DEFAULT_INITIAL_SETTINGS)),
+    getSettings: vi.fn(() => DEFAULT_INITIAL_SETTINGS),
     registerSettingsGetterForApply: vi.fn(
       (_settingsGetter: () => GenericNodeSettings) => Promise.resolve(),
     ),

@@ -30,7 +30,7 @@ export class SettingsService {
   ) {}
 
   getSettings() {
-    return Promise.resolve(this.initialSettings);
+    return this.initialSettings;
   }
 
   // TODO this does not have to be async anymore

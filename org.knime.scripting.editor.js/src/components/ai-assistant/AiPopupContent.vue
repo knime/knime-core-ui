@@ -155,10 +155,10 @@ const acceptSuggestion = (acceptedCode: string) => {
 };
 
 onMounted(async () => {
-  const [settings, currentIsKaiEnabledStatus] = await Promise.all([
-    getSettingsService().getSettings(),
+  const [currentIsKaiEnabledStatus] = await Promise.all([
     getScriptingService().isKaiEnabled(),
   ]);
+  const settings = getSettingsService().getSettings();
   const initialData = getInitialData();
 
   if (!initialData.kAiConfig.isKaiEnabled) {

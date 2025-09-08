@@ -41,7 +41,7 @@ insertionEventHelper
   });
 
 onMounted(async () => {
-  const initialSettings = await getSettingsService().getSettings();
+  const initialSettings = getSettingsService().getSettings();
 
   codeEditorState.setInitialText(initialSettings.script);
 
