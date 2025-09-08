@@ -1,5 +1,6 @@
 import { DialogService, JsonDataService } from "@knime/ui-extension-service";
 
+import { consoleHandler } from "./consoleHandler";
 import { displayMode } from "./display-mode";
 import type { GenericInitialData } from "./initial-data-service";
 import {
@@ -75,4 +76,12 @@ export const initMocked = (mockData: InitMockData) => {
   if (mockData.displayMode) {
     displayMode.value = mockData.displayMode;
   }
+};
+
+/**
+ * Initialize the console event handler to forward console events from the
+ * backend to the frontend console handler.
+ */
+export const initConsoleEventHandler = () => {
+  getScriptingService().registerEventHandler("console", consoleHandler.write);
 };

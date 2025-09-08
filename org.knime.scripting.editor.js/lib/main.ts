@@ -34,6 +34,7 @@ import {
   getScriptingService,
   getSettingsService,
   init,
+  initConsoleEventHandler,
   initMocked,
 } from "@/init";
 import {
@@ -42,10 +43,7 @@ import {
   type KAIConfig,
   type PortConfigs,
 } from "@/initial-data-service";
-import {
-  type ScriptingServiceType,
-  initConsoleEventHandler,
-} from "@/scripting-service";
+import { type ScriptingServiceType } from "@/scripting-service";
 import { type GenericNodeSettings } from "@/settings-service";
 import { setActiveEditorStoreForAi } from "@/store/ai-bar";
 import { useReadonlyStore } from "@/store/readOnly";
