@@ -31,6 +31,7 @@ vi.mock("@xterm/xterm", () => {
 initMocked({
   scriptingService: {
     sendToService: vi.fn(),
+    getOutputPreviewTableInitialData: vi.fn(() => Promise.resolve(undefined)),
     registerEventHandler: vi.fn(),
     connectToLanguageServer: vi.fn(),
     isCallKnimeUiApiAvailable: vi.fn(() => Promise.resolve(true)),

@@ -81,6 +81,10 @@ export const createScriptingServiceMock = (
       return Promise.resolve();
     },
 
+    getOutputPreviewTableInitialData() {
+      return Promise.resolve(undefined);
+    },
+
     // Settings and dialog window
     isCallKnimeUiApiAvailable() {
       log("Called scriptingService.isCallKnimeUiApiAvailable");
