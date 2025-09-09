@@ -54,21 +54,21 @@ describe("OutputConsole", () => {
     expect(term.write).toBeCalledWith("hallo");
   });
 
-  it("highlights error red and bold", async () => {
+  it("adds error icon prefix", async () => {
     const { term, handler } = await doMount();
 
     handler.write({ error: "my error" });
     expect(term.write).toBeCalledWith(
-      "❌ \u001b[48;5;224m\u001b[30mmy error\u001b[0m",
+      "❌ my error",
     );
   });
 
-  it("highlights warning yellow", async () => {
+  it("adds warning icon prefix", async () => {
     const { term, handler } = await doMount();
 
     handler.write({ warning: "my warning" });
     expect(term.write).toBeCalledWith(
-      "⚠️  \u001b[47m\u001b[30mmy warning\u001b[0m",
+      "⚠️  my warning",
     );
   });
 

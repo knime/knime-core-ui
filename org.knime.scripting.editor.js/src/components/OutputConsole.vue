@@ -27,9 +27,6 @@ export type ConsoleHandler = {
   clear: () => void;
 };
 
-const ANSI_ERROR_START = "\u001b[48;5;224m\u001b[30m";
-const ANSI_WARNING_START = "\u001b[47m\u001b[30m";
-const ANSI_RESET = "\u001b[0m";
 const DEBOUNCE_TIME = 300;
 
 const theme: ITheme = {
@@ -101,9 +98,9 @@ const emit =
 
 const format = (text: ConsoleText) => {
   if ("error" in text) {
-    return `❌ ${ANSI_ERROR_START}${text.error}${ANSI_RESET}`;
+    return `❌ ${text.error}`;
   } else if ("warning" in text) {
-    return `⚠️  ${ANSI_WARNING_START}${text.warning}${ANSI_RESET}`;
+    return `⚠️  ${text.warning}`;
   } else {
     return text.text;
   }
