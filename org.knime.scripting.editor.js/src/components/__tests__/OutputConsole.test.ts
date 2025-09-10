@@ -58,18 +58,14 @@ describe("OutputConsole", () => {
     const { term, handler } = await doMount();
 
     handler.write({ error: "my error" });
-    expect(term.write).toBeCalledWith(
-      "❌ my error",
-    );
+    expect(term.write).toBeCalledWith("❌ my error");
   });
 
   it("adds warning icon prefix", async () => {
     const { term, handler } = await doMount();
 
     handler.write({ warning: "my warning" });
-    expect(term.write).toBeCalledWith(
-      "⚠️  my warning",
-    );
+    expect(term.write).toBeCalledWith("⚠️  my warning");
   });
 
   it("clear via handler", async () => {
