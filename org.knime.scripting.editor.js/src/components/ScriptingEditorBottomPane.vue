@@ -45,7 +45,7 @@ const makeGrabFocusFunction = (tabValue: string) => {
 const portConfigs: Ref<PortConfigs> = computedAsync(
   async () => {
     const inputPorts = getInitialData().inputPortConfigs.inputPorts.filter(
-      (port) => port.nodeId !== null,
+      (port) => port.nodeId,
     );
 
     if (
