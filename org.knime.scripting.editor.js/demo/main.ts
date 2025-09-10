@@ -1,9 +1,14 @@
 import { createApp } from "vue";
 import { Consola, LogLevels } from "consola";
 
+import { LoadingApp } from "../lib/loading";
 import { initMocked } from "../src/init";
 
 import App from "./App.vue";
+
+// Show loading app while initializing
+const loadingApp = createApp(LoadingApp);
+loadingApp.mount("#app");
 
 const setupConsola = () => {
   const consola = new Consola({
@@ -24,5 +29,9 @@ setupConsola();
 // }
 initMocked((await import("./mock-services")).default);
 
-const app = createApp(App);
-app.mount("#app");
+// Simulate some loading time
+const DEMO_LOADING_TIME = 0; // off by default
+await new Promise((resolve) => setTimeout(resolve, DEMO_LOADING_TIME));
+
+loadingApp.unmount();
+createApp(App).mount("#app");
