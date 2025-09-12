@@ -13,6 +13,7 @@ import {
   registerSettingsMock,
 } from "@/settings-service-browser-mock";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
+import HeaderBar from "../HeaderBar.vue";
 import InputOutputPane from "../InputOutputPane.vue";
 import MainEditorPane from "../MainEditorPane.vue";
 import ScriptingEditor from "../ScriptingEditor.vue";
@@ -178,42 +179,52 @@ describe("ScriptingEditor", () => {
     ).toBeTruthy();
   });
 
-  it("shows settings page", async () => {
-    const { wrapper } = doMount();
-    (wrapper.vm as any).showSettingsPage = true;
-    await wrapper.vm.$nextTick();
-    expect(wrapper.findComponent(SettingsPage).exists()).toBeTruthy();
-  });
+  describe("settings page", () => {
+    it("shows only settings page", async () => {
+      const { wrapper } = doMount();
+      (wrapper.vm as any).showSettingsPage = true;
+      await wrapper.vm.$nextTick();
+      expect(wrapper.findComponent(SettingsPage).exists()).toBeTruthy();
 
-  it("closes settings page", async () => {
-    const { wrapper } = doMount();
-    (wrapper.vm as any).showSettingsPage = true;
-    await wrapper.vm.$nextTick();
-    const settingsPage = wrapper.findComponent(SettingsPage);
-    expect(settingsPage.exists()).toBeTruthy();
-    settingsPage.vm.$emit("close-settings-page");
-    await wrapper.vm.$nextTick();
-    expect(settingsPage.exists()).toBeFalsy();
-  });
-
-  it("passes slotted content through to settings page", async () => {
-    const { wrapper } = doMount({
-      props: {
-        title: "myTitle",
-        language: "someLanguage",
-        fileName: "myFile.ts",
-      },
-      slots: {
-        "settings-title": "<div class='settings-title'>Settings title</div>",
-        "settings-content":
-          "<div class='settings-content'>Settings content</div>",
-      },
+      // Other panes should be hidden
+      expect(wrapper.findComponent(MainEditorPane).isVisible()).toBeFalsy();
+      expect(wrapper.findComponent(InputOutputPane).isVisible()).toBeFalsy();
+      expect(
+        wrapper.findComponent(ScriptingEditorBottomPane).isVisible(),
+      ).toBeFalsy();
+      expect(wrapper.findComponent(HeaderBar).exists()).toBeFalsy();
     });
-    (wrapper.vm as any).showSettingsPage = true;
-    await wrapper.vm.$nextTick();
-    const settingsPage = wrapper.findComponent(SettingsPage);
-    expect(settingsPage.find(".settings-title").exists()).toBeTruthy();
-    expect(settingsPage.find(".settings-content").exists()).toBeTruthy();
+
+    it("closes settings page", async () => {
+      const { wrapper } = doMount();
+      (wrapper.vm as any).showSettingsPage = true;
+      await wrapper.vm.$nextTick();
+      const settingsPage = wrapper.findComponent(SettingsPage);
+      expect(settingsPage.exists()).toBeTruthy();
+      settingsPage.vm.$emit("close-settings-page");
+      await wrapper.vm.$nextTick();
+      expect(settingsPage.exists()).toBeFalsy();
+    });
+
+    it("passes slotted content through to settings page", async () => {
+      const { wrapper } = doMount({
+        props: {
+          title: "myTitle",
+          language: "someLanguage",
+          fileName: "myFile.ts",
+        },
+        slots: {
+          "settings-title": "<div class='settings-title'>Settings title</div>",
+          "settings-content":
+            "<div class='settings-content'>Settings content</div>",
+        },
+      });
+      (wrapper.vm as any).showSettingsPage = true;
+      await wrapper.vm.$nextTick();
+      const settingsPage = wrapper.findComponent(SettingsPage);
+      expect(settingsPage.find(".settings-title").exists()).toBeTruthy();
+      expect(settingsPage.find(".settings-content").exists()).toBeTruthy();
+    });
   });
 
   it("sets drop event on code editor", async () => {
