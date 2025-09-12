@@ -10,6 +10,7 @@ import {
   type GenericNodeSettings,
   OutputConsole,
   ScriptingEditor,
+  type SettingsMenuItem,
   consoleHandler,
   initConsoleEventHandler,
   setConsoleHandler,
@@ -19,10 +20,12 @@ import DebugToolbar from "./DebugToolbar.vue";
 
 const menuItems: MenuItem[] = [
   {
-    text: "Demo Settings",
+    text: "Set Settings",
     icon: SettingsIcon,
-    href: "#settings",
-  },
+    showSettingsPage: true,
+    title: "Demo Settings",
+    separator: true,
+  } as SettingsMenuItem,
   {
     text: "Documentation",
     icon: FileTextIcon,

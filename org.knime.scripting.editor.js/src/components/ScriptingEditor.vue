@@ -156,13 +156,6 @@ const showControlBarDynamic = computed(
 
 <template>
   <div class="layout">
-    <HeaderBar
-      v-if="!isSmallEmbeddedMode"
-      :title="title!"
-      :menu-items="[...commonMenuItems, ...menuItems]"
-      @menu-item-click="onMenuItemClicked"
-    />
-
     <SettingsPage
       v-if="showSettingsPage"
       @close-settings-page="showSettingsPage = false"
@@ -175,7 +168,15 @@ const showControlBarDynamic = computed(
       </template>
     </SettingsPage>
 
+    <HeaderBar
+      v-if="!isSmallEmbeddedMode && !showSettingsPage"
+      :title="title!"
+      :menu-items="[...commonMenuItems, ...menuItems]"
+      @menu-item-click="onMenuItemClicked"
+    />
+
     <SplitPanel
+      v-show="!showSettingsPage"
       v-model:expanded="leftPaneExpanded"
       v-model:secondary-size="leftPaneSize"
       :hide-secondary-pane="isSmallEmbeddedMode"
