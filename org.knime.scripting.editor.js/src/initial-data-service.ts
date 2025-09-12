@@ -46,4 +46,5 @@ export type GenericInitialData = {
   inputConnectionInfo: InputConnectionInfo[];
   outputObjects?: InputOutputModel[];
   kAiConfig: KAIConfig;
+  [key: string]: unknown;
 };
