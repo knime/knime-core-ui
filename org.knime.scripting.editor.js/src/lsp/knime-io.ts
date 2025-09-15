@@ -8,8 +8,6 @@ import {
   MessageWriter,
 } from "vscode-languageserver-protocol";
 
-import { getScriptingService } from "../init";
-
 /**
  * This class is used to read messages from the language server. The callback
  * is registered by the connection and called each time a message from the
@@ -22,11 +20,11 @@ export class KnimeMessageReader
   protected messageCache: string[] = [];
   protected callback: DataCallback | null;
 
-  constructor() {
+  constructor(
+    registerEventHandler: (eventHandler: (message: string) => void) => void,
+  ) {
     super();
-    getScriptingService().registerEventHandler("language-server", (message) => {
-      this.readMessage(message);
-    });
+    registerEventHandler((message) => this.readMessage(message));
     this.callback = null;
   }
 
@@ -70,11 +68,14 @@ export class KnimeMessageWriter
   extends AbstractMessageWriter
   implements MessageWriter
 {
-  // eslint-disable-next-line class-methods-use-this -- required for the interface
+  constructor(
+    private readonly sendMessage: (message: string) => Promise<void>,
+  ) {
+    super();
+  }
+
   async write(msg: Message): Promise<void> {
-    await getScriptingService().sendToService("sendLanguageServerMessage", [
-      JSON.stringify(msg),
-    ]);
+    await this.sendMessage(JSON.stringify(msg));
   }
 
   // eslint-disable-next-line class-methods-use-this -- required for the interface
