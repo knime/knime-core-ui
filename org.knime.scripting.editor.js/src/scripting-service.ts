@@ -97,8 +97,12 @@ export class ScriptingService {
     if (status.status === "RUNNING") {
       return MonacoLSPConnection.create(
         editorModel,
-        new KnimeMessageReader(),
-        new KnimeMessageWriter(),
+        new KnimeMessageReader((handler) =>
+          this.registerEventHandler("language-server", handler),
+        ),
+        new KnimeMessageWriter((message) =>
+          this.sendToService("sendLanguageServerMessage", [message]),
+        ),
       );
     } else {
       throw Error(status.message ?? "Starting the language server failed");
