@@ -50,9 +50,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensio
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
-import org.knime.core.node.ExecutionContext;
+import org.knime.core.data.DataValue;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicNodeParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.TypeMappingUtils.ConverterException;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 
@@ -67,83 +66,69 @@ public interface FilterValueParameters extends DynamicNodeParameters {
      * Used whenever switching to different parameters. The default implementation drops the current state, so overwrite
      * this method if new parameters should be initialized with the current state.
      *
-     * @param exec the execution context. It can be null.
      * @return the stashed values as strings.
      */
-    default String[] stash(final ExecutionContext exec) { // TODO: We won't use the stash mechanism on execute!
-        return new String[0];
+    default DataValue[] stash() {
+        return new DataValue[0];
     }
 
     /**
      * Apply the stashed values to the parameters. The default implementation does nothing.
      *
      * @param stashedValues the stashed values as strings.
-     * @param exec the execution context. It can be null.
      */
-    default void applyStash(final String[] stashedValues, final ExecutionContext exec) {
+    default void applyStash(final DataValue[] stashedValues) {
         // default does nothing
     }
 
     /**
-     * Parameters able to create a DataCell of a specific data type.
+     * Parameters able to create a data value of a specific data type.
      *
      * Use the {FILTER_VALUE_TITLE} and {FILTER_VALUE_DESCRIPTION} constants when the parameters contain only one
      * {@link Widget} to ensure consistent naming of dynamic parameters in the dialog.
      *
      *
-     * @param <T> the type of the DataCell
+     * @param <V> the type of the value
      */
-    interface SingleCellValueParameters<T extends DataCell> extends FilterValueParameters {
+    interface SingleCellValueParameters<C extends DataCell> extends FilterValueParameters {
 
         /**
          * Title to be used when the parameters contain only one {@link Widget}
          */
-        String FILTER_VALUE_TITLE = "Value (extension point)"; // TODO -> "Value"
+        String FILTER_VALUE_TITLE = "Value (extension point)"; // TODO -> rename to "Value" once we remove the old widget still there during dev
 
         /**
          * Description to be used when the parameters contain only one {@link Widget}.
          */
         String FILTER_VALUE_DESCRIPTION = "The value to compare to.";
 
+        C createCell();
+
+        void loadFrom(C valueFromStash);
+
         DataType getSpecificType();
 
-        T createCell(); // TODO data value
-
-        void loadFromCell(T cellFromStash);
-
         @Override
-        default String[] stash(final ExecutionContext exec) {
-            final var cell = createCell();
-            try {
-                return new String[]{TypeMappingUtils.getStringFromDataCell(cell)};
-            } catch (ConverterException ex) {
-                return new String[0];
-            }
-
+        default DataValue[] stash() {
+            return new DataValue[] {createCell()};
         }
 
-        /**
-         * we use the first supertype that offers a converter factory. If the corresponding cell class is not of type T,
-         * this method needs to be overwritten.
-         */
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings("unchecked") // safe cast since V is a value implemented by targetType which is more general
+        // than sourceType
         @Override
-        default void applyStash(final String[] stashedValues, final ExecutionContext exec) {
+        default void applyStash(final DataValue[] stashedValues) {
             if (stashedValues.length == 0) {
                 return;
-            } else {
-                try {
-                    loadFromCell((T)TypeMappingUtils.readDataCellFromString(getSpecificType(), stashedValues[0]));
-                } catch (ConverterException ex) {
-                    System.out.println("Could not convert stashed value '" + stashedValues[0] + "' to type "
-                        + getSpecificType() + "." + ex.getMessage());
-                    // ignore
-                }
-
             }
-
+            // "best-effort" approach
+            final var firstValue = stashedValues[0];
+            final var source = firstValue.materializeDataCell();
+            final var sourceType = source.getType();
+            final var targetType = getSpecificType();
+            if (targetType.isASuperTypeOf(sourceType)
+                && targetType.getCellClass().isAssignableFrom(source.getClass())) {
+                loadFrom((C)source);
+            }
         }
-
     }
-
 }

@@ -49,13 +49,13 @@
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
 import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.DoubleCell.DoubleCellFactory;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.IntCell.IntCellFactory;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.LongCell.LongCellFactory;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters.SingleCellValueParameters;
 import org.knime.node.parameters.Widget;
 
@@ -86,8 +86,20 @@ final class CoreFilterValueParameters {
         }
 
         @Override
-        public void loadFromCell(final IntCell cellFromStash) {
-            m_value = cellFromStash.getIntValue();
+        public void loadFrom(final IntCell fromStash) {
+            m_value = fromStash.getIntValue();
+        }
+
+        @Override
+        public void applyStash(final DataValue[] stashedValues) {
+            final var first = stashedValues[0];
+            if (first instanceof IntCell intCell) {
+                loadFrom(intCell);
+            } else if (first instanceof DoubleCell doubleCell) {
+                m_value = (int)doubleCell.getDoubleValue();
+            } else if (first instanceof LongCell longCell) {
+                m_value = (int)longCell.getLongValue();
+            }
         }
 
     }
@@ -108,18 +120,29 @@ final class CoreFilterValueParameters {
         }
 
         @Override
-        public void loadFromCell(final DoubleCell cellFromStash) {
+        public void loadFrom(final DoubleCell cellFromStash) {
             m_value = cellFromStash.getDoubleValue();
         }
 
         @Override
-        public String[] stash(final ExecutionContext exec) {
-            final var stringValue = Double.toString(m_value);
-            if (stringValue.endsWith(".0")) {
-                // avoid storing e.g. "2.0" as this cannot be unstashed as e.g. int.
-                return new String[]{stringValue.substring(0, stringValue.length() - 2)};
+        public DataValue[] stash() {
+            // avoid stashing as double if it is an integer value, because that can be unstashed as Int or Long easily
+            if (m_value % 1 == 0.0) {
+                return new DataValue[]{new IntCell((int)m_value)};
             }
-            return new String[]{stringValue};
+            return new DataValue[]{new DoubleCell(m_value)};
+        }
+
+        @Override
+        public void applyStash(final DataValue[] stashedValues) {
+            final var first = stashedValues[0];
+            if (first instanceof DoubleCell doubleCell) {
+                loadFrom(doubleCell);
+            } else if (first instanceof IntCell intCell) {
+                m_value = intCell.getIntValue();
+            } else if (first instanceof LongCell longCell) {
+                m_value = longCell.getLongValue();
+            }
         }
 
     }
@@ -140,8 +163,18 @@ final class CoreFilterValueParameters {
         }
 
         @Override
-        public void loadFromCell(final LongCell cellFromStash) {
+        public void loadFrom(final LongCell cellFromStash) {
             m_value = cellFromStash.getLongValue();
+        }
+
+        @Override
+        public void applyStash(final DataValue[] stashedValues) {
+            final var first = stashedValues[0];
+            if (first instanceof LongCell longCell) {
+                loadFrom(longCell);
+            } else if (first instanceof IntCell intCell) {
+                m_value = intCell.getIntValue();
+            }
         }
     }
 }
