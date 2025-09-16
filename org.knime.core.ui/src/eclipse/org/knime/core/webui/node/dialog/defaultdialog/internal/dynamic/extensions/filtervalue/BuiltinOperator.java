@@ -48,12 +48,10 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
-import org.knime.core.data.DataType;
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters.SingleCellValueParameters;
+import org.knime.core.data.DataCell;
 
 /**
- * implement this interface to define any of the standard filter operators for data cells:
+ * Implement this interface to define any of the standard filter operators for data cells:
  * <ul>
  * <li>Use a {@link EqualsOperator} to define the "equals" operator and other operators derived from it (like "not
  * equals")</li>
@@ -62,102 +60,119 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  * <li>Use a {@link GreaterThanOperator} to define the "greater than" operator and with that also "less than or equals"
  * (note that this can be different to the union of "less than" and "equals").</li>
  *
+ * @param <V> the data value this operator works on
+ * @param <P> the type of filter value parameters this operator works with
+ *
  * @author Paul Bärnreuther
  */
-public sealed interface BuiltinOperator<T extends FilterValueParameters> extends FilterOperator2<T> {
-
-    @Override
-    default String getId() {
-        throw new UnsupportedOperationException("Unimplemented method 'getId'");
-    }
-
-    @Override
-    default String getDisplayName() {
-        throw new UnsupportedOperationException("Unimplemented method 'getDisplayName'");
-    }
-
-    /**
-     * Uses {@link SingleCellValueParameters#createCell} to create predicates from cell operations. To implement
-     * comparison operators, extend {@link ComparableCellOperatorFamily}.
-     */
-    public sealed class SingleCellOperatorFamily<T extends SingleCellValueParameters<?>> implements EqualsOperator<T> {
-
-        private final Class<T> m_singleCellValueParametersClass;
-
-        SingleCellOperatorFamily(final Class<T> singleCellValueParametersClass) {
-            m_singleCellValueParametersClass = singleCellValueParametersClass;
-        }
-
-        /**
-         * Not to be called directly. Use {@link SingleCellValueParameters#createCell} instead.
-         */
-        @Override
-        public DataValuePredicate createPredicate(final T filterParameters) {
-            throw new UnsupportedOperationException("Unimplemented method 'createPredicate'");
-        }
-
-        @Override
-        public Class<T> getNodeParametersClass() {
-            return m_singleCellValueParametersClass;
-        }
-
-        @Override
-        public void validateOtherType(final DataType otherDataType) throws InvalidSettingsException {
-            throw new InvalidSettingsException("");
-        }
-
-        /**
-         * Use this class to implement comparison operators (less than, greater than, etc.) for data cells that can be
-         * compared to each other (using {@link DataType#getComparator()}.
-         *
-         * @param <T> the type of filter value parameters
-         */
-        public static final class ComparableCellOperatorFamily<T extends SingleCellValueParameters<?>>
-            extends SingleCellOperatorFamily<T> implements LessThanOperator<T>, GreaterThanOperator<T> {
-
-            ComparableCellOperatorFamily(final Class<T> singleCellValueParametersClass) {
-                super(singleCellValueParametersClass);
-            }
-
-        }
-
-    }
-
-    /**
-     * Usually, us the {@link SingleCellOperatorFamily} instead of implementing this interface directly. But if e.g.
-     * secondary parameters are needed, this interface can be implemented directly.
-     *
-     * Providing an implementation of this interface automatically registers the operator for the "equals" operator and
-     * other built-in operators derived from it (like "not equals").
-     *
-     * @param <T> the type of filter value parameters
-     */
-    public non-sealed interface EqualsOperator<T extends FilterValueParameters> extends BuiltinOperator<T> {
-    }
-
-    /**
-     * Usually, us the {@link SingleCellOperatorFamily.ComparableCellOperatorFamily} instead of implementing this
-     * interface directly. But if e.g. secondary parameters are needed, this interface can be implemented directly.
-     *
-     * Providing an implementation of this interface automatically registers the operator for the "less than" operator
-     * and with that also "greater or equals" (note that this can be different to the sum of "greater than" and
-     *
-     * @param <T> the type of filter value parameters
-     */
-    public non-sealed interface LessThanOperator<T extends FilterValueParameters> extends BuiltinOperator<T> {
-    }
-
-    /**
-     * Usually, us the {@link SingleCellOperatorFamily.ComparableCellOperatorFamily} instead of implementing this
-     * interface directly. But if e.g. secondary parameters are needed, this interface can be implemented directly.
-     *
-     * Providing an implementation of this interface automatically registers the operator for the "greater than"
-     * operator and with that also "less or equals" (note that this can be different to the sum of "less than" and
-     * "equals").
-     *
-     * @param <T> the type of filter value parameters
-     */
-    public non-sealed interface GreaterThanOperator<T extends FilterValueParameters> extends BuiltinOperator<T> {
-    }
+public
+//sealed
+interface BuiltinOperator<V extends DataCell, P extends FilterValueParameters>
+//    extends ValueFilterOperator<V, P>
+    {
+//
+//    @Override
+//    default String getId() {
+//        throw new UnsupportedOperationException("Unimplemented method 'getId'");
+//    }
+//
+//    @Override
+//    default String getLabel() {
+//        throw new UnsupportedOperationException("Unimplemented method 'getDisplayName'");
+//    }
+//
+//    sealed interface OperatorFamily<V extends DataCell, P extends FilterValueParameters> extends BuiltinOperator<V, P>
+//        permits EqualsOperatorFamily, ComparableOperatorFamily {
+//
+//        @Override
+//        default Predicate<V> createPredicate(final P filterParameters) {
+//            throw new UnsupportedOperationException(
+//                "An operator family is not supposed to create a predicate directly.");
+//        }
+//
+//    }
+//
+//    /**
+//     * The family of operators for equality comparisons based on a {@link DataValueComparator}'s return value.
+//     * <b>Note:</b> This can be different to the equality defined by a data cell's equal method.
+//     *
+//     * @param <V> the data value type this operator family works on
+//     * @param <P> the type of filter value parameters this operator family works with
+//     */
+//    // TODO this could be a marker on the ComparableOperatorFamily?
+//    non-sealed interface EqualsOperatorFamily<V extends DataCell, P extends SingleCellValueParameters<V>>
+//        extends OperatorFamily<V, P>, EqualsOperatorMarker<V, P> {
+//    }
+//
+//    /**
+//     * Use this class to implement comparison operators (less than, greater than, etc.) for data cells that can be
+//     * compared to each other (using {@link DataType#getComparator()}.
+//     *
+//     * @param <V> the data cell type this operator family works for
+//     * @param <P> the type of filter value parameters
+//     */
+//    non-sealed interface ComparableOperatorFamily<V extends DataCell, P extends SingleCellValueParameters<V>>
+//        extends OperatorFamily<V, P>, LessThanOperatorMarker<V, P>, GreaterThanOperatorMarker<V, P> {
+//    }
+//
+//    /**
+//     * Usually, us the {@link SingleCellOperatorFamily} instead of implementing this interface directly. But if e.g.
+//     * secondary parameters are needed, this interface can be implemented directly.
+//     *
+//     * Providing an implementation of this interface automatically registers the operator for the "equals" operator and
+//     * other built-in operators derived from it (like "not equals").
+//     *
+//     * @param <C> the data cell this operator works for
+//     * @param <T> the type of filter value parameters
+//     */
+//    non-sealed interface EqualsOperatorMarker<V extends DataCell, P extends FilterValueParameters>
+//        extends BuiltinOperator<V, P> {
+//
+//        // names from proposal of AP-24054
+//        default String labelForEqual() {
+//            return "Equal";
+//        }
+//
+//        default String labelForNotEqual() {
+//            return "Not equal";
+//        }
+//
+//        default String labelForNotEqualNorMissing() {
+//            return "Not equal nor missing";
+//        }
+//
+//        V from(P params);
+//    }
+//
+//    /**
+//     * Usually, us the {@link SingleCellOperatorFamily.ComparableCellOperatorFamily} instead of implementing this
+//     * interface directly. But if e.g. secondary parameters are needed, this interface can be implemented directly.
+//     *
+//     * Providing an implementation of this interface automatically registers the operator for the "less than" operator
+//     * and with that also "greater or equals" (note that this can be different to the sum of "greater than" and
+//     *
+//     * @param <C> the data cell this operator works for
+//     * @param <T> the type of filter value parameters
+//     */
+//    non-sealed interface LessThanOperatorMarker<V extends DataCell, P extends FilterValueParameters>
+//        extends BuiltinOperator<V, P> {
+//        V from(P params);
+//    }
+//
+//    /**
+//     * Usually, us the {@link SingleCellOperatorFamily.ComparableCellOperatorFamily} instead of implementing this
+//     * interface directly. But if e.g. secondary parameters are needed, this interface can be implemented directly.
+//     *
+//     * Providing an implementation of this interface automatically registers the operator for the "greater than"
+//     * operator and with that also "less or equals" (note that this can be different to the sum of "less than" and
+//     * "equals").
+//     *
+//     * @param <C> the data cell this operator works for
+//     * @param <T> the type of filter value parameters
+//     */
+//    non-sealed interface GreaterThanOperatorMarker<V extends DataCell, P extends FilterValueParameters>
+//        extends BuiltinOperator<V, P> {
+//        V from(P params);
+//    }
 
 }

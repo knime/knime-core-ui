@@ -58,68 +58,96 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.data.DataType;
-import org.knime.core.data.def.DoubleCell.DoubleCellFactory;
-import org.knime.core.data.def.IntCell.IntCellFactory;
-import org.knime.core.data.def.LongCell.LongCellFactory;
+import org.knime.core.data.DataValue;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.BuiltinOperator.SingleCellOperatorFamily.ComparableCellOperatorFamily;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.CoreFilterValueParameters.DoubleCellParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.CoreFilterValueParameters.IntCellParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.CoreFilterValueParameters.LongCellParameters;
+import org.knime.core.util.Pair;
 
 /**
  * A utility class to deal with the filter operators extension point.
  */
-@SuppressWarnings("rawtypes")
-public final class FilterOperatorsExtensionsUtil {
+public final class FilterOperatorsRegistry {
 
-    private static final NodeLogger LOGGER = NodeLogger.getLogger(FilterOperatorsExtensionsUtil.class);
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(FilterOperatorsRegistry.class);
 
     private static final String EXT_POINT_ID = "org.knime.core.ui.filterOperators";
 
-    private static final Map<DataType, List<FilterOperator2<?>>> FILTER_OPERATORS_CORE = Map.ofEntries( //
-        Map.entry(IntCellFactory.TYPE, List.of(new ComparableCellOperatorFamily<>(IntCellParameters.class))), //
-        Map.entry(DoubleCellFactory.TYPE, List.of(new ComparableCellOperatorFamily<>(DoubleCellParameters.class))), //
-        Map.entry(LongCellFactory.TYPE, List.of(new ComparableCellOperatorFamily<>(LongCellParameters.class))) //
-    );
+    private static final FilterOperatorsRegistry INSTANCE = new FilterOperatorsRegistry();
 
-    private FilterOperatorsExtensionsUtil() {
+    private final Map<DataType, List<ValueFilterOperator<DataValue, FilterValueParameters>>> m_filterOperators;
+
+    private FilterOperatorsRegistry() {
         // utility class
+        m_filterOperators = Stream.concat(getCoreFilterOperators(), Stream.empty()) //
+            .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));//, getFilterOperatorExtensions());
+    }
+
+    public static FilterOperatorsRegistry getInstance() {
+        return INSTANCE;
     }
 
     /**
-     * Reads all extensions implementing {@link FilterOperatorsFactory} from the extension point
+     * Gets the filter operators for the given data type.
+     *
+     * @param type data type
+     * @return the filter operators for the given data type, or an empty list if there are none
+     */
+    public List<ValueFilterOperator<DataValue, FilterValueParameters>> getOperators(final DataType type) {
+        return m_filterOperators.getOrDefault(type, List.of());
+    }
+
+    /**
+     * Gets all currently registered parameter classes.
+     *
+     * @return all currently registered parameter classes
+     */
+    public List<Class<FilterValueParameters>> getAllParameterClasses() {
+        return m_filterOperators.values().stream().flatMap(List::stream)
+            .map(ValueFilterOperator::getNodeParametersClass).distinct().toList();
+    }
+
+    private static Pair<DataType, List<ValueFilterOperator<DataValue, FilterValueParameters>>>
+        familiesToPair(final FilterOperators<? extends DataValue> ops) {
+        return new Pair<>(ops.getDataType(), //
+            ops.getOperators() //
+                .stream() //
+                .map(mapper -> (ValueFilterOperator<DataValue, FilterValueParameters>)mapper) //
+                .toList());
+    }
+
+    private static Stream<Pair<DataType, List<ValueFilterOperator<DataValue, FilterValueParameters>>>>
+        getCoreFilterOperators() {
+        final FilterOperators<DataValue> intOps = new CoreFilterValueOperators.IntCellOperators();
+        final FilterOperators<DataValue> longOps = new CoreFilterValueOperators.LongCellOperators();
+        final FilterOperators<DataValue> doubleOps = new CoreFilterValueOperators.DoubleCellOperators();
+
+        return Stream.of(intOps, longOps, doubleOps) //
+            .map(FilterOperatorsRegistry::familiesToPair) //
+        ;
+    }
+
+    /**
+     * Reads all extensions implementing {@link FilterOperators} from the extension point
      *
      * @return a map from data type to the corresponding to be preferred parameters class to create a cell of that type
      */
-    public static Map<DataType, List<FilterOperator2<?>>> getFilterOperatorExtensions() {
-        if (true) {
-            return FILTER_OPERATORS_CORE;
-        }
+    private static Stream<FilterOperators> getFilterOperatorExtensions() {
         final var registry = Platform.getExtensionRegistry();
         final var point = registry.getExtensionPoint(EXT_POINT_ID);
-        final var extensionProvidedClasses = Stream.of(point.getExtensions()) //
+        return Stream.of(point.getExtensions()) //
             .flatMap(ext -> Stream.of(ext.getConfigurationElements())) //
-            .map(FilterOperatorsExtensionsUtil::readFiterOperatorsFactory) //
-            .filter(Objects::nonNull) //
-            .collect(Collectors.toMap(//
-                FilterOperatorsFactory::getDataType, //
-                FilterOperatorsFactory::getOperators//
-            ));
-        return Stream.concat(FILTER_OPERATORS_CORE.entrySet().stream(), extensionProvidedClasses.entrySet().stream())
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> b));
+            .map(FilterOperatorsRegistry::readFilterOperatorsFactory) //
+            .filter(Objects::nonNull);
     }
 
-    private static FilterOperatorsFactory readFiterOperatorsFactory(final IConfigurationElement cfe) {
+    private static FilterOperators readFilterOperatorsFactory(final IConfigurationElement cfe) {
         try {
-            final var createDataCellParametersFactory =
-                (FilterOperatorsFactory)cfe.createExecutableExtension("factoryClass");
+            final var createDataCellParametersFactory = (FilterOperators)cfe.createExecutableExtension("factoryClass");
             LOGGER.debugWithFormat("Added filter operator parameters '%s' from '%s'",
                 createDataCellParametersFactory.getClass().getName(), cfe.getContributor().getName());
             return createDataCellParametersFactory;
         } catch (CoreException ex) {
-            LOGGER.error(String.format("Could not create '%s' from extension '%s': %s",
-                FilterOperatorsFactory.class.getName(), cfe.getContributor().getName(), ex.getMessage()), ex);
+            LOGGER.error(String.format("Could not create '%s' from extension '%s': %s", FilterOperators.class.getName(),
+                cfe.getContributor().getName(), ex.getMessage()), ex);
         }
         return null;
     }
