@@ -44,45 +44,75 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 3, 2025 (Paul Bärnreuther): created
+ *   23 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
+import java.util.function.UnaryOperator;
+
 import org.knime.core.data.DataType;
-import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.message.Message;
+import org.knime.core.node.message.MessageBuilder;
+import org.knime.core.node.util.CheckUtils;
 
-public interface FilterOperator2<T extends FilterValueParameters> {
-    String getId();
+/**
+ *
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ */
+public final class ValueFilterValidationUtil {
 
-    String getDisplayName();
-
-    /**
-     * A column type that is different to the one this filter operator is registered with
-     *
-     * @param columnType the column type of the column whose values are to be filtered
-     * @throws InvalidSettingsException if this filter operator does not support the given column type
-     */
-    void validateOtherType(DataType columnType) throws InvalidSettingsException;
-
-    DataValuePredicate createPredicate(T filterParameters);
-
-    default DataValuePredicate createPredicateUnsafe(final FilterValueParameters filterParameters) {
-        return createPredicate((T)filterParameters);
-    }
-
-    interface DataValuePredicate {
-
-        boolean test(DataValue t) throws InvalidSettingsException;
-
+    private ValueFilterValidationUtil() {
+        // hidden
     }
 
     /**
-     * Creates the parameters for creating a data cell of the given type.
+     * Returns the exception resulting from the configured message builder.
      *
-     * @param dataCellClass the class of the data cell to create
-     * @return the parameters for creating a data cell of the given type
+     * @param builderFn function to configure the message builder
+     * @return invalid settings exception containing mandatory summary, details, and potential resolutions from the
+     *         builder
      */
-    Class<T> getNodeParametersClass();
+    public static InvalidSettingsException
+        createInvalidSettingsException(final UnaryOperator<MessageBuilder> builderFn) {
+        return builderFn.apply(Message.builder()).build().orElseThrow().toInvalidSettingsException();
+    }
+
+    /**
+     * Creates a nice exception message with potential resolution for missing reference values.
+     *
+     * @return exception to throw
+     */
+    // TODO reduce visibility if we only need this internally
+    public static InvalidSettingsException createMissingReferenceValueException() {
+        return Message.builder().withSummary("Reference value is missing")
+            .addResolutions("Reconfigure the node to provide a reference value.").build().orElseThrow()
+            .toInvalidSettingsException();
+    }
+
+    /**
+     * Append the given non-empty elements to the given prefix, quoting them with double quotes.
+     * @param prefix prefix to append to
+     * @param elements elements to append, must not be empty
+     * @return the prefix with the elements appended
+     */
+    public static StringBuilder appendElements(final StringBuilder prefix, final DataType... elements) {
+        CheckUtils.checkArgument(elements.length > 0, "Cannot append empty elements array");
+        final var quote = "\"";
+        if (elements.length == 1) {
+            return prefix.append(quote).append(elements[0]).append(quote);
+        }
+        if (elements.length == 2) {
+            return prefix.append(quote).append(elements[0]).append(quote) //
+                .append(" or ").append(quote).append(elements[1]).append(quote);
+        }
+        for (var i = 0; i < elements.length - 1; i++) {
+            prefix.append(quote).append(elements[i]).append(quote).append(", ");
+            if (i == elements.length - 2) {
+                prefix.append("or ");
+            }
+        }
+        return prefix;
+    }
 
 }

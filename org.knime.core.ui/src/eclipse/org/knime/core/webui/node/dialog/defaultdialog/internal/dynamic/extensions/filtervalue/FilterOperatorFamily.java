@@ -44,29 +44,63 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 10, 2024 (hornm): created
+ *   19 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
 import java.util.List;
 
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
 
 /**
- * Provide this factory via the "org.knime.core.ui.createDataCellParameters" extension point to provide custom
- * parameters for creating data cells of a certain type.
+ * A family of related filter operators for a specific {@link DataCell} type.
  *
- * @author Paul Bärnreuther
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public interface FilterOperatorsFactory {
+public interface FilterOperatorFamily<V extends DataValue, P extends FilterValueParameters> {
+
+    List<ValueFilterOperator<V, P>> getOperators();
 
     /**
-     * Returns the one data type this factory is used for. There should not be more than one factory per data type.
-     *
-     * @return the one data type this factory is used for.
+     * @return {@code true} if the operators by default will handle missing cells, {@code false} if they don't in which
+     * case they will not be passed any missing cells
      */
-    DataType getDataType();
+    boolean handlesMissingCells();
 
-    List<FilterOperator2<?>> getOperators();
+    DataType getDataType(); // TODO not duplicate from FilterOperators#getDataType()
 
+    Class<P> getNodeParametersClass();
+
+    /**
+     * A family consisting of a single operator.
+     */
+    class Single<V extends DataValue, P extends FilterValueParameters> implements FilterOperatorFamily<V, P> {
+        private final ValueFilterOperator<V, P> m_operator;
+
+        public Single(final ValueFilterOperator<V, P> operator) {
+            m_operator = operator;
+        }
+
+        @Override
+        public List<ValueFilterOperator<V, P>> getOperators() {
+            return List.of(m_operator);
+        }
+
+        @Override
+        public DataType getDataType() {
+            return m_operator.getDataType();
+        }
+
+        @Override
+        public Class<P> getNodeParametersClass() {
+            return m_operator.getNodeParametersClass();
+        }
+
+        @Override
+        public boolean handlesMissingCells() {
+            return m_operator.handlesMissingCells();
+        }
+    }
 }
