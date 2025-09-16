@@ -48,17 +48,15 @@ export default defineComponent({
 <style lang="postcss" scoped>
 .container {
   justify-content: space-between;
-  height: var(--controls-height);
   background-color: var(--knime-porcelain);
   border-bottom: 1px solid var(--knime-silver-sand);
   display: flex;
   flex-wrap: nowrap;
+  height: 38px;
 }
 
 .title {
   margin-left: 10px;
-  height: var(--controls-height);
-  line-height: var(--controls-height);
   display: flex;
   align-items: center;
 }
