@@ -290,7 +290,7 @@ public final class JsonNodeSettingsMapperUtil {
                         subSettings.addBoolean(FIELD_NAME_NULL, true);
                     } else {
                         final var items = unpackSchema(schemaNode, TAG_ITEMS);
-                        final var itemsType = valueOf(items);
+                        final var itemsType = Type.valueOf(items);
                         for (var i = 0; i < node.size(); i++) {
                             final var childNode = node.get(i);
                             itemsType.addFieldToSettings(Integer.toString(i), childNode, items, subSettings);
