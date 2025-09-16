@@ -88,7 +88,7 @@ export const createScriptingServiceMock = (
     // Settings and dialog window
     isCallKnimeUiApiAvailable() {
       log("Called scriptingService.isCallKnimeUiApiAvailable");
-      return Promise.resolve(true);
+      return Promise.resolve(false);
     },
 
     isKaiEnabled() {
