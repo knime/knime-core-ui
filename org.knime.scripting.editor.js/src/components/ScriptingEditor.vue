@@ -201,7 +201,7 @@ const showControlBarDynamic = computed(
         <SplitPanel
           v-model:expanded="rightPaneExpanded"
           v-model:secondary-size="rightPaneSize"
-          :hide-secondary-pane="isSmallEmbeddedMode"
+          :hide-secondary-pane="isSmallEmbeddedMode || !$slots['right-pane']"
           direction="right"
           :secondary-snap-size="220"
           use-pixel
