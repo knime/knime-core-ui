@@ -16,6 +16,10 @@ Require-Bundle: org.knime.core;bundle-version="[5.7.0,6.0.0)",
  org.knime.gateway.api;bundle-version="[5.7.0,6.0.0)",
  org.knime.gateway.impl;bundle-version="[5.7.0,6.0.0)"
 Bundle-ClassPath: knime-scripting-editor.jar
-Export-Package: org.knime.scripting.editor;x-friends:="org.knime.python3.scripting.nodes,org.knime.base.expressions,org.knime.base.views",
+Export-Package: org.knime.scripting.editor;
+  x-friends:="org.knime.python3.scripting.nodes,
+   org.knime.base.expressions,
+   org.knime.base.views,
+   org.knime.database.nodes",
  org.knime.scripting.editor.lsp;x-friends:="org.knime.python3.scripting.nodes"
 Import-Package: com.fasterxml.jackson.datatype.jdk8;version="[2.13.0,3.0.0]"
