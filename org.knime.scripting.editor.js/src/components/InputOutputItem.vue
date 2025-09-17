@@ -6,7 +6,7 @@ export const COLUMN_INSERTION_EVENT = "columnInsertion";
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import type { Component } from "vue";
-import Handlebars from "handlebars";
+import Handlebars, { type HelperOptions } from "handlebars";
 
 import { Collapser, PortIcon, useMultiSelection } from "@knime/components";
 import { DataType } from "@knime/kds-components";
@@ -98,6 +98,32 @@ const multiSelection = useMultiSelection({
 Handlebars.registerHelper("escapeDblQuotes", (str: string) => {
   return str.replace("\\", "\\\\").replace(/"/g, '\\"');
 });
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const WHEN_OPERATORS = {
+  eq: (l: any, r: any) => l === r,
+  neq: (l: any, r: any) => l !== r,
+  gt: (l: any, r: any) => Number(l) > Number(r),
+  lt: (l: any, r: any) => Number(l) < Number(r),
+  or: (l: any, r: any) => l || r,
+  and: (l: any, r: any) => l && r,
+} as const;
+Handlebars.registerHelper(
+  "when",
+  // eslint-disable-next-line max-params
+  function (
+    this: any,
+    leftOperand: any,
+    operator: keyof typeof WHEN_OPERATORS,
+    rightOperand: any,
+    options: HelperOptions,
+  ) {
+    return WHEN_OPERATORS[operator](leftOperand, rightOperand)
+      ? options.fn(this)
+      : options.inverse(this);
+  },
+);
+/* eslint-enable @typescript-eslint/no-explicit-any */
 const subItemCodeAliasTemplate = Handlebars.compile(
   props.inputOutputItem.subItemCodeAliasTemplate ?? "",
 );
