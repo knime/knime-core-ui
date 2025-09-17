@@ -41,7 +41,7 @@ const selectedViewIndex = computed(
       />
     </div>
     <InputPortTableView
-      v-if="selectedViewIndex"
+      v-if="typeof selectedViewIndex !== 'undefined'"
       :input-node-id="props.inputNodeId"
       :port-idx="props.portIdx"
       :view-idx="selectedViewIndex"
