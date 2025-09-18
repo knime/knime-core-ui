@@ -50,6 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -64,6 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.set
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelDoublePersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelIntegerPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelLongPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelOptionalStringPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.AuthenticationType;
@@ -243,6 +245,39 @@ class SettingsModelPersistorTest {
     void testSettingsModelString() throws InvalidSettingsException {
         testSaveLoad(new SettingsModelStringPersistorTestSettings("foobar"));
         testSaveLoad(new SettingsModelStringPersistorTestSettings(null));
+    }
+
+    static final class SettingsModelOptionalStringPersistorTestSettings
+        implements PersistableSettingsWithComparableValue {
+
+        SettingsModelOptionalStringPersistorTestSettings() {
+            // empty constructor required by contract
+        }
+
+        SettingsModelOptionalStringPersistorTestSettings(final Optional<String> value) {
+            m_value = value;
+        }
+
+        static final class TestSettingsModelOptionalStringPersistor extends SettingsModelOptionalStringPersistor {
+            TestSettingsModelOptionalStringPersistor() {
+                super(CFG_KEY);
+            }
+        }
+
+        @Persistor(TestSettingsModelOptionalStringPersistor.class)
+        Optional<String> m_value;
+
+        @Override
+        public Object getCompareValue() {
+            return m_value;
+        }
+
+    }
+
+    @Test
+    void testSettingsModelOptionalString() throws InvalidSettingsException {
+        testSaveLoad(new SettingsModelOptionalStringPersistorTestSettings(Optional.of("foobar")));
+        testSaveLoad(new SettingsModelOptionalStringPersistorTestSettings(Optional.empty()));
     }
 
     static final class SettingsModelLongPersistorTestSettings implements PersistableSettingsWithComparableValue {
