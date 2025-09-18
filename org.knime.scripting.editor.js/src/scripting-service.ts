@@ -53,15 +53,16 @@ export class ScriptingService {
   private readonly eventPoller: EventPoller;
 
   /**
-   * Internal constructor — do not call directly.
+   * Internal constructor — use `getScriptingService()` from `init.ts` instead.
    *
-   * This constructor is intended for internal use only.
-   * Please use the `init` method in `init.ts` to create the singleton instance and
-   * access via `getScriptingService()`. Only one instance should be created via the
-   * designated initialization method.
+   * Client applications will call `init()` first, then use the getter to access
+   * the service. Within this repository, developers can assume `init()` has been
+   * called and the scripting service is available via `getScriptingService()`.
+   *
+   * This constructor should only be called from the `init()` function and in unit tests.
    *
    * @internal
-   * @param jsonDataService The service used for JSON data operations.
+   * @param jsonDataService The JSON data service used for communication with the backend.
    */
   constructor(private readonly jsonDataService: JsonDataService) {
     this.eventPoller = new EventPoller(this.jsonDataService);
