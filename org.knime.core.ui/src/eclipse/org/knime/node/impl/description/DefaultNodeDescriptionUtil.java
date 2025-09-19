@@ -178,7 +178,9 @@ public final class DefaultNodeDescriptionUtil {
             ? viewDescriptions.stream().findFirst().orElse(new ViewDescription("", "", null)).viewSettingsClass()
             : null;
 
-        fullDesc.appendChild(createOptionsTab(modelSettingsClass, viewSettingsClass, docBuilder, doc));
+        if (viewSettingsClass != null || modelSettingsClass != null) {
+            fullDesc.appendChild(createOptionsTab(modelSettingsClass, viewSettingsClass, docBuilder, doc));
+        }
 
         if (!externalResources.isEmpty()) {
             for (final var resource : externalResources) {
