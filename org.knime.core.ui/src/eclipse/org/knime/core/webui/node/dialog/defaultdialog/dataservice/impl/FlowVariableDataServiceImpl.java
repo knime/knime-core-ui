@@ -74,6 +74,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultDialogDataConverter;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.FlowVariableTypesExtractorUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.util.DotSubstitutionUtil;
 import org.knime.core.webui.node.dialog.internal.VariableSettings;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.widget.choices.TypedStringChoice.PossibleTypeValue;
@@ -104,10 +105,12 @@ public final class FlowVariableDataServiceImpl implements FlowVariableDataServic
     public List<PossibleFlowVariable> getAvailableFlowVariables(final String textSettings,
         final LinkedList<String> path) throws InvalidSettingsException {
         final var firstPathElement = path.pollFirst();
+        final var pathWithDeSubstitutedDots =
+            path.stream().map(DotSubstitutionUtil::deSubstituteDots).collect(Collectors.toCollection(LinkedList::new));
         final SettingsType settingsType = extractSettingsType(firstPathElement);
         final var nodeSettings =
             m_converter.dataJsonToNodeSettings(textToJson(textSettings).get(FIELD_NAME_DATA), settingsType);
-        final var variableTypes = FlowVariableTypesExtractorUtil.getTypes(nodeSettings, path);
+        final var variableTypes = FlowVariableTypesExtractorUtil.getTypes(nodeSettings, pathWithDeSubstitutedDots);
         final var context = createContext();
         return Arrays.asList(variableTypes).stream().flatMap(type -> getPossibleFlowVariables(context, type).stream())
             .collect(Collectors.toList());

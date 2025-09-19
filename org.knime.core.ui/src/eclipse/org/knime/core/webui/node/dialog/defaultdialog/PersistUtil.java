@@ -49,7 +49,6 @@
 package org.knime.core.webui.node.dialog.defaultdialog;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -69,6 +68,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.util.DotSubstitutionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.SettingsTypeMapUtil;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.WidgetGroup;
@@ -114,8 +114,7 @@ public final class PersistUtil {
      * @param parentNode the parent object node to add to
      * @param persistTrees the persist trees to parse
      */
-    static void addPersist(final ObjectNode parentNode,
-        final Map<SettingsType, Tree<Persistable>> persistTrees) {
+    static void addPersist(final ObjectNode parentNode, final Map<SettingsType, Tree<Persistable>> persistTrees) {
         final var persist = parentNode.putObject("persist");
         final var properties = addObjectProperties(persist);
         final var persistSchemaFactory = new PersistSchemaFactory();
@@ -188,8 +187,7 @@ public final class PersistUtil {
         }
 
         @Override
-        protected ObjectNode getForArray(final ArrayParentNode<Persistable> arrayNode,
-            final ObjectNode elementNode) {
+        protected ObjectNode getForArray(final ArrayParentNode<Persistable> arrayNode, final ObjectNode elementNode) {
             final var objectNode = MAPPER.createObjectNode();
             objectNode.put("type", "array");
             objectNode.set("items", elementNode);
@@ -228,22 +226,13 @@ public final class PersistUtil {
             }
             final var filteredValidatedConfigPaths =
                 Arrays.stream(configPaths).map(path -> Arrays.stream(path).filter(PersistSchemaFactory::isNonInternal)
-                    .map(PersistSchemaFactory::validateKey).toList()).filter(path -> !path.isEmpty()).toList();
+                    .map(DotSubstitutionUtil::substituteDots).toList()).filter(path -> !path.isEmpty()).toList();
             add2DStingArray(node, configPathsTag, filteredValidatedConfigPaths);
             return node;
         }
 
         private static boolean isNonInternal(final String key) {
             return !key.endsWith(SettingsModel.CFGKEY_INTERNAL);
-        }
-
-        private static String validateKey(final String key) {
-            if (key.contains(".")) {
-                throw new IllegalArgumentException(
-                    "Config key must not contain dots. If nested config keys are required, use getConfigPaths instead "
-                        + "of getConfigKeys. Config key: " + key);
-            }
-            return key;
         }
 
         private static void resolvePersistAnnotation(final ObjectNode objectNode,
@@ -254,7 +243,7 @@ public final class PersistUtil {
             if (isHidden) {
                 objectNode.putArray("configPaths");
             } else if (configRename.isPresent()) {
-                objectNode.put("configKey", configRename.get());
+                objectNode.put("configKey", DotSubstitutionUtil.substituteDots(configRename.get()));
             }
         }
 
@@ -270,12 +259,10 @@ public final class PersistUtil {
             final ConfigMigration<?> newAndDeprecatedConfigPaths) {
             final var nextDeprecatedConfigs = deprecatedConfigsNode.addObject();
 
-            final var deprecatedConfigPaths = newAndDeprecatedConfigPaths.getDeprecatedConfigPaths();
-            add2DStingArray(nextDeprecatedConfigs, "deprecated", to2DList(deprecatedConfigPaths));
-        }
-
-        private static List<List<String>> to2DList(final Collection<ConfigPath> newConfigPaths) {
-            return newConfigPaths.stream().map(ConfigPath::path).toList();
+            final var deprecatedConfigPaths =
+                newAndDeprecatedConfigPaths.getDeprecatedConfigPaths().stream().map(ConfigPath::path)
+                    .map(path -> path.stream().map(DotSubstitutionUtil::substituteDots).toList()).toList();
+            add2DStingArray(nextDeprecatedConfigs, "deprecated", deprecatedConfigPaths);
         }
 
         private static void add2DStingArray(final ObjectNode node, final String key,

@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog;
 import java.util.Map;
 
 import org.knime.core.webui.node.dialog.PersistSchema;
+import org.knime.core.webui.node.dialog.defaultdialog.util.DotSubstitutionUtil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -78,13 +79,15 @@ public final class PersistSchemaToJsonUtil {
     public static ObjectNode transformToJson(final PersistSchema schema) {
         ObjectNode node = MAPPER.createObjectNode();
 
-        schema.getConfigKey().ifPresent(key -> node.put("configKey", key));
+        schema.getConfigKey().ifPresent(key -> node.put("configKey", DotSubstitutionUtil.substituteDots(key)));
         schema.getConfigPaths().ifPresent(paths -> node.set("configPaths", createArrayNode(paths)));
         if (schema instanceof PersistSchema.PersistLeafSchema) {
             node.put("type", "leaf");
         } else if (schema instanceof PersistSchema.PersistTreeSchema treeSchema) {
             node.put("type", "object");
             node.set("properties", createPropertiesNode(treeSchema.getProperties()));
+            treeSchema.getPropertiesConfigPaths()
+                .ifPresent(paths -> node.set("propertiesConfigPaths", createArrayNode(paths)));
         }
 
         return node;
@@ -95,7 +98,7 @@ public final class PersistSchemaToJsonUtil {
         for (String[] path : paths) {
             ArrayNode innerArray = MAPPER.createArrayNode();
             for (String segment : path) {
-                innerArray.add(segment);
+                innerArray.add(DotSubstitutionUtil.substituteDots(segment));
             }
             arrayNode.add(innerArray);
         }
@@ -104,7 +107,8 @@ public final class PersistSchemaToJsonUtil {
 
     private static ObjectNode createPropertiesNode(final Map<String, PersistSchema> properties) {
         ObjectNode propertiesNode = MAPPER.createObjectNode();
-        properties.forEach((key, value) -> propertiesNode.set(key, transformToJson(value)));
+        properties.forEach(
+            (key, value) -> propertiesNode.set(DotSubstitutionUtil.substituteDots(key), transformToJson(value)));
         return propertiesNode;
     }
 }

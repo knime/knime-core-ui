@@ -101,6 +101,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.Number
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.settingsconversion.VariableSettingsUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.util.DotSubstitutionUtil;
 import org.knime.node.parameters.NodeParametersInput;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -298,8 +299,9 @@ final class FallbackDialogFactory implements NodeDialogFactory {
         final var extractedModelSettings = new NodeSettings("extracted model settings");
         BiConsumer<String[], AbstractConfigEntry> visitor = (path, entry) -> {
             var leaf = jsonSettings;
-            for (int i = 0; i < path.length; i++) {
-                leaf = leaf.get(path[i]);
+            final var pathWithReplacedDots = DotSubstitutionUtil.substituteDots(path);
+            for (int i = 0; i < pathWithReplacedDots.length; i++) {
+                leaf = leaf.get(pathWithReplacedDots[i]);
             }
             var type = entry.getType();
             AbstractConfigEntry newEntry;
@@ -474,13 +476,16 @@ final class FallbackDialogFactory implements NodeDialogFactory {
                 }
             }
             var isInternal = Arrays.stream(path).anyMatch(p -> p.endsWith(SettingsModel.CFGKEY_INTERNAL));
-            infos.add(new ConfigInfo(path, value, isInternal ? null : renderer.at(path)));
+            final var pathWithReplacedDots = DotSubstitutionUtil.substituteDots(path);
+            infos.add(
+                new ConfigInfo(pathWithReplacedDots, value, isInternal ? null : renderer.at(pathWithReplacedDots)));
         };
         var tmp = new NodeSettings("ignored");
         settings.copyTo(tmp);
         traverseConfig(tmp, new String[0], visitor);
         return infos;
     }
+
 
     private static record ConfigInfo(String[] path, Object value, DialogElementRendererSpec renderer) {
         //

@@ -351,4 +351,158 @@ public class FallbackDialogFactoryTest {
 
     }
 
+    @Test
+    void testWithConfigKeysContainingDots() throws InvalidSettingsException {
+        // node with a swing-dialog that has config keys containing dots
+        var nc = createAndAddNode(m_wfm, new TestNodeFactoryWithDots());
+
+        assertThat(NodeDialogManager.hasNodeDialog(nc)).as("node expected to have a node dialog").isTrue();
+        var dataServiceManager = NodeDialogManager.getInstance().getDataServiceManager();
+
+        var expectedInitialDataWithDots = """
+                  {
+                    "result": {
+                        "data": {
+                            "model": {
+                                "config<dot>key<dot>with<dot>dots": "value_with_dots",
+                                "sub<dot>settings": {
+                                    "nested<dot>key": "nested_value"
+                                }
+                            }
+                        },
+                        "schema": {
+                            "properties": {
+                                "model": {
+                                    "properties": {
+                                        "config<dot>key<dot>with<dot>dots": {
+                                            "type": "string",
+                                            "title": "config.key.with.dots"
+                                        },
+                                        "sub<dot>settings": {
+                                            "properties": {
+                                                "nested<dot>key": {
+                                                    "type": "string",
+                                                    "title": "sub.settings/nested.key"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "ui_schema": {
+                            "elements": [
+                                {
+                                    "type": "Control",
+                                    "scope": "#/properties/model/properties/config<dot>key<dot>with<dot>dots"
+                                },
+                                {
+                                    "type": "Control",
+                                    "scope": "#/properties/model/properties/sub<dot>settings/properties/nested<dot>key"
+                                }
+                            ]
+                        },
+                        "flowVariableSettings": {}
+                    }
+                }
+                """;
+
+        var initialData = dataServiceManager.callInitialDataService(NodeWrapper.of(nc));
+        assertThatJson(initialData).isEqualTo(expectedInitialDataWithDots);
+
+        var applyDataWithDots = """
+                 {
+                    "data": {
+                        "model": {
+                            "config<dot>key<dot>with<dot>dots": "updated_value",
+                            "sub<dot>settings": {
+                                "nested<dot>key": "updated_nested"
+                            }
+                        }
+                     }
+                  }
+                """;
+        dataServiceManager.callApplyDataService(NodeWrapper.of(nc), applyDataWithDots);
+
+        var settings = nc.getNodeSettings().getNodeSettings("model");
+        assertThat(settings.getString("config.key.with.dots")).isEqualTo("updated_value");
+        assertThat(settings.getNodeSettings("sub.settings").getString("nested.key")).isEqualTo("updated_nested");
+    }
+
+    class TestNodeFactoryWithDots extends NodeFactory<NodeModel> {
+
+        @Override
+        public NodeModel createNodeModel() {
+            return new NodeModel(0, 0) {
+
+                @Override
+                protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
+                    return inSpecs;
+                }
+
+                @Override
+                protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
+                    throws Exception {
+                    return inData;
+                }
+
+                @Override
+                protected void loadInternals(final File nodeInternDir, final ExecutionMonitor exec)
+                    throws IOException, CanceledExecutionException {
+                    //
+                }
+
+                @Override
+                protected void saveInternals(final File nodeInternDir, final ExecutionMonitor exec)
+                    throws IOException, CanceledExecutionException {
+                    //
+                }
+
+                @Override
+                protected void saveSettingsTo(final NodeSettingsWO settings) {
+                    settings.addString("config.key.with.dots", "value_with_dots");
+                    settings.addNodeSettings("sub.settings").addString("nested.key", "nested_value");
+                }
+
+                @Override
+                protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+                    //
+                }
+
+                @Override
+                protected void loadValidatedSettingsFrom(final NodeSettingsRO settings)
+                    throws InvalidSettingsException {
+                    //
+                }
+
+                @Override
+                protected void reset() {
+                    //
+                }
+
+            };
+        }
+
+        @Override
+        protected int getNrNodeViews() {
+            return 0;
+        }
+
+        @Override
+        public NodeView<NodeModel> createNodeView(final int viewIndex, final NodeModel nodeModel) {
+            return null;
+        }
+
+        @Override
+        protected boolean hasDialog() {
+            return true;
+        }
+
+        @Override
+        protected NodeDialogPane createNodeDialogPane() {
+            return null;
+        }
+
+    }
+
 }

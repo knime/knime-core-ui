@@ -49,7 +49,6 @@
 package org.knime.core.webui.node.dialog.defaultdialog;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 import java.util.Map;
@@ -64,10 +63,10 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.ConfigMigration.Builder;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.migration.NodeParametersMigration;
 import org.knime.node.parameters.migration.ParametersLoader;
-import org.knime.node.parameters.migration.ConfigMigration.Builder;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistable;
@@ -188,14 +187,14 @@ public class PersistUtilTest {
     }
 
     /**
-     * TODO: UIEXT-2817 repurpose this test to a positive test.
+     * Test that config keys containing dots are properly substituted with &lt;dot&gt; placeholders.
      */
     @Test
-    void testThrowsOnCustomPersistorWithConfigKeysContainingDots() throws JsonProcessingException {
-
-        assertThrows(IllegalArgumentException.class,
-            () -> getPersistSchema(SettingWithCustomPersistorWithKeysContainingDots.class));
-
+    void testCustomPersistorWithConfigKeysContainingDots() throws JsonProcessingException {
+        final var result = getPersistSchema(SettingWithCustomPersistorWithKeysContainingDots.class);
+        assertThatJson(result).inPath("$.properties.model.properties.test.configPaths").isArray()
+            .isEqualTo(new String[][]{
+                {"config<dot>key<dot>from<dot>persistor<dot>1", "config<dot>key<dot>from<dot>persistor<dot>2"}});
     }
 
     @SuppressWarnings("unused")
@@ -381,4 +380,88 @@ public class PersistUtilTest {
                 new String[][]{{"optionalFieldWithSubKeys_is_present"}, {"optionalFieldWithSubKeys", "cell_class"}});
 
     }
+
+    private static class SettingsWithConfigKeyContainingDots implements Persistable {
+        @Persist(configKey = "config.key.with.dots")
+        public int test;
+
+        @Persist(configKey = "another.config.key", hidden = true)
+        public String hiddenField;
+    }
+
+    @Test
+    void testConfigKeyWithDotsIsSubstituted() {
+        final var result = getPersistSchema(SettingsWithConfigKeyContainingDots.class);
+        assertThatJson(result).inPath("$.properties.model.properties.test.configKey").isString()
+            .isEqualTo("config<dot>key<dot>with<dot>dots");
+        // Hidden fields should still get empty configPaths array
+        assertThatJson(result).inPath("$.properties.model.properties.hiddenField.configPaths").isArray().isEmpty();
+    }
+
+    private static class CustomPersistorWithDotsConfig implements TestPersistor<Integer> {
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{"normal_key"}, {"key.with.dots", "nested.key.with.dots"}};
+        }
+    }
+
+    private static class CustomMigrationWithDots implements NodeParametersMigration<Integer> {
+        @Override
+        public List<ConfigMigration<Integer>> getConfigMigrations() {
+            ParametersLoader<Integer> dummyLoader = settings -> {
+                throw new IllegalStateException("Should not be called within this test");
+            };
+            return List
+                .of(new Builder<Integer>(dummyLoader).withDeprecatedConfigPath("old.config.key", "nested.old.key")
+                    .withDeprecatedConfigPath("another.old.key").build());
+        }
+    }
+
+    private static class SettingWithDeprecatedConfigKeysContainingDots implements Persistable {
+        @Persistor(CustomPersistorWithDotsConfig.class)
+        public int testWithCustomPersistor;
+
+        @Migration(CustomMigrationWithDots.class)
+        public String testWithMigration;
+    }
+
+    @Test
+    void testConfigPathsWithDotsAreSubstituted() throws JsonProcessingException {
+        final var result = getPersistSchema(SettingWithDeprecatedConfigKeysContainingDots.class);
+
+        // Check that config paths from custom persistor have dots substituted
+        assertThatJson(result).inPath("$.properties.model.properties.testWithCustomPersistor.configPaths").isArray()
+            .isEqualTo(new String[][]{{"normal_key"}, {"key<dot>with<dot>dots", "nested<dot>key<dot>with<dot>dots"}});
+
+        // Check that deprecated config keys from migration have dots substituted
+        assertThatJson(result)
+            .inPath("$.properties.model.properties.testWithMigration.deprecatedConfigKeys[0].deprecated").isArray()
+            .isEqualTo(
+                new String[][]{{"old<dot>config<dot>key", "nested<dot>old<dot>key"}, {"another<dot>old<dot>key"}});
+    }
+
+    private static final class CustomParametersPersistorWithDotsConfig implements TestPersistor<SomeSettings> {
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[][]{{"normal_key"}, {"key.with.dots", "nested.key.with.dots"}};
+        }
+
+    }
+
+    @Persistor(CustomParametersPersistorWithDotsConfig.class)
+    private static class SomeSettings implements Persistable {
+        @SuppressWarnings("unused")
+        public int field;
+    }
+
+    @Test
+    void testPropertiesConfigPathsWithDotsAreSubstituted() throws JsonProcessingException {
+        final var result = getPersistSchema(SomeSettings.class);
+
+        // Check that config paths from custom persistor have dots substituted
+        assertThatJson(result).inPath("$.properties.model.propertiesConfigPaths").isArray()
+            .isEqualTo(new String[][]{{"normal_key"}, {"key<dot>with<dot>dots", "nested<dot>key<dot>with<dot>dots"}});
+    }
+
 }

@@ -254,7 +254,8 @@ class FlowVariableDataServiceImplTest {
             assertThat(possibleFlowVariable.value()).isEqualTo("1");
             assertThat(possibleFlowVariable.abbreviated()).isFalse();
             assertThat(possibleFlowVariable.type().id()).isEqualTo(VariableType.IntType.INSTANCE.getIdentifier());
-            assertThat(possibleFlowVariable.type().text()).isEqualTo(VariableType.IntType.INSTANCE.getClass().getSimpleName());
+            assertThat(possibleFlowVariable.type().text())
+                .isEqualTo(VariableType.IntType.INSTANCE.getClass().getSimpleName());
         }
 
         @Test
@@ -267,7 +268,8 @@ class FlowVariableDataServiceImplTest {
             assertThat(possibleFlowVariable.value()).isEqualTo("1.0");
             assertThat(possibleFlowVariable.abbreviated()).isFalse();
             assertThat(possibleFlowVariable.type().id()).isEqualTo(VariableType.DoubleType.INSTANCE.getIdentifier());
-            assertThat(possibleFlowVariable.type().text()).isEqualTo(VariableType.DoubleType.INSTANCE.getClass().getSimpleName());
+            assertThat(possibleFlowVariable.type().text())
+                .isEqualTo(VariableType.DoubleType.INSTANCE.getClass().getSimpleName());
         }
 
     }
@@ -358,6 +360,57 @@ class FlowVariableDataServiceImplTest {
             assertThat(invalidSettingsException.getMessage())
                 .isEqualTo(String.format("Invalid value 'stringVar1_value'. Possible values: A, B, C",
                     TestSettingsWithEnum.MyEnum.class.getName()));
+        }
+
+    }
+
+    @Nested
+    class DotSubstitutionTest {
+
+        static class NestedSettingWithDots implements Persistable {
+            @Persist(configKey = "my.config.key.with.dots")
+            boolean m_settingWithDots;
+        }
+
+        static class TestSettingsWithDots implements NodeParameters {
+            NestedSettingWithDots m_nestedSetting;
+        }
+
+        static Map<SettingsType, Class<? extends NodeParameters>> settingsClassesWithDots =
+            Map.of(SettingsType.MODEL, TestSettingsWithDots.class);
+
+        @Test
+        void testGetPossibleFlowVariablesWithDotsInPath() throws InvalidSettingsException {
+            final var dataService = getDataServiceWithConverter(settingsClassesWithDots);
+
+            // Test with substituted dots in path - should be desubstituted for variable type extraction
+            final var flowVariables = dataService.getAvailableFlowVariables(
+                "{\"data\":{\"model\": {\"nestedSetting\": {}}}}",
+                new LinkedList<String>(List.of("model", "nestedSetting", "my<dot>config<dot>key<dot>with<dot>dots")));
+
+            // Should get boolean and string flow variables since this maps to a boolean field
+            assertThat(flowVariables).containsAll(
+                Set.of(FlowVariableDataServiceImpl.toPossibleFlowVariable(booleanVar, BooleanType.INSTANCE), //
+                    FlowVariableDataServiceImpl.toPossibleFlowVariable(stringVar1, VariableType.StringType.INSTANCE), //
+                    FlowVariableDataServiceImpl.toPossibleFlowVariable(stringVar2, VariableType.StringType.INSTANCE) //
+                ));
+
+        }
+
+        static final String DATA_WITH_DOT_FLOW_VARIABLES =
+            "{" + "\"data\": {\"model\": {" + "\"nestedSetting\": {}" + "}}," + "\"flowVariableSettings\": {"
+                + "\"model.nestedSetting.my<dot>config<dot>key<dot>with<dot>dots\": {"
+                + String.format("\"controllingFlowVariableName\": \"%s\"", booleanVar.getName()) + "},"
+                + "\"model.nestedSetting.another<dot>substituted<dot>key\": {"
+                + String.format("\"controllingFlowVariableName\": \"%s\"", stringVar1.getName()) + "}" + "}" + "}";
+
+        @Test
+        void testGetFlowVariableOverrideValueWithDotsInConfigKey() throws JsonProcessingException {
+            final var dataPath = new LinkedList<String>(List.of("model", "nestedSetting", "settingWithDots"));
+            final var dataService = getDataServiceWithConverter(settingsClassesWithDots);
+
+            assertThat(((JsonNode)dataService.getFlowVariableOverrideValue(DATA_WITH_DOT_FLOW_VARIABLES, dataPath))
+                .asBoolean()).isEqualTo(booleanVar.getValue(VariableType.BooleanType.INSTANCE));
         }
 
     }

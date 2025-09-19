@@ -64,6 +64,7 @@ import org.knime.core.webui.node.dialog.VariableSettingsRO;
 import org.knime.core.webui.node.dialog.VariableSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.util.DotSubstitutionUtil;
 import org.knime.core.webui.node.dialog.internal.InternalVariableSettings;
 import org.knime.node.parameters.NodeParametersInput;
 
@@ -171,7 +172,7 @@ public final class VariableSettingsUtil {
     private static void addToFlowVariableSettingsMap(final String keyPrefix, final VariableSettingsRO variableSettings,
         final Set<String> flowVariables, final Map<String, FlowVariableSetting> flowVariableSettingsMap) {
         for (var key : variableSettings.getVariableSettingsIterable()) {
-            var newKeyPrefix = keyPrefix + "." + key;
+            var newKeyPrefix = keyPrefix + "." + DotSubstitutionUtil.substituteDots(key);
             if (variableSettings.isVariableSetting(key)) {
                 String usedVariable = null;
                 String exposedVariable = null;
@@ -217,7 +218,7 @@ public final class VariableSettingsUtil {
             if (flowVariableSetting.isEmpty()) {
                 return;
             }
-            var keys = compositeKey.split("\\.");
+            var keys = DotSubstitutionUtil.deSubstituteDots(compositeKey.split("\\."));
             for (SettingsType settingsType : variableSettings.keySet()) {
                 if (!settingsType.getConfigKeyFrontend().equals(keys[0])) {
                     continue;
