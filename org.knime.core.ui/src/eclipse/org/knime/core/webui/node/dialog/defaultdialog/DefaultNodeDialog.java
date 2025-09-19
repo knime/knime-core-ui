@@ -222,4 +222,14 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
         return Optional.ofNullable(m_onApplyModifier);
     }
 
+    /**
+     * Returns the settings class for the given type (or null).
+     * @param settingsType the settings type
+     * @return the settings class or null
+     * @since 5.8
+     */
+    public Class<? extends NodeParameters> getSettingsClass(final SettingsType settingsType) {
+        return m_settingsClasses.get(settingsType);
+    }
+
 }
