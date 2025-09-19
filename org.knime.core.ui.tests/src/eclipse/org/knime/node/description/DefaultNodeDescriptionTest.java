@@ -240,7 +240,7 @@ class DefaultNodeDescriptionTest extends TestWithWorkflowManager {
 
         final var description = nc.getNode().invokeGetNodeDescription();
 
-        assertThat(description.getDialogOptionGroups().get(0).getOptions()).isEmpty();
+        assertThat(description.getDialogOptionGroups()).isEmpty();
     }
 
     @Test
