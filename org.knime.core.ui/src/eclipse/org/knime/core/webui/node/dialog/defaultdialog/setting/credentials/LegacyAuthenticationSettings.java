@@ -66,11 +66,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsS
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.AuthenticationType;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.RequiresPasswordProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.RequiresUsernameProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.ConfigMigration.Builder;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.migration.NodeParametersMigration;
-import org.knime.node.parameters.migration.ConfigMigration.Builder;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.updates.Effect;
@@ -95,6 +96,7 @@ public final class LegacyAuthenticationSettings extends BaseAuthenticationSettin
     @CredentialsWidget
     @CredentialsWidgetInternal(hasPasswordProvider = RequiresPasswordProvider.class,
         hasUsernameProvider = RequiresUsernameProvider.class)
+    @Modification.WidgetReference(CredentialsRef.class)
     final LegacyCredentials m_legacyCredentials;
 
     /**

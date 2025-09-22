@@ -55,6 +55,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ParameterReference;
@@ -98,6 +99,11 @@ public abstract class BaseAuthenticationSettings implements WidgetGroup, Persist
                 group.find(AuthenticationTypeRef.class).modifyAnnotation(Widget.class)
                     .withProperty("description", authTypeDesc.get()).modify();
             }
+            final var requiresCredentialsEffectProvider = getRequiresCredentialsEffectProvider();
+            if (requiresCredentialsEffectProvider.isPresent()) {
+                group.find(CredentialsRef.class).modifyAnnotation(Effect.class)
+                    .withProperty("predicate", requiresCredentialsEffectProvider.get()).modify();
+            }
         }
 
         /**
@@ -113,6 +119,20 @@ public abstract class BaseAuthenticationSettings implements WidgetGroup, Persist
             return Optional.empty();
         }
 
+        /**
+         * Override to change the effect predicate that shows settings that require credentials. E.g. to add another
+         * condition that should hide the whole settings group.
+         *
+         * @return the effect predicate provider
+         */
+        protected Optional<Class<? extends EffectPredicateProvider>> getRequiresCredentialsEffectProvider() {
+            return Optional.empty();
+        }
+
+        public static Class<? extends EffectPredicateProvider> getDefaultRequiresCredentialsEffectProvider() {
+            return AuthenticationTypeRef.RequiresCredentials.class;
+        }
+
     }
 
     static final class AuthenticationTypeRef implements ParameterReference<AuthenticationType>, Modification.Reference {
@@ -124,6 +144,10 @@ public abstract class BaseAuthenticationSettings implements WidgetGroup, Persist
             }
 
         }
+    }
+
+    static final class CredentialsRef implements Modification.Reference {
+
     }
 
 }
