@@ -64,6 +64,8 @@ import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.NodeInPort;
+import org.knime.core.node.workflow.NodeOutPort;
+import org.knime.core.node.workflow.SingleNodeContainer;
 import org.knime.core.webui.data.util.InputPortUtil;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMappings;
 import org.knime.core.webui.node.dialog.configmapping.NodeSettingsCorrectionUtil;
@@ -95,31 +97,38 @@ public final class NodeParametersUtil {
         final var nodeContext = NodeContext.getContext();
         if (nodeContext == null) {
             // can only happen during tests
-            return new NodeParametersInputImpl(fallbackPortTypesFor(specs), specs, null, null, null, null);
+            return new NodeParametersInputImpl(fallbackPortTypesFor(specs), null, specs, null, null, null, null);
         }
         final var nc = nodeContext.getNodeContainer();
         final CredentialsProvider credentialsProvider;
         final PortType[] inPortTypes;
+        final PortType[] outPortTypes;
+        if (nc instanceof SingleNodeContainer snc) {
+            // skip hidden flow variable input (mickey mouse ear) - not exposed to node implementation
+            inPortTypes = IntStream.range(1, snc.getNrInPorts()).mapToObj(snc::getInPort).map(NodeInPort::getPortType)
+                .toArray(PortType[]::new);
+            outPortTypes = IntStream.range(1, snc.getNrOutPorts()).mapToObj(snc::getOutPort)
+                .map(NodeOutPort::getPortType).toArray(PortType[]::new);
+        } else {
+            inPortTypes = fallbackPortTypesFor(specs);
+            outPortTypes = null;
+        }
         DialogNode dialogNode = null;
         if (nc instanceof NativeNodeContainer nnc) {
             credentialsProvider = nnc.getNode().getCredentialsProvider();
-            // skip hidden flow variable input (mickey mouse ear) - not exposed to node implementation
-            inPortTypes = IntStream.range(1, nnc.getNrInPorts()).mapToObj(nnc::getInPort).map(NodeInPort::getPortType)
-                .toArray(PortType[]::new);
             if (nnc.getNode().getNodeModel() instanceof DialogNode model) {
                 dialogNode = model;
             }
         } else {
             credentialsProvider = null;
-            inPortTypes = fallbackPortTypesFor(specs);
         }
 
         final var inPortObjects = nc.getParent() == null // This function is used by tests that mock the container
             ? new PortObject[0] // When mocked the container is not a child of a workflow manager
             : InputPortUtil.getInputPortObjectsExcludingVariablePort(nc);
 
-        return new NodeParametersInputImpl(inPortTypes, specs, nc.getFlowObjectStack(), credentialsProvider,
-            inPortObjects, dialogNode);
+        return new NodeParametersInputImpl(inPortTypes, outPortTypes, specs, nc.getFlowObjectStack(),
+            credentialsProvider, inPortObjects, dialogNode);
     }
 
     private static PortType[] fallbackPortTypesFor(final PortObjectSpec[] specs) {

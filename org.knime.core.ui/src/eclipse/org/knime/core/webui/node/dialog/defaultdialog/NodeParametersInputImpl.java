@@ -85,12 +85,15 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
 
     private final PortObject[] m_inputPortObjects;
 
+    private final PortType[] m_outTypes;
+
     private final DialogNode<?, ?> m_dialogNode;
 
-    NodeParametersInputImpl(final PortType[] inTypes, final PortObjectSpec[] specs, final FlowObjectStack stack,
-        final CredentialsProvider credentialsProvider, final PortObject[] inputPortObjects,
+    NodeParametersInputImpl(final PortType[] inTypes, final PortType[] outTypes, final PortObjectSpec[] specs,
+        final FlowObjectStack stack, final CredentialsProvider credentialsProvider, final PortObject[] inputPortObjects,
         final DialogNode<?, ?> dialogNode) {
         m_inTypes = inTypes;
+        m_outTypes = outTypes;
         m_specs = specs;
         m_stack = stack;
         m_credentialsProvider = credentialsProvider;
@@ -98,14 +101,15 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
         m_dialogNode = dialogNode;
     }
 
-    NodeParametersInputImpl(final PortType[] inTypes, final PortObjectSpec[] specs, final FlowObjectStack stack,
-        final CredentialsProvider credentialsProvider, final PortObject[] inputPortObjects) {
-        this(inTypes, specs, stack, credentialsProvider, inputPortObjects, null);
+    NodeParametersInputImpl(final PortType[] inTypes, final PortType[] outTypes, final PortObjectSpec[] specs,
+        final FlowObjectStack stack, final CredentialsProvider credentialsProvider,
+        final PortObject[] inputPortObjects) {
+        this(inTypes, outTypes, specs, stack, credentialsProvider, inputPortObjects, null);
     }
 
-    NodeParametersInputImpl(final PortType[] inTypes, final PortObjectSpec[] specs, final FlowObjectStack stack,
-        final CredentialsProvider credentialsProvider) {
-        this(inTypes, specs, stack, credentialsProvider, null, null);
+    NodeParametersInputImpl(final PortType[] inTypes, final PortType[] outTypes, final PortObjectSpec[] specs,
+        final FlowObjectStack stack, final CredentialsProvider credentialsProvider) {
+        this(inTypes, outTypes, specs, stack, credentialsProvider, null, null);
     }
 
     /**
@@ -114,7 +118,7 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
     @SuppressWarnings("javadoc")
     public static NodeParametersInput createDefaultNodeSettingsContext(final PortType[] inPortTypes,
         final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider) {
-        return new NodeParametersInputImpl(inPortTypes, specs, stack, credentialsProvider, null, null);
+        return new NodeParametersInputImpl(inPortTypes, null, specs, stack, credentialsProvider, null, null);
     }
 
     /**
@@ -124,7 +128,8 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
     public static NodeParametersInput createDefaultNodeSettingsContext(final PortType[] inPortTypes,
         final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider,
         final PortObject[] inputPortObjects) {
-        return new NodeParametersInputImpl(inPortTypes, specs, stack, credentialsProvider, inputPortObjects, null);
+        return new NodeParametersInputImpl(inPortTypes, null, specs, stack, credentialsProvider, inputPortObjects,
+            null);
     }
 
     /**
@@ -211,6 +216,11 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
         return getInPortObject(portIndex).map(BufferedDataTable.class::cast);
     }
 
+    @Override
+    public PortType[] getOutPortTypes() {
+        return m_outTypes;
+    }
+
     /**
      * @param name the name of the variable
      * @param type the {@link VariableType} of the variable
@@ -271,4 +281,5 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
             "No dialog node is available in this context. " + "This method should be called only for configurations.");
         return m_dialogNode;
     }
+
 }

@@ -72,7 +72,7 @@ public interface NodeParametersInput {
      */
     PortType[] getInPortTypes();
 
-    // input similar to ConfigureInput below; difference: specs can be null / empty if node not configurable
+    // input similar to ConfigureInput; difference: specs can be null / empty if node not configurable
 
     /**
      * @return the input {@link PortObjectSpec PortObjectSpecs} of the node; NOTE: array of specs can contain
@@ -102,7 +102,7 @@ public interface NodeParametersInput {
      */
     Optional<DataTableSpec> getInTableSpec(final int portIndex);
 
-    // input similar to ExecuteInput below; difference: specs can be null / empty if node not configurable
+    // input similar to ExecuteInput; difference: specs can be null / empty if node not configurable
 
     /**
      * @return the input {@link PortObject PortObjects} of the node; NOTE: array of port objects can contain
@@ -131,4 +131,14 @@ public interface NodeParametersInput {
      * @throws IndexOutOfBoundsException if the portIndex does not match the ports of the node
      */
     Optional<BufferedDataTable> getInTable(final int portIndex);
+
+    // output ports (only types)
+
+    /**
+     * The node's output types. Not null and not containing null.
+     *
+     * @return the outTypes
+     */
+    PortType[] getOutPortTypes();
+
 }

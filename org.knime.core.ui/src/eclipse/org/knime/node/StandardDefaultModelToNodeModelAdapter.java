@@ -84,7 +84,7 @@ final class StandardDefaultModelToNodeModelAdapter extends NodeModel
 
     private final DefaultModel.StandardDefaultModel m_model;
 
-    private final int m_numOutputPorts;
+    private final PortType[] m_outputTypes;
 
     private final Class<? extends NodeParameters> m_viewParametersClass;
 
@@ -101,7 +101,7 @@ final class StandardDefaultModelToNodeModelAdapter extends NodeModel
         final PortType[] outputPorts, final Class<? extends NodeParameters> viewParametersClass) {
         super(inputPorts, outputPorts);
         m_model = model;
-        m_numOutputPorts = outputPorts.length;
+        m_outputTypes = outputPorts;
         m_viewParametersClass = viewParametersClass;
     }
 
@@ -134,7 +134,7 @@ final class StandardDefaultModelToNodeModelAdapter extends NodeModel
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
 
         m_specs = inSpecs;
-        var outSpecs = new PortObjectSpec[m_numOutputPorts];
+        var outSpecs = new PortObjectSpec[m_outputTypes.length];
         final var params = setInitialSettingsUsingSpecsIfNecessary(inSpecs);
 
         m_model.m_configure.accept(new ConfigureInput() {
@@ -166,6 +166,11 @@ final class StandardDefaultModelToNodeModelAdapter extends NodeModel
                 return (DataTableSpec)getInPortSpec(portIndex);
             }
 
+            @Override
+            public PortType[] getOutPortTypes() {
+                return m_outputTypes;
+            }
+
         }, new ConfigureOutput() {
 
             @Override
@@ -190,7 +195,7 @@ final class StandardDefaultModelToNodeModelAdapter extends NodeModel
 
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-        var outObjects = new PortObject[m_numOutputPorts];
+        var outObjects = new PortObject[m_outputTypes.length];
         m_model.m_execute.accept(new ExecuteInput() { // NOSONAR
 
             @SuppressWarnings("unchecked")
@@ -224,6 +229,11 @@ final class StandardDefaultModelToNodeModelAdapter extends NodeModel
             @Override
             public ExecutionContext getExecutionContext() {
                 return exec;
+            }
+
+            @Override
+            public PortType[] getOutPortTypes() {
+                return m_outputTypes;
             }
 
         }, new ExecuteOutput() {

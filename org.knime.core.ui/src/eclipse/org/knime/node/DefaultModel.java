@@ -61,6 +61,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.KNIMEException;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortType;
 import org.knime.node.parameters.NodeParameters;
 
 /**
@@ -263,6 +264,13 @@ public abstract sealed class DefaultModel implements FluentNodeAPI {
          */
         DataTableSpec getInTableSpec(final int portIndex);
 
+        /**
+         * Returns the node's output porttypes.
+         *
+         * @return the node's output port types
+         */
+        PortType[] getOutPortTypes();
+
     }
 
     /**
@@ -354,6 +362,13 @@ public abstract sealed class DefaultModel implements FluentNodeAPI {
          * @throws IndexOutOfBoundsException if the portIndex does not match the ports of the node
          */
         BufferedDataTable getInTable(final int portIndex);
+
+        /**
+         * Returns the node's output porttypes.
+         *
+         * @return the node's output port types
+         */
+        PortType[] getOutPortTypes();
     }
 
     /**
