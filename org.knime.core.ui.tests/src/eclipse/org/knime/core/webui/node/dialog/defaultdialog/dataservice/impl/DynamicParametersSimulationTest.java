@@ -156,7 +156,7 @@ class DynamicParametersSimulationTest {
                 return newImpl;
             }
 
-            throw new StateComputationFailureException("Unknown dynamic parameters class: " + current.getClass());
+            throw new StateComputationFailureException();
         }
     }
 

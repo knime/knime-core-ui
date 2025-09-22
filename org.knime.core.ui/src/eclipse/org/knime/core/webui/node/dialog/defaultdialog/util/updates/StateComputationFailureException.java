@@ -60,13 +60,4 @@ public final class StateComputationFailureException extends Exception {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * The default constructor. The message will be logged, when the exception is catched.
-     *
-     * @param message the message indicating why downstream updates are aborted
-     */
-    public StateComputationFailureException(final String message) {
-        super(message);
-    }
-
 }

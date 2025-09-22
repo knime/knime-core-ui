@@ -92,7 +92,7 @@ public non-sealed interface DataTypeChoicesProvider extends ChoicesStateProvider
     @Override
     default List<DataTypeChoice> computeState(final NodeParametersInput context) {
         return choices(context).stream()//
-            .sorted(Comparator.comparing(DataType::getName, StringUtils::compare))//
+            .sorted(Comparator.comparing(DataType::toString, StringUtils::compare))//
             .map(DataTypeChoice::fromDataType)//
             .toList();
     }
