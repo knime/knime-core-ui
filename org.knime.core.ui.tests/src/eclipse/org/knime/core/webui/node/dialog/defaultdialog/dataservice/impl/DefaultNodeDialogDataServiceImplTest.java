@@ -247,7 +247,7 @@ class DefaultNodeDialogDataServiceImplTest {
                         throws StateComputationFailureException {
                         final var value = m_valueSupplier.get();
                         if (value.contains("throw")) {
-                            throw new StateComputationFailureException("Value must not contain throw");
+                            throw new StateComputationFailureException();
                         }
                         return m_valueSupplier.get();
                     }

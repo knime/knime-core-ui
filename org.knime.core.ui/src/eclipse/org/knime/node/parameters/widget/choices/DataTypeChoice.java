@@ -50,6 +50,8 @@ package org.knime.node.parameters.widget.choices;
 
 import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.datatype.DataTypeSerializationUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.filter.column.ColumnTypeToPossibleTypeValueUtil;
+import org.knime.node.parameters.widget.choices.TypedStringChoice.PossibleTypeValue;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -62,14 +64,15 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  *
  * @param id the id which is saved on selection
  * @param text the displayed text
+ * @param type holding type information for displaying
  * @author Paul Bärnreuther
  */
 public record DataTypeChoice(//
     @JsonSerialize(using = DataTypeSerializationUtil.DataTypeSerializer.class) //
     @JsonDeserialize(using = DataTypeSerializationUtil.DataTypeDeserializer.class) //
     DataType id, //
-    String text //
-) {
+    String text, //
+    PossibleTypeValue type) {
 
     /**
      * Creates a standard data type choice with the name of the data type as text.
@@ -78,7 +81,8 @@ public record DataTypeChoice(//
      * @return a new choice with with the name of the {@link DataType} as text.
      */
     public static DataTypeChoice fromDataType(final DataType dataType) {
-        return new DataTypeChoice(dataType, dataType.getName());
+        return new DataTypeChoice(dataType, dataType.toString(),
+            ColumnTypeToPossibleTypeValueUtil.fromVariableType(dataType));
     }
 
 }

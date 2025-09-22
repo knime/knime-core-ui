@@ -267,8 +267,7 @@ final class InvokeTrigger<I> {
             StateProviderInitializerUtil.initializeStateProvider(stateProvider, initializer);
             try {
                 return Optional.of(new IndexedValue<>(indices, stateProvider.computeState(m_context)));
-            } catch (StateComputationFailureException e) {
-                LOGGER.error(e);
+            } catch (StateComputationFailureException e) { // NOSONAR
                 return Optional.empty();
             }
         }
