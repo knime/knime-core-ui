@@ -73,12 +73,12 @@ public final class FilterOperatorsRegistry {
 
     private static final FilterOperatorsRegistry INSTANCE = new FilterOperatorsRegistry();
 
-    private final Map<DataType, List<ValueFilterOperator<DataValue, FilterValueParameters>>> m_filterOperators;
+    private final Map<DataType, List<FilterOperator<FilterValueParameters>>> m_filterOperators;
 
     private FilterOperatorsRegistry() {
         // utility class
-        m_filterOperators = Stream.concat(getCoreFilterOperators(), Stream.empty()) //
-            .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));//, getFilterOperatorExtensions());
+        m_filterOperators = Stream.concat(getCoreFilterOperators(), getFilterOperatorExtensions()) //
+            .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));
     }
 
     public static FilterOperatorsRegistry getInstance() {
@@ -91,7 +91,7 @@ public final class FilterOperatorsRegistry {
      * @param type data type
      * @return the filter operators for the given data type, or an empty list if there are none
      */
-    public List<ValueFilterOperator<DataValue, FilterValueParameters>> getOperators(final DataType type) {
+    public List<FilterOperator<FilterValueParameters>> getOperators(final DataType type) {
         return m_filterOperators.getOrDefault(type, List.of());
     }
 
@@ -101,21 +101,20 @@ public final class FilterOperatorsRegistry {
      * @return all currently registered parameter classes
      */
     public List<Class<FilterValueParameters>> getAllParameterClasses() {
-        return m_filterOperators.values().stream().flatMap(List::stream)
-            .map(ValueFilterOperator::getNodeParametersClass).distinct().toList();
+        return m_filterOperators.values().stream().flatMap(List::stream).map(FilterOperator::getNodeParametersClass)
+            .distinct().toList();
     }
 
-    private static Pair<DataType, List<ValueFilterOperator<DataValue, FilterValueParameters>>>
+    private static Pair<DataType, List<FilterOperator<FilterValueParameters>>>
         familiesToPair(final FilterOperators<? extends DataValue> ops) {
         return new Pair<>(ops.getDataType(), //
             ops.getOperators() //
                 .stream() //
-                .map(mapper -> (ValueFilterOperator<DataValue, FilterValueParameters>)mapper) //
+                .map(mapper -> mapper) //
                 .toList());
     }
 
-    private static Stream<Pair<DataType, List<ValueFilterOperator<DataValue, FilterValueParameters>>>>
-        getCoreFilterOperators() {
+    private static Stream<Pair<DataType, List<FilterOperator<FilterValueParameters>>>> getCoreFilterOperators() {
         final FilterOperators<DataValue> intOps = new CoreFilterValueOperators.IntCellOperators();
         final FilterOperators<DataValue> longOps = new CoreFilterValueOperators.LongCellOperators();
         final FilterOperators<DataValue> doubleOps = new CoreFilterValueOperators.DoubleCellOperators();
@@ -130,13 +129,13 @@ public final class FilterOperatorsRegistry {
      *
      * @return a map from data type to the corresponding to be preferred parameters class to create a cell of that type
      */
-    private static Stream<FilterOperators> getFilterOperatorExtensions() {
+    private static Stream<Pair<DataType, List<FilterOperator<FilterValueParameters>>>> getFilterOperatorExtensions() {
         final var registry = Platform.getExtensionRegistry();
         final var point = registry.getExtensionPoint(EXT_POINT_ID);
         return Stream.of(point.getExtensions()) //
             .flatMap(ext -> Stream.of(ext.getConfigurationElements())) //
             .map(FilterOperatorsRegistry::readFilterOperatorsFactory) //
-            .filter(Objects::nonNull);
+            .filter(Objects::nonNull).map(FilterOperatorsRegistry::toDataTypePair);
     }
 
     private static FilterOperators readFilterOperatorsFactory(final IConfigurationElement cfe) {
@@ -150,6 +149,11 @@ public final class FilterOperatorsRegistry {
                 cfe.getContributor().getName(), ex.getMessage()), ex);
         }
         return null;
+    }
+
+    private static Pair<DataType, List<FilterOperator<FilterValueParameters>>>
+        toDataTypePair(final FilterOperators filterOperators) {
+        return new Pair<>(filterOperators.getDataType(), filterOperators.getOperators());
     }
 
 }

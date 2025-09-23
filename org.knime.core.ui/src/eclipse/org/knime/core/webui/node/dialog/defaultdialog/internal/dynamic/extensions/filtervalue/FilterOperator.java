@@ -44,49 +44,61 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 23, 2025 (Paul Bärnreuther): created
+ *   Sep 3, 2025 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
 import java.util.function.Predicate;
 
 import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
 
 /**
+ * Filter operator that defines a predicate based on arbitrary {@link FilterValueParameters parameters}.
  *
- * @author Paul Bärnreuther
+ * @param <V> the type of data value to filter
+ * @param <P> the type of parameters to create the predicate with
+ *
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public interface ValueFilterOperator<V extends DataValue, P extends FilterValueParameters> extends FilterOperator<P> {
+public interface FilterOperator<P extends FilterValueParameters> {
 
     /**
-     * {@inheritDoc}
+     * Gets the ID, which must be unique among the set of all operators applicable on {@code V}, for which this operator
+     * is defined.
+     *
+     * @return ID
      */
-    @SuppressWarnings("unchecked")
-    @Override
-    default Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, final P filterParameters)
-        throws InvalidSettingsException {
-        if (!runtimeColumnSpec.getType().isCompatible(getDataType().getCellClass())) {
-            throw ValueFilterValidationUtil
-                .createInvalidSettingsException(builder -> builder
-                    .withSummary("Operator \"%s\" for column \"%s\" expects data of type \"%s\", but got \"%s\""
-                        .formatted(getLabel(), runtimeColumnSpec.getName(), getDataType().getName(),
-                            runtimeColumnSpec.getType().getName()))
-                    .addResolutions(
-                        "Please select a different operator that is compatible with the column's data type \"%s\"."
-                            .formatted(runtimeColumnSpec.getType().getName())));
-        }
-        final var typedPredicate = createTypedPredicate(runtimeColumnSpec, filterParameters);
-        return v -> typedPredicate.test((V)v);
+    String getId();
+
+    /**
+     * Gets a label for the operator, which is shown in the UI and should not be used in cases where a stable ID would
+     * be appropriate.
+     *
+     * @return label
+     */
+    String getLabel();
+
+    /**
+     * Creates the predicate for filtering data values of type {@code V} based on the given filter parameters.
+     *
+     * @param filterParameters the parameters to create the predicate with
+     * @return the predicate for filtering data values of type {@code V}
+     */
+    Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, P filterParameters)
+        throws InvalidSettingsException;
+
+    default boolean returnTrueForMissingCells() {
+        return false;
     }
 
     /**
+     * Creates the parameters for creating a data cell of the given type.
+     *
+     * @param dataCellClass the class of the data cell to create
+     * @return the parameters for creating a data cell of the given type
      */
-    Predicate<V> createTypedPredicate(DataColumnSpec runtimeColumnSpec, P filterParameters)
-        throws InvalidSettingsException;
-
-    DataType getDataType();
+    Class<P> getNodeParametersClass();
 
 }

@@ -48,28 +48,12 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
-import org.knime.core.data.DataType;
-import org.knime.core.data.DataValue;
+abstract class FamilyMember<P extends FilterValueParameters> implements FilterOperator<P> {
 
-abstract class FamilyMember<V extends DataValue, P extends FilterValueParameters>
-        implements ValueFilterOperator<V, P> {
+    private final FilterOperatorFamily<P> m_family;
 
-    private final FilterOperatorFamily<V, P> m_family;
-
-    protected FamilyMember(final FilterOperatorFamily<V, P> family) {
+    protected FamilyMember(final FilterOperatorFamily<P> family) {
         m_family = family;
-    }
-
-    // allowed to override, since not all members must be able to handle missing cells
-    @Override
-    public boolean handlesMissingCells() {
-        return m_family.handlesMissingCells();
-    }
-
-    // not allowed to override, since family member must work on the same types
-    @Override
-    public final DataType getDataType() {
-        return m_family.getDataType();
     }
 
     @Override
