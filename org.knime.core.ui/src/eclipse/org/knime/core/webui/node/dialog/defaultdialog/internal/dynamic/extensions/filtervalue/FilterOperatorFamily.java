@@ -51,46 +51,31 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensio
 import java.util.List;
 
 import org.knime.core.data.DataCell;
-import org.knime.core.data.DataType;
-import org.knime.core.data.DataValue;
 
 /**
  * A family of related filter operators for a specific {@link DataCell} type.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public interface FilterOperatorFamily<V extends DataValue, P extends FilterValueParameters> {
+public interface FilterOperatorFamily<P extends FilterValueParameters> {
 
-    List<ValueFilterOperator<V, P>> getOperators();
-
-    /**
-     * @return {@code true} if the operators by default will handle missing cells, {@code false} if they don't in which
-     * case they will not be passed any missing cells
-     */
-    boolean handlesMissingCells();
-
-    DataType getDataType(); // TODO not duplicate from FilterOperators#getDataType()
+    List<FilterOperator<P>> getOperators();
 
     Class<P> getNodeParametersClass();
 
     /**
      * A family consisting of a single operator.
      */
-    class Single<V extends DataValue, P extends FilterValueParameters> implements FilterOperatorFamily<V, P> {
-        private final ValueFilterOperator<V, P> m_operator;
+    class Single<P extends FilterValueParameters> implements FilterOperatorFamily<P> {
+        private final FilterOperator<P> m_operator;
 
-        public Single(final ValueFilterOperator<V, P> operator) {
+        public Single(final FilterOperator<P> operator) {
             m_operator = operator;
         }
 
         @Override
-        public List<ValueFilterOperator<V, P>> getOperators() {
+        public List<FilterOperator<P>> getOperators() {
             return List.of(m_operator);
-        }
-
-        @Override
-        public DataType getDataType() {
-            return m_operator.getDataType();
         }
 
         @Override
@@ -98,9 +83,5 @@ public interface FilterOperatorFamily<V extends DataValue, P extends FilterValue
             return m_operator.getNodeParametersClass();
         }
 
-        @Override
-        public boolean handlesMissingCells() {
-            return m_operator.handlesMissingCells();
-        }
     }
 }

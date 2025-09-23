@@ -68,8 +68,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  * @param <C> type of data cell to compare with (from node parameters)
  * @param <P> type of node parameters to create the comparison cell
  */
-class EqualsOperatorFamily<V extends DataValue, C extends DataCell, P extends SingleCellValueParameters<C>>
-    implements FilterOperatorFamily<V, P> {
+class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueParameters<C>>
+    implements FilterOperatorFamily<P> {
 
     private final DataType m_dataType;
 
@@ -100,13 +100,13 @@ class EqualsOperatorFamily<V extends DataValue, C extends DataCell, P extends Si
      * @throws InvalidSettingsException if the operator is not compatible with the column spec, i.e. will not produce a
      *             useful equality comparison
      */
-    protected BiPredicate<V, C> getEquality(final DataColumnSpec runtimeColumnSpec,
-        final ValueFilterOperator<V, P> operator) throws InvalidSettingsException {
+    protected BiPredicate<DataValue, C> getEquality(final DataColumnSpec runtimeColumnSpec,
+        final FilterOperator<P> operator) throws InvalidSettingsException {
         final var type = runtimeColumnSpec.getType();
-        if (!type.isCompatible(getDataType().getCellClass())) { // not isASuperType!
+        if (!type.isCompatible(m_dataType.getCellClass())) { // not isASuperType!
             throw ValueFilterValidationUtil.createInvalidSettingsException(builder -> builder
-                .withSummary("Operator \"%s\" for column \"%s\" expects data of type \"%s\", but got \"%s\"".formatted(
-                    operator.getLabel(), runtimeColumnSpec.getName(), getDataType().getName(), type.getName()))
+                .withSummary("Operator \"%s\" for column \"%s\" expects data of type \"%s\", but got \"%s\""
+                    .formatted(operator.getLabel(), runtimeColumnSpec.getName(), m_dataType.getName(), type.getName()))
                 .addResolutions(
                     "Please select a different operator that is compatible with the column's data type \"%s\"."
                         .formatted(type.getName())));
@@ -115,27 +115,16 @@ class EqualsOperatorFamily<V extends DataValue, C extends DataCell, P extends Si
     }
 
     @Override
-    public final boolean handlesMissingCells() {
-        // will be passed to members, EQ/NEQ do not handle missing cells, NEQ_MISS does and overrides this value
-        return false;
-    }
-
-    @Override
-    public final DataType getDataType() {
-        return m_dataType;
-    }
-
-    @Override
     public final Class<P> getNodeParametersClass() {
         return m_paramClass;
     }
 
     @Override
-    public final List<ValueFilterOperator<V, P>> getOperators() {
+    public final List<FilterOperator<P>> getOperators() {
         return List.of(new Equal(), new NotEqual(), new NotEqualNorMissing());
     }
 
-    private final class Equal extends FamilyMember<V, P> {
+    private final class Equal extends FamilyMember<P> {
 
         private Equal() {
             super(EqualsOperatorFamily.this);
@@ -152,18 +141,18 @@ class EqualsOperatorFamily<V extends DataValue, C extends DataCell, P extends Si
         }
 
         @Override
-        public Predicate<V> createPredicate(final DataColumnSpec runtimeColumnSpec, final P filterParameters)
-                throws InvalidSettingsException {
+        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, final P filterParameters)
+            throws InvalidSettingsException {
             final var dc = filterParameters.createCell();
             final var eq = EqualsOperatorFamily.this.getEquality(runtimeColumnSpec, this);
             return dv -> eq.test(dv, dc);
         }
     }
 
-    private final class NotEqual extends FamilyMember<V, P> {
+    private final class NotEqual extends NotEqualNorMissing {
 
         private NotEqual() {
-            super(EqualsOperatorFamily.this);
+            super();
         }
 
         @Override
@@ -177,15 +166,13 @@ class EqualsOperatorFamily<V extends DataValue, C extends DataCell, P extends Si
         }
 
         @Override
-        public Predicate<V> createPredicate(final DataColumnSpec runtimeColumnSpec, final P filterParameters)
-                throws InvalidSettingsException {
-            final var dc = filterParameters.createCell();
-            final var eq = EqualsOperatorFamily.this.getEquality(runtimeColumnSpec, this);
-            return dv -> !eq.test(dv, dc);
+        public boolean returnTrueForMissingCells() {
+            return true;
         }
+
     }
 
-    private final class NotEqualNorMissing extends FamilyMember<V, P> {
+    private class NotEqualNorMissing extends FamilyMember<P> {
 
         private NotEqualNorMissing() {
             super(EqualsOperatorFamily.this);
@@ -202,20 +189,11 @@ class EqualsOperatorFamily<V extends DataValue, C extends DataCell, P extends Si
         }
 
         @Override
-        public boolean handlesMissingCells() {
-            return true;
-        }
-
-        @Override
-        public Predicate<V> createPredicate(final DataColumnSpec runtimeColumnSpec, final P filterParameters)
-                throws InvalidSettingsException {
-            final var refCell = filterParameters.createCell();
+        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, final P filterParameters)
+            throws InvalidSettingsException {
+            final var dc = filterParameters.createCell();
             final var eq = EqualsOperatorFamily.this.getEquality(runtimeColumnSpec, this);
-            return dv -> {
-                final var materializedCell = dv.materializeDataCell();
-                // dv is of type V
-                return !materializedCell.isMissing() && !eq.test((V)materializedCell, refCell);
-            };
+            return dv -> !eq.test(dv, dc);
         }
     }
 }
