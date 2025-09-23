@@ -20,7 +20,6 @@
 		<feature-branch-extension.branchListProperty>git.branch</feature-branch-extension.branchListProperty>
 		<feature-branch-extension.appendArtifactoryProperties>false</feature-branch-extension.appendArtifactoryProperties>
 		<sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco-aggregate/jacoco.xml,target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-		<sonar.nodejs.executable>${project.build.directory}/node/node</sonar.nodejs.executable>
 		<knime.sonar-env>Sonarcloud</knime.sonar-env>
 	</properties>
 
