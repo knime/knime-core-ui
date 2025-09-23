@@ -83,13 +83,12 @@ public final class CoreFilterValueOperators {
         }
 
         @Override
-        public List<FilterOperatorFamily<DataValue, ? extends FilterValueParameters>> getOperatorFamilies() {
+        public List<FilterOperatorFamily<? extends FilterValueParameters>> getOperatorFamilies() {
             return List.of(new IntEqualityFamily(IntCell.TYPE, IntCellParameters.class),
                 new IntComparisonFamily(IntCell.TYPE, IntCellParameters.class));
         }
 
-        private static final class IntEqualityFamily
-            extends EqualsOperatorFamily<DataValue, IntCell, IntCellParameters> {
+        private static final class IntEqualityFamily extends EqualsOperatorFamily<IntCell, IntCellParameters> {
 
             private IntEqualityFamily(final DataType dataType, final Class<IntCellParameters> paramClass) {
                 super(dataType, paramClass);
@@ -97,7 +96,7 @@ public final class CoreFilterValueOperators {
 
             @Override
             public BiPredicate<DataValue, IntCell> getEquality(final DataColumnSpec runtimeColumnSpec,
-                final ValueFilterOperator<DataValue, IntCellParameters> operator) throws InvalidSettingsException {
+                final FilterOperator<IntCellParameters> operator) throws InvalidSettingsException {
                 final var colType = runtimeColumnSpec.getType();
                 final var isCompIntVal = colType.isCompatible(IntValue.class);
                 final var isCompLongVal = colType.isCompatible(LongValue.class);
@@ -126,8 +125,7 @@ public final class CoreFilterValueOperators {
             }
         }
 
-        private static final class IntComparisonFamily
-            extends ComparableOperatorFamily<DataValue, IntCell, IntCellParameters> {
+        private static final class IntComparisonFamily extends ComparableOperatorFamily<IntCell, IntCellParameters> {
 
             private IntComparisonFamily(final DataType dataType, final Class<IntCellParameters> parametersClass) {
                 super(dataType, parametersClass);
@@ -135,7 +133,7 @@ public final class CoreFilterValueOperators {
 
             @Override
             protected ToIntBiFunction<DataValue, IntCell> getComparator(final DataColumnSpec runtimeColumnSpec,
-                final ValueFilterOperator<DataValue, IntCellParameters> operator) throws InvalidSettingsException {
+                final FilterOperator<IntCellParameters> operator) throws InvalidSettingsException {
                 final var colType = runtimeColumnSpec.getType();
                 final var isCompIntVal = colType.isCompatible(IntValue.class);
                 final var isCompLongVal = colType.isCompatible(LongValue.class);
@@ -173,13 +171,12 @@ public final class CoreFilterValueOperators {
         }
 
         @Override
-        public List<FilterOperatorFamily<DataValue, ? extends FilterValueParameters>> getOperatorFamilies() {
+        public List<FilterOperatorFamily<? extends FilterValueParameters>> getOperatorFamilies() {
             return List.of(new LongEqualityFamily(LongCell.TYPE, LongCellParameters.class),
                 new LongComparisonFamily(LongCell.TYPE, LongCellParameters.class));
         }
 
-        private static final class LongEqualityFamily
-            extends EqualsOperatorFamily<DataValue, LongCell, LongCellParameters> {
+        private static final class LongEqualityFamily extends EqualsOperatorFamily<LongCell, LongCellParameters> {
 
             private LongEqualityFamily(final DataType dataType, final Class<LongCellParameters> paramClass) {
                 super(dataType, paramClass);
@@ -187,7 +184,7 @@ public final class CoreFilterValueOperators {
 
             @Override
             public BiPredicate<DataValue, LongCell> getEquality(final DataColumnSpec runtimeColumnSpec,
-                final ValueFilterOperator<DataValue, LongCellParameters> operator) throws InvalidSettingsException {
+                final FilterOperator<LongCellParameters> operator) throws InvalidSettingsException {
                 final var colType = runtimeColumnSpec.getType();
                 final var isCompIntVal = colType.isCompatible(IntValue.class);
                 final var isCompLongVal = colType.isCompatible(LongValue.class);
@@ -212,8 +209,7 @@ public final class CoreFilterValueOperators {
             }
         }
 
-        private static final class LongComparisonFamily
-            extends ComparableOperatorFamily<DataValue, LongCell, LongCellParameters> {
+        private static final class LongComparisonFamily extends ComparableOperatorFamily<LongCell, LongCellParameters> {
 
             private LongComparisonFamily(final DataType dataType, final Class<LongCellParameters> parametersClass) {
                 super(dataType, parametersClass);
@@ -221,7 +217,7 @@ public final class CoreFilterValueOperators {
 
             @Override
             protected ToIntBiFunction<DataValue, LongCell> getComparator(final DataColumnSpec runtimeColumnSpec,
-                final ValueFilterOperator<DataValue, LongCellParameters> operator) throws InvalidSettingsException {
+                final FilterOperator<LongCellParameters> operator) throws InvalidSettingsException {
                 final var colType = runtimeColumnSpec.getType();
                 final var isCompIntVal = colType.isCompatible(IntValue.class);
                 final var isCompLongVal = colType.isCompatible(LongValue.class);
@@ -258,13 +254,12 @@ public final class CoreFilterValueOperators {
         }
 
         @Override
-        public List<FilterOperatorFamily<DataValue, ? extends FilterValueParameters>> getOperatorFamilies() {
+        public List<FilterOperatorFamily<? extends FilterValueParameters>> getOperatorFamilies() {
             return List.of(new DoubleEqualityFamily(DoubleCell.TYPE, DoubleCellParameters.class),
                 new DoubleComparisonFamily(DoubleCell.TYPE, DoubleCellParameters.class));
         }
 
-        private static final class DoubleEqualityFamily
-            extends EqualsOperatorFamily<DataValue, DoubleCell, DoubleCellParameters> {
+        private static final class DoubleEqualityFamily extends EqualsOperatorFamily<DoubleCell, DoubleCellParameters> {
 
             private DoubleEqualityFamily(final DataType dataType, final Class<DoubleCellParameters> paramClass) {
                 super(dataType, paramClass);
@@ -272,7 +267,7 @@ public final class CoreFilterValueOperators {
 
             @Override
             public BiPredicate<DataValue, DoubleCell> getEquality(final DataColumnSpec runtimeColumnSpec,
-                final ValueFilterOperator<DataValue, DoubleCellParameters> operator) throws InvalidSettingsException {
+                final FilterOperator<DoubleCellParameters> operator) throws InvalidSettingsException {
                 final var colType = runtimeColumnSpec.getType();
                 final var isCompIntVal = colType.isCompatible(IntValue.class);
                 final var isCompDoubleVal = colType.isCompatible(DoubleValue.class);
@@ -298,7 +293,7 @@ public final class CoreFilterValueOperators {
         }
 
         private static final class DoubleComparisonFamily
-            extends ComparableOperatorFamily<DataValue, DoubleCell, DoubleCellParameters> {
+            extends ComparableOperatorFamily<DoubleCell, DoubleCellParameters> {
 
             private DoubleComparisonFamily(final DataType dataType, final Class<DoubleCellParameters> parametersClass) {
                 super(dataType, parametersClass);
@@ -306,7 +301,7 @@ public final class CoreFilterValueOperators {
 
             @Override
             protected ToIntBiFunction<DataValue, DoubleCell> getComparator(final DataColumnSpec runtimeColumnSpec,
-                final ValueFilterOperator<DataValue, DoubleCellParameters> operator) throws InvalidSettingsException {
+                final FilterOperator<DoubleCellParameters> operator) throws InvalidSettingsException {
                 final var colType = runtimeColumnSpec.getType();
                 final var isCompIntVal = colType.isCompatible(IntValue.class);
                 final var isCompLongVal = colType.isCompatible(LongValue.class);

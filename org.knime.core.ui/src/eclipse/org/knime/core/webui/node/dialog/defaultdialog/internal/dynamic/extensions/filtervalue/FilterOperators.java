@@ -54,8 +54,8 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 
 /**
- * Provide this factory via the "org.knime.core.ui.filterOperators" extension point to provide filter
- * operators for a {@link DataType}.
+ * Provide this factory via the "org.knime.core.ui.filterOperators" extension point to provide filter operators for a
+ * {@link DataType}.
  *
  * @author Paul Bärnreuther
  */
@@ -68,13 +68,13 @@ public interface FilterOperators<V extends DataValue> {
      */
     DataType getDataType();
 
-    List<FilterOperatorFamily<V, ? extends FilterValueParameters>> getOperatorFamilies();
+    List<FilterOperatorFamily<? extends FilterValueParameters>> getOperatorFamilies();
 
-    default List<ValueFilterOperator<V, FilterValueParameters>> getOperators() {
-        final List<ValueFilterOperator<V, FilterValueParameters>> ops = new ArrayList<>();
+    default List<FilterOperator<FilterValueParameters>> getOperators() {
+        final List<FilterOperator<FilterValueParameters>> ops = new ArrayList<>();
         for (final var fam : getOperatorFamilies()) {
-            for (final ValueFilterOperator<V, ? extends FilterValueParameters> op : fam.getOperators()) {
-                ops.add((ValueFilterOperator<V, FilterValueParameters>)op);
+            for (final FilterOperator<? extends FilterValueParameters> op : fam.getOperators()) {
+                ops.add((FilterOperator<FilterValueParameters>)op);
             }
         }
         return ops;

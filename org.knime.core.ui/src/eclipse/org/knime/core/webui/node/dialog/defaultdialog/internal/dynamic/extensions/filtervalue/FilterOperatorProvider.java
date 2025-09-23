@@ -52,14 +52,13 @@ import java.util.List;
 import java.util.Optional;
 
 import org.knime.core.data.DataType;
-import org.knime.core.data.DataValue;
 
 /**
  * Provider for filter operators on data values.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public interface FilterOperatorProvider<V extends DataValue> {
+public interface FilterOperatorProvider {
 
     /**
      * Gets the compatible operators for the given type, i.e. operators that can filter data values implemented by the
@@ -68,7 +67,7 @@ public interface FilterOperatorProvider<V extends DataValue> {
      * @param type the data type
      * @return the compatible operators
      */
-    List<ValueFilterOperator<V, ? extends FilterValueParameters>>
+    List<FilterOperator<? extends FilterValueParameters>>
         getCompatibleOperators(final DataType type);
 
     /**
@@ -78,7 +77,7 @@ public interface FilterOperatorProvider<V extends DataValue> {
      * @param id the operator ID
      * @return the operator for the given type and ID, or an empty optional if no such operator exists
      */
-    Optional<ValueFilterOperator<V, ? extends FilterValueParameters>> getOperator(final DataType type,
+    Optional<FilterOperator<? extends FilterValueParameters>> getOperator(final DataType type,
         final String id);
 
     /**
@@ -88,6 +87,6 @@ public interface FilterOperatorProvider<V extends DataValue> {
      * @param type the data type
      * @return the default operator for the given type, or an empty optional if no such operator exists
      */
-    Optional<ValueFilterOperator<V, ? extends FilterValueParameters>>
+    Optional<FilterOperator<? extends FilterValueParameters>>
         getDefaultOperator(final DataType type);
 }
