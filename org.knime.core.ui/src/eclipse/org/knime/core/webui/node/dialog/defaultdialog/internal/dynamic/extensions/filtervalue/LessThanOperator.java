@@ -49,37 +49,19 @@
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
 /**
- * Common interface providing metadata for filter operators. Defines the essential methods that all filter operators
- * must implement.
+ * Interface for less than filter operators that provides the standard ID and label.
  *
- * @param <P> the parameter type for this operator
  * @author Paul Bärnreuther
  */
-public interface FilterOperatorMetadata<P extends FilterValueParameters> {
+public interface LessThanOperator extends FilterOperatorBase {
 
-    /**
-     * Gets the ID, which must be unique among the set of all operators applicable on {@code V}, for which this operator
-     * is defined.
-     *
-     * @apiNote In case there are duplicate IDs, the internal operators will take precedence over extension-defined
-     *          ones, the order among those is undefined. In case duplicates are detected, a coding issue is logged.
-     *
-     * @return ID
-     */
-    String getId();
+    @Override
+    default String getId() {
+        return "LT";
+    }
 
-    /**
-     * Gets a label for the operator, which is shown in the UI and should not be used in cases where a stable ID would
-     * be appropriate.
-     *
-     * @return label
-     */
-    String getLabel();
-
-    /**
-     * Gets the parameters class for creating the node parameters of the operator.
-     *
-     * @return the node parameters class
-     */
-    Class<P> getNodeParametersClass();
+    @Override
+    default String getLabel() {
+        return "Less than";
+    }
 }

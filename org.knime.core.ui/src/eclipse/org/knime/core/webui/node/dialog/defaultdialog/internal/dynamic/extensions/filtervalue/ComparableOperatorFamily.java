@@ -59,7 +59,6 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.DataValueComparatorDelegator;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.CoreFilterValueOperators.CoreID;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters.SingleCellValueParameters;
 
 /**
@@ -114,83 +113,68 @@ public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellVa
 
     @Override
     public List<FilterOperator<P>> getOperators() {
-        return List.of(new FamilyMember<P>(this) {
+        return List.of(new LessThanOperatorImpl(), new LessThanOrEqualOperatorImpl(), new GreaterThanOperatorImpl(),
+            new GreaterThanOrEqualOperatorImpl());
+    }
 
-            @Override
-            public String getId() {
-                return CoreID.LT.name();
-            }
+    private final class LessThanOperatorImpl extends FamilyMember<P> implements LessThanOperator {
 
-            @Override
-            public String getLabel() {
-                return CoreID.getLabel(CoreID.LT);
-            }
+        private LessThanOperatorImpl() {
+            super(ComparableOperatorFamily.this);
+        }
 
-            @Override
-            public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
-                final P filterParameters) throws InvalidSettingsException {
-                final var value = filterParameters.createCell();
-                final var comparator = getComparator(runtimeColumnSpec, this);
-                return dv -> comparator.applyAsInt(dv, value) < 0;
-            }
-        }, new FamilyMember<P>(this) {
+        @Override
+        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, final P filterParameters)
+                throws InvalidSettingsException { //
+            final var value = filterParameters.createCell();
+            final var comparator = getComparator(runtimeColumnSpec, this);
+            return dv -> comparator.applyAsInt(dv, value) < 0;
+        }
+    }
 
-            @Override
-            public String getId() {
-                return CoreID.LTE.name();
-            }
+    private final class LessThanOrEqualOperatorImpl extends FamilyMember<P> implements LessThanOrEqualOperator {
 
-            @Override
-            public String getLabel() {
-                return CoreID.getLabel(CoreID.LTE);
-            }
+        private LessThanOrEqualOperatorImpl() {
+            super(ComparableOperatorFamily.this);
+        }
 
-            @Override
-            public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
-                final P filterParameters) throws InvalidSettingsException {
-                final var value = filterParameters.createCell();
-                final var comparator = getComparator(runtimeColumnSpec, this);
-                return dv -> comparator.applyAsInt(dv, value) <= 0;
-            }
-        }, new FamilyMember<P>(this) {
+        @Override
+        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, final P filterParameters)
+                throws InvalidSettingsException { //
+            final var value = filterParameters.createCell();
+            final var comparator = getComparator(runtimeColumnSpec, this);
+            return dv -> comparator.applyAsInt(dv, value) <= 0;
+        }
+    }
 
-            @Override
-            public String getId() {
-                return CoreID.GT.name();
-            }
+    private final class GreaterThanOperatorImpl extends FamilyMember<P> implements GreaterThanOperator {
 
-            @Override
-            public String getLabel() {
-                return CoreID.getLabel(CoreID.GT);
-            }
+        private GreaterThanOperatorImpl() {
+            super(ComparableOperatorFamily.this);
+        }
 
-            @Override
-            public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
-                final P filterParameters) throws InvalidSettingsException {
-                final var value = filterParameters.createCell();
-                final var comparator = getComparator(runtimeColumnSpec, this);
-                return dv -> comparator.applyAsInt(dv, value) > 0;
-            }
-        }, new FamilyMember<P>(this) {
+        @Override
+        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, final P filterParameters)
+                throws InvalidSettingsException { //
+            final var value = filterParameters.createCell();
+            final var comparator = getComparator(runtimeColumnSpec, this);
+            return dv -> comparator.applyAsInt(dv, value) > 0;
+        }
+    }
 
-            @Override
-            public String getId() {
-                return CoreID.GTE.name();
-            }
+    private final class GreaterThanOrEqualOperatorImpl extends FamilyMember<P> implements GreaterThanOrEqualOperator {
 
-            @Override
-            public String getLabel() {
-                return CoreID.getLabel(CoreID.GTE);
-            }
+        private GreaterThanOrEqualOperatorImpl() {
+            super(ComparableOperatorFamily.this);
+        }
 
-            @Override
-            public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
-                final P filterParameters) throws InvalidSettingsException {
-                final var value = filterParameters.createCell();
-                final var comparator = getComparator(runtimeColumnSpec, this);
-                return dv -> comparator.applyAsInt(dv, value) >= 0;
-            }
-        });
+        @Override
+        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, final P filterParameters)
+                throws InvalidSettingsException { //
+            final var value = filterParameters.createCell();
+            final var comparator = getComparator(runtimeColumnSpec, this);
+            return dv -> comparator.applyAsInt(dv, value) >= 0;
+        }
     }
 
 }
