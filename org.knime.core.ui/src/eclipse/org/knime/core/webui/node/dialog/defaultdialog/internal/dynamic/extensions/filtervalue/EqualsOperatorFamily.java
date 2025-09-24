@@ -124,20 +124,10 @@ public class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueP
         return List.of(new Equal(), new NotEqual(), new NotEqualNorMissing());
     }
 
-    private final class Equal extends FamilyMember<P> {
+    private final class Equal extends FamilyMember<P> implements EqualsOperator {
 
         private Equal() {
             super(EqualsOperatorFamily.this);
-        }
-
-        @Override
-        public String getId() {
-            return CoreID.EQ.name();
-        }
-
-        @Override
-        public String getLabel() {
-            return CoreID.getLabel(CoreID.EQ);
         }
 
         @Override
