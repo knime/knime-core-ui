@@ -108,7 +108,7 @@ public abstract class WebUINodeFactory<M extends NodeModel> extends NodeFactory<
     }
 
     @Override
-    protected final NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
+    protected NodeDescription createNodeDescription() throws SAXException, IOException, XmlException {
         return createNodeDescription(m_configuration);
     }
 
