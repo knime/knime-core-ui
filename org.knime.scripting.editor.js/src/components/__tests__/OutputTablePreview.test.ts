@@ -55,6 +55,7 @@ describe("OutputTablePreview", () => {
 
   const doMount = async () => {
     const wrapper = mount(OutputTablePreview, {
+      props: { noDataText: "To see the preview evaluate the script" },
       global: {
         stubs: {
           UIExtension: {

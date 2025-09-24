@@ -14,6 +14,12 @@ import {
 
 import { getScriptingService } from "@/init";
 
+type Props = {
+  /** Text to show when no data is available yet */
+  noDataText: string;
+};
+const { noDataText } = defineProps<Props>();
+
 const baseService = ref<UIExtensionService<UIExtensionAPILayer> | null>(null);
 const extensionConfig = ref<ExtensionConfig | null>(null);
 const resourceLocation = ref<string>("");
@@ -139,7 +145,7 @@ onMounted(async () => {
     </div>
   </div>
   <div v-else class="output-table-preview pre-evaluation-sign">
-    To see the preview, evaluate the expression using the button above.
+    {{ noDataText }}
   </div>
 </template>
 
