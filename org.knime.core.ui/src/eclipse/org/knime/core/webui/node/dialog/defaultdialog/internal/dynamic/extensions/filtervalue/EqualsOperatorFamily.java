@@ -57,6 +57,7 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.CoreFilterValueOperators.CoreID;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters.SingleCellValueParameters;
 
 /**
@@ -64,11 +65,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  * single cell value parameters.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
- * @param <V> type of column values to be filtered
  * @param <C> type of data cell to compare with (from node parameters)
  * @param <P> type of node parameters to create the comparison cell
  */
-class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueParameters<C>>
+public class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueParameters<C>>
     implements FilterOperatorFamily<P> {
 
     private final DataType m_dataType;
@@ -103,7 +103,7 @@ class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueParamete
     protected BiPredicate<DataValue, C> getEquality(final DataColumnSpec runtimeColumnSpec,
         final FilterOperator<P> operator) throws InvalidSettingsException {
         final var type = runtimeColumnSpec.getType();
-        if (!type.isCompatible(m_dataType.getCellClass())) { // not isASuperType!
+        if (!type.isCompatible(m_dataType.getPreferredValueClass())) { // not isASuperType!
             throw ValueFilterValidationUtil.createInvalidSettingsException(builder -> builder
                 .withSummary("Operator \"%s\" for column \"%s\" expects data of type \"%s\", but got \"%s\""
                     .formatted(operator.getLabel(), runtimeColumnSpec.getName(), m_dataType.getName(), type.getName()))
@@ -132,12 +132,12 @@ class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueParamete
 
         @Override
         public String getId() {
-            return "EQ";
+            return CoreID.EQ.name();
         }
 
         @Override
         public String getLabel() {
-            return "Equal";
+            return CoreID.getLabel(CoreID.EQ);
         }
 
         @Override
@@ -157,12 +157,12 @@ class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueParamete
 
         @Override
         public String getId() {
-            return "NEQ";
+            return CoreID.NEQ_MISS.name();
         }
 
         @Override
         public String getLabel() {
-            return "Not equal";
+            return CoreID.getLabel(CoreID.NEQ_MISS);
         }
 
         @Override
@@ -172,7 +172,7 @@ class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueParamete
 
     }
 
-    private class NotEqualNorMissing extends FamilyMember<P> {
+    private class NotEqualNorMissing extends FamilyMember<P> { // NOSONAR only private class
 
         private NotEqualNorMissing() {
             super(EqualsOperatorFamily.this);
@@ -180,12 +180,12 @@ class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueParamete
 
         @Override
         public String getId() {
-            return "NEQ_MISS";
+            return CoreID.NEQ.name();
         }
 
         @Override
         public String getLabel() {
-            return "Not equal nor missing";
+            return CoreID.getLabel(CoreID.NEQ);
         }
 
         @Override
