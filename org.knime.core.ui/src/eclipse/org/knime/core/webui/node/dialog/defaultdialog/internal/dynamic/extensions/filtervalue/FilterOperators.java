@@ -51,7 +51,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.knime.core.data.DataType;
-import org.knime.core.data.DataValue;
 
 /**
  * Provide this factory via the "org.knime.core.ui.filterOperators" extension point to provide filter operators for a
@@ -59,7 +58,7 @@ import org.knime.core.data.DataValue;
  *
  * @author Paul Bärnreuther
  */
-public interface FilterOperators<V extends DataValue> {
+public interface FilterOperators {
 
     /**
      * Returns the one data type this factory is used for. There must not be more than one factory per data type.

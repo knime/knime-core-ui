@@ -82,6 +82,11 @@ public interface FilterValueParameters extends DynamicNodeParameters {
     }
 
     /**
+     * Parameters class indicating that the operator does not need any parameters.
+     */
+    final class None implements FilterValueParameters {}
+
+    /**
      * Parameters able to create a data value of a specific data type.
      *
      * Use the {FILTER_VALUE_TITLE} and {FILTER_VALUE_DESCRIPTION} constants when the parameters contain only one
