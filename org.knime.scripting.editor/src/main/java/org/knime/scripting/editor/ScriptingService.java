@@ -61,6 +61,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -182,16 +183,33 @@ public abstract class ScriptingService {
     }
 
     /**
-     * Inform the frontend that the output table has changed.
+     * Inform the frontend that the output table has changed. This will construct a disclaimer message based on whether
+     * the preview was computed on all rows or just a subset.
      *
      * @param numberOfRowsForPreview number of rows in the output table preview
      * @param totalNumberOfRowsInTable total number of rows in the output table
-     *
+     * @see #updateOutputTable(String)
      */
     protected void updateOutputTable(final int numberOfRowsForPreview, final long totalNumberOfRowsInTable) {
-        record TableUpdateMetadata(int numberOfRows, long totalNumberOfRows) {
+        final String previewDisclaimerMessage;
+        if (numberOfRowsForPreview == totalNumberOfRowsInTable) {
+            previewDisclaimerMessage = "Preview computed on all rows";
+        } else {
+            Function<Number, String> rowsText = (n) -> n.longValue() == 1 ? "1 row" : n + " rows";
+            previewDisclaimerMessage = "Preview computed on first " + rowsText.apply(numberOfRowsForPreview) + " of "
+                + rowsText.apply(totalNumberOfRowsInTable);
         }
-        sendEvent("updateOutputTable", new TableUpdateMetadata(numberOfRowsForPreview, totalNumberOfRowsInTable));
+        updateOutputTable(previewDisclaimerMessage);
+    }
+
+    /**
+     * Inform the frontend that the output table has changed.
+     *
+     * @param previewDisclaimerMessage disclaimer message to show in the output table preview to inform the user that
+     *            this is just a preview and not the real output
+     */
+    protected void updateOutputTable(final String previewDisclaimerMessage) {
+        sendEvent("updateOutputTable", previewDisclaimerMessage);
     }
 
     /**

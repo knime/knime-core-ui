@@ -18,10 +18,9 @@ const baseService = ref<UIExtensionService<UIExtensionAPILayer> | null>(null);
 const extensionConfig = ref<ExtensionConfig | null>(null);
 const resourceLocation = ref<string>("");
 const dataAvailable = ref<boolean>(false);
-const numberOfOutputRows = ref<{
-  numberOfRows: number;
-  totalNumberOfRows: number;
-}>({ numberOfRows: 0, totalNumberOfRows: 0 });
+// Note that the default value should not be used but it will be overwritten
+// when the first preview is available
+const previewDisclaimerMessage = ref<string>("Preview");
 
 const emit = defineEmits(["output-table-updated"]);
 
@@ -111,10 +110,10 @@ onMounted(async () => {
 
   getScriptingService().registerEventHandler(
     "updateOutputTable",
-    async (tableUpdateMetadata) => {
+    async (updatedPreviewDisclaimerMessage: string) => {
       await updateExtensionConfig(extensionConfigLoaded);
       dataAvailable.value = true;
-      numberOfOutputRows.value = { ...tableUpdateMetadata };
+      previewDisclaimerMessage.value = updatedPreviewDisclaimerMessage;
 
       emit("output-table-updated");
     },
@@ -129,21 +128,7 @@ onMounted(async () => {
   >
     <div class="output-table-preview">
       <div class="preview-background">
-        <div
-          v-if="
-            numberOfOutputRows.numberOfRows !=
-            numberOfOutputRows.totalNumberOfRows
-          "
-          class="preview-warning-text"
-        >
-          Preview computed on first {{ numberOfOutputRows.numberOfRows }}
-          {{ numberOfOutputRows.numberOfRows === 1 ? "row" : "rows" }} of
-          {{ numberOfOutputRows.totalNumberOfRows }}
-          {{ numberOfOutputRows.totalNumberOfRows === 1 ? "row" : "rows" }}
-        </div>
-        <div v-else class="preview-warning-text">
-          Preview computed on all rows.
-        </div>
+        <div class="preview-warning-text">{{ previewDisclaimerMessage }}</div>
       </div>
       <UIExtension
         :api-layer="apiLayer"

@@ -88,22 +88,12 @@ describe("OutputTablePreview", () => {
     const triggerUpdateOutputTableUpdate = () =>
       vi.mocked(getScriptingService().registerEventHandler).mock.calls[0][1];
 
-    const mockRows = {
-      numberOfRows: 10,
-      totalNumberOfRows: 100,
-    };
-    triggerUpdateOutputTableUpdate()(mockRows);
+    triggerUpdateOutputTableUpdate()("Limited preview");
     await flushPromises();
 
     const previewWarningText = wrapper.find(".preview-warning-text");
     expect(previewWarningText.exists()).toBe(true);
-    expect(previewWarningText.text()).toContain("Preview");
-    expect(previewWarningText.text()).toContain(
-      mockRows.numberOfRows.toString(),
-    );
-    expect(previewWarningText.text()).toContain(
-      mockRows.totalNumberOfRows.toString(),
-    );
+    expect(previewWarningText.text()).toBe("Limited preview");
   });
 
   it("calls UIExtension with correct arguments", async () => {
