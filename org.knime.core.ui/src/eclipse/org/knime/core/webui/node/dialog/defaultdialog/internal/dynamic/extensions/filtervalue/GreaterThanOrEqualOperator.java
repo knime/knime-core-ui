@@ -44,53 +44,24 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 3, 2025 (Paul Bärnreuther): created
+ *   Sep 24, 2025 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
-import java.util.function.Predicate;
-
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataValue;
-import org.knime.core.data.MissingCell;
-import org.knime.core.node.InvalidSettingsException;
-
 /**
- * Filter operator that defines a predicate based on {@link DataValue}s of multiple concrete types configured by
- * {@link FilterValueParameters parameters}.
+ * Interface for greater than or equal filter operators that provides the standard ID and label.
  *
- * In case you only want to filter {@link DataValue}s of a single concrete type {@code V}, consider implementing
- * {@link ValueFilterOperator ValueFilterOperator&lt;V&gt;} instead.
- *
- * @param <P> the type of parameters to create the predicate with
- *
- * @author Paul Bärnreuther, KNIME GmbH
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @author Paul Bärnreuther
  */
-public interface FilterOperator<P extends FilterValueParameters> extends FilterOperatorDefinition<P> {
+public interface GreaterThanOrEqualOperator extends FilterOperatorBase {
 
-    /**
-     * Creates the predicate for filtering data values of type {@code V} based on the given filter parameters.
-     *
-     * @param runtimeColumnSpec the column spec at runtime, whose values are to be filtered
-     * @param filterParameters the parameters to create the predicate with
-     * @return the predicate for filtering data values of type {@code V}
-     * @throws InvalidSettingsException in case the given column spec or filtered parameters are invalid for the
-     *             operator
-     */
-    Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, P filterParameters)
-        throws InvalidSettingsException;
-
-    /**
-     * Indicates whether this operator considers missing cells as matching the filter criterion or not. In any case,
-     * {@link MissingCell} is never passed to the predicate created by this operator.
-     *
-     * @implNote The default implementation returns {@code false}, i.e. missing cells never match the filter criterion.
-     *
-     * @return {@code true} if missing cells should match the filter criterion, {@code false} otherwise
-     */
-    default boolean returnTrueForMissingCells() {
-        return false;
+    @Override
+    default String getId() {
+        return "GTE";
     }
 
+    @Override
+    default String getLabel() {
+        return "Greater than or equal";
+    }
 }
