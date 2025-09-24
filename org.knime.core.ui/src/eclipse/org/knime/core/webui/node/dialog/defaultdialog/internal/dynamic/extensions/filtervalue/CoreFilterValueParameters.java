@@ -92,7 +92,7 @@ final class CoreFilterValueParameters {
 
         @Override
         public void applyStash(final DataValue[] stashedValues) {
-            final var first = stashedValues[0];
+            final var first = stashedValues[0]; // TODO handle no values?
             if (first instanceof IntCell intCell) {
                 loadFrom(intCell);
             } else if (first instanceof DoubleCell doubleCell) {
