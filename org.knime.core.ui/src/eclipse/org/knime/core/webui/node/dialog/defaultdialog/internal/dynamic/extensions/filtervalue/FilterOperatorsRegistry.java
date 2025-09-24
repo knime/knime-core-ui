@@ -48,22 +48,33 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.data.DataType;
-import org.knime.core.data.DataValue;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.util.Pair;
 
 /**
- * A utility class to deal with the filter operators extension point.
+ * The registry of all available filter operators, that is built-in operators and operators provided via the
+ * "org.knime.core.ui.filterOperators" extension point.
  */
 public final class FilterOperatorsRegistry {
 
@@ -73,14 +84,19 @@ public final class FilterOperatorsRegistry {
 
     private static final FilterOperatorsRegistry INSTANCE = new FilterOperatorsRegistry();
 
-    private final Map<DataType, List<FilterOperator<FilterValueParameters>>> m_filterOperators;
+    private final Map<DataType, Set<FilterOp>> m_filterOperators;
 
     private FilterOperatorsRegistry() {
         // utility class
         m_filterOperators = Stream.concat(getCoreFilterOperators(), getFilterOperatorExtensions()) //
-            .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));
+            .collect(Collectors.groupingBy(Pair::getFirst, //
+                Collectors.flatMapping(p -> p.getSecond().stream(), new FilterOpAcc())));
     }
 
+    /**
+     * Gets the singleton instance of this registry.
+     * @return the singleton instance of this registry
+     */
     public static FilterOperatorsRegistry getInstance() {
         return INSTANCE;
     }
@@ -92,7 +108,8 @@ public final class FilterOperatorsRegistry {
      * @return the filter operators for the given data type, or an empty list if there are none
      */
     public List<FilterOperator<FilterValueParameters>> getOperators(final DataType type) {
-        return m_filterOperators.getOrDefault(type, List.of());
+        return m_filterOperators.getOrDefault(type, Collections.emptySet()) //
+            .stream().map(FilterOp::getOperator).toList();
     }
 
     /**
@@ -101,26 +118,26 @@ public final class FilterOperatorsRegistry {
      * @return all currently registered parameter classes
      */
     public List<Class<FilterValueParameters>> getAllParameterClasses() {
-        return m_filterOperators.values().stream().flatMap(List::stream).map(FilterOperator::getNodeParametersClass)
-            .distinct().toList();
+        return m_filterOperators.values().stream() //
+            .flatMap(Set::stream).map(FilterOp::getOperator).map(FilterOperator::getNodeParametersClass).distinct()
+            .toList();
     }
 
-    private static Pair<DataType, List<FilterOperator<FilterValueParameters>>>
-        familiesToPair(final FilterOperators<? extends DataValue> ops) {
+    private static Pair<DataType, List<FilterOp>> toDataTypePair(final FilterOperators ops) {
         return new Pair<>(ops.getDataType(), //
             ops.getOperators() //
                 .stream() //
-                .map(mapper -> mapper) //
+                .map(FilterOp::new) //
                 .toList());
     }
 
-    private static Stream<Pair<DataType, List<FilterOperator<FilterValueParameters>>>> getCoreFilterOperators() {
-        final FilterOperators<DataValue> intOps = new CoreFilterValueOperators.IntCellOperators();
-        final FilterOperators<DataValue> longOps = new CoreFilterValueOperators.LongCellOperators();
-        final FilterOperators<DataValue> doubleOps = new CoreFilterValueOperators.DoubleCellOperators();
+    private static Stream<Pair<DataType, List<FilterOp>>> getCoreFilterOperators() {
+        final FilterOperators intOps = new CoreFilterValueOperators.IntCellOperators();
+        final FilterOperators longOps = new CoreFilterValueOperators.LongCellOperators();
+        final FilterOperators doubleOps = new CoreFilterValueOperators.DoubleCellOperators();
 
         return Stream.of(intOps, longOps, doubleOps) //
-            .map(FilterOperatorsRegistry::familiesToPair) //
+            .map(FilterOperatorsRegistry::toDataTypePair) //
         ;
     }
 
@@ -129,7 +146,7 @@ public final class FilterOperatorsRegistry {
      *
      * @return a map from data type to the corresponding to be preferred parameters class to create a cell of that type
      */
-    private static Stream<Pair<DataType, List<FilterOperator<FilterValueParameters>>>> getFilterOperatorExtensions() {
+    private static Stream<Pair<DataType, List<FilterOp>>> getFilterOperatorExtensions() {
         final var registry = Platform.getExtensionRegistry();
         final var point = registry.getExtensionPoint(EXT_POINT_ID);
         return Stream.of(point.getExtensions()) //
@@ -151,9 +168,103 @@ public final class FilterOperatorsRegistry {
         return null;
     }
 
-    private static Pair<DataType, List<FilterOperator<FilterValueParameters>>>
-        toDataTypePair(final FilterOperators filterOperators) {
-        return new Pair<>(filterOperators.getDataType(), filterOperators.getOperators());
+    /**
+     * Helper accumulator that complains about duplicate IDs and ignores duplicate operators.
+     */
+    private static final class FilterOpAcc implements Collector<FilterOp, FilterOpAcc, Set<FilterOp>> {
+
+        private final Set<FilterOp> m_ops = new LinkedHashSet<>();
+
+        private final Set<String> m_ids = new HashSet<>();
+
+        void add(final FilterOp op) {
+            if (!m_ids.add(op.getId())) {
+                LOGGER.coding(String.format("Operator \"%s\" defines already present ID \"%s\". ",
+                    op.getOperator().getClass().getSimpleName(), op.getId())
+                    + "Subsequent operations might ignore this operator.");
+            }
+            if (!m_ops.add(op)) {
+                LOGGER.coding(String.format(
+                    "Operator \"%s\" defines already present ID \"%s\" with same parameters and will be ignored.",
+                    op.getOperator().getClass().getSimpleName(), op.getId()));
+            }
+        }
+
+        FilterOpAcc combine(final FilterOpAcc other) {
+            other.m_ops.forEach(this::add);
+            return this;
+        }
+        @Override
+        public Supplier<FilterOpAcc> supplier() {
+            return FilterOpAcc::new;
+        }
+
+        @Override
+        public BiConsumer<FilterOpAcc, FilterOp> accumulator() {
+            return FilterOpAcc::add;
+        }
+
+        @Override
+        public BinaryOperator<FilterOpAcc> combiner() {
+            return FilterOpAcc::combine;
+        }
+
+        @Override
+        public Function<FilterOpAcc, Set<FilterOp>> finisher() {
+            return acc -> acc.m_ops;
+        }
+
+        @Override
+        public Set<Characteristics> characteristics() {
+            return Collections.emptySet();
+        }
+    }
+
+    /**
+     * Helper class for filter operator identity based on ID and parameter class. The parameter class is included to
+     * distinguish between internal operators with legacy settings and new internal operators.
+     */
+    private static final class FilterOp {
+
+        private final String m_id;
+
+        private final FilterOperator<FilterValueParameters> m_operator;
+
+        private FilterOp(final FilterOperator<FilterValueParameters> operator) {
+            m_id = operator.getId();
+            m_operator = operator;
+        }
+
+        private String getId() {
+            return m_id;
+        }
+
+        private FilterOperator<FilterValueParameters> getOperator() {
+            return m_operator;
+        }
+
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder(17, 37) //
+                .append(m_id) //
+                .append(m_operator.getNodeParametersClass()) //
+                .toHashCode();
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || !(obj instanceof FilterOp otherOp)) {
+                return false;
+            }
+            return new EqualsBuilder() //
+                .append(m_id, otherOp.m_id) //
+                .append(m_operator.getNodeParametersClass(), otherOp.m_operator.getNodeParametersClass()) //
+                .isEquals();
+        }
+
     }
 
 }

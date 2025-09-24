@@ -59,12 +59,15 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.DataValueComparatorDelegator;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.CoreFilterValueOperators.CoreID;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters.SingleCellValueParameters;
 
 /**
  * Operator family for data types that have a comparator.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @param <C> data cell type to compare with
+ * @param <P> type of filter parameters
  */
 public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellValueParameters<C>>
     implements FilterOperatorFamily<P> {
@@ -97,7 +100,7 @@ public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellVa
     protected ToIntBiFunction<DataValue, C> getComparator(final DataColumnSpec runtimeColumnSpec,
         final FilterOperator<P> operator) throws InvalidSettingsException {
         final var type = runtimeColumnSpec.getType();
-        if (!type.isCompatible(m_dataType.getCellClass())) { // not isASuperType!
+        if (!type.isCompatible(m_dataType.getPreferredValueClass())) { // not isASuperType!
             throw ValueFilterValidationUtil.createInvalidSettingsException(builder -> builder
                 .withSummary("Operator \"%s\" for column \"%s\" expects data of type \"%s\", but got \"%s\""
                     .formatted(operator.getLabel(), runtimeColumnSpec.getName(), m_dataType.getName(), type.getName()))
@@ -106,7 +109,7 @@ public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellVa
                         .formatted(type.getName())));
         }
         final var comparator = new DataValueComparatorDelegator<>(m_dataType.getComparator());
-        return (value, cell) -> comparator.compare(value, cell);
+        return comparator::compare;
     }
 
     @Override
@@ -115,12 +118,12 @@ public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellVa
 
             @Override
             public String getId() {
-                return "LT"; // TODO make sure to use the same constant as in FilterOperator
+                return CoreID.LT.name();
             }
 
             @Override
             public String getLabel() {
-                return "Less than";
+                return CoreID.getLabel(CoreID.LT);
             }
 
             @Override
@@ -134,12 +137,12 @@ public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellVa
 
             @Override
             public String getId() {
-                return "LTE"; // TODO make sure to use the same constant as in FilterOperator
+                return CoreID.LTE.name();
             }
 
             @Override
             public String getLabel() {
-                return "Less than or equals";
+                return CoreID.getLabel(CoreID.LTE);
             }
 
             @Override
@@ -153,12 +156,12 @@ public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellVa
 
             @Override
             public String getId() {
-                return "GT"; // TODO make sure to use the same constant as in FilterOperator
+                return CoreID.GT.name();
             }
 
             @Override
             public String getLabel() {
-                return "Greater than";
+                return CoreID.getLabel(CoreID.GT);
             }
 
             @Override
@@ -172,12 +175,12 @@ public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellVa
 
             @Override
             public String getId() {
-                return "GTE"; // TODO make sure to use the same constant as in FilterOperator
+                return CoreID.GTE.name();
             }
 
             @Override
             public String getLabel() {
-                return "Greater than or equals";
+                return CoreID.getLabel(CoreID.GTE);
             }
 
             @Override
