@@ -44,55 +44,42 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 3, 2025 (Paul Bärnreuther): created
+ *   Sep 24, 2025 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
-import java.util.function.Predicate;
-
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataValue;
-import org.knime.core.data.MissingCell;
-import org.knime.core.node.InvalidSettingsException;
-
 /**
- * Filter operator that defines a predicate based on {@link DataValue}s of multiple concrete types configured by
- * {@link FilterValueParameters parameters}.
+ * Common interface providing metadata for filter operators. Defines the essential methods that all filter operators
+ * must implement.
  *
- * In case you only want to filter {@link DataValue}s of a single concrete type {@code V}, consider implementing
- * {@link ValueFilterOperator ValueFilterOperator&lt;V&gt;} instead.
- *
- * @param <P> the type of parameters to create the predicate with
- *
- * @author Paul Bärnreuther, KNIME GmbH
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @param <P> the parameter type for this operator
+ * @author Paul Bärnreuther
  */
-public interface FilterOperator<P extends FilterValueParameters> extends FilterOperatorMetadata<P> {
+public interface FilterOperatorMetadata<P extends FilterValueParameters> {
 
     /**
-     * Creates the predicate for filtering data values of type {@code V} based on the given filter parameters.
+     * Gets the ID, which must be unique among the set of all operators applicable on {@code V}, for which this operator
+     * is defined.
      *
-     * @param runtimeColumnSpec the column spec at runtime, whose values are to be filtered
-     * @param filterParameters the parameters to create the predicate with
-     * @return the predicate for filtering data values of type {@code V}
-     * @throws InvalidSettingsException in case the given column spec or filtered parameters are invalid for the
-     *             operator
+     * @apiNote In case there are duplicate IDs, the internal operators will take precedence over extension-defined
+     *          ones, the order among those is undefined. In case duplicates are detected, a coding issue is logged.
+     *
+     * @return ID
      */
-    Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, P filterParameters)
-        throws InvalidSettingsException;
+    String getId();
 
     /**
-     * Indicates whether this operator considers missing cells as matching the filter criterion or not. In any case,
-     * {@link MissingCell} is never passed to the predicate created by this operator.
+     * Gets a label for the operator, which is shown in the UI and should not be used in cases where a stable ID would
+     * be appropriate.
      *
-     * @implNote The default implementation returns {@code false}, i.e. missing cells never match the filter criterion.
-     *
-     * @return {@code true} if missing cells should match the filter criterion, {@code false} otherwise
+     * @return label
      */
-    default boolean returnTrueForMissingCells() {
-        return false;
-    }
+    String getLabel();
 
-    ;
-
+    /**
+     * Gets the parameters class for creating the node parameters of the operator.
+     *
+     * @return the node parameters class
+     */
+    Class<P> getNodeParametersClass();
 }
