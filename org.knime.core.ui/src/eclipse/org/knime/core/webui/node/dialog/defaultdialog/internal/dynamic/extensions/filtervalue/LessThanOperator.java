@@ -55,9 +55,15 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensio
  */
 public interface LessThanOperator extends FilterOperatorBase {
 
+    /**
+     * Don't use this id in any other operator, don't change it, don't overwrite it for implementations of this
+     * interface.
+     */
+    String ID = "LT";
+
     @Override
     default String getId() {
-        return "LT";
+        return ID;
     }
 
     @Override

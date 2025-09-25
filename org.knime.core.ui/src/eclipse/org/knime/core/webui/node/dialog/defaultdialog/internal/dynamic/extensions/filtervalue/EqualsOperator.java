@@ -49,17 +49,23 @@
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
 /**
- * Interface for equals filter operators that provides the standard ID and label.
- * Concrete equals operators can implement this interface to automatically get
- * the correct equals operator identification without having to implement getId() and getLabel().
+ * Interface for equals filter operators that provides the standard ID and label. Concrete equals operators can
+ * implement this interface to automatically get the correct equals operator identification without having to implement
+ * getId() and getLabel().
  *
  * @author Paul Bärnreuther
  */
 public interface EqualsOperator extends FilterOperatorBase {
 
+    /**
+     * Don't use this id in any other operator, don't change it, don't overwrite it for implementations of this
+     * interface.
+     */
+    String ID = "EQ";
+
     @Override
     default String getId() {
-        return "EQ";
+        return ID;
     }
 
     @Override

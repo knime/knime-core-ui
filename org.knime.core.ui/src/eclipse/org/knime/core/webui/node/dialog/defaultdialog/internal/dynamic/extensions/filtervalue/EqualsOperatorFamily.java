@@ -57,7 +57,6 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.CoreFilterValueOperators.CoreID;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters.SingleCellValueParameters;
 
 /**
@@ -139,43 +138,10 @@ public class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueP
         }
     }
 
-    private final class NotEqual extends NotEqualNorMissing {
+    private abstract class NotEqualBase extends FamilyMember<P> { // NOSONAR only private class
 
-        private NotEqual() {
-            super();
-        }
-
-        @Override
-        public String getId() {
-            return CoreID.NEQ_MISS.name();
-        }
-
-        @Override
-        public String getLabel() {
-            return CoreID.getLabel(CoreID.NEQ_MISS);
-        }
-
-        @Override
-        public boolean returnTrueForMissingCells() {
-            return true;
-        }
-
-    }
-
-    private class NotEqualNorMissing extends FamilyMember<P> { // NOSONAR only private class
-
-        private NotEqualNorMissing() {
+        private NotEqualBase() {
             super(EqualsOperatorFamily.this);
-        }
-
-        @Override
-        public String getId() {
-            return CoreID.NEQ.name();
-        }
-
-        @Override
-        public String getLabel() {
-            return CoreID.getLabel(CoreID.NEQ);
         }
 
         @Override
@@ -185,5 +151,26 @@ public class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueP
             final var eq = EqualsOperatorFamily.this.getEquality(runtimeColumnSpec, this);
             return dv -> !eq.test(dv, dc);
         }
+    }
+
+    private final class NotEqual extends NotEqualBase implements NotEqualsOperator {
+
+        private NotEqual() {
+            super();
+        }
+
+        @Override
+        public boolean returnTrueForMissingCells() {
+            return true;
+        }
+
+    }
+
+    private class NotEqualNorMissing extends NotEqualBase implements NotEqualsNorMissingOperator {
+
+        private NotEqualNorMissing() {
+            super();
+        }
+
     }
 }
