@@ -65,7 +65,7 @@ public interface ValueFilterOperator<V extends DataValue, P extends FilterValueP
 
     @SuppressWarnings("unchecked")
     @Override
-    default Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, final P filterParameters)
+    default Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, DataType configureColumnType, final P filterParameters)
         throws InvalidSettingsException {
         if (!runtimeColumnSpec.getType().isCompatible(getDataType().getPreferredValueClass())) {
             throw ValueFilterValidationUtil

@@ -124,8 +124,8 @@ public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellVa
         }
 
         @Override
-        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, final P filterParameters)
-                throws InvalidSettingsException { //
+        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
+            final DataType configureColumnType, final P filterParameters) throws InvalidSettingsException { //
             final var value = filterParameters.createCell();
             final var comparator = getComparator(runtimeColumnSpec, this);
             return dv -> comparator.applyAsInt(dv, value) < 0;
@@ -139,8 +139,8 @@ public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellVa
         }
 
         @Override
-        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, final P filterParameters)
-                throws InvalidSettingsException { //
+        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
+            final DataType configureColumnType, final P filterParameters) throws InvalidSettingsException { //
             final var value = filterParameters.createCell();
             final var comparator = getComparator(runtimeColumnSpec, this);
             return dv -> comparator.applyAsInt(dv, value) <= 0;
@@ -154,8 +154,8 @@ public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellVa
         }
 
         @Override
-        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, final P filterParameters)
-                throws InvalidSettingsException { //
+        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
+            final DataType configureColumnType, final P filterParameters) throws InvalidSettingsException { //
             final var value = filterParameters.createCell();
             final var comparator = getComparator(runtimeColumnSpec, this);
             return dv -> comparator.applyAsInt(dv, value) > 0;
@@ -169,8 +169,8 @@ public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellVa
         }
 
         @Override
-        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, final P filterParameters)
-                throws InvalidSettingsException { //
+        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
+            final DataType configureColumnType, final P filterParameters) throws InvalidSettingsException { //
             final var value = filterParameters.createCell();
             final var comparator = getComparator(runtimeColumnSpec, this);
             return dv -> comparator.applyAsInt(dv, value) >= 0;

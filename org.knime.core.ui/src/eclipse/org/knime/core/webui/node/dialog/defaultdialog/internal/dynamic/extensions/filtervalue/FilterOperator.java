@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensio
 import java.util.function.Predicate;
 
 import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.MissingCell;
 import org.knime.core.node.InvalidSettingsException;
@@ -73,13 +74,14 @@ public interface FilterOperator<P extends FilterValueParameters> extends FilterO
      * Creates the predicate for filtering data values of type {@code V} based on the given filter parameters.
      *
      * @param runtimeColumnSpec the column spec at runtime, whose values are to be filtered
+     * @param configureColumnType the column type at configuration time
      * @param filterParameters the parameters to create the predicate with
      * @return the predicate for filtering data values of type {@code V}
      * @throws InvalidSettingsException in case the given column spec or filtered parameters are invalid for the
      *             operator
      */
-    Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, P filterParameters)
-        throws InvalidSettingsException;
+    Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, final DataType configureColumnType,
+        P filterParameters) throws InvalidSettingsException;
 
     /**
      * Indicates whether this operator considers missing cells as matching the filter criterion or not. In any case,

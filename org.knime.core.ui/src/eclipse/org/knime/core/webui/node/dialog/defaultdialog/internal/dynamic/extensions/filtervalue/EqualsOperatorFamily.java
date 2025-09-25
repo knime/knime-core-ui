@@ -130,8 +130,8 @@ public class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueP
         }
 
         @Override
-        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, final P filterParameters)
-            throws InvalidSettingsException {
+        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
+            final DataType configureColumnType, final P filterParameters) throws InvalidSettingsException {
             final var dc = filterParameters.createCell();
             final var eq = EqualsOperatorFamily.this.getEquality(runtimeColumnSpec, this);
             return dv -> eq.test(dv, dc);
@@ -145,8 +145,8 @@ public class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueP
         }
 
         @Override
-        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, final P filterParameters)
-            throws InvalidSettingsException {
+        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
+            final DataType configureDataType, final P filterParameters) throws InvalidSettingsException {
             final var dc = filterParameters.createCell();
             final var eq = EqualsOperatorFamily.this.getEquality(runtimeColumnSpec, this);
             return dv -> !eq.test(dv, dc);
