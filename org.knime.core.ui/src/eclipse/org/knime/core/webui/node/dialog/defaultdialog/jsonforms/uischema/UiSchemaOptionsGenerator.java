@@ -304,9 +304,6 @@ final class UiSchemaOptionsGenerator {
                     options.put(TAG_FORMAT, Format.DB_TABLE_CHOOSER);
                     setDbTableChooserOptions(options);
                     break;
-                case DYNAMIC_VALUE:
-                    options.put(TAG_FORMAT, Format.DYNAMIC_VALUE);
-                    break;
             }
         }
 
