@@ -54,10 +54,15 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensio
  * @author Paul Bärnreuther
  */
 public interface GreaterThanOperator extends FilterOperatorBase {
+    /**
+     * Don't use this id in any other operator, don't change it, don't overwrite it for implementations of this
+     * interface.
+     */
+    String ID = "GT";
 
     @Override
     default String getId() {
-        return "GT";
+        return ID;
     }
 
     @Override

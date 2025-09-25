@@ -53,7 +53,7 @@ import org.knime.core.data.DataCell;
 /**
  * Implement this interface to define any of the standard filter operators for data cells:
  * <ul>
- * <li>Use a {@link EqualsOperator} to define the "equals" operator and other operators derived from it (like "not
+ * <li>Use a {@link NotEqualsOperator} to define the "equals" operator and other operators derived from it (like "not
  * equals")</li>
  * <li>Use a {@link LessThanOperator} to define the "less than" operator and with that also "greater than or equals"
  * (note that this can be different to the union of "greater than" and "equals").</li>

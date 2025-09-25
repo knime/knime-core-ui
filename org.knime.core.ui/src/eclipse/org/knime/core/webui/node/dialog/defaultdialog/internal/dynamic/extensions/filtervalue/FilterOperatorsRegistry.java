@@ -53,6 +53,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -95,6 +96,7 @@ public final class FilterOperatorsRegistry {
 
     /**
      * Gets the singleton instance of this registry.
+     *
      * @return the singleton instance of this registry
      */
     public static FilterOperatorsRegistry getInstance() {
@@ -108,8 +110,83 @@ public final class FilterOperatorsRegistry {
      * @return the filter operators for the given data type, or an empty list if there are none
      */
     public List<FilterOperator<FilterValueParameters>> getOperators(final DataType type) {
-        return m_filterOperators.getOrDefault(type, Collections.emptySet()) //
+        final var filterOperators = m_filterOperators.getOrDefault(type, Collections.emptySet()) //
             .stream().map(FilterOp::getOperator).toList();
+        try {
+            validateFilterOperators(filterOperators);
+        } catch (IllegalStateException ex) {
+            LOGGER.error(String.format("Loading operators for data type \"%s\" failed since validation errors ocurred.",
+                type.getName()), ex);
+            return List.of();
+        }
+        return filterOperators;
+    }
+
+    private static void validateFilterOperators(final List<FilterOperator<FilterValueParameters>> filterOperators) {
+        final var partitioned = filterOperators.stream()
+            .collect(Collectors.partitioningBy(FilterOperatorsRegistry::isOverwriteFilterOperator));
+        validateOverwriteOperators(partitioned.get(true));
+        validateNonOverwriteOperators(partitioned.get(false));
+    }
+
+    /**
+     * @param overwriteOperators
+     * @throws IllegalStateException if any of the operators has a wrong id of if the same interface is implemented by
+     *             two operators
+     */
+    private static void
+        validateOverwriteOperators(final List<FilterOperator<FilterValueParameters>> overwriteOperators) {
+        List<Pair<String, Entry<String, Class<? extends FilterOperatorBase>>>> actualIdWithEntry =
+            overwriteOperators.stream().map(op -> {
+                final var entry = OVERWRITE_FILTER_OPERATOR_BASES.entrySet().stream()
+                    .filter(e -> e.getValue().isInstance(op)).findFirst().orElseThrow();
+                return new Pair<>(op.getId(), entry);
+            }).toList();
+        for (final var idWithEntry : actualIdWithEntry) {
+            if (!idWithEntry.getFirst().equals(idWithEntry.getSecond().getKey())) {
+                throw new IllegalStateException(String.format(
+                    "Overwrite filter operator with class '%s' has ID '%s'. This is incorrect, it must be '%s'.",
+                    idWithEntry.getFirst(), idWithEntry.getSecond().getValue().getSimpleName()));
+            }
+        }
+        final var duplicateInterfaceNames = actualIdWithEntry.stream().collect(Collectors.groupingBy(Pair::getFirst))
+            .entrySet().stream().filter(e -> e.getValue().size() > 1)
+            .map(e -> e.getValue().get(0).getSecond().getValue().getSimpleName()).toList();
+        if (duplicateInterfaceNames.size() > 0) {
+            throw new IllegalStateException(
+                String.format("Multiple overwrite filter operators implementing the same interface '%s' found.",
+                    duplicateInterfaceNames));
+        }
+    }
+
+    static void validateNonOverwriteOperators(final List<FilterOperator<FilterValueParameters>> nonOverwriteOperators) {
+        final var ids = new HashSet<String>();
+        for (final var op : nonOverwriteOperators) {
+            if (OVERWRITE_FILTER_OPERATOR_BASES.containsKey(op.getId())) {
+                throw new IllegalStateException(String
+                    .format("Non-overwrite filter operator with ID '%s' found. This ID is reserved for internal use. "
+                        + "Please choose a different ID for your operator.", op.getId()));
+            }
+            if (!ids.add(op.getId())) {
+                throw new IllegalStateException(String.format(
+                    "Multiple non-overwrite filter operators with ID '%s' found. Please choose different IDs for your operators.",
+                    op.getId()));
+            }
+        }
+    }
+
+    static final Map<String, Class<? extends FilterOperatorBase>> OVERWRITE_FILTER_OPERATOR_BASES = Map.ofEntries( //
+        Map.entry(EqualsOperator.ID, EqualsOperator.class), //
+        Map.entry(NotEqualsOperator.ID, NotEqualsOperator.class), //
+        Map.entry(NotEqualsNorMissingOperator.ID, NotEqualsNorMissingOperator.class), //
+        Map.entry(LessThanOperator.ID, LessThanOperator.class), //
+        Map.entry(GreaterThanOperator.ID, GreaterThanOperator.class), //
+        Map.entry(LessThanOrEqualOperator.ID, LessThanOrEqualOperator.class), //
+        Map.entry(GreaterThanOrEqualOperator.ID, GreaterThanOrEqualOperator.class) //
+    );
+
+    static boolean isOverwriteFilterOperator(final FilterOperator<FilterValueParameters> operator) {
+        return OVERWRITE_FILTER_OPERATOR_BASES.values().stream().anyMatch(c -> c.isInstance(operator));
     }
 
     /**
@@ -137,8 +214,7 @@ public final class FilterOperatorsRegistry {
         final FilterOperators doubleOps = new CoreFilterValueOperators.DoubleCellOperators();
 
         return Stream.of(intOps, longOps, doubleOps) //
-            .map(FilterOperatorsRegistry::toDataTypePair) //
-        ;
+            .map(FilterOperatorsRegistry::toDataTypePair);
     }
 
     /**
@@ -194,6 +270,7 @@ public final class FilterOperatorsRegistry {
             other.m_ops.forEach(this::add);
             return this;
         }
+
         @Override
         public Supplier<FilterOpAcc> supplier() {
             return FilterOpAcc::new;

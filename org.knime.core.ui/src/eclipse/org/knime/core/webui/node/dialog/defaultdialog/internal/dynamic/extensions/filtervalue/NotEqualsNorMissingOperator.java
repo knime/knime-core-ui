@@ -49,16 +49,19 @@
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
 /**
- * Interface for greater than or equal filter operators that provides the standard ID and label.
+ * Interface for not equals nor missing filter operators that provides the standard ID and label. Concrete not equals
+ * nor missing operators can implement this interface to automatically get the correct equals operator identification
+ * without having to implement getId() and getLabel().
  *
  * @author Paul Bärnreuther
  */
-public interface GreaterThanOrEqualOperator extends FilterOperatorBase {
+public interface NotEqualsNorMissingOperator extends FilterOperatorBase {
+
     /**
      * Don't use this id in any other operator, don't change it, don't overwrite it for implementations of this
      * interface.
      */
-    String ID = "GTE";
+    String ID = "NEQ_MISS";
 
     @Override
     default String getId() {
@@ -67,6 +70,6 @@ public interface GreaterThanOrEqualOperator extends FilterOperatorBase {
 
     @Override
     default String getLabel() {
-        return "Greater than or equal";
+        return "Is not equal (nor missing)";
     }
 }
