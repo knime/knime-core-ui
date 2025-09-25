@@ -50,7 +50,6 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -60,20 +59,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.defaultnodesettings.SettingsModelAuthentication;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.EnumSettingsModelStringPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelBooleanPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelDoublePersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelIntegerPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelLongPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelOptionalStringPersistor;
-import org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel.SettingsModelStringPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.AuthenticationType;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.AuthenticationSettings.SettingsModelAuthenticationMigrator;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistable;
-import org.knime.node.parameters.persistence.Persistor;
 import org.knime.node.parameters.widget.credentials.Credentials;
 
 /**
@@ -87,40 +78,6 @@ class SettingsModelPersistorTest {
 
     private enum TestEnum {
             A, B, C;
-    }
-
-    static final class TestEnumSettingsModelStringPersistor extends EnumSettingsModelStringPersistor<TestEnum> {
-
-        TestEnumSettingsModelStringPersistor() {
-            super(CFG_KEY, TestEnum.class);
-        }
-
-    }
-
-    static final class EnumSettingsModelStringPersistorTestSettings implements PersistableSettingsWithComparableValue {
-
-        EnumSettingsModelStringPersistorTestSettings() {
-            // empty constructor required by contract
-        }
-
-        EnumSettingsModelStringPersistorTestSettings(final TestEnum value) {
-            m_value = value;
-        }
-
-        @Persistor(TestEnumSettingsModelStringPersistor.class)
-        TestEnum m_value;
-
-        @Override
-        public Object getCompareValue() {
-            return m_value;
-        }
-
-    }
-
-    @Test
-    void testEnumSettingsModelString() throws Exception {
-        testSaveLoad(new EnumSettingsModelStringPersistorTestSettings(TestEnum.B));
-        testSaveLoad(new EnumSettingsModelStringPersistorTestSettings(null));
     }
 
     static final class SettingsModelAuthenticationMigratorTestSettings
@@ -182,194 +139,6 @@ class SettingsModelPersistorTest {
 
         final var expected = new AuthenticationSettings(newType, new Credentials(username, password));
         assertEquals(expected, loaded.m_value);
-    }
-
-    static final class SettingsModelIntegerPersistorTestSettings implements PersistableSettingsWithComparableValue {
-
-        SettingsModelIntegerPersistorTestSettings() {
-            // empty constructor required by contract
-        }
-
-        SettingsModelIntegerPersistorTestSettings(final int value) {
-            m_value = value;
-        }
-
-        static final class TestSettingsModelIntegerPersistor extends SettingsModelIntegerPersistor {
-            TestSettingsModelIntegerPersistor() {
-                super(CFG_KEY);
-            }
-        }
-
-        @Persistor(TestSettingsModelIntegerPersistor.class)
-        int m_value;
-
-        @Override
-        public Object getCompareValue() {
-            return m_value;
-        }
-
-    }
-
-    @Test
-    void testSettingsModelInteger() throws Exception {
-        testSaveLoad(new SettingsModelIntegerPersistorTestSettings(42));
-    }
-
-    static final class SettingsModelStringPersistorTestSettings implements PersistableSettingsWithComparableValue {
-
-        SettingsModelStringPersistorTestSettings() {
-            // empty constructor required by contract
-        }
-
-        SettingsModelStringPersistorTestSettings(final String value) {
-            m_value = value;
-        }
-
-        static final class TestSettingsModelStringPersistor extends SettingsModelStringPersistor {
-            TestSettingsModelStringPersistor() {
-                super(CFG_KEY);
-            }
-        }
-
-        @Persistor(TestSettingsModelStringPersistor.class)
-        String m_value;
-
-        @Override
-        public Object getCompareValue() {
-            return m_value;
-        }
-
-    }
-
-    @Test
-    void testSettingsModelString() throws InvalidSettingsException {
-        testSaveLoad(new SettingsModelStringPersistorTestSettings("foobar"));
-        testSaveLoad(new SettingsModelStringPersistorTestSettings(null));
-    }
-
-    static final class SettingsModelOptionalStringPersistorTestSettings
-        implements PersistableSettingsWithComparableValue {
-
-        SettingsModelOptionalStringPersistorTestSettings() {
-            // empty constructor required by contract
-        }
-
-        SettingsModelOptionalStringPersistorTestSettings(final Optional<String> value) {
-            m_value = value;
-        }
-
-        static final class TestSettingsModelOptionalStringPersistor extends SettingsModelOptionalStringPersistor {
-            TestSettingsModelOptionalStringPersistor() {
-                super(CFG_KEY);
-            }
-        }
-
-        @Persistor(TestSettingsModelOptionalStringPersistor.class)
-        Optional<String> m_value;
-
-        @Override
-        public Object getCompareValue() {
-            return m_value;
-        }
-
-    }
-
-    @Test
-    void testSettingsModelOptionalString() throws InvalidSettingsException {
-        testSaveLoad(new SettingsModelOptionalStringPersistorTestSettings(Optional.of("foobar")));
-        testSaveLoad(new SettingsModelOptionalStringPersistorTestSettings(Optional.empty()));
-    }
-
-    static final class SettingsModelLongPersistorTestSettings implements PersistableSettingsWithComparableValue {
-
-        SettingsModelLongPersistorTestSettings() {
-            // empty constructor required by contract
-        }
-
-        SettingsModelLongPersistorTestSettings(final long value) {
-            m_value = value;
-        }
-
-        static final class TestSettingsModelLongPersistor extends SettingsModelLongPersistor {
-            TestSettingsModelLongPersistor() {
-                super(CFG_KEY);
-            }
-        }
-
-        @Persistor(TestSettingsModelLongPersistor.class)
-        long m_value;
-
-        @Override
-        public Object getCompareValue() {
-            return m_value;
-        }
-
-    }
-
-    @Test
-    void testSettingsModelLong() throws Exception {
-        testSaveLoad(new SettingsModelLongPersistorTestSettings(Long.MAX_VALUE));
-    }
-
-    static final class SettingsModelDoublePersistorTestSettings implements PersistableSettingsWithComparableValue {
-
-        SettingsModelDoublePersistorTestSettings() {
-            // empty constructor required by contract
-        }
-
-        SettingsModelDoublePersistorTestSettings(final double value) {
-            m_value = value;
-        }
-
-        static final class TestSettingsModelDoublePersistor extends SettingsModelDoublePersistor {
-            TestSettingsModelDoublePersistor() {
-                super(CFG_KEY);
-            }
-        }
-
-        @Persistor(TestSettingsModelDoublePersistor.class)
-        double m_value;
-
-        @Override
-        public Object getCompareValue() {
-            return m_value;
-        }
-    }
-
-    @Test
-    void testSettingsModelDouble() throws Exception {
-        testSaveLoad(new SettingsModelDoublePersistorTestSettings(13.37));
-    }
-
-    static final class SettingsModelBooleanPersistorTestSettings implements PersistableSettingsWithComparableValue {
-
-        SettingsModelBooleanPersistorTestSettings() {
-            // empty constructor required by contract
-        }
-
-        SettingsModelBooleanPersistorTestSettings(final boolean value) {
-            m_value = value;
-        }
-
-        static final class TestSettingsModelBooleanPersistor extends SettingsModelBooleanPersistor {
-            TestSettingsModelBooleanPersistor() {
-                super(CFG_KEY);
-            }
-        }
-
-        @Persistor(TestSettingsModelBooleanPersistor.class)
-        boolean m_value;
-
-        @Override
-        public Object getCompareValue() {
-            return m_value;
-        }
-    }
-
-    @Test
-    void testSettingsModelBoolean() throws Exception {
-        testSaveLoad(new SettingsModelBooleanPersistorTestSettings(true));
-        testSaveLoad(new SettingsModelBooleanPersistorTestSettings(false));
     }
 
     private static <T extends PersistableSettingsWithComparableValue> void testSaveLoad(final T value)

@@ -44,56 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 18, 2024 (Paul Bärnreuther): created
+ *   Sep 25, 2025 (Marc Bux, KNIME GmbH, Berlin, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel;
+package org.knime.node.parameters.persistence.legacy;
+
+import java.util.Optional;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
- * Combines the two config keys present in the {@link SettingsModelColumnName} into one string by using the value
- * "<row-keys>" for row keys.
+ * A persistor for loading string setting that is controlled by another boolean setting as an {@link Optional}
+ * string.
  *
- * @author Paul Bärnreuther
+ * @author Marc Bux, KNIME GmbH, Berlin, Germany
  */
-public class SettingsModelColumnNamePersistor implements NodeParametersPersistor<String> {
+public abstract class OptionalStringPersistor implements NodeParametersPersistor<Optional<String>> {
 
-    private static final String ROW_KEYS_PLACEHOLDER = "<row-keys>";
+    private final String m_booleanCfgKey;
 
-    private final String m_configKey;
+    private final String m_stringCfgKey;
 
     /**
-     * @param configKey the root config key used by the settings model
+     * Constructor.
+     *
+     * @param booleanCfgKey the config key of the boolean setting that controls whether the string is set
+     * @param stringCfgKey the config key of the string setting
      */
-    protected SettingsModelColumnNamePersistor(final String configKey) {
-        m_configKey = configKey;
+    protected OptionalStringPersistor(final String booleanCfgKey, final String stringCfgKey) {
+        m_booleanCfgKey = booleanCfgKey;
+        m_stringCfgKey = stringCfgKey;
     }
 
     @Override
-    public String load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final var model = new SettingsModelColumnName(m_configKey, "");
-        model.loadSettingsFrom(settings);
-        return model.useRowID() ? ROW_KEYS_PLACEHOLDER : model.getColumnName();
-    }
-
-    @Override
-    public void save(final String column, final NodeSettingsWO settings) {
-        var sm = new SettingsModelColumnName(m_configKey, "");
-        if (ROW_KEYS_PLACEHOLDER.equals(column)) {
-            sm.setSelection("", true);
+    public void save(final Optional<String> param, final NodeSettingsWO settings) {
+        if (param.isPresent()) {
+            settings.addBoolean(m_booleanCfgKey, true);
+            settings.addString(m_stringCfgKey, param.get());
         } else {
-            sm.setSelection(column, false);
+            settings.addBoolean(m_booleanCfgKey, false);
+            settings.addString(m_stringCfgKey, null);
         }
-        sm.saveSettingsTo(settings);
+    }
+
+    @Override
+    public Optional<String> load(final NodeSettingsRO settings) throws InvalidSettingsException {
+        return settings.getBoolean(m_booleanCfgKey) ? Optional.of(settings.getString(m_stringCfgKey))
+            : Optional.empty();
     }
 
     @Override
     public String[][] getConfigPaths() {
-        return new String[][]{{m_configKey, "columnName"}, {m_configKey, "useRowID"}};
+        return new String[][]{{m_booleanCfgKey}, {m_stringCfgKey}};
     }
-
 }

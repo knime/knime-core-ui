@@ -18,9 +18,9 @@
  *
  *  Additional permission under GNU GPL version 3 section 7:
  *
- *  KNIME doubleeroperates with ECLIPSE solely via ECLIPSE's plug-in APIs.
+ *  KNIME interoperates with ECLIPSE solely via ECLIPSE's plug-in APIs.
  *  Hence, KNIME and ECLIPSE are both independent programs and are not
- *  derived from each other. Should, however, the doubleerpretation of the
+ *  derived from each other. Should, however, the interpretation of the
  *  GNU GPL Version 3 ("License") under any applicable laws result in
  *  KNIME and ECLIPSE being a combined program, KNIME AG herewith grants
  *  you the additional permission to use and propagate KNIME together with
@@ -31,60 +31,61 @@
  *
  *  Additional permission relating to nodes for KNIME that extend the Node
  *  Extension (and in particular that are based on subclasses of NodeModel,
- *  NodeDialog, and NodeView) and that only doubleeroperate with KNIME through
+ *  NodeDialog, and NodeView) and that only interoperate with KNIME through
  *  standard APIs ("Nodes"):
  *  Nodes are deemed to be separate and independent programs and to not be
  *  covered works.  Notwithstanding anything to the contrary in the
  *  License, the License does not apply to Nodes, you are not required to
  *  license Nodes under the License, and you are granted a license to
  *  prepare and propagate Nodes, in each case even if such Nodes are
- *  propagated with or for doubleeroperation with KNIME.  The owner of a Node
+ *  propagated with or for interoperation with KNIME.  The owner of a Node
  *  may freely choose the license terms applicable to such Node, including
- *  when such Node is propagated with or for doubleeroperation with KNIME.
+ *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  *
  * History
  *   Sep 18, 2024 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel;
+package org.knime.node.parameters.persistence.legacy;
+
+import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice.ROW_ID;
+
+import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
-import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.node.parameters.migration.ConfigMigration;
+import org.knime.node.parameters.migration.NodeParametersMigration;
 
 /**
- * Saves a Double or double field as if it was controlled by a {@link SettingsModelDouble}.
+ * The {@link SettingsModelColumnName} is migrated to a {@link StringOrEnum} that can hold either a column name or the
+ * special choice {@link RowIDChoice#ROW_ID}.
  *
  * @author Paul Bärnreuther
  */
-public class SettingsModelDoublePersistor implements NodeParametersPersistor<Double> {
+public class SettingsModelColumnNameMigration implements NodeParametersMigration<StringOrEnum<RowIDChoice>> {
 
-    private final String m_configKey;
+    private final String m_legacyConfigKey;
 
     /**
-     * @param configKey the root config key used by the settings model
+     * @param legacyConfigKey the root config key that had been used by the settings model and is now deprecated
      */
-    protected SettingsModelDoublePersistor(final String configKey) {
-        m_configKey = configKey;
+    protected SettingsModelColumnNameMigration(final String legacyConfigKey) {
+        m_legacyConfigKey = legacyConfigKey;
     }
 
-    @Override
-    public Double load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final var model = new SettingsModelDouble(m_configKey, 0);
+    private StringOrEnum<RowIDChoice> loadLegacy(final NodeSettingsRO settings) throws InvalidSettingsException {
+        final var model = new SettingsModelColumnName(m_legacyConfigKey, "");
         model.loadSettingsFrom(settings);
-        return model.getDoubleValue();
+        return model.useRowID() ? new StringOrEnum<>(ROW_ID) : new StringOrEnum<>(model.getColumnName());
     }
 
     @Override
-    public void save(final Double obj, final NodeSettingsWO settings) {
-        new SettingsModelDouble(m_configKey, obj).saveSettingsTo(settings);
-    }
-
-    @Override
-    public String[][] getConfigPaths() {
-        return new String[][]{{m_configKey}};
+    public List<ConfigMigration<StringOrEnum<RowIDChoice>>> getConfigMigrations() {
+        return List.of(ConfigMigration.builder(this::loadLegacy).withDeprecatedConfigPath(m_legacyConfigKey).build());
     }
 
 }

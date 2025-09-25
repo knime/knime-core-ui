@@ -44,48 +44,26 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 18, 2024 (Paul Bärnreuther): created
+ *   May 2, 2023 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel;
-
-import static org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice.ROW_ID;
-
-import java.util.List;
-
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.RowIDChoice;
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
-import org.knime.node.parameters.migration.ConfigMigration;
-import org.knime.node.parameters.migration.NodeParametersMigration;
-
 /**
- * The {@link SettingsModelColumnName} is migrated to a {@link StringOrEnum} that can hold either a column name or the
- * special choice {@link RowIDChoice#ROW_ID}.
+ * This package contains the logic and API for defining how {@link NodeParameters} are persisted to
+ * {@link NodeSettings}.
  *
- * @author Paul Bärnreuther
+ * <p>
+ * A {@link org.knime.core.webui.node.dialog.defaultdialog.persistence.NodeParametersPersistor NodeSettingsPersistor} is
+ * responsible for persisting one kind of java type. Such persistors can be attached to classes (via the
+ * {@link org.knime.node.parameters.persistence.Persistor @Persistor} annotation) and fields (via
+ * the {@link org.knime.node.parameters.persistence.Persist @Persist} annotation) within
+ * {@link NodeParameters}.
+ * </p>
+ *
+ * <p>
+ * Per default settings are persisted field and most java types have a default persistor that is automatically used. So
+ * usually, setting custom persistors is only required for achieving backwards-compatibility. In this case, the
+ * {@link org.knime.core.webui.node.dialog.defaultdialog.persistence.api.DefaultPersistorWithDeprecations
+ * DefaultPersistorWithDeprecations} that is only able to load but no to save old settings might be a better fit than a
+ * persistor with a custom save method.
+ * </p>
  */
-public class SettingsModelColumnNameMigration implements NodeParametersMigration<StringOrEnum<RowIDChoice>> {
-
-    private final String m_legacyConfigKey;
-
-    /**
-     * @param legacyConfigKey the root config key that had been used by the settings model and is now deprecated
-     */
-    protected SettingsModelColumnNameMigration(final String legacyConfigKey) {
-        m_legacyConfigKey = legacyConfigKey;
-    }
-
-    private StringOrEnum<RowIDChoice> loadLegacy(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final var model = new SettingsModelColumnName(m_legacyConfigKey, "");
-        model.loadSettingsFrom(settings);
-        return model.useRowID() ? new StringOrEnum<>(ROW_ID) : new StringOrEnum<>(model.getColumnName());
-    }
-
-    @Override
-    public List<ConfigMigration<StringOrEnum<RowIDChoice>>> getConfigMigrations() {
-        return List.of(ConfigMigration.builder(this::loadLegacy).withDeprecatedConfigPath(m_legacyConfigKey).build());
-    }
-
-}
+package org.knime.core.webui.node.dialog.defaultdialog.persistence;

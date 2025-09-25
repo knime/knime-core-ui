@@ -88,7 +88,7 @@ import org.knime.node.parameters.widget.credentials.CredentialsWidget;
  *
  * @author Paul Bärnreuther
  */
-@Persistor(LegacyAuthenticationSettings.SettingsModelAuthenticationPersistor.class)
+@Persistor(LegacyAuthenticationSettings.LegacyAuthenticationSettingsPersistor.class)
 public final class LegacyAuthenticationSettings extends BaseAuthenticationSettings {
 
     @Widget(title = "Credentials", description = "The credentials used for the authentication.")
@@ -138,7 +138,8 @@ public final class LegacyAuthenticationSettings extends BaseAuthenticationSettin
         return new AuthenticationSettings(m_type, m_legacyCredentials.toCredentials());
     }
 
-    static class SettingsModelAuthenticationPersistor implements NodeParametersPersistor<LegacyAuthenticationSettings> {
+    static class LegacyAuthenticationSettingsPersistor
+        implements NodeParametersPersistor<LegacyAuthenticationSettings> {
 
         @Override
         public LegacyAuthenticationSettings load(final NodeSettingsRO settings) throws InvalidSettingsException {
