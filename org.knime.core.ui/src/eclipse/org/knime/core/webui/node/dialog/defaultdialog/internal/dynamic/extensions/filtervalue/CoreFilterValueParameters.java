@@ -50,27 +50,37 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensio
 
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
+import org.knime.core.data.DoubleValue;
+import org.knime.core.data.IntValue;
+import org.knime.core.data.LongValue;
+import org.knime.core.data.StringValue;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.DoubleCell.DoubleCellFactory;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.IntCell.IntCellFactory;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.LongCell.LongCellFactory;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters.SingleCellValueParameters;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.widget.number.NumberInputWidget;
+import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation;
 
 /**
  * Dynamically loaded parameters core data types.
  *
+ * @noreference This class is not intended to be referenced by clients.
+ *
  * @author Paul Bärnreuther
  */
-final class CoreFilterValueParameters {
+// TODO think about where to put these classes...
+public final class CoreFilterValueParameters {
 
     private CoreFilterValueParameters() {
         // utility class containing nested types.
     }
 
-    static final class IntCellParameters implements SingleCellValueParameters<IntCell> {
+    public static final class IntCellParameters implements SingleCellValueParameters<IntCell> {
 
         @Widget(title = FILTER_VALUE_TITLE, description = FILTER_VALUE_DESCRIPTION)
         int m_value;
@@ -104,7 +114,7 @@ final class CoreFilterValueParameters {
 
     }
 
-    static final class DoubleCellParameters implements SingleCellValueParameters<DoubleCell> {
+    public static final class DoubleCellParameters implements SingleCellValueParameters<DoubleCell> {
 
         @Widget(title = FILTER_VALUE_TITLE, description = FILTER_VALUE_DESCRIPTION)
         double m_value;
@@ -147,7 +157,7 @@ final class CoreFilterValueParameters {
 
     }
 
-    static final class LongCellParameters implements SingleCellValueParameters<LongCell> {
+    public static final class LongCellParameters implements SingleCellValueParameters<LongCell> {
 
         @Widget(title = FILTER_VALUE_TITLE, description = FILTER_VALUE_DESCRIPTION)
         long m_value;
@@ -174,6 +184,66 @@ final class CoreFilterValueParameters {
                 loadFrom(longCell);
             } else if (first instanceof IntCell intCell) {
                 m_value = intCell.getIntValue();
+            }
+        }
+    }
+
+    private static final class NonNegative extends MinValidation {
+        @Override
+        protected double getMin() {
+            return 1;
+        }
+    }
+
+    public static final class RowNumberParameters implements SingleCellValueParameters<LongCell> {
+
+        @Widget(title = "Row number", description = "The row number to compare with (1-based).")
+        @NumberInputWidget(minValidation = NonNegative.class)
+        long m_value;
+
+        public RowNumberParameters() {
+            m_value = 1;
+        }
+
+        public RowNumberParameters(final long initialValue) {
+            CheckUtils.checkArgumentNotNull(initialValue >= 1, "Row number must be larger than zero: %d", initialValue);
+            m_value = initialValue;
+        }
+
+        @Override
+        public LongCell createCell() {
+            return new LongCell(m_value);
+        }
+
+        @Override
+        public DataType getSpecificType() {
+            return LongCellFactory.TYPE;
+        }
+
+        @Override
+        public void loadFrom(final LongCell cellFromStash) {
+            m_value = cellFromStash.getLongValue();
+        }
+
+        @Override
+        public void applyStash(final DataValue[] stashedValues) {
+            final var first = stashedValues[0];
+            long value = 0; // illegal value as placeholder
+            if (first instanceof LongValue l) {
+                value = l.getLongValue();
+            } else if (first instanceof IntValue i) {
+                value = i.getIntValue();
+            } else if (first instanceof DoubleValue d) {
+                value = (long)d.getDoubleValue();
+            } else if (first instanceof StringValue s) {
+                try {
+                    value = Long.parseUnsignedLong(s.getStringValue());
+                } catch (final NumberFormatException e) { // NOSONAR best-effort
+                    // ignore
+                }
+            }
+            if (value >= 1) {
+                m_value = value;
             }
         }
     }
