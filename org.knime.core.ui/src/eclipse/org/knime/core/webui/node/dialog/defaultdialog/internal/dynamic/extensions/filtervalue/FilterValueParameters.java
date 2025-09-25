@@ -82,18 +82,13 @@ public interface FilterValueParameters extends DynamicNodeParameters {
     }
 
     /**
-     * Parameters class indicating that the operator does not need any parameters.
-     */
-    final class None implements FilterValueParameters {}
-
-    /**
      * Parameters able to create a data value of a specific data type.
      *
      * Use the {FILTER_VALUE_TITLE} and {FILTER_VALUE_DESCRIPTION} constants when the parameters contain only one
      * {@link Widget} to ensure consistent naming of dynamic parameters in the dialog.
      *
      *
-     * @param <V> the type of the value
+     * @param <C> the type of the cell created by the parameters
      */
     interface SingleCellValueParameters<C extends DataCell> extends FilterValueParameters {
 
@@ -115,7 +110,7 @@ public interface FilterValueParameters extends DynamicNodeParameters {
 
         @Override
         default DataValue[] stash() {
-            return new DataValue[] {createCell()};
+            return new DataValue[]{createCell()};
         }
 
         @SuppressWarnings("unchecked") // safe cast since V is a value implemented by targetType which is more general
