@@ -42,47 +42,70 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   26 Aug 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.persistors.settingsmodel;
+package org.knime.node.parameters.persistence.legacy;
 
-import java.util.Optional;
+import java.util.Arrays;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelOptionalString;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 
 /**
- * Saves an Optional<String> field if it was controlled by a {@link SettingsModelOptionalString}.
+ * Persistor for an enum with exactly two values that is stored as if it were a boolean.
  *
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @param <E> the type of the enum
+ * @since 5.8
  */
-public abstract class SettingsModelOptionalStringPersistor implements NodeParametersPersistor<Optional<String>> {
+public abstract class EnumBooleanPersistor<E extends Enum<E>> implements NodeParametersPersistor<E> {
 
-    private final String m_configKey;
+    final String m_configKey;
+
+    final E m_trueValue;
+
+    final E m_falseValue;
 
     /**
-     * @param configKey the config key of the settings model
+     * Constructor for a new two-value enum persistor that is stored as boolean in the settings.
+     *
+     * @param configKey the config key to use for storing the boolean value
+     * @param enumClass the enum class to persist values of
+     * @param trueValue the enum value that is represented by {@code true} in the settings, the other value will be
+     *            represented by {@code false}
+     * @throws IllegalArgumentException if the given enum class does not have exactly two values
      */
-    protected SettingsModelOptionalStringPersistor(final String configKey) {
+    protected EnumBooleanPersistor(final String configKey, final Class<E> enumClass, final E trueValue) {
         m_configKey = configKey;
+        m_trueValue = trueValue;
+        // to be able to represent as boolean config, it must have exactly two values
+        // runtime check is better than nothing...
+        final var consts = enumClass.getEnumConstants();
+        if (consts.length != 2) {
+            final var names = String.join(", ", Arrays.stream(consts).map(Enum::name).toArray(String[]::new));
+            throw new IllegalArgumentException("Enum class \"%s\" must have exactly two values, has: \"%s\""
+                .formatted(enumClass.getSimpleName(), names));
+        }
+        m_falseValue = consts[0] == m_trueValue ? consts[1] : consts[0];
     }
 
     @Override
-    public Optional<String> load(final NodeSettingsRO settings) throws InvalidSettingsException {
-        final var model = new SettingsModelOptionalString(m_configKey, "", false);
-        model.loadSettingsFrom(settings);
-        return model.isActive() ? Optional.of(model.getStringValue()) : Optional.empty();
+    public void save(final E obj, final NodeSettingsWO settings) {
+        settings.addBoolean(m_configKey, obj == m_trueValue);
     }
 
     @Override
-    public void save(final Optional<String> obj, final NodeSettingsWO settings) {
-        new SettingsModelOptionalString(m_configKey, obj.orElse(""), obj.isPresent()).saveSettingsTo(settings);
+    public E load(final NodeSettingsRO settings) throws InvalidSettingsException {
+        return settings.getBoolean(m_configKey) ? m_trueValue : m_falseValue;
     }
 
     @Override
-    public String[][] getConfigPaths() {
+    public final String[][] getConfigPaths() {
         return new String[][]{{m_configKey}};
     }
 }
