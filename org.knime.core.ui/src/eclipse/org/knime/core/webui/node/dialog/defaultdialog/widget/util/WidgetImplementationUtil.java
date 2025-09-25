@@ -59,9 +59,8 @@ import java.util.stream.Collectors;
 import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
@@ -144,7 +143,6 @@ public final class WidgetImplementationUtil {
             DATA_TYPE, //
             DATE_INTERVAL, //
             DB_TABLE_CHOOSER, //
-            DYNAMIC_VALUE, //
             FILE_CHOOSER, //
             FLOW_VARIABLE_FILTER, //
             INTERVAL, //
@@ -219,7 +217,6 @@ public final class WidgetImplementationUtil {
         new DefaultWidget(List.of(Interval.class), DefaultWidgetType.INTERVAL), //
         new DefaultWidget(List.of(DateInterval.class), DefaultWidgetType.DATE_INTERVAL), //
         new DefaultWidget(List.of(TimeInterval.class), DefaultWidgetType.TIME_INTERVAL), //
-        new DefaultWidget(List.of(DynamicValuesInput.class), DefaultWidgetType.DYNAMIC_VALUE), //
         new DefaultWidget(List.of(DataType.class), DefaultWidgetType.DATA_TYPE) //
     };
 

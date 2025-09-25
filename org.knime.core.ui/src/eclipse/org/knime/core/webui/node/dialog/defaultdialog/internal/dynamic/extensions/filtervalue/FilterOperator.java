@@ -95,7 +95,7 @@ public interface FilterOperator<P extends FilterValueParameters> extends FilterO
         return false;
     }
 
-    default boolean isHidden() {
+    default boolean isDeprecated() {
         return false;
     }
 
