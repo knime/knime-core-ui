@@ -15,7 +15,7 @@ type DynamicInputUiSchema = {
   };
 };
 
-const props = defineProps<VueControlProps<object>>();
+const props = defineProps<VueControlProps<object | null>>();
 const uischema = computed(() => props.control.uischema as DynamicInputUiSchema);
 
 const dynamicSettings = useProvidedState(uischema, "dynamicSettings");
@@ -28,15 +28,9 @@ const providedSchema = computed(() =>
 
 const providedData = computed(() => dynamicSettings.value?.data ?? null);
 
-watch(
-  providedData,
-  (newData) => {
-    if (newData) {
-      props.changeValue(newData);
-    }
-  },
-  { immediate: true },
-);
+watch(providedData, (newData) => props.changeValue(newData), {
+  immediate: true,
+});
 </script>
 
 <template>

@@ -58,9 +58,10 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensio
 public interface FilterOperatorDefinition<P extends FilterValueParameters> extends FilterOperatorBase {
 
     /**
-     * Gets the parameters class for creating the node parameters of the operator.
+     * Gets the parameters class for creating the node parameters of the operator. Return null if the operator does not
+     * have any parameters.
      *
-     * @return the node parameters class
+     * @return the node parameters class or null if no parameters
      */
     Class<P> getNodeParametersClass();
 }
