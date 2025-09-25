@@ -42,7 +42,34 @@
         "typeFilter": {
           "selectedTypes": ["typeA"]
         },
-
+        "patternFilter": {
+          "pattern": ""
+        }
+      },
+      "ColumnFilterWithoutChoices": {
+        "mode": "MANUAL",
+        "manualFilter": {
+          "manuallySelected": [],
+          "manuallyDeselected": [],
+          "includeUnknownColumns": false
+        },
+        "typeFilter": {
+          "selectedTypes": ["typeA"]
+        },
+        "patternFilter": {
+          "pattern": ""
+        }
+      },
+      "ColumnFilterWithHiddenTypeFilter": {
+        "mode": "MANUAL",
+        "manualFilter": {
+          "manuallySelected": ["foo", "foo2"],
+          "manuallyDeselected": ["bar", "bar2"],
+          "includeUnknownColumns": false
+        },
+        "typeFilter": {
+          "selectedTypes": ["typeA"]
+        },
         "patternFilter": {
           "pattern": ""
         }
@@ -99,6 +126,22 @@
           }
         },
         "ColumnFilter": {
+          "type": "object",
+          "properties": {
+            "selected": {
+              "type": "array"
+            }
+          }
+        },
+        "ColumnFilterWithoutChoices": {
+          "type": "object",
+          "properties": {
+            "selected": {
+              "type": "array"
+            }
+          }
+        },
+        "ColumnFilterWithHiddenTypeFilter": {
           "type": "object",
           "properties": {
             "selected": {
@@ -202,11 +245,49 @@
         },
         {
           "type": "Control",
+          "scope": "properties/ColumnFilterWithoutChoices",
+          "options": {
+            "format": "typedStringFilter",
+            "emptyStateLabel": "No columns in this list",
+            "unknownValuesText": "Any unknown column",
+            "possibleValues": []
+          }
+        },
+        {
+          "type": "Control",
           "scope": "properties/ColumnFilterWithIncludedUnknownColumns",
           "options": {
             "format": "typedStringFilter",
             "emptyStateLabel": "No columns in this list",
             "unknownValuesText": "Any unknown column",
+            "possibleValues": [
+              {
+                "id": "foo",
+                "text": "Foo",
+                "type": {
+                  "id": "image-png-datatype",
+                  "text": "Image PNG"
+                }
+              },
+              {
+                "id": "bar",
+                "text": "Bar",
+                "type": {
+                  "id": "duration-date-based-datatype",
+                  "text": "Duration Date Based"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "Control",
+          "scope": "properties/ColumnFilterWithHiddenTypeFilter",
+          "options": {
+            "format": "typedStringFilter",
+            "emptyStateLabel": "No columns in this list",
+            "unknownValuesText": "Any unknown column",
+            "hideTypeFilter": true,
             "possibleValues": [
               {
                 "id": "foo",

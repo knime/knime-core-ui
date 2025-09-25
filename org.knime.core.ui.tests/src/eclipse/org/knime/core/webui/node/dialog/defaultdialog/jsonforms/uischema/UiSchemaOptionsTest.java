@@ -98,6 +98,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.Credential
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.TypedStringFilterWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
@@ -143,7 +144,12 @@ import org.knime.node.parameters.widget.choices.StringChoice;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
+import org.knime.node.parameters.widget.choices.filter.ColumnFilterWidget;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
+import org.knime.node.parameters.widget.choices.filter.FlowVariableFilterWidget;
 import org.knime.node.parameters.widget.choices.filter.StringFilter;
+import org.knime.node.parameters.widget.choices.util.AllFlowVariablesProvider;
+import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.StringColumnsProvider;
 import org.knime.node.parameters.widget.credentials.Credentials;
 import org.knime.node.parameters.widget.credentials.CredentialsWidget;
 import org.knime.node.parameters.widget.credentials.PasswordWidget;
@@ -2091,5 +2097,31 @@ class UiSchemaOptionsTest {
         public Optional<List<String>> listCatalogs() throws SQLException {
             return Optional.of(List.of("catalog1", "catalog2"));
         }
+    }
+
+    @Test
+    void testTypedStringFilterWidgetInternal() {
+
+        var response = buildTestUiSchema(SettingsUsingTypedStringFilterWidgetInternal.class);
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("columnFilter");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("typedStringFilter");
+        assertThatJson(response).inPath("$.elements[0].options.hideTypeFilter").isBoolean().isTrue();
+
+        assertThatJson(response).inPath("$.elements[1].scope").isString().contains("flowVarFilter");
+        assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo("typedStringFilter");
+        assertThatJson(response).inPath("$.elements[1].options.hideTypeFilter").isBoolean().isTrue();
+
+    }
+
+    static class SettingsUsingTypedStringFilterWidgetInternal implements NodeParameters {
+        @Widget(title = "", description = "")
+        @ColumnFilterWidget(choicesProvider = StringColumnsProvider.class)
+        @TypedStringFilterWidgetInternal(hideTypeFilter = true)
+        ColumnFilter m_columnFilter;
+
+        @Widget(title = "", description = "")
+        @FlowVariableFilterWidget(choicesProvider = AllFlowVariablesProvider.class)
+        @TypedStringFilterWidgetInternal(hideTypeFilter = true)
+        FlowVariableFilter m_flowVarFilter;
     }
 }

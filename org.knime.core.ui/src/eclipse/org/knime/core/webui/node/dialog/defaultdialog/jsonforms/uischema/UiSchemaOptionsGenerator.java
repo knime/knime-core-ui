@@ -130,6 +130,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidge
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.TypedStringFilterWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.DateTimeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.EnumUtil;
@@ -468,6 +469,13 @@ final class UiSchemaOptionsGenerator {
         if (annotatedWidgets.contains(ColumnFilterWidget.class)
             || annotatedWidgets.contains(FlowVariableFilterWidget.class)) {
             getOrCreateProvidedOptions(control).add(TAG_POSSIBLE_VALUES);
+        }
+        if (annotatedWidgets.contains(TypedStringFilterWidgetInternal.class)) {
+            final var typedStringFilterWidget =
+                m_node.getAnnotation(TypedStringFilterWidgetInternal.class).orElseThrow();
+            if (typedStringFilterWidget.hideTypeFilter()) {
+                options.put("hideTypeFilter", true);
+            }
         }
 
         if (annotatedWidgets.contains(SortListWidget.class)) {

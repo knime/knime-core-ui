@@ -59,8 +59,8 @@ import java.util.stream.Collectors;
 import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
@@ -73,6 +73,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.Credential
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.TypedStringFilterWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection.DBTableSelection;
@@ -179,6 +180,8 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(Enum.class), ValueSwitchWidget.class), //
         new WidgetAnnotation(ChoicesProvider.class), //
         new WidgetAnnotation(List.of(ColumnFilter.class), ColumnFilterWidget.class), //
+        new WidgetAnnotation(List.of(ColumnFilter.class, FlowVariableFilter.class),
+            TypedStringFilterWidgetInternal.class), //
         new WidgetAnnotation(List.of(FlowVariableFilter.class), FlowVariableFilterWidget.class), //
         new WidgetAnnotation(List.of(String[].class), SortListWidget.class), //
         new WidgetAnnotation(ButtonWidget.class), //

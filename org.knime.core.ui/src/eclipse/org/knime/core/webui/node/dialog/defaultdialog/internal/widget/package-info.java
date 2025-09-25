@@ -79,8 +79,7 @@
  * </tr>
  * <tr>
  * <td>{@link Widget}</td>
- * <td>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal
- * WidgetInternal}</td>
+ * <td>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal WidgetInternal}</td>
  * <td>Hide the title, flow variable, and description button of an element</td>
  * </tr>
  * <tr>
@@ -94,6 +93,12 @@
  * <td>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal
  * CredentialsWidgetInternal}</td>
  * <td>Dynamically hiding the username or password fields</td>
+ * </tr>
+ * <tr>
+ * <td>{@link ColumnFilterWidget} or {@link FlowVariableFilterWidget}</td>
+ * <td>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.widget.TypedStringFilterWidgetInternal
+ * TypedStringFilterWidgetInternal}</td>
+ * <td>Hide the selection by type from the widget</td>
  * </tr>
  * </table>
  * <br>

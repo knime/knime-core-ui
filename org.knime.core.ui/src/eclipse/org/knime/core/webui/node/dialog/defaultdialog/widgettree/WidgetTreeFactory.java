@@ -57,8 +57,8 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelectionWidget;
@@ -69,6 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.Credential
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.TypedStringFilterWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
@@ -166,6 +167,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         TextInputWidget.class, //
         TextMessage.class, //
         TwinlistWidget.class, //
+        TypedStringFilterWidgetInternal.class, //
         UsernameWidget.class, //
         ValueProvider.class, //
         ValueReference.class, //
@@ -268,7 +270,8 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         final Class<T> annotationClass) {
         if (Effect.class.equals(annotationClass)) {
             final var widgetAnnotation = field.getAnnotation(Widget.class);
-            if (widgetAnnotation != null && !EffectPredicateProvider.class.equals(widgetAnnotation.effect().predicate())) {
+            if (widgetAnnotation != null
+                && !EffectPredicateProvider.class.equals(widgetAnnotation.effect().predicate())) {
                 if (field.getAnnotation(Effect.class) != null) {
                     throw new IllegalStateException(String.format(
                         "Conflicting Effect annotations on field and inside Widget annotation for field %s",
