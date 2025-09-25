@@ -120,8 +120,11 @@ public interface FilterValueParameters extends DynamicNodeParameters {
             if (stashedValues.length == 0) {
                 return;
             }
-            // "best-effort" approach
             final var firstValue = stashedValues[0];
+            if (firstValue == null) {
+                return;
+            }
+            // "best-effort" approach
             final var source = firstValue.materializeDataCell();
             final var sourceType = source.getType();
             final var targetType = getSpecificType();
