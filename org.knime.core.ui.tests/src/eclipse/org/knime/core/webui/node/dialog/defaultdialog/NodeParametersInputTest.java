@@ -76,13 +76,14 @@ public class NodeParametersInputTest {
      */
     @SuppressWarnings("javadoc")
     public static final NodeParametersInput createDefaultNodeSettingsContext(final PortType[] inPortTypes,
-        final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider) {
-        return new NodeParametersInputImpl(inPortTypes, specs, stack, credentialsProvider);
+        final PortType[] outPortTypes, final PortObjectSpec[] specs, final FlowObjectStack stack,
+        final CredentialsProvider credentialsProvider) {
+        return new NodeParametersInputImpl(inPortTypes, outPortTypes, specs, stack, credentialsProvider);
     }
 
     @Test
     void testGetDataTableSpecsWithInactivePortObjectSpec() {
-        var context = new NodeParametersInputImpl(null,
+        var context = new NodeParametersInputImpl(null, null,
             new PortObjectSpec[]{new DataTableSpec("test"), InactiveBranchPortObjectSpec.INSTANCE}, null, null);
         assertThrows(ClassCastException.class, () -> context.getInTableSpecs());
     }
@@ -91,8 +92,8 @@ public class NodeParametersInputTest {
     void testGetDataTable() {
         var testTable = createTestTable();
 
-        var context = new NodeParametersInputImpl(null, new PortObjectSpec[]{testTable.getDataTableSpec()}, null, null,
-            new PortObject[]{testTable});
+        var context = new NodeParametersInputImpl(null, null, new PortObjectSpec[]{testTable.getDataTableSpec()}, null,
+            null, new PortObject[]{testTable});
         var specs = context.getInTableSpecs();
         assertThat(specs).isEqualTo(new PortObjectSpec[]{testTable.getDataTableSpec()});
     }

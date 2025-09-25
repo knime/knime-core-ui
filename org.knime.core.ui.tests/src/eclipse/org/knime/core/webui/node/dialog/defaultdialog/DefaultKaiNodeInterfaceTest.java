@@ -223,7 +223,7 @@ final class DefaultKaiNodeInterfaceTest {
         when(nodeContainer.getNrInPorts()).thenReturn(explicitPortTypes.length + 1);
         when(nodeContainer.getInPort(0)).thenReturn(new NodeInPort(0, FlowVariablePortObject.TYPE));
 
-        when(nodeContainer.getNrOutPorts()).thenReturn(explicitPortTypes.length + 2);
+        when(nodeContainer.getNrOutPorts()).thenReturn(1);
         when(nodeContainer.getOutPort(0)).thenReturn(port);
 
         for (int i = 0; i < explicitPortTypes.length; i++) {
