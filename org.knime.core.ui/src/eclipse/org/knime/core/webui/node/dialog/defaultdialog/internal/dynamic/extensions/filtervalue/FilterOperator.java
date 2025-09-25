@@ -95,4 +95,8 @@ public interface FilterOperator<P extends FilterValueParameters> extends FilterO
         return false;
     }
 
+    default boolean isHidden() {
+        return false;
+    }
+
 }
