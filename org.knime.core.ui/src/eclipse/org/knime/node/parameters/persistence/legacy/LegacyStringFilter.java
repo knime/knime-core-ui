@@ -95,7 +95,7 @@ public final class LegacyStringFilter implements NodeParameters {
      *
      * @author Marc Bux, KNIME GmbH, Berlin, Germany
      */
-    protected abstract static class LegacyStringFilterModification implements Modification.Modifier {
+    public abstract static class LegacyStringFilterModification implements Modification.Modifier {
 
         private boolean m_showKeepAll;
 
@@ -108,7 +108,7 @@ public final class LegacyStringFilter implements NodeParameters {
          * @param columnSelectionDescription the description for the column selection twin list widget, or null to keep
          *            the default description
          */
-        public LegacyStringFilterModification(final boolean showKeepAll, final String columnSelectionDescription) {
+        protected LegacyStringFilterModification(final boolean showKeepAll, final String columnSelectionDescription) {
             m_showKeepAll = showKeepAll;
             m_columnSelectionDescription = columnSelectionDescription;
         }
