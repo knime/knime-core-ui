@@ -55,7 +55,6 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import org.knime.core.data.DataValue;
-import org.knime.core.node.NodeFactory;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.PageCache.PageIdType;
@@ -262,9 +261,8 @@ public final class PageResourceManager<N extends NodeWrapper> {
         var nodeContainer = nodeWrapper.get();
         if (nodeContainer instanceof NativeNodeContainer nnc) {
             String pattern = System.getProperty(m_nodeDebugPatternProp);
-            @SuppressWarnings("rawtypes")
-            final Class<? extends NodeFactory> nodeFactoryClass = nnc.getNode().getFactory().getClass();
-            if (pattern == null || Pattern.matches(pattern, nodeFactoryClass.getName())) {
+            var factoryId = nnc.getNode().getFactory().getFactoryId();
+            if (pattern == null || Pattern.matches(pattern, factoryId)) {
                 return Optional.of(url);
             } else {
                 return Optional.empty();

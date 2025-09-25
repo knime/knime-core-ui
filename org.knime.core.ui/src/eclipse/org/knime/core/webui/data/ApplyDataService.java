@@ -125,6 +125,24 @@ public final class ApplyDataService<D> extends AbstractDataService {
     }
 
     /**
+     * TODO
+     *
+     * @param dataString
+     */
+    public void preReExecute(final String dataString) {
+        if (m_reExecutable != null) {
+            D data;
+            try {
+                data = m_deserializer.deserialize(dataString);
+            } catch (IOException ex) {
+                NodeLogger.getLogger(ApplyDataService.class).error("TODO", ex);
+                return;
+            }
+            m_reExecutable.preReExecute(data, false);
+        }
+    }
+
+    /**
      * Applies the data from a string.
      *
      * @param dataString the data to apply

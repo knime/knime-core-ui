@@ -103,7 +103,7 @@ public interface NodeViewFactory<T extends NodeModel> extends WizardPageContribu
             NodeViewManager.getInstance().getDataServiceManager().getDataServiceOfType(NodeWrapper.of(nnc),
                 ApplyDataService.class);
         if (ds.isPresent()) {
-            ds.get().applyData(value);
+             ds.get().preReExecute(value);
         }
     }
 
