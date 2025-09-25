@@ -58,6 +58,7 @@ import java.util.List;
 
 import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.Test;
+import org.knime.base.node.preproc.filter.row3.operators.legacy.DynamicValuesInput;
 import org.knime.chem.types.SmilesAdapterCell;
 import org.knime.chem.types.SmilesCell;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -70,7 +71,6 @@ import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.data.time.localdate.LocalDateCellFactory;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 
 /**
  * Tests for the {@link DynamicValuesInput} widget.
