@@ -78,6 +78,7 @@ import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Before;
 import org.knime.node.parameters.layout.Inside;
 import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.persistence.legacy.LegacyMultiFileSelection;
 import org.knime.node.parameters.widget.message.TextMessage;
 
 /**
@@ -149,7 +150,8 @@ final class WidgetTreeToLayoutTree {
      * schema generation
      */
     private static boolean isLeafWidgetGroup(final Class<?> rawClass) {
-        return MultiFileSelection.class.equals(rawClass) || DBTableSelection.class.equals(rawClass)
+        return MultiFileSelection.class.equals(rawClass) || LegacyMultiFileSelection.class
+            .equals(rawClass) || DBTableSelection.class.equals(rawClass)
             || rawClass.isInterface();
     }
 
