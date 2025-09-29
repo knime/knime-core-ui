@@ -125,6 +125,25 @@ public final class ApplyDataService<D> extends AbstractDataService {
     }
 
     /**
+     * Calls {@link ReExecutable#preReExecute(Object, boolean)} if this apply-data-service was created with a
+     * {@link ReExecutable}. Otherwise does nothing.
+     *
+     * @param dataString the data to deserialize and pass to the {@link ReExecutable}
+     */
+    public void preReExecute(final String dataString) {
+        if (m_reExecutable != null) {
+            D data;
+            try {
+                data = m_deserializer.deserialize(dataString);
+            } catch (IOException ex) {
+                NodeLogger.getLogger(ApplyDataService.class).error("Error deserializing data for re-execution", ex);
+                return;
+            }
+            m_reExecutable.preReExecute(data, false);
+        }
+    }
+
+    /**
      * Applies the data from a string.
      *
      * @param dataString the data to apply
@@ -182,20 +201,9 @@ public final class ApplyDataService<D> extends AbstractDataService {
         if (m_dataApplier != null) {
             m_dataApplier.apply(data);
         } else if (m_reExecutable != null) {
+            m_wfm.resetAndConfigureNode(m_nc.getID());
             m_reExecutable.preReExecute(data, false);
-            reExecute(dataString);
-        }
-    }
-
-    /**
-     * Re-executes the underlying node in order to apply new data.
-     *
-     * @param data the data to execute the node with
-     * @throws IOException
-     */
-    private void reExecute(final String data) throws IOException {
-        if (m_reExecutable != null) {
-            m_wfm.reExecuteNode(m_nc.getID(), m_deserializer.deserialize(data), false);
+            m_wfm.executeUpToHere(m_nc.getID());
         }
     }
 

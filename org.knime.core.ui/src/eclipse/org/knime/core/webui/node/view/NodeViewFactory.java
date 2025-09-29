@@ -99,11 +99,10 @@ public interface NodeViewFactory<T extends NodeModel> extends WizardPageContribu
      */
     @Override
     default void loadViewValue(final NativeNodeContainer nnc, final String value) throws IOException {
-        var ds =
-            NodeViewManager.getInstance().getDataServiceManager().getDataServiceOfType(NodeWrapper.of(nnc),
-                ApplyDataService.class);
+        var ds = NodeViewManager.getInstance().getDataServiceManager().getDataServiceOfType(NodeWrapper.of(nnc),
+            ApplyDataService.class);
         if (ds.isPresent()) {
-            ds.get().applyData(value);
+            ds.get().preReExecute(value);
         }
     }
 
