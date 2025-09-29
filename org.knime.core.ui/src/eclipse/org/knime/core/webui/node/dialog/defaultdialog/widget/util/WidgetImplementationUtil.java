@@ -88,6 +88,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.node.parameters.Advanced;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.legacy.LegacyMultiFileSelection;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
@@ -195,7 +196,8 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), PasswordWidget.class), //
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), UsernameWidget.class), //
         new WidgetAnnotation(List.of(String.class), CustomFileConnectionFolderReaderWidget.class), //
-        new WidgetAnnotation(List.of(FileSelection.class, MultiFileSelection.class), FileReaderWidget.class), //
+        new WidgetAnnotation(List.of(FileSelection.class, MultiFileSelection.class, LegacyMultiFileSelection.class),
+            FileReaderWidget.class), //
         new WidgetAnnotation(List.of(FileSelection.class), FileWriterWidget.class), //
         new WidgetAnnotation(List.of(FileSelection.class), FolderSelectionWidget.class), //
         new WidgetAnnotation(List.of(String.class), LocalFileReaderWidget.class), //
@@ -219,7 +221,8 @@ public final class WidgetImplementationUtil {
         new DefaultWidget(List.of(String[].class), DefaultWidgetType.STRING_ARRAY), //
         new DefaultWidget(List.of(ZoneId.class), DefaultWidgetType.ZONE_ID), //
         new DefaultWidget(List.of(FileSelection.class), DefaultWidgetType.FILE_CHOOSER), //
-        new DefaultWidget(List.of(MultiFileSelection.class), DefaultWidgetType.MULTI_FILE_CHOOSER), //
+        new DefaultWidget(List.of(MultiFileSelection.class, LegacyMultiFileSelection.class),
+            DefaultWidgetType.MULTI_FILE_CHOOSER), //
         new DefaultWidget(List.of(DBTableSelection.class), DefaultWidgetType.DB_TABLE_CHOOSER), //
         new DefaultWidget(List.of(Interval.class), DefaultWidgetType.INTERVAL), //
         new DefaultWidget(List.of(DateInterval.class), DefaultWidgetType.DATE_INTERVAL), //

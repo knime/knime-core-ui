@@ -54,6 +54,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserF
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.persistence.legacy.LegacyMultiFileSelection;
 
 /**
  * Utility class for deduplication of initial and rpc logic
@@ -75,14 +76,17 @@ public final class MultiFileSelectionUtil {
     @SuppressWarnings("unchecked")
     public static Optional<Class<? extends FileChooserFilters>>
         extractFileChooserFiltersClass(final TreeNode<WidgetGroup> node) {
-        if (!MultiFileSelection.class.isAssignableFrom(node.getRawClass())) {
-            return Optional.empty();
+        if (MultiFileSelection.class.isAssignableFrom(node.getRawClass())) {
+            // extract the first generic parameter type from the node. Since the node is
+            // a MultiFileSelection<? extends FileChooserFilters>, the first generic parameter
+            // is the FileChooserFilters.
+            var filtersClass = node.getType().containedType(0).getRawClass();
+            return Optional.of((Class<? extends FileChooserFilters>)filtersClass);
+        } else if (LegacyMultiFileSelection.class.isAssignableFrom(node.getRawClass())) {
+            return Optional.of(LegacyMultiFileSelection.MultiFileChooserFilters.class);
         }
-        // extract the first generic parameter type from the node. Since the node is
-        // a MultiFileSelection<? extends FileChooserFilters>, the first generic parameter
-        // is the FileChooserFilters.
-        var filtersClass = node.getType().containedType(0).getRawClass();
-        return Optional.of((Class<? extends FileChooserFilters>)filtersClass);
+
+        return Optional.empty();
     }
 
 }
