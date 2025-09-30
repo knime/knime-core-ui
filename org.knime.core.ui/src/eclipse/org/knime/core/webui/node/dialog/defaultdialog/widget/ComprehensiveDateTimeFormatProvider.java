@@ -138,6 +138,18 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
     }
 
     /**
+     * Default constructor for providing a static locale to be used for the examples instead of providing the locale via
+     * the {@link LocaleValueRef}.
+     *
+     * @param localeLanguageTag the language tag of the static locale to use, not {@code null}
+     */
+    public ComprehensiveDateTimeFormatProvider(final String localeLanguageTag) {
+        this(DateTimeFormatStringHistoryManager.getRecentFormats());
+        Objects.requireNonNull(localeLanguageTag);
+        m_localeLanguageTag = () -> localeLanguageTag;
+    }
+
+    /**
      * Get the time to use for the examples. Note that this method is called only once per call to
      * {@link #computeState}. Override this method to provide a custom time.
      *
@@ -157,7 +169,9 @@ public class ComprehensiveDateTimeFormatProvider implements StateProvider<Format
     @Override
     public void init(final StateProviderInitializer initializer) {
         initializer.computeBeforeOpenDialog();
-        m_localeLanguageTag = initializer.computeFromValueSupplier(LocaleValueRef.class);
+        if (m_localeLanguageTag == null) {
+            m_localeLanguageTag = initializer.computeFromValueSupplier(LocaleValueRef.class);
+        }
     }
 
     /**
