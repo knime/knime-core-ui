@@ -61,6 +61,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.ParametersSaver;
 import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.Persist;
 
 /**
  *
@@ -151,7 +152,16 @@ public final class SettingsSaverFactory extends PersistenceFactory<ParametersSav
     @Override
     protected ParametersSaver getNested(final TreeNode<Persistable> node, final ParametersSaver property) {
         final var configKey = ConfigKeyUtil.getConfigKey(node);
-        return (obj, settings) -> property.save(obj, settings.addNodeSettings(configKey));
+        final var persistAnnotation = node.getAnnotation(Persist.class);
+        final boolean embed = persistAnnotation.map(Persist::embed).orElse(false);
+        
+        if (embed) {
+            // Embed the fields directly into the parent settings without creating a nested group
+            return (obj, settings) -> property.save(obj, settings);
+        } else {
+            // Normal nested behavior
+            return (obj, settings) -> property.save(obj, settings.addNodeSettings(configKey));
+        }
     }
 
 }

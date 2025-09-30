@@ -100,4 +100,18 @@ public @interface Persist {
      */
     boolean hidden() default false;
 
+    /**
+     * Optional argument that allows embedding the fields of the annotated object directly into the parent settings
+     * instead of creating a nested NodeSettings group. This is useful for migrating legacy settings structures
+     * where nested objects should be flattened.
+     *
+     * <h5>@Persistor Alternative:</h5>
+     * <p>
+     * Manually handle the flattening logic in a custom {@link NodeParametersPersistor} implementation.
+     * </p>
+     *
+     * @return true if the object's fields should be embedded directly into the parent settings.
+     */
+    boolean embed() default false;
+
 }

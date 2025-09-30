@@ -240,10 +240,16 @@ public final class PersistUtil {
             final var persistAnnotation = treeNode.getAnnotation(Persist.class);
             final var configRename = persistAnnotation.map(Persist::configKey).filter(key -> !key.isEmpty());
             final boolean isHidden = persistAnnotation.map(Persist::hidden).orElse(false);
+            final boolean embed = persistAnnotation.map(Persist::embed).orElse(false);
+            
             if (isHidden) {
                 objectNode.putArray("configPaths");
             } else if (configRename.isPresent()) {
                 objectNode.put("configKey", DotSubstitutionUtil.substituteDots(configRename.get()));
+            }
+            
+            if (embed) {
+                objectNode.put("embed", true);
             }
         }
 

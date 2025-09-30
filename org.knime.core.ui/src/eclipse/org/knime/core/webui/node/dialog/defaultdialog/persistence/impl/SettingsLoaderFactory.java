@@ -73,6 +73,7 @@ import org.knime.node.parameters.migration.ConfigMigration;
 import org.knime.node.parameters.migration.ParametersLoader;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persistable;
+import org.knime.node.parameters.persistence.Persist;
 
 /**
  * Factory responsible for loading settings
@@ -165,7 +166,16 @@ public final class SettingsLoaderFactory extends PersistenceFactory<ParametersLo
     @Override
     protected ParametersLoader getNested(final TreeNode<Persistable> node, final ParametersLoader loader) {
         final var configKey = ConfigKeyUtil.getConfigKey(node);
-        return settings -> loader.load(settings.getNodeSettings(configKey));
+        final var persistAnnotation = node.getAnnotation(Persist.class);
+        final boolean embed = persistAnnotation.map(Persist::embed).orElse(false);
+        
+        if (embed) {
+            // Load the fields directly from the parent settings without looking for a nested group
+            return settings -> loader.load(settings);
+        } else {
+            // Normal nested behavior
+            return settings -> loader.load(settings.getNodeSettings(configKey));
+        }
     }
 
     @Override
