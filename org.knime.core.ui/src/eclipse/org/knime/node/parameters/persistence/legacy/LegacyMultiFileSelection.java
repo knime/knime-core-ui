@@ -411,7 +411,7 @@ public final class LegacyMultiFileSelection implements Persistable, WidgetGroup 
 
     }
 
-    @Persist(configKey="file_selection")
+    // Filters are now persisted at the same level as this LegacyMultiFileSelection
     MultiFileChooserFilters m_filters = new MultiFileChooserFilters();
 
     @Persistor(FileSystemChooserInternalsPersistor.class)
