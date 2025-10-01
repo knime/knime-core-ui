@@ -60,7 +60,6 @@ import org.knime.core.data.convert.datacell.JavaToDataCellConverterFactory;
 import org.knime.core.data.convert.datacell.JavaToDataCellConverterRegistry;
 import org.knime.core.data.convert.java.DataCellToJavaConverterFactory;
 import org.knime.core.data.convert.java.DataCellToJavaConverterRegistry;
-import org.knime.core.data.def.StringCell;
 import org.knime.core.node.ExecutionContext;
 
 /**
@@ -68,6 +67,7 @@ import org.knime.core.node.ExecutionContext;
  *
  * @author Paul Bärnreuther
  */
+// TODO can this move to base again now that we don't have DynamicValuesInput anymore?
 public final class TypeMappingUtils {
 
     private static final JavaToDataCellConverterRegistry TO_DATACELL = JavaToDataCellConverterRegistry.getInstance();
@@ -98,36 +98,38 @@ public final class TypeMappingUtils {
         }
 
         final var converter = converterToDataCell(dataType)
-            .orElseThrow(() -> new ConverterException("No deserializer for type %s".formatted(dataType)))
+            .orElseThrow(() -> new ConverterException("No deserializer registered for type \"%s\"".formatted(dataType)))
             .create((ExecutionContext)null);
         try {
             return converter.convert(value);
         } catch (final Exception e) {
-            final var isEmpty = StringUtils.isEmpty(value);
-            final var content = isEmpty ? "empty input" : "input \"%s\"".formatted(value);
-            final var message = "Could not convert %s to \"%s\"".formatted(content, dataType);
-            throw new ConverterException(message, e.getCause());
+            throw toUnpacked(e);
         }
     }
 
     /**
-     * Converts the given string value to a cell of the given data type, returning a StringCell with the original
-     * value if conversion fails.
+     * Throws a {@link ConverterException} with the top-most non-empty message from the given exception chain,
+     * or an empty message if no such message could be found.
      *
-     * @param dataType target data type
-     * @param value string value to deserialize
-     * @return data cell for the string representation, or StringCell with original value if conversion fails
+     * @param e exception to unpack
+     * @returns ConverterException exception with top-most non-empty message or empty message
      */
-    public static DataCell readDataCellFromStringSafe(final DataType dataType, final String value) {
-        try {
-            return readDataCellFromString(dataType, value);
-        } catch (final ConverterException e) {
-            return new StringCell(value);
+    private static ConverterException toUnpacked(final Exception e) {
+        // find first cause with message to be a bit more helpful
+        Throwable cause = e;
+        while (cause != null) {
+            if (StringUtils.isNotBlank(cause.getMessage())) {
+                return new ConverterException(cause.getMessage(), cause.getCause());
+            }
+            cause = cause.getCause();
         }
+        // we don't have any details, so we just signal that conversion failed (no need to create
+        // a "could not convert" message, callers will do that)
+        return new ConverterException(null, cause);
     }
 
     /**
-     * Converts a DataCell to its String representation.
+     * Converts a non-missing DataCell to its String representation.
      *
      * @param dataCell the cell to convert
      * @return string representation of the cell
@@ -143,14 +145,13 @@ public final class TypeMappingUtils {
                 "Collection types are not supported. Given type is: %s".formatted(dataType));
         }
         final var converter = converterFromDataCell(dataType)
-            .orElseThrow(() -> new ConverterException("No serializer for type %s".formatted(dataCell.getType())))
+            .orElseThrow(
+                () -> new ConverterException("No serializer registered for type \"%s\"".formatted(dataCell.getType())))
             .create();
         try {
             return converter.convertUnsafe(dataCell);
         } catch (final Exception e) {
-            final var msg = e.getMessage();
-            throw new ConverterException(msg != null ? msg
-                : "Unable to convert data cell of type \"%s\" to String.".formatted(dataCell.getType()), e);
+            throw toUnpacked(e);
         }
     }
 
