@@ -49,7 +49,6 @@
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
 import java.util.List;
-import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 import org.knime.core.data.DataCell;
@@ -95,12 +94,13 @@ public class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueP
      *
      * @param runtimeColumnSpec the column spec of the column to filter
      * @param operator the operator for which the equality is requested
+     * @param filterParameters the parameters for the operator
      * @return the equality predicate
      * @throws InvalidSettingsException if the operator is not compatible with the column spec, i.e. will not produce a
      *             useful equality comparison
      */
-    protected BiPredicate<DataValue, C> getEquality(final DataColumnSpec runtimeColumnSpec,
-        final FilterOperator<P> operator) throws InvalidSettingsException {
+    protected Predicate<DataValue> getEquality(final DataColumnSpec runtimeColumnSpec,
+        final FilterOperator<P> operator, final P filterParameters) throws InvalidSettingsException {
         final var type = runtimeColumnSpec.getType();
         if (!type.isCompatible(m_dataType.getPreferredValueClass())) { // not isASuperType!
             throw ValueFilterValidationUtil.createInvalidSettingsException(builder -> builder
@@ -110,7 +110,8 @@ public class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueP
                     "Please select a different operator that is compatible with the column's data type \"%s\"."
                         .formatted(type.getName())));
         }
-        return (value, cell) -> cell.equals(value.materializeDataCell());
+        final var cell = filterParameters.createCell();
+        return dv -> cell.equals(dv.materializeDataCell());
     }
 
     @Override
@@ -132,9 +133,8 @@ public class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueP
         @Override
         public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
             final DataType configureColumnType, final P filterParameters) throws InvalidSettingsException {
-            final var dc = filterParameters.createCell();
-            final var eq = EqualsOperatorFamily.this.getEquality(runtimeColumnSpec, this);
-            return dv -> eq.test(dv, dc);
+            final var eq = EqualsOperatorFamily.this.getEquality(runtimeColumnSpec, this, filterParameters);
+            return dv -> eq.test(dv);
         }
     }
 
@@ -147,9 +147,8 @@ public class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueP
         @Override
         public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
             final DataType configureDataType, final P filterParameters) throws InvalidSettingsException {
-            final var dc = filterParameters.createCell();
-            final var eq = EqualsOperatorFamily.this.getEquality(runtimeColumnSpec, this);
-            return dv -> !eq.test(dv, dc);
+            final var eq = EqualsOperatorFamily.this.getEquality(runtimeColumnSpec, this, filterParameters);
+            return dv -> !eq.test(dv);
         }
     }
 
