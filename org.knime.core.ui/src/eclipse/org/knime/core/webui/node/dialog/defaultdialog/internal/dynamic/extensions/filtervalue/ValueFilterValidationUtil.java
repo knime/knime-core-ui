@@ -79,6 +79,19 @@ public final class ValueFilterValidationUtil {
     }
 
     /**
+     * Returns the exception resulting from the configured message builder, including a cause.
+     *
+     * @param builderFn function to configure the message builder
+     * @param cause the cause for the exception
+     * @return invalid settings exception containing mandatory summary, details, and potential resolutions from the
+     *         builder
+     */
+    public static InvalidSettingsException
+        createInvalidSettingsException(final UnaryOperator<MessageBuilder> builderFn, final Throwable cause) {
+        return builderFn.apply(Message.builder()).build().orElseThrow().toInvalidSettingsException(cause);
+    }
+
+    /**
      * Creates a nice exception message with potential resolution for missing reference values.
      *
      * @return exception to throw
@@ -91,7 +104,34 @@ public final class ValueFilterValidationUtil {
     }
 
     /**
+     * Checks the given runtime column type and the data type "at configure time", i.e. when the dialog settings were
+     * saved, to be the same. The error message will contain a helpful message with potential resolutions.
+     *
+     * @param operator the operator for context in error messages
+     * @param runtimeColumnType column type at runtime
+     * @param configureDataType column type "at configure time"
+     * @throws InvalidSettingsException if the types are not the same
+     */
+    public static void checkSameType(final FilterOperator<? extends FilterValueParameters> operator,
+        final DataType runtimeColumnType, final DataType configureDataType) throws InvalidSettingsException { //
+        if (runtimeColumnType.equals(configureDataType)) {
+            return;
+        }
+        throw createInvalidSettingsException(builder -> builder
+            .withSummary(
+                String.format("\"%s\" cannot compare data of type \"%s\" with a reference value of type \"%s\"",
+                    operator.getLabel(), runtimeColumnType.toPrettyString(), configureDataType.toPrettyString()))
+            .addTextIssue(
+                String.format("The column data type \"%s\" is not the same as the reference value type \"%s\"",
+                    runtimeColumnType.toPrettyString(), configureDataType.toPrettyString()))
+            .addResolutions("Convert the input column to \"%s\".".formatted(configureDataType.toPrettyString()),
+                "Reconfigure the node to use a reference value of type \"%s\"."
+                    .formatted(runtimeColumnType.toPrettyString())));
+    }
+
+    /**
      * Append the given non-empty elements to the given prefix, quoting them with double quotes.
+     *
      * @param prefix prefix to append to
      * @param elements elements to append, must not be empty
      * @return the prefix with the elements appended
