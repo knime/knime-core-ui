@@ -71,8 +71,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.node.parameters.migration.ConfigMigration;
 import org.knime.node.parameters.migration.ParametersLoader;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
-import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.persistence.ParametersSaver;
+import org.knime.node.parameters.persistence.Persistable;
 
 /**
  *
@@ -125,9 +125,8 @@ public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMap
 
     }
 
-    private static ConfigMappings fromChild(
-        final Function<TreeNode<Persistable>, GetConfigMappings> childProperty, final Object obj,
-        final TreeNode<Persistable> child) {
+    private static ConfigMappings fromChild(final Function<TreeNode<Persistable>, GetConfigMappings> childProperty,
+        final Object obj, final TreeNode<Persistable> child) {
         return childProperty.apply(child).getConfigMappings(child.getFromParentValue(obj));
     }
 
@@ -241,6 +240,11 @@ public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMap
     @FunctionalInterface
     interface GetConfigMappings {
         ConfigMappings getConfigMappings(Object obj);
+    }
+
+    @Override
+    protected GetConfigMappings reroute(final String[] relativePath, final GetConfigMappings property, final TreeNode<Persistable> node) {
+        return obj -> new ConfigMappings(relativePath, List.of(property.getConfigMappings(obj)));
     }
 
 }

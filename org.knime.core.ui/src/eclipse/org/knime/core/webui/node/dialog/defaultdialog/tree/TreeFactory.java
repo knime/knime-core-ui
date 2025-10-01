@@ -206,6 +206,19 @@ public abstract class TreeFactory<S> {
 
     /**
      *
+     * Make {@link Tree#addTypeAnnotation} accessible to subclasses
+     *
+     * @param node the node to add an annotation to
+     * @param key the annotation class
+     * @param value the annotation
+     */
+    protected final void performAddTypeAnnotation(final Tree<S> node, final Class<? extends Annotation> key,
+        final Annotation value) {
+        node.addTypeAnnotation(key, value);
+    }
+
+    /**
+     *
      * Make {@link TreeNode#addOrReplaceAnnotation} accessible to subclasses
      *
      * @param node the node to add an annotation to

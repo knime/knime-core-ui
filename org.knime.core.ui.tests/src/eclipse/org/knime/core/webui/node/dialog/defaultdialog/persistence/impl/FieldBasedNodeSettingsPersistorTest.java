@@ -71,6 +71,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DefaultClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
@@ -82,6 +83,7 @@ import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.migration.NodeParametersMigration;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.persistence.Persistor;
 
 /**
@@ -854,8 +856,6 @@ class FieldBasedNodeSettingsPersistorTest {
         static final List<Class<? extends MyParameters>> SUPPORTED_CLASSES =
             List.of(MyParametersImpl.class, MyOtherParametersImpl.class);
 
-
-
         @Override
         public ClassIdStrategy<MyParameters> getClassIdStrategy() {
             return new DefaultClassIdStrategy<>(SUPPORTED_CLASSES);
@@ -1031,6 +1031,132 @@ class FieldBasedNodeSettingsPersistorTest {
         @Migration(MigratorClass.class)
         @Migrate(loadDefaultIfAbsent = true)
         int m_fieldName;
+    }
+
+    private static final class ReroutingDownSettings extends AbstractTestNodeSettings<ReroutingDownSettings> {
+
+        @PersistWithin("nested")
+        int m_foo = 42;
+
+        @PersistWithin("nested")
+        int m_bar = 7;
+
+        @Override
+        public void saveExpected(final NodeSettingsWO settings) {
+            final var nested = settings.addNodeSettings("nested");
+            nested.addInt("foo", m_foo);
+            nested.addInt("bar", m_bar);
+        }
+
+        @Override
+        protected int computeHashCode() {
+            return Objects.hash(m_foo, m_bar);
+        }
+
+        @Override
+        protected boolean equalSettings(final ReroutingDownSettings settings) {
+            return Objects.equals(m_foo, settings.m_foo) && Objects.equals(m_bar, settings.m_bar);
+        }
+
+    }
+
+    @Test
+    void testReroutingDown() throws InvalidSettingsException {
+        final var nonDefaultSettings = new ReroutingDownSettings();
+        nonDefaultSettings.m_foo = 13;
+        nonDefaultSettings.m_bar = 42;
+        testSaveLoad(nonDefaultSettings);
+    }
+
+    private static final class ReroutingUpSettings extends AbstractTestNodeSettings<ReroutingUpSettings> {
+
+        @PersistWithin("..")
+        static final class NestedSettings1 implements Persistable {
+            int m_foo = 42;
+
+        }
+
+        static final class NestedSettings2 implements Persistable {
+
+            @PersistWithin("..")
+            int m_bar = 7;
+
+            int m_baz = 13;
+        }
+
+        NestedSettings1 m_nested1 = new NestedSettings1();
+
+        NestedSettings2 m_nested2 = new NestedSettings2();
+
+        @Override
+        public void saveExpected(final NodeSettingsWO settings) {
+            settings.addInt("foo", m_nested1.m_foo);
+            settings.addInt("bar", m_nested2.m_bar);
+            final var nested2 = settings.addNodeSettings("nested2");
+            nested2.addInt("baz", m_nested2.m_baz);
+
+        }
+
+        @Override
+        protected int computeHashCode() {
+            return Objects.hash(m_nested1.m_foo, m_nested2.m_bar, m_nested2.m_baz);
+        }
+
+        @Override
+        protected boolean equalSettings(final ReroutingUpSettings settings) {
+            return Objects.equals(m_nested1.m_foo, settings.m_nested1.m_foo)
+                && Objects.equals(m_nested2.m_bar, settings.m_nested2.m_bar)
+                && Objects.equals(m_nested2.m_baz, settings.m_nested2.m_baz);
+        }
+
+    }
+
+    @Test
+    void testReroutingUp() throws InvalidSettingsException {
+        final var nonDefaultSettings = new ReroutingUpSettings();
+        nonDefaultSettings.m_nested1.m_foo = 13;
+        nonDefaultSettings.m_nested2.m_bar = 7;
+        nonDefaultSettings.m_nested2.m_baz = 42;
+        testSaveLoad(nonDefaultSettings);
+    }
+
+    private static final class EmbeddedSettings extends AbstractTestNodeSettings<EmbeddedSettings> {
+
+        static final class NestedSettings1 implements Persistable {
+            int m_foo = 42;
+
+            int m_bar = 7;
+
+        }
+
+        @PersistWithin.PersistEmbedded
+        NestedSettings1 m_nested1 = new NestedSettings1();
+
+        @Override
+        public void saveExpected(final NodeSettingsWO settings) {
+            settings.addInt("foo", m_nested1.m_foo);
+            settings.addInt("bar", m_nested1.m_bar);
+        }
+
+        @Override
+        protected int computeHashCode() {
+            return Objects.hash(m_nested1.m_foo, m_nested1.m_bar);
+        }
+
+        @Override
+        protected boolean equalSettings(final EmbeddedSettings settings) {
+            return Objects.equals(m_nested1.m_foo, settings.m_nested1.m_foo)
+                && Objects.equals(m_nested1.m_bar, settings.m_nested1.m_bar);
+        }
+
+    }
+
+    @Test
+    void testEmbedded() throws InvalidSettingsException {
+        final var nonDefaultSettings = new EmbeddedSettings();
+        nonDefaultSettings.m_nested1.m_foo = 13;
+        nonDefaultSettings.m_nested1.m_bar = 31;
+        testSaveLoad(nonDefaultSettings);
     }
 
 }

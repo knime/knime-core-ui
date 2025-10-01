@@ -206,8 +206,7 @@ public final class PersistUtil {
         protected ObjectNode combineWithConfigsDeprecations(final ObjectNode existing,
             final List<ConfigMigration> configsDeprecations, final Supplier<String[][]> configPaths,
             final TreeNode<Persistable> node) {
-            addDeprecatedConfigKeys((ObjectNode)existing.get(node.getName().orElseThrow(IllegalStateException::new)),
-                "deprecatedConfigKeys", configsDeprecations);
+            addDeprecatedConfigKeys(getCurrentField(existing, node), "deprecatedConfigKeys", configsDeprecations);
             return existing;
         }
 
@@ -274,6 +273,32 @@ public final class PersistUtil {
             });
         }
 
+        @Override
+        protected ObjectNode reroute(final String[] relativePath, final ObjectNode existing,
+            final TreeNode<Persistable> node) {
+            final var routeArray = getCurrentField(existing, node).putArray("route");
+            addRouteToArray(relativePath, routeArray);
+            return existing;
+        }
+
+        @Override
+        protected ObjectNode rerouteForType(final String[] relativePath, final ObjectNode property,
+            final Tree<Persistable> node) {
+            final var routeArray = property.putArray("propertiesRoute");
+            addRouteToArray(relativePath, routeArray);
+            return property;
+        }
+
+
+        private static ObjectNode getCurrentField(final ObjectNode existing, final TreeNode<Persistable> node) {
+            return (ObjectNode)existing.get(node.getName().orElseThrow(IllegalStateException::new));
+        }
+
+        private static void addRouteToArray(final String[] relativePath, final ArrayNode routeArray) {
+            for (final var pathElement : relativePath) {
+                routeArray.add("..".equals(pathElement) ? ".." : DotSubstitutionUtil.substituteDots(pathElement));
+            }
+        }
     }
 
 }
