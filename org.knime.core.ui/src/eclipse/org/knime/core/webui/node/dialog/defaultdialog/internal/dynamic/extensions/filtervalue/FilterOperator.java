@@ -73,6 +73,8 @@ public interface FilterOperator<P extends FilterValueParameters> extends FilterO
     /**
      * Creates the predicate for filtering data values of type {@code V} based on the given filter parameters.
      *
+     * For validation of the given runtime spec, you can use the methods in {@link ValueFilterValidationUtil}.
+     *
      * @param runtimeColumnSpec the column spec at runtime, whose values are to be filtered
      * @param configureColumnType the column type at configuration time
      * @param filterParameters the parameters to create the predicate with
