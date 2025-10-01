@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.internal;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
@@ -58,6 +59,7 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.SingleNodeContainer;
+import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.VariableSettingsRO;
@@ -107,26 +109,57 @@ public final class SettingsExtractor {
     }
 
     /**
-     * @return the settings values after flow variable have been applied
+     * Gets the node settings and their overriding flow variables, merged into proxy objects that provide read-only
+     * access.
+     *
+     * @return A map containing settings types mapped to their corresponding proxy objects that combine node settings
+     *         and variable settings in a read-only format.
      */
     public Map<SettingsType, NodeAndVariableSettingsRO> getSettingsOverwrittenByVariables() {
-        Map<SettingsType, NodeAndVariableSettingsRO> resultSettings = new EnumMap<>(SettingsType.class);
+        return mergeToProxyObjects(getNodeAndVariableSettingsOverwritten());
+    }
+
+    /**
+     * Gets the node settings after flow variables have been applied, without the variable settings information.
+     *
+     * @return A map containing settings types mapped to their corresponding node settings objects, where any flow
+     *         variable overrides have already been applied. This returns only the resulting settings without
+     *         information about which values were overwritten by variables.
+     */
+    public Map<SettingsType, NodeSettings> getNodeSettingsOverwrittenByVariables() {
+        return getNodeAndVariableSettingsOverwritten().entrySet().stream() //
+            .collect(Collectors.toMap( // 
+                Map.Entry::getKey, //
+                entry -> entry.getValue().getFirst() //
+            ));
+    }
+
+    /**
+     * @return the settings values after flow variable have been applied
+     */
+    private Map<SettingsType, Pair<NodeSettings, VariableSettings>> getNodeAndVariableSettingsOverwritten() {
+        Map<SettingsType, Pair<NodeSettings, VariableSettings>> resultSettings = new EnumMap<>(SettingsType.class);
         if (m_nc instanceof SingleNodeContainer snc) {
             var overwrittenSettingsLoaded = false;
             for (var type : m_settingsTypes) {
                 var settings = getSettingsOverwrittenByFlowVariables(type, snc);
-
                 final var settingsOrDefault =
                     settings.type == Result.Type.NONE ? getDefaultSettings(type) : settings.result;
                 final var variableSettings = getVariableSettings(snc, type);
                 if (settings.type == Result.Type.OVERWRITTEN && hasControllingVariables(variableSettings)) {
                     overwrittenSettingsLoaded = true;
                 }
-                resultSettings.put(type,
-                    NodeAndVariableSettingsProxy.createROProxy(settingsOrDefault, variableSettings));
+                resultSettings.put(type, new Pair<>(settingsOrDefault, variableSettings));
             }
             if (overwrittenSettingsLoaded) {
-                revertOverridesIfInvalid(resultSettings, snc);
+                try {
+                    validateOverrides(resultSettings);
+                } catch (InvalidSettingsException e) {  // NOSONAR
+                    m_settingsTypes.forEach(type -> {
+                        final var nodeSettings = getSettingsWithoutFlowVariableOverrides(type, snc);
+                        resultSettings.put(type, new Pair<>(nodeSettings.result, getVariableSettings(snc, type)));
+                    });
+                }
             }
         }
         return resultSettings;
@@ -177,8 +210,8 @@ public final class SettingsExtractor {
             try {
                 // a flow object stack is available (usually in case the node is connected)
                 return switch (settingsType) {
-                    case VIEW -> nnc.getViewSettingsUsingFlowObjectStack().map(Result::overwritten)
-                        .orElseGet(Result::none);
+                    case VIEW ->
+                        nnc.getViewSettingsUsingFlowObjectStack().map(Result::overwritten).orElseGet(Result::none);
                     case MODEL -> Result.overwritten(nnc.getModelSettingsUsingFlowObjectStack());
                     case JOB_MANAGER -> throw new IllegalStateException(String
                         .format("Extracting settings of type %s should have been already handled.", settingsType));
@@ -236,21 +269,28 @@ public final class SettingsExtractor {
         }
     }
 
-    private void revertOverridesIfInvalid(final Map<SettingsType, NodeAndVariableSettingsRO> settings,
-        final SingleNodeContainer nnc) {
-        if (settings.values().stream().noneMatch(SettingsExtractor::hasControllingVariables)) {
+    private void validateOverrides(final Map<SettingsType, Pair<NodeSettings, VariableSettings>> settings)
+        throws InvalidSettingsException {
+        if (settings.values().stream().noneMatch(value -> hasControllingVariables(value.getSecond()))) {
             return;
         }
         try {
-            m_validator.validate(settings);
+            m_validator.validate(mergeToProxyObjects(settings));
         } catch (InvalidSettingsException ex) {
             LoadWarningsUtil.warnAboutVariableOverridesBeingIgnored(ex);
-            m_settingsTypes.forEach(type -> {
-                final var nodeSettings = getSettingsWithoutFlowVariableOverrides(type, nnc);
-                settings.put(type,
-                    NodeAndVariableSettingsProxy.createROProxy(nodeSettings.result, getVariableSettings(nnc, type)));
-            });
+            throw ex;
         }
+    }
+
+    private static Map<SettingsType, NodeAndVariableSettingsRO>
+        mergeToProxyObjects(final Map<SettingsType, Pair<NodeSettings, VariableSettings>> pairs) {
+        return pairs.entrySet().stream().collect(Collectors.toMap( //
+            Map.Entry::getKey, //
+            entry -> NodeAndVariableSettingsProxy.createROProxy( //
+                entry.getValue().getFirst(), //
+                entry.getValue().getSecond() //
+            ) //
+        ));
     }
 
     private static boolean hasControllingVariables(final VariableSettingsRO variableSettings) {
