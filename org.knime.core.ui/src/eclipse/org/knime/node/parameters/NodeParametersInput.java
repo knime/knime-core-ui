@@ -53,6 +53,7 @@ import java.util.Optional;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -140,5 +141,14 @@ public interface NodeParametersInput {
      * @return the outTypes
      */
     PortType[] getOutPortTypes();
+
+    /**
+     * Getter for the {@link PortsConfiguration} of a configurable node, i.e. a node with dynamic in- or output ports.
+     *
+     * @return the ports configuration
+     * @throws IllegalStateException if there does not exist a port configuration. Whenever a node has dynamic ports, it
+     *             has a port configuration.
+     */
+    PortsConfiguration getPortsConfiguration();
 
 }
