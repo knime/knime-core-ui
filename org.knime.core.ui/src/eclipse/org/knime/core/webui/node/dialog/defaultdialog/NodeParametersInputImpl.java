@@ -57,6 +57,7 @@ import java.util.Optional;
 import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.dialog.DialogNode;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
@@ -89,9 +90,11 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
 
     private final DialogNode<?, ?> m_dialogNode;
 
+    private final PortsConfiguration m_portsConfiguration;
+
     NodeParametersInputImpl(final PortType[] inTypes, final PortType[] outTypes, final PortObjectSpec[] specs,
         final FlowObjectStack stack, final CredentialsProvider credentialsProvider, final PortObject[] inputPortObjects,
-        final DialogNode<?, ?> dialogNode) {
+        final DialogNode<?, ?> dialogNode, final PortsConfiguration portsConfiguration) {
         m_inTypes = inTypes;
         m_outTypes = outTypes;
         m_specs = specs;
@@ -99,17 +102,18 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
         m_credentialsProvider = credentialsProvider;
         m_inputPortObjects = inputPortObjects;
         m_dialogNode = dialogNode;
+        m_portsConfiguration = portsConfiguration;
     }
 
     NodeParametersInputImpl(final PortType[] inTypes, final PortType[] outTypes, final PortObjectSpec[] specs,
         final FlowObjectStack stack, final CredentialsProvider credentialsProvider,
         final PortObject[] inputPortObjects) {
-        this(inTypes, outTypes, specs, stack, credentialsProvider, inputPortObjects, null);
+        this(inTypes, outTypes, specs, stack, credentialsProvider, inputPortObjects, null, null);
     }
 
     NodeParametersInputImpl(final PortType[] inTypes, final PortType[] outTypes, final PortObjectSpec[] specs,
         final FlowObjectStack stack, final CredentialsProvider credentialsProvider) {
-        this(inTypes, outTypes, specs, stack, credentialsProvider, null, null);
+        this(inTypes, outTypes, specs, stack, credentialsProvider, null, null, null);
     }
 
     /**
@@ -118,7 +122,7 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
     @SuppressWarnings("javadoc")
     public static NodeParametersInput createDefaultNodeSettingsContext(final PortType[] inPortTypes,
         final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider) {
-        return new NodeParametersInputImpl(inPortTypes, null, specs, stack, credentialsProvider, null, null);
+        return new NodeParametersInputImpl(inPortTypes, null, specs, stack, credentialsProvider, null, null, null);
     }
 
     /**
@@ -128,7 +132,7 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
     public static NodeParametersInput createDefaultNodeSettingsContext(final PortType[] inPortTypes,
         final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider,
         final PortObject[] inputPortObjects) {
-        return new NodeParametersInputImpl(inPortTypes, null, specs, stack, credentialsProvider, inputPortObjects,
+        return new NodeParametersInputImpl(inPortTypes, null, specs, stack, credentialsProvider, inputPortObjects, null,
             null);
     }
 
@@ -282,4 +286,10 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
         return m_dialogNode;
     }
 
+    @Override
+    public PortsConfiguration getPortsConfiguration() {
+        CheckUtils.checkState(m_portsConfiguration != null, "No port configuration is available in this context. "
+            + "This method should be called only for nodes with dynamic ports.");
+        return m_portsConfiguration;
+    }
 }

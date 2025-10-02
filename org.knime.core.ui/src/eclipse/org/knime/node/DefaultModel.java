@@ -59,6 +59,7 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.FluentNodeAPI;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.KNIMEException;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -108,7 +109,7 @@ public abstract sealed class DefaultModel implements FluentNodeAPI {
     }
 
     record ConfigureAndExecute(BiConsumer<ConfigureInput, ConfigureOutput> configure,
-        BiConsumer<ExecuteInput, ExecuteOutput> execute) {
+            BiConsumer<ExecuteInput, ExecuteOutput> execute) {
     }
 
     static final class StandardDefaultModel extends DefaultModel {
@@ -271,6 +272,16 @@ public abstract sealed class DefaultModel implements FluentNodeAPI {
          */
         PortType[] getOutPortTypes();
 
+        /**
+         * Getter for the {@link PortsConfiguration} of a configurable node, i.e. a node with dynamic in- or output
+         * ports.
+         *
+         * @return the ports configuration
+         * @throws IllegalStateException if there does not exist a port configuration. Whenever a node has dynamic
+         *             ports, it has a port configuration.
+         */
+        PortsConfiguration getPortsConfiguration();
+
     }
 
     /**
@@ -369,6 +380,17 @@ public abstract sealed class DefaultModel implements FluentNodeAPI {
          * @return the node's output port types
          */
         PortType[] getOutPortTypes();
+
+        /**
+         * Getter for the {@link PortsConfiguration} of a configurable node, i.e. a node with dynamic in- or output
+         * ports.
+         *
+         * @return the ports configuration
+         * @throws IllegalStateException if there does not exist a port configuration. Whenever a node has dynamic
+         *             ports, it has a port configuration.
+         */
+        PortsConfiguration getPortsConfiguration();
+
     }
 
     /**
