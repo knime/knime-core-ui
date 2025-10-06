@@ -86,6 +86,8 @@ final class JsonFormsSnapshot extends Snapshot {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(JsonFormsSnapshot.class);
 
+    private final String m_label;
+
     private final int m_instance;
 
     private final Map<SettingsType, FallibleSupplier<NodeParameters>> m_settings;
@@ -101,8 +103,9 @@ final class JsonFormsSnapshot extends Snapshot {
      * @param specs to configure the settings
      * @throws JsonProcessingException
      */
-    JsonFormsSnapshot(final int instance, final Map<SettingsType, FallibleSupplier<NodeParameters>> settings,
-        final PortObjectSpec[] specs) {
+    JsonFormsSnapshot(final String label, final int instance,
+            final Map<SettingsType, FallibleSupplier<NodeParameters>> settings, final PortObjectSpec[] specs) {
+        m_label = label;
         m_instance = instance;
         m_settings = settings;
         m_specs = specs;
@@ -111,6 +114,11 @@ final class JsonFormsSnapshot extends Snapshot {
     @Override
     public String getFilename() {
         return m_testClassName + (m_instance == 0 ? "" : m_instance) + ".snap";
+    }
+
+    @Override
+    String getTestLabel() {
+        return m_label != null ? m_label : super.getTestLabel();
     }
 
     private static JsonNode jsonForms(final Map<SettingsType, FallibleSupplier<NodeParameters>> settings,
