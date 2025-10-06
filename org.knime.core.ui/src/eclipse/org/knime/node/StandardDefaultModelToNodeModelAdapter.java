@@ -62,17 +62,14 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectHolder;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.node.DefaultModel.ConfigureInput;
 import org.knime.node.DefaultModel.ConfigureOutput;
 import org.knime.node.DefaultModel.ExecuteInput;
 import org.knime.node.DefaultModel.ExecuteOutput;
-import org.knime.node.DefaultModel.StandardDefaultModel;
 import org.knime.node.parameters.NodeParameters;
 
 /**
@@ -88,8 +85,6 @@ final class StandardDefaultModelToNodeModelAdapter extends NodeModel
     private final DefaultModel.StandardDefaultModel m_model;
 
     private final PortType[] m_outputTypes;
-
-    private final PortsConfiguration m_portConfig;
 
     private final Class<? extends NodeParameters> m_viewParametersClass;
 
@@ -108,16 +103,6 @@ final class StandardDefaultModelToNodeModelAdapter extends NodeModel
         m_model = model;
         m_outputTypes = outputPorts;
         m_viewParametersClass = viewParametersClass;
-        m_portConfig = null;
-    }
-
-    StandardDefaultModelToNodeModelAdapter(final StandardDefaultModel model, final PortsConfiguration portConfig,
-        final Class<? extends NodeParameters> viewParametersClass) {
-        super(portConfig.getInputPorts(), portConfig.getOutputPorts());
-        m_model = model;
-        m_viewParametersClass = viewParametersClass;
-        m_outputTypes = portConfig.getOutputPorts();
-        m_portConfig = portConfig;
     }
 
     @Override
@@ -186,13 +171,6 @@ final class StandardDefaultModelToNodeModelAdapter extends NodeModel
                 return m_outputTypes;
             }
 
-            @Override
-            public PortsConfiguration getPortsConfiguration() {
-                CheckUtils.checkState(m_portConfig != null, "No port configuration is available in this context. "
-                    + "This method should be called only for nodes with dynamic ports.");
-                return m_portConfig;
-            }
-
         }, new ConfigureOutput() {
 
             @Override
@@ -256,13 +234,6 @@ final class StandardDefaultModelToNodeModelAdapter extends NodeModel
             @Override
             public PortType[] getOutPortTypes() {
                 return m_outputTypes;
-            }
-
-            @Override
-            public PortsConfiguration getPortsConfiguration() {
-                CheckUtils.checkState(m_portConfig != null, "No port configuration is available in this context. "
-                    + "This method should be called only for nodes with dynamic ports.");
-                return m_portConfig;
             }
 
         }, new ExecuteOutput() {

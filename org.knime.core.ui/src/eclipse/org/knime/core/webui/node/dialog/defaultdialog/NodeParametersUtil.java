@@ -55,8 +55,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.context.ModifiableNodeCreationConfiguration;
-import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.dialog.DialogNode;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
@@ -99,9 +97,10 @@ public final class NodeParametersUtil {
         final var nodeContext = NodeContext.getContext();
         if (nodeContext == null) {
             // can only happen during tests
-            return new NodeParametersInputImpl(fallbackPortTypesFor(specs), null, specs, null, null, null, null, null);
+            return new NodeParametersInputImpl(fallbackPortTypesFor(specs), null, specs, null, null, null, null);
         }
         final var nc = nodeContext.getNodeContainer();
+        final CredentialsProvider credentialsProvider;
         final PortType[] inPortTypes;
         final PortType[] outPortTypes;
         if (nc instanceof SingleNodeContainer snc) {
@@ -115,15 +114,13 @@ public final class NodeParametersUtil {
             outPortTypes = null;
         }
         DialogNode dialogNode = null;
-        PortsConfiguration portConfig = null;
-        CredentialsProvider credentialsProvider = null;
         if (nc instanceof NativeNodeContainer nnc) {
             credentialsProvider = nnc.getNode().getCredentialsProvider();
             if (nnc.getNode().getNodeModel() instanceof DialogNode model) {
                 dialogNode = model;
             }
-            portConfig = nnc.getNode().getCopyOfCreationConfig()
-                .flatMap(ModifiableNodeCreationConfiguration::getPortConfig).orElse(null);
+        } else {
+            credentialsProvider = null;
         }
 
         final var inPortObjects = nc.getParent() == null // This function is used by tests that mock the container
@@ -131,7 +128,7 @@ public final class NodeParametersUtil {
             : InputPortUtil.getInputPortObjectsExcludingVariablePort(nc);
 
         return new NodeParametersInputImpl(inPortTypes, outPortTypes, specs, nc.getFlowObjectStack(),
-            credentialsProvider, inPortObjects, dialogNode, portConfig);
+            credentialsProvider, inPortObjects, dialogNode);
     }
 
     private static PortType[] fallbackPortTypesFor(final PortObjectSpec[] specs) {

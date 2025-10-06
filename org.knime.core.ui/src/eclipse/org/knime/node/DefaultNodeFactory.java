@@ -293,12 +293,12 @@ public abstract class DefaultNodeFactory extends ConfigurableNodeFactory<NodeMod
 
     private StandardDefaultModelToNodeModelAdapter createStandardNodeModel(final PortsConfiguration portConfig,
         final DefaultModel.StandardDefaultModel standardModel) {
-        final var viewParamsClass = getViewParametersClass().orElse(null);
         if (portConfig == null) {
             return new StandardDefaultModelToNodeModelAdapter(standardModel, new PortType[0], new PortType[0],
-                viewParamsClass);
+                getViewParametersClass().orElse(null));
         }
-        return new StandardDefaultModelToNodeModelAdapter(standardModel, portConfig, viewParamsClass);
+        return new StandardDefaultModelToNodeModelAdapter(standardModel, portConfig.getInputPorts(),
+            portConfig.getOutputPorts(), getViewParametersClass().orElse(null));
     }
 
     private RearrangeColumnsDefaultModelToNodeModelAdapter createRearrangerNodeModel(
