@@ -96,7 +96,9 @@ final class NodeSettingsSnapshot extends Snapshot {
             try (final var os = Files.newOutputStream(snapshotFile, StandardOpenOption.CREATE)) {
                 toPersist.saveToXML(os);
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
+            throw e;
+        }  catch (Exception e) {
             throw new IllegalStateException(
                 String.format("Exception while trying to write snapshot: %s", e.getMessage()), e);
         }
@@ -126,6 +128,8 @@ final class NodeSettingsSnapshot extends Snapshot {
                 // if snapshot matches, delete debug file
                 Files.delete(debugFile);
             }
+        } catch (IOException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
