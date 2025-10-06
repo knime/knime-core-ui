@@ -59,6 +59,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.util.workflow.def.FallibleSupplier;
 import org.knime.core.webui.node.dialog.SettingsType;
@@ -82,6 +83,8 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 @SuppressWarnings("restriction")
 final class JsonFormsSnapshot extends Snapshot {
+
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(JsonFormsSnapshot.class);
 
     private final int m_instance;
 
@@ -165,6 +168,7 @@ final class JsonFormsSnapshot extends Snapshot {
             Files.writeString(debugFile,
                 JsonFormsDataUtil.getMapper().writerWithDefaultPrettyPrinter().writeValueAsString(m_jsonForms),
                 StandardCharsets.UTF_8);
+            LOGGER.codingWithFormat("Debug snapshot file written to: %s", debugFile.toAbsolutePath());
             throw e;
         }
         if (Files.exists(debugFile)) {
