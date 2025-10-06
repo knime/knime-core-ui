@@ -118,7 +118,11 @@ enum LayoutPart {
         final var node = parent.addObject();
         final var label = sectionAnnotation.title();
         node.put(TAG_LABEL, label);
-        node.put(TAG_TYPE, sectionAnnotation.sideDrawer() ? TYPE_SIDE_DRAWER_SECTION : TYPE_SECTION);
+        final var isSideDrawer = sectionAnnotation.sideDrawer();
+        node.put(TAG_TYPE, isSideDrawer ? TYPE_SIDE_DRAWER_SECTION : TYPE_SECTION);
+        if (isSideDrawer && !sectionAnnotation.sideDrawerSetText().isEmpty()) {
+            node.putObject(TAG_OPTIONS).put("setText", sectionAnnotation.sideDrawerSetText());
+        }
         if (!sectionAnnotation.description().isEmpty()) {
             node.put(TAG_DESCRIPTION, sectionAnnotation.description());
         }

@@ -54,11 +54,11 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.layout.CheckboxesWithVennDiagram;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.node.parameters.Advanced;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.layout.After;
@@ -84,14 +84,12 @@ class JsonFormsUiSchemaUtilTest {
     static ObjectNode buildUiSchema(final Map<SettingsType, Class<? extends WidgetGroup>> settings,
         final NodeParametersInput context) {
         return JsonFormsUiSchemaUtil.buildUISchema(settings.entrySet().stream()
-            .map(e -> new WidgetTreeFactory().createTree(e.getValue(), e.getKey())).toList(), context
-            );
+            .map(e -> new WidgetTreeFactory().createTree(e.getValue(), e.getKey())).toList(), context);
     }
 
     static ObjectNode buildTestUiSchema(final Class<? extends NodeParameters> settingsClass) {
         return buildUiSchema(Map.of(SettingsType.MODEL, settingsClass));
     }
-
 
     static ObjectNode buildTestUiSchema(final Class<? extends NodeParameters> settingsClass,
         final NodeParametersInput context) {
@@ -191,6 +189,60 @@ class JsonFormsUiSchemaUtilTest {
         assertThatJson(response).inPath("$.elements").isArray().hasSize(1);
         assertThatJson(response).inPath("$.elements[0].scope").isString()
             .isEqualTo("#/properties/model/properties/normalSetting");
+    }
+
+    @Section(title = "Side Drawer 1", sideDrawer = true)
+    interface SideDrawer1 {
+
+    }
+
+    @Section(title = "Side Drawer 2", sideDrawer = true, sideDrawerSetText = SideDrawer2.SET_TEXT,
+        description = SideDrawer2.DESCRIPTION)
+    @After(SideDrawer1.class)
+    interface SideDrawer2 {
+
+        String DESCRIPTION = "Side drawer description";
+
+        String SET_TEXT = "Set settings";
+
+    }
+
+    class SideDrawerSettings implements NodeParameters {
+
+        @Layout(SideDrawer1.class)
+        @Widget(title = "", description = "")
+        String m_setting1;
+
+        @Layout(SideDrawer2.class)
+        @Widget(title = "", description = "")
+        String m_setting2;
+
+    }
+
+    @Test
+    void testSideDrawer() {
+
+        final var response = buildTestUiSchema(SideDrawerSettings.class);
+
+        // Test that we have 2 side drawer sections
+        assertThatJson(response).inPath("$.elements").isArray().hasSize(2);
+
+        // Test first side drawer (basic configuration)
+        assertThatJson(response).inPath("$.elements[0].type").isString().isEqualTo("SettingsSubPanelLayout");
+        assertThatJson(response).inPath("$.elements[0].label").isString().isEqualTo("Side Drawer 1");
+        assertThatJson(response).inPath("$.elements[0]").isObject().doesNotContainKey("description");
+        assertThatJson(response).inPath("$.elements[0]").isObject().doesNotContainKey("options");
+        assertThatJson(response).inPath("$.elements[0].elements[0].scope").isString()
+            .isEqualTo("#/properties/model/properties/setting1");
+
+        // Test second side drawer (with setText and description)
+        assertThatJson(response).inPath("$.elements[1].type").isString().isEqualTo("SettingsSubPanelLayout");
+        assertThatJson(response).inPath("$.elements[1].label").isString().isEqualTo("Side Drawer 2");
+        assertThatJson(response).inPath("$.elements[1].description").isString().isEqualTo(SideDrawer2.DESCRIPTION);
+        assertThatJson(response).inPath("$.elements[1].options.setText").isString().isEqualTo(SideDrawer2.SET_TEXT);
+        assertThatJson(response).inPath("$.elements[1].elements[0].scope").isString()
+            .isEqualTo("#/properties/model/properties/setting2");
+
     }
 
     @Test

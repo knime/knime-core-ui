@@ -1,0 +1,57 @@
+{
+  "$schema": "mock.def.json",
+  "result": {
+    "name": "Single Select Dialog",
+    "data": {
+      "someSetting": "Some value"
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "someSetting": {
+          "title": "Some Setting (within the side drawer)",
+          "description": "This is a description for some setting with a lengthy description that should overflow the border.",
+          "type": "string"
+        }
+      }
+    },
+    "ui_schema": {
+      "type": "VerticalLayout",
+      "elements": [
+        {
+          "type": "SettingsSubPanelLayout",
+          "label": "Side Drawer Section",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/someSetting"
+            }
+          ]
+        },
+        {
+          "type": "SettingsSubPanelLayout",
+          "label": "With description",
+          "description": "This is a very very lengthy description for the side drawer section",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/someSetting"
+            }
+          ]
+        },
+        {
+          "type": "Section",
+          "label": "For comparison: Section with long title and a description",
+          "description": "This is a very very lengthy description for the side drawer section",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/someSetting"
+            }
+          ]
+        }
+      ]
+    },
+    "flowVariableSettings": {}
+  }
+}

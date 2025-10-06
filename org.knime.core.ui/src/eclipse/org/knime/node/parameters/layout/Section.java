@@ -79,4 +79,11 @@ public @interface Section {
      *         animation.
      */
     boolean sideDrawer() default false;
+
+    /**
+     * Text for the button that opens the side drawer. Only relevant if {@link #sideDrawer()} is true.
+     *
+     * @return Text for the button that opens the side drawer. A default 'Set' text is used if this is empty.
+     */
+    String sideDrawerSetText() default "";
 }
