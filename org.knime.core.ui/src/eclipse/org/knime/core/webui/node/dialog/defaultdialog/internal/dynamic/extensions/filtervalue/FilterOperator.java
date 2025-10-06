@@ -97,6 +97,12 @@ public interface FilterOperator<P extends FilterValueParameters> extends FilterO
         return false;
     }
 
+    /**
+     * Indicates that the operator is deprecated. A deprecated operator may not be shown in the UI for new filter
+     * criteria, but can still be set via flow variable and used during filter execution.
+     *
+     * @return {@code true} if the operator is deprecated, {@code false} otherwise
+     */
     default boolean isDeprecated() {
         return false;
     }
