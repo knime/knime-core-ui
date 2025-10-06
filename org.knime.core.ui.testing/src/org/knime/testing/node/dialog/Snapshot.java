@@ -89,4 +89,14 @@ abstract class Snapshot {
     void setBaseName(final String name) {
         m_testClassName = name;
     }
+
+    /**
+     * Label for the snapshot test, used in test reports. The default contains the test class name set via
+     * {@link #setBaseName(String)} or {@link #getFilename()} if the base name has not been set.
+     *
+     * @return label for the snapshot test
+     */
+    String getTestLabel() {
+        return String.format("Snapshot [%s]", m_testClassName != null ? m_testClassName : getFilename());
+    }
 }

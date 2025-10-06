@@ -69,6 +69,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 @SuppressWarnings("restriction")
 final class NodeSettingsSnapshot extends Snapshot {
 
+    private final String m_label;
+
     private final int m_instance;
 
     private final FallibleSupplier<? extends NodeParameters> m_assertion;
@@ -77,7 +79,9 @@ final class NodeSettingsSnapshot extends Snapshot {
      * @param assertion in case the node has model and view settings
      * @throws JsonProcessingException
      */
-    NodeSettingsSnapshot(final int instance, final FallibleSupplier<? extends NodeParameters> assertion) {
+    NodeSettingsSnapshot(final String label, final int instance,
+            final FallibleSupplier<? extends NodeParameters> assertion) {
+        m_label = label;
         m_instance = instance;
         m_assertion = assertion;
     }
@@ -85,6 +89,11 @@ final class NodeSettingsSnapshot extends Snapshot {
     @Override
     public String getFilename() {
         return m_testClassName + m_instance + ".settings.xml.snap";
+    }
+
+    @Override
+    public String getTestLabel() {
+        return m_label != null ? m_label : super.getTestLabel();
     }
 
     @Override
