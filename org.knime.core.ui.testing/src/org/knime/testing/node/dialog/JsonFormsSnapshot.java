@@ -119,7 +119,7 @@ final class JsonFormsSnapshot extends Snapshot {
                     return e.getValue().get();
                 } catch (Exception ex) {
                     throw new IllegalStateException(
-                        String.format("Exception while trying to write snapshot: %s", ex.getMessage()), ex);
+                        String.format("Exception while trying to read snapshot: %s", ex.getMessage()), ex);
                 }
             }));
 
