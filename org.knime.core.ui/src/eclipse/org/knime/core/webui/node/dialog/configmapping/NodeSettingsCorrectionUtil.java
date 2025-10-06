@@ -176,7 +176,8 @@ public final class NodeSettingsCorrectionUtil {
 
     private static void toCollection(final ConfigMappings configMappings, final Collection<ConfigMapping> collection,
         final ConfigPath path) {
-        final var currentPath = toNextPath(configMappings, path);
+        final var currentPath = configMappings.m_key == null ? path : path.plus(configMappings.m_key);
+
         // depth first in order to have more specific mappings first
         configMappings.m_children.forEach(child -> toCollection(child, collection, currentPath));
 
@@ -187,18 +188,6 @@ public final class NodeSettingsCorrectionUtil {
                 configMappings.m_newConfigPaths, configMappings.m_oldSettingsToNewSettings));
         }
 
-    }
-
-    private static ConfigPath toNextPath(final ConfigMappings configMappings, final ConfigPath path) {
-        var currentPath = path;
-        for (var relativePathSegment : configMappings.m_relativePath) {
-            if (relativePathSegment.equals("..")) {
-                currentPath = currentPath.minusLast();
-            } else {
-                currentPath = currentPath.plus(relativePathSegment);
-            }
-        }
-        return currentPath;
     }
 
     private static void correctNodeSettings(final Collection<ConfigPath> flowVariablePaths,

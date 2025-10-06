@@ -148,12 +148,4 @@ public final class ConfigPath {
     ConfigPath plus(final String key) {
         return new ConfigPath(Stream.concat(m_path.stream(), Stream.of(key)).toList());
     }
-
-    ConfigPath minusLast() {
-        if (m_path.isEmpty()) {
-            throw new IllegalStateException("Cannot remove last key from empty path");
-        }
-        return new ConfigPath(m_path.subList(0, m_path.size() - 1));
-    }
-
 }

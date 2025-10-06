@@ -60,11 +60,9 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NewSettingsMissingMatcher;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
@@ -167,16 +165,7 @@ public final class SettingsLoaderFactory extends PersistenceFactory<ParametersLo
     @Override
     protected ParametersLoader getNested(final TreeNode<Persistable> node, final ParametersLoader loader) {
         final var configKey = ConfigKeyUtil.getConfigKey(node);
-        final var doNotNest = hasPersistWithinGoingUp(node);
-        return settings -> loader.load(doNotNest ? settings : settings.getNodeSettings(configKey));
-    }
-
-    static boolean hasPersistWithinGoingUp(final TreeNode<Persistable> node) {
-        if (node instanceof Tree<Persistable> tree) {
-            return tree.getTypeAnnotation(PersistWithin.class).map(PersistWithin::value).map(Arrays::stream)
-                .flatMap(Stream::findFirst).filter(firstKey -> "..".equals(firstKey)).isPresent();
-        }
-        return false;
+        return settings -> loader.load(settings.getNodeSettings(configKey));
     }
 
     @Override
@@ -225,42 +214,6 @@ public final class SettingsLoaderFactory extends PersistenceFactory<ParametersLo
                 return CreateDefaultsUtil.createDefaultSettingsFieldValue(node);
             }
         };
-    }
-
-    @Override
-    protected ParametersLoader reroute(final String[] relativePath, final ParametersLoader property,
-        final TreeNode<Persistable> node) {
-        return settings -> {
-            for (String key : relativePath) {
-                if ("..".equals(key)) {
-                    settings = (NodeSettings)settings.getParent();
-                    if (settings == null) {
-                        throw new InvalidSettingsException(
-                            "Could not go to parent settings. Reached top of settings tree.");
-                    }
-                } else {
-                    settings = settings.getNodeSettings(key);
-                }
-            }
-            return property.load(settings);
-        };
-    }
-
-    /**
-     * Since the first ".." key is already handled in {@link #getNested}, we need to ignore it here. {@inheritDoc}
-     */
-    @Override
-    protected ParametersLoader rerouteForType(final String[] relativePath, final ParametersLoader property,
-        final Tree<Persistable> node) {
-        var relativePathCorrected = correctRelativePath(relativePath);
-        return reroute(relativePathCorrected, property, node);
-    }
-
-    static String[] correctRelativePath(final String[] relativePath) {
-        if (relativePath.length > 0 && "..".equals(relativePath[0])) {
-            return Arrays.copyOfRange(relativePath, 1, relativePath.length);
-        }
-        return relativePath;
     }
 
 }

@@ -55,7 +55,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.NotImplementedException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
@@ -155,28 +154,6 @@ public abstract class PersistenceFactory<T> {
      * @return the property
      */
     protected abstract T getNested(final TreeNode<Persistable> node, final T property);
-
-    /**
-     * Called when an extracted property defines a relative route via {@link PersistWithin}.
-     *
-     * @param relativePath the relative path defined via {@link PersistWithin}.
-     * @param property the already extracted property.
-     * @param node the node with {@link PersistWithin} as field annotation.
-     * @return the adjusted property.
-     */
-    protected abstract T reroute(final String[] relativePath, final T property, final TreeNode<Persistable> node);
-
-    /**
-     * Called when an extracted property defines a relative route via {@link PersistWithin}.
-     *
-     * @param relativePath the relative path defined via {@link PersistWithin}.
-     * @param property the already extracted property.
-     * @param node the tree with {@link PersistWithin} as type annotation.
-     * @return the adjusted property.
-     */
-    protected T rerouteForType(final String[] relativePath, final T property, final Tree<Persistable> node) {
-        return reroute(relativePath, property, node);
-    }
 
     /**
      * Post process step for adjusting the property if a {@link Migration} is present.
@@ -302,12 +279,12 @@ public abstract class PersistenceFactory<T> {
         final var withoutLoader = customPersistor.map(ex::fromPersistor).orElseGet(ex::getDefault);
         final Supplier<String[][]> configPathsSupplier =
             () -> customPersistor.map(NodeParametersPersistor::getConfigPaths).orElseGet(ex::getDefaultConfigPaths);
-        final var combinedWithLoaders = performCombineWithLoader(ex, withoutLoader, configPathsSupplier);
+        final var combinedWithLoaders = performCombineWithDeprecatedConfigs(ex, withoutLoader, configPathsSupplier);
         return ex.postProcess(combinedWithLoaders, configPathsSupplier);
     }
 
     @SuppressWarnings("unchecked")
-    private T performCombineWithLoader(final ExtractionMethods<T> ex, final T withoutLoader,
+    private T performCombineWithDeprecatedConfigs(final ExtractionMethods<T> ex, final T withoutLoader,
         final Supplier<String[][]> configPathsSupplier) {
         final List<ConfigMigration> deprecatedConfigs =
             ex.getAnnotation(Migration.class).map(InitializeWithDefaultConstructorUtil::createMigrator)
@@ -376,10 +353,6 @@ public abstract class PersistenceFactory<T> {
 
         @Override
         public T postProcess(final T result, final Supplier<String[][]> configPathsProvider) {
-            final var relativePath = m_node.getTypeAnnotation(PersistWithin.class).map(PersistWithin::value);
-            if (relativePath.isPresent()) {
-                return rerouteForType(relativePath.get(), result, m_node);
-            }
             return result;
         }
     }
@@ -426,18 +399,6 @@ public abstract class PersistenceFactory<T> {
 
         @Override
         public T postProcess(final T result, final Supplier<String[][]> configPathsProvider) {
-            return postProcessReroute(postProcessLoadDefault(result, configPathsProvider));
-        }
-
-        private T postProcessReroute(final T result) {
-            final var relativePath = m_node.getAnnotation(PersistWithin.class).map(PersistWithin::value);
-            if (relativePath.isPresent()) {
-                return reroute(relativePath.get(), result, m_node);
-            }
-            return result;
-        }
-
-        private T postProcessLoadDefault(final T result, final Supplier<String[][]> configPathsProvider) {
             if (shouldLoadDefaultIfAbsent()) {
                 return combineWithLoadDefault(result, configPathsProvider, m_node);
             }

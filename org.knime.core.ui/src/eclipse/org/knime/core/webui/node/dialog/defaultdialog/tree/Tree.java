@@ -198,14 +198,6 @@ public final class Tree<S> extends TreeNode<S> {
     }
 
     /**
-     * @param key the annotation class
-     * @param value of this annotation
-     */
-    void addTypeAnnotation(final Class<? extends Annotation> key, final Annotation value) {
-        m_treeClassAnnotations.putIfAbsent(key, value);
-    }
-
-    /**
      * Whether the contents of this tree are dynamically loaded on runtime.
      */
     public boolean isDynamic() {

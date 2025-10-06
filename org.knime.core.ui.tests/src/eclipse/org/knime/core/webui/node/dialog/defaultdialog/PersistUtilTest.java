@@ -60,7 +60,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.ConfigMigration;
@@ -463,34 +462,6 @@ public class PersistUtilTest {
         // Check that config paths from custom persistor have dots substituted
         assertThatJson(result).inPath("$.properties.model.propertiesConfigPaths").isArray()
             .isEqualTo(new String[][]{{"normal_key"}, {"key<dot>with<dot>dots", "nested<dot>key<dot>with<dot>dots"}});
-    }
-
-    private static class SettingsWithPersistWithinOnField implements Persistable {
-        @PersistWithin({"some", "keys"})
-        public int innerField;
-    }
-
-    @Test
-    void testPersistWithinOnField() {
-        final var result = getPersistSchema(SettingsWithPersistWithinOnField.class);
-        assertThatJson(result).inPath("$.properties.model.properties.innerField.route").isArray()
-            .isEqualTo(new String[]{"some", "keys"});
-    }
-
-    private static class SettingsWithPersistWithinOnClass implements Persistable {
-        public InnerSettings innerSettings;
-
-        @PersistWithin("..")
-        static class InnerSettings implements Persistable {
-            public int innerField;
-        }
-    }
-
-    @Test
-    void testPersistWithinOnClass() {
-        final var result = getPersistSchema(SettingsWithPersistWithinOnClass.class);
-        assertThatJson(result).inPath("$.properties.model.properties.innerSettings.propertiesRoute").isArray()
-            .isEqualTo(new String[]{".."});
     }
 
 }

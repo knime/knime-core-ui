@@ -58,7 +58,6 @@ import org.junit.jupiter.api.Test;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin;
 import org.knime.node.parameters.migration.ConfigMigration;
 import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.migration.Migration;
@@ -112,8 +111,7 @@ class ConfigMappingsTest {
     void testInferredConfigsFromConfigPaths() {
         final var configMappings = createConfigMappings(InferredConfigsFromConfigPathsTestSettings.class,
             new InferredConfigsFromConfigPathsTestSettings());
-        ConfigMappings firstNonEmptyConfigMappingsChild =
-            getFirstNonEmptyConfigMappingsChild(configMappings).configMappings();
+        ConfigMappings firstNonEmptyConfigMappingsChild = getFirstNonEmptyConfigMappingsChild(configMappings);
         assertDeprecatedConfigPaths(firstNonEmptyConfigMappingsChild);
         assertThat(firstNonEmptyConfigMappingsChild.m_newConfigPaths)
             .isEqualTo(List.of(new ConfigPath(List.of("key1")), new ConfigPath(List.of("key2"))));
@@ -133,8 +131,7 @@ class ConfigMappingsTest {
     void testInferredConfigsFromConfigKey() {
         final var configMappings = createConfigMappings(InferredConfigsFromConfigKeyTestSettings.class,
             new InferredConfigsFromConfigKeyTestSettings());
-        ConfigMappings firstNonEmptyConfigMappingsChild =
-            getFirstNonEmptyConfigMappingsChild(configMappings).configMappings();
+        ConfigMappings firstNonEmptyConfigMappingsChild = getFirstNonEmptyConfigMappingsChild(configMappings);
         assertDeprecatedConfigPaths(firstNonEmptyConfigMappingsChild);
         assertThat(firstNonEmptyConfigMappingsChild.m_newConfigPaths)
             .isEqualTo(List.of(new ConfigPath(List.of(InferredConfigsFromConfigKeyTestSettings.CONFIG_KEY))));
@@ -151,19 +148,15 @@ class ConfigMappingsTest {
     void testInferredConfigsFromFieldName() {
         final var configMappings = createConfigMappings(InferredConfigsFromFieldNameTestSettings.class,
             new InferredConfigsFromFieldNameTestSettings());
-        ConfigMappings firstNonEmptyConfigMappingsChild =
-            getFirstNonEmptyConfigMappingsChild(configMappings).configMappings();
+        ConfigMappings firstNonEmptyConfigMappingsChild = getFirstNonEmptyConfigMappingsChild(configMappings);
         assertDeprecatedConfigPaths(firstNonEmptyConfigMappingsChild);
         assertThat(firstNonEmptyConfigMappingsChild.m_newConfigPaths)
             .isEqualTo(List.of(new ConfigPath(List.of("fieldName"))));
     }
 
-    private static ConfigMappingsWithPath getFirstNonEmptyConfigMappingsChild(final ConfigMappings configMappings) {
-        return getNonEmptyConfigMappingsChildren(configMappings, new ConfigPath(List.of())).findFirst()
+    private static ConfigMappings getFirstNonEmptyConfigMappingsChild(final ConfigMappings configMappings) {
+        return getNonEmptyConfigMappingsChildren(configMappings).findFirst()
             .orElseThrow(() -> new IllegalStateException("No config mappings present althoug they should."));
-    }
-
-    record ConfigMappingsWithPath(ConfigMappings configMappings, ConfigPath path) {
     }
 
     private static void assertDeprecatedConfigPaths(final ConfigMappings configMappings) {
@@ -171,26 +164,12 @@ class ConfigMappingsTest {
             .isEqualTo(List.of(new ConfigPath(List.of(Migrator.DEPRECATED))));
     }
 
-    private static Stream<ConfigMappingsWithPath> getNonEmptyConfigMappingsChildren(final ConfigMappings configMappings,
-        final ConfigPath parentPath) {
-        final var nextPath = getNextPath(configMappings, parentPath);
+    private static Stream<ConfigMappings> getNonEmptyConfigMappingsChildren(final ConfigMappings configMappings) {
         if (configMappings.m_newConfigPaths != null) {
-            return Stream.of(new ConfigMappingsWithPath(configMappings, nextPath));
+            return Stream.of(configMappings);
         }
-        return configMappings.m_children.stream().flatMap(conf -> getNonEmptyConfigMappingsChildren(conf, nextPath));
+        return configMappings.m_children.stream().flatMap(ConfigMappingsTest::getNonEmptyConfigMappingsChildren);
 
-    }
-
-    private static ConfigPath getNextPath(final ConfigMappings configMappings, final ConfigPath parentPath) {
-        var nextPath = parentPath;
-        for (final String key : configMappings.m_relativePath) {
-            if (key.equals("..")) {
-                nextPath = nextPath.minusLast();
-            } else {
-                nextPath = nextPath.plus(key);
-            }
-        }
-        return nextPath;
     }
 
     static final class OptionalFieldSettings implements Persistable {
@@ -203,63 +182,10 @@ class ConfigMappingsTest {
     @Test
     void testOptionalField() {
         final var configMappings = createConfigMappings(OptionalFieldSettings.class, new OptionalFieldSettings());
-        ConfigMappings firstNonEmptyConfigMappingsChild =
-            getFirstNonEmptyConfigMappingsChild(configMappings).configMappings();
+        ConfigMappings firstNonEmptyConfigMappingsChild = getFirstNonEmptyConfigMappingsChild(configMappings);
         assertThat(firstNonEmptyConfigMappingsChild.m_newConfigPaths)
             .isEqualTo(List.of(new ConfigPath(List.of("fieldName"))));
         assertThat(firstNonEmptyConfigMappingsChild.m_deprecatedConfigPaths).isEmpty();
-    }
-
-    static final class ReroutingSettings implements Persistable {
-
-        @PersistWithin({"level1", "level2"})
-        @Migration(MyMigration.class)
-        int m_fieldName;
-
-    }
-
-    static final class MyMigration implements NodeParametersMigration<Integer> {
-
-        @Override
-        public List<ConfigMigration<Integer>> getConfigMigrations() {
-            return List.of(ConfigMigration.builder(settings -> 1).withDeprecatedConfigPath("otherFieldName").build());
-        }
-    }
-
-    @Test
-    void testRerouting() {
-        final var configMappings = createConfigMappings(ReroutingSettings.class, new ReroutingSettings());
-        final var firstNonEmptyConfigMappingsChild = getFirstNonEmptyConfigMappingsChild(configMappings);
-        final var configMappingsChild = firstNonEmptyConfigMappingsChild.configMappings();
-        final var childPath = firstNonEmptyConfigMappingsChild.path();
-        assertThat(configMappingsChild.m_newConfigPaths).isEqualTo(List.of(new ConfigPath(List.of("fieldName"))));
-        assertThat(configMappingsChild.m_deprecatedConfigPaths)
-            .isEqualTo(List.of(new ConfigPath(List.of("otherFieldName"))));
-        assertThat(childPath).isEqualTo(new ConfigPath(List.of("level1", "level2")));
-    }
-
-    static final class ReroutingClassSettings implements Persistable {
-        @PersistWithin("..")
-        static final class NestedSettings implements Persistable {
-
-            @Migration(MyMigration.class)
-            int m_nestedField;
-        }
-
-        NestedSettings m_nested = new NestedSettings();
-
-    }
-
-    @Test
-    void testReroutingClass() {
-        final var configMappings = createConfigMappings(ReroutingClassSettings.class, new ReroutingClassSettings());
-        final var firstNonEmptyConfigMappingsChild = getFirstNonEmptyConfigMappingsChild(configMappings);
-        final var configMappingsChild = firstNonEmptyConfigMappingsChild.configMappings();
-        final var childPath = firstNonEmptyConfigMappingsChild.path();
-        assertThat(configMappingsChild.m_newConfigPaths).isEqualTo(List.of(new ConfigPath(List.of("nestedField"))));
-        assertThat(configMappingsChild.m_deprecatedConfigPaths)
-            .isEqualTo(List.of(new ConfigPath(List.of("otherFieldName"))));
-        assertThat(childPath).isEqualTo(new ConfigPath(List.of()));
     }
 
 }

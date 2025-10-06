@@ -50,9 +50,6 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
 import java.util.function.Function;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
@@ -73,8 +70,6 @@ import org.knime.node.parameters.persistence.Persistable;
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public final class SettingsSaverFactory extends PersistenceFactory<ParametersSaver> {
-
-    static final NodeLogger LOGGER = NodeLogger.getLogger(SettingsSaverFactory.class);
 
     static final String CLASS_ID_CFG_KEY = "@class";
 
@@ -156,44 +151,7 @@ public final class SettingsSaverFactory extends PersistenceFactory<ParametersSav
     @Override
     protected ParametersSaver getNested(final TreeNode<Persistable> node, final ParametersSaver property) {
         final var configKey = ConfigKeyUtil.getConfigKey(node);
-        final var doNotNest = SettingsLoaderFactory.hasPersistWithinGoingUp(node);
-        return (obj, settings) -> property.save(obj, doNotNest ? settings : settings.addNodeSettings(configKey));
-    }
-
-    @Override
-    protected ParametersSaver reroute(final String[] relativePath, final ParametersSaver property,
-        final TreeNode<Persistable> node) {
-        return (obj, settings) -> {
-            NodeSettingsWO current = settings;
-            for (String pathElement : relativePath) {
-                current = getOrAddNodeSettings(current, pathElement);
-            }
-            property.save(obj, current);
-        };
-    }
-
-    /**
-     * Since the first ".." key is already handled in {@link #getNested}, we need to ignore it here.
-     */
-    @Override
-    protected ParametersSaver rerouteForType(final String[] relativePath, final ParametersSaver property,
-        final Tree<Persistable> node) {
-        var relativePathCorrected = SettingsLoaderFactory.correctRelativePath(relativePath);
-        return reroute(relativePathCorrected, property, node);
-    }
-
-    static NodeSettingsWO getOrAddNodeSettings(final NodeSettingsWO settings, final String key) {
-        if (key.equals("..")) {
-            return (NodeSettings)((NodeSettings)settings).getParent();
-        } else {
-            try {
-                return (((NodeSettings)settings).getNodeSettings(key));
-            } catch (final InvalidSettingsException | ClassCastException e) {
-                LOGGER.debug("Could not get existing node settings for key " + key + ", creating new one.", e);
-                return settings.addNodeSettings(key);
-            }
-        }
-
+        return (obj, settings) -> property.save(obj, settings.addNodeSettings(configKey));
     }
 
 }

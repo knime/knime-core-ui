@@ -65,7 +65,7 @@ public final class ConfigMappings {
 
     final Collection<ConfigMappings> m_children;
 
-    final String[] m_relativePath;
+    final String m_key;
 
     final Collection<ConfigPath> m_newConfigPaths;
 
@@ -77,7 +77,7 @@ public final class ConfigMappings {
      * @param children
      */
     public ConfigMappings(final Collection<ConfigMappings> children) {
-        this(new String[0], children);
+        this(null, children);
     }
 
     /**
@@ -85,19 +85,11 @@ public final class ConfigMappings {
      * @param children
      */
     public ConfigMappings(final String key, final Collection<ConfigMappings> children) {
-        this(new String[]{key}, children);
-    }
-
-    /**
-     * @param relativePath by which the children can be accessed
-     * @param children
-     */
-    public ConfigMappings(final String[] relativePath, final Collection<ConfigMappings> children) {
         m_children = children;
         m_newConfigPaths = null;
         m_deprecatedConfigPaths = null;
         m_oldSettingsToNewSettings = null;
-        m_relativePath = relativePath;
+        m_key = key;
     }
 
     /**
@@ -115,6 +107,6 @@ public final class ConfigMappings {
         m_deprecatedConfigPaths = deprecatedConfigPaths;
         m_oldSettingsToNewSettings = oldSettingsToNewSettings;
         m_children = List.of();
-        m_relativePath = new String[0];
+        m_key = null;
     }
 }
