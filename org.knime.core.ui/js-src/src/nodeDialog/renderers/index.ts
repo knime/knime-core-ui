@@ -28,6 +28,7 @@ import { arrayLayoutRenderer } from "./arrayLayoutRenderer";
 import { buttonRenderer } from "./buttonRenderer";
 import { configurationNodeNotSupportedRenderer } from "./configurationNodeNotSupportedRenderer";
 import { credentialsRenderer } from "./credentialsRenderer";
+import { customFileSystemFileChooserRenderer } from "./customFileSystemFileChooserRenderer";
 import { dbTableChooserRenderer } from "./dbTableChooserRenderer";
 import { dynamicInputRenderer } from "./dynamicInputRenderer";
 import { dynamicValueRenderer } from "./dynamicValueRenderer";
@@ -46,6 +47,7 @@ import { vennDiagramLayoutRenderer } from "./vennDiagramRenderer";
 const coreUIControls: Record<string, VueControlRenderer> = {
   buttonRenderer, // since it will be removed soon and is based on the old update mechanism
   localFileChooserRenderer, // since it would require api calls
+  customFileSystemFileChooserRenderer, // since it would require api calls
   fileChooserRenderer,
   multiFileChooserRenderer,
   dbTableChooserRenderer,

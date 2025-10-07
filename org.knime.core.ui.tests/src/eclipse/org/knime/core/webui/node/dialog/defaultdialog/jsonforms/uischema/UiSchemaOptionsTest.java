@@ -85,6 +85,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButt
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.CustomFileConnectionFolderReaderWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FSConnectionProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
@@ -101,6 +103,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWi
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.TypedStringFilterWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TestButtonActionHandler.TestStates;
@@ -1358,6 +1361,34 @@ class UiSchemaOptionsTest {
             .isEqualTo(fileSystemSpecifier);
         assertThatJson(response).inPath("$.elements[0].options").isObject()
             .doesNotContainKey("fileSystemConnectionMissing");
+    }
+
+    @Test
+    void testCustomFileConnectionFolderReaderWidget() {
+        class DummyConnectionProvider implements StateProvider<FSConnectionProvider> {
+            @Override
+            public FSConnectionProvider computeState(final NodeParametersInput context) {
+                return null; // Not needed for UI schema test
+            }
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+            }
+        }
+
+        class CustomFileConnectionFolderReaderWidgetTestSettings implements NodeParameters {
+            @Widget(title = "", description = "")
+            @CustomFileConnectionFolderReaderWidget(connectionProvider = DummyConnectionProvider.class)
+            String m_folderPath;
+        }
+
+        var response = buildTestUiSchema(CustomFileConnectionFolderReaderWidgetTestSettings.class);
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("folderPath");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString()
+            .isEqualTo(Format.CUSTOM_FILE_SYSTEM_FILE_CHOOSER);
+        assertThatJson(response).inPath("$.elements[0].options.selectionMode").isString().isEqualTo("FOLDER");
+        assertThatJson(response).inPath("$.elements[0].providedOptions").isArray()
+            .containsExactly(UpdateResultsUtil.FILE_SYSTEM_ID);
     }
 
     @Test

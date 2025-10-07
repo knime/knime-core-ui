@@ -65,12 +65,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicPa
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersDeserializer;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersSerializer;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.CustomFileConnectionFolderReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.CredentialsRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.NumberRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
@@ -399,6 +401,12 @@ final class WidgetTreesToRefsAndStateProviders {
                 UiSchema.TAG_DYNAMIC_SETTINGS, //
                 DynamicParameters.class, //
                 DynamicParameters::value, //
+                null //
+            ), //
+            new UiStateProviderAnnotationSpec<>( //
+                UpdateResultsUtil.FILE_SYSTEM_ID, //
+                CustomFileConnectionFolderReaderWidget.class, //
+                CustomFileConnectionFolderReaderWidget::connectionProvider, //
                 null //
             ));
 

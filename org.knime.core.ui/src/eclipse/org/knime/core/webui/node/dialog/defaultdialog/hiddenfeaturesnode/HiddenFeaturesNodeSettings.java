@@ -50,17 +50,30 @@ package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Supplier;
 
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.CustomFileConnectionFolderReaderWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FSConnectionProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelectionWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
 
+@LoadDefaultsForAbsentFields
 class HiddenFeaturesNodeSettings implements NodeParameters {
 
     static final class TestFileChooserFilters implements FileChooserFilters {
@@ -105,4 +118,50 @@ class HiddenFeaturesNodeSettings implements NodeParameters {
     @Widget(title = "File Selection with Folder", description = "A file selection that allows selecting folders.")
     @FolderSelectionWidget
     FileSelection m_testSelectionWithFolder = new FileSelection();
+
+    static final class ToggleToGetFileSystemErrorRef implements BooleanReference {
+
+    }
+
+    @Widget(title = "Toggle to break file system",
+        description = "A boolean that triggers the computation of the state provider of the file system "
+            + "connection used below.")
+    @ValueReference(ToggleToGetFileSystemErrorRef.class)
+    boolean m_toggleToGetFileSystemError;
+
+    @Widget(title = "Choose from custom file system", description = """
+            A file selection that uses a custom file system connection provider.
+            Toggle the boolean above to see what happens if the state provider fails.
+            """)
+    @CustomFileConnectionFolderReaderWidget(connectionProvider = TestFileSystemConnectionProvider.class)
+    String m_testFileSystem;
+
+    static final class TestFileSystemConnectionProvider implements StateProvider<FSConnectionProvider> {
+
+        private Supplier<Boolean> m_computeFromValueSupplier;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+            m_computeFromValueSupplier = initializer.computeFromValueSupplier(ToggleToGetFileSystemErrorRef.class);
+
+        }
+
+        @Override
+        public FSConnectionProvider computeState(final NodeParametersInput parametersInput)
+            throws StateComputationFailureException {
+            if (!m_computeFromValueSupplier.get().booleanValue()) {
+                return DefaultFSConnectionFactory::createLocalFSConnection;
+            }
+            return () -> {
+                throw new InvalidSettingsException("Test what happens");
+            };
+        }
+
+    }
+
+    @Widget(title = "Local File System File",
+        description = "A simple string to hold a file path on the local file system.")
+    @LocalFileReaderWidget
+    String m_localFileSystemFile;
 }

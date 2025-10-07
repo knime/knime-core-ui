@@ -143,7 +143,7 @@ class DefaultNodeSettingsServiceTest {
 
         // create settings service and obtain initial data using node settings and specs
         final var settingsService =
-            new DefaultNodeSettingsService(Map.of(SettingsType.VIEW, TestSettings.class));
+            new DefaultNodeSettingsService(Map.of(SettingsType.VIEW, TestSettings.class), null);
         final var initialData = MAPPER.readTree(settingsService.fromNodeSettings(
             Map.of(SettingsType.VIEW, NodeDialogTest.createNodeAndVariableSettingsRO(nodeSettings)), specs));
 
@@ -177,7 +177,7 @@ class DefaultNodeSettingsServiceTest {
 
         // create settings service and apply wrapped "foo" view data into node settings
         final var settingsService =
-            new DefaultNodeSettingsService(Map.of(SettingsType.VIEW, TestSettings.class));
+            new DefaultNodeSettingsService(Map.of(SettingsType.VIEW, TestSettings.class), null);
         final var wrappedViewData = MAPPER.createObjectNode().set("data",
             MAPPER.createObjectNode().set(SettingsType.VIEW.getConfigKey(), viewData));
         settingsService.toNodeSettings(wrappedViewData.toString(),
@@ -198,7 +198,7 @@ class DefaultNodeSettingsServiceTest {
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
         final var settingsService =
-            new DefaultNodeSettingsService(Map.of(SettingsType.VIEW, TestSettings.class));
+            new DefaultNodeSettingsService(Map.of(SettingsType.VIEW, TestSettings.class), null);
         final var textSettings = """
                     {
                     "data": {"view": {"value": "new"}},
@@ -292,7 +292,7 @@ class DefaultNodeSettingsServiceTest {
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
         final var settingsService =
-            new DefaultNodeSettingsService(Map.of(SettingsType.VIEW, MigratedSettings.class));
+            new DefaultNodeSettingsService(Map.of(SettingsType.VIEW, MigratedSettings.class), null);
         final var textSettings = String.format("""
                     {
                     "data": {"view": {"value": "new"}},
@@ -343,7 +343,7 @@ class DefaultNodeSettingsServiceTest {
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
         final var settingsService = new DefaultNodeSettingsService(
-            Map.of(SettingsType.VIEW, MigratedSettingsWithLoad.class));
+            Map.of(SettingsType.VIEW, MigratedSettingsWithLoad.class), null);
         final var textSettings = """
                     {
                     "data": {"view": {"value": "new"}},
@@ -395,7 +395,7 @@ class DefaultNodeSettingsServiceTest {
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
         final var settingsService = new DefaultNodeSettingsService(
-            Map.of(SettingsType.VIEW, MigratedSettingsWithFailingLoad.class));
+            Map.of(SettingsType.VIEW, MigratedSettingsWithFailingLoad.class), null);
         final var textSettings = """
                     {
                     "data": {"view": {"value": "new"}},
@@ -423,7 +423,7 @@ class DefaultNodeSettingsServiceTest {
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
         final var settingsService = new DefaultNodeSettingsService(
-            Map.of(SettingsType.VIEW, MigratedSettingsWithLoad.class));
+            Map.of(SettingsType.VIEW, MigratedSettingsWithLoad.class), null);
         final var textSettings = """
                     {
                     "data": {"view": {"value": "new"}},
@@ -465,7 +465,7 @@ class DefaultNodeSettingsServiceTest {
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
         final var settingsService = new DefaultNodeSettingsService(
-            Map.of(SettingsType.VIEW, RootSettingsWithDeprecations.class));
+            Map.of(SettingsType.VIEW, RootSettingsWithDeprecations.class), null);
         final var textSettings = """
                     {
                     "data": {"view": {"value": "new"}},
@@ -492,7 +492,7 @@ class DefaultNodeSettingsServiceTest {
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
         final var settingsService = new DefaultNodeSettingsService(
-            Map.of(SettingsType.VIEW, RootSettingsWithDeprecations.class));
+            Map.of(SettingsType.VIEW, RootSettingsWithDeprecations.class), null);
         final var textSettings = """
                     {
                     "data": {"view": {"value": "new"}},
@@ -523,7 +523,7 @@ class DefaultNodeSettingsServiceTest {
         final var nodeSettings = new NodeSettings("newSettings");
         final var nodeAndVariableSettingsWO = NodeDialogTest.createNodeAndVariableSettingsWO(nodeSettings);
         final var settingsService = new DefaultNodeSettingsService(
-            Map.of(SettingsType.VIEW, SettingsWithOptionalSetting.class));
+            Map.of(SettingsType.VIEW, SettingsWithOptionalSetting.class), null);
         final var textSettings = """
                     {
                     "data": {"view": {"value": "new"}},

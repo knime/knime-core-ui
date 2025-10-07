@@ -13,7 +13,10 @@ const emit = defineEmits(["apply"]);
 </script>
 
 <template>
-  <SettingsSubPanelForFileChooser @apply="() => emit('apply')">
+  <SettingsSubPanelForFileChooser
+    ref="settings-panel"
+    @apply="() => emit('apply')"
+  >
     <template #expand-button="{ expand }">
       <FunctionButton
         class="fit-content"
@@ -23,8 +26,8 @@ const emit = defineEmits(["apply"]);
         ><FolderLenseIcon
       /></FunctionButton>
     </template>
-    <template #default="{ applyAndClose }">
-      <slot :apply-and-close />
+    <template #default="{ applyAndClose, cancel }">
+      <slot :apply-and-close :cancel />
     </template>
   </SettingsSubPanelForFileChooser>
 </template>

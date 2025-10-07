@@ -76,15 +76,19 @@ import org.knime.core.node.workflow.VariableType.BooleanType;
 import org.knime.core.node.workflow.VariableType.IntType;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DefaultClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.CustomFileConnectionFolderReaderWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FSConnectionProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.CheckboxRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
@@ -117,6 +121,8 @@ import org.knime.node.parameters.widget.message.TextMessage.MessageType;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinValidation;
 import org.knime.node.parameters.widget.text.TextInputWidget;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -134,15 +140,18 @@ public class UpdatesUtilTest {
     }
 
     static ObjectNode buildUpdates(final Map<SettingsType, WidgetGroup> settings) {
-        return buildUpdates(settings, createDefaultNodeSettingsContext());
+        return buildUpdates(settings, createDefaultNodeSettingsContext(), null);
     }
 
-    static ObjectNode buildUpdates(final Map<SettingsType, WidgetGroup> settings, final NodeParametersInput context) {
+    static ObjectNode buildUpdates(final Map<SettingsType, WidgetGroup> settings, final NodeParametersInput context,
+        final FileSystemConnector fileSystemConnector) {
         final var objectNode = new ObjectMapper().createObjectNode();
         final Map<SettingsType, Class<? extends WidgetGroup>> settingsClasses =
             MapValuesUtil.mapValues(settings, WidgetGroup::getClass);
-        UpdatesUtil.addUpdates(objectNode, settingsClasses.entrySet().stream()
-            .map(e -> new WidgetTreeFactory().createTree(e.getValue(), e.getKey())).toList(), settings, context);
+        UpdatesUtil.addUpdates(
+            objectNode, settingsClasses.entrySet().stream()
+                .map(e -> new WidgetTreeFactory().createTree(e.getValue(), e.getKey())).toList(),
+            settings, context, fileSystemConnector);
         return objectNode;
     }
 
@@ -152,7 +161,7 @@ public class UpdatesUtilTest {
     }
 
     private static ObjectNode buildUpdatesWithNullContext(final WidgetGroup settings) {
-        return buildUpdates(Map.of(SettingsType.MODEL, settings), null);
+        return buildUpdates(Map.of(SettingsType.MODEL, settings), null, null);
     }
 
     @Test
@@ -1398,4 +1407,40 @@ public class UpdatesUtilTest {
         assertThatJson(response).inPath("$.globalUpdates[0].trigger.id").isString().isEqualTo("ElementResetButton");
 
     }
+
+    static final class TestConnectionProvider implements StateProvider<FSConnectionProvider> {
+        @Override
+        public FSConnectionProvider computeState(final NodeParametersInput context) {
+            return () -> {
+                throw new IllegalStateException("Should not be called in this test");
+            };
+        }
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+        }
+    }
+
+    @Test
+    void testFSConnectionProviderIsIntercepted() {
+
+        class TestSettings implements NodeParameters {
+            @Widget(title = "", description = "")
+            @CustomFileConnectionFolderReaderWidget(connectionProvider = TestConnectionProvider.class)
+            String m_path;
+        }
+        final var fileSystemId = "myFileSystemId";
+        final var fileSystemConnector = Mockito.mock(FileSystemConnector.class);
+        Mockito.when(fileSystemConnector.registerCustomFileSystem(ArgumentMatchers.any(FSConnectionProvider.class),
+            ArgumentMatchers.anyString(), ArgumentMatchers.anyList())).thenReturn(fileSystemId);
+
+        final var response = buildUpdates(Map.of(SettingsType.MODEL, new TestSettings()),
+            createDefaultNodeSettingsContext(), fileSystemConnector);
+
+        assertThatJson(response).inPath("$.initialUpdates[0].providedOptionName").isString()
+            .isEqualTo(UpdateResultsUtil.FILE_SYSTEM_ID);
+        assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isString().isEqualTo(fileSystemId);
+    }
+
 }

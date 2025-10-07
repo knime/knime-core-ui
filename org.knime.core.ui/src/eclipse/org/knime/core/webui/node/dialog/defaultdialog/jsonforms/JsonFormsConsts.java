@@ -324,6 +324,8 @@ public final class JsonFormsConsts {
 
             public static final String FILE_CHOOSER = "fileChooser";
 
+            public static final String CUSTOM_FILE_SYSTEM_FILE_CHOOSER = "customFileSystemFileChooser";
+
             public static final String MULTI_FILE_CHOOSER = "multiFileChooser";
 
             public static final String DB_TABLE_CHOOSER = "dbTableChooser";

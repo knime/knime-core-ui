@@ -72,7 +72,7 @@ const apply = () =>
       <slot name="expand-button" :expand="expand" />
     </template>
     <template #default>
-      <slot :apply-and-close="apply" />
+      <slot :apply-and-close="apply" :cancel="close" />
     </template>
     <template #bottom-content>
       <div class="bottom-buttons">

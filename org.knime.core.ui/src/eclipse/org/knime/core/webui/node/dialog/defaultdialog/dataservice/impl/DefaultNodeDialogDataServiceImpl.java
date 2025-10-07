@@ -65,6 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DataServiceReq
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultNodeDialogDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Result;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
@@ -94,14 +95,21 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
 
     private final Map<String, ExternalValidation<?>> m_externalValidationHandlers = new HashMap<>();
 
+    private final FileSystemConnector m_fileSystemConnector;
+
     private DataServiceTriggerInvocationHandler m_triggerInvocationHandler;
 
     /**
+     * Constructor.
+     *
      * @param settingsClasses the classes of the {@link NodeParameters} associated to the dialog.
+     * @param fileSystemConnector the file system connector for registering custom file systems
      */
-    public DefaultNodeDialogDataServiceImpl(final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses) {
+    public DefaultNodeDialogDataServiceImpl(final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses,
+        final FileSystemConnector fileSystemConnector) {
         m_keyToSettingsClassMap = new EnumMap<>(SettingsType.class);
         settingsClasses.forEach(m_keyToSettingsClassMap::put);
+        m_fileSystemConnector = fileSystemConnector;
         m_buttonActionHandlers = new ButtonWidgetActionHandlerHolder(m_keyToSettingsClassMap.values());
         m_buttonUpdateHandlers = new ButtonWidgetUpdateHandlerHolder(m_keyToSettingsClassMap.values());
         m_requestHandler = new DataServiceRequestHandler();
@@ -109,8 +117,8 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
 
     DataServiceTriggerInvocationHandler getTriggerInvocationHandler() {
         if (m_triggerInvocationHandler == null) {
-            m_triggerInvocationHandler =
-                new DataServiceTriggerInvocationHandler(m_keyToSettingsClassMap, createContext());
+            m_triggerInvocationHandler = new DataServiceTriggerInvocationHandler(m_keyToSettingsClassMap,
+                createContext(), m_fileSystemConnector);
         }
         return m_triggerInvocationHandler;
     }

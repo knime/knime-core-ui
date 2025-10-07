@@ -121,6 +121,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButt
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicNodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.CustomFileConnectionFolderReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
@@ -136,6 +137,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.DateTimeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.EnumUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree.WidgetTreeRenderers;
@@ -381,6 +383,13 @@ final class UiSchemaOptionsGenerator {
         if (annotatedWidgets.contains(FolderSelectionWidget.class)) {
             options.put("selectionMode", "FOLDER");
             addFileSystemInformation(options);
+        }
+
+        if (annotatedWidgets.contains(CustomFileConnectionFolderReaderWidget.class)) {
+            options.put(TAG_FORMAT, Format.CUSTOM_FILE_SYSTEM_FILE_CHOOSER);
+            options.put("selectionMode", "FOLDER");
+            // Mark that the fileSystemId will be provided dynamically
+            getOrCreateProvidedOptions(control).add(UpdateResultsUtil.FILE_SYSTEM_ID);
         }
 
         if (annotatedWidgets.contains(LocalFileWriterWidget.class)) {

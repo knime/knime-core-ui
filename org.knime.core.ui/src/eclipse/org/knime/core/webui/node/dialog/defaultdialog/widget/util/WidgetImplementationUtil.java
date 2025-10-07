@@ -62,6 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButt
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.CustomFileConnectionFolderReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
@@ -193,6 +194,7 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), CredentialsWidgetInternal.class), //
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), PasswordWidget.class), //
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), UsernameWidget.class), //
+        new WidgetAnnotation(List.of(String.class), CustomFileConnectionFolderReaderWidget.class), //
         new WidgetAnnotation(List.of(FileSelection.class, MultiFileSelection.class), FileReaderWidget.class), //
         new WidgetAnnotation(List.of(FileSelection.class), FileWriterWidget.class), //
         new WidgetAnnotation(List.of(FileSelection.class), FolderSelectionWidget.class), //

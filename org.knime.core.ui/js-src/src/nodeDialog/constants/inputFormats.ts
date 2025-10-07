@@ -7,6 +7,7 @@ export const inputFormats = {
   legacyCredentials: "legacyCredentials",
   localFileChooser: "localFileChooser",
   fileChooser: "fileChooser",
+  customFileSystemFileChooser: "customFileSystemFileChooser",
   multiFileChooser: "multiFileChooser",
   dynamicValue: "dynamicValue",
   dynamicInput: "dynamicInput",

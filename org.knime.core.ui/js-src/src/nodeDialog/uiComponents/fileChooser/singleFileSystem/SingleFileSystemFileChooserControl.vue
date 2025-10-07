@@ -9,8 +9,11 @@ import DialogFileExplorer from "../DialogFileExplorer.vue";
 import FileBrowserButton from "../FileBrowserButton.vue";
 import { useFileChooserBrowseOptions } from "../composables/useFileChooserBrowseOptions";
 import useSideDrawerContent from "../composables/useSideDrawerContent";
+import type { BackendType } from "../types";
 
-const props = defineProps<VueControlPropsForLabelContent<string>>();
+const props = defineProps<
+  VueControlPropsForLabelContent<string> & { backendType: BackendType }
+>();
 const uischema = computed(() => props.control.uischema as FileChooserUiSchema);
 const { sideDrawerValue, updateSideDrawerValue, onApply } =
   useSideDrawerContent<string>({
@@ -19,6 +22,9 @@ const { sideDrawerValue, updateSideDrawerValue, onApply } =
   });
 const { appendedExtension, filteredExtensions, isLoaded, isWriter } =
   useFileChooserBrowseOptions(uischema);
+const selectionMode = computed(
+  () => uischema.value.options?.selectionMode ?? "FILE",
+);
 </script>
 
 <template>
@@ -34,21 +40,23 @@ const { appendedExtension, filteredExtensions, isLoaded, isWriter } =
       @update:model-value="changeValue"
     />
     <FileBrowserButton
-      #default="{ applyAndClose }"
+      #default="{ applyAndClose, cancel }"
       :disabled="disabled"
       @apply="onApply"
     >
       <DialogFileExplorer
         v-if="isLoaded"
-        :backend-type="'local'"
+        :backend-type="backendType"
         :disabled="disabled"
         :initial-value="control.data"
         :is-writer="isWriter"
         :filtered-extensions="filteredExtensions"
         :appended-extension="appendedExtension"
         :initial-file-path="sideDrawerValue"
+        :selection-mode="selectionMode"
         @choose-item="updateSideDrawerValue"
         @apply-and-close="applyAndClose"
+        @cancel="cancel"
       />
     </FileBrowserButton>
   </div>

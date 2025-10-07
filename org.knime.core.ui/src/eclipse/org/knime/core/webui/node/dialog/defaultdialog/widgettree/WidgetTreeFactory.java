@@ -59,6 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidg
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.CustomFileConnectionFolderReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelectionWidget;
@@ -142,6 +143,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         ColumnFilterWidget.class, //
         CredentialsWidget.class, //
         CredentialsWidgetInternal.class, //
+        CustomFileConnectionFolderReaderWidget.class, //
         DateTimeFormatPickerWidget.class, //
         Effect.class, //
         FileReaderWidget.class, //

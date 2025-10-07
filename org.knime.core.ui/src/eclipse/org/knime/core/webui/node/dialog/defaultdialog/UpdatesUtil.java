@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
@@ -118,12 +119,13 @@ public final class UpdatesUtil {
      * @param widgetTrees to extract the triggers from
      * @param jsonData the current settings
      * @param context the current context
+     * @param fileSystemConnector to resolve file system related updates
      */
     static void addUpdates(final ObjectNode rootNode, final Collection<Tree<WidgetGroup>> widgetTrees,
-        final ObjectNode jsonData, final NodeParametersInput context) {
+        final ObjectNode jsonData, final NodeParametersInput context, final FileSystemConnector fileSystemConnector) {
         final var pair =
             WidgetTreesToDependencyTreeUtil.<Integer> widgetTreesToTriggersAndInvocationHandler(widgetTrees, context);
-        addUpdates(rootNode, pair, jsonData, context);
+        addUpdates(rootNode, pair, jsonData, context, fileSystemConnector);
     }
 
     /**
@@ -140,18 +142,19 @@ public final class UpdatesUtil {
         final NodeParametersInput context) {
         final var pair = RendererSpecsToDependencyTreeUtil
             .<Integer> rendererSpecsToTriggersAndInvocationHandler(rendererSpecs, context);
-        addUpdates(rootNode, pair, jsonData, context);
+        // null since file system connector is not needed for imperative updates
+        addUpdates(rootNode, pair, jsonData, context, null);
     }
 
     static void addUpdates(final ObjectNode rootNode,
         final Pair<List<TriggerAndDependencies>, TriggerInvocationHandler<Integer>> pair, final ObjectNode jsonData,
-        final NodeParametersInput context) {
+        final NodeParametersInput context, final FileSystemConnector fileSystemConnector) {
         final var triggersWithDependencies = pair.getFirst();
         final var invocationHandler = pair.getSecond();
         final var partitioned = triggersWithDependencies.stream()
             .collect(Collectors.partitioningBy(TriggerAndDependencies::isBeforeOpenDialogTrigger));
 
-        addInitialUpdates(rootNode, invocationHandler, jsonData, partitioned.get(true), context);
+        addInitialUpdates(rootNode, invocationHandler, jsonData, partitioned.get(true), context, fileSystemConnector);
         addGlobalUpdates(rootNode, partitioned.get(false));
     }
 
@@ -167,37 +170,41 @@ public final class UpdatesUtil {
         final var widgetTreeFactory = new WidgetTreeFactory();
         final var widgetTrees =
             SettingsTypeMapUtil.map(settings, (type, s) -> widgetTreeFactory.createTree(s.getClass(), type));
-        addUpdates(rootNode, widgetTrees.values(), SettingsTypeMapUtil.map(settings), context);
+        // Tests do not need file system connector
+        addUpdates(rootNode, widgetTrees.values(), SettingsTypeMapUtil.map(settings), context, null);
     }
 
     static void addUpdates(final ObjectNode rootNode, final Collection<Tree<WidgetGroup>> widgetTrees,
-        final Map<SettingsType, WidgetGroup> loadedSettings, final NodeParametersInput context) {
+        final Map<SettingsType, WidgetGroup> loadedSettings, final NodeParametersInput context,
+        final FileSystemConnector fileSystemConnector) {
         final var pair =
             WidgetTreesToDependencyTreeUtil.<Integer> widgetTreesToTriggersAndInvocationHandler(widgetTrees, context);
         final var mapper = JsonFormsDataUtil.getMapper();
         final var jsonData = mapper.createObjectNode();
         loadedSettings
             .forEach((type, widgetGroup) -> jsonData.set(type.getConfigKeyFrontend(), mapper.valueToTree(widgetGroup)));
-        addUpdates(rootNode, pair, jsonData, context);
+        addUpdates(rootNode, pair, jsonData, context, fileSystemConnector);
     }
 
     private static void addInitialUpdates(final ObjectNode rootNode,
         final TriggerInvocationHandler<Integer> invocationHandler, final ObjectNode jsonData,
-        final List<TriggerAndDependencies> initialTriggersWithDependencies, final NodeParametersInput context) {
+        final List<TriggerAndDependencies> initialTriggersWithDependencies, final NodeParametersInput context,
+        final FileSystemConnector fileSystemConnector) {
         if (!initialTriggersWithDependencies.isEmpty()) {
             CheckUtils.check(initialTriggersWithDependencies.size() == 1, IllegalStateException::new,
                 () -> "There should not exist more than one initial trigger.");
-            addInitialUpdates(rootNode, initialTriggersWithDependencies.get(0), invocationHandler, jsonData, context);
+            addInitialUpdates(rootNode, initialTriggersWithDependencies.get(0), invocationHandler, jsonData, context,
+                fileSystemConnector);
         }
     }
 
     private static void addInitialUpdates(final ObjectNode rootNode,
         final TriggerAndDependencies triggerWithDependencies, final TriggerInvocationHandler<Integer> invocationHandler,
-        final ObjectNode jsonData, final NodeParametersInput context) {
+        final ObjectNode jsonData, final NodeParametersInput context, final FileSystemConnector fileSystemConnector) {
         final var dependencyValues = triggerWithDependencies.extractDependencyValues(jsonData, context);
         final var triggerResult =
             invocationHandler.invokeTrigger(triggerWithDependencies.getTrigger(), dependencyValues::get, context);
-        final var updateResults = UpdateResultsUtil.toUpdateResults(triggerResult);
+        final var updateResults = UpdateResultsUtil.toUpdateResults(triggerResult, fileSystemConnector);
 
         final var initialUpdates = rootNode.putArray("initialUpdates");
         updateResults.forEach(updateResult -> addInitialUpdate(updateResult, initialUpdates));

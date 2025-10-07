@@ -56,6 +56,9 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FSConnectionProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.util.JacksonSerializationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
@@ -71,6 +74,11 @@ import org.knime.node.parameters.WidgetGroup;
 public final class UpdateResultsUtil {
 
     static final NodeLogger LOGGER = NodeLogger.getLogger(UpdateResultsUtil.class);
+
+    /**
+     * The name of the option that holds the id of a registered file system connection.
+     */
+    public static final String FILE_SYSTEM_ID = "fileSystemId";
 
     private UpdateResultsUtil() {
         // Utility
@@ -171,9 +179,31 @@ public final class UpdateResultsUtil {
     }
 
     private static <I> UpdateResult createLocationUiStateUpdateResult(final String scope,
-        final String providedOptionName, final List<IndexedValue<I>> values) {
+        final String providedOptionName, final List<IndexedValue<I>> values,
+        final FileSystemConnector fileSystemConnector) {
+        // Special handling for fileSystemId: intercept FSConnection and register it
+        if (FILE_SYSTEM_ID.equals(providedOptionName)) {
+            CheckUtils.checkNotNull(fileSystemConnector,
+                "FileSystemConnector must be provided when updating fileSystemId.");
+            return new UpdateResult.LocationUiStateUpdateResult<>(scope, providedOptionName,
+                sortByIndices(interceptAndRegisterFSConnections(values, scope, fileSystemConnector)));
+        }
         return new UpdateResult.LocationUiStateUpdateResult<>(scope, providedOptionName,
             sortByIndices(serializeValues(values, serializeUiState)));
+    }
+
+    private static <I> List<IndexedValue<I>> interceptAndRegisterFSConnections(final List<IndexedValue<I>> values,
+        final String scope, final FileSystemConnector fileSystemConnector) {
+        return values.stream().map(value -> {
+            if (value.value() instanceof FSConnectionProvider connectionProvider) {
+                // Register the connection provider and get a unique UUID
+                final var fileSystemId =
+                    fileSystemConnector.registerCustomFileSystem(connectionProvider, scope, value.indices());
+                // Return the UUID instead of the connection provider
+                return new IndexedValue<>(value.indices(), fileSystemId);
+            }
+            return new IndexedValue<>(value.indices(), serializeUiState.apply(value.value()));
+        }).toList();
     }
 
     private static <I> UpdateResult createIdUiStateUpdateResult(final String id, final String providedOptionName,
@@ -206,16 +236,20 @@ public final class UpdateResultsUtil {
     }
 
     /**
-     * @param triggerResult
+     * Transform the result of a trigger invocation to a list of update results that can be interpreted by the frontend.
+     *
+     * @param triggerResult the result from the trigger invocation
+     * @param fileSystemConnector the file system connector to register custom connections (can be null for components)
      * @return the list of resulting instructions
      */
-    public static <I> List<UpdateResult> toUpdateResults(final TriggerResult<I> triggerResult) {
+    public static <I> List<UpdateResult> toUpdateResults(final TriggerResult<I> triggerResult,
+        final FileSystemConnector fileSystemConnector) {
         final var valueUpdates = triggerResult.valueUpdates().entrySet().stream()
             .map(entry -> createValueUpdateResult(getScopeFromLocation(entry.getKey()), entry.getValue())).sorted();
         final var locationUiStateUpdates = triggerResult.locationUiStateUpdates().entrySet().stream()
             .flatMap(entry -> entry.getValue().entrySet().stream()
                 .map(e -> createLocationUiStateUpdateResult(getScopeFromLocation(entry.getKey()), e.getKey(),
-                    e.getValue())));
+                    e.getValue(), fileSystemConnector)));
         final var idUiStateUpdates =
             triggerResult.idUiStateUpdates().entrySet().stream().flatMap(entry -> entry.getValue().entrySet().stream()
                 .map(e -> createIdUiStateUpdateResult(entry.getKey(), e.getKey(), e.getValue())));

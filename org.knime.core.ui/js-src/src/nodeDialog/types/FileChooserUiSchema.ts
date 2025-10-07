@@ -1,5 +1,7 @@
 import type { UiSchemaWithProvidedOptions } from "@knime/jsonforms";
 
+import type { BackendType } from "../uiComponents/fileChooser/types";
+
 export type FileChooserOptions = {
   isWriter?: boolean;
   isLocal?: boolean;
@@ -19,6 +21,10 @@ export type FileChooserOptions = {
    * Wether a file or a folder is to be chosen. FILE is the default.
    */
   selectionMode?: "FILE" | "FOLDER";
+  /**
+   * The file system ID for custom file system connections
+   */
+  fileSystemId?: BackendType;
 };
 
 export type FileChooserUiSchema =

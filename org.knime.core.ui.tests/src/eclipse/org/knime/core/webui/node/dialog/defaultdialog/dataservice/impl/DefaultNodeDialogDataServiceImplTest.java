@@ -72,8 +72,6 @@ import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.webui.data.DataServiceContextTest;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonChange;
@@ -86,6 +84,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputat
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil.DateTimeStringFormatValidation;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
@@ -120,7 +120,7 @@ class DefaultNodeDialogDataServiceImplTest {
 
     private static DefaultNodeDialogDataServiceImpl
         getDataService(final Class<? extends NodeParameters> modelSettingsClass) {
-        return new DefaultNodeDialogDataServiceImpl(Map.of(SettingsType.MODEL, modelSettingsClass));
+        return new DefaultNodeDialogDataServiceImpl(Map.of(SettingsType.MODEL, modelSettingsClass), null);
     }
 
     @Nested

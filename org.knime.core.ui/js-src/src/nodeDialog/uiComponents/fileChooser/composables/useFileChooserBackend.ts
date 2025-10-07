@@ -37,7 +37,7 @@ type ListItems = (params: {
      */
     ListItemsConfig,
   ];
-}) => Promise<FolderAndError>;
+}) => Promise<FolderAndError | undefined>;
 
 type GetFilePath = (params: {
   method: "fileChooser.getFilePath";

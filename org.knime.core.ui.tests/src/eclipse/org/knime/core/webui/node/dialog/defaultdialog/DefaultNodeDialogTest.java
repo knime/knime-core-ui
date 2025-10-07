@@ -221,7 +221,7 @@ public class DefaultNodeDialogTest {
 
         final var settingsClasses =
             Map.of(SettingsType.MODEL, ModelSettings.class, SettingsType.VIEW, ViewSettings.class);
-        final var defaultNodeSettingsService = new DefaultNodeSettingsService(settingsClasses);
+        final var defaultNodeSettingsService = new DefaultNodeSettingsService(settingsClasses, null);
         Supplier<NodeDialog> nodeDialogCreator =
             () -> createNodeDialog(Page.create().fromString(() -> "page content").relativePath("page.html"),
                 defaultNodeSettingsService, null);

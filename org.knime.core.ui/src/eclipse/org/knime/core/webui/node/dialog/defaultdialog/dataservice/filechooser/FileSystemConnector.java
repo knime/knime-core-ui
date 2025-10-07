@@ -51,11 +51,14 @@ package org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import org.knime.core.webui.data.DataServiceContext;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FSConnectionProvider;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 /**
@@ -66,7 +69,15 @@ import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
  */
 public final class FileSystemConnector {
 
-    final Map<String, FileChooserBackend> m_fileChooserBackends = new HashMap<>();
+    final Map<String, FileChooserBackend> m_fileChooserBackends = new ConcurrentHashMap<>();
+
+    /**
+     * Tracks which fileSystemId belongs to which scope and indices combination
+     */
+    private record ScopeAndIndices(String scope, List<?> indices) {
+    }
+
+    final Map<ScopeAndIndices, String> m_scopeIndicesToFileSystemId = new ConcurrentHashMap<>();
 
     interface FileChooserBackend {
         FileSystem getFileSystem();
@@ -77,6 +88,7 @@ public final class FileSystemConnector {
          * For root directories we know that a path should be displayed as directory but the file system lists them as
          * files for unavailable ones. Overwrite this method to adjust how paths where it is known that they should be
          * displayed as directories are displayed.
+         *
          * @param path the directory path
          * @return a representation given to the front-end
          *
@@ -94,6 +106,40 @@ public final class FileSystemConnector {
 
     FileChooserBackend getFileChooserBackend(final String fileSystemId) {
         return m_fileChooserBackends.computeIfAbsent(fileSystemId, FileSystemConnector::createFileChooserBackend);
+    }
+
+    /**
+     * Registers a custom file system backend using an FSConnectionProvider and returns a unique UUID as the
+     * fileSystemId.
+     *
+     * @param connectionProvider the provider for the FSConnection to use for this file system
+     * @param scope the scope of the field
+     * @param indices the indices for array elements
+     * @return a unique UUID that can be used as fileSystemId
+     */
+    public String registerCustomFileSystem(final FSConnectionProvider connectionProvider, final String scope,
+        final List<?> indices) {
+        final var scopeAndIndices = new ScopeAndIndices(scope, indices);
+
+        // Close and remove old connection for this scope/indices combination if it exists
+        final var oldFileSystemId = m_scopeIndicesToFileSystemId.get(scopeAndIndices);
+        if (oldFileSystemId != null) {
+            final var oldBackend = m_fileChooserBackends.remove(oldFileSystemId);
+            if (oldBackend != null) {
+                try {
+                    oldBackend.close();
+                } catch (IOException ex) {
+                    throw new IllegalStateException("Failed to close old connection", ex);
+                }
+            }
+        }
+
+        final var fileSystemId = UUID.randomUUID().toString();
+        m_fileChooserBackends.put(fileSystemId, new CustomConnectionFileChooserBackend(connectionProvider));
+
+        m_scopeIndicesToFileSystemId.put(scopeAndIndices, fileSystemId);
+
+        return fileSystemId;
     }
 
     private static final Pattern PORT_PATTERN = Pattern.compile("connected(\\d+)");
@@ -114,6 +160,7 @@ public final class FileSystemConnector {
             final var portObjectSpec = (FileSystemPortObjectSpec)DataServiceContext.get().getInputSpecs()[portIndex];
             return new ConnectedFileChooserBackend(portObjectSpec);
         }
+
         throw new IllegalArgumentException(String.format("%s is not a valid file system id", fileSystemId));
     }
 
@@ -129,5 +176,6 @@ public final class FileSystemConnector {
             }
         }
         m_fileChooserBackends.clear();
+        m_scopeIndicesToFileSystemId.clear();
     }
 }

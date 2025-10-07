@@ -95,6 +95,7 @@ const emit = defineEmits<{
     filePath: string,
   ];
   applyAndClose: [];
+  cancel: [];
 }>();
 
 const isLoading = ref(true);
@@ -121,7 +122,12 @@ const setRelativeFilePathFromBackend = (filePathRelativeToFolder: string) => {
   }
 };
 
-const handleListItemsResult = (folderAndError: FolderAndError) => {
+const handleListItemsResult = (folderAndError: FolderAndError | undefined) => {
+  if (!folderAndError) {
+    setErrorMessage("Failed to load items");
+    emit("cancel");
+    return;
+  }
   setNextItems(folderAndError.folder);
   setErrorMessage(folderAndError.errorMessage);
   setRelativeFilePathFromBackend(folderAndError.filePathRelativeToFolder);

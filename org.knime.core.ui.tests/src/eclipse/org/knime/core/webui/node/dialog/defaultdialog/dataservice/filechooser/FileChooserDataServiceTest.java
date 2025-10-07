@@ -68,12 +68,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService.FolderAndError;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService.ListItemsConfig;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector.FileChooserBackend;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.SimpleFileChooserBackend.Item;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FSConnectionProvider;
+import org.knime.filehandling.core.connections.FSConnection;
+import org.knime.filehandling.core.connections.FSFileSystem;
 import org.mockito.ArgumentMatchers;
 import org.mockito.MockedConstruction;
+import org.mockito.Mockito;
 
 /**
  *
@@ -564,6 +569,121 @@ class FileChooserDataServiceTest {
                 return this;
             }
 
+        }
+    }
+
+    @Nested
+    class CustomConnectionTest {
+
+        private static final String UUID_PATTERN = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
+
+        @Test
+        void testRegisterCustomFileSystemGeneratesUniqueUUIDs() {
+            final var provider1 = mockConnectionProvider();
+            final var provider2 = mockConnectionProvider();
+
+            final var id1 = m_fsConnector.registerCustomFileSystem(provider1, "#/properties/field1", List.of());
+            final var id2 = m_fsConnector.registerCustomFileSystem(provider2, "#/properties/field2", List.of());
+
+            assertThat(id1).isNotEqualTo(id2);
+            assertThat(id1).matches(UUID_PATTERN);
+            assertThat(id2).matches(UUID_PATTERN);
+        }
+
+        @Test
+        void testLazyConnectionCreation() throws IOException, InvalidSettingsException {
+            final var mockProvider = mockConnectionProvider();
+            final var fileSystemId =
+                m_fsConnector.registerCustomFileSystem(mockProvider, "#/properties/field", List.of());
+
+            // Provider should not be called yet
+            verify(mockProvider, Mockito.never()).getFileSystemConnection();
+
+            // Now trigger backend creation
+            m_fsConnector.getFileChooserBackend(fileSystemId).getFileSystem();
+
+            // Provider should have been called exactly once
+            verify(mockProvider, org.mockito.Mockito.times(1)).getFileSystemConnection();
+        }
+
+        @Test
+        void testConnectionReuse() throws IOException, InvalidSettingsException {
+            final var mockProvider = mockConnectionProvider();
+            final var fileSystemId =
+                m_fsConnector.registerCustomFileSystem(mockProvider, "#/properties/field", List.of());
+
+            // Get backend twice
+            m_fsConnector.getFileChooserBackend(fileSystemId).getFileSystem();
+            m_fsConnector.getFileChooserBackend(fileSystemId).getFileSystem();
+
+            // Provider should have been called only once (connection reused)
+            verify(mockProvider, Mockito.times(1)).getFileSystemConnection();
+        }
+
+        @Test
+        void testOldConnectionClosedOnReplacement() throws IOException, InvalidSettingsException {
+            final var provider1 = mockConnectionProvider();
+            final var mockConnection1 = mock(FSConnection.class);
+            when(provider1.getFileSystemConnection()).thenReturn(mockConnection1);
+
+            final var scope = "#/properties/field";
+            final var indices = List.of();
+
+            // Register and create first connection
+            final var id1 = m_fsConnector.registerCustomFileSystem(provider1, scope, indices);
+            m_fsConnector.getFileChooserBackend(id1).getFileSystem();
+
+            // Register new connection with same scope/indices
+            final var provider2 = mockConnectionProvider();
+            final var id2 = m_fsConnector.registerCustomFileSystem(provider2, scope, indices);
+
+            // Different IDs
+            assertThat(id1).isNotEqualTo(id2);
+
+            // Now trigger creation of second backend - this should close the first connection
+            m_fsConnector.getFileChooserBackend(id2).getFileSystem();
+
+            // First connection should have been closed
+            verify(mockConnection1).close();
+        }
+
+        @Test
+        void testThrowsUncheckedExceptionOnInvalidSettingsException() {
+            String errorMessage = "Test invalid settings";
+            final FSConnectionProvider provider = () -> {
+                throw new InvalidSettingsException(errorMessage);
+            };
+            final var fileSystemId = m_fsConnector.registerCustomFileSystem(provider, "#/properties/field", List.of());
+            final var fileChooserBackend = m_fsConnector.getFileChooserBackend(fileSystemId);
+            final var exception = assertThrows(RuntimeException.class, () -> fileChooserBackend.getFileSystem());
+            assertThat(exception.getMessage()).isEqualTo(errorMessage);
+        }
+
+        @Test
+        void testClearClosesCustomConnections() throws IOException, InvalidSettingsException {
+            final var provider = mockConnectionProvider();
+            final var mockConnection = mock(FSConnection.class);
+            when(provider.getFileSystemConnection()).thenReturn(mockConnection);
+            final var mockFileSystem = mock(FSFileSystem.class);
+            when(mockConnection.getFileSystem()).thenReturn(mockFileSystem);
+
+            final var fileSystemId = m_fsConnector.registerCustomFileSystem(provider, "#/properties/field", List.of());
+            m_fsConnector.getFileChooserBackend(fileSystemId).getFileSystem();
+
+            m_fsConnector.clear();
+
+            verify(mockConnection).close();
+        }
+
+        private FSConnectionProvider mockConnectionProvider() {
+            try {
+                final var provider = mock(FSConnectionProvider.class);
+                final var mockConnection = mock(FSConnection.class);
+                when(provider.getFileSystemConnection()).thenReturn(mockConnection);
+                return provider;
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
 

@@ -6,7 +6,10 @@ import { priorityRanks, withLabel } from "@knime/jsonforms";
 import { hasFormat, inputFormats } from "../constants/inputFormats";
 
 const LocalFileChooserControl = defineAsyncComponent(
-  () => import("../uiComponents/fileChooser/local/LocalFileChooserControl.vue"),
+  () =>
+    import(
+      "../uiComponents/fileChooser/singleFileSystem/LocalFileChooserControl.vue"
+    ),
 );
 
 export const localFileChooserRenderer = withLabel()({

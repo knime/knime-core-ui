@@ -10,8 +10,7 @@ import {
 
 import DialogFileExplorer from "../../DialogFileExplorer.vue";
 import FileBrowserButton from "../../FileBrowserButton.vue";
-import LabeledLocalFileChooserControl from "../LocalFileChooserControl.vue";
-import type LocalFileChooserControl from "../LocalFileChooserControl.vue";
+import LocalFileChooserControl from "../LocalFileChooserControl.vue";
 
 describe("LocalFileChooserControl.vue", () => {
   let props: VueControlTestProps<typeof LocalFileChooserControl>,
@@ -53,7 +52,7 @@ describe("LocalFileChooserControl.vue", () => {
     };
 
     const component = await mountJsonFormsControlLabelContent(
-      LabeledLocalFileChooserControl,
+      LocalFileChooserControl,
       {
         props,
         // @ts-expect-error
@@ -80,7 +79,7 @@ describe("LocalFileChooserControl.vue", () => {
 
   it("calls changeValue when text input is changed", () => {
     const { wrapper, changeValue } = mountJsonFormsControlLabelContent(
-      LabeledLocalFileChooserControl,
+      LocalFileChooserControl,
       {
         props,
         // @ts-expect-error
@@ -113,7 +112,7 @@ describe("LocalFileChooserControl.vue", () => {
     props.control.uischema.options!.isWriter = true;
 
     const { wrapper } = mountJsonFormsControlLabelContent(
-      LabeledLocalFileChooserControl,
+      LocalFileChooserControl,
       {
         props,
         // @ts-expect-error
