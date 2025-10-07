@@ -378,7 +378,10 @@ public sealed class Page implements Resource, FluentNodeAPI permits FromFilePage
                 if (pathPrefix.isEmpty()) {
                     relativePathWithoutPrefix = relativePath;
                 } else {
-                    relativePathWithoutPrefix = relativePath.substring(e.getKey().length() + 1);
+                    relativePathWithoutPrefix = relativePath.substring(e.getKey().length());
+                    if (relativePathWithoutPrefix.startsWith("/")) {
+                        relativePathWithoutPrefix = relativePathWithoutPrefix.substring(1);
+                    }
                 }
                 return e.getValue().apply(relativePathWithoutPrefix);
             })//
