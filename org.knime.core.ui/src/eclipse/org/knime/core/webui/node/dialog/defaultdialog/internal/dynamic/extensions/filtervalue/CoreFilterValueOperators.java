@@ -68,10 +68,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
 import org.knime.node.parameters.widget.choices.Label;
 
 /**
+ * Core filter operators for numeric data types.
+ * 
+ * @deprecated These operators are now provided via extension point in knime-base. 
+ * This class is no longer used and will be removed in a future version.
  *
  * @author Paul Bärnreuther
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
+@Deprecated(since = "5.4.0")
 public final class CoreFilterValueOperators {
 
     enum CoreID { // TODO copied from FilterOperator in base
