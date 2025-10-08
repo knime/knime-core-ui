@@ -46,7 +46,7 @@
         <dependency>
             <groupId>com.github.victools</groupId>
             <artifactId>jsonschema-generator</artifactId>
-            <version>4.20.0</version>
+            <version>4.38.0</version>
         </dependency>
         <dependency>
             <groupId>com.j2html</groupId>

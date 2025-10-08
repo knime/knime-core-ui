@@ -4,9 +4,9 @@ Bundle-Name: KNIME Core UI Tests
 Bundle-SymbolicName: org.knime.core.ui.tests;singleton:=true
 Bundle-Version: 5.6.0.qualifier
 Bundle-ClassPath: .,
- lib/byte-buddy-1.14.8.jar,
- lib/equalsverifier-3.15.2.jar,
- lib/objenesis-3.3.jar
+ lib/byte-buddy-1.17.7.jar,
+ lib/equalsverifier-4.2.jar,
+ lib/objenesis-3.4.jar
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
 Fragment-Host: org.knime.core.ui;bundle-version="5.7.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-17
