@@ -48,24 +48,17 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
@@ -83,15 +76,40 @@ public final class FilterOperatorsRegistry {
 
     private static final String EXT_POINT_ID = "org.knime.core.ui.filterOperators";
 
+    static final Map<String, Class<? extends FilterOperatorBase>> OVERWRITE_FILTER_OPERATOR_BASES = Map.ofEntries( //
+        Map.entry(EqualsOperator.ID, EqualsOperator.class), //
+        Map.entry(NotEqualsOperator.ID, NotEqualsOperator.class), //
+        Map.entry(NotEqualsNorMissingOperator.ID, NotEqualsNorMissingOperator.class), //
+        Map.entry(LessThanOperator.ID, LessThanOperator.class), //
+        Map.entry(GreaterThanOperator.ID, GreaterThanOperator.class), //
+        Map.entry(LessThanOrEqualOperator.ID, LessThanOrEqualOperator.class), //
+        Map.entry(GreaterThanOrEqualOperator.ID, GreaterThanOrEqualOperator.class) //
+    );
+
     private static final FilterOperatorsRegistry INSTANCE = new FilterOperatorsRegistry();
 
-    private final Map<DataType, Set<FilterOp>> m_filterOperators;
+    private final Map<DataType, List<FilterOperator<FilterValueParameters>>> m_filterOperators;
 
     private FilterOperatorsRegistry() {
-        // utility class
-        m_filterOperators = Stream.concat(getCoreFilterOperators(), getFilterOperatorExtensions()) //
-            .collect(Collectors.groupingBy(Pair::getFirst, //
-                Collectors.flatMapping(p -> p.getSecond().stream(), new FilterOpAcc())));
+        m_filterOperators = getFilterOperatorExtensions() //
+            .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond, (a, b) -> {
+                final List<FilterOperator<FilterValueParameters>> combined = new ArrayList<>();
+                a.forEach(combined::add);
+                b.forEach(combined::add);
+                return combined;
+            }, //
+                HashMap::new));
+        for (var entry : m_filterOperators.entrySet()) {
+            try {
+                validateFilterOperators(entry.getValue());
+            } catch (IllegalStateException ex) {
+                LOGGER.error(String.format(
+                    "Loading operators for data type \"%s\" failed since validation errors ocurred. No operators for this data type will be available.",
+                    entry.getKey().getName()), ex);
+                entry.setValue(Collections.emptyList());
+            }
+        }
+
     }
 
     /**
@@ -110,16 +128,7 @@ public final class FilterOperatorsRegistry {
      * @return the filter operators for the given data type, or an empty list if there are none
      */
     public List<FilterOperator<FilterValueParameters>> getOperators(final DataType type) {
-        final var filterOperators = m_filterOperators.getOrDefault(type, Collections.emptySet()) //
-            .stream().map(FilterOp::getOperator).toList();
-        try {
-            validateFilterOperators(filterOperators);
-        } catch (IllegalStateException ex) {
-            LOGGER.error(String.format("Loading operators for data type \"%s\" failed since validation errors ocurred.",
-                type.getName()), ex);
-            return List.of();
-        }
-        return filterOperators;
+        return m_filterOperators.getOrDefault(type, Collections.emptyList());
     }
 
     private static void validateFilterOperators(final List<FilterOperator<FilterValueParameters>> filterOperators) {
@@ -136,19 +145,14 @@ public final class FilterOperatorsRegistry {
      */
     private static void
         validateOverwriteOperators(final List<FilterOperator<FilterValueParameters>> overwriteOperators) {
-        List<Pair<String, Entry<String, Class<? extends FilterOperatorBase>>>> actualIdWithEntry =
-            overwriteOperators.stream().map(op -> {
-                final var entry = OVERWRITE_FILTER_OPERATOR_BASES.entrySet().stream()
-                    .filter(e -> e.getValue().isInstance(op)).findFirst().orElseThrow();
-                return new Pair<>(op.getId(), entry);
-            }).toList();
-        for (final var idWithEntry : actualIdWithEntry) {
-            if (!idWithEntry.getFirst().equals(idWithEntry.getSecond().getKey())) {
-                throw new IllegalStateException(String.format(
-                    "Overwrite filter operator with class '%s' has ID '%s'. This is incorrect, it must be '%s'.",
-                    idWithEntry.getFirst(), idWithEntry.getSecond().getValue().getSimpleName()));
-            }
-        }
+        final var partitionedByIsDeprecated =
+            overwriteOperators.stream().collect(Collectors.partitioningBy(FilterOperator::isDeprecated));
+        final var deprecatedOperators = partitionedByIsDeprecated.get(true);
+        final var deprecatedActualIdsWithEntry = getIdWithEntryPairs(deprecatedOperators);
+        validateIdWithEntryList(deprecatedActualIdsWithEntry);
+        final var nonDeprecatedOperators = partitionedByIsDeprecated.get(false);
+        final var actualIdWithEntry = getIdWithEntryPairs(nonDeprecatedOperators);
+        validateIdWithEntryList(actualIdWithEntry);
         final var duplicateInterfaceNames = actualIdWithEntry.stream().collect(Collectors.groupingBy(Pair::getFirst))
             .entrySet().stream().filter(e -> e.getValue().size() > 1)
             .map(e -> e.getValue().get(0).getSecond().getValue().getSimpleName()).toList();
@@ -156,6 +160,36 @@ public final class FilterOperatorsRegistry {
             throw new IllegalStateException(
                 String.format("Multiple overwrite filter operators implementing the same interface '%s' found.",
                     duplicateInterfaceNames));
+        }
+    }
+
+    /**
+     * @return List<Pair<actualId, Entry<expectedId, implementingClass>>>
+     */
+    private static List<Pair<String, Entry<String, Class<? extends FilterOperatorBase>>>>
+        getIdWithEntryPairs(final List<FilterOperator<FilterValueParameters>> overwriteOperators) {
+        List<Pair<String, Entry<String, Class<? extends FilterOperatorBase>>>> actualIdWithEntry =
+            overwriteOperators.stream().map(op -> {
+                final var entry = OVERWRITE_FILTER_OPERATOR_BASES.entrySet().stream()
+                    .filter(e -> e.getValue().isInstance(op)).findFirst().orElseThrow();
+                return new Pair<>(op.getId(), entry);
+            }).toList();
+        return actualIdWithEntry;
+    }
+
+    /**
+     * The expectedId needs to match the actualId of the operator defined by OVERWRITE_FILTER_OPERATOR_BASES.
+     *
+     * @param actualIdWithEntry List<Pair<actualId, Entry<expectedId, implementingClass>>>
+     */
+    private static void validateIdWithEntryList(
+        final List<Pair<String, Entry<String, Class<? extends FilterOperatorBase>>>> actualIdWithEntry) {
+        for (final var idWithEntry : actualIdWithEntry) {
+            if (!idWithEntry.getFirst().equals(idWithEntry.getSecond().getKey())) {
+                throw new IllegalStateException(String.format(
+                    "Overwrite filter operator with class '%s' has ID '%s'. This is incorrect, it must be '%s'.",
+                    idWithEntry.getFirst(), idWithEntry.getSecond().getValue().getSimpleName()));
+            }
         }
     }
 
@@ -167,23 +201,13 @@ public final class FilterOperatorsRegistry {
                     .format("Non-overwrite filter operator with ID '%s' found. This ID is reserved for internal use. "
                         + "Please choose a different ID for your operator.", op.getId()));
             }
-            if (!ids.add(op.getId())) {
+            if (!op.isDeprecated() && !ids.add(op.getId())) {
                 throw new IllegalStateException(String.format(
                     "Multiple non-overwrite filter operators with ID '%s' found. Please choose different IDs for your operators.",
                     op.getId()));
             }
         }
     }
-
-    static final Map<String, Class<? extends FilterOperatorBase>> OVERWRITE_FILTER_OPERATOR_BASES = Map.ofEntries( //
-        Map.entry(EqualsOperator.ID, EqualsOperator.class), //
-        Map.entry(NotEqualsOperator.ID, NotEqualsOperator.class), //
-        Map.entry(NotEqualsNorMissingOperator.ID, NotEqualsNorMissingOperator.class), //
-        Map.entry(LessThanOperator.ID, LessThanOperator.class), //
-        Map.entry(GreaterThanOperator.ID, GreaterThanOperator.class), //
-        Map.entry(LessThanOrEqualOperator.ID, LessThanOrEqualOperator.class), //
-        Map.entry(GreaterThanOrEqualOperator.ID, GreaterThanOrEqualOperator.class) //
-    );
 
     static boolean isOverwriteFilterOperator(final FilterOperator<FilterValueParameters> operator) {
         return OVERWRITE_FILTER_OPERATOR_BASES.values().stream().anyMatch(c -> c.isInstance(operator));
@@ -196,21 +220,13 @@ public final class FilterOperatorsRegistry {
      */
     public List<Class<FilterValueParameters>> getAllParameterClasses() {
         return m_filterOperators.values().stream() //
-            .flatMap(Set::stream).map(FilterOp::getOperator).map(FilterOperator::getNodeParametersClass).distinct()
-            .toList();
+            .flatMap(List::stream).map(FilterOperator::getNodeParametersClass).distinct().toList();
     }
 
-    private static Pair<DataType, List<FilterOp>> toDataTypePair(final FilterOperators ops) {
+    private static Pair<DataType, List<FilterOperator<FilterValueParameters>>>
+        toDataTypePair(final FilterOperators ops) {
         return new Pair<>(ops.getDataType(), //
-            ops.getOperators() //
-                .stream() //
-                .map(FilterOp::new) //
-                .toList());
-    }
-
-    private static Stream<Pair<DataType, List<FilterOp>>> getCoreFilterOperators() {
-        // Core filter operators are now provided via extension point in knime-base
-        return Stream.empty();
+            ops.getOperators()); //
     }
 
     /**
@@ -218,7 +234,7 @@ public final class FilterOperatorsRegistry {
      *
      * @return a map from data type to the corresponding to be preferred parameters class to create a cell of that type
      */
-    private static Stream<Pair<DataType, List<FilterOp>>> getFilterOperatorExtensions() {
+    private static Stream<Pair<DataType, List<FilterOperator<FilterValueParameters>>>> getFilterOperatorExtensions() {
         final var registry = Platform.getExtensionRegistry();
         final var point = registry.getExtensionPoint(EXT_POINT_ID);
         return Stream.of(point.getExtensions()) //
@@ -238,106 +254,6 @@ public final class FilterOperatorsRegistry {
                 cfe.getContributor().getName(), ex.getMessage()), ex);
         }
         return null;
-    }
-
-    /**
-     * Helper accumulator that complains about duplicate IDs and ignores duplicate operators.
-     */
-    private static final class FilterOpAcc implements Collector<FilterOp, FilterOpAcc, Set<FilterOp>> {
-
-        private final Set<FilterOp> m_ops = new LinkedHashSet<>();
-
-        private final Set<String> m_ids = new HashSet<>();
-
-        void add(final FilterOp op) {
-            if (!m_ids.add(op.getId())) {
-                LOGGER.coding(String.format("Operator \"%s\" defines already present ID \"%s\". ",
-                    op.getOperator().getClass().getSimpleName(), op.getId())
-                    + "Subsequent operations might ignore this operator.");
-            }
-            if (!m_ops.add(op)) {
-                LOGGER.coding(String.format(
-                    "Operator \"%s\" defines already present ID \"%s\" with same parameters and will be ignored.",
-                    op.getOperator().getClass().getSimpleName(), op.getId()));
-            }
-        }
-
-        FilterOpAcc combine(final FilterOpAcc other) {
-            other.m_ops.forEach(this::add);
-            return this;
-        }
-
-        @Override
-        public Supplier<FilterOpAcc> supplier() {
-            return FilterOpAcc::new;
-        }
-
-        @Override
-        public BiConsumer<FilterOpAcc, FilterOp> accumulator() {
-            return FilterOpAcc::add;
-        }
-
-        @Override
-        public BinaryOperator<FilterOpAcc> combiner() {
-            return FilterOpAcc::combine;
-        }
-
-        @Override
-        public Function<FilterOpAcc, Set<FilterOp>> finisher() {
-            return acc -> acc.m_ops;
-        }
-
-        @Override
-        public Set<Characteristics> characteristics() {
-            return Collections.emptySet();
-        }
-    }
-
-    /**
-     * Helper class for filter operator identity based on ID and parameter class. The parameter class is included to
-     * distinguish between internal operators with legacy settings and new internal operators.
-     */
-    private static final class FilterOp {
-
-        private final String m_id;
-
-        private final FilterOperator<FilterValueParameters> m_operator;
-
-        private FilterOp(final FilterOperator<FilterValueParameters> operator) {
-            m_id = operator.getId();
-            m_operator = operator;
-        }
-
-        private String getId() {
-            return m_id;
-        }
-
-        private FilterOperator<FilterValueParameters> getOperator() {
-            return m_operator;
-        }
-
-        @Override
-        public int hashCode() {
-            return new HashCodeBuilder(17, 37) //
-                .append(m_id) //
-                .append(m_operator.getNodeParametersClass()) //
-                .toHashCode();
-        }
-
-        @Override
-        public boolean equals(final Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null || !(obj instanceof FilterOp otherOp)) {
-                return false;
-            }
-            return new EqualsBuilder() //
-                .append(m_id, otherOp.m_id) //
-                .append(m_operator.getNodeParametersClass(), otherOp.m_operator.getNodeParametersClass()) //
-                .isEquals();
-        }
-
     }
 
 }
