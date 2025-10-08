@@ -4,8 +4,8 @@ Bundle-Name: KNIME Core UI
 Bundle-SymbolicName: org.knime.core.ui;singleton:=true
 Bundle-Version: 5.8.0.qualifier
 Bundle-ClassPath: knime-core-ui.jar,
- lib/jsonschema-generator-4.20.0.jar,
- lib/classmate-1.5.1.jar,
+ lib/jsonschema-generator-4.38.0.jar,
+ lib/classmate-1.7.0.jar,
  lib/j2html-1.6.0.jar
 Bundle-Activator: org.knime.core.ui.CoreUIPlugin
 Bundle-Vendor: KNIME AG
