@@ -46,7 +46,7 @@ xsi:schemaLocation="https://maven.apache.org/POM/4.0.0 https://maven.apache.org/
         <dependency>
             <groupId>nl.jqno.equalsverifier</groupId>
             <artifactId>equalsverifier</artifactId>
-            <version>3.15.2</version>
+            <version>4.2</version>
         </dependency>
     </dependencies>
 
