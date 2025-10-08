@@ -44,21 +44,32 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   19 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
+ *   Sep 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin;
 
-abstract class FamilyMember<P extends FilterValueParameters> implements FilterOperator<P> {
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorBase;
 
-    private final FilterOperatorFamily<P> m_family;
+/**
+ * Interface for less than filter operators that provides the standard ID and label.
+ *
+ * @author Paul Bärnreuther
+ */
+public interface LessThanOperator extends FilterOperatorBase {
 
-    protected FamilyMember(final FilterOperatorFamily<P> family) {
-        m_family = family;
+    /**
+     * Don't use this id in any other operator, don't change it, don't overwrite it for implementations of this
+     * interface.
+     */
+    String ID = "LT";
+
+    @Override
+    default String getId() {
+        return ID;
     }
 
     @Override
-    public final Class<P> getNodeParametersClass() {
-        return m_family.getNodeParametersClass();
+    default String getLabel() {
+        return "Less than";
     }
-
 }

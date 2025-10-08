@@ -46,58 +46,65 @@
  * History
  *   19 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.function.ToIntBiFunction;
 
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
-import org.knime.core.data.DataValueComparatorDelegator;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters.SingleCellValueParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.valuefilter.ValueFilterValidationUtil;
 
 /**
- * Operator family for data types that have a comparator.
+ * A family of operators for equality comparisons between a data value and a reference data cell, obtained from the
+ * single cell value parameters.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
- * @param <C> data cell type to compare with
- * @param <P> type of filter parameters
+ * @param <C> type of data cell to compare with (from node parameters)
+ * @param <P> type of node parameters to create the comparison cell
  */
-public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellValueParameters<C>>
+public class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueParameters<C>>
     implements FilterOperatorFamily<P> {
 
     private final DataType m_dataType;
 
-    private final Class<P> m_parametersClass;
+    private final Class<P> m_paramClass;
 
-    public ComparableOperatorFamily(final DataType dataType, final Class<P> parametersClass) {
+    /**
+     * Creates a new equality operator family associated with the given data type, using the given parameter class for
+     * node parameters.
+     *
+     * The equality comparison is done via the reference cell's {@link DataCell#equals(Object)} method.
+     *
+     * @param dataType column data type
+     * @param paramClass class of node parameters to create the comparison cell
+     */
+    public EqualsOperatorFamily(final DataType dataType, final Class<P> paramClass) {
         m_dataType = dataType;
-        m_parametersClass = parametersClass;
-    }
-
-    @Override
-    public Class<P> getNodeParametersClass() {
-        return m_parametersClass;
+        m_paramClass = paramClass;
     }
 
     /**
-     * Creates a comparison function to compare between a data value and a reference cell created from the parameters
+     * Creates a predicate to evaluate equality between a data value and a reference cell created from the parameters
      * for all operators of this family. The specific operator is passed for context, e.g. to create specific error
      * messages for users.
      *
      * @param runtimeColumnSpec the column spec of the column to filter
-     * @param operator the operator for which the comparator is requested
-     * @return the comparison function (see {@link Comparator})
+     * @param operator the operator for which the equality is requested
+     * @param filterParameters the parameters for the operator
+     * @return the equality predicate
      * @throws InvalidSettingsException if the operator is not compatible with the column spec, i.e. will not produce a
-     *             useful comparison
+     *             useful equality comparison
      */
-    protected ToIntBiFunction<DataValue, C> getComparator(final DataColumnSpec runtimeColumnSpec,
-        final FilterOperator<P> operator) throws InvalidSettingsException {
+    protected Predicate<DataValue> getEquality(final DataColumnSpec runtimeColumnSpec, final FilterOperator<P> operator,
+        final P filterParameters) throws InvalidSettingsException {
         final var type = runtimeColumnSpec.getType();
         if (!type.isCompatible(m_dataType.getPreferredValueClass())) { // not isASuperType!
             throw ValueFilterValidationUtil.createInvalidSettingsException(builder -> builder
@@ -107,74 +114,63 @@ public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellVa
                     "Please select a different operator that is compatible with the column's data type \"%s\"."
                         .formatted(type.getName())));
         }
-        final var comparator = new DataValueComparatorDelegator<>(m_dataType.getComparator());
-        return comparator::compare;
+        final var cell = filterParameters.createCell();
+        return dv -> cell.equals(dv.materializeDataCell());
     }
 
     @Override
-    public List<FilterOperator<P>> getOperators() {
-        return List.of(new LessThanOperatorImpl(), new LessThanOrEqualOperatorImpl(), new GreaterThanOperatorImpl(),
-            new GreaterThanOrEqualOperatorImpl());
+    public final List<FilterOperator<P>> getOperators() {
+        return List.of(new Equal(), new NotEqual(), new NotEqualNorMissing());
     }
 
-    private final class LessThanOperatorImpl extends FamilyMember<P> implements LessThanOperator {
-
-        private LessThanOperatorImpl() {
-            super(ComparableOperatorFamily.this);
-        }
+    private final class Equal implements FilterOperator<P>, EqualsOperator {
 
         @Override
         public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
-            final DataType configureColumnType, final P filterParameters) throws InvalidSettingsException { //
-            final var value = filterParameters.createCell();
-            final var comparator = getComparator(runtimeColumnSpec, this);
-            return dv -> comparator.applyAsInt(dv, value) < 0;
-        }
-    }
-
-    private final class LessThanOrEqualOperatorImpl extends FamilyMember<P> implements LessThanOrEqualOperator {
-
-        private LessThanOrEqualOperatorImpl() {
-            super(ComparableOperatorFamily.this);
+            final DataType configureColumnType, final P filterParameters) throws InvalidSettingsException {
+            final var eq = EqualsOperatorFamily.this.getEquality(runtimeColumnSpec, this, filterParameters);
+            return dv -> eq.test(dv);
         }
 
         @Override
-        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
-            final DataType configureColumnType, final P filterParameters) throws InvalidSettingsException { //
-            final var value = filterParameters.createCell();
-            final var comparator = getComparator(runtimeColumnSpec, this);
-            return dv -> comparator.applyAsInt(dv, value) <= 0;
+        public Class<P> getNodeParametersClass() {
+            return m_paramClass;
         }
     }
 
-    private final class GreaterThanOperatorImpl extends FamilyMember<P> implements GreaterThanOperator {
-
-        private GreaterThanOperatorImpl() {
-            super(ComparableOperatorFamily.this);
-        }
+    private abstract class NotEqualBase implements FilterOperator<P> { // NOSONAR only private class
 
         @Override
         public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
-            final DataType configureColumnType, final P filterParameters) throws InvalidSettingsException { //
-            final var value = filterParameters.createCell();
-            final var comparator = getComparator(runtimeColumnSpec, this);
-            return dv -> comparator.applyAsInt(dv, value) > 0;
-        }
-    }
-
-    private final class GreaterThanOrEqualOperatorImpl extends FamilyMember<P> implements GreaterThanOrEqualOperator {
-
-        private GreaterThanOrEqualOperatorImpl() {
-            super(ComparableOperatorFamily.this);
+            final DataType configureDataType, final P filterParameters) throws InvalidSettingsException {
+            final var eq = EqualsOperatorFamily.this.getEquality(runtimeColumnSpec, this, filterParameters);
+            return dv -> !eq.test(dv);
         }
 
         @Override
-        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
-            final DataType configureColumnType, final P filterParameters) throws InvalidSettingsException { //
-            final var value = filterParameters.createCell();
-            final var comparator = getComparator(runtimeColumnSpec, this);
-            return dv -> comparator.applyAsInt(dv, value) >= 0;
+        public Class<P> getNodeParametersClass() {
+            return m_paramClass;
         }
     }
 
+    private final class NotEqual extends NotEqualBase implements NotEqualsOperator {
+
+        private NotEqual() {
+            super();
+        }
+
+        @Override
+        public boolean returnTrueForMissingCells() {
+            return true;
+        }
+
+    }
+
+    private class NotEqualNorMissing extends NotEqualBase implements NotEqualsNorMissingOperator {
+
+        private NotEqualNorMissing() {
+            super();
+        }
+
+    }
 }

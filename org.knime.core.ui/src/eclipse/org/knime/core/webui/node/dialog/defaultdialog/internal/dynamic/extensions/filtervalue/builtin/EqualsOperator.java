@@ -44,58 +44,34 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Sep 23, 2025 (Paul Bärnreuther): created
+ *   Sep 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin;
 
-import java.util.function.Predicate;
-
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.DataType;
-import org.knime.core.data.DataValue;
-import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorBase;
 
 /**
- * A filter operator for a specific {@link DataType} that will filter {@link DataValue}s of type {@code V}.
+ * Interface for equals filter operators that provides the standard ID and label. Concrete equals operators can
+ * implement this interface to automatically get the correct equals operator identification without having to implement
+ * getId() and getLabel().
  *
  * @author Paul Bärnreuther
- * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
-public interface ValueFilterOperator<V extends DataValue, P extends FilterValueParameters> extends FilterOperator<P> {
+public interface EqualsOperator extends FilterOperatorBase {
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Don't use this id in any other operator, don't change it, don't overwrite it for implementations of this
+     * interface.
+     */
+    String ID = "EQ";
+
     @Override
-    default Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec, DataType configureColumnType, final P filterParameters)
-        throws InvalidSettingsException {
-        if (!runtimeColumnSpec.getType().isCompatible(getDataType().getPreferredValueClass())) {
-            throw ValueFilterValidationUtil
-                .createInvalidSettingsException(builder -> builder
-                    .withSummary("Operator \"%s\" for column \"%s\" expects data of type \"%s\", but got \"%s\""
-                        .formatted(getLabel(), runtimeColumnSpec.getName(), getDataType().getName(),
-                            runtimeColumnSpec.getType().getName()))
-                    .addResolutions(
-                        "Please select a different operator that is compatible with the column's data type \"%s\"."
-                            .formatted(runtimeColumnSpec.getType().getName())));
-        }
-        final var typedPredicate = createTypedPredicate(runtimeColumnSpec, filterParameters);
-        return v -> typedPredicate.test((V)v);
+    default String getId() {
+        return ID;
     }
 
-    /**
-     * Creates the {@code V}-typed predicate for the given runtime column spec and filter parameters.
-     *
-     * @param runtimeColumnSpec column spec at runtime
-     * @param filterParameters node parameters
-     * @return the typed predicate
-     * @throws InvalidSettingsException in case the parameters or column spec are invalid to produce the predicate
-     */
-    Predicate<V> createTypedPredicate(final DataColumnSpec runtimeColumnSpec, final P filterParameters)
-        throws InvalidSettingsException;
-
-    /**
-     * The data type this operator works on.
-     * @return the data type
-     */
-    DataType getDataType();
-
+    @Override
+    default String getLabel() {
+        return "Equals";
+    }
 }

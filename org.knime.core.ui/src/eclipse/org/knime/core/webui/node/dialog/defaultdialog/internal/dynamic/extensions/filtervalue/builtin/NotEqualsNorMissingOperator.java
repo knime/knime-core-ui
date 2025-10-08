@@ -46,20 +46,24 @@
  * History
  *   Sep 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin;
+
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorBase;
 
 /**
- * Interface for less than or equal filter operators that provides the standard ID and label.
+ * Interface for not equals nor missing filter operators that provides the standard ID and label. Concrete not equals
+ * nor missing operators can implement this interface to automatically get the correct equals operator identification
+ * without having to implement getId() and getLabel().
  *
  * @author Paul Bärnreuther
  */
-public interface LessThanOrEqualOperator extends FilterOperatorBase {
+public interface NotEqualsNorMissingOperator extends FilterOperatorBase {
 
     /**
      * Don't use this id in any other operator, don't change it, don't overwrite it for implementations of this
      * interface.
      */
-    String ID = "LTE";
+    String ID = "NEQ_MISS";
 
     @Override
     default String getId() {
@@ -68,6 +72,6 @@ public interface LessThanOrEqualOperator extends FilterOperatorBase {
 
     @Override
     default String getLabel() {
-        return "Less than or equal";
+        return "Is not equal (nor missing)";
     }
 }
