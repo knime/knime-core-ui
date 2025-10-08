@@ -209,12 +209,8 @@ public final class FilterOperatorsRegistry {
     }
 
     private static Stream<Pair<DataType, List<FilterOp>>> getCoreFilterOperators() {
-        final FilterOperators intOps = new CoreFilterValueOperators.IntCellOperators();
-        final FilterOperators longOps = new CoreFilterValueOperators.LongCellOperators();
-        final FilterOperators doubleOps = new CoreFilterValueOperators.DoubleCellOperators();
-
-        return Stream.of(intOps, longOps, doubleOps) //
-            .map(FilterOperatorsRegistry::toDataTypePair);
+        // Core filter operators are now provided via extension point in knime-base
+        return Stream.empty();
     }
 
     /**
