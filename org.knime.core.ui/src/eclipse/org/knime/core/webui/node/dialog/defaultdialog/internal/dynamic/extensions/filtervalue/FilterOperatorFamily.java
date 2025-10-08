@@ -50,21 +50,25 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensio
 
 import java.util.List;
 
-import org.knime.core.data.DataCell;
+import org.knime.core.data.DataType;
 
 /**
- * A family of related filter operators for a specific {@link DataCell} type.
+ * A family of related filter operators for a specific {@link DataType}.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ * @param <P> the type of parameters the operators take
  */
 public interface FilterOperatorFamily<P extends FilterValueParameters> {
 
+    /**
+     * @return the list of operators in this family
+     */
     List<FilterOperator<P>> getOperators();
-
-    Class<P> getNodeParametersClass();
 
     /**
      * A family consisting of a single operator.
+     *
+     * @param <P> the type of parameters the operator takes
      */
     class Single<P extends FilterValueParameters> implements FilterOperatorFamily<P> {
         private final FilterOperator<P> m_operator;
@@ -76,11 +80,6 @@ public interface FilterOperatorFamily<P extends FilterValueParameters> {
         @Override
         public List<FilterOperator<P>> getOperators() {
             return List.of(m_operator);
-        }
-
-        @Override
-        public Class<P> getNodeParametersClass() {
-            return m_operator.getNodeParametersClass();
         }
 
     }
