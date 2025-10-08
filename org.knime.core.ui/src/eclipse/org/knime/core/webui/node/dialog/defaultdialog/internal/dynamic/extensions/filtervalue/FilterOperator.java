@@ -55,6 +55,8 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
 import org.knime.core.data.MissingCell;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.node.parameters.migration.Migration;
+import org.knime.node.parameters.persistence.Persistor;
 
 /**
  * Filter operator that defines a predicate based on {@link DataValue}s of multiple concrete types configured by
@@ -98,8 +100,14 @@ public interface FilterOperator<P extends FilterValueParameters> extends FilterO
     }
 
     /**
-     * Indicates that the operator is deprecated. A deprecated operator may not be shown in the UI for new filter
-     * criteria, but can still be set via flow variable and used during filter execution.
+     * Indicates that the operator is deprecated. A deprecated operator may not be shown in the UI anymore. When a
+     * dialog with a deprecated operator is loaded, the operator is either shown as missing operator or replaced by
+     * another operator with the same id if it exists. However, existing configurations with deprecated operators are
+     * still valid and can be executed.
+     *
+     * Deprecating an existing operator is the only way to add a new operator with the same id. If an operator should be
+     * changed but not deprecated, the parameters need to be backwards compatible to the existing parameters (using
+     * {@link Persistor} or {@link Migration} annotations)
      *
      * @return {@code true} if the operator is deprecated, {@code false} otherwise
      */
