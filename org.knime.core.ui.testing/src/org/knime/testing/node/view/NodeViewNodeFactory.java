@@ -64,7 +64,6 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.webui.data.ApplyDataService;
-import org.knime.core.webui.data.ApplyDataService.Applier;
 import org.knime.core.webui.data.InitialDataService;
 import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.NodeWrapper;
@@ -155,7 +154,7 @@ public class NodeViewNodeFactory extends NodeFactory<NodeViewNodeModel>
     }
 
     private ApplyDataService<String> createApplyDataService() {
-        return ApplyDataService.builder((Applier<String>)data -> m_initialData = data).validator(data -> {
+        return ApplyDataService.builder((data, isNewDefault) -> m_initialData = data).validator(data -> {
             if (data.startsWith("ERROR")) {
                 return data;
             } else {
