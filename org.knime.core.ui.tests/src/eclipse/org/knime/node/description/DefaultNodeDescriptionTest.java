@@ -357,4 +357,51 @@ class DefaultNodeDescriptionTest extends TestWithWorkflowManager {
         assertThat(description.getDynamicOutPortGroups().get(0).getGroupDescription())
             .isEqualTo(myOutputPortDescription);
     }
+
+    @Test
+    void testPortOrderingInXmlDocument() {
+        // Create a node with mixed fixed and dynamic ports
+        final var nc = addNodeWithDynamicPorts(d -> d //
+            .addInputPortGroup("Fixed Input 1",
+                g -> g.name("First fixed input").description("First fixed input").fixed(BufferedDataTable.TYPE)) //
+            .addInputPortGroup("dynIn", g -> g.name("Dynamic Input") //
+                .description("Dynamic input port") //
+                .extendable() //
+                .supportedTypes(BufferedDataTable.TYPE)) //
+            .addInputPortGroup("Fixed Input 2",
+                g -> g.name("Second fixed input").description("Second fixed input").fixed(BufferedDataTable.TYPE)) //
+            .addOutputPortGroup("Fixed Output 1",
+                g -> g.name("First fixed output").description("First fixed output").fixed(BufferedDataTable.TYPE)) //
+            .addOutputPortGroup("dynOut", g -> g.name("Dynamic Output") //
+                .description("Dynamic output port") //
+                .extendable() //
+                .supportedTypes(BufferedDataTable.TYPE)) //
+            .addOutputPortGroup("Fixed Output 2",
+                g -> g.name("Second fixed output").description("Second fixed output").fixed(BufferedDataTable.TYPE)) //
+        );
+
+        final var description = nc.getNode().invokeGetNodeDescription();
+
+        final var ports = description.getXMLDescription().getElementsByTagName("ports").item(0);
+        final var portList = ports.getChildNodes();
+
+        // Expect the order: fixed inputs, dynamic inputs, fixed outputs, dynamic outputs
+        assertThat(portList.getLength()).isEqualTo(6);
+        assertThat(portList.item(0).getNodeName()).isEqualTo("inPort");
+        assertThat(portList.item(0).getAttributes().getNamedItem("index").getNodeValue()).isEqualTo("0");
+        assertThat(portList.item(1).getNodeName()).isEqualTo("inPort");
+        assertThat(portList.item(1).getAttributes().getNamedItem("index").getNodeValue()).isEqualTo("1");
+
+        assertThat(portList.item(2).getNodeName()).isEqualTo("dynInPort");
+        assertThat(portList.item(2).getAttributes().getNamedItem("insert-before").getNodeValue()).isEqualTo("1");
+
+        assertThat(portList.item(3).getNodeName()).isEqualTo("outPort");
+        assertThat(portList.item(3).getAttributes().getNamedItem("index").getNodeValue()).isEqualTo("0");
+        assertThat(portList.item(4).getNodeName()).isEqualTo("outPort");
+        assertThat(portList.item(4).getAttributes().getNamedItem("index").getNodeValue()).isEqualTo("1");
+
+        assertThat(portList.item(5).getNodeName()).isEqualTo("dynOutPort");
+        assertThat(portList.item(5).getAttributes().getNamedItem("insert-before").getNodeValue()).isEqualTo("1");
+
+    }
 }

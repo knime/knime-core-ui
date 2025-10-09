@@ -50,6 +50,8 @@ package org.knime.core.webui.node.impl;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -293,6 +295,9 @@ public abstract class WebUINodeFactory<M extends NodeModel> extends NodeFactory<
 
     private static void addPorts(final DocumentBuilder docBuilder, final Document doc, final Element ports,
         final PortDescription[] portDescs, final Function<PortDescription, String> tagName) {
+        final List<Runnable> fixedPortAdders = new ArrayList<>();
+        final List<Runnable> dynamicPortAdders = new ArrayList<>();
+
         int index = 0;
         for (final PortDescription portDesc : portDescs) {
             var port = doc.createElement(tagName.apply(portDesc));
@@ -301,13 +306,19 @@ public abstract class WebUINodeFactory<M extends NodeModel> extends NodeFactory<
                 port.setAttribute("insert-before", Integer.toString(index));
                 port.setAttribute("group-identifier", portDesc.getName());
                 port.setAttribute("configurable-via-menu", "false");
+                port.appendChild(parseDocumentFragment(portDesc.getDescription(), docBuilder, doc));
+                dynamicPortAdders.add(() -> ports.appendChild(port));
             } else {
                 port.setAttribute("index", Integer.toString(index));
                 index++;
+                port.appendChild(parseDocumentFragment(portDesc.getDescription(), docBuilder, doc));
+                fixedPortAdders.add(() -> ports.appendChild(port));
             }
-            port.appendChild(parseDocumentFragment(portDesc.getDescription(), docBuilder, doc));
-            ports.appendChild(port);
         }
+
+        // Schema requires fixed ports before dynamic ports
+        fixedPortAdders.forEach(Runnable::run);
+        dynamicPortAdders.forEach(Runnable::run);
     }
 
     /*
