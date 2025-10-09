@@ -95,7 +95,7 @@ public interface FilterValueParameters extends DynamicNodeParameters {
         /**
          * Title to be used when the parameters contain only one {@link Widget}
          */
-        String FILTER_VALUE_TITLE = "Value (extension point)"; // TODO -> rename to "Value" once we remove the old widget still there during dev
+        String FILTER_VALUE_TITLE = "Value";
 
         /**
          * Description to be used when the parameters contain only one {@link Widget}.
