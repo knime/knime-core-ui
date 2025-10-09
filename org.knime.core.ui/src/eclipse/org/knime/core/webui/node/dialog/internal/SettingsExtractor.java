@@ -223,6 +223,8 @@ public final class SettingsExtractor {
         } else {
             final var settings = getSettingsWithoutFlowVariableOverrides(settingsType, nnc);
             if (settings.result != null && settings.result.getChildCount() == 0) {
+                // this might be the case for components that have just been created
+                // -- not true for components that have existed before project load.
                 return Result.none();
             }
             return settings;
@@ -258,15 +260,9 @@ public final class SettingsExtractor {
                 case JOB_MANAGER -> throw new IllegalStateException(
                     String.format("The settings type %s has no default settings.", type));
             }
-            return settings;
-        } else {
-            /**
-             * Nothing to do, because we initialize the dialog from the workflow representation, not the settings
-             * directly.
-             */
-            throw new UnsupportedOperationException(
-                "Method not expected to be called by the framework (in case of components).");
         }
+        // also applies to freshly created components, i.e. those that have not existed before project load.
+        return settings;
     }
 
     private void validateOverrides(final Map<SettingsType, Pair<NodeSettings, VariableSettings>> settings)
