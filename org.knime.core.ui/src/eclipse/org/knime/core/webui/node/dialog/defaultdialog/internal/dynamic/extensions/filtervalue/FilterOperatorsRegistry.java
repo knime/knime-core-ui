@@ -56,9 +56,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
@@ -92,6 +94,9 @@ public final class FilterOperatorsRegistry {
         Map.entry(LessThanOrEqualOperator.ID, LessThanOrEqualOperator.class), //
         Map.entry(GreaterThanOrEqualOperator.ID, GreaterThanOrEqualOperator.class) //
     );
+
+    private static final Predicate<String> KNIME_INTERNAL_NAMESPACES =
+        ns -> ns != null && (ns.startsWith("org.knime.") || ns.startsWith("com.knime."));
 
     private static final FilterOperatorsRegistry INSTANCE = new FilterOperatorsRegistry();
 
@@ -251,16 +256,53 @@ public final class FilterOperatorsRegistry {
     }
 
     private static FilterOperators readFilterOperatorsFactory(final IConfigurationElement cfe) {
+        final var contributor = cfe.getContributor().getName();
+        final var namespace = cfe.getNamespaceIdentifier();
         try {
-            final var createDataCellParametersFactory = (FilterOperators)cfe.createExecutableExtension("factoryClass");
+            final var operatorsFactory = (FilterOperators)cfe.createExecutableExtension("factoryClass");
+            final var dataType = operatorsFactory.getDataType();
+
+            if (!isAllowed(namespace, dataType)) {
+                LOGGER.error(String.format("""
+                        Extension "%s" is not allowed to register filter operators for data type "%s" \
+                        outside its namespace "%s".
+                        """, contributor, dataType.getIdentifier(), namespace));
+                return null;
+            } else {
+                LOGGER.debugWithFormat("Allowing filter operator '%s' from contributor \"%s\" for data type '%s'",
+                    operatorsFactory.getClass().getSimpleName(), contributor, dataType.getIdentifier());
+            }
+
             LOGGER.debugWithFormat("Added filter operator parameters '%s' from '%s'",
-                createDataCellParametersFactory.getClass().getName(), cfe.getContributor().getName());
-            return createDataCellParametersFactory;
+                operatorsFactory.getClass().getSimpleName(), contributor);
+            return operatorsFactory;
         } catch (CoreException ex) {
-            LOGGER.error(String.format("Could not create '%s' from extension '%s': %s", FilterOperators.class.getName(),
-                cfe.getContributor().getName(), ex.getMessage()), ex);
+            LOGGER.error(String.format("Could not create '%s' from extension '%s': %s",
+                FilterOperators.class.getSimpleName(), contributor, ex.getMessage()), ex);
         }
         return null;
+    }
+
+    private static String getLeastCommonAncestorPackage(final DataType dataType) {
+        final var cellClass = dataType.getCellClass();
+        if (cellClass != null) {
+            return cellClass.getPackageName();
+        }
+        // in case there is no cell class, we use the value types
+        final var packages =
+            dataType.getValueClasses().stream().map(Class::getPackageName).toArray(String[]::new);
+        return StringUtils.getCommonPrefix(packages);
+    }
+
+    private static boolean isAllowed(final String extensionNamespace, final DataType operatorDataType) {
+        final var dataTypeLCAPackage = getLeastCommonAncestorPackage(operatorDataType);
+        final var isExtensionKNIME = KNIME_INTERNAL_NAMESPACES.test(extensionNamespace);
+        final var isDataTypeKNIME = KNIME_INTERNAL_NAMESPACES.test(dataTypeLCAPackage);
+        if (isExtensionKNIME && isDataTypeKNIME) {
+            return true;
+        }
+        // otherwise, we only allow to define registrations for their own data types
+        return dataTypeLCAPackage.startsWith(extensionNamespace);
     }
 
 }
