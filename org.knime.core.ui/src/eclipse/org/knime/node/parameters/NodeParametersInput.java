@@ -48,6 +48,7 @@
  */
 package org.knime.node.parameters;
 
+import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.data.DataTable;
@@ -57,6 +58,9 @@ import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.core.node.workflow.FlowObjectStack;
+import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.node.workflow.VariableType;
 
 /**
  * An input that holds any available information that might be relevant for creating a new instance of
@@ -72,6 +76,15 @@ public interface NodeParametersInput {
      * @return the inTypes
      */
     PortType[] getInPortTypes();
+
+    /**
+     *
+     * @param types the {@link VariableType VariableTypes} of the requested {@link FlowVariable FlowVariables}
+     * @return the non-null read-only map of flow variable name -&gt; {@link FlowVariable}
+     * @throws NullPointerException if the argument is null
+     * @see FlowObjectStack#getAvailableFlowVariables(VariableType[])
+     */
+    Map<String, FlowVariable> getAvailableInputFlowVariables(final VariableType<?>... types);
 
     // input similar to ConfigureInput; difference: specs can be null / empty if node not configurable
 

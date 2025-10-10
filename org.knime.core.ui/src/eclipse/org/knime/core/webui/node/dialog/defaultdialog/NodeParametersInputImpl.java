@@ -238,12 +238,7 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
         return m_stack.peekFlowVariable(name, type).map(flowVariable -> flowVariable.getValue(type));
     }
 
-    /**
-     * @param types the {@link VariableType VariableTypes} of the requested {@link FlowVariable FlowVariables}
-     * @return the non-null read-only map of flow variable name -&gt; {@link FlowVariable}
-     * @throws NullPointerException if the argument is null
-     * @see FlowObjectStack#getAvailableFlowVariables(VariableType[])
-     */
+    @Override
     public Map<String, FlowVariable> getAvailableInputFlowVariables(final VariableType<?>... types) {
         Objects.requireNonNull(types, () -> "Variable types must not be null.");
         return Collections.unmodifiableMap(Optional.ofNullable(m_stack)
