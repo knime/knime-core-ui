@@ -80,8 +80,7 @@ public final class ColumnSelectionUtil {
      * @param portIndex the port index which has to be a data table port.
      * @return all columns of the specified port. Empty if not connected or no columns.
      */
-    public static List<DataColumnSpec> getAllColumns(final NodeParametersInput context,
-        final int portIndex) {
+    public static List<DataColumnSpec> getAllColumns(final NodeParametersInput context, final int portIndex) {
         return context.getInTableSpec(portIndex).stream().flatMap(DataTableSpec::stream).toList();
     }
 
@@ -102,8 +101,7 @@ public final class ColumnSelectionUtil {
      * @param portIndex the port index which has to be a data table port.
      * @return the first column of the specified port. Empty if not connected or no columns.
      */
-    public static Optional<DataColumnSpec> getFirstColumn(final NodeParametersInput context,
-        final int portIndex) {
+    public static Optional<DataColumnSpec> getFirstColumn(final NodeParametersInput context, final int portIndex) {
         return context.getInTableSpec(portIndex).stream().flatMap(DataTableSpec::stream).findFirst();
     }
 
@@ -125,8 +123,8 @@ public final class ColumnSelectionUtil {
      * @param filter the condition to apply
      * @return the first matching column of the specified port. Empty if not connected or no such columns.
      */
-    public static List<DataColumnSpec> getFilteredColumns(final NodeParametersInput context,
-        final int portIndex, final Predicate<DataColumnSpec> filter) {
+    public static List<DataColumnSpec> getFilteredColumns(final NodeParametersInput context, final int portIndex,
+        final Predicate<DataColumnSpec> filter) {
         return context.getInTableSpec(portIndex).stream().flatMap(DataTableSpec::stream).filter(filter).toList();
     }
 
@@ -139,8 +137,8 @@ public final class ColumnSelectionUtil {
      * @return the first compatible column of the specified port. Empty if not connected or no such columns.
      */
     @SafeVarargs
-    public static List<DataColumnSpec> getCompatibleColumns(final NodeParametersInput context,
-        final int portIndex, final Class<? extends DataValue>... valueClasses) {
+    public static List<DataColumnSpec> getCompatibleColumns(final NodeParametersInput context, final int portIndex,
+        final Class<? extends DataValue>... valueClasses) {
         return getFilteredColumns(context, portIndex, toFilter(valueClasses));
     }
 
@@ -158,14 +156,40 @@ public final class ColumnSelectionUtil {
     }
 
     /**
+     * Returns the first column of the specified port which is compatible to certain columns.
+     *
+     * @param context the current context
+     * @param portIndex the port index which has to be a data table port.
+     * @param valueClasses the classes to check compatibility against
+     * @return the first compatible column of the specified port. Empty if not connected or no such columns.
+     */
+    @SafeVarargs
+    public static Optional<DataColumnSpec> getFirstCompatibleColumn(final NodeParametersInput context,
+        final int portIndex, final Class<? extends DataValue>... valueClasses) {
+        return getCompatibleColumns(context, portIndex, valueClasses).stream().findFirst();
+    }
+
+    /**
+     * Returns the first column of the first port which is compatible to certain columns.
+     *
+     * @param context the current context
+     * @param valueClasses the classes to check compatibility against
+     * @return the first compatible column of the first port. Empty if not connected or no such columns.
+     */
+    @SafeVarargs
+    public static Optional<DataColumnSpec> getFirstCompatibleColumnOfFirstPort(final NodeParametersInput context,
+        final Class<? extends DataValue>... valueClasses) {
+        return getFirstCompatibleColumn(context, 0, valueClasses);
+    }
+
+    /**
      * Returns the first column of the specified port which is a string column.
      *
      * @param context the current context
      * @param portIndex the port index which has to be a data table port.
      * @return the first string column of the specified port. Empty if not connected or no such columns.
      */
-    public static List<DataColumnSpec> getStringColumns(final NodeParametersInput context,
-        final int portIndex) {
+    public static List<DataColumnSpec> getStringColumns(final NodeParametersInput context, final int portIndex) {
         return getCompatibleColumns(context, portIndex, StringValue.class);
     }
 
@@ -206,8 +230,7 @@ public final class ColumnSelectionUtil {
      * @param portIndex the port index which has to be a data table port.
      * @return the first double column of the specified port. Empty if not connected or no such columns.
      */
-    public static List<DataColumnSpec> getDoubleColumns(final NodeParametersInput context,
-        final int portIndex) {
+    public static List<DataColumnSpec> getDoubleColumns(final NodeParametersInput context, final int portIndex) {
         return getCompatibleColumns(context, portIndex, DoubleValue.class);
     }
 
