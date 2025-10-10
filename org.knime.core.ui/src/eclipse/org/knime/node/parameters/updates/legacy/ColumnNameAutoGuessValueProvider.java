@@ -48,76 +48,83 @@
  */
 package org.knime.node.parameters.updates.legacy;
 
-import java.util.function.Supplier;
+import java.util.Optional;
 
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.ParameterReference;
-import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 
 /**
- * A {@link StateProvider} that updates its value each time the dialog is opened. The new value is computed based on the
- * current value and the {@link NodeParametersInput context}. This can be useful for setting a reasonable default value
- * in case a legacy node model does not provide a sensible default value itself.
+ * A value provider that updates a column name parameter when the dialog is opened making it dirty for the user to apply
+ * the auto-guessing changes. Use this whenever the model does not have an appropriate column name auto-guessing
+ * mechanism.
  *
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
- * @param <S> The type of the provided state
+ * For new nodes, do not use this, but implement a constructor in the {@link NodeParameters} taking
+ * {@link NodeParametersInput} as input.
+ *
+ * @author Paul Bärnreuther
  */
-abstract class UpdateOnOpenValueProvider<S> implements StateProvider<S> {
-
-    private final Class<? extends ParameterReference<S>> m_selfReference;
+public abstract class ColumnNameAutoGuessValueProvider extends AutoGuessValueProvider<String> {
 
     /**
      * Attach the self reference to the same field that has this provider as value provider. I.e.
      *
      * <pre>
      *
-     *  interface ColumnNameReference extends ParameterReference<String> {
-     *  }
+     * interface ColumnNameReference extends ParameterReference<String> {
+     * }
      *
-     *  &#64;ValueReference(ColumnNameReference.class)
-     *  &#64;ValueProvider(MyUpdateOnOpenValueProvider.class)
-     *  String m_columnName;
+     * &#64;ValueReference(ColumnNameReference.class)
+     * &#64;ValueProvider(LongValueColumnAutoGuesser.class)
+     * String m_columnName;
      *
-     *  static final class MyUpdateOnOpenValueProvider extends UpdateOnOpenValueProvider<String> {
+     * static final class LongValueColumnAutoGuesser extends ColumnNameAutoGuessValueProvider {
      *
-     *      MyUpdateOnOpenValueProvider() {
-     *          super(ColumnNameReference.class);
-     *      }
+     *     MyUpdateOnOpenValueProvider() {
+     *         super(ColumnNameReference.class);
+     *     }
      *
-     *      ...
-     *  }
+     *     &#64;Override
+     *     protected Optional&lt;DataColumnSpec&gt; autoGuessColumn(final NodeParametersInput parametersInput) {
+     *         return ColumnSelectionUtil.getFirstCompatibleColumnOfFirstPort(parametersInput, LongValue.class);
+     *     }
+     *
+     * }
      *
      * </pre>
      *
      *
      * @param selfReference the self reference to the same field that has this provider as value provider
      */
-    protected UpdateOnOpenValueProvider(final Class<? extends ParameterReference<S>> selfReference) {
-        m_selfReference = selfReference;
-    }
-
-    private Supplier<S> m_currentValueSupplier;
-
-    @Override
-    public void init(final StateProviderInitializer initializer) {
-        initializer.computeAfterOpenDialog();
-        m_currentValueSupplier = initializer.getValueSupplier(m_selfReference);
+    protected ColumnNameAutoGuessValueProvider(final Class<? extends ParameterReference<String>> selfReference) {
+        super(selfReference);
     }
 
     @Override
-    public S computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
-        return getValueOnOpen(m_currentValueSupplier.get(), parametersInput);
+    protected boolean isEmpty(final String value) {
+        return value == null || value.isEmpty();
     }
 
     /**
-     * Computes the new value to be set when the dialog is opened.
+     * Auto-guess a colum based on the given {@link NodeParametersInput}.
      *
-     * @param currentValue the current value of the parameter
-     * @param parametersInput the context of the dialog
-     * @return the new value to be set when the dialog is opened
-     * @throws StateComputationFailureException if no new value should be set.
+     * For extraction of a compatible column, consider using the {@link ColumnSelectionUtil} helper class. E.g.
+     * {@link ColumnSelectionUtil#getFirstCompatibleColumnOfFirstPort}.
+     *
+     * @param parametersInput the current {@link NodeParametersInput}.
+     * @return the new auto-guessed default column or an empty optional if no suitable column could be found (e.g. if no
+     *         input table spec is available).
      */
-    protected abstract S getValueOnOpen(S currentValue, NodeParametersInput parametersInput)
-        throws StateComputationFailureException;
+    protected abstract Optional<DataColumnSpec> autoGuessColumn(final NodeParametersInput parametersInput);
+
+    @Override
+    protected final String autoGuessValue(final NodeParametersInput parametersInput)
+        throws StateComputationFailureException {
+        return autoGuessColumn(parametersInput).map(DataColumnSpec::getName)
+            .orElseThrow(() -> new StateComputationFailureException());
+    }
+
 }

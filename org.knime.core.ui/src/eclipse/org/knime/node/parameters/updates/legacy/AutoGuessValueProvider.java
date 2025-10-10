@@ -48,24 +48,19 @@
  */
 package org.knime.node.parameters.updates.legacy;
 
-import java.util.function.Supplier;
-
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * A {@link StateProvider} that updates its value each time the dialog is opened. The new value is computed based on the
- * current value and the {@link NodeParametersInput context}. This can be useful for setting a reasonable default value
- * in case a legacy node model does not provide a sensible default value itself.
+ * A {@link StateProvider} that updates its value when the node is opened, but only if the current value is considered
+ * empty. The new value is determined by the abstract {@link #autoGuessValue(NodeParametersInput)} method.
  *
- * @author Marc Bux, KNIME GmbH, Berlin, Germany
+ * @author Paul Bärnreuther
  * @param <S> The type of the provided state
  */
-abstract class UpdateOnOpenValueProvider<S> implements StateProvider<S> {
-
-    private final Class<? extends ParameterReference<S>> m_selfReference;
+public abstract class AutoGuessValueProvider<S> extends UpdateOnOpenValueProvider<S> {
 
     /**
      * Attach the self reference to the same field that has this provider as value provider. I.e.
@@ -79,7 +74,7 @@ abstract class UpdateOnOpenValueProvider<S> implements StateProvider<S> {
      *  &#64;ValueProvider(MyUpdateOnOpenValueProvider.class)
      *  String m_columnName;
      *
-     *  static final class MyUpdateOnOpenValueProvider extends UpdateOnOpenValueProvider<String> {
+     *  static final class MyUpdateOnOpenValueProvider extends AutoGuessOnOpenValueProvider<String> {
      *
      *      MyUpdateOnOpenValueProvider() {
      *          super(ColumnNameReference.class);
@@ -93,31 +88,37 @@ abstract class UpdateOnOpenValueProvider<S> implements StateProvider<S> {
      *
      * @param selfReference the self reference to the same field that has this provider as value provider
      */
-    protected UpdateOnOpenValueProvider(final Class<? extends ParameterReference<S>> selfReference) {
-        m_selfReference = selfReference;
-    }
-
-    private Supplier<S> m_currentValueSupplier;
-
-    @Override
-    public void init(final StateProviderInitializer initializer) {
-        initializer.computeAfterOpenDialog();
-        m_currentValueSupplier = initializer.getValueSupplier(m_selfReference);
+    protected AutoGuessValueProvider(final Class<? extends ParameterReference<S>> selfReference) {
+        super(selfReference);
     }
 
     @Override
-    public S computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
-        return getValueOnOpen(m_currentValueSupplier.get(), parametersInput);
+    protected final S getValueOnOpen(final S currentValue, final NodeParametersInput parametersInput)
+        throws StateComputationFailureException {
+        if (isEmpty(currentValue)) {
+            return autoGuessValue(parametersInput);
+        }
+        // Abort update if the current value is not empty
+        throw new StateComputationFailureException();
+
     }
 
     /**
-     * Computes the new value to be set when the dialog is opened.
+     * Determine whether the given value is considered empty, i.e. has not been applied by the user.
      *
-     * @param currentValue the current value of the parameter
-     * @param parametersInput the context of the dialog
-     * @return the new value to be set when the dialog is opened
-     * @throws StateComputationFailureException if no new value should be set.
+     * @param value the value to check
+     * @return true if the value is considered empty
      */
-    protected abstract S getValueOnOpen(S currentValue, NodeParametersInput parametersInput)
+    protected abstract boolean isEmpty(final S value);
+
+    /**
+     * Compute a new value based on the given {@link NodeParametersInput}.
+     *
+     * @param parametersInput the current {@link NodeParametersInput }
+     * @return the new auto-guessed default value
+     * @throws StateComputationFailureException if no reasonable value could be determined
+     */
+    protected abstract S autoGuessValue(final NodeParametersInput parametersInput)
         throws StateComputationFailureException;
+
 }
