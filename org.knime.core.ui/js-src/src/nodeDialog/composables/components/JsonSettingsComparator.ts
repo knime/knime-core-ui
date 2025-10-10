@@ -14,7 +14,7 @@ export class JsonSettingsComparator extends DefaultSettingComparator<
   string
 > {
   toInternalState(cleanSettings: object | undefined): string {
-    return JSON.stringify(cleanSettings);
+    return JSON.stringify(cleanSettings ?? null);
   }
 
   equals(newState: string, cleanState: string): boolean {
