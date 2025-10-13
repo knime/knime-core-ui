@@ -69,6 +69,7 @@ import org.knime.core.data.DataType;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.workflow.FlowVariable;
@@ -76,7 +77,9 @@ import org.knime.core.node.workflow.VariableType.BooleanType;
 import org.knime.core.node.workflow.VariableType.IntType;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.validation.CustomValidationContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DefaultClassIdStrategy;
@@ -94,6 +97,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.Dialog
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.ValidationCallback;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
@@ -144,14 +149,14 @@ public class UpdatesUtilTest {
     }
 
     static ObjectNode buildUpdates(final Map<SettingsType, WidgetGroup> settings, final NodeParametersInput context,
-        final FileSystemConnector fileSystemConnector) {
+        final NodeDialogServiceRegistry serviceRegistry) {
         final var objectNode = new ObjectMapper().createObjectNode();
         final Map<SettingsType, Class<? extends WidgetGroup>> settingsClasses =
             MapValuesUtil.mapValues(settings, WidgetGroup::getClass);
         UpdatesUtil.addUpdates(
             objectNode, settingsClasses.entrySet().stream()
                 .map(e -> new WidgetTreeFactory().createTree(e.getValue(), e.getKey())).toList(),
-            settings, context, fileSystemConnector);
+            settings, context, serviceRegistry);
         return objectNode;
     }
 
@@ -1435,12 +1440,157 @@ public class UpdatesUtilTest {
         Mockito.when(fileSystemConnector.registerCustomFileSystem(ArgumentMatchers.any(FSConnectionProvider.class),
             ArgumentMatchers.anyString(), ArgumentMatchers.anyList())).thenReturn(fileSystemId);
 
+        final var validationContext = Mockito.mock(CustomValidationContext.class);
+        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext);
+
         final var response = buildUpdates(Map.of(SettingsType.MODEL, new TestSettings()),
-            createDefaultNodeSettingsContext(), fileSystemConnector);
+            createDefaultNodeSettingsContext(), serviceRegistry);
 
         assertThatJson(response).inPath("$.initialUpdates[0].providedOptionName").isString()
             .isEqualTo(UpdateResultsUtil.FILE_SYSTEM_ID);
         assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isString().isEqualTo(fileSystemId);
+    }
+
+    @Test
+    void testCustomValidationCallbackIsIntercepted() {
+
+        class TestSettings implements NodeParameters {
+
+            static final class TestValidationProvider implements StateProvider<ValidationCallback<String>> {
+
+                @Override
+                public void init(final StateProviderInitializer initializer) {
+                    initializer.computeBeforeOpenDialog();
+                }
+
+                @Override
+                public ValidationCallback<String> computeState(final NodeParametersInput context) {
+                    return value -> {
+                        if (value == null || value.isEmpty()) {
+                            throw new InvalidSettingsException("Field cannot be empty");
+                        }
+                    };
+                }
+            }
+
+            @Widget(title = "", description = "")
+            @CustomValidation(TestValidationProvider.class)
+            String m_field = "initial value";
+        }
+
+        final var testValidatorId = "test-validator-uuid";
+        final var fileSystemConnector = Mockito.mock(FileSystemConnector.class);
+        final var validationContext = Mockito.mock(CustomValidationContext.class);
+        Mockito.when(validationContext.registerValidator(ArgumentMatchers.any(ValidationCallback.class)))
+            .thenReturn(testValidatorId);
+
+        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext);
+        final var response = buildUpdates(Map.of(SettingsType.MODEL, new TestSettings()),
+            createDefaultNodeSettingsContext(), serviceRegistry);
+
+        assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(1);
+        assertThatJson(response).inPath("$.initialUpdates[0].providedOptionName").isString()
+            .isEqualTo(UpdateResultsUtil.VALIDATOR_ID);
+        assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isString().isEqualTo(testValidatorId);
+
+        Mockito.verify(validationContext).registerValidator(ArgumentMatchers.any(ValidationCallback.class));
+    }
+
+    @Test
+    void testCustomValidationWithInitiallyInvalidValue() {
+
+        class TestSettings implements NodeParameters {
+
+            static final class TestValidationProvider implements StateProvider<ValidationCallback<String>> {
+
+                @Override
+                public void init(final StateProviderInitializer initializer) {
+                    initializer.computeBeforeOpenDialog();
+                }
+
+                @Override
+                public ValidationCallback<String> computeState(final NodeParametersInput context) {
+                    return value -> {
+                        if (value == null || value.isEmpty()) {
+                            throw new InvalidSettingsException("Field cannot be empty");
+                        }
+                    };
+                }
+            }
+
+            @Widget(title = "", description = "")
+            @CustomValidation(TestValidationProvider.class)
+            String m_field = ""; // Empty = invalid, but we don't send initial error message
+        }
+
+        final var testValidatorId = "test-validator-uuid";
+        final var fileSystemConnector = Mockito.mock(FileSystemConnector.class);
+        final var validationContext = Mockito.mock(CustomValidationContext.class);
+        Mockito.when(validationContext.registerValidator(ArgumentMatchers.any(ValidationCallback.class)))
+            .thenReturn(testValidatorId);
+
+        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext);
+        final var response = buildUpdates(Map.of(SettingsType.MODEL, new TestSettings()),
+            createDefaultNodeSettingsContext(), serviceRegistry);
+
+        // Even with initially invalid value, we only send the validator ID
+        assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isString().isEqualTo(testValidatorId);
+    }
+
+    @Test
+    void testCustomValidationWithDependencies() {
+
+        class TestSettings implements NodeParameters {
+
+            static final class DependentRef implements ParameterReference<Boolean> {
+            }
+
+            static final class ConditionalValidator implements StateProvider<ValidationCallback<String>> {
+
+                private Supplier<Boolean> m_enabledSupplier;
+
+                @Override
+                public void init(final StateProviderInitializer initializer) {
+                    m_enabledSupplier = initializer.computeFromValueSupplier(DependentRef.class);
+                    initializer.computeBeforeOpenDialog();
+                }
+
+                @Override
+                public ValidationCallback<String> computeState(final NodeParametersInput context) {
+                    return value -> {
+                        if (m_enabledSupplier.get() && (value == null || value.length() < 5)) {
+                            throw new InvalidSettingsException("Must be at least 5 characters");
+                        }
+                    };
+                }
+            }
+
+            @Widget(title = "", description = "")
+            @ValueReference(DependentRef.class)
+            boolean m_enableValidation = true;
+
+            @Widget(title = "", description = "")
+            @CustomValidation(ConditionalValidator.class)
+            String m_field = "abc"; // Too short when validation enabled
+        }
+
+        final var testValidatorId = "test-validator-uuid";
+        final var fileSystemConnector = Mockito.mock(FileSystemConnector.class);
+        final var validationContext = Mockito.mock(CustomValidationContext.class);
+        Mockito.when(validationContext.registerValidator(ArgumentMatchers.any(ValidationCallback.class)))
+            .thenReturn(testValidatorId);
+
+        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext);
+        final var response = buildUpdates(Map.of(SettingsType.MODEL, new TestSettings()),
+            createDefaultNodeSettingsContext(), serviceRegistry);
+
+        // We only send the validator ID, not the initial message
+        assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isString().isEqualTo(testValidatorId);
+        assertThatJson(response).inPath("$.globalUpdates").isArray().hasSizeGreaterThanOrEqualTo(1);
+        // Verify there's a global update triggered by m_enableValidation change
+        assertThatJson(response)
+            .inPath("$.globalUpdates[?(@.trigger.scope == '#/properties/model/properties/enableValidation')]").isArray()
+            .hasSizeGreaterThanOrEqualTo(1);
     }
 
 }

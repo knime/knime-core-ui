@@ -50,6 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -64,15 +65,20 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.Node;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.ICredentials;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.util.Pair;
 import org.knime.core.webui.data.DataServiceContextTest;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.validation.CustomValidationContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonChange;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonUpdateHandler;
@@ -84,6 +90,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputat
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil.DateTimeStringFormatValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.ValidationCallback;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -121,6 +129,15 @@ class DefaultNodeDialogDataServiceImplTest {
     private static DefaultNodeDialogDataServiceImpl
         getDataService(final Class<? extends NodeParameters> modelSettingsClass) {
         return new DefaultNodeDialogDataServiceImpl(Map.of(SettingsType.MODEL, modelSettingsClass), null);
+    }
+
+    private static Pair<DefaultNodeDialogDataServiceImpl, NodeDialogServiceRegistry>
+        getDataServiceWithRegistry(final Class<? extends NodeParameters> modelSettingsClass) {
+        final var fileSystemConnector = new FileSystemConnector();
+        final var validationContext = new CustomValidationContext();
+        final var registry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext);
+        return new Pair<>(
+            new DefaultNodeDialogDataServiceImpl(Map.of(SettingsType.MODEL, modelSettingsClass), registry), registry);
     }
 
     @Nested
@@ -634,6 +651,103 @@ class DefaultNodeDialogDataServiceImplTest {
             final var resultInvalidFormat =
                 dataService.performExternalValidation(DateTimeStringFormatValidation.class.getName(), "MM/DDDD/YYYY");
             assertThat(resultInvalidFormat.result().get()).isEqualTo("Invalid format: Too many pattern letters: D");
+        }
+
+        static final ValidationCallback<String> VALIDATION_CALLBACK = value -> {
+            if (value == null || value.isEmpty()) {
+                throw new InvalidSettingsException("Field cannot be empty");
+            }
+        };
+
+        @Test
+        void testCustomValidationWithValidInput() throws ExecutionException, InterruptedException {
+
+            class CustomValidationSettings implements NodeParameters {
+
+                static final class TestValidationProvider implements StateProvider<ValidationCallback<String>> {
+
+                    @Override
+                    public void init(final StateProviderInitializer initializer) {
+                        initializer.computeBeforeOpenDialog();
+                    }
+
+                    @Override
+                    public ValidationCallback<String> computeState(final NodeParametersInput context) {
+                        return VALIDATION_CALLBACK;
+                    }
+                }
+
+                @Widget(title = "", description = "")
+                @CustomValidation(TestValidationProvider.class)
+                String m_validatedField;
+            }
+
+            final var dataServiceAndRegistry = getDataServiceWithRegistry(CustomValidationSettings.class);
+            final var dataService = dataServiceAndRegistry.getFirst();
+            final var registry = dataServiceAndRegistry.getSecond();
+
+            final var callback = VALIDATION_CALLBACK;
+            final var scope = "#/properties/model/properties/validatedField";
+            final var indices = List.<Integer> of();
+            final var validatorId = registry.customValidationContext().registerValidator(callback);
+
+            // Test with valid input
+            final var result = dataService.performCustomValidation(validatorId, "valid input");
+
+            assertThat(result.result()).isEmpty(); // No error
+        }
+
+        @Test
+        void testCustomValidationWithInvalidInput() throws ExecutionException, InterruptedException {
+
+            class CustomValidationSettings implements NodeParameters {
+
+                static final class TestValidationProvider implements StateProvider<ValidationCallback<String>> {
+
+                    @Override
+                    public void init(final StateProviderInitializer initializer) {
+                        initializer.computeBeforeOpenDialog();
+                    }
+
+                    @Override
+                    public ValidationCallback<String> computeState(final NodeParametersInput context) {
+                        return VALIDATION_CALLBACK;
+                    }
+                }
+
+                @Widget(title = "", description = "")
+                @CustomValidation(TestValidationProvider.class)
+                String m_validatedField;
+            }
+
+            final var dataServiceAndRegistry = getDataServiceWithRegistry(CustomValidationSettings.class);
+            final var dataService = dataServiceAndRegistry.getFirst();
+            final var registry = dataServiceAndRegistry.getSecond();
+
+            final var callback = VALIDATION_CALLBACK;
+            final var scope = "#/properties/model/properties/validatedField";
+            final var indices = List.<Integer> of();
+            final var validatorId = registry.customValidationContext().registerValidator(callback);
+
+            // Test with invalid input (empty)
+            final var result = dataService.performCustomValidation(validatorId, "");
+
+            assertThat(result.result().get()).isEqualTo("Field cannot be empty");
+        }
+
+        @Test
+        void testCustomValidationWithUnknownId() {
+
+            class CustomValidationSettings implements NodeParameters {
+                @Widget(title = "", description = "")
+                String m_validatedField;
+            }
+
+            final var dataService = getDataServiceWithRegistry(CustomValidationSettings.class).getFirst();
+
+            assertThat(
+                assertThrows(ExecutionException.class, () -> dataService.performCustomValidation("unknown-id", "value"))
+                    .getMessage()).contains("No validator found for id unknown-id");
         }
     }
 

@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
@@ -119,13 +119,13 @@ public final class UpdatesUtil {
      * @param widgetTrees to extract the triggers from
      * @param jsonData the current settings
      * @param context the current context
-     * @param fileSystemConnector to resolve file system related updates
+     * @param serviceRegistry to resolve file system and validation related updates
      */
     static void addUpdates(final ObjectNode rootNode, final Collection<Tree<WidgetGroup>> widgetTrees,
-        final ObjectNode jsonData, final NodeParametersInput context, final FileSystemConnector fileSystemConnector) {
+        final ObjectNode jsonData, final NodeParametersInput context, final NodeDialogServiceRegistry serviceRegistry) {
         final var pair =
             WidgetTreesToDependencyTreeUtil.<Integer> widgetTreesToTriggersAndInvocationHandler(widgetTrees, context);
-        addUpdates(rootNode, pair, jsonData, context, fileSystemConnector);
+        addUpdates(rootNode, pair, jsonData, context, serviceRegistry);
     }
 
     /**
@@ -148,13 +148,13 @@ public final class UpdatesUtil {
 
     static void addUpdates(final ObjectNode rootNode,
         final Pair<List<TriggerAndDependencies>, TriggerInvocationHandler<Integer>> pair, final ObjectNode jsonData,
-        final NodeParametersInput context, final FileSystemConnector fileSystemConnector) {
+        final NodeParametersInput context, final NodeDialogServiceRegistry serviceRegistry) {
         final var triggersWithDependencies = pair.getFirst();
         final var invocationHandler = pair.getSecond();
         final var partitioned = triggersWithDependencies.stream()
             .collect(Collectors.partitioningBy(TriggerAndDependencies::isBeforeOpenDialogTrigger));
 
-        addInitialUpdates(rootNode, invocationHandler, jsonData, partitioned.get(true), context, fileSystemConnector);
+        addInitialUpdates(rootNode, invocationHandler, jsonData, partitioned.get(true), context, serviceRegistry);
         addGlobalUpdates(rootNode, partitioned.get(false));
     }
 
@@ -176,35 +176,36 @@ public final class UpdatesUtil {
 
     static void addUpdates(final ObjectNode rootNode, final Collection<Tree<WidgetGroup>> widgetTrees,
         final Map<SettingsType, WidgetGroup> loadedSettings, final NodeParametersInput context,
-        final FileSystemConnector fileSystemConnector) {
+        final NodeDialogServiceRegistry serviceRegistry) {
         final var pair =
             WidgetTreesToDependencyTreeUtil.<Integer> widgetTreesToTriggersAndInvocationHandler(widgetTrees, context);
         final var mapper = JsonFormsDataUtil.getMapper();
         final var jsonData = mapper.createObjectNode();
         loadedSettings
             .forEach((type, widgetGroup) -> jsonData.set(type.getConfigKeyFrontend(), mapper.valueToTree(widgetGroup)));
-        addUpdates(rootNode, pair, jsonData, context, fileSystemConnector);
+        addUpdates(rootNode, pair, jsonData, context, serviceRegistry);
     }
 
     private static void addInitialUpdates(final ObjectNode rootNode,
         final TriggerInvocationHandler<Integer> invocationHandler, final ObjectNode jsonData,
         final List<TriggerAndDependencies> initialTriggersWithDependencies, final NodeParametersInput context,
-        final FileSystemConnector fileSystemConnector) {
+        final NodeDialogServiceRegistry serviceRegistry) {
         if (!initialTriggersWithDependencies.isEmpty()) {
             CheckUtils.check(initialTriggersWithDependencies.size() == 1, IllegalStateException::new,
                 () -> "There should not exist more than one initial trigger.");
             addInitialUpdates(rootNode, initialTriggersWithDependencies.get(0), invocationHandler, jsonData, context,
-                fileSystemConnector);
+                serviceRegistry);
         }
     }
 
     private static void addInitialUpdates(final ObjectNode rootNode,
         final TriggerAndDependencies triggerWithDependencies, final TriggerInvocationHandler<Integer> invocationHandler,
-        final ObjectNode jsonData, final NodeParametersInput context, final FileSystemConnector fileSystemConnector) {
+        final ObjectNode jsonData, final NodeParametersInput context, final NodeDialogServiceRegistry serviceRegistry) {
         final var dependencyValues = triggerWithDependencies.extractDependencyValues(jsonData, context);
         final var triggerResult =
             invocationHandler.invokeTrigger(triggerWithDependencies.getTrigger(), dependencyValues::get, context);
-        final var updateResults = UpdateResultsUtil.toUpdateResults(triggerResult, fileSystemConnector);
+
+        final var updateResults = UpdateResultsUtil.toUpdateResults(triggerResult, serviceRegistry);
 
         final var initialUpdates = rootNode.putArray("initialUpdates");
         updateResults.forEach(updateResult -> addInitialUpdate(updateResult, initialUpdates));

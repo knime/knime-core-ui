@@ -56,8 +56,8 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.ConvertValueUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
@@ -81,15 +81,15 @@ final class DataServiceTriggerInvocationHandler {
 
     private final NodeParametersInput m_context;
 
-    private final FileSystemConnector m_fileSystemConnector;
+    private final NodeDialogServiceRegistry m_serviceRegistry;
 
     DataServiceTriggerInvocationHandler(final Map<SettingsType, Class<? extends WidgetGroup>> settingsClasses,
-        final NodeParametersInput context, final FileSystemConnector fileSystemConnector) {
+        final NodeParametersInput context, final NodeDialogServiceRegistry serviceRegistry) {
         final var widgetTreeFactory = new WidgetTreeFactory();
         final var widgetTrees = settingsClasses.entrySet().stream()
             .map(entry -> widgetTreeFactory.createTree(entry.getValue(), entry.getKey())).toList();
         m_context = context;
-        m_fileSystemConnector = fileSystemConnector;
+        m_serviceRegistry = serviceRegistry;
         m_triggerInvocationHandler = TriggerInvocationHandler.fromWidgetTrees(widgetTrees, m_context);
     }
 
@@ -101,7 +101,7 @@ final class DataServiceTriggerInvocationHandler {
                 .toList();
 
         final var triggerResult = m_triggerInvocationHandler.invokeTrigger(trigger, dependencyProvider, m_context);
-        return UpdateResultsUtil.toUpdateResults(triggerResult, m_fileSystemConnector);
+        return UpdateResultsUtil.toUpdateResults(triggerResult, m_serviceRegistry);
     }
 
     private static Object parseValue(final Object rawDependencyObject, final Type type,

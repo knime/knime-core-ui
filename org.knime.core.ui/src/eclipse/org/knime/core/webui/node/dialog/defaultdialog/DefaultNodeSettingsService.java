@@ -63,7 +63,7 @@ import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersNativeNodeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jobmanager.JobManagerParametersPersistUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
@@ -90,16 +90,17 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
 
     private final DefaultTextToNodeSettingsConverter m_textToNodeSettingsConverter;
 
-    private final FileSystemConnector m_fileSystemConnector;
+    private final NodeDialogServiceRegistry m_serviceRegistry;
 
     /**
      * @param settingsClasses map that associates a {@link NodeParameters} class-with a {@link SettingsType}
+     * @param serviceRegistry the service registry containing file system connector and validation context
      */
     public DefaultNodeSettingsService(final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses,
-        final FileSystemConnector fileSystemConnector) {
+        final NodeDialogServiceRegistry serviceRegistry) {
         m_settingsClasses = settingsClasses;
         m_textToNodeSettingsConverter = new DefaultTextToNodeSettingsConverter(settingsClasses);
-        m_fileSystemConnector = fileSystemConnector;
+        m_serviceRegistry = serviceRegistry;
     }
 
     @Override
@@ -133,7 +134,7 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
 
         final var root = new DefaultNodeDialogDataServiceUtil.InitialDataBuilder(jsonFormsSettings)
             .withUpdates((rootJson, dataJson) -> UpdatesUtil.addUpdates(rootJson, widgetTrees.values(), dataJson,
-                context, m_fileSystemConnector))
+                context, m_serviceRegistry))
             .withFlowVariables(map(nodeSpecificSettings), context).buildJson();
 
         addPersist(root, loadedSettings);

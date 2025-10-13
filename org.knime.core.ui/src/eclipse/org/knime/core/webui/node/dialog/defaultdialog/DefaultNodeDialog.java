@@ -58,6 +58,7 @@ import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService;
@@ -65,6 +66,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.Fi
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.DefaultNodeDialogDataServiceImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.FlowVariableDataServiceImpl;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.validation.CustomValidationContext;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.node.parameters.NodeParameters;
@@ -87,7 +89,8 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
 
     private final Map<SettingsType, Class<? extends NodeParameters>> m_settingsClasses;
 
-    private final FileSystemConnector m_fileSystemConnector = new FileSystemConnector();
+    private final NodeDialogServiceRegistry m_serviceRegistry =
+        new NodeDialogServiceRegistry(new FileSystemConnector(), new CustomValidationContext());
 
     /**
      * Creates a new instance.
@@ -95,7 +98,7 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
     public DefaultNodeDialog() {
         m_settingsTypes = Set.of(SettingsType.JOB_MANAGER);
         m_settingsClasses = Map.of();
-        m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses, m_fileSystemConnector);
+        m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses, m_serviceRegistry);
         m_onApplyModifier = null;
     }
 
@@ -122,7 +125,7 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
         final OnApplyNodeModifier onApplyModifier) {
         m_settingsTypes = Set.of(settingsType, SettingsType.JOB_MANAGER);
         m_settingsClasses = Map.of(settingsType, settingsClass);
-        m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses, m_fileSystemConnector);
+        m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses, m_serviceRegistry);
         m_onApplyModifier = onApplyModifier;
     }
 
@@ -156,7 +159,7 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
         final OnApplyNodeModifier onApplyModifier) {
         m_settingsTypes = Set.of(settingsType1, settingsType2, SettingsType.JOB_MANAGER);
         m_settingsClasses = Map.of(settingsType1, settingsClass1, settingsType2, settingsClass2);
-        m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses, m_fileSystemConnector);
+        m_settingsDataService = new DefaultNodeSettingsService(m_settingsClasses, m_serviceRegistry);
         m_onApplyModifier = onApplyModifier;
     }
 
@@ -184,11 +187,11 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
     @Override
     public Optional<RpcDataService> createRpcDataService() {
 
-        final var dataService = new DefaultNodeDialogDataServiceImpl(m_settingsClasses, m_fileSystemConnector);
+        final var dataService = new DefaultNodeDialogDataServiceImpl(m_settingsClasses, m_serviceRegistry);
         final var flowVariablesDataService =
             new FlowVariableDataServiceImpl(new DefaultDialogDataConverterImpl(m_settingsClasses));
-        final var fileChooserService = new FileChooserDataService(m_fileSystemConnector);
-        final var fileFilterPreviewService = new FileFilterPreviewDataService(m_fileSystemConnector,
+        final var fileChooserService = new FileChooserDataService(m_serviceRegistry.fileSystemConnector());
+        final var fileFilterPreviewService = new FileFilterPreviewDataService(m_serviceRegistry.fileSystemConnector(),
             () -> createWidgetTrees(m_settingsClasses.values()));
 
         var serviceBuilder = RpcDataService.builder() //
@@ -202,7 +205,7 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
 
         return Optional.of( //
             serviceBuilder //
-                .onDeactivate(m_fileSystemConnector::clear) //
+                .onDeactivate(m_serviceRegistry::onDeactivateRpc) //
                 .build() //
         );
     }

@@ -148,4 +148,16 @@ public interface DefaultNodeDialogDataService extends DialogSettingsUpdateServic
     Result<Optional<String>> performExternalValidation(String validatorClass, Object currentValue)
         throws InterruptedException, ExecutionException;
 
+    /**
+     * This method is triggered whenever an input value changes and a custom validation is registered.
+     *
+     * @param validatorId the unique ID of the validator to invoke
+     * @param currentValue the current input value to validate against
+     * @return the error message if the validation fails, else an empty optional
+     * @throws InterruptedException if the used thread is interrupted
+     * @throws ExecutionException if an error is thrown during the invocation
+     */
+    Result<Optional<String>> performCustomValidation(String validatorId, Object currentValue)
+        throws InterruptedException, ExecutionException;
+
 }

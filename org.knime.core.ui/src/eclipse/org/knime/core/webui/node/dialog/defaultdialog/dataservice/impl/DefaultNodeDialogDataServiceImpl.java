@@ -63,9 +63,9 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DataServiceRequestHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultNodeDialogDataService;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Result;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActionHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
@@ -95,7 +95,7 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
 
     private final Map<String, ExternalValidation<?>> m_externalValidationHandlers = new HashMap<>();
 
-    private final FileSystemConnector m_fileSystemConnector;
+    private final NodeDialogServiceRegistry m_serviceRegistry;
 
     private DataServiceTriggerInvocationHandler m_triggerInvocationHandler;
 
@@ -103,13 +103,13 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
      * Constructor.
      *
      * @param settingsClasses the classes of the {@link NodeParameters} associated to the dialog.
-     * @param fileSystemConnector the file system connector for registering custom file systems
+     * @param serviceRegistry the service registry containing file system connector and validation context
      */
     public DefaultNodeDialogDataServiceImpl(final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses,
-        final FileSystemConnector fileSystemConnector) {
+        final NodeDialogServiceRegistry serviceRegistry) {
         m_keyToSettingsClassMap = new EnumMap<>(SettingsType.class);
         settingsClasses.forEach(m_keyToSettingsClassMap::put);
-        m_fileSystemConnector = fileSystemConnector;
+        m_serviceRegistry = serviceRegistry;
         m_buttonActionHandlers = new ButtonWidgetActionHandlerHolder(m_keyToSettingsClassMap.values());
         m_buttonUpdateHandlers = new ButtonWidgetUpdateHandlerHolder(m_keyToSettingsClassMap.values());
         m_requestHandler = new DataServiceRequestHandler();
@@ -117,8 +117,8 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
 
     DataServiceTriggerInvocationHandler getTriggerInvocationHandler() {
         if (m_triggerInvocationHandler == null) {
-            m_triggerInvocationHandler = new DataServiceTriggerInvocationHandler(m_keyToSettingsClassMap,
-                createContext(), m_fileSystemConnector);
+            m_triggerInvocationHandler =
+                new DataServiceTriggerInvocationHandler(m_keyToSettingsClassMap, createContext(), m_serviceRegistry);
         }
         return m_triggerInvocationHandler;
     }
@@ -213,6 +213,16 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
             throw new NoHandlerFoundException(handlerClassName);
         }
         return externalValidationHandlerInstance;
+    }
+
+    @Override
+    public Result<Optional<String>> performCustomValidation(final String validatorId, final Object currentValue)
+        throws InterruptedException, ExecutionException {
+        final var customValidationContext = m_serviceRegistry.customValidationContext();
+        return m_requestHandler.handleRequest(validatorId, () -> {
+            final var errorMessage = customValidationContext.validate(validatorId, currentValue);
+            return Optional.ofNullable(errorMessage);
+        });
     }
 
 }

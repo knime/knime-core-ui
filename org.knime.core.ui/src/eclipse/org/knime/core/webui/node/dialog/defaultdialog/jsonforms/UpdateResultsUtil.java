@@ -57,12 +57,16 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.validation.CustomValidationContext;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FSConnectionProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.util.JacksonSerializationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Location;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler.TriggerResult;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.ValidationCallback;
 import org.knime.node.parameters.WidgetGroup;
 
 /**
@@ -79,6 +83,11 @@ public final class UpdateResultsUtil {
      * The name of the option that holds the id of a registered file system connection.
      */
     public static final String FILE_SYSTEM_ID = "fileSystemId";
+
+    /**
+     * The name of the option that holds the validation error state.
+     */
+    public static final String VALIDATOR_ID = "validatorId";
 
     private UpdateResultsUtil() {
         // Utility
@@ -178,15 +187,23 @@ public final class UpdateResultsUtil {
         return new UpdateResult.ValueUpdateResult<>(scope, sortByIndices(serializeValues(values, serializeValue)));
     }
 
-    private static <I> UpdateResult createLocationUiStateUpdateResult(final String scope,
+    private static <I> UpdateResult createLocationUiStateUpdateResult(final Location location,
         final String providedOptionName, final List<IndexedValue<I>> values,
-        final FileSystemConnector fileSystemConnector) {
+        final NodeDialogServiceRegistry serviceRegistry) {
+        final var scope = getScopeFromLocation(location);
         // Special handling for fileSystemId: intercept FSConnection and register it
         if (FILE_SYSTEM_ID.equals(providedOptionName)) {
-            CheckUtils.checkNotNull(fileSystemConnector,
-                "FileSystemConnector must be provided when updating fileSystemId.");
+            CheckUtils.checkNotNull(serviceRegistry,
+                "NodeDialogServiceRegistry must be provided when updating fileSystemId.");
             return new UpdateResult.LocationUiStateUpdateResult<>(scope, providedOptionName,
-                sortByIndices(interceptAndRegisterFSConnections(values, scope, fileSystemConnector)));
+                sortByIndices(interceptAndRegisterFSConnections(values, scope, serviceRegistry.fileSystemConnector())));
+        }
+        // Special handling for validation error: intercept ValidationCallback and register it
+        if (VALIDATOR_ID.equals(providedOptionName)) {
+            CheckUtils.checkNotNull(serviceRegistry,
+                "NodeDialogServiceRegistry must be provided when updating validation error.");
+            return new UpdateResult.LocationUiStateUpdateResult<>(scope, providedOptionName, sortByIndices(
+                interceptAndRegisterValidators(values, location, serviceRegistry.customValidationContext())));
         }
         return new UpdateResult.LocationUiStateUpdateResult<>(scope, providedOptionName,
             sortByIndices(serializeValues(values, serializeUiState)));
@@ -202,7 +219,24 @@ public final class UpdateResultsUtil {
                 // Return the UUID instead of the connection provider
                 return new IndexedValue<>(value.indices(), fileSystemId);
             }
-            return new IndexedValue<>(value.indices(), serializeUiState.apply(value.value()));
+            throw new IllegalStateException("Expected FSConnectionProvider, but got " + value.value());
+        }).toList();
+    }
+
+    private static <I> List<IndexedValue<I>> interceptAndRegisterValidators(final List<IndexedValue<I>> values,
+        final Location location, final CustomValidationContext validationContext) {
+        return values.stream().map(value -> {
+            if (value.value() == null) {
+                // Switch off validation by sending a null id to the frontend
+                return new IndexedValue<>(value.indices(), null);
+            }
+            if (value.value() instanceof ValidationCallback<?> callback) {
+                // Register the validation callback and get a unique UUID
+                final var validatorId = validationContext.registerValidator(callback);
+                // Return the UUID instead of the validation callback
+                return new IndexedValue<>(value.indices(), validatorId);
+            }
+            throw new IllegalStateException("Expected ValidationCallback, but got " + value.value());
         }).toList();
     }
 
@@ -239,17 +273,18 @@ public final class UpdateResultsUtil {
      * Transform the result of a trigger invocation to a list of update results that can be interpreted by the frontend.
      *
      * @param triggerResult the result from the trigger invocation
-     * @param fileSystemConnector the file system connector to register custom connections (can be null for components)
+     * @param serviceRegistry the service registry containing file system connector and validation context (can be null
+     *            for components)
+     * @param currentData the current settings data, used to extract field values for initial validation (can be null)
      * @return the list of resulting instructions
      */
     public static <I> List<UpdateResult> toUpdateResults(final TriggerResult<I> triggerResult,
-        final FileSystemConnector fileSystemConnector) {
+        final NodeDialogServiceRegistry serviceRegistry) {
         final var valueUpdates = triggerResult.valueUpdates().entrySet().stream()
             .map(entry -> createValueUpdateResult(getScopeFromLocation(entry.getKey()), entry.getValue())).sorted();
         final var locationUiStateUpdates = triggerResult.locationUiStateUpdates().entrySet().stream()
-            .flatMap(entry -> entry.getValue().entrySet().stream()
-                .map(e -> createLocationUiStateUpdateResult(getScopeFromLocation(entry.getKey()), e.getKey(),
-                    e.getValue(), fileSystemConnector)));
+            .flatMap(entry -> entry.getValue().entrySet().stream().map(
+                e -> createLocationUiStateUpdateResult(entry.getKey(), e.getKey(), e.getValue(), serviceRegistry)));
         final var idUiStateUpdates =
             triggerResult.idUiStateUpdates().entrySet().stream().flatMap(entry -> entry.getValue().entrySet().stream()
                 .map(e -> createIdUiStateUpdateResult(entry.getKey(), e.getKey(), e.getValue())));

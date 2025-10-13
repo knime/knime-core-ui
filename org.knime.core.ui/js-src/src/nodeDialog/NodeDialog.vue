@@ -256,6 +256,17 @@ const performExternalValidation = async (id: string, value: any) => {
   return receivedData.result || null;
 };
 
+const performCustomValidation = async (
+  id: string,
+  value: any,
+): Promise<string | null> => {
+  const receivedData = await callDataService({
+    method: "settings.performCustomValidation",
+    options: [id, value],
+  });
+  return receivedData.result || null;
+};
+
 const onSettingsChanged = ({ data }: { data: unknown }) => {
   if (data) {
     setCurrentData(data as SettingsData);
@@ -370,6 +381,7 @@ defineExpose({
     :schema="schema!"
     :uischema="uischema!"
     :renderers="renderers!"
+    :validate="performCustomValidation"
     @change="onSettingsChanged"
     @alert="sendJsonFormsAlert"
     @trigger="trigger"

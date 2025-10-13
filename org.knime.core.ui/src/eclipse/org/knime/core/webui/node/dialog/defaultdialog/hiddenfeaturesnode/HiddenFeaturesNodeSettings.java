@@ -61,6 +61,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelect
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.ValidationCallback;
 import org.knime.filehandling.core.connections.DefaultFSConnectionFactory;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
@@ -164,4 +166,42 @@ class HiddenFeaturesNodeSettings implements NodeParameters {
         description = "A simple string to hold a file path on the local file system.")
     @LocalFileReaderWidget
     String m_localFileSystemFile;
+
+    @CustomValidation(MyValidationProvider.class)
+    @Widget(title = "A setting with custom validation",
+        description = "Should be invalid intially and update the message on every change (debounced).")
+    String m_validatedSetting;
+
+    static final class MyValidationProvider implements StateProvider<ValidationCallback<String>> {
+
+        private Supplier<Boolean> m_switchOff;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+            m_switchOff = initializer.computeFromValueSupplier(ValidationOffReference.class);
+        }
+
+        @Override
+        public ValidationCallback<String> computeState(final NodeParametersInput parametersInput)
+            throws StateComputationFailureException {
+            if (m_switchOff.get().booleanValue()) {
+                return null;
+            }
+            return value -> {
+                throw new InvalidSettingsException("The value %s is not valid".formatted(value));
+            };
+        }
+
+    }
+
+    @Widget(title = "Switch off validation",
+        description = "If set to true, the validation of the setting above is switched off.")
+    @ValueReference(ValidationOffReference.class)
+    boolean m_switchOffValidation;
+
+    static final class ValidationOffReference implements BooleanReference {
+
+    }
+
 }

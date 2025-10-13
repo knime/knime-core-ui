@@ -93,6 +93,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMinLeng
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMinValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopPatternValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.updates.ParameterReference;
@@ -407,6 +408,12 @@ final class WidgetTreesToRefsAndStateProviders {
                 UpdateResultsUtil.FILE_SYSTEM_ID, //
                 CustomFileConnectionFolderReaderWidget.class, //
                 CustomFileConnectionFolderReaderWidget::connectionProvider, //
+                null //
+            ), //
+            new UiStateProviderAnnotationSpec<>( //
+                UpdateResultsUtil.VALIDATOR_ID, //
+                CustomValidation.class, //
+                CustomValidation::value, //
                 null //
             ));
 
