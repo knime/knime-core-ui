@@ -179,7 +179,9 @@ export default ({
   return {
     catalogueErrorMessage,
     catalogueErrorMessageIsLoading,
-    schemaErrorMessage,
+    schemaErrorMessage: computed(() =>
+      schemaName.value === null ? null : schemaErrorMessage.value,
+    ),
     schemaErrorMessageIsLoading: computed(
       () =>
         validateSchema.value &&
