@@ -67,8 +67,20 @@ public interface FilterOperators {
      */
     DataType getDataType();
 
-    List<FilterOperatorFamily<? extends FilterValueParameters>> getOperatorFamilies();
+    /**
+     * Returns the operator families provided by this factory.
+     *
+     * @return the operator families provided by this factory
+     */
+    List<FilterOperatorFamily<? extends FilterValueParameters>> getOperatorFamilies(); // NOSONAR we need the wildcard here
 
+    /**
+     * Returns all operators provided by this factory. The default implementation collects all operators of all
+     * families.
+     *
+     * @return all operators provided by this factory
+     */
+    @SuppressWarnings("unchecked")
     default List<FilterOperator<FilterValueParameters>> getOperators() {
         final List<FilterOperator<FilterValueParameters>> ops = new ArrayList<>();
         for (final var fam : getOperatorFamilies()) {

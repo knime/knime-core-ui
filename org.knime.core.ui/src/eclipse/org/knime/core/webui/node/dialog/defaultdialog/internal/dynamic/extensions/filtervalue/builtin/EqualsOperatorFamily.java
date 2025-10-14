@@ -58,7 +58,6 @@ import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters.SingleCellValueParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.valuefilter.ValueFilterValidationUtil;
 
@@ -128,8 +127,7 @@ public class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueP
         @Override
         public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
             final DataType configureColumnType, final P filterParameters) throws InvalidSettingsException {
-            final var eq = EqualsOperatorFamily.this.getEquality(runtimeColumnSpec, this, filterParameters);
-            return dv -> eq.test(dv);
+            return EqualsOperatorFamily.this.getEquality(runtimeColumnSpec, this, filterParameters)::test;
         }
 
         @Override
@@ -166,7 +164,7 @@ public class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueP
 
     }
 
-    private class NotEqualNorMissing extends NotEqualBase implements NotEqualsNorMissingOperator {
+    private final class NotEqualNorMissing extends NotEqualBase implements NotEqualsNorMissingOperator {
 
         private NotEqualNorMissing() {
             super();

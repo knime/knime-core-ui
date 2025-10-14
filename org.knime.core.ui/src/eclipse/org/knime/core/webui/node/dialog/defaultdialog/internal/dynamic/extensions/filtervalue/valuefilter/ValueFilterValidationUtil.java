@@ -55,10 +55,10 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.message.Message;
 import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorBase;
 
 /**
+ * Utility methods for validation in filter operators.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  */
@@ -88,21 +88,9 @@ public final class ValueFilterValidationUtil {
      * @return invalid settings exception containing mandatory summary, details, and potential resolutions from the
      *         builder
      */
-    public static InvalidSettingsException
-        createInvalidSettingsException(final UnaryOperator<MessageBuilder> builderFn, final Throwable cause) {
+    public static InvalidSettingsException createInvalidSettingsException(final UnaryOperator<MessageBuilder> builderFn,
+        final Throwable cause) {
         return builderFn.apply(Message.builder()).build().orElseThrow().toInvalidSettingsException(cause);
-    }
-
-    /**
-     * Creates a nice exception message with potential resolution for missing reference values.
-     *
-     * @return exception to throw
-     */
-    // TODO reduce visibility if we only need this internally
-    public static InvalidSettingsException createMissingReferenceValueException() {
-        return Message.builder().withSummary("Reference value is missing")
-            .addResolutions("Reconfigure the node to provide a reference value.").build().orElseThrow()
-            .toInvalidSettingsException();
     }
 
     /**
@@ -114,8 +102,8 @@ public final class ValueFilterValidationUtil {
      * @param configureDataType column type "at configure time"
      * @throws InvalidSettingsException if the types are not the same
      */
-    public static void checkSameType(final FilterOperator<? extends FilterValueParameters> operator,
-        final DataType runtimeColumnType, final DataType configureDataType) throws InvalidSettingsException { //
+    public static void checkSameType(final FilterOperatorBase operator, final DataType runtimeColumnType,
+        final DataType configureDataType) throws InvalidSettingsException { //
         if (runtimeColumnType.equals(configureDataType)) {
             return;
         }

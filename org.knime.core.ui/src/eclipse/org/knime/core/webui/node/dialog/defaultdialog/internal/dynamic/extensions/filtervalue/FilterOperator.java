@@ -116,5 +116,4 @@ public interface FilterOperator<P extends FilterValueParameters> extends FilterO
     default boolean isDeprecated() {
         return false;
     }
-
 }

@@ -61,7 +61,6 @@ import org.knime.core.data.DataValueComparatorDelegator;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters.SingleCellValueParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.valuefilter.ValueFilterValidationUtil;
 
@@ -79,6 +78,11 @@ public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellVa
 
     private final Class<P> m_parametersClass;
 
+    /**
+     * Creates the operator family for the given data type and parameters class.
+     * @param dataType the data type this family is for
+     * @param parametersClass the class of parameters used for all operators of this family
+     */
     public ComparableOperatorFamily(final DataType dataType, final Class<P> parametersClass) {
         m_dataType = dataType;
         m_parametersClass = parametersClass;
@@ -179,5 +183,4 @@ public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellVa
             return m_parametersClass;
         }
     }
-
 }
