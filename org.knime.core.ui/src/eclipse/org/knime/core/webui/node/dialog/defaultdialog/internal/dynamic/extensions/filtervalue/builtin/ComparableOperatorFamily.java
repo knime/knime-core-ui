@@ -92,6 +92,14 @@ public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellVa
     }
 
     /**
+     * Returns the data type this operator family is defined for.
+     * @return the data type
+     */
+    protected final DataType getDataType() {
+        return m_dataType;
+    }
+
+    /**
      * Creates a comparison function to compare between a data value and a reference cell created from the parameters
      * for all operators of this family. The specific operator is passed for context, e.g. to create specific error
      * messages for users.

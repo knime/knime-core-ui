@@ -50,12 +50,15 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensio
 
 import java.util.function.UnaryOperator;
 
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.message.Message;
 import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorBase;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 
 /**
  * Utility methods for validation in filter operators.
@@ -146,6 +149,45 @@ public final class ValueFilterValidationUtil {
             }
         }
         return prefix;
+    }
+
+    /**
+     * Gets a summary message indicating that the given operator cannot be applied to the given column of the given data
+     * type.
+     *
+     * @param dataType the data type the operator is defined for
+     * @param operator the operator
+     * @param runtimeColumnSpec the column spec at runtime
+     * @return the summary message
+     */
+    public static String getUnsupportedOperatorSummary(final DataType dataType,
+        final FilterOperator<? extends FilterValueParameters> operator, final DataColumnSpec runtimeColumnSpec) { // NOSONAR we don't care about the parameters
+        return String.format("\"%s\" comparison with \"%s\" for column \"%s\" of type \"%s\" is not possible",
+            dataType.getName(), operator.getLabel(), runtimeColumnSpec.getName(),
+            runtimeColumnSpec.getType().toPrettyString());
+    }
+
+    /**
+     * Gets a resolution message indicating to convert the input column to one of the given compatible types.
+     *
+     * @param compatibleTypes compatible types to convert to
+     * @return the resolution message
+     */
+    public static String resolutionChangeInput(final DataType... compatibleTypes) {
+        return ValueFilterValidationUtil
+            .appendElements(new StringBuilder("Convert the input column to a compatible type, e.g. "), compatibleTypes)
+            .toString();
+    }
+
+    /**
+     * Gets a resolution message indicating to select a different operator that is compatible with the given column.
+     *
+     * @param colType the column type
+     * @return the resolution message
+     */
+    public static String resolutionSelectDifferentOperator(final DataType colType) {
+        return "Select a different operator that is compatible with the column's data type \"%s\"."
+            .formatted(colType.toPrettyString());
     }
 
 }
