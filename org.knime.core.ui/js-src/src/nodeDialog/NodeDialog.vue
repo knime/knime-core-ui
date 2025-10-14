@@ -39,7 +39,8 @@ import type {
 import { hasAdvancedOptions } from "./utils";
 import { getConfigPaths } from "./utils/paths";
 
-const { setCurrentData, getCurrentData } = useCurrentData();
+const { setCurrentData, setInitialData, getCurrentData, getInitialValue } =
+  useCurrentData();
 const getKnimeService = inject<() => UIExtensionService>("getKnimeService")!;
 
 const { dialogService, jsonDataService, sharedDataService, alertingService } =
@@ -312,6 +313,7 @@ onMounted(async () => {
   setInitialFlowVariablesMap(initializeFlowVariablesMap(initialSettings));
   schema.value = initialSettings.schema;
   uischema.value = initialSettings.ui_schema;
+  setInitialData(cloneDeep(initialSettings.data));
   setCurrentData(initialSettings.data);
   setRegisterSettingsMethod(dialogService.registerSettings.bind(dialogService));
   persistSchema.value = initialSettings.persist;
@@ -344,6 +346,7 @@ const provided: ProvidedByNodeDialog & ProvidedForFlowVariables = {
   getDialogPopoverTeleportDest: () => dialogPopoverTeleportDest.value,
   setSubPanelExpanded,
   updateData,
+  getInitialValue,
 };
 
 Object.entries(provided).forEach(([key, value]) => {

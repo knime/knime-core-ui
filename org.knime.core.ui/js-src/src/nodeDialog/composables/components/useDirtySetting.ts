@@ -11,10 +11,15 @@ import { injectIsChildOfAddedArrayLayoutElement } from "./useAddedArrayLayoutIte
 export const useDirtySetting = <ValueType>({
   dataPath,
   value,
+  initialValue: customInitialValue,
   valueComparator: valueComparatorProp,
 }: {
   dataPath: MaybeRef<string>;
   value: Ref<ValueType>;
+  /**
+   * If not provided, we try to get the initial value from getInitialValue(dataPath)
+   */
+  initialValue?: ValueType | undefined;
   valueComparator?: SettingComparator<ValueType | undefined>;
   configPaths?: string[];
 }) => {
@@ -25,20 +30,21 @@ export const useDirtySetting = <ValueType>({
 
   const isInsideAnAddedArrayItem = injectIsChildOfAddedArrayLayoutElement();
   const updateData = inject("updateData");
-  const initialValue = value.value;
+  const getInitialValue = inject("getInitialValue");
   const constructNewSettingState = () => {
+    const initialValue =
+      typeof customInitialValue === "undefined"
+        ? getInitialValue<ValueType>(unref(dataPath))
+        : customInitialValue;
     const setValue = constructSettingState<ValueType | undefined>(
       unref(dataPath),
       {
-        initialValue: isInsideAnAddedArrayItem.isAdded
-          ? // eslint-disable-next-line no-undefined
-            undefined
-          : initialValue,
+        initialValue,
         valueComparator,
       },
     );
+    setValue(value.value);
     if (isInsideAnAddedArrayItem.isAdded) {
-      setValue(initialValue);
       updateData(unref(dataPath));
     }
     return setValue;
@@ -46,7 +52,7 @@ export const useDirtySetting = <ValueType>({
 
   const getExistingSettingStateAndSetCurrentValue = () => {
     const setValue = getSettingState<ValueType | undefined>(unref(dataPath));
-    setValue?.(initialValue);
+    setValue?.(value.value);
     if (isInsideAnAddedArrayItem.isAdded) {
       updateData(unref(dataPath));
     }

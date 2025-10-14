@@ -80,7 +80,11 @@ const ArrayLayout = defineComponent({
       control: Ref<ArrayLayoutControl>;
     };
     const numElements = computed(() => control.value.data?.length ?? 0);
-    const cleanArrayLength = ref(numElements.value);
+    const getInitialValue = inject("getInitialValue");
+    const initialArray = getInitialValue<ArrayLayoutControl["data"]>(
+      control.value.path,
+    );
+    const cleanArrayLength = ref(initialArray?.length ?? 0);
     const providedElementDefaultValue = useProvidedState(
       computed(() => control.value.uischema),
       "elementDefaultValue",
@@ -89,6 +93,7 @@ const ArrayLayout = defineComponent({
     useDirtySetting({
       dataPath: computed(() => control.value.path),
       value: numElements,
+      initialValue: cleanArrayLength.value ?? 0,
       valueComparator: {
         setSettings: (length) => {
           cleanArrayLength.value = length!;

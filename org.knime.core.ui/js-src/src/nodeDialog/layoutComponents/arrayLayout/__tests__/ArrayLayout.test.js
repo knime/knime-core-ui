@@ -160,6 +160,7 @@ const mountArrayLayout = ({ props, provide }) => {
           isTriggerActive: vi.fn(),
           sendAlert: vi.fn(),
           createArrayAtPath: vi.fn(() => ({})),
+          getInitialValue: vi.fn(() => props.control.value.data),
           ...provide,
         },
         stubs: {
