@@ -71,6 +71,8 @@ import org.knime.node.parameters.persistence.Persistor;
  *
  * @author Paul Bärnreuther, KNIME GmbH
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @noreference This class is not intended to be referenced by clients.
  */
 public interface FilterOperator<P extends FilterValueParameters> extends FilterOperatorDefinition<P> {
 

@@ -70,6 +70,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @param <C> data cell type to compare with
  * @param <P> type of filter parameters
+ *
+ * @noreference This class is not intended to be referenced by clients.
+ * @noinstantiate This class is not intended to be instantiated by clients.
  */
 public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellValueParameters<C>>
     implements FilterOperatorFamily<P> {

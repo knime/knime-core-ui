@@ -57,6 +57,8 @@ import org.knime.core.data.DataType;
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @param <P> the type of parameters the operators take
+ *
+ * @noreference This class is not intended to be referenced by clients.
  */
 public interface FilterOperatorFamily<P extends FilterValueParameters> {
 

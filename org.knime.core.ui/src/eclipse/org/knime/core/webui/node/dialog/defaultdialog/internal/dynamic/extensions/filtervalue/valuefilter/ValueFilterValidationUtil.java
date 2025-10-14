@@ -61,6 +61,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  * Utility methods for validation in filter operators.
  *
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @noreference This class is not intended to be referenced by clients.
+ * @noinstantiate This class is not intended to be instantiated by clients.
  */
 public final class ValueFilterValidationUtil {
 

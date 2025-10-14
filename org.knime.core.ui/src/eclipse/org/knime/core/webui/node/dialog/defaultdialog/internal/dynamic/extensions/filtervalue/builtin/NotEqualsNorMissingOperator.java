@@ -56,6 +56,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  * without having to implement getId() and getLabel().
  *
  * @author Paul Bärnreuther
+ *
+ * @noreference This interface is not intended to be referenced by clients.
  */
 public interface NotEqualsNorMissingOperator extends FilterOperatorBase {
 

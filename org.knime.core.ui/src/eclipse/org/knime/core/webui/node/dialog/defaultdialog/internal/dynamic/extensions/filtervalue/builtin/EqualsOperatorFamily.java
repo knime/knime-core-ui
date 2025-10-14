@@ -68,6 +68,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  * @param <C> type of data cell to compare with (from node parameters)
  * @param <P> type of node parameters to create the comparison cell
+ *
+ * @noreference This class is not intended to be referenced by clients.
+ * @noinstantiate This class is not intended to be instantiated by clients.
  */
 public class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueParameters<C>>
     implements FilterOperatorFamily<P> {

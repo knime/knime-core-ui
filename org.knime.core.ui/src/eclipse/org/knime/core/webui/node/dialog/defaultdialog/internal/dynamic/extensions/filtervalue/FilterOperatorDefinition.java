@@ -54,6 +54,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensio
  *
  * @param <P> the parameter type for this operator
  * @author Paul Bärnreuther
+ *
+ * @noreference This class is not intended to be referenced by clients.
  */
 public interface FilterOperatorDefinition<P extends FilterValueParameters> extends FilterOperatorBase {
 

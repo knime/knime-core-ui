@@ -53,6 +53,8 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensio
  * All filter operator interfaces should extend this base interface.
  *
  * @author Paul Bärnreuther
+ *
+ * @noreference This class is not intended to be referenced by clients.
  */
 public interface FilterOperatorBase {
 

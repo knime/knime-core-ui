@@ -54,6 +54,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  * Interface for less than filter operators that provides the standard ID and label.
  *
  * @author Paul Bärnreuther
+ *
+ * @noreference This interface is not intended to be referenced by clients.
  */
 public interface LessThanOperator extends FilterOperatorBase {
 

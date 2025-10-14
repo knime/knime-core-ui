@@ -57,6 +57,8 @@ import org.knime.core.data.DataType;
  * {@link DataType}.
  *
  * @author Paul Bärnreuther
+ *
+ * @noreference This class is not intended to be referenced by clients.
  */
 public interface FilterOperators {
 

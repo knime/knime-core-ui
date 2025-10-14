@@ -56,7 +56,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  *
  * @noreference This interface is not intended to be referenced by clients.
- * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface IsNotMissingOperator extends FilterOperatorBase {
 

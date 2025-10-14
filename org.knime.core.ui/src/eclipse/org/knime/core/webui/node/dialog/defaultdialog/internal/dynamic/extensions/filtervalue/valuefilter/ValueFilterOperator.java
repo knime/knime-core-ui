@@ -64,6 +64,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  * @param <P> the type of parameters the operator takes
  * @author Paul Bärnreuther
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @noreference This interface is not intended to be referenced by clients.
  */
 public interface ValueFilterOperator<V extends DataValue, P extends FilterValueParameters> extends FilterOperator<P> {
 

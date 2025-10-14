@@ -208,6 +208,11 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  * happens via the parameters class.
  * </p>
  *
+ * @author Paul Bärnreuther, KNIME GmbH
+ * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
+ *
+ * @apiNote The extension point is currently still <b>experimental</b> and might change in future versions!
+ * @noreference This class is not intended to be referenced by clients.
  */
 // TODO put extension's IDs below their namespace? -> no clash with future built-in operators
 public final class FilterOperatorsRegistry {

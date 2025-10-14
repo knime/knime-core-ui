@@ -59,6 +59,8 @@ import org.knime.node.parameters.Widget;
  * Parameters to create a new DataCell of a specific type. This interface extends {@link NodeParameters}!
  *
  * @author Paul Bärnreuther
+ *
+ * @noreference This class is not intended to be referenced by clients.
  */
 public interface FilterValueParameters extends DynamicNodeParameters {
 
