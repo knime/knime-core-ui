@@ -10,6 +10,8 @@ const flowVariablesMap = getFlowVariablesMap();
 const getFlowVariableName = (path: string) =>
   flowVariablesMap[path].controllingFlowVariableName ??
   flowVariablesMap[path].exposedFlowVariableName;
+
+const replaceDot = (str: string) => str.replace(/<dot>/g, ".");
 </script>
 
 <template>
@@ -18,7 +20,8 @@ const getFlowVariableName = (path: string) =>
     <ul>
       <li>
         <p>
-          "{{ path }}": <input disabled :value="getFlowVariableName(path)" />
+          "{{ replaceDot(path) }}":
+          <input disabled :value="getFlowVariableName(path)" />
         </p>
         <UnsetDeprecatedFlowVariableButton :path />
       </li>

@@ -187,4 +187,23 @@ describe("FlowVariablePopover", () => {
       wrapper.findComponent(DeprecatedFlowVariables).exists(),
     ).toBeTruthy();
   });
+
+  it("replaces <dot> with . in config path labels for multiple config keys", () => {
+    const localConfigPaths = [
+      "model.key<dot>with<dot>dots",
+      "model.anotherKey",
+    ];
+    configPaths.value = localConfigPaths.map((configPath) => ({
+      configPath,
+      deprecatedConfigPaths: [],
+      dataPath: "firstDataPath",
+    }));
+    const wrapper = mountFlowVariablePopover();
+
+    const labelForFirstSelector = wrapper.findAllComponents(Label).at(0);
+    const labelForSecondSelector = wrapper.findAllComponents(Label).at(2);
+
+    expect(labelForFirstSelector?.text()).toBe("Overwrite key.with.dots");
+    expect(labelForSecondSelector?.text()).toBe("Overwrite anotherKey");
+  });
 });

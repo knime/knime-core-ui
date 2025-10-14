@@ -21,6 +21,11 @@ const prefixLength = computed(() => {
   ).length;
 });
 
+const configPathToDisplayedName = (configPath: string) => {
+  const withoutCommonPrefix = configPath.slice(prefixLength.value);
+  return withoutCommonPrefix.replace(/<dot>/g, ".");
+};
+
 const emit = defineEmits<{
   controllingFlowVariableSet: [string, unknown, string];
 }>();
@@ -39,7 +44,9 @@ const emit = defineEmits<{
           :text="
             configPaths.length === 1
               ? 'Overwrite with flow variable'
-              : 'Overwrite '.concat(configPath.configPath.slice(prefixLength))
+              : 'Overwrite '.concat(
+                  configPathToDisplayedName(configPath.configPath),
+                )
           "
           class="label"
           :class="{ multiple: i > 0 }"
@@ -59,7 +66,9 @@ const emit = defineEmits<{
           :text="
             configPaths.length === 1
               ? 'Output as flow variable'
-              : 'Output '.concat(configPath.configPath.slice(prefixLength))
+              : 'Output '.concat(
+                  configPathToDisplayedName(configPath.configPath),
+                )
           "
           class="label"
         >
