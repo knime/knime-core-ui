@@ -71,6 +71,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public final class InitialDataService<D> extends AbstractDataService {
 
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(InitialDataService.class);
+
     private final Supplier<D> m_dataSupplier;
 
     private final ObjectMapper m_mapper = ObjectMapperUtil.getInstance().getObjectMapper();
@@ -115,7 +117,7 @@ public final class InitialDataService<D> extends AbstractDataService {
             try { // NOSONAR
                 root.set("result", m_mapper.readTree(dataString));
             } catch (StreamConstraintsException ex) {
-                NodeLogger.getLogger(getClass()).error(ex);
+                LOGGER.error(ex);
                 return m_mapper.createObjectNode()
                     .set("internalError",
                         m_mapper.valueToTree(
@@ -139,10 +141,9 @@ public final class InitialDataService<D> extends AbstractDataService {
             return m_mapper.createObjectNode().set("userError", m_mapper.valueToTree(new InitialDataUserError(e)))
                 .toString();
         } catch (Throwable t) { // NOSONAR
-            final var errorMessage = m_mapper.createObjectNode()
-                .set("internalError", m_mapper.valueToTree(new InitialDataInternalError(t))).toString();
-            NodeLogger.getLogger(getClass()).error(errorMessage);
-            return errorMessage;
+            final var err = new InitialDataInternalError(t);
+            LOGGER.error(err.getMessage(), t);
+            return m_mapper.createObjectNode().set("internalError", m_mapper.valueToTree(err)).toString();
         } finally {
             DataServiceContext.remove();
             if (m_nc != null) {
