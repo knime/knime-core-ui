@@ -85,10 +85,7 @@ class CustomConnectionFileChooserBackend extends SimpleFileChooserBackend {
 
     @Override
     public boolean isAbsoluteFileSystem() {
-        /**
-         * Currently hardcoded to false orienting on the {@link ConnectedFileChooserBackend}.
-         */
-        return false;
+        return true;
     }
 
 }
