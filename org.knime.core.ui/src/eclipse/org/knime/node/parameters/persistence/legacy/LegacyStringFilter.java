@@ -75,6 +75,7 @@ import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.ChoicesStateProvider;
 import org.knime.node.parameters.widget.choices.filter.TwinlistWidget;
 import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.DoubleColumnsProvider;
@@ -99,7 +100,18 @@ public final class LegacyStringFilter implements NodeParameters {
 
         private boolean m_showKeepAll;
 
-        private String m_columnSelectionDescription;
+        private String m_title;
+
+        private String m_description;
+
+        private String m_inclList;
+
+        private String m_exclList;
+
+        private Class<? extends ChoicesStateProvider<?>> m_choicesProviderClass;
+
+        private Class<? extends StateProvider<?>> m_valueProviderClass;
+
 
         /**
          * Constructor.
@@ -109,8 +121,30 @@ public final class LegacyStringFilter implements NodeParameters {
          *            the default description
          */
         protected LegacyStringFilterModification(final boolean showKeepAll, final String columnSelectionDescription) {
+            this(showKeepAll, null, null, null, columnSelectionDescription, null);
+        }
+
+        /**
+         * Constructor setting the provider classes for the include and exclude list.
+         *
+         * @param showKeepAll whether to show the "Keep all columns" checkbox
+         * @param title the title for the column selection twin list widget, or null to keep the default title
+         * @param description the description for the column selection twin list widget, or null to keep the default
+         *            description
+         * @param inclList the inclList title, or null to keep the default
+         * @param exclList the exclList title, or null to keep the default
+         * @param choicesProviderClass the choices provider class for the include list, or null to keep the default
+         */
+        protected LegacyStringFilterModification(final boolean showKeepAll, final String title,
+            final String description,
+            final String inclList, final String exclList,
+            final Class<? extends ChoicesStateProvider<?>> choicesProviderClass) {
             m_showKeepAll = showKeepAll;
-            m_columnSelectionDescription = columnSelectionDescription;
+            m_title = title;
+            m_description = description;
+            m_inclList = inclList;
+            m_exclList = exclList;
+            m_choicesProviderClass = choicesProviderClass;
         }
 
         @Override
@@ -121,9 +155,24 @@ public final class LegacyStringFilter implements NodeParameters {
                         "If checked, node behaves as if all columns were moved to the \"Include\" list.")
                     .modify();
             }
-            if (m_columnSelectionDescription != null) {
-                group.find(InclListRef.class).modifyAnnotation(Widget.class)
-                    .withProperty("description", m_columnSelectionDescription).modify();
+            if (m_title != null) {
+                group.find(InclListRef.class).modifyAnnotation(Widget.class).withProperty("title", m_title).modify();
+            }
+            if (m_description != null) {
+                group.find(InclListRef.class).modifyAnnotation(Widget.class).withProperty("description", m_description)
+                    .modify();
+            }
+            if (m_inclList != null) {
+                group.find(InclListRef.class).modifyAnnotation(TwinlistWidget.class)
+                    .withProperty("includedLabel", m_inclList).modify();
+            }
+            if (m_exclList != null) {
+                group.find(InclListRef.class).modifyAnnotation(TwinlistWidget.class)
+                    .withProperty("excludedLabel", m_exclList).modify();
+            }
+            if (m_choicesProviderClass != null) {
+                group.find(InclListRef.class).modifyAnnotation(ChoicesProvider.class)
+                    .withProperty("value", m_choicesProviderClass).modify();
             }
         }
     }
