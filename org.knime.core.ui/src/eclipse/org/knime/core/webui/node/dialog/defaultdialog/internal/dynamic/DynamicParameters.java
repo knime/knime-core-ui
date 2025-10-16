@@ -59,6 +59,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.List;
 
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersDeserializer;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersSerializer;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
@@ -117,7 +120,9 @@ public @interface DynamicParameters {
      *
      * @return the schema to present to KAI instead of the default `{ "type": "object" }` schema
      */
-    String schemaForDefaultKaiNodeInterface() default "";
+    String schemaForDefaultKaiNodeInterface()
+
+    default "";
 
     /**
      * Title and description provided here are only shown in the node description. If this field is not set, the dynamic
@@ -179,6 +184,57 @@ public @interface DynamicParameters {
          * @throws StateComputationFailureException if this computation should be cancelled for some reason.
          */
         T computeParameters(NodeParametersInput parametersInput) throws StateComputationFailureException;
+
+    }
+
+    /**
+     * Use this interface as {@link DynamicParametersProvider} if you want to have some or all of the dynamic parameters
+     * be defined via {@link NodeSettings} and displayed as fallback dialog.
+     *
+     * @author Paul Bärnreuther
+     * @param <T> the common interface/abstract class used for these dynamic settings.
+     */
+    interface DynamicParametersWithFallbackProvider<T extends DynamicNodeParameters>
+        extends DynamicParametersProvider<T> {
+
+        @Override
+        default DataAndDialog<Object> computeState(final NodeParametersInput parametersInput)
+            throws StateComputationFailureException {
+            final var fallbackSettings = computeFallbackSettings(parametersInput);
+            if (fallbackSettings == null) {
+                return DynamicParametersProvider.super.computeState(parametersInput);
+            }
+            final var fallbackParameters = getParametersFromFallback(fallbackSettings);
+            final var jsonFormsSettings = fallbackParameters.toJsonFormsSettings();
+            return new DataAndDialog<>(//
+                jsonFormsSettings.getData(), //
+                jsonFormsSettings.getSchema().toString(), //
+                jsonFormsSettings.getUiSchema().toString()//
+            );
+
+        }
+
+        /**
+         * Return something that should be used to create a fallback dialog or null if no fallback dialog should be
+         * used. In the latter case the dynamic parameters as defined by
+         * {@link DynamicParametersProvider#computeParameters(NodeParametersInput)} are used.
+         *
+         * @param parametersInput the current input of parameter creation.
+         * @return the node settings to be used for the fallback dialog or null if no fallback dialog should be
+         * @throws StateComputationFailureException if this computation should be cancelled for some reason.
+         */
+        NodeSettings computeFallbackSettings(NodeParametersInput parametersInput)
+            throws StateComputationFailureException;
+
+        /**
+         * Used for construction of the concrete non-abstract class that extends both T and
+         * {@link FallbackDialogNodeParameters} from the given node settings.
+         *
+         * @param fallbackSettings the node settings to construct the fallback dialog from (either loaded or provided)
+         *
+         * @return a value that extends both T and {@link FallbackDialogNodeParameters}
+         */
+        FallbackDialogNodeParameters getParametersFromFallback(NodeSettingsRO fallbackSettings);
 
     }
 

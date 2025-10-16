@@ -52,6 +52,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationU
 
 import java.io.IOException;
 
+import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicParametersProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.util.JacksonSerializationUtil;
@@ -126,6 +127,9 @@ public class DynamicNodeParametersSerializer extends JsonSerializer<Object> impl
         if (value == null) {
             gen.writeNull();
             return;
+        }
+        if (value instanceof FallbackDialogNodeParameters fallbackParameters) {
+            gen.writeObject(fallbackParameters.toJson());
         }
         final var classIdentifier = getClassIdentifier(value);
         final var withoutClassField = getDefaultSerializedValue(value, serializers);
