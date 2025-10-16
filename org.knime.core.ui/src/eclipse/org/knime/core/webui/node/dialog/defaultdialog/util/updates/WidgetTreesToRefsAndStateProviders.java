@@ -96,6 +96,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringP
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.array.ArrayWidget;
+import org.knime.node.parameters.layout.SubParameters;
 import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
@@ -415,6 +416,11 @@ final class WidgetTreesToRefsAndStateProviders {
                 CustomValidation.class, //
                 CustomValidation::value, //
                 null //
+            ), new UiStateProviderAnnotationSpec<>( //
+                UiSchema.TAG_SHOW_SUB_PARAMETERS, //
+                SubParameters.class, //
+                SubParameters::showSubParametersProvider, //
+                NoopBooleanProvider.class //
             ));
 
     static final List<UiStateProviderSpec> uiStateProviderSpecs = Stream.of( //

@@ -44,65 +44,65 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2025 (Paul Bärnreuther): created
+ *   Oct 16, 2025 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
 
-import org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode.HiddenFeaturesNodeSettings.FileSelectionHiddenFeaturesSideDrawerSection.CustomFileChooserFiltersSection;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelectionWidget;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
-import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 
-@LoadDefaultsForAbsentFields
-class HiddenFeaturesNodeSettings implements NodeParameters {
+/**
+ * Parameters class for testing {@link MultiFileSelection} with custom filters.
+ *
+ * @author Paul Bärnreuther
+ */
+public class HiddenFeatureMultiFileSelectionParameters implements NodeParameters {
 
-    @Section(title = "File Selection Hidden Features", sideDrawer = true)
-    interface FileSelectionHiddenFeaturesSideDrawerSection {
+    static final class TestFileChooserFilters implements FileChooserFilters {
 
-        @Section(title = "Multi File Selection")
-        interface MultiFileSelectionSection {
-
+        @Override
+        public boolean passesFilter(final Path root, final Path path) {
+            if (Files.isDirectory(path)) {
+                return true;
+            }
+            return path.getFileName().toString().endsWith(m_filePathEnding);
         }
 
-        @Section(title = "Folder Selection")
-        interface FileSelectionWithFolderSection {
-
+        @Override
+        public boolean followSymlinks() {
+            return m_followSymlinks;
         }
 
-        @Section(title = "Custom Connection Folder Selection")
-        interface CustomFileChooserFiltersSection {
+        @Section(title = "Some custom section")
+        interface SomeSection {
         }
+
+        @Section(title = "Some other custom section")
+        @After(SomeSection.class)
+        interface SomeOtherSection {
+        }
+
+        @Widget(title = "File ends with", description = """
+                E.g. enter '.txt' to only show text files
+                or enter 'myData.csv' to list e.g. 'abcmyData.csv'.
+                        """)
+        @Layout(SomeSection.class)
+        String m_filePathEnding = "txt";
+
+        @Widget(title = "Follow Symlinks", description = "Follow symbolic links to directories.")
+        @Layout(SomeOtherSection.class)
+        boolean m_followSymlinks;
+
     }
 
-    @Section(title = "Custom Validation", sideDrawer = true)
-    interface CustomValidationSideDrawerSection {
-    }
-
-    @Section(title = "Sub Parameters", sideDrawer = true)
-    interface SupParametersSection {
-
-    }
-
-    @Layout(FileSelectionHiddenFeaturesSideDrawerSection.MultiFileSelectionSection.class)
-    HiddenFeatureMultiFileSelectionParameters m_multiFileSelection = new HiddenFeatureMultiFileSelectionParameters();
-
-    @Widget(title = "File Selection with Folder", description = "A file selection that allows selecting folders.")
-    @FolderSelectionWidget
-    @Layout(FileSelectionHiddenFeaturesSideDrawerSection.FileSelectionWithFolderSection.class)
-    FileSelection m_testSelectionWithFolder = new FileSelection();
-
-    @Layout(CustomFileChooserFiltersSection.class)
-    HiddenFeatureCustomFileConnectionParameters m_customFileConnection =
-        new HiddenFeatureCustomFileConnectionParameters();
-
-    @Layout(CustomValidationSideDrawerSection.class)
-    HiddenFeatureCustomValidationParameters m_customValidation = new HiddenFeatureCustomValidationParameters();
-
-    @Layout(SupParametersSection.class)
-    HiddenFeatureSubParameters m_hiddenFeatureSupParameters = new HiddenFeatureSubParameters();
+    MultiFileSelection<TestFileChooserFilters> m_fileSelection = new MultiFileSelection<>(new TestFileChooserFilters());
 
 }

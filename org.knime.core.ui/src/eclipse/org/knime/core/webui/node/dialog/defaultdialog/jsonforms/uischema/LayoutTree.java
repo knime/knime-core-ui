@@ -55,6 +55,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.knime.core.node.util.CheckUtils;
 import org.knime.node.parameters.layout.After;
@@ -74,11 +75,13 @@ final class LayoutTree<T> {
 
     private final Map<Class<?>, LayoutTreeNode<T>> m_nodes = new HashMap<>();
 
-    private final Deque<LayoutTreeNode<T>> m_nodesStack = new ArrayDeque<>();
+    private final Deque<LayoutTreeNode<T>> m_markedForAddingHorizontalArrows = new ArrayDeque<>();
 
     private final List<LayoutTreeNode<T>> m_roots;
 
     private List<T> m_nodesWithoutLayout;
+
+    private List<? extends Class<?>> m_parameterRoots;
 
     /**
      * From the given map, we find an ordered hierarchical structure with controls as leaves. The order of siblings can
@@ -87,10 +90,15 @@ final class LayoutTree<T> {
      *
      * @param layoutClassesToControls mapping the values of {@link Layout} annotations to their widget nodes
      * @param nodesWithoutLayout i.e. nodes without a designated {@link Layout} annotation
+     * @param parameterRoots the classes which are to be excluded from being processed as part of the global layout tree
+     *            since they are roots of their own tree. The intermediate state result is expected to contain these as
+     *            roots and only one extra root (the global one).
      */
-    LayoutTree(final Map<Class<?>, List<T>> layoutClassesToControls, final List<T> nodesWithoutLayout) {
+    LayoutTree(final Map<Class<?>, List<T>> layoutClassesToControls, final List<T> nodesWithoutLayout,
+        final List<? extends Class<?>> parameterRoots) {
 
         m_nodesWithoutLayout = nodesWithoutLayout;
+        m_parameterRoots = parameterRoots;
 
         buildTreeFromContentMap(layoutClassesToControls);
 
@@ -142,8 +150,10 @@ final class LayoutTree<T> {
         if (node == null) {
             node = new LayoutTreeNode<>(clazz);
             m_nodes.put(clazz, node);
-            m_nodesStack.push(node);
-            constructParent(node);
+            if (!m_parameterRoots.contains(clazz)) {
+                m_markedForAddingHorizontalArrows.push(node);
+                constructParent(node);
+            }
         }
         return node;
     }
@@ -163,8 +173,8 @@ final class LayoutTree<T> {
     }
 
     private void addHorizontalArrows() {
-        while (!m_nodesStack.isEmpty()) {
-            addArrowsAndPointers(m_nodesStack.pop());
+        while (!m_markedForAddingHorizontalArrows.isEmpty()) {
+            addArrowsAndPointers(m_markedForAddingHorizontalArrows.pop());
         }
     }
 
@@ -190,8 +200,12 @@ final class LayoutTree<T> {
         return Arrays.asList(node.getValue().getAnnotationsByType(annotationsClass));
     }
 
+    Stream<LayoutTreeNode<T>> getGlobalRoots() {
+        return m_roots.stream().filter(r -> !m_parameterRoots.contains(r.getValue()));
+    }
+
     boolean hasMultipleRoots() {
-        return m_roots.size() > 1;
+        return getGlobalRoots().count() > 1;
     }
 
     void assertSingleRoot() throws UiSchemaGenerationException {
@@ -209,10 +223,17 @@ final class LayoutTree<T> {
     TraversableLayoutTreeNode<T> getRootNode() {
         CheckUtils.checkState(!hasMultipleRoots(),
             "The tree has multiple roots. Calling this method is not allowed in this case");
-        final var rootNode = m_roots.stream().findFirst().orElseGet(() -> new LayoutTreeNode<>(null));
+        final var rootNode = getGlobalRoots().findFirst().orElseGet(() -> new LayoutTreeNode<>(null));
         rootNode.addControls(m_nodesWithoutLayout);
-        return rootNode.toTraversable();
+        return rootNode.toTraversable(this::getParameterRootNode);
 
+    }
+
+    TraversableLayoutTreeNode<T> getParameterRootNode(final Class<?> parameterRoot) {
+        final var rootNode = m_nodes.values().stream().filter(n -> n.getValue() != null)
+            .filter(n -> n.getValue().equals(parameterRoot)).findFirst().orElseThrow(() -> new IllegalArgumentException(
+                "The given parameter root class is not part of the layout tree: " + parameterRoot));
+        return rootNode.toTraversable(this::getParameterRootNode);
     }
 
 }

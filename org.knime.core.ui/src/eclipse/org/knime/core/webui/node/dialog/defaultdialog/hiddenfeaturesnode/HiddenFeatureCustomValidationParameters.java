@@ -44,65 +44,69 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2025 (Paul Bärnreuther): created
+ *   Oct 16, 2025 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
 
-import org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode.HiddenFeaturesNodeSettings.FileSelectionHiddenFeaturesSideDrawerSection.CustomFileChooserFiltersSection;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelectionWidget;
+import java.util.function.Supplier;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.ValidationCallback;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.layout.Section;
-import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
 
-@LoadDefaultsForAbsentFields
-class HiddenFeaturesNodeSettings implements NodeParameters {
+/**
+ * Demo for {@link CustomValidation}
+ *
+ * @author Paul Bärnreuther
+ */
+class HiddenFeatureCustomValidationParameters implements NodeParameters {
 
-    @Section(title = "File Selection Hidden Features", sideDrawer = true)
-    interface FileSelectionHiddenFeaturesSideDrawerSection {
+    @CustomValidation(MyValidationProvider.class)
+    @Widget(title = "A setting with custom validation",
+        description = "Should be invalid intially and update the message on every change (debounced).")
+    String m_validatedSetting;
 
-        @Section(title = "Multi File Selection")
-        interface MultiFileSelectionSection {
+    static final class MyValidationProvider implements StateProvider<ValidationCallback<String>> {
 
+        private Supplier<Boolean> m_switchOff;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+            m_switchOff = initializer.computeFromValueSupplier(ValidationOffReference.class);
         }
 
-        @Section(title = "Folder Selection")
-        interface FileSelectionWithFolderSection {
-
+        @Override
+        public ValidationCallback<String> computeState(final NodeParametersInput parametersInput)
+            throws StateComputationFailureException {
+            if (m_switchOff.get().booleanValue()) {
+                return null;
+            }
+            return value -> {
+                throw new InvalidSettingsException("The value %s is not valid".formatted(value));
+            };
         }
 
-        @Section(title = "Custom Connection Folder Selection")
-        interface CustomFileChooserFiltersSection {
-        }
     }
 
-    @Section(title = "Custom Validation", sideDrawer = true)
-    interface CustomValidationSideDrawerSection {
-    }
+    @Widget(title = "Switch off validation",
+        description = "If set to true, the validation of the setting above is switched off.")
+    @ValueReference(ValidationOffReference.class)
+    boolean m_switchOffValidation;
 
-    @Section(title = "Sub Parameters", sideDrawer = true)
-    interface SupParametersSection {
+    static final class ValidationOffReference implements BooleanReference {
 
     }
 
-    @Layout(FileSelectionHiddenFeaturesSideDrawerSection.MultiFileSelectionSection.class)
-    HiddenFeatureMultiFileSelectionParameters m_multiFileSelection = new HiddenFeatureMultiFileSelectionParameters();
+    static final class UseFallbackParametersReference implements BooleanReference {
 
-    @Widget(title = "File Selection with Folder", description = "A file selection that allows selecting folders.")
-    @FolderSelectionWidget
-    @Layout(FileSelectionHiddenFeaturesSideDrawerSection.FileSelectionWithFolderSection.class)
-    FileSelection m_testSelectionWithFolder = new FileSelection();
-
-    @Layout(CustomFileChooserFiltersSection.class)
-    HiddenFeatureCustomFileConnectionParameters m_customFileConnection =
-        new HiddenFeatureCustomFileConnectionParameters();
-
-    @Layout(CustomValidationSideDrawerSection.class)
-    HiddenFeatureCustomValidationParameters m_customValidation = new HiddenFeatureCustomValidationParameters();
-
-    @Layout(SupParametersSection.class)
-    HiddenFeatureSubParameters m_hiddenFeatureSupParameters = new HiddenFeatureSubParameters();
+    }
 
 }

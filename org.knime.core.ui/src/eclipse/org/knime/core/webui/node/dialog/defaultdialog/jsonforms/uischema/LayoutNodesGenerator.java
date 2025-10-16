@@ -53,16 +53,22 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_SCOPE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_TYPE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TYPE_CONTROL;
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TYPE_CONTROL_WITH_SUBPARAMETERS;
 
 import java.util.Collection;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.WidgetTreeUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBooleanProvider;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.layout.SubParameters;
 import org.knime.node.parameters.updates.Effect;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -113,11 +119,13 @@ final class LayoutNodesGenerator {
         final var layoutClass = node.layoutClass().orElse(null);
         final var layoutPart = LayoutPart.determineFromClassAnnotation(layoutClass);
         final var layoutNode = layoutPart.create(parentNode, layoutClass, m_rulesGenerator);
-        node.controls().forEach(control -> addControlToElement(layoutNode, control));
+        node.controls().forEach(control -> addControlToElement(layoutNode, control, node.rootProvider()));
         node.children().forEach(childLayoutNode -> buildLayout(childLayoutNode, layoutNode));
     }
 
-    private void addControlToElement(final ArrayNode root, final TreeNode<WidgetGroup> node) {
+    private void addControlToElement(final ArrayNode root, final TreeNode<WidgetGroup> node,
+        final Function<Class<?>, TraversableLayoutTreeNode<TreeNode<WidgetGroup>>> rootProvider) {
+
         /**
          * Rendering the element checkbox widget of array layout elements is handled via the framework.
          */
@@ -125,8 +133,7 @@ final class LayoutNodesGenerator {
             return;
         }
         final var scope = getScope(node);
-        final var control = root.addObject()//
-            .put(TAG_TYPE, TYPE_CONTROL);//
+        final var control = initializeControl(root, node, rootProvider).put(TAG_TYPE, TYPE_CONTROL);
 
         if (WidgetTreeUtil.hasScope(node)) {
             control.put(TAG_SCOPE, scope);
@@ -135,6 +142,26 @@ final class LayoutNodesGenerator {
         }
         addOptions(node, control);
         addRule(node, control);
+    }
+
+    private ObjectNode initializeControl(final ArrayNode root, final TreeNode<WidgetGroup> node,
+        final Function<Class<?>, TraversableLayoutTreeNode<TreeNode<WidgetGroup>>> rootProvider) {
+        final Optional<SubParameters> subParameters = node.getPossibleAnnotations().contains(SubParameters.class)
+            ? node.getAnnotation(SubParameters.class) : Optional.empty();
+        if (subParameters.isPresent()) {
+            final var subParametersRoot = subParameters.get().subLayoutRoot();
+            final var subParametersLayoutTree = rootProvider.apply(subParametersRoot);
+            final var controlWithSubParameters = root.addObject();
+            controlWithSubParameters.put(TAG_TYPE, TYPE_CONTROL_WITH_SUBPARAMETERS);
+            final var subParametersArray = controlWithSubParameters.putArray(TAG_ELEMENTS);
+            buildLayout(subParametersLayoutTree, subParametersArray);
+            final var control = controlWithSubParameters.putObject("control");
+            if (!NoopBooleanProvider.class.equals(subParameters.get().showSubParametersProvider())) {
+                UiSchemaOptionsGenerator.getOrCreateProvidedOptions(control).add(UiSchema.TAG_SHOW_SUB_PARAMETERS);
+            }
+            return control;
+        }
+        return root.addObject();
     }
 
     private void addOptions(final TreeNode<WidgetGroup> node, final ObjectNode control) {

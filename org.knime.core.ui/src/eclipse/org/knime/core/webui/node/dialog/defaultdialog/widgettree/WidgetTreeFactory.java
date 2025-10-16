@@ -85,6 +85,7 @@ import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.SubParameters;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
@@ -167,6 +168,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         RichTextInputWidgetInternal.class, //
         SimpleButtonWidget.class, //
         SortListWidget.class, //
+        SubParameters.class, //
         TextAreaWidget.class, //
         TextInputWidget.class, //
         TextMessage.class, //
@@ -189,6 +191,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         Layout.class, //
         Modification.class, //
         Modification.WidgetReference.class, //
+        SubParameters.class, //
         ValueProvider.class, //
         ValueReference.class, //
         Widget.class //

@@ -44,65 +44,71 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2025 (Paul Bärnreuther): created
+ *   Oct 16, 2025 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
 
-import org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode.HiddenFeaturesNodeSettings.FileSelectionHiddenFeaturesSideDrawerSection.CustomFileChooserFiltersSection;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelectionWidget;
+import java.util.function.Supplier;
+
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
-import org.knime.node.parameters.layout.Section;
-import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
+import org.knime.node.parameters.layout.SubParameters;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueReference;
 
-@LoadDefaultsForAbsentFields
-class HiddenFeaturesNodeSettings implements NodeParameters {
+/**
+ * Demo of {@link SubParameters}.
+ *
+ * @author Paul Bärnreuther
+ */
+class HiddenFeatureSubParameters implements NodeParameters {
 
-    @Section(title = "File Selection Hidden Features", sideDrawer = true)
-    interface FileSelectionHiddenFeaturesSideDrawerSection {
+    enum SomeEnum {
+            OPTION_A, OPTION_B, OPTION_C
+    }
 
-        @Section(title = "Multi File Selection")
-        interface MultiFileSelectionSection {
+    interface SomeSubParameters {
+    }
+
+    interface ShowSubParams extends ParameterReference<Boolean> {
+    }
+
+    static final class ShowSubParamsProvider implements StateProvider<Boolean> {
+
+        private Supplier<Boolean> m_showSubParams;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+            m_showSubParams = initializer.computeFromValueSupplier(ShowSubParams.class);
 
         }
 
-        @Section(title = "Folder Selection")
-        interface FileSelectionWithFolderSection {
-
-        }
-
-        @Section(title = "Custom Connection Folder Selection")
-        interface CustomFileChooserFiltersSection {
+        @Override
+        public Boolean computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
+            return m_showSubParams.get();
         }
     }
 
-    @Section(title = "Custom Validation", sideDrawer = true)
-    interface CustomValidationSideDrawerSection {
-    }
+    @Widget(title = "Show sub parameters", description = "Check to show the sub parameters")
+    @ValueReference(ShowSubParams.class)
+    boolean m_showSubParams = true;
 
-    @Section(title = "Sub Parameters", sideDrawer = true)
-    interface SupParametersSection {
+    @SubParameters(subLayoutRoot = SomeSubParameters.class, showSubParametersProvider = ShowSubParamsProvider.class)
+    @Widget(title = "Parent field",
+        description = "Click the button on the right to get to the sub parameters of this field.")
+    SomeEnum m_enumParam = SomeEnum.OPTION_A;
 
-    }
+    @Layout(SomeSubParameters.class)
+    @Widget(title = "A String Parameter", description = "Just a string parameter")
+    String m_stringParam = "default value";
 
-    @Layout(FileSelectionHiddenFeaturesSideDrawerSection.MultiFileSelectionSection.class)
-    HiddenFeatureMultiFileSelectionParameters m_multiFileSelection = new HiddenFeatureMultiFileSelectionParameters();
-
-    @Widget(title = "File Selection with Folder", description = "A file selection that allows selecting folders.")
-    @FolderSelectionWidget
-    @Layout(FileSelectionHiddenFeaturesSideDrawerSection.FileSelectionWithFolderSection.class)
-    FileSelection m_testSelectionWithFolder = new FileSelection();
-
-    @Layout(CustomFileChooserFiltersSection.class)
-    HiddenFeatureCustomFileConnectionParameters m_customFileConnection =
-        new HiddenFeatureCustomFileConnectionParameters();
-
-    @Layout(CustomValidationSideDrawerSection.class)
-    HiddenFeatureCustomValidationParameters m_customValidation = new HiddenFeatureCustomValidationParameters();
-
-    @Layout(SupParametersSection.class)
-    HiddenFeatureSubParameters m_hiddenFeatureSupParameters = new HiddenFeatureSubParameters();
+    @Layout(SomeSubParameters.class)
+    @Widget(title = "A Boolean Parameter", description = "Just a boolean parameter")
+    boolean m_booleanParam = true;
 
 }

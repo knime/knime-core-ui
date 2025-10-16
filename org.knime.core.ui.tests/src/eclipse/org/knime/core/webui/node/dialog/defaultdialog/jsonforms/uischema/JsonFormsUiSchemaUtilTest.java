@@ -55,6 +55,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.layout.CheckboxesWithVennDiagram;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.node.parameters.Advanced;
 import org.knime.node.parameters.NodeParameters;
@@ -65,7 +66,9 @@ import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.HorizontalLayout;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
+import org.knime.node.parameters.layout.SubParameters;
 import org.knime.node.parameters.layout.VerticalLayout;
+import org.knime.node.parameters.updates.StateProvider;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -276,7 +279,7 @@ class JsonFormsUiSchemaUtilTest {
     @Test
     void testVerticalLayout() {
 
-        class TestHorizontalLayoutSettings implements NodeParameters {
+        class TestVerticalLayoutSettings implements NodeParameters {
 
             //   [ ] Use hour   [ ] Use minute
             //   Hours          Minutes
@@ -311,7 +314,7 @@ class JsonFormsUiSchemaUtilTest {
             int m_minute = 0;
         }
 
-        final var response = buildTestUiSchema(TestHorizontalLayoutSettings.class);
+        final var response = buildTestUiSchema(TestVerticalLayoutSettings.class);
 
         // Assertions for the outer structure
         assertThatJson(response).inPath("$.elements[0].type").isString().isEqualTo("HorizontalLayout");
@@ -340,7 +343,7 @@ class JsonFormsUiSchemaUtilTest {
             }
         }
 
-        class TestHorizontalLayoutSettings implements NodeParameters {
+        class TestVennDiagramSettings implements NodeParameters {
             @Widget(title = "", description = "")
             @Layout(TestVennDiagramLayout.Venn.class)
             String m_inner;
@@ -354,7 +357,7 @@ class JsonFormsUiSchemaUtilTest {
             String m_right;
         }
 
-        final var response = buildTestUiSchema(TestHorizontalLayoutSettings.class);
+        final var response = buildTestUiSchema(TestVennDiagramSettings.class);
 
         assertThatJson(response).inPath("$.elements[0].type").isString().isEqualTo("VennDiagram");
         assertThatJson(response).inPath("$.elements[0].elements[0].scope").isString()
@@ -363,6 +366,70 @@ class JsonFormsUiSchemaUtilTest {
             .isEqualTo("#/properties/model/properties/left");
         assertThatJson(response).inPath("$.elements[0].elements[2].scope").isString()
             .isEqualTo("#/properties/model/properties/right");
+    }
+
+    @Test
+    void testParametersWithSubParameters() {
+
+        class TestParametersWithSubParametersSettigns implements NodeParameters {
+
+            interface SubParamsRoot {
+
+                interface InsideSubParamsRoot {
+                }
+            }
+
+            @SubParameters(subLayoutRoot = SubParamsRoot.class)
+            @Widget(title = "Setting with sub parameters always visible",
+                description = "The sub parameters of this setting are always visible below this setting.")
+            String m_withSubParamsAlways;
+
+            @SubParameters(subLayoutRoot = SubParamsRoot.class, showSubParametersProvider = ShowSubParamsProvider.class)
+            @Widget(title = "Setting with sub parameters sometimes visible",
+                description = "The sub parameters of this setting are only visible when the checkbox is checked.")
+            String m_withSubParamsSometimes;
+
+            static final class ShowSubParamsProvider implements StateProvider<Boolean> {
+
+                @Override
+                public void init(final StateProviderInitializer initializer) {
+                    throw new UnsupportedOperationException("should not be called in this test");
+                }
+
+                @Override
+                public Boolean computeState(final NodeParametersInput parametersInput)
+                    throws StateComputationFailureException {
+                    throw new UnsupportedOperationException("should not be called in this test");
+                }
+
+            }
+
+            @Layout(SubParamsRoot.class)
+            @Widget(title = "Setting1", description = "")
+            String m_subSetting1;
+
+            @Layout(SubParamsRoot.InsideSubParamsRoot.class)
+            @Widget(title = "Setting2", description = "")
+            boolean m_subSetting2;
+
+        }
+
+        final var response = buildTestUiSchema(TestParametersWithSubParametersSettigns.class);
+        assertThatJson(response).inPath("$.elements").isArray().hasSize(2);
+        assertThatJson(response).inPath("$.elements[0].type").isString().isEqualTo("ControlWithSubParameters");
+        assertThatJson(response).inPath("$.elements[0].control.type").isString().isEqualTo("Control");
+        assertThatJson(response).inPath("$.elements[0].control.scope").isString()
+            .isEqualTo("#/properties/model/properties/withSubParamsAlways");
+        assertThatJson(response).inPath("$.elements[0].control").isObject().doesNotContainKey("providedOptions");
+        assertThatJson(response).inPath("$.elements[0].elements").isArray().hasSize(2);
+        assertThatJson(response).inPath("$.elements[0].elements[0].scope").isString()
+            .isEqualTo("#/properties/model/properties/subSetting1");
+        assertThatJson(response).inPath("$.elements[0].elements[1].scope").isString()
+            .isEqualTo("#/properties/model/properties/subSetting2");
+
+        assertThatJson(response).inPath("$.elements[1].control.providedOptions").isArray()
+            .isEqualTo(new String[]{"showSubParameters"});
+
     }
 
 }
