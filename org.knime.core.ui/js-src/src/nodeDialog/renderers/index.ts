@@ -27,6 +27,7 @@ import {
 import { arrayLayoutRenderer } from "./arrayLayoutRenderer";
 import { buttonRenderer } from "./buttonRenderer";
 import { configurationNodeNotSupportedRenderer } from "./configurationNodeNotSupportedRenderer";
+import { controlWithSubParametersRenderer } from "./controlWithSubParametersRenderer";
 import { credentialsRenderer } from "./credentialsRenderer";
 import { customFileSystemFileChooserRenderer } from "./customFileSystemFileChooserRenderer";
 import { dbTableChooserRenderer } from "./dbTableChooserRenderer";
@@ -60,7 +61,8 @@ const coreUIControls: Record<string, VueControlRenderer> = {
 };
 
 const coreUILayouts: Record<string, VueLayoutRenderer> = {
-  labeledGroupRenderer, // since it is a simple layout that does not require any special logic
+  labeledGroupRenderer,
+  controlWithSubParametersRenderer,
 };
 
 const otherRenderers = [

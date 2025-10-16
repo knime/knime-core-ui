@@ -1,0 +1,109 @@
+{
+  "$schema": "mock.def.json",
+  "result": {
+    "name": "Control with Sub Parameters",
+    "data": {
+      "mainSetting": "value1",
+      "advancedOption1": true,
+      "advancedOption2": "custom",
+      "threshold": 50
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "mainSetting": {
+          "type": "string",
+          "title": "Main Setting",
+          "description": "The primary setting for this control",
+          "default": "value1"
+        },
+        "advancedOption1": {
+          "type": "boolean",
+          "title": "Advanced Option 1",
+          "description": "An advanced option that appears in the sub-parameters panel",
+          "default": false
+        },
+        "advancedOption2": {
+          "type": "string",
+          "title": "Advanced Option 2",
+          "description": "Another advanced setting",
+          "default": "default"
+        },
+        "threshold": {
+          "type": "integer",
+          "title": "Threshold",
+          "description": "A numeric threshold value",
+          "default": 10,
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
+    "ui_schema": {
+      "type": "VerticalLayout",
+      "elements": [
+        {
+          "type": "Section",
+          "label": "Settings with Sub-Parameters",
+          "elements": [
+            {
+              "type": "ControlWithSubParameters",
+              "control": {
+                "type": "Control",
+                "scope": "#/properties/mainSetting",
+                "options": {
+                  "format": "dropDown",
+                  "possibleValues": [
+                    {
+                      "id": "value1",
+                      "text": "Value 1"
+                    },
+                    {
+                      "id": "value2",
+                      "text": "Value 2"
+                    },
+                    {
+                      "id": "value3",
+                      "text": "Value 3"
+                    }
+                  ]
+                }
+              },
+              "elements": [
+                {
+                  "type": "Control",
+                  "scope": "#/properties/advancedOption1",
+                  "options": {
+                    "format": "checkbox"
+                  }
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/advancedOption2",
+                  "options": {
+                    "format": "dropDown",
+                    "possibleValues": [
+                      {
+                        "id": "default",
+                        "text": "Default"
+                      },
+                      {
+                        "id": "custom",
+                        "text": "Custom"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "Control",
+                  "scope": "#/properties/threshold"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "flowVariableSettings": {}
+  }
+}

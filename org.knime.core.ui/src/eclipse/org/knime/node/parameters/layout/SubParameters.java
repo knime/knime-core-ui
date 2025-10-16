@@ -44,34 +44,43 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 31, 2025 (paulbaernreuther): created
+ *   Oct 16, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
+package org.knime.node.parameters.layout;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import org.knime.node.parameters.layout.Section;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopBooleanProvider;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * This is the exposed tree structure of the layout of a dialog. It has a set of controls at the current level, which
- * need to be processed first (i.e. appear first in the dialog) and a collection of children for further traversal.
+ * Attach this annotation to a parameter field to indicate that this parameter has sub-parameters.
  *
- * @param controls of type {@code T}
- * @param children for nested layouts and further traversal
- * @param layoutClass a class associated to this layout node. If it is non-empty, it might be used to extract layout
- *            definitions (e.g. being a class annotated by {@link Section})
- * @param rootProvider a function that provides the root node in case a control serves as a root for a sub-layout.
- * @param <T> The type of a control that is associated with a leaf of this tree
  * @author Paul Bärnreuther
  */
-public record TraversableLayoutTreeNode<T>(List<T> controls, Collection<TraversableLayoutTreeNode<T>> children,
-    Optional<Class<?>> layoutClass, Function<Class<?>, TraversableLayoutTreeNode<T>> rootProvider) {
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD})
+public @interface SubParameters {
 
-    TraversableLayoutTreeNode(final List<T> controls, final Collection<TraversableLayoutTreeNode<T>> children,
-        final Function<Class<?>, TraversableLayoutTreeNode<T>> rootProvider) {
-        this(controls, children, Optional.empty(), rootProvider);
-    }
+    /**
+     * The root layout of the sub-parameters. I.e. other parameters that reference the same class within a
+     * {@link Layout} annotation will be displayed as sub-parameters of this parameter.
+     *
+     * @return the key
+     */
+    Class<?> subLayoutRoot();
+
+    /**
+     * A state provider that computes whether the sub-parameters should be shown or not. Before the first value is
+     * provided, sub-parameters are shown.
+     *
+     * It is not required. If not provided, the sub-parameters are always shown.
+     *
+     * @return the provider class
+     */
+    Class<? extends StateProvider<Boolean>> showSubParametersProvider() default NoopBooleanProvider.class;
+
 }

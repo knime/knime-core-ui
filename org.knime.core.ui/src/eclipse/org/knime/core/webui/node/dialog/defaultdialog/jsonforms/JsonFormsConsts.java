@@ -53,6 +53,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidg
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ExternalValidation;
+import org.knime.node.parameters.layout.SubParameters;
 import org.knime.node.parameters.widget.choices.filter.TypedStringFilter;
 import org.knime.node.parameters.widget.message.TextMessage;
 import org.knime.node.parameters.widget.text.TextInputWidget;
@@ -264,6 +265,11 @@ public final class JsonFormsConsts {
         public static final String TAG_DYNAMIC_SETTINGS = "dynamicSettings";
 
         /**
+         * Used to indicate whether sub parameters should be shown in a {@link SubParameters} setting.
+         */
+        public static final String TAG_SHOW_SUB_PARAMETERS = "showSubParameters";
+
+        /**
          * Several formats which are written to the options of the ui-schema of an ui element
          *
          * @author Paul Bärnreuther
@@ -468,6 +474,11 @@ public final class JsonFormsConsts {
          * The type of a group
          */
         public static final String TYPE_GROUP = "Group";
+
+        /**
+         * The type of a control with sub parameters wrapper layout.
+         */
+        public static final String TYPE_CONTROL_WITH_SUBPARAMETERS = "ControlWithSubParameters";
 
         /**
          * The type of a side drawer section

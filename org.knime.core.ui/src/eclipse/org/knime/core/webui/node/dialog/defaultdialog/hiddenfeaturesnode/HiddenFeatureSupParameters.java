@@ -44,34 +44,71 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 31, 2025 (paulbaernreuther): created
+ *   Oct 16, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
+package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.knime.node.parameters.layout.Section;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.SubParameters;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueReference;
 
 /**
- * This is the exposed tree structure of the layout of a dialog. It has a set of controls at the current level, which
- * need to be processed first (i.e. appear first in the dialog) and a collection of children for further traversal.
+ * Demo of {@link SubParameters}.
  *
- * @param controls of type {@code T}
- * @param children for nested layouts and further traversal
- * @param layoutClass a class associated to this layout node. If it is non-empty, it might be used to extract layout
- *            definitions (e.g. being a class annotated by {@link Section})
- * @param rootProvider a function that provides the root node in case a control serves as a root for a sub-layout.
- * @param <T> The type of a control that is associated with a leaf of this tree
  * @author Paul Bärnreuther
  */
-public record TraversableLayoutTreeNode<T>(List<T> controls, Collection<TraversableLayoutTreeNode<T>> children,
-    Optional<Class<?>> layoutClass, Function<Class<?>, TraversableLayoutTreeNode<T>> rootProvider) {
+class HiddenFeatureSupParameters implements NodeParameters {
 
-    TraversableLayoutTreeNode(final List<T> controls, final Collection<TraversableLayoutTreeNode<T>> children,
-        final Function<Class<?>, TraversableLayoutTreeNode<T>> rootProvider) {
-        this(controls, children, Optional.empty(), rootProvider);
+    enum SomeEnum {
+            OPTION_A, OPTION_B, OPTION_C
     }
+
+    interface SomeSubParameters {
+    }
+
+    interface ShowSubParams extends ParameterReference<Boolean> {
+    }
+
+    static final class ShowSubParamsProvider implements StateProvider<Boolean> {
+
+        private Supplier<Boolean> m_showSubParams;
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            initializer.computeBeforeOpenDialog();
+            m_showSubParams = initializer.computeFromValueSupplier(ShowSubParams.class);
+
+        }
+
+        @Override
+        public Boolean computeState(final NodeParametersInput parametersInput) throws StateComputationFailureException {
+            return m_showSubParams.get();
+        }
+    }
+
+    @Widget(title = "Show sub parameters", description = "Check to show the sub parameters")
+    @ValueReference(ShowSubParams.class)
+    boolean m_showSubParams = true;
+
+    @SubParameters(subLayoutRoot = SomeSubParameters.class, showSubParametersProvider = ShowSubParamsProvider.class)
+    @Widget(title = "Parent field",
+        description = "Click the button on the right to get to the sub parameters of this field.")
+    SomeEnum m_enumParam = SomeEnum.OPTION_A;
+
+    @Layout(SomeSubParameters.class)
+    @Widget(title = "A String Parameter", description = "Just a string parameter")
+    String m_stringParam = "default value";
+
+    @Layout(SomeSubParameters.class)
+    @Widget(title = "A Boolean Parameter", description = "Just a boolean parameter")
+    boolean m_booleanParam = true;
+
 }

@@ -57,6 +57,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.knime.node.parameters.layout.After;
@@ -301,11 +302,13 @@ final class LayoutTreeNode<T> {
     /**
      * We want to order the children of all nodes in the tree and then keep only those which contain content.
      */
-    TraversableLayoutTreeNode<T> toTraversable() {
+    TraversableLayoutTreeNode<T> toTraversable(final Function<Class<?>, TraversableLayoutTreeNode<T>> rootProvider) {
         final var orderedChildren = sortByTopologicalOrder(m_children);
         final var filteredOrderedChildren = orderedChildren.stream().filter(LayoutTreeNode::hasContent).toList();
-        final var traversableChildren = filteredOrderedChildren.stream().map(LayoutTreeNode::toTraversable).toList();
-        return new TraversableLayoutTreeNode<>(m_controls, traversableChildren, Optional.ofNullable(m_value));
+        final var traversableChildren =
+            filteredOrderedChildren.stream().map(node -> node.toTraversable(rootProvider)).toList();
+        return new TraversableLayoutTreeNode<>(m_controls, traversableChildren, Optional.ofNullable(m_value),
+            rootProvider);
     }
 
     /**

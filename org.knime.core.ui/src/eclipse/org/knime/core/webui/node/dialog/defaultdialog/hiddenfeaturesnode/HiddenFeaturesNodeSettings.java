@@ -86,6 +86,11 @@ class HiddenFeaturesNodeSettings implements NodeParameters {
     interface InjectFallbackDialogSideDrawerSection {
     }
 
+    @Section(title = "Sub Parameters", sideDrawer = true)
+    interface SupParametersSection {
+
+    }
+
     @Layout(FileSelectionHiddenFeaturesSideDrawerSection.MultiFileSelectionSection.class)
     HiddenFeatureMultiFileSelectionParameters m_multiFileSelection = new HiddenFeatureMultiFileSelectionParameters();
 
@@ -103,5 +108,8 @@ class HiddenFeaturesNodeSettings implements NodeParameters {
 
     @Layout(InjectFallbackDialogSideDrawerSection.class)
     HiddenFeatureInjectFallbackDialog m_hiddenFeatureInjectFallbackDialog = new HiddenFeatureInjectFallbackDialog();
+
+    @Layout(SupParametersSection.class)
+    HiddenFeatureSupParameters m_hiddenFeatureSupParameters = new HiddenFeatureSupParameters();
 
 }

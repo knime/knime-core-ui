@@ -56,6 +56,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -78,6 +79,7 @@ import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.Before;
 import org.knime.node.parameters.layout.Inside;
 import org.knime.node.parameters.layout.Layout;
+import org.knime.node.parameters.layout.SubParameters;
 import org.knime.node.parameters.persistence.legacy.LegacyMultiFileSelection;
 import org.knime.node.parameters.widget.message.TextMessage;
 
@@ -103,8 +105,17 @@ final class WidgetTreeToLayoutTree {
      */
     static TraversableLayoutTreeNode<TreeNode<WidgetGroup>>
         widgetTreesToLayoutTreeRoot(final Collection<Tree<WidgetGroup>> trees) {
-        final var intermediateStates = trees.stream().map(WidgetTreeToLayoutTree::processRootGroup).toList();
-        return toTreeNodeTraversal(fromIntermediateStates(intermediateStates).toLayoutTreeNode());
+        final var intermediateStates = trees.stream().map(tree -> processRootGroup(tree)).toList();
+        final var parameterRoots = trees.stream()//
+            .flatMap(WidgetTreeToLayoutTree::extractParameterRoots)//
+            .toList();
+        return toTreeNodeTraversal(fromIntermediateStates(intermediateStates).toLayoutTreeNode(parameterRoots));
+    }
+
+    private static Stream<? extends Class<?>> extractParameterRoots(final Tree<WidgetGroup> tree) {
+        return tree.getWidgetNodes()//
+            .flatMap(treeNode -> treeNode.getAnnotation(SubParameters.class).stream())//
+            .map(SubParameters::subLayoutRoot);
     }
 
     /**
@@ -113,6 +124,8 @@ final class WidgetTreeToLayoutTree {
      * of the settings classes (e.g. the view settings) and hooking into that from the other settings. Furthermore it
      * would not add any benefit if we would treat those as self-contained, since we usually do so to avoid having
      * multiple roots, which would not be the result here.
+     *
+     *
      */
     private static IntermediateState processRootGroup(final Tree<WidgetGroup> tree) {
         CheckUtils.checkArgument(tree.isRoot(), "Root group is expected here");
@@ -124,12 +137,13 @@ final class WidgetTreeToLayoutTree {
      * layout tree.
      */
     private static IntermediateState processGroup(final Tree<WidgetGroup> tree) {
-        return combineChildren(tree).combineToLeafIfSelfContained(tree.getRawClass());
+        return combineChildren(tree).combineToLeafIfSelfContained(tree.getRawClass(),
+            extractParameterRoots(tree).toList());
     }
 
     private static IntermediateState.StatesWithLayout combineChildren(final Tree<WidgetGroup> tree) {
         final var childStates = tree.getChildren().stream().filter(not(WidgetTreeToLayoutTree::isHidden))
-            .map(WidgetTreeToLayoutTree::processTreeNode).toList();
+            .map(child -> processTreeNode(child)).toList();
         return fromIntermediateStates(childStates);
     }
 
@@ -150,9 +164,8 @@ final class WidgetTreeToLayoutTree {
      * schema generation
      */
     private static boolean isLeafWidgetGroup(final Class<?> rawClass) {
-        return MultiFileSelection.class.equals(rawClass) || LegacyMultiFileSelection.class
-            .equals(rawClass) || DBTableSelection.class.equals(rawClass)
-            || rawClass.isInterface();
+        return MultiFileSelection.class.equals(rawClass) || LegacyMultiFileSelection.class.equals(rawClass)
+            || DBTableSelection.class.equals(rawClass) || rawClass.isInterface();
     }
 
     private static final List<Class<? extends Annotation>> VISIBLE_WITHOUT_WIDGET_ANNOTATION =
@@ -272,7 +285,7 @@ final class WidgetTreeToLayoutTree {
 
         static final class StatesWithLayout extends IntermediateState {
 
-            List<LeafStateWithLayout> m_states;
+            final List<LeafStateWithLayout> m_states;
 
             StatesWithLayout(final List<LeafStateWithLayout> states) {
                 m_states = states;
@@ -307,7 +320,7 @@ final class WidgetTreeToLayoutTree {
                 return new StatesWithLayout(newStates);
             }
 
-            LayoutTree<LeafState> constructLayoutTree() {
+            LayoutTree<LeafState> constructLayoutTree(final List<? extends Class<?>> parameterRoots) {
                 final Map<Class<?>, List<LeafState>> layoutClassesToControl = m_states.stream()
                     .filter(state -> state.layout().isPresent()).collect(Collectors.toMap(//
                         state -> state.layout().get(), state -> List.of(state.state()), //
@@ -315,18 +328,19 @@ final class WidgetTreeToLayoutTree {
                 final List<LeafState> statesWithNoLayout = m_states.stream().filter(state -> state.layout().isEmpty())
                     .map(LeafStateWithLayout::state).toList();
 
-                return new LayoutTree<>(layoutClassesToControl, statesWithNoLayout);
+                return new LayoutTree<>(layoutClassesToControl, statesWithNoLayout, parameterRoots);
             }
 
             /**
              * See the javadocs of {@link Layout} where we define what self-contained-ness means
              */
-            IntermediateState combineToLeafIfSelfContained(final Class<?> containerClass) {
+            IntermediateState combineToLeafIfSelfContained(final Class<?> containerClass,
+                final List<? extends Class<?>> parameterRoots) {
                 if (List.of(Inside.class, After.class, Before.class, AfterAllOf.class, BeforeAllOf.class).stream()
                     .anyMatch(containerClass::isAnnotationPresent)) {
                     return this;
                 }
-                final var layoutTree = constructLayoutTree();
+                final var layoutTree = constructLayoutTree(parameterRoots);
                 if (layoutTree.hasMultipleRoots()) {
                     return this;
                 }
@@ -353,8 +367,8 @@ final class WidgetTreeToLayoutTree {
                 return checkSelfContainedness(nextChild, containerClass);
             }
 
-            TraversableLayoutTreeNode<LeafState> toLayoutTreeNode() {
-                final var layoutTree = constructLayoutTree();
+            TraversableLayoutTreeNode<LeafState> toLayoutTreeNode(final List<? extends Class<?>> parameterRoots) {
+                final var layoutTree = constructLayoutTree(parameterRoots);
                 layoutTree.assertSingleRoot();
                 return layoutTree.getRootNode();
 
@@ -374,20 +388,25 @@ final class WidgetTreeToLayoutTree {
     private static TraversableLayoutTreeNode<TreeNode<WidgetGroup>>
         toTreeNodeTraversal(final TraversableLayoutTreeNode<LeafState> leafStateTraversal) {
         final var leafStates = leafStateTraversal.controls();
-        final var newChildren = leafStates.stream().map(WidgetTreeToLayoutTree::toTreeNodeTraversal).toList();
+        Function<Class<?>, TraversableLayoutTreeNode<TreeNode<WidgetGroup>>> newRootProvider =
+            leafStateTraversal.rootProvider().andThen(WidgetTreeToLayoutTree::toTreeNodeTraversal);
+        final var newChildren =
+            leafStates.stream().map(leafState -> toTreeNodeTraversal(leafState, newRootProvider)).toList();
         final var mappedExistingChildren =
             leafStateTraversal.children().stream().map(WidgetTreeToLayoutTree::toTreeNodeTraversal).toList();
         final var combinedChildren = Stream.concat(newChildren.stream(), mappedExistingChildren.stream()).toList();
         final List<TreeNode<WidgetGroup>> newControls = List.of();
-        return new TraversableLayoutTreeNode<>(newControls, combinedChildren, leafStateTraversal.layoutClass());
+        return new TraversableLayoutTreeNode<>(newControls, combinedChildren, leafStateTraversal.layoutClass(),
+            newRootProvider);
     }
 
-    private static TraversableLayoutTreeNode<TreeNode<WidgetGroup>> toTreeNodeTraversal(final LeafState leafState) {
+    private static TraversableLayoutTreeNode<TreeNode<WidgetGroup>> toTreeNodeTraversal(final LeafState leafState,
+        final Function<Class<?>, TraversableLayoutTreeNode<TreeNode<WidgetGroup>>> newRootProvider) {
         if (leafState instanceof TreeNodeState treeNodeState) {
             final var treeNode = treeNodeState.getTreeNode();
             final List<TreeNode<WidgetGroup>> newControls = List.of(treeNode);
             final List<TraversableLayoutTreeNode<TreeNode<WidgetGroup>>> newChildren = List.of();
-            return new TraversableLayoutTreeNode<>(newControls, newChildren);
+            return new TraversableLayoutTreeNode<>(newControls, newChildren, newRootProvider);
         } else {
             final var layoutTreeNode = ((TraversableLayoutTreeNodeState)leafState).getLayoutTreeNode();
             return toTreeNodeTraversal(layoutTreeNode);

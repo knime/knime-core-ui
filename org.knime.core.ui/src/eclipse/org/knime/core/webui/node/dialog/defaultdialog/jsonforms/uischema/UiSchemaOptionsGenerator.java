@@ -539,7 +539,7 @@ final class UiSchemaOptionsGenerator {
         }
     }
 
-    private static ArrayNode getOrCreateProvidedOptions(final ObjectNode uiSchema) {
+    static ArrayNode getOrCreateProvidedOptions(final ObjectNode uiSchema) {
         if (uiSchema.has(TAG_PROVIDED_OPTIONS)) {
             return (ArrayNode)uiSchema.get(TAG_PROVIDED_OPTIONS);
         }
