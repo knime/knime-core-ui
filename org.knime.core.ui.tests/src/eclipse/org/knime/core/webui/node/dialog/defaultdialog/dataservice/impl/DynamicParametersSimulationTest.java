@@ -58,9 +58,19 @@ import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettings;
+import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.workflow.NativeNodeContainer;
+import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.node.workflow.NodeID;
 import org.knime.core.webui.data.DataServiceContextTest;
+import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.DynamicParametersSimulationTest.TestDynamicSettings.PlusOneButton;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl.DynamicParametersSimulationTest.TestDynamicSettings.TriggerButton;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DataAndDialog;
@@ -77,7 +87,9 @@ import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.updates.util.BooleanReference;
 import org.knime.testing.node.dialog.updates.DialogUpdateSimulator;
+import org.mockito.Mockito;
 
 /**
  * Tests for custom deserialization of dynamic parameters during update calls. This test verifies that the
@@ -116,60 +128,15 @@ class DynamicParametersSimulationTest {
         public int m_testInteger = 456;
     }
 
-    static class TestDynamicParametersProvider implements DynamicParametersProvider<TestDynamicParams> {
-
-        private Supplier<TestDynamicParams> m_valueSupplier;
-
-        static final List<Class<? extends TestDynamicParams>> SUPPORTED_CLASSES =
-            List.of(TestStringImpl.class, TestIntegerImpl.class);
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            initializer.computeAfterOpenDialog();
-            initializer.computeOnButtonClick(TriggerButton.class);
-            m_valueSupplier = initializer.getValueSupplier(SelfReference.class);
-        }
-
-        @Override
-        public ClassIdStrategy<TestDynamicParams> getClassIdStrategy() {
-            return new DefaultClassIdStrategy<>(SUPPORTED_CLASSES);
-        }
-
-        @Override
-        public TestDynamicParams computeParameters(final NodeParametersInput parametersInput)
-            throws StateComputationFailureException {
-            final var current = m_valueSupplier.get();
-
-            if (current instanceof TestStringImpl currentString) {
-                final var newImpl = new TestIntegerImpl();
-                try {
-                    newImpl.m_testInteger = Integer.parseInt(currentString.m_testString);
-                } catch (final NumberFormatException e) {
-                    newImpl.m_testInteger = 999;
-                }
-                return newImpl;
-            }
-
-            if (current instanceof TestIntegerImpl currentInteger) {
-                final var newImpl = new TestStringImpl();
-                newImpl.m_testString = String.valueOf(currentInteger.m_testInteger);
-                return newImpl;
-            }
-
-            throw new StateComputationFailureException();
-        }
-    }
-
-    static class SelfReference implements ParameterReference<TestDynamicParams> {
-    }
-
-    static class TriggerButton implements ButtonReference {
-    }
-
-    static class PlusOneButton implements ButtonReference {
-    }
-
     static class TestDynamicSettings implements NodeParameters {
+        static class SelfReference implements ParameterReference<TestDynamicParams> {
+        }
+
+        static class TriggerButton implements ButtonReference {
+        }
+
+        static class PlusOneButton implements ButtonReference {
+        }
 
         @Widget(title = "Trigger Update", description = "Press to trigger dynamic parameters update")
         @SimpleButtonWidget(ref = TriggerButton.class)
@@ -184,6 +151,83 @@ class DynamicParametersSimulationTest {
         @ValueProvider(TestDynamicParametersValueProvider.class)
         @ValueReference(SelfReference.class)
         TestDynamicParams m_dynamicParameters = new TestStringImpl();
+
+        static class TestDynamicParametersProvider implements DynamicParametersProvider<TestDynamicParams> {
+
+            private Supplier<TestDynamicParams> m_valueSupplier;
+
+            static final List<Class<? extends TestDynamicParams>> SUPPORTED_CLASSES =
+                List.of(TestStringImpl.class, TestIntegerImpl.class);
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeAfterOpenDialog();
+                initializer.computeOnButtonClick(TestDynamicSettings.TriggerButton.class);
+                m_valueSupplier = initializer.getValueSupplier(TestDynamicSettings.SelfReference.class);
+            }
+
+            @Override
+            public ClassIdStrategy<TestDynamicParams> getClassIdStrategy() {
+                return new DefaultClassIdStrategy<>(SUPPORTED_CLASSES);
+            }
+
+            @Override
+            public TestDynamicParams computeParameters(final NodeParametersInput parametersInput)
+                throws StateComputationFailureException {
+                final var current = m_valueSupplier.get();
+
+                if (current instanceof TestStringImpl currentString) {
+                    final var newImpl = new TestIntegerImpl();
+                    try {
+                        newImpl.m_testInteger = Integer.parseInt(currentString.m_testString);
+                    } catch (final NumberFormatException e) {
+                        newImpl.m_testInteger = 999;
+                    }
+                    return newImpl;
+                }
+
+                if (current instanceof TestIntegerImpl currentInteger) {
+                    final var newImpl = new TestStringImpl();
+                    newImpl.m_testString = String.valueOf(currentInteger.m_testInteger);
+                    return newImpl;
+                }
+
+                throw new StateComputationFailureException();
+            }
+        }
+
+        static final class TestDynamicParametersValueProvider implements StateProvider<TestDynamicParams> {
+
+            private Supplier<TestDynamicParams> m_valueSupplier;
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeOnButtonClick(PlusOneButton.class);
+                m_valueSupplier = initializer.getValueSupplier(SelfReference.class);
+            }
+
+            @Override
+            public TestDynamicParams computeState(final NodeParametersInput parametersInput)
+                throws StateComputationFailureException {
+                final var currentValue = m_valueSupplier.get();
+                if (currentValue == null) {
+                    return null;
+                }
+                if (currentValue instanceof TestStringImpl str) {
+                    str.m_testString += "1";
+                    return str;
+                }
+                if (currentValue instanceof TestIntegerImpl integ) {
+                    integ.m_testInteger += 1;
+                    return integ;
+                }
+                throw new IllegalStateException(
+                    String.format("Illegal value class %s", currentValue.getClass().getSimpleName()));
+
+            }
+
+        }
+
     }
 
     @SuppressWarnings("unchecked")
@@ -235,38 +279,6 @@ class DynamicParametersSimulationTest {
             .isEqualTo(BigDecimal.valueOf(999));
     }
 
-    static final class TestDynamicParametersValueProvider implements StateProvider<TestDynamicParams> {
-
-        private Supplier<TestDynamicParams> m_valueSupplier;
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            initializer.computeOnButtonClick(PlusOneButton.class);
-            m_valueSupplier = initializer.getValueSupplier(SelfReference.class);
-        }
-
-        @Override
-        public TestDynamicParams computeState(final NodeParametersInput parametersInput)
-            throws StateComputationFailureException {
-            final var currentValue = m_valueSupplier.get();
-            if (currentValue == null) {
-                return null;
-            }
-            if (currentValue instanceof TestStringImpl str) {
-                str.m_testString += "1";
-                return str;
-            }
-            if (currentValue instanceof TestIntegerImpl integ) {
-                integ.m_testInteger += 1;
-                return integ;
-            }
-            throw new IllegalStateException(
-                String.format("Illegal value class %s", currentValue.getClass().getSimpleName()));
-
-        }
-
-    }
-
     @Test
     void testValueProviderOnDynamicParameters() {
         final var settings = new TestDynamicSettings();
@@ -280,4 +292,144 @@ class DynamicParametersSimulationTest {
         final var update = (TestStringImpl)result.getValueUpdateAt("dynamicParameters");
         assertThat(update.m_testString).isEqualTo("1001");
     }
+
+    static class TestDynamicSettingsWithFallback implements NodeParameters {
+        static class SelfReference implements ParameterReference<TestDynamicParams> {
+        }
+
+        static final class UseFallback implements BooleanReference {
+        }
+
+        @Widget(title = "Trigger Update", description = "Press to trigger dynamic parameters update")
+        @ValueReference(UseFallback.class)
+        boolean m_useFallback;
+
+        @DynamicParameters(TestDynamicParametersProvider.class)
+        @ValueReference(SelfReference.class)
+        TestDynamicParams m_dynamicParameters = new TestStringImpl();
+
+        static class TestDynamicParametersProvider
+            implements DynamicParameters.DynamicParametersWithFallbackProvider<TestDynamicParams> {
+
+            private Supplier<TestDynamicParams> m_valueSupplier;
+
+            private Supplier<Boolean> m_useFallback;
+
+            static final List<Class<? extends TestDynamicParams>> SUPPORTED_CLASSES = List.of(TestStringImpl.class);
+
+            @Override
+            public void init(final StateProviderInitializer initializer) {
+                initializer.computeAfterOpenDialog();
+                m_useFallback = initializer.computeFromValueSupplier(UseFallback.class);
+                m_valueSupplier = initializer.getValueSupplier(TestDynamicSettingsWithFallback.SelfReference.class);
+            }
+
+            @Override
+            public ClassIdStrategy<TestDynamicParams> getClassIdStrategy() {
+                return new DefaultClassIdStrategy<>(SUPPORTED_CLASSES);
+            }
+
+            @Override
+            public TestDynamicParams computeParameters(final NodeParametersInput parametersInput)
+                throws StateComputationFailureException {
+                final var currentValue = m_valueSupplier.get();
+                if (currentValue instanceof MyFallbackDialogNodeParameters fallbackParams) {
+                    final var nodeSettings = fallbackParams.getNodeSettings();
+                    try {
+                        return NodeParametersUtil.loadSettings(nodeSettings, TestStringImpl.class);
+                    } catch (InvalidSettingsException ex) {
+                        return new TestStringImpl();
+                    }
+                } else if (currentValue != null) {
+                    return currentValue;
+                } else {
+                    return new TestStringImpl();
+                }
+            }
+
+            @Override
+            public NodeSettings computeFallbackSettings(final NodeParametersInput parametersInput)
+                throws StateComputationFailureException {
+                if (!m_useFallback.get().booleanValue()) {
+                    return null;
+                }
+                final var currentValue = m_valueSupplier.get();
+                if (currentValue instanceof MyFallbackDialogNodeParameters) {
+                    return ((MyFallbackDialogNodeParameters)currentValue).getNodeSettings();
+                } else {
+                    final var settings = new NodeSettings("settings");
+                    NodeParametersUtil.saveSettings(currentValue.getClass(), currentValue, settings);
+                    return settings;
+                }
+            }
+
+            @Override
+            public FallbackDialogNodeParameters getParametersFromFallback(final NodeSettingsRO fallbackSettings) {
+                return new MyFallbackDialogNodeParameters(fallbackSettings);
+            }
+
+        }
+
+        static final class MyFallbackDialogNodeParameters extends FallbackDialogNodeParameters
+            implements TestDynamicParams {
+
+            public MyFallbackDialogNodeParameters(final NodeSettingsRO nodeSettings) {
+                super(nodeSettings);
+            }
+        }
+
+        @Test
+        void testDynamicParametersWithFallback() {
+
+            final var nodeContainer = Mockito.mock(NativeNodeContainer.class);
+            final var nodeId = new NodeID(42);
+            Mockito.when(nodeContainer.getID()).thenReturn(nodeId);
+            NodeContext.pushContext(nodeContainer);
+
+            try {
+                final var settings = new TestDynamicSettingsWithFallback();
+                settings.m_dynamicParameters = new TestStringImpl();
+                ((TestStringImpl)settings.m_dynamicParameters).m_testString = "initial";
+                final var context = createNodeParametersInput();
+                final var simulator = new DialogUpdateSimulator(settings, context);
+
+                // First open dialog without fallback
+                var result = simulator.simulateAfterOpenDialog();
+
+                var update = result.getUiStateUpdateAt(List.of("dynamicParameters"), "dynamicSettings");
+                assertThat(update).isInstanceOf(DataAndDialog.class);
+                assertThatJson(((DataAndDialog<Object>)update).getData()).inPath("$.testString").isString()
+                    .isEqualTo("initial");
+
+                // Now switch to fallback
+                settings.m_useFallback = true;
+                result = simulator.simulateAfterOpenDialog();
+
+                update = result.getUiStateUpdateAt(List.of("dynamicParameters"), "dynamicSettings");
+                assertThat(update).isInstanceOf(DataAndDialog.class);
+                assertThatJson(((DataAndDialog<Object>)update).getData()).inPath("$.testString").isString()
+                    .isEqualTo("initial");
+
+                // Modify the fallback settings directly
+                final var nodeSettings = new NodeSettings("settings");
+                nodeSettings.addString("testString", "from_fallback");
+                settings.m_dynamicParameters = new MyFallbackDialogNodeParameters(nodeSettings);
+
+                // Trigger an update that should read from the modified fallback settings
+                result = simulator.simulateAfterOpenDialog();
+
+                update = result.getUiStateUpdateAt(List.of("dynamicParameters"), "dynamicSettings");
+                assertThat(update).isInstanceOf(DataAndDialog.class);
+                assertThatJson(((DataAndDialog<Object>)update).getData()).inPath("$.testString").isString()
+                    .isEqualTo("from_fallback");
+
+            } finally {
+                FallbackDialogNodeParameters.clearNodeSettingsCache(nodeId);
+                NodeContext.removeLastContext();
+            }
+
+        }
+
+    }
+
 }

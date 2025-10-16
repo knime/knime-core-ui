@@ -59,6 +59,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
 import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
 import org.knime.core.webui.node.dialog.NodeSettingsService;
@@ -175,6 +176,7 @@ final class DefaultNodeSettingsService implements NodeSettingsService {
     public void deactivate() {
         final var nodeId = NodeContext.getContext().getNodeContainer().getID();
         PasswordHolder.removeAllPasswordsOfDialog(nodeId);
+        FallbackDialogNodeParameters.clearNodeSettingsCache(nodeId);
     }
 
 }
