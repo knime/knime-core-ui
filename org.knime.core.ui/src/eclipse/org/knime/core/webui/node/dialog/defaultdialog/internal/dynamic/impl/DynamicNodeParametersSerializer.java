@@ -130,6 +130,7 @@ public class DynamicNodeParametersSerializer extends JsonSerializer<Object> impl
         }
         if (value instanceof FallbackDialogNodeParameters fallbackParameters) {
             gen.writeObject(fallbackParameters.toJson());
+            return;
         }
         final var classIdentifier = getClassIdentifier(value);
         final var withoutClassField = getDefaultSerializedValue(value, serializers);
