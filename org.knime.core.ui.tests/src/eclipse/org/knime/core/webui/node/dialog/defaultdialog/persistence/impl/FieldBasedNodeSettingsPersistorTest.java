@@ -68,6 +68,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DefaultClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
@@ -237,6 +238,11 @@ class FieldBasedNodeSettingsPersistorTest {
         final var settingsWithNullValue = new SettingsWithParametersInterface();
         settingsWithNullValue.m_params = null;
         testSaveLoad(settingsWithNullValue);
+    }
+
+    @Test
+    void testDynamicParametersWithFallbackDialog() throws InvalidSettingsException {
+        testSaveLoad(new SettingsWithParametersInterfaceAndWithFallback());
     }
 
     private interface TestNodeSettings extends NodeParameters {
@@ -801,7 +807,7 @@ class FieldBasedNodeSettingsPersistorTest {
 
         @Override
         public int hashCode() {
-            return java.util.Objects.hash(paramHash(m_params), paramHash(m_otherParams));
+            return Objects.hash(paramHash(m_params), paramHash(m_otherParams));
         }
 
         private static int paramHash(final Object p) {
@@ -809,7 +815,7 @@ class FieldBasedNodeSettingsPersistorTest {
                 return Integer.hashCode(mp.m_foo);
             }
             if (p instanceof MyOtherParametersImpl mo) {
-                return java.util.Objects.hashCode(mo.m_bar);
+                return Objects.hashCode(mo.m_bar);
             }
             return 0;
         }
@@ -840,7 +846,7 @@ class FieldBasedNodeSettingsPersistorTest {
                 return pA.m_foo == pB.m_foo;
             }
             if (a instanceof MyOtherParametersImpl pA && b instanceof MyOtherParametersImpl pB) {
-                return java.util.Objects.equals(pA.m_bar, pB.m_bar);
+                return Objects.equals(pA.m_bar, pB.m_bar);
             }
             return false;
         }
@@ -865,6 +871,126 @@ class FieldBasedNodeSettingsPersistorTest {
         public MyParameters computeParameters(final NodeParametersInput parametersInput)
             throws StateComputationFailureException {
             throw new UnsupportedOperationException("Not used in tests");
+        }
+
+    }
+
+    static final class SettingsWithParametersInterfaceAndWithFallback implements TestNodeSettings {
+        @DynamicParameters(MyParametersWithFallbackProvider.class)
+        MyParameters m_params = new MyParametersImpl();
+
+        @DynamicParameters(MyParametersWithFallbackProvider.class)
+        MyParameters m_otherParams = new MyFallbackParameters(constructDefaultFallbackParameters());
+
+        static NodeSettingsRO constructDefaultFallbackParameters() {
+            var settings = new NodeSettings("test");
+            settings.addString("bar", "test");
+            return settings;
+        }
+
+        @Override
+        public void saveExpected(final NodeSettingsWO settings) {
+            final var params = settings.addNodeSettings("params");
+            params.addString("@class", MyParametersImpl.class.getName());
+            params.addInt("foo", ((MyParametersImpl)m_params).m_foo);
+
+            final var otherParams = settings.addNodeSettings("otherParams");
+            ((MyFallbackParameters)m_otherParams).getNodeSettings().copyTo(otherParams);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(paramHash(m_params), paramHash(m_otherParams));
+        }
+
+        private static int paramHash(final Object p) {
+            if (p instanceof MyParametersImpl mp) {
+                return Integer.hashCode(mp.m_foo);
+            }
+            if (p instanceof MyFallbackParameters mf) {
+                return Objects.hashCode(mf.getNodeSettings());
+            }
+            return 0;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof SettingsWithParametersInterfaceAndWithFallback other)) {
+                return false;
+            }
+            return equalParam(m_params, other.m_params) && equalParam(m_otherParams, other.m_otherParams);
+        }
+
+        private static boolean equalParam(final Object a, final Object b) {
+            if (a == b) {
+                return true;
+            }
+            if (a == null || b == null) {
+                return false;
+            }
+            if (a.getClass() != b.getClass()) {
+                return false;
+            }
+
+            if (a instanceof MyParametersImpl pA && b instanceof MyParametersImpl pB) {
+                return pA.m_foo == pB.m_foo;
+            }
+            if (a instanceof MyFallbackParameters pA && b instanceof MyFallbackParameters pB) {
+                return nodeSettingsAreEqual(pA.getNodeSettings(), pB.getNodeSettings());
+            }
+            return false;
+        }
+
+        static boolean nodeSettingsAreEqual(final NodeSettingsRO a, final NodeSettingsRO b) {
+            try {
+                return !a.containsKey("@class") && !b.containsKey("@class")
+                    && a.getString("bar").equals(b.getString("bar"));
+            } catch (InvalidSettingsException e) {
+                return false;
+            }
+        }
+    }
+
+    static final class MyFallbackParameters extends FallbackDialogNodeParameters implements MyParameters {
+
+        MyFallbackParameters(final NodeSettingsRO nodeSettings) {
+            super(nodeSettings);
+        }
+    }
+
+    static final class MyParametersWithFallbackProvider
+        implements DynamicParameters.DynamicParametersWithFallbackProvider<MyParameters> {
+
+        @Override
+        public void init(final StateProviderInitializer initializer) {
+            throw new UnsupportedOperationException("Not used in tests");
+        }
+
+        static final List<Class<? extends MyParameters>> SUPPORTED_CLASSES = List.of(MyParametersImpl.class);
+
+        @Override
+        public ClassIdStrategy<MyParameters> getClassIdStrategy() {
+            return new DefaultClassIdStrategy<>(SUPPORTED_CLASSES);
+        }
+
+        @Override
+        public MyParameters computeParameters(final NodeParametersInput parametersInput)
+            throws StateComputationFailureException {
+            throw new UnsupportedOperationException("Not used in tests");
+        }
+
+        @Override
+        public NodeSettings computeFallbackSettings(final NodeParametersInput parametersInput)
+            throws StateComputationFailureException {
+            throw new UnsupportedOperationException("Not used in tests");
+        }
+
+        @Override
+        public FallbackDialogNodeParameters getParametersFromFallback(final NodeSettingsRO fallbackSettings) {
+            return new MyFallbackParameters(fallbackSettings);
         }
 
     }

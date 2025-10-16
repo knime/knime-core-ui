@@ -65,6 +65,7 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicParametersWithFallbackProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ArrayPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ElementFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin;
@@ -130,12 +131,18 @@ public final class SettingsLoaderFactory extends PersistenceFactory<ParametersLo
         final Function<TreeNode<Persistable>, ParametersLoader> getLoader) {
         return settings -> {
             if (tree.isDynamic()) {
-                final var classId = settings.getString(CLASS_ID_CFG_KEY, "");
+                final var dynamicParametersProvider = createInstance(
+                    tree.getAnnotation(DynamicParameters.class).orElseThrow(IllegalStateException::new).value());
+                if (!settings.containsKey(CLASS_ID_CFG_KEY)) {
+                    if (dynamicParametersProvider instanceof DynamicParametersWithFallbackProvider withFallback) {
+                        return withFallback.getParametersFromFallback(settings);
+                    }
+                    return null;
+                }
+                final var classId = settings.getString(CLASS_ID_CFG_KEY);
                 if (classId == null) {
                     return null;
                 }
-                final var dynamicParametersProvider = createInstance(
-                    tree.getAnnotation(DynamicParameters.class).orElseThrow(IllegalStateException::new).value());
                 final var parametersClass =
                     fromIdentifierConsistent(dynamicParametersProvider.getClassIdStrategy(), classId);
                 if (parametersClass == null) {

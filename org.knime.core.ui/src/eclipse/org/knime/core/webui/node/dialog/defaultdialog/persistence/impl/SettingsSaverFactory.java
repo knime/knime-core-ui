@@ -56,6 +56,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ArrayPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ElementFieldPersistor;
@@ -138,9 +139,13 @@ public final class SettingsSaverFactory extends PersistenceFactory<ParametersSav
                 } else {
                     final var dynamicParametersProvider = InstantiationUtil
                         .createInstance(tree.getAnnotation(DynamicParameters.class).orElseThrow().value());
-                    settings.addString(CLASS_ID_CFG_KEY,
-                        dynamicParametersProvider.getClassIdStrategy().toIdentifier(obj.getClass()));
-                    SettingsSaverFactory.saveSettings((Persistable)obj, settings);
+                    if (obj instanceof FallbackDialogNodeParameters fallbackParameters) {
+                        fallbackParameters.getNodeSettings().copyTo(settings);
+                    } else {
+                        settings.addString(CLASS_ID_CFG_KEY,
+                            dynamicParametersProvider.getClassIdStrategy().toIdentifier(obj.getClass()));
+                        SettingsSaverFactory.saveSettings((Persistable)obj, settings);
+                    }
                 }
             }
             for (final var child : tree.getChildren()) {

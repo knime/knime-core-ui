@@ -54,10 +54,12 @@ import static org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationU
 
 import java.io.IOException;
 
+import org.knime.core.webui.node.dialog.FallbackDialogNodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicNodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicParametersProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicParametersWithFallbackProvider;
 
 import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
 import com.fasterxml.jackson.core.JsonParser;
@@ -138,11 +140,15 @@ public class DynamicNodeParametersDeserializer extends JsonDeserializer<DynamicN
         }
         final var obj = (ObjectNode)root;
         final var classNode = obj.get(CLASS_ID_KEY);
+        final var dynamicParametersProvider = createInstance(m_dynamicParametersProviderClass);
         if (classNode == null || !classNode.isTextual()) {
+            if (dynamicParametersProvider instanceof DynamicParametersWithFallbackProvider withFallback) {
+                final var nodeSettings = FallbackDialogNodeParameters.toNodeSettings(obj);
+                return withFallback.getParametersFromFallback(nodeSettings);
+            }
             throw new JsonMappingException(jsonParser, "Missing or non-textual '@class' property.");
         }
         final var requested = classNode.asText();
-        final var dynamicParametersProvider = createInstance(m_dynamicParametersProviderClass);
         final var targetClass = fromIdentifierConsistent(dynamicParametersProvider.getClassIdStrategy(), requested);
         if (targetClass == null) {
             throw new JsonMappingException(jsonParser,
