@@ -143,7 +143,7 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         final var handler = getButtonActionHandler(handlerClass);
         final var resultType = GenericTypeFinderUtil.getFirstGenericType(handler.getClass(), ButtonActionHandler.class);
         final var context = createContext();
-        final var convertedCurrentValue = convertValue(currentValue, resultType, null, context);
+        final var convertedCurrentValue = convertValue(currentValue, resultType, null, null, context);
         return m_requestHandler.handleRequest(widgetId,
             () -> handler.castAndInitialize(convertedCurrentValue, context));
 
@@ -197,7 +197,7 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         throws InterruptedException, ExecutionException {
         final var handler = getExternalValidationHandler(validatorClass);
         final var resultType = GenericTypeFinderUtil.getFirstGenericType(handler.getClass(), ExternalValidation.class);
-        final var convertedCurrentValue = convertValue(currentValue, resultType, null, null);
+        final var convertedCurrentValue = convertValue(currentValue, resultType, null, null, null);
         return m_requestHandler.handleRequest(validatorClass, () -> handler.castAndValidate(convertedCurrentValue));
     }
 

@@ -55,7 +55,9 @@ import static org.knime.core.node.workflow.VariableType.CredentialsType.CFG_TRAN
 import static org.knime.core.node.workflow.VariableType.CredentialsType.CFG_TRANSIENT_SECOND_FACTOR;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
@@ -129,20 +131,28 @@ public final class CredentialsUtil {
         }
 
         private static String toFieldId(final JsonStreamContext context) {
+            return String.join(".", getFieldLocation(context).toList());
+        }
+
+        private static Stream<String> getFieldLocation(final JsonStreamContext context) {
             final var parent = context.getParent();
             if (parent == null) {
-                return "";
+                return getSuppliedParentLocation();
             }
-            String parentFieldId;
+            Stream<String> parentFieldLocation;
             if (parent.inRoot() && context.getCurrentValue() != null) {
-                parentFieldId = context.getCurrentValue().getClass().getName();
+                parentFieldLocation = getSuppliedParentLocation();
             } else {
-                parentFieldId = toFieldId(parent);
+                parentFieldLocation = getFieldLocation(parent);
             }
             if (context.hasCurrentName()) {
-                return parentFieldId + "." + context.getCurrentName();
+                return Stream.concat(parentFieldLocation, Stream.of(context.getCurrentName()));
             }
-            return parentFieldId;
+            return parentFieldLocation;
+        }
+
+        private static Stream<String> getSuppliedParentLocation() {
+            return PasswordHolder.getSuppliedLocation().stream().flatMap(List::stream);
         }
 
         private static void addPassword(final JsonGenerator gen, final String hiddenPasswordKey, final String password,

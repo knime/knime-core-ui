@@ -62,6 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.ConvertValueUtil
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Location;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.LocationAndType;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
@@ -97,17 +98,17 @@ final class DataServiceTriggerInvocationHandler {
         final Function<LocationAndType, List<IndexedValue<String>>> dependencyProvider =
             locationAndType -> rawDependencies.get(getScopeFromLocation(locationAndType.location())).stream()
                 .map(raw -> new IndexedValue<>(raw.indices(), parseValue(raw.value(), locationAndType.getType(),
-                    locationAndType.getSpecialDeserializer().orElse(null), m_context)))
+                    locationAndType.location(), locationAndType.getSpecialDeserializer().orElse(null), m_context)))
                 .toList();
 
         final var triggerResult = m_triggerInvocationHandler.invokeTrigger(trigger, dependencyProvider, m_context);
         return UpdateResultsUtil.toUpdateResults(triggerResult, m_serviceRegistry);
     }
 
-    private static Object parseValue(final Object rawDependencyObject, final Type type,
+    private static Object parseValue(final Object rawDependencyObject, final Type type, final Location location,
         final JsonDeserializer<?> specialDeserializer, final NodeParametersInput context) {
 
-        return ConvertValueUtil.convertValue(rawDependencyObject, type, specialDeserializer, context);
+        return ConvertValueUtil.convertValue(rawDependencyObject, type, location, specialDeserializer, context);
     }
 
 }

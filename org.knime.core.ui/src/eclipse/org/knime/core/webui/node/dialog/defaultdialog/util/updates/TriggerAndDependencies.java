@@ -155,8 +155,10 @@ public class TriggerAndDependencies {
         final var paths = location.paths();
         var indexedFieldValues = getIndexedFieldValues(groupJsonNode, paths, triggerIndices);
         return indexedFieldValues.stream()
-            .map(pair -> new IndexedValue<Integer>(pair.getFirst(), ConvertValueUtil.convertValue(pair.getSecond(),
-                locationAndType.getType(), locationAndType.getSpecialDeserializer().orElse(null), context)))
+            .map(
+                pair -> new IndexedValue<Integer>(pair.getFirst(),
+                    ConvertValueUtil.convertValue(pair.getSecond(), locationAndType.getType(),
+                        locationAndType.location(), locationAndType.getSpecialDeserializer().orElse(null), context)))
             .toList();
     }
 

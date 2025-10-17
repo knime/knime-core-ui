@@ -56,6 +56,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.JacksonSerializationUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Location;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyHandler;
 import org.knime.node.parameters.NodeParametersInput;
 
@@ -85,18 +86,20 @@ public final class ConvertValueUtil {
     public static Object convertDependencies(final Object objectSettings, final DependencyHandler<?> handler,
         final NodeParametersInput context) {
         final var settingsType = GenericTypeFinderUtil.getFirstGenericType(handler.getClass(), DependencyHandler.class);
-        return convertValue(objectSettings, settingsType, null, context);
+        return convertValue(objectSettings, settingsType, null, null, context);
     }
 
     /**
+     * @param <T>
      * @param objectSettings
      * @param settingsType
+     * @param location to be used to resolve password ids
      * @param specialDeserializer
      * @param context
      * @return an object of the given settings type
      */
     @SuppressWarnings("unchecked")
-    public static <T> T convertValue(final Object objectSettings, final Type settingsType,
+    public static <T> T convertValue(final Object objectSettings, final Type settingsType, final Location location,
         final JsonDeserializer<?> specialDeserializer, final NodeParametersInput context) {
         if (specialDeserializer != null) {
             try {
@@ -108,11 +111,17 @@ public final class ConvertValueUtil {
 
         PasswordHolder.setCredentialsProvider(
             context == null ? null : ((NodeParametersInputImpl)context).getCredentialsProvider().orElse(null));
+
+        if (location != null) {
+            PasswordHolder.setCurrentLocation(location);
+        }
+
         final var mapper = JsonFormsDataUtil.getMapper();
         try {
             return mapper.convertValue(objectSettings, mapper.constructType(settingsType));
         } finally {
             PasswordHolder.removeCredentialsProvider();
+            PasswordHolder.removeCurrentLocation();
         }
 
     }

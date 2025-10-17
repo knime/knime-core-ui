@@ -57,6 +57,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,7 +68,15 @@ import org.knime.core.node.workflow.ICredentials;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.NodeID;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.updates.ValueProvider;
+import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.credentials.Credentials;
+import org.knime.testing.node.dialog.updates.DialogUpdateSimulator;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -141,12 +150,9 @@ class CredentialsTest {
                 .containsEntry("isHiddenPassword", true) //
                 .containsEntry("isHiddenSecondFactor", true) //
                 .containsOnlyKeys("username", "isHiddenPassword", "isHiddenSecondFactor");
-            assertThat(PasswordHolder.get(nodeContainer.get().getID(),
-                String.format("%s.credentials.password", CredentialsTestSettings.class.getName())))
-                    .isEqualTo("password");
-            assertThat(PasswordHolder.get(nodeContainer.get().getID(),
-                String.format("%s.credentials.secondFactor", CredentialsTestSettings.class.getName())))
-                    .isEqualTo("second factor");
+            assertThat(PasswordHolder.get(nodeContainer.get().getID(), "credentials.password")).isEqualTo("password");
+            assertThat(PasswordHolder.get(nodeContainer.get().getID(), "credentials.secondFactor"))
+                .isEqualTo("second factor");
         }
 
         @Test
@@ -177,11 +183,8 @@ class CredentialsTest {
                 .containsEntry("isHiddenPassword", true) //
                 .containsEntry("isHiddenSecondFactor", false) //
                 .containsOnlyKeys("username", "isHiddenPassword", "isHiddenSecondFactor");
-            assertThat(PasswordHolder.get(nodeContainer.get().getID(),
-                String.format("%s.credentials.password", CredentialsTestSettings.class.getName())))
-                    .isEqualTo("password");
-            assertThat(PasswordHolder.get(nodeContainer.get().getID(),
-                String.format("%s.secondFactor", CredentialsTestSettings.class.getName()))).isNull();
+            assertThat(PasswordHolder.get(nodeContainer.get().getID(), "credentials.password")).isEqualTo("password");
+            assertThat(PasswordHolder.get(nodeContainer.get().getID(), "credentials.secondFactor")).isNull();
         }
 
         @Test
@@ -371,6 +374,135 @@ class CredentialsTest {
                 deserialize(result, DeserializeFlowVariableTestSettings.class);
             assertThat(settings.credentials.getPassword()).isEmpty();
             assertThat(settings.credentials.getSecondFactor()).isEmpty();
+        }
+
+    }
+
+    @Nested
+    class UpdatesDependingOnCredentialsTest {
+
+        ThreadLocal<NodeContainer> nodeContainer = new ThreadLocal<>();
+
+        @BeforeEach
+        void provideNodeContainer() {
+            final var nodeContainerMock = mock(NodeContainer.class);
+            when(nodeContainerMock.getID()).thenReturn(new NodeID(getCurrentId()));
+            nodeContainer.set(nodeContainerMock);
+            NodeContext.pushContext(nodeContainerMock);
+        }
+
+        private int getCurrentId() {
+            return (int)Thread.currentThread().getId() * 2;
+        }
+
+        @AfterEach
+        void clearNodeContainerAndPasswords() {
+            PasswordHolder.removeAllPasswordsOfDialog(nodeContainer.get().getID());
+            nodeContainer.remove();
+            NodeContext.removeLastContext();
+        }
+
+        @Test
+        void testUpdateDependingOnCredentials() {
+
+            final var settings = new UpdateDependingOnCredentialsTestSettings();
+            final var simulator = new DialogUpdateSimulator(settings, null);
+
+            final var testPassword = "newPassword";
+            settings.m_credentials = new Credentials("username", testPassword, "second factor");
+
+            final var updateResult = simulator.simulateValueChange("credentials");
+            final var valueUpdate = updateResult.getValueUpdateAt("dependentField");
+
+            assertThat(valueUpdate).isEqualTo(testPassword);
+        }
+
+        static final class UpdateDependingOnCredentialsTestSettings implements NodeParameters {
+
+            static final class CredentialsRef implements ParameterReference<Credentials> {
+            }
+
+            @ValueReference(CredentialsRef.class)
+            Credentials m_credentials = new Credentials("username", "password", "second factor");
+
+            @ValueProvider(PasswordExtractor.class)
+            String m_dependentField = "initialValue";
+
+            static final class PasswordExtractor implements StateProvider<String> {
+
+                private Supplier<Credentials> m_credentials;
+
+                @Override
+                public void init(final StateProviderInitializer initializer) {
+                    m_credentials = initializer.computeFromValueSupplier(CredentialsRef.class);
+                }
+
+                @Override
+                public String computeState(final NodeParametersInput parametersInput)
+                    throws StateComputationFailureException {
+                    return m_credentials.get().getPassword();
+                }
+
+            }
+        }
+
+        @Test
+        void testUpdateDependingOnParametersContainingCredentials() {
+
+            final var settings = new UpdateDependingOnParametersContainingCredentialsTestSettings();
+            final var simulator = new DialogUpdateSimulator(settings, null);
+
+            final var testPassword = "newPassword";
+            final var otherTestPassword = "otherNewPassword";
+            settings.m_parametersContainingCredentials.m_credentials =
+                new Credentials("username", testPassword, "second factor");
+            settings.m_parametersContainingCredentials.m_otherCredentials =
+                new Credentials("username", otherTestPassword, "second factor");
+
+            final var updateResult = simulator.simulateValueChange("parametersContainingCredentials");
+            final var valueUpdate = updateResult.getValueUpdateAt("dependentField");
+
+            assertThat(valueUpdate).isEqualTo(testPassword + otherTestPassword);
+        }
+
+        static final class UpdateDependingOnParametersContainingCredentialsTestSettings implements NodeParameters {
+
+            static final class ParametersContainingCredentialsRef
+                implements ParameterReference<ParametersContainingCredentials> {
+            }
+
+            static final class ParametersContainingCredentials implements NodeParameters {
+
+                Credentials m_credentials = new Credentials("username", "password", "second factor");
+
+                Credentials m_otherCredentials = new Credentials("otherUsername", "otherPassword", "otherSecondFactor");
+            }
+
+            @ValueReference(ParametersContainingCredentialsRef.class)
+            ParametersContainingCredentials m_parametersContainingCredentials = new ParametersContainingCredentials();
+
+            @ValueProvider(PasswordsExtractor.class)
+            String m_dependentField = "initialValue";
+
+            static final class PasswordsExtractor implements StateProvider<String> {
+
+                private Supplier<ParametersContainingCredentials> m_parametersContainingCredentials;
+
+                @Override
+                public void init(final StateProviderInitializer initializer) {
+                    m_parametersContainingCredentials =
+                        initializer.computeFromValueSupplier(ParametersContainingCredentialsRef.class);
+                }
+
+                @Override
+                public String computeState(final NodeParametersInput parametersInput)
+                    throws StateComputationFailureException {
+                    final var parametersContainingCredentials = m_parametersContainingCredentials.get();
+                    return parametersContainingCredentials.m_credentials.getPassword()
+                        + parametersContainingCredentials.m_otherCredentials.getPassword();
+                }
+
+            }
         }
 
     }

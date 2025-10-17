@@ -50,11 +50,14 @@ package org.knime.core.webui.node.dialog.defaultdialog.setting.credentials;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.NodeID;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Location;
 import org.knime.node.parameters.widget.credentials.Credentials;
 
 /**
@@ -67,7 +70,9 @@ import org.knime.node.parameters.widget.credentials.Credentials;
  */
 public final class PasswordHolder {
 
-    private static final ThreadLocal<CredentialsProvider> credentialsProvider = new ThreadLocal<CredentialsProvider>();
+    private static final ThreadLocal<CredentialsProvider> credentialsProvider = new ThreadLocal<>();
+
+    private static final ThreadLocal<Location> location = new ThreadLocal<>();
 
     private PasswordHolder() {
         // Cannot be instantiated
@@ -145,6 +150,37 @@ public final class PasswordHolder {
 
     static CredentialsProvider getSuppliedCredentialsProvider() {
         return credentialsProvider.get();
+    }
+
+    /**
+     * In the rare situation that a credentials field or one of its parent fields is used as a dependency of a state
+     * provider, we need to know the location of the source field in order to resolve the password ids.
+     *
+     * @param loc the location to set as current location
+     */
+    public static void setCurrentLocation(final Location loc) {
+        location.set(loc);
+    }
+
+    /**
+     * Remove the current location set with {@link #setCurrentLocation(Location)}
+     */
+    public static void removeCurrentLocation() {
+        location.remove();
+    }
+
+    static Optional<List<String>> getSuppliedLocation() {
+        return Optional.ofNullable(location.get()).map(Location::paths).map(PasswordHolder::ensureOnlyOnePath);
+    }
+
+    static List<String> ensureOnlyOnePath(final List<List<String>> paths) {
+        if (paths.isEmpty()) {
+            throw new IllegalStateException("Location without any paths");
+        }
+        if (paths.size() > 1) {
+            throw new UnsupportedOperationException("Updates on credentials within arrays are not possible.");
+        }
+        return paths.get(0);
     }
 
 }

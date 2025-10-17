@@ -53,18 +53,26 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.ValidationCallback;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 class CustomValidationContextTest {
+
+    interface StringValidationCallback extends ValidationCallback<String> {
+
+    }
 
     @Test
     void testRegistersValidator() {
 
         final var context = new CustomValidationContext();
         final var testError = "Test error (value: %s)";
-        final var id = context.registerValidator((value) -> {
+        final StringValidationCallback stringValidator = (value) -> {
             throw new InvalidSettingsException(testError.formatted(value));
-        });
+        };
+        final var id = context.registerValidator(stringValidator);
 
         assertThat(id).isNotNull();
         assertThat(id).matches("[a-f0-9\\-]{36}"); // UUID format
@@ -83,7 +91,7 @@ class CustomValidationContextTest {
     @Test
     void testReturnsNullOnNoException() {
         final var context = new CustomValidationContext();
-        ValidationCallback<?> validationCallback = (value) -> {
+        StringValidationCallback validationCallback = (value) -> {
             // no exception
         };
         final var id = context.registerValidator(validationCallback);
@@ -96,7 +104,7 @@ class CustomValidationContextTest {
     void testClear() {
         final var context = new CustomValidationContext();
         final var testError = "Test error (value: %s)";
-        ValidationCallback<?> validationCallback = (value) -> {
+        StringValidationCallback validationCallback = (value) -> {
             throw new InvalidSettingsException(testError.formatted(value));
         };
         final var id = context.registerValidator(validationCallback);
@@ -105,6 +113,44 @@ class CustomValidationContextTest {
         final var testValue = "testvalue";
         assertThrows(IllegalArgumentException.class, () -> context.validate(id, testValue));
 
+    }
+
+    static final class CustomValue {
+
+        CustomValue() {
+            m_value = 0;
+        }
+
+        CustomValue(final int value) {
+            m_value = value;
+        }
+
+        int m_value;
+    }
+
+    static final class CustomValueValidationCallback implements ValidationCallback<CustomValue> {
+
+        @Override
+        public void validate(final CustomValue currentValue) throws InvalidSettingsException {
+            if (currentValue.m_value < 0) {
+                throw new InvalidSettingsException("Value must be non-negative");
+            }
+        }
+
+    }
+
+    @Test
+    void testNonStringValidation() {
+        final var context = new CustomValidationContext();
+        final var id = context.registerValidator(new CustomValueValidationCallback());
+
+        assertThat(context.validate(id, getCustomValueAsJson(1))).isNull(); // valid
+        assertThat(context.validate(id, getCustomValueAsJson(-1))).isEqualTo("Value must be non-negative"); // invalid
+    }
+
+    static JsonNode getCustomValueAsJson(final int value) {
+        final var mapper = JsonFormsDataUtil.getMapper();
+        return mapper.valueToTree(new CustomValue(value));
     }
 
 }

@@ -53,7 +53,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.ConvertValueUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.ValidationCallback;
+import org.knime.node.parameters.widget.credentials.Credentials;
 
 /**
  * An instance of this class manages the custom validation callbacks for the DefaultNodeDialog. It provides
@@ -94,7 +97,13 @@ public final class CustomValidationContext {
             throw new IllegalArgumentException(
                 String.format("No validator found for id %s. Most likely an implementation error.", validatorId));
         }
-        return validate(validator, currentValue);
+        final var type = GenericTypeFinderUtil.getFirstGenericType(validator.getClass(), ValidationCallback.class);
+        if (Credentials.class.equals(type)) {
+            throw new UnsupportedOperationException(
+                "Validation of Credentials is not yet supported due to security reasons.");
+        }
+        final var currentConvertedValue = ConvertValueUtil.convertValue(currentValue, type, null, null, null);
+        return validate(validator, currentConvertedValue);
     }
 
     private static String validate(final ValidationCallback<?> callback, final Object currentValue) {

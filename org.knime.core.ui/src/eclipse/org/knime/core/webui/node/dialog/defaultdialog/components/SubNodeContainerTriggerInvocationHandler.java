@@ -63,6 +63,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUti
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Location;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.LocationAndType;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
 import org.knime.node.parameters.NodeParametersInput;
@@ -88,7 +89,7 @@ final class SubNodeContainerTriggerInvocationHandler {
         final Function<LocationAndType, List<IndexedValue<String>>> dependencyProvider =
             locationAndType -> rawDependencies.get(getScopeFromLocation(locationAndType.location())).stream()
                 .map(raw -> new IndexedValue<>(raw.indices(),
-                    parseValue(raw.value(), locationAndType.type().get(), m_context)))
+                    parseValue(raw.value(), locationAndType.type().get(), locationAndType.location(), m_context)))
                 .toList();
 
         final var triggerResult = m_triggerInvocationHandler.invokeTrigger(trigger, dependencyProvider, m_context);
@@ -96,9 +97,9 @@ final class SubNodeContainerTriggerInvocationHandler {
         return UpdateResultsUtil.toUpdateResults(triggerResult, null);
     }
 
-    private static Object parseValue(final Object rawDependencyObject, final Type type,
+    private static Object parseValue(final Object rawDependencyObject, final Type type, final Location location,
         final NodeParametersInput context) {
-        return ConvertValueUtil.convertValue(rawDependencyObject, type, null, context);
+        return ConvertValueUtil.convertValue(rawDependencyObject, type, location, null, context);
     }
 
 }

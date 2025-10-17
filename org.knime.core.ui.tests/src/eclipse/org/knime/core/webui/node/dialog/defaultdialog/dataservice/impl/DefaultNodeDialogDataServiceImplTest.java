@@ -653,7 +653,10 @@ class DefaultNodeDialogDataServiceImplTest {
             assertThat(resultInvalidFormat.result().get()).isEqualTo("Invalid format: Too many pattern letters: D");
         }
 
-        static final ValidationCallback<String> VALIDATION_CALLBACK = value -> {
+        interface StringValidationCallback extends ValidationCallback<String> {
+        }
+
+        static final StringValidationCallback VALIDATION_CALLBACK = value -> {
             if (value == null || value.isEmpty()) {
                 throw new InvalidSettingsException("Field cannot be empty");
             }
@@ -687,8 +690,6 @@ class DefaultNodeDialogDataServiceImplTest {
             final var registry = dataServiceAndRegistry.getSecond();
 
             final var callback = VALIDATION_CALLBACK;
-            final var scope = "#/properties/model/properties/validatedField";
-            final var indices = List.<Integer> of();
             final var validatorId = registry.customValidationContext().registerValidator(callback);
 
             // Test with valid input
@@ -725,8 +726,6 @@ class DefaultNodeDialogDataServiceImplTest {
             final var registry = dataServiceAndRegistry.getSecond();
 
             final var callback = VALIDATION_CALLBACK;
-            final var scope = "#/properties/model/properties/validatedField";
-            final var indices = List.<Integer> of();
             final var validatorId = registry.customValidationContext().registerValidator(callback);
 
             // Test with invalid input (empty)
