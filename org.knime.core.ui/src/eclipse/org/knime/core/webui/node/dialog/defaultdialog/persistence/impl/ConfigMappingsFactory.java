@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
@@ -63,6 +64,8 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigMappings;
 import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ArrayPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ElementFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigMappingsFactory.GetConfigMappings;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
@@ -243,8 +246,19 @@ public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMap
     }
 
     @Override
-    protected GetConfigMappings reroute(final String[] relativePath, final GetConfigMappings property, final TreeNode<Persistable> node) {
+    protected GetConfigMappings reroute(final String[] relativePath, final GetConfigMappings property,
+        final TreeNode<Persistable> node) {
         return obj -> new ConfigMappings(relativePath, List.of(property.getConfigMappings(obj)));
+    }
+
+    @Override
+    protected GetConfigMappings getForCustomArrayPersistor(final ArrayParentNode<Persistable> arrayNode,
+        final ArrayPersistor customArrayPersistor,
+        final Map<TreeNode<Persistable>, ElementFieldPersistor> elementFieldPersistors) {
+        /**
+         * No migrations allowed within custom persisted arrays.
+         */
+        return obj -> new ConfigMappings(List.of());
     }
 
 }

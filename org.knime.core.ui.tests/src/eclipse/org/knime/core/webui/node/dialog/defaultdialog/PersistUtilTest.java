@@ -61,6 +61,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.PersistArrayTest;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.migration.ConfigMigration;
@@ -491,6 +492,15 @@ public class PersistUtilTest {
         final var result = getPersistSchema(SettingsWithPersistWithinOnClass.class);
         assertThatJson(result).inPath("$.properties.model.properties.innerSettings.propertiesRoute").isArray()
             .isEqualTo(new String[]{".."});
+    }
+
+    @Test
+    void testPersistArrayAnnotation() {
+        final var result = getPersistSchema(PersistArrayTest.ArrayConfigKeysObject.class);
+        assertThatJson(result).inPath("$.properties.model.properties.items.items.properties.value.configPaths")
+            .isArray().isEqualTo(new String[][]{{"value${array_index}"}});
+        assertThatJson(result).inPath("$.properties.model.properties.items.items.properties.value.route").isArray()
+            .isEqualTo(new String[]{"..", ".."});
     }
 
 }

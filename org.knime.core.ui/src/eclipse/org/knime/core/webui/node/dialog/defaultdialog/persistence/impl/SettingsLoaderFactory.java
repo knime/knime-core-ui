@@ -55,6 +55,7 @@ import static org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationU
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -64,6 +65,8 @@ import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ArrayPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ElementFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.internal.NewSettingsMissingMatcher;
@@ -142,13 +145,22 @@ public final class SettingsLoaderFactory extends PersistenceFactory<ParametersLo
                 return loader.load(settings);
 
             }
-            final var loaded = CreateDefaultsUtil.createDefaultSettings(tree);
-            for (var child : tree.getChildren()) {
-                final var loadedChildValue = getLoader.apply(child).load(settings);
-                child.setInParentValue(loaded, loadedChildValue);
-            }
-            return loaded;
+            return loadTree(tree, child -> getLoader.apply(child).load(settings));
         };
+    }
+
+    interface ChildLoader {
+        Object load(TreeNode<Persistable> child) throws InvalidSettingsException;
+    }
+
+    private static Object loadTree(final Tree<Persistable> tree, final ChildLoader loadChild)
+        throws InvalidSettingsException {
+        final var loaded = CreateDefaultsUtil.createDefaultSettings(tree);
+        for (var child : tree.getChildren()) {
+            final var loadedChildValue = loadChild.load(child);
+            child.setInParentValue(loaded, loadedChildValue);
+        }
+        return loaded;
     }
 
     @Override
@@ -156,6 +168,21 @@ public final class SettingsLoaderFactory extends PersistenceFactory<ParametersLo
         final ParametersLoader elementLoader) {
         return settings -> SettingsLoaderArrayParentUtil.instantiateFromSettings(arrayNode, settings,
             i -> elementLoader.load(settings.getNodeSettings(Integer.toString(i))));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected ParametersLoader getForCustomArrayPersistor(final ArrayParentNode<Persistable> arrayNode,
+        final ArrayPersistor customArrayPersistor,
+        final Map<TreeNode<Persistable>, ElementFieldPersistor> elementFieldPersistors) {
+        return settings -> {
+            final var size = customArrayPersistor.getArrayLength(settings);
+            return SettingsLoaderArrayParentUtil.instantiateFromSize(arrayNode, i -> {
+                final var loadContext = customArrayPersistor.createElementLoadContext(i);
+                ChildLoader loadChild = child -> elementFieldPersistors.get(child).load(settings, loadContext);
+                return loadTree(arrayNode.getElementTree(), loadChild);
+            }, size);
+        };
     }
 
     @Override

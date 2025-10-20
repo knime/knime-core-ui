@@ -8,12 +8,31 @@ export const composePaths = (path1: string, path2: string) => {
   return `${path1}.${path2}`;
 };
 
+const resolveIndexTemplate = (
+  path: string,
+  lastIndexSegment: string | null,
+) => {
+  if (lastIndexSegment === null) {
+    return path;
+  }
+  return path.replace(/\$\{array_index\}/g, lastIndexSegment);
+};
+
 /**
  * Composes multiple path segments into a single path.
+ *
+ * Also this method replaces occurrences of the templating syntax '${array_index}'
+ * with the actual index value, if lastIndexSegment is provided. This does not work
+ * for multiple array layouts in a single path.
+ *
  * @param paths array of path segments possibly containing ".."
+ * @param lastIndexSegment last segment if the path points to an array item, null otherwise
  * @returns composed path
  */
-const resolveToDotSeparatedPath = (paths: string[]) => {
+const resolveToDotSeparatedPath = (
+  paths: string[],
+  lastIndexSegment: string | null,
+) => {
   const result: string[] = [];
   for (const path of paths) {
     if (path === "..") {
@@ -22,11 +41,12 @@ const resolveToDotSeparatedPath = (paths: string[]) => {
       }
       result.pop();
     } else {
-      result.push(path);
+      result.push(resolveIndexTemplate(path, lastIndexSegment));
     }
   }
   return result.join(".");
 };
+
 /**
  * E.g. [[1, 2], [3]] + [[4], [5, 6]] => [[1, 2, 4], [1, 2, 5, 6], [3, 4], [3, 5, 6]]
  */
@@ -121,6 +141,7 @@ export const getConfigPaths = ({
   let schema = persistSchema;
 
   let traversalIsAborted = false;
+  let lastIndexSegment: null | string = null;
   const deprecatedConfigPaths: string[][] = [];
   for (const segment of segments) {
     if (traversalIsAborted) {
@@ -128,6 +149,7 @@ export const getConfigPaths = ({
     }
     if (schema.type === "array") {
       configPaths = configPaths.map((p) => [...p, segment]);
+      lastIndexSegment = segment;
       schema = schema.items;
     } else if (schema.type === "object") {
       const parentPropertiesRoute = schema.propertiesRoute ?? [];
@@ -176,11 +198,14 @@ export const getConfigPaths = ({
     dataPaths = combinePaths(dataPaths, subConfigKeys);
   }
   return configPaths.map((configPath, index) => ({
-    configPath: resolveToDotSeparatedPath(configPath),
+    configPath: resolveToDotSeparatedPath(configPath, lastIndexSegment),
     dataPath: resolveToDotSeparatedPath(
       dataPaths.length === 1 ? dataPaths[0] : dataPaths[index],
+      lastIndexSegment,
     ),
-    deprecatedConfigPaths: deprecatedConfigPaths.map(resolveToDotSeparatedPath),
+    deprecatedConfigPaths: deprecatedConfigPaths.map((dep) =>
+      resolveToDotSeparatedPath(dep, lastIndexSegment),
+    ),
   }));
 };
 

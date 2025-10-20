@@ -1,3 +1,4 @@
+/* eslint-disable no-template-curly-in-string */
 /* eslint-disable max-lines */
 import { describe, expect, it } from "vitest";
 
@@ -372,6 +373,42 @@ describe("paths", () => {
           configPath,
           deprecatedConfigPaths: [],
         })),
+      );
+    });
+
+    it("resolves ${array_index} in config paths", () => {
+      const path = "model.3.mySetting";
+      const persistSchema: PersistSchema = {
+        type: "object",
+        properties: {
+          model: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                mySetting: {
+                  configPaths: [
+                    ["mySetting_${array_index}_1"],
+                    ["mySetting_${array_index}_2"],
+                  ],
+                  type: "object",
+                  properties: {
+                    subConfigKey: {},
+                  },
+                },
+              },
+            } as any,
+          },
+        },
+      };
+      const configPaths = getConfigPaths(path, persistSchema);
+      expect(configPaths).toStrictEqual(
+        ["model.3.mySetting_3_1", "model.3.mySetting_3_2"].map(
+          (configPath) => ({
+            configPath,
+            deprecatedConfigPaths: [],
+          }),
+        ),
       );
     });
 

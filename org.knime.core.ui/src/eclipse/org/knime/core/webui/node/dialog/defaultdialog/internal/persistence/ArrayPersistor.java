@@ -44,71 +44,59 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 5, 2025 (Paul Bärnreuther): created
+ *   Oct 17, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.persistence;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.function.IntConsumer;
-import java.util.stream.IntStream;
+import java.util.List;
 
-final class SettingsSaverArrayParentUtil {
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+import org.knime.node.parameters.persistence.Persistor;
 
-    private SettingsSaverArrayParentUtil() {
-        // Utility class
-    }
+/**
+ * Attach this to an array parameter to customize where elements are loaded from without providing a fully custom
+ * {@link Persistor}. This makes sense, whenever a custom mechanism is needed and adding a {@link Persistor} would lead
+ * to bad UX, since one can link certain fields in the arrays elements to certain input configs but all config keys
+ * provided in the arrays global persistor would be displayed.
+ *
+ * @author Paul Bärnreuther
+ * @param <L> a custom load context type that is supplied to the corresponding element loaders
+ * @param <S> a custom save context type that is supplied to the corresponding element savers
+ */
+public interface ArrayPersistor<L, S> {
 
     /**
-     * Interface for saving elements at a specific index in a container.
+     * Get the length of the array stored in the given node settings.
+     *
+     * @param nodeSettings the node settings to load from
+     * @return the length of the array
      */
-    interface AtIndexSaver {
+    int getArrayLength(NodeSettingsRO nodeSettings);
 
-        /**
-         * Saves the given element at the specified index in the container.
-         *
-         * @param index the index at which to save the element
-         * @param element the element to save
-         */
-        void saveAtIndex(int index, Object element);
-    }
+    /**
+     * Create a load context for the element at the given index.
+     *
+     * @param index the index of the element
+     * @return the load context
+     */
+    L createElementLoadContext(int index);
 
-    static void save(final Object container, final AtIndexSaver elementSaver) {
-        if (container == null) {
-            return;
-        }
-        if (container.getClass().isArray()) {
-            saveArray((Object[])container, elementSaver);
-        } else if (container instanceof Collection<?> collection) {
-            saveCollection(collection, elementSaver);
-        } else {
-            throw new IllegalArgumentException("Unsupported container type for saving: " + container.getClass());
-        }
-    }
+    /**
+     * Create a save context for the element at the given index.
+     *
+     * @param index the index of the element
+     * @return the save context
+     */
+    S createElementSaveDTO(int index);
 
-    static int getSize(final Object container) {
-        if (container == null) {
-            return 0;
-        }
-        if (container.getClass().isArray()) {
-            return ((Object[])container).length;
-        } else if (container instanceof Collection<?> collection) {
-            return collection.size();
-        } else {
-            throw new IllegalArgumentException("Unsupported container type for saving: " + container.getClass());
-        }
-    }
+    /**
+     * Saves the given elements to the given node settings.
+     *
+     * @param savedElements the element dtos as constructed via {@link #createElementSaveDTO(int)} that have since been
+     *            populated with the data to save by {@link ElementFieldPersistor#save(Object, Object)}
+     * @param nodeSettings to save to
+     */
+    void save(List<S> savedElements, NodeSettingsWO nodeSettings);
 
-    private static void saveArray(final Object[] array, final AtIndexSaver saver) {
-        iterateIndexed(array.length, i -> saver.saveAtIndex(i, array[i]));
-    }
-
-    private static void saveCollection(final Collection<?> collection, final AtIndexSaver saver) {
-        Iterator<?> it = collection.iterator();
-        iterateIndexed(collection.size(), i -> saver.saveAtIndex(i, it.next()));
-    }
-
-    private static void iterateIndexed(final int size, final IntConsumer indexedAction) {
-        IntStream.range(0, size).forEach(indexedAction);
-    }
 }

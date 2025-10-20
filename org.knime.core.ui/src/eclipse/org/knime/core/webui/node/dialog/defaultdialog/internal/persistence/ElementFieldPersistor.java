@@ -44,71 +44,50 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 5, 2025 (Paul Bärnreuther): created
+ *   Oct 17, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.persistence;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.function.IntConsumer;
-import java.util.stream.IntStream;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
 
-final class SettingsSaverArrayParentUtil {
-
-    private SettingsSaverArrayParentUtil() {
-        // Utility class
-    }
+/**
+ * Persists a single element field of an array field.
+ *
+ * Load directly from the top-level {@link NodeSettingsRO}. Save to a save DTO constructed in the corresponding
+ * {@link ArrayPersistor}.
+ *
+ * @param <T> the type of the field
+ * @param <L> the same load context that is constructed in the corresponding {@link ArrayPersistor}.
+ * @param <S> the same save DTO that is constructed in the corresponding {@link ArrayPersistor}.
+ * @author Paul Bärnreuther
+ */
+public interface ElementFieldPersistor<T, L, S> {
 
     /**
-     * Interface for saving elements at a specific index in a container.
+     * Placeholder in config paths for the array index.
      */
-    interface AtIndexSaver {
+    String ARRAY_INDEX_PLACEHOLDER = "${array_index}";
 
-        /**
-         * Saves the given element at the specified index in the container.
-         *
-         * @param index the index at which to save the element
-         * @param element the element to save
-         */
-        void saveAtIndex(int index, Object element);
-    }
+    /**
+     * @param nodeSettings the top-level node settings
+     * @param loadContext the load context constructed in the corresponding {@link ArrayPersistor}
+     * @return the loaded field value
+     * @throws InvalidSettingsException if loading fails
+     */
+    T load(NodeSettingsRO nodeSettings, L loadContext) throws InvalidSettingsException;
 
-    static void save(final Object container, final AtIndexSaver elementSaver) {
-        if (container == null) {
-            return;
-        }
-        if (container.getClass().isArray()) {
-            saveArray((Object[])container, elementSaver);
-        } else if (container instanceof Collection<?> collection) {
-            saveCollection(collection, elementSaver);
-        } else {
-            throw new IllegalArgumentException("Unsupported container type for saving: " + container.getClass());
-        }
-    }
+    /**
+     * @param param the field value to save
+     * @param saveDTO the (mutable) save DTO constructed in the corresponding {@link ArrayPersistor}
+     */
+    void save(T param, S saveDTO);
 
-    static int getSize(final Object container) {
-        if (container == null) {
-            return 0;
-        }
-        if (container.getClass().isArray()) {
-            return ((Object[])container).length;
-        } else if (container instanceof Collection<?> collection) {
-            return collection.size();
-        } else {
-            throw new IllegalArgumentException("Unsupported container type for saving: " + container.getClass());
-        }
-    }
-
-    private static void saveArray(final Object[] array, final AtIndexSaver saver) {
-        iterateIndexed(array.length, i -> saver.saveAtIndex(i, array[i]));
-    }
-
-    private static void saveCollection(final Collection<?> collection, final AtIndexSaver saver) {
-        Iterator<?> it = collection.iterator();
-        iterateIndexed(collection.size(), i -> saver.saveAtIndex(i, it.next()));
-    }
-
-    private static void iterateIndexed(final int size, final IntConsumer indexedAction) {
-        IntStream.range(0, size).forEach(indexedAction);
-    }
+    /**
+     * Whenever the {@link #ARRAY_INDEX_PLACEHOLDER} is used in a config path, it will be replaced by the actual array
+     * index. This is necessary, when the config keys depend on the array index.
+     *
+     * @return the config paths this element field persistor is responsible for.
+     */
+    String[][] getConfigPaths();
 }

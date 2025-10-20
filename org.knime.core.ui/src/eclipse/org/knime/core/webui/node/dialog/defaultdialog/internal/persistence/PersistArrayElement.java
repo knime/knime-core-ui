@@ -44,71 +44,25 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jun 5, 2025 (Paul Bärnreuther): created
+ *   Oct 17, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.persistence;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.function.IntConsumer;
-import java.util.stream.IntStream;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-final class SettingsSaverArrayParentUtil {
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-    private SettingsSaverArrayParentUtil() {
-        // Utility class
-    }
-
+/**
+ * Annotation to specify the {@link ElementFieldPersistor} to use for the elements of an array parameter. This is only
+ * used when the array parameter is annotated with {@link PersistArray}.
+ */
+@Retention(RUNTIME)
+@Target(FIELD)
+public @interface PersistArrayElement {
     /**
-     * Interface for saving elements at a specific index in a container.
+     * The {@link ElementFieldPersistor} class to use for the elements.
      */
-    interface AtIndexSaver {
-
-        /**
-         * Saves the given element at the specified index in the container.
-         *
-         * @param index the index at which to save the element
-         * @param element the element to save
-         */
-        void saveAtIndex(int index, Object element);
-    }
-
-    static void save(final Object container, final AtIndexSaver elementSaver) {
-        if (container == null) {
-            return;
-        }
-        if (container.getClass().isArray()) {
-            saveArray((Object[])container, elementSaver);
-        } else if (container instanceof Collection<?> collection) {
-            saveCollection(collection, elementSaver);
-        } else {
-            throw new IllegalArgumentException("Unsupported container type for saving: " + container.getClass());
-        }
-    }
-
-    static int getSize(final Object container) {
-        if (container == null) {
-            return 0;
-        }
-        if (container.getClass().isArray()) {
-            return ((Object[])container).length;
-        } else if (container instanceof Collection<?> collection) {
-            return collection.size();
-        } else {
-            throw new IllegalArgumentException("Unsupported container type for saving: " + container.getClass());
-        }
-    }
-
-    private static void saveArray(final Object[] array, final AtIndexSaver saver) {
-        iterateIndexed(array.length, i -> saver.saveAtIndex(i, array[i]));
-    }
-
-    private static void saveCollection(final Collection<?> collection, final AtIndexSaver saver) {
-        Iterator<?> it = collection.iterator();
-        iterateIndexed(collection.size(), i -> saver.saveAtIndex(i, it.next()));
-    }
-
-    private static void iterateIndexed(final int size, final IntConsumer indexedAction) {
-        IntStream.range(0, size).forEach(indexedAction);
-    }
+    Class<? extends ElementFieldPersistor<?, ?, ?>> value();
 }

@@ -48,13 +48,17 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
+import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ArrayPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ElementFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
@@ -151,6 +155,24 @@ public final class SettingsSaverFactory extends PersistenceFactory<ParametersSav
         final ParametersSaver elementProperty) {
         return (obj, settings) -> SettingsSaverArrayParentUtil.save(obj,
             (i, objAtI) -> elementProperty.save(objAtI, settings.addNodeSettings(Integer.toString(i))));
+    }
+
+    @Override
+    protected ParametersSaver getForCustomArrayPersistor(final ArrayParentNode<Persistable> arrayNode,
+        final ArrayPersistor customArrayPersistor,
+        final Map<TreeNode<Persistable>, ElementFieldPersistor> elementFieldPersistors) {
+        return (obj, settings) -> {
+            final var size = SettingsSaverArrayParentUtil.getSize(obj);
+            final var saveDtos = IntStream.range(0, size).mapToObj(customArrayPersistor::createElementSaveDTO).toList();
+            SettingsSaverArrayParentUtil.save(obj, (i, objAtI) -> {
+                for (final var child : arrayNode.getElementTree().getChildren()) {
+                    final var childValue = child.getFromParentValue(objAtI);
+                    final var childElementFieldPersistor = elementFieldPersistors.get(child);
+                    childElementFieldPersistor.save(childValue, saveDtos.get(i));
+                }
+            });
+            customArrayPersistor.save(saveDtos, settings);
+        };
     }
 
     @Override

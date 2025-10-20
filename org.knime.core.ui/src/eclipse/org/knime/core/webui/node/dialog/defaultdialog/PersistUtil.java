@@ -59,6 +59,8 @@ import java.util.stream.Stream;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.configmapping.ConfigPath;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ArrayPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ElementFieldPersistor;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.ConfigKeyUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.PersistenceFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.defaultfield.DefaultFieldNodeSettingsPersistorFactory;
@@ -188,6 +190,34 @@ public final class PersistUtil {
 
         @Override
         protected ObjectNode getForArray(final ArrayParentNode<Persistable> arrayNode, final ObjectNode elementNode) {
+            return createArrayObjectNode(elementNode);
+        }
+
+        @Override
+        protected ObjectNode getForCustomArrayPersistor(final ArrayParentNode<Persistable> arrayNode,
+            final ArrayPersistor customArrayPersistor,
+            final Map<TreeNode<Persistable>, ElementFieldPersistor> elementFieldPersistors) {
+            final var items = getForTree(arrayNode.getElementTree(), childNode -> {
+                final var elementFieldPersistor = elementFieldPersistors.get(childNode);
+                final var configPaths = elementFieldPersistor.getConfigPaths();
+                final var objectNode = MAPPER.createObjectNode();
+                final var route = objectNode.putArray("route");
+                /**
+                 * One level up since we do not nest within array index configs
+                 */
+                route.add("..");
+                /**
+                 * Another level up since we do not nest within the array field itself
+                 */
+                route.add("..");
+                return getNested(childNode, addConfigPaths(objectNode, "configPaths", configPaths));
+
+            });
+
+            return getNested(arrayNode, createArrayObjectNode(items));
+        }
+
+        private static ObjectNode createArrayObjectNode(final ObjectNode elementNode) {
             final var objectNode = MAPPER.createObjectNode();
             objectNode.put("type", "array");
             objectNode.set("items", elementNode);
@@ -289,7 +319,6 @@ public final class PersistUtil {
             return property;
         }
 
-
         private static ObjectNode getCurrentField(final ObjectNode existing, final TreeNode<Persistable> node) {
             return (ObjectNode)existing.get(node.getName().orElseThrow(IllegalStateException::new));
         }
@@ -299,6 +328,7 @@ public final class PersistUtil {
                 routeArray.add("..".equals(pathElement) ? ".." : DotSubstitutionUtil.substituteDots(pathElement));
             }
         }
+
     }
 
 }

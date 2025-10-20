@@ -92,6 +92,11 @@ final class SettingsLoaderArrayParentUtil {
     static Object instantiateFromSettings(final ArrayParentNode<?> node, final NodeSettingsRO settings,
         final AtIndexLoader elementProvider) throws InvalidSettingsException {
         int size = countIndexedChildren(settings);
+        return instantiateFromSize(node, elementProvider, size);
+    }
+
+    static Object instantiateFromSize(final ArrayParentNode<?> node, final AtIndexLoader elementProvider,
+        final int size) throws InvalidSettingsException {
         return instantiateContainer(node.getRawClass(), node.getElementTree().getRawClass(), size, elementProvider);
     }
 

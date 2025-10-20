@@ -49,18 +49,27 @@
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.NotImplementedException;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ArrayPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.ElementFieldPersistor;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArray;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.persistence.PersistArrayElement;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin;
 import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.node.parameters.migration.ConfigMigration;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
 import org.knime.node.parameters.migration.Migrate;
@@ -143,6 +152,18 @@ public abstract class PersistenceFactory<T> {
      * @return the extracted property of the array
      */
     protected abstract T getForArray(ArrayParentNode<Persistable> arrayNode, T elementProperty);
+
+    /**
+     * Construct the property for an array node using a custom {@link ArrayPersistor}.
+     *
+     * @param arrayNode the array node
+     * @param customArrayPersistor an instance of the the custom array persistor attached to the array node
+     * @param elementFieldPersistors instances of the element field persistors for the element of the array with
+     *            suitable generic types
+     * @return the extracted property of the array
+     */
+    protected abstract T getForCustomArrayPersistor(ArrayParentNode<Persistable> arrayNode,
+        ArrayPersistor customArrayPersistor, Map<TreeNode<Persistable>, ElementFieldPersistor> elementFieldPersistors);
 
     /**
      * Called when a property was extracted for a {@link Tree} or a {@link ArrayParentNode} and this property is now to
@@ -293,7 +314,28 @@ public abstract class PersistenceFactory<T> {
                         + "Read the documentation of @Migrate on how to realize the same via @Migration.",
                     node.getPath()));
         }
+        if (node instanceof ArrayParentNode<Persistable> && node.getAnnotation(PersistArray.class).isPresent()) {
+            disallowOtherPersistAnnotations(node, PersistArray.class);
+        }
+        if (node.getPossibleAnnotations().contains(PersistArrayElement.class)
+            && node.getAnnotation(PersistArrayElement.class).isPresent()) {
+            disallowOtherPersistAnnotations(node, PersistArrayElement.class);
+        }
 
+    }
+
+    private static void disallowOtherPersistAnnotations(final TreeNode<Persistable> node,
+        final Class<? extends Annotation> annotationPreventingOthers) {
+        final var persistAnnotation = node.getAnnotation(Persist.class);
+        final var persistorAnnotation = node.getAnnotation(Persistor.class);
+        final var migrateAnnotation = node.getAnnotation(Migrate.class);
+        final var migrationAnnotation = node.getAnnotation(Migration.class);
+        if (persistAnnotation.isPresent() || persistorAnnotation.isPresent() || migrateAnnotation.isPresent()
+            || migrationAnnotation.isPresent()) {
+            throw new IllegalStateException(String
+                .format("The field %s cannot have @Persist, @Persistor, @Migrate or @Migration annotations since it"
+                    + " has a @%s annotation.", node.getPath(), annotationPreventingOthers.getSimpleName()));
+        }
     }
 
     private T performExtraction(final ExtractionMethods<T> ex) {
@@ -406,11 +448,69 @@ public abstract class PersistenceFactory<T> {
             if (m_node instanceof Tree<Persistable> tree) {
                 return getNested(m_node, extractFromTree(tree));
             } else if (m_node instanceof ArrayParentNode<Persistable> arrayNode) {
+                final var customArrayPersistorOpt =
+                    arrayNode.getAnnotation(PersistArray.class).map(PersistArray::value);
+                if (customArrayPersistorOpt.isPresent()) {
+                    final var customArrayPersistor = customArrayPersistorOpt.get();
+                    final var elementFieldPersistors = getElementFieldPersistors(arrayNode, customArrayPersistor);
+                    final var customArrayPersistorInstance = InstantiationUtil.createInstance(customArrayPersistor);
+                    return getForCustomArrayPersistor(arrayNode, customArrayPersistorInstance, elementFieldPersistors);
+                }
                 return getNested(m_node, getForArray(arrayNode, extractFromTree(arrayNode.getElementTree())));
             } else if (m_node instanceof LeafNode<Persistable> leaf) {
                 return getForLeaf(leaf);
             }
             throw new NotImplementedException("Only tree, arrayParent and leaf exist when implementing this.");
+        }
+
+        private static Map<TreeNode<Persistable>, ElementFieldPersistor> getElementFieldPersistors(
+            final ArrayParentNode<Persistable> arrayNode, final Class<? extends ArrayPersistor<?, ?>> arrayPersistor) {
+            final var loadContextType =
+                GenericTypeFinderUtil.getNthGenericType(arrayPersistor, ArrayPersistor.class, 0);
+            final var saveDTOType = GenericTypeFinderUtil.getNthGenericType(arrayPersistor, ArrayPersistor.class, 1);
+            final Map<TreeNode<Persistable>, ElementFieldPersistor> elementFieldPersistors = new HashMap<>();
+            for (final var child : arrayNode.getElementTree().getChildren()) {
+                final var elementFieldPersistor = getArrayElementPersistorType(child, loadContextType, saveDTOType);
+                elementFieldPersistors.put(child, elementFieldPersistor);
+            }
+            return elementFieldPersistors;
+
+        }
+
+        private static ElementFieldPersistor getArrayElementPersistorType(final TreeNode<Persistable> arrayElementField,
+            final Type loadContextType, final Type saveDTOType) {
+            final var elementFieldPersistor =
+                arrayElementField.getAnnotation(PersistArrayElement.class).map(PersistArrayElement::value)
+                    .orElseThrow(() -> new IllegalStateException(String.format(
+                        "When using a custom ArrayPersistor, the element tree's direct child %s must have a @%s"
+                            + "annotation defining an %s.",
+                        arrayElementField.getPath(), PersistArrayElement.class.getSimpleName(),
+                        ElementFieldPersistor.class.getSimpleName())));
+            validateElementFieldPersistorTypes(elementFieldPersistor, loadContextType, saveDTOType);
+            return InstantiationUtil.createInstance(elementFieldPersistor);
+        }
+
+        private static void validateElementFieldPersistorTypes(
+            final Class<? extends ElementFieldPersistor<?, ?, ?>> elementFieldPersistor, final Type loadContextType,
+            final Type saveDTOType) {
+            final var elementLoadContextType =
+                GenericTypeFinderUtil.getNthGenericType(elementFieldPersistor, ElementFieldPersistor.class, 1);
+            if (!elementLoadContextType.equals(loadContextType)) {
+                throw new IllegalStateException(String.format(
+                    "The ElementFieldPersistor %s's load context type %s does not match the"
+                        + " ArrayPersistor's load context type %s.",
+                    elementFieldPersistor.getName(), elementLoadContextType.getTypeName(),
+                    loadContextType.getTypeName()));
+            }
+            final var elementSaveDTOType =
+                GenericTypeFinderUtil.getNthGenericType(elementFieldPersistor, ElementFieldPersistor.class, 2);
+            if (!elementSaveDTOType.equals(saveDTOType)) {
+                throw new IllegalStateException(String.format(
+                    "The ElementFieldPersistor %s's save DTO type %s does not match the"
+                        + " ArrayPersistor's save DTO type %s.",
+                    elementFieldPersistor.getName(), elementSaveDTOType.getTypeName(), saveDTOType.getTypeName()));
+            }
+
         }
 
         @Override
@@ -445,6 +545,10 @@ public abstract class PersistenceFactory<T> {
         }
 
         private boolean shouldLoadDefaultIfAbsent() {
+            if (m_node instanceof ArrayParentNode<Persistable> arrayParent
+                && arrayParent.getAnnotation(PersistArray.class).isPresent()) {
+                return false;
+            }
             final var shouldFromFieldAnnotation =
                 m_node.getAnnotation(Migrate.class).map(Migrate::loadDefaultIfAbsent).orElse(false);
             final var shouldFromClassAnnotation =
