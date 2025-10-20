@@ -55,7 +55,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.NodeID;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Location;
 import org.knime.node.parameters.widget.credentials.Credentials;
@@ -70,8 +69,6 @@ import org.knime.node.parameters.widget.credentials.Credentials;
  */
 public final class PasswordHolder {
 
-    private static final ThreadLocal<CredentialsProvider> credentialsProvider = new ThreadLocal<>();
-
     private static final ThreadLocal<Location> location = new ThreadLocal<>();
 
     private PasswordHolder() {
@@ -82,9 +79,6 @@ public final class PasswordHolder {
 
     private static final Map<NodeID, Set<String>> PASSWORD_IDS_PER_NODE_ID = new HashMap<>();
 
-    /**
-     * This method throws an exception if {@link #activate} has not been called.
-     */
     static synchronized void addPassword(final NodeID nodeID, final String passwordId, final String password) {
         final var combinedId = combineNodeIdAndPasswordId(nodeID, passwordId);
         accociatePasswordIdToNode(combinedId, nodeID);
@@ -125,31 +119,6 @@ public final class PasswordHolder {
 
     private static void remove(final String combinedId) {
         PASSWORDS.remove(combinedId);
-    }
-
-    /**
-     * Set a credentials provider temporarily in order to enable deserializing credential input fields overwritten by
-     * flow variables.
-     *
-     * @param cp a credentialsProvider accessible vie {@link #getSuppliedCredentialsProvider}
-     */
-    public static void setCredentialsProvider(final CredentialsProvider cp) {
-        credentialsProvider.set(cp);
-    }
-
-    /**
-     * Remove the temporarily set credentials provider set with {@link #setCredentialsProvider(CredentialsProvider)}
-     */
-    public static void removeCredentialsProvider() {
-        credentialsProvider.remove();
-    }
-
-    static boolean hasCredentialsProvider() {
-        return credentialsProvider.get() != null;
-    }
-
-    static CredentialsProvider getSuppliedCredentialsProvider() {
-        return credentialsProvider.get();
     }
 
     /**

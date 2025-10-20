@@ -123,7 +123,7 @@ describe("LegacyCredentialsControl.vue", () => {
     expect(setFlowVarState).toHaveBeenCalledWith(flowVarName);
     await flushPromises();
     expect(changeValue).toHaveBeenCalledWith({
-      credentials: { ...flowVarValue, flowVariableName: flowVarName },
+      credentials: flowVarValue,
       flowVarName: null,
     });
   });
@@ -149,10 +149,7 @@ describe("LegacyCredentialsControl.vue", () => {
     expect(setFlowVarState).toHaveBeenNthCalledWith(1, flowVarName);
     await flushPromises();
     expect(changeValue).toHaveBeenCalledWith({
-      credentials: {
-        ...props.control.data.credentials,
-        flowVariableName: flowVarName,
-      },
+      credentials: props.control.data.credentials,
       flowVarName: null,
     });
     expect(setFlowVarState).toHaveBeenNthCalledWith(2, flowVarName, {

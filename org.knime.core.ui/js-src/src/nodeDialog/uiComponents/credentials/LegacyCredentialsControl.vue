@@ -31,15 +31,10 @@ const onChangeLegacyCredentialsControl = (credentials: Credentials) => {
   props.changeValue({ credentials, flowVarName: null });
 };
 
-const onLegacyFlowVariableSet = (
-  flowVariableValue: Credentials | undefined,
-  flowVariableName: string,
-) => {
-  onChangeLegacyCredentialsControl({
-    ...(flowVariableValue ?? props.control.data.credentials),
-    flowVariableName,
-  });
-};
+const onLegacyFlowVariableSet = (flowVariableValue: Credentials | undefined) =>
+  onChangeLegacyCredentialsControl(
+    flowVariableValue ?? props.control.data.credentials,
+  );
 </script>
 
 <template>

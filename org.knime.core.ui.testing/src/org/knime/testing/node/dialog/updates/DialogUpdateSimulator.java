@@ -56,23 +56,22 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ButtonReferenceIdInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Location;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerAndDependencies;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler.TriggerResult;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ButtonReferenceIdInternal;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.updates.ButtonReference;
 import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Use this simulator to simulate the updates that are defined by {@link StateProvider}s within
- * {@link NodeParameters}
+ * Use this simulator to simulate the updates that are defined by {@link StateProvider}s within {@link NodeParameters}
  *
  * @author Paul Bärnreuther
  */
@@ -92,8 +91,7 @@ public class DialogUpdateSimulator implements UpdateSimulator {
      *            are used to extract dependencies during invocation.
      * @param context - Used during invocation
      */
-    public DialogUpdateSimulator(final Map<SettingsType, WidgetGroup> settings,
-        final NodeParametersInput context) {
+    public DialogUpdateSimulator(final Map<SettingsType, WidgetGroup> settings, final NodeParametersInput context) {
         final var pair = settingsToTriggersAndInvocationHandler(
             settings.entrySet().stream().collect(Collectors.toMap(Entry::getKey, e -> e.getValue().getClass())),
             context);
@@ -116,7 +114,7 @@ public class DialogUpdateSimulator implements UpdateSimulator {
         final var triggerAndDependencies =
             m_listOfTriggers.stream().filter(t -> t.getTrigger().equals(trigger)).findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(String.format("No trigger %s found.", trigger)));
-        final var dependencyValues = triggerAndDependencies.extractDependencyValues(m_settings, m_context, indices);
+        final var dependencyValues = triggerAndDependencies.extractDependencyValues(m_settings, indices);
         return m_triggerInvocationHandler.invokeTrigger(trigger, dependencyValues::get, m_context);
     }
 

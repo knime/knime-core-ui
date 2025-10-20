@@ -1,10 +1,8 @@
 import { computed, h } from "vue";
 
 import {
-  type ExtractData,
   type VueControl,
   type VueControlProps,
-  type VueControlRenderer,
   defineControl,
   mapControls,
 } from "@knime/jsonforms";
@@ -53,30 +51,6 @@ export const withFlowVariableButton = <D>(
       );
   });
 
-type OnControllingHandlers<T extends Record<string, VueControlRenderer>> =
-  Partial<{
-    [K in keyof T]: OnControllingHandler<ExtractData<T[K]>>;
-  }>;
-
-const onControllingHandlers: OnControllingHandlers<typeof allControls> = {
-  credentialsRenderer:
-    ({ changeValue }) =>
-    (_path, value, flowVariableName) => {
-      changeValue({
-        ...value,
-        flowVariableName,
-      });
-    },
-  legacyCredentialsRenderer:
-    ({ handleChange }) =>
-    (path, value, flowVariableName) => {
-      handleChange(path, {
-        ...value,
-        flowVariableName,
-      });
-    },
-};
-
 const hasNoFlowVariableButton: Partial<Record<keyof typeof allControls, true>> =
   {
     simpleButtonRenderer: true,
@@ -87,8 +61,5 @@ export const mapWithFlowVariables = mapControls((c, k) => {
   if (hasNoFlowVariableButton[k as keyof typeof allControls]) {
     return c;
   }
-  return withFlowVariableButton(
-    c,
-    onControllingHandlers[k as keyof typeof onControllingHandlers],
-  );
+  return withFlowVariableButton(c);
 });

@@ -51,9 +51,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.dataservice.impl;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -68,10 +66,9 @@ import org.junit.jupiter.api.Test;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.Node;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.workflow.CredentialsProvider;
-import org.knime.core.node.workflow.ICredentials;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.node.workflow.NodeID;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.data.DataServiceContextTest;
 import org.knime.core.webui.node.dialog.SettingsType;
@@ -84,7 +81,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonChan
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
+import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
@@ -555,60 +554,35 @@ class DefaultNodeDialogDataServiceImplTest {
 
         @Test
         void testInvokeButtonActionWithCredentialsDependencies() throws ExecutionException, InterruptedException {
-
-            String flowVarName = "myFlowVariable";
-
-            final var nodeContainer = mock(NativeNodeContainer.class);
-            final var credentialsProvider = mockCredentialsProvider(nodeContainer);
-            mockPasswordResult(CredentialsButtonTestHandler.EXPECTED_PASSWORD, credentialsProvider);
+            final var nodeContainer = mockNodeContainerWithID();
             final var dataService = getDataService(ButtonAndCredentialsSettings.class);
 
             NodeContext.pushContext(nodeContainer);
             try {
+                serializeDataWithExpectedPassword();
                 dataService.invokeButtonAction("widgetId", CredentialsButtonTestHandler.class.getName(), "FIRST",
-                    Map.of("credentials", Map.of("flowVariableName", flowVarName), //
+                    Map.of("credentials", Map.of("isHiddenPassword", true), //
                         "button", "buttonValue"));
-
             } finally {
+                PasswordHolder.removeAllPasswordsOfDialog(nodeContainer.getID());
                 NodeContext.removeLastContext();
             }
-
-            verify(credentialsProvider).get(flowVarName);
         }
 
-        private void mockPasswordResult(final String credentialsFlowVariablePassword,
-            final CredentialsProvider credentialsProvider) {
-            final var iCredentials = createICredentials(credentialsFlowVariablePassword);
-            when(credentialsProvider.get(anyString())).thenReturn(iCredentials);
-        }
-
-        private CredentialsProvider mockCredentialsProvider(final NativeNodeContainer nodeContainer) {
+        private static NativeNodeContainer mockNodeContainerWithID() {
+            final var nodeContainer = mock(NativeNodeContainer.class);
+            when(nodeContainer.getID()).thenReturn(new NodeID(42));
             final var node = mock(Node.class);
             when(nodeContainer.getNode()).thenReturn(node);
-            final var credentialsProvider = mock(CredentialsProvider.class);
-            when(node.getCredentialsProvider()).thenReturn(credentialsProvider);
-            return credentialsProvider;
+            when(node.getCredentialsProvider()).thenReturn(null);
+            return nodeContainer;
         }
 
-        private static ICredentials createICredentials(final String password) {
-            final var iCredentials = new ICredentials() {
-
-                @Override
-                public String getPassword() {
-                    return password;
-                }
-
-                @Override
-                public String getName() {
-                    return null;
-                }
-
-                @Override
-                public String getLogin() {
-                    return null;
-                }
-            };
-            return iCredentials;
+        private static void serializeDataWithExpectedPassword() {
+            final var buttonAndCredentialsSettings = new ButtonAndCredentialsSettings();
+            buttonAndCredentialsSettings.m_credentials =
+                new Credentials("user", CredentialsButtonTestHandler.EXPECTED_PASSWORD);
+            JsonFormsDataUtil.toJsonData(buttonAndCredentialsSettings);
         }
 
         @Test

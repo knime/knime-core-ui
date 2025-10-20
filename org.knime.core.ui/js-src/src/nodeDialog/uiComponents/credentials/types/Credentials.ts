@@ -4,5 +4,4 @@ export interface Credentials {
   secondFactor: string;
   isHiddenPassword?: boolean;
   isHiddenSecondFactor?: boolean;
-  flowVariableName?: string | null;
 }

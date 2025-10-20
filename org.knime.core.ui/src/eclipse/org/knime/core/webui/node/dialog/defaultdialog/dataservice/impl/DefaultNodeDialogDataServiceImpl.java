@@ -132,7 +132,7 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         final Object objectSettings) throws ExecutionException, InterruptedException {
         final var handler = getButtonActionHandler(handlerClass);
         final var context = createContext();
-        final var convertedSettings = convertDependencies(objectSettings, handler, context);
+        final var convertedSettings = convertDependencies(objectSettings, handler);
         return m_requestHandler.handleRequest(widgetId,
             () -> handler.castAndInvoke(buttonState, convertedSettings, context));
     }
@@ -143,7 +143,7 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         final var handler = getButtonActionHandler(handlerClass);
         final var resultType = GenericTypeFinderUtil.getFirstGenericType(handler.getClass(), ButtonActionHandler.class);
         final var context = createContext();
-        final var convertedCurrentValue = convertValue(currentValue, resultType, null, null, context);
+        final var convertedCurrentValue = convertValue(currentValue, resultType, null, null);
         return m_requestHandler.handleRequest(widgetId,
             () -> handler.castAndInitialize(convertedCurrentValue, context));
 
@@ -162,7 +162,7 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         throws InterruptedException, ExecutionException {
         final var handler = getUpdateHandler(handlerClass);
         final var context = createContext();
-        final var convertedSettings = convertDependencies(objectSettings, handler, context);
+        final var convertedSettings = convertDependencies(objectSettings, handler);
         return m_requestHandler.handleRequest(widgetId, () -> handler.castAndUpdate(convertedSettings, context));
     }
 
@@ -197,7 +197,7 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         throws InterruptedException, ExecutionException {
         final var handler = getExternalValidationHandler(validatorClass);
         final var resultType = GenericTypeFinderUtil.getFirstGenericType(handler.getClass(), ExternalValidation.class);
-        final var convertedCurrentValue = convertValue(currentValue, resultType, null, null, null);
+        final var convertedCurrentValue = convertValue(currentValue, resultType, null, null);
         return m_requestHandler.handleRequest(validatorClass, () -> handler.castAndValidate(convertedCurrentValue));
     }
 

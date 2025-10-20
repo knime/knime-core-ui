@@ -102,7 +102,7 @@ public final class CustomValidationContext {
             throw new UnsupportedOperationException(
                 "Validation of Credentials is not yet supported due to security reasons.");
         }
-        final var currentConvertedValue = ConvertValueUtil.convertValue(currentValue, type, null, null, null);
+        final var currentConvertedValue = ConvertValueUtil.convertValue(currentValue, type, null, null);
         return validate(validator, currentConvertedValue);
     }
 

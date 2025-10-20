@@ -67,7 +67,6 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.ConvertValueUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
-import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -103,28 +102,26 @@ public class TriggerAndDependencies {
 
     /**
      * @param settings
-     * @param context the current {@link NodeParametersInput}
      * @param triggerIndices the indices indicating the triggers location if it triggering from within an array layout
      * @return a mapping to the values of the required dependencies
      */
-    public Map<LocationAndType, List<IndexedValue<Integer>>> extractDependencyValues(
-        final Map<SettingsType, WidgetGroup> settings, final NodeParametersInput context, final int... triggerIndices) {
+    public Map<LocationAndType, List<IndexedValue<Integer>>>
+        extractDependencyValues(final Map<SettingsType, WidgetGroup> settings, final int... triggerIndices) {
         final var mapper = JsonFormsDataUtil.getMapper();
         final Map<SettingsType, JsonNode> jsonNodes = getDependencySettingsTypes().stream().collect(
             Collectors.toMap(Function.identity(), settingsType -> mapper.valueToTree(settings.get(settingsType))));
-        return createDependenciesValuesMap(context, jsonNodes, triggerIndices);
+        return createDependenciesValuesMap(jsonNodes, triggerIndices);
     }
 
     /**
      * This method can be used to extract dependencies from an already serialized data json.
      *
      * @param dataJson an object json node with top-level fields contained in ["model", "view"]
-     * @param context the current {@link NodeParametersInput}
      * @param triggerIndices the indices indicating the triggers location if it triggering from within an array layout
      * @return a mapping to the values of the required dependencies
      */
     public Map<LocationAndType, List<IndexedValue<Integer>>> extractDependencyValues(final ObjectNode dataJson,
-        final NodeParametersInput context, final int... triggerIndices) {
+        final int... triggerIndices) {
         final Map<SettingsType, JsonNode> dataJsonPerSettingsType = new EnumMap<>(SettingsType.class);
         Stream.of(SettingsType.values()).forEach(settingsType -> {
             final var configKey = settingsType.getConfigKeyFrontend();
@@ -133,21 +130,20 @@ public class TriggerAndDependencies {
             }
         });
 
-        return createDependenciesValuesMap(context, dataJsonPerSettingsType, triggerIndices);
+        return createDependenciesValuesMap(dataJsonPerSettingsType, triggerIndices);
     }
 
-    private Map<LocationAndType, List<IndexedValue<Integer>>> createDependenciesValuesMap(
-        final NodeParametersInput context, final Map<SettingsType, JsonNode> jsonNodes, final int[] triggerIndices) {
+    private Map<LocationAndType, List<IndexedValue<Integer>>>
+        createDependenciesValuesMap(final Map<SettingsType, JsonNode> jsonNodes, final int[] triggerIndices) {
         final Map<LocationAndType, List<IndexedValue<Integer>>> dependencyValues = new HashMap<>();
         for (var vertex : m_dependencyVertices) {
-            dependencyValues.put(vertex.getLocationAndType(),
-                extractValues(vertex, jsonNodes, context, triggerIndices));
+            dependencyValues.put(vertex.getLocationAndType(), extractValues(vertex, jsonNodes, triggerIndices));
         }
         return dependencyValues;
     }
 
     private static List<IndexedValue<Integer>> extractValues(final DependencyVertex vertex,
-        final Map<SettingsType, JsonNode> jsonNodes, final NodeParametersInput context, final int[] triggerIndices) {
+        final Map<SettingsType, JsonNode> jsonNodes, final int[] triggerIndices) {
         final var locationAndType = vertex.getLocationAndType();
         final var location = locationAndType.location();
         var groupJsonNode = jsonNodes.get(location.settingsType());
@@ -155,10 +151,9 @@ public class TriggerAndDependencies {
         final var paths = location.paths();
         var indexedFieldValues = getIndexedFieldValues(groupJsonNode, paths, triggerIndices);
         return indexedFieldValues.stream()
-            .map(
-                pair -> new IndexedValue<Integer>(pair.getFirst(),
-                    ConvertValueUtil.convertValue(pair.getSecond(), locationAndType.getType(),
-                        locationAndType.location(), locationAndType.getSpecialDeserializer().orElse(null), context)))
+            .map(pair -> new IndexedValue<Integer>(pair.getFirst(),
+                ConvertValueUtil.convertValue(pair.getSecond(), locationAndType.getType(), locationAndType.location(),
+                    locationAndType.getSpecialDeserializer().orElse(null))))
             .toList();
     }
 

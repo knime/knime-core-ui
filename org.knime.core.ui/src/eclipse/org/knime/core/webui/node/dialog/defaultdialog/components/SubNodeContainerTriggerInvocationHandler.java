@@ -89,7 +89,7 @@ final class SubNodeContainerTriggerInvocationHandler {
         final Function<LocationAndType, List<IndexedValue<String>>> dependencyProvider =
             locationAndType -> rawDependencies.get(getScopeFromLocation(locationAndType.location())).stream()
                 .map(raw -> new IndexedValue<>(raw.indices(),
-                    parseValue(raw.value(), locationAndType.type().get(), locationAndType.location(), m_context)))
+                    parseValue(raw.value(), locationAndType.type().get(), locationAndType.location())))
                 .toList();
 
         final var triggerResult = m_triggerInvocationHandler.invokeTrigger(trigger, dependencyProvider, m_context);
@@ -97,9 +97,8 @@ final class SubNodeContainerTriggerInvocationHandler {
         return UpdateResultsUtil.toUpdateResults(triggerResult, null);
     }
 
-    private static Object parseValue(final Object rawDependencyObject, final Type type, final Location location,
-        final NodeParametersInput context) {
-        return ConvertValueUtil.convertValue(rawDependencyObject, type, location, null, context);
+    private static Object parseValue(final Object rawDependencyObject, final Type type, final Location location) {
+        return ConvertValueUtil.convertValue(rawDependencyObject, type, location, null);
     }
 
 }

@@ -52,13 +52,11 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 
 import org.knime.core.node.NodeLogger;
-import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersInputImpl;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.JacksonSerializationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.Location;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyHandler;
-import org.knime.node.parameters.NodeParametersInput;
 
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -80,13 +78,11 @@ public final class ConvertValueUtil {
      *
      * @param objectSettings
      * @param handler
-     * @param context
      * @return an object of the generic type of the {@link DependencyHandler}
      */
-    public static Object convertDependencies(final Object objectSettings, final DependencyHandler<?> handler,
-        final NodeParametersInput context) {
+    public static Object convertDependencies(final Object objectSettings, final DependencyHandler<?> handler) {
         final var settingsType = GenericTypeFinderUtil.getFirstGenericType(handler.getClass(), DependencyHandler.class);
-        return convertValue(objectSettings, settingsType, null, null, context);
+        return convertValue(objectSettings, settingsType, null, null);
     }
 
     /**
@@ -95,12 +91,11 @@ public final class ConvertValueUtil {
      * @param settingsType
      * @param location to be used to resolve password ids
      * @param specialDeserializer
-     * @param context
      * @return an object of the given settings type
      */
     @SuppressWarnings("unchecked")
     public static <T> T convertValue(final Object objectSettings, final Type settingsType, final Location location,
-        final JsonDeserializer<?> specialDeserializer, final NodeParametersInput context) {
+        final JsonDeserializer<?> specialDeserializer) {
         if (specialDeserializer != null) {
             try {
                 return (T)JacksonSerializationUtil.deserialize(objectSettings, specialDeserializer);
@@ -108,9 +103,6 @@ public final class ConvertValueUtil {
                 LOGGER.error("Error during manual deserialization of dependency", ex);
             }
         }
-
-        PasswordHolder.setCredentialsProvider(
-            context == null ? null : ((NodeParametersInputImpl)context).getCredentialsProvider().orElse(null));
 
         if (location != null) {
             PasswordHolder.setCurrentLocation(location);
@@ -120,7 +112,6 @@ public final class ConvertValueUtil {
         try {
             return mapper.convertValue(objectSettings, mapper.constructType(settingsType));
         } finally {
-            PasswordHolder.removeCredentialsProvider();
             PasswordHolder.removeCurrentLocation();
         }
 

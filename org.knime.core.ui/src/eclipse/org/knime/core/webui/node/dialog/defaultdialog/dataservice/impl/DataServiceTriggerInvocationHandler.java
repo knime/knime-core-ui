@@ -98,7 +98,7 @@ final class DataServiceTriggerInvocationHandler {
         final Function<LocationAndType, List<IndexedValue<String>>> dependencyProvider =
             locationAndType -> rawDependencies.get(getScopeFromLocation(locationAndType.location())).stream()
                 .map(raw -> new IndexedValue<>(raw.indices(), parseValue(raw.value(), locationAndType.getType(),
-                    locationAndType.location(), locationAndType.getSpecialDeserializer().orElse(null), m_context)))
+                    locationAndType.location(), locationAndType.getSpecialDeserializer().orElse(null))))
                 .toList();
 
         final var triggerResult = m_triggerInvocationHandler.invokeTrigger(trigger, dependencyProvider, m_context);
@@ -106,9 +106,9 @@ final class DataServiceTriggerInvocationHandler {
     }
 
     private static Object parseValue(final Object rawDependencyObject, final Type type, final Location location,
-        final JsonDeserializer<?> specialDeserializer, final NodeParametersInput context) {
+        final JsonDeserializer<?> specialDeserializer) {
 
-        return ConvertValueUtil.convertValue(rawDependencyObject, type, location, specialDeserializer, context);
+        return ConvertValueUtil.convertValue(rawDependencyObject, type, location, specialDeserializer);
     }
 
 }

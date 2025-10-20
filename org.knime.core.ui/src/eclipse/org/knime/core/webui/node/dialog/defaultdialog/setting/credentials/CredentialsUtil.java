@@ -88,8 +88,6 @@ public final class CredentialsUtil {
 
     private static final String IS_HIDDEN_SECOND_FACTOR_KEY = "isHiddenSecondFactor";
 
-    private static final String FLOW_VAR_NAME_KEY = "flowVariableName";
-
     private static final String PASSWORD_KEY = "password";
 
     private static final String SECOND_FACTOR_KEY = "secondFactor";
@@ -174,20 +172,11 @@ public final class CredentialsUtil {
             final var fieldId = CredentialsSerializer.toFieldId(p.getParsingContext());
             final var node = (JsonNode)p.getCodec().readTree(p);
             final var username = extractString(node, USERNAME_KEY);
-            final String password;
-            final String secondFactor;
-            final var flowVariableName = extractString(node, FLOW_VAR_NAME_KEY);
-            if (!flowVariableName.isEmpty() && PasswordHolder.hasCredentialsProvider()) {
-                final var credentials = PasswordHolder.getSuppliedCredentialsProvider().get(flowVariableName);
-                password = credentials.getPassword();
-                secondFactor = credentials.getSecondAuthenticationFactor().orElse("");
-            } else {
-                final var nodeID = CredentialsSerializer.getNodeId();
-                password =
-                    getPassword(node, IS_HIDDEN_PASSWORD_KEY, PASSWORD_KEY, fieldId + "." + PASSWORD_KEY, nodeID);
-                secondFactor = getPassword(node, IS_HIDDEN_SECOND_FACTOR_KEY, SECOND_FACTOR_KEY,
-                    fieldId + "." + SECOND_FACTOR_KEY, nodeID);
-            }
+            final var nodeID = CredentialsSerializer.getNodeId();
+            final String password =
+                getPassword(node, IS_HIDDEN_PASSWORD_KEY, PASSWORD_KEY, fieldId + "." + PASSWORD_KEY, nodeID);
+            final String secondFactor = getPassword(node, IS_HIDDEN_SECOND_FACTOR_KEY, SECOND_FACTOR_KEY,
+                fieldId + "." + SECOND_FACTOR_KEY, nodeID);
             return new Credentials(username, password, secondFactor);
         }
 

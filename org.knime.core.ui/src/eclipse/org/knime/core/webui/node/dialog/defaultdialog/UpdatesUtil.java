@@ -201,7 +201,7 @@ public final class UpdatesUtil {
     private static void addInitialUpdates(final ObjectNode rootNode,
         final TriggerAndDependencies triggerWithDependencies, final TriggerInvocationHandler<Integer> invocationHandler,
         final ObjectNode jsonData, final NodeParametersInput context, final NodeDialogServiceRegistry serviceRegistry) {
-        final var dependencyValues = triggerWithDependencies.extractDependencyValues(jsonData, context);
+        final var dependencyValues = triggerWithDependencies.extractDependencyValues(jsonData);
         final var triggerResult =
             invocationHandler.invokeTrigger(triggerWithDependencies.getTrigger(), dependencyValues::get, context);
 
