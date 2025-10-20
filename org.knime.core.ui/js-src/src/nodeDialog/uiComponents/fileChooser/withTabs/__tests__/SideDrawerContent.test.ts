@@ -63,7 +63,7 @@ describe("SideDrawerContent.vue", () => {
       },
       {
         value: "relative-to-embedded-data",
-        label: "Embedded Data",
+        label: "Embedded data",
         icon: expect.anything(),
       },
       {

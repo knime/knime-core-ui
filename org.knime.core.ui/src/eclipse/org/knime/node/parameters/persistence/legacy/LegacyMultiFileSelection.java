@@ -175,7 +175,7 @@ public final class LegacyMultiFileSelection implements Persistable, WidgetGroup 
     /**
      * Whether to include subfolders when selecting files. Only relevant when the selection mode is FOLDER.
      */
-    @Widget(title = "Include Subfolders",
+    @Widget(title = "Include subfolders",
         description = "Whether to include subfolders when selecting multiple files within a folder.")
     @Persistor(IncludeSubfoldersPersistor.class)
     @PersistWithin("filter_mode")

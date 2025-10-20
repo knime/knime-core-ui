@@ -62,7 +62,7 @@ const localFileSystemTab: TabSpec[] = isLocal.value
   ? [
       {
         value: "LOCAL",
-        label: "Local File System",
+        label: "Local file system",
         icon: ComputerDesktopIcon,
       },
     ]
@@ -88,7 +88,7 @@ const possibleCategories: TabSpec[] = [
   },
   {
     value: "relative-to-embedded-data",
-    label: "Embedded Data",
+    label: "Embedded data",
     icon: FolderIcon,
   },
   {
