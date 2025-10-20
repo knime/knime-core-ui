@@ -48,13 +48,14 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice.validation;
 
+import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.ConvertValueUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.ValidationCallback;
 import org.knime.node.parameters.widget.credentials.Credentials;
 
@@ -67,18 +68,19 @@ import org.knime.node.parameters.widget.credentials.Credentials;
  */
 public final class CustomValidationContext {
 
-    final Map<String, ValidationCallback<?>> m_validators = new ConcurrentHashMap<>();
+    final Map<String, Pair<ValidationCallback<?>, Type>> m_validators = new ConcurrentHashMap<>();
 
     /**
      * Registers a custom validator using a ValidationCallback and returns a unique UUID as the validatorId.
      *
      * @param validationCallback the callback to invoke for validation
+     * @param type the expected type of the value to validate
      * @return a unique UUID that can be used as validatorId
      */
-    public String registerValidator(final ValidationCallback<?> validationCallback) {
+    public String registerValidator(final ValidationCallback<?> validationCallback, final Type type) {
 
         final var validatorId = UUID.randomUUID().toString();
-        m_validators.put(validatorId, validationCallback);
+        m_validators.put(validatorId, new Pair<>(validationCallback, type));
 
         return validatorId;
     }
@@ -92,17 +94,18 @@ public final class CustomValidationContext {
      * @throws IllegalArgumentException if no validator is found for the given ID
      */
     public String validate(final String validatorId, final Object currentValue) {
-        final var validator = m_validators.get(validatorId);
-        if (validator == null) {
+        final var validatorPair = m_validators.get(validatorId);
+        if (validatorPair == null) {
             throw new IllegalArgumentException(
                 String.format("No validator found for id %s. Most likely an implementation error.", validatorId));
         }
-        final var type = GenericTypeFinderUtil.getFirstGenericType(validator.getClass(), ValidationCallback.class);
+        final var type = validatorPair.getSecond();
         if (Credentials.class.equals(type)) {
             throw new UnsupportedOperationException(
                 "Validation of Credentials is not yet supported due to security reasons.");
         }
         final var currentConvertedValue = ConvertValueUtil.convertValue(currentValue, type, null, null);
+        final var validator = validatorPair.getFirst();
         return validate(validator, currentConvertedValue);
     }
 

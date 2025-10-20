@@ -72,7 +72,7 @@ class CustomValidationContextTest {
         final StringValidationCallback stringValidator = (value) -> {
             throw new InvalidSettingsException(testError.formatted(value));
         };
-        final var id = context.registerValidator(stringValidator);
+        final var id = context.registerValidator(stringValidator, String.class);
 
         assertThat(id).isNotNull();
         assertThat(id).matches("[a-f0-9\\-]{36}"); // UUID format
@@ -94,7 +94,7 @@ class CustomValidationContextTest {
         StringValidationCallback validationCallback = (value) -> {
             // no exception
         };
-        final var id = context.registerValidator(validationCallback);
+        final var id = context.registerValidator(validationCallback, String.class);
 
         final var testValue = "testvalue";
         assertThat(context.validate(id, testValue)).isNull();
@@ -107,7 +107,7 @@ class CustomValidationContextTest {
         StringValidationCallback validationCallback = (value) -> {
             throw new InvalidSettingsException(testError.formatted(value));
         };
-        final var id = context.registerValidator(validationCallback);
+        final var id = context.registerValidator(validationCallback, String.class);
         context.clear();
 
         final var testValue = "testvalue";
@@ -142,7 +142,7 @@ class CustomValidationContextTest {
     @Test
     void testNonStringValidation() {
         final var context = new CustomValidationContext();
-        final var id = context.registerValidator(new CustomValueValidationCallback());
+        final var id = context.registerValidator(new CustomValueValidationCallback(), CustomValue.class);
 
         assertThat(context.validate(id, getCustomValueAsJson(1))).isNull(); // valid
         assertThat(context.validate(id, getCustomValueAsJson(-1))).isEqualTo("Value must be non-negative"); // invalid

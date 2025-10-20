@@ -51,13 +51,12 @@ package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
 import java.util.function.Supplier;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.ValidationCallback;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.updates.util.BooleanReference;
 
@@ -73,7 +72,7 @@ class HiddenFeatureCustomValidationParameters implements NodeParameters {
         description = "Should be invalid intially and update the message on every change (debounced).")
     String m_validatedSetting;
 
-    static final class MyValidationProvider implements StateProvider<ValidationCallback<String>> {
+    static final class MyValidationProvider implements CustomValidationProvider<String> {
 
         private Supplier<Boolean> m_switchOff;
 
@@ -84,8 +83,7 @@ class HiddenFeatureCustomValidationParameters implements NodeParameters {
         }
 
         @Override
-        public ValidationCallback<String> computeState(final NodeParametersInput parametersInput)
-            throws StateComputationFailureException {
+        public ValidationCallback<String> computeValidationCallback(final NodeParametersInput parametersInput) {
             if (m_switchOff.get().booleanValue()) {
                 return null;
             }

@@ -90,6 +90,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPicke
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil.DateTimeStringFormatValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.ValidationCallback;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
@@ -641,7 +642,7 @@ class DefaultNodeDialogDataServiceImplTest {
 
             class CustomValidationSettings implements NodeParameters {
 
-                static final class TestValidationProvider implements StateProvider<ValidationCallback<String>> {
+                static final class TestValidationProvider implements CustomValidationProvider<String> {
 
                     @Override
                     public void init(final StateProviderInitializer initializer) {
@@ -649,7 +650,7 @@ class DefaultNodeDialogDataServiceImplTest {
                     }
 
                     @Override
-                    public ValidationCallback<String> computeState(final NodeParametersInput context) {
+                    public ValidationCallback<String> computeValidationCallback(final NodeParametersInput context) {
                         return VALIDATION_CALLBACK;
                     }
                 }
@@ -664,7 +665,7 @@ class DefaultNodeDialogDataServiceImplTest {
             final var registry = dataServiceAndRegistry.getSecond();
 
             final var callback = VALIDATION_CALLBACK;
-            final var validatorId = registry.customValidationContext().registerValidator(callback);
+            final var validatorId = registry.customValidationContext().registerValidator(callback, String.class);
 
             // Test with valid input
             final var result = dataService.performCustomValidation(validatorId, "valid input");
@@ -677,7 +678,7 @@ class DefaultNodeDialogDataServiceImplTest {
 
             class CustomValidationSettings implements NodeParameters {
 
-                static final class TestValidationProvider implements StateProvider<ValidationCallback<String>> {
+                static final class TestValidationProvider implements CustomValidationProvider<String> {
 
                     @Override
                     public void init(final StateProviderInitializer initializer) {
@@ -685,7 +686,7 @@ class DefaultNodeDialogDataServiceImplTest {
                     }
 
                     @Override
-                    public ValidationCallback<String> computeState(final NodeParametersInput context) {
+                    public ValidationCallback<String> computeValidationCallback(final NodeParametersInput context) {
                         return VALIDATION_CALLBACK;
                     }
                 }
@@ -700,7 +701,7 @@ class DefaultNodeDialogDataServiceImplTest {
             final var registry = dataServiceAndRegistry.getSecond();
 
             final var callback = VALIDATION_CALLBACK;
-            final var validatorId = registry.customValidationContext().registerValidator(callback);
+            final var validatorId = registry.customValidationContext().registerValidator(callback, String.class);
 
             // Test with invalid input (empty)
             final var result = dataService.performCustomValidation(validatorId, "");

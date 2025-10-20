@@ -98,6 +98,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchem
 import org.knime.core.webui.node.dialog.defaultdialog.util.MapValuesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.ValidationCallback;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.node.parameters.NodeParameters;
@@ -1456,7 +1457,7 @@ public class UpdatesUtilTest {
 
         class TestSettings implements NodeParameters {
 
-            static final class TestValidationProvider implements StateProvider<ValidationCallback<String>> {
+            static final class TestValidationProvider implements CustomValidationProvider<String> {
 
                 @Override
                 public void init(final StateProviderInitializer initializer) {
@@ -1464,7 +1465,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public ValidationCallback<String> computeState(final NodeParametersInput context) {
+                public ValidationCallback<String> computeValidationCallback(final NodeParametersInput context) {
                     return value -> {
                         if (value == null || value.isEmpty()) {
                             throw new InvalidSettingsException("Field cannot be empty");
@@ -1481,8 +1482,8 @@ public class UpdatesUtilTest {
         final var testValidatorId = "test-validator-uuid";
         final var fileSystemConnector = Mockito.mock(FileSystemConnector.class);
         final var validationContext = Mockito.mock(CustomValidationContext.class);
-        Mockito.when(validationContext.registerValidator(ArgumentMatchers.any(ValidationCallback.class)))
-            .thenReturn(testValidatorId);
+        Mockito.when(validationContext.registerValidator(ArgumentMatchers.any(ValidationCallback.class),
+            ArgumentMatchers.eq(String.class))).thenReturn(testValidatorId);
 
         final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext);
         final var response = buildUpdates(Map.of(SettingsType.MODEL, new TestSettings()),
@@ -1493,7 +1494,8 @@ public class UpdatesUtilTest {
             .isEqualTo(UpdateResultsUtil.VALIDATOR_ID);
         assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isString().isEqualTo(testValidatorId);
 
-        Mockito.verify(validationContext).registerValidator(ArgumentMatchers.any(ValidationCallback.class));
+        Mockito.verify(validationContext).registerValidator(ArgumentMatchers.any(ValidationCallback.class),
+            ArgumentMatchers.eq(String.class));
     }
 
     @Test
@@ -1501,7 +1503,7 @@ public class UpdatesUtilTest {
 
         class TestSettings implements NodeParameters {
 
-            static final class TestValidationProvider implements StateProvider<ValidationCallback<String>> {
+            static final class TestValidationProvider implements CustomValidationProvider<String> {
 
                 @Override
                 public void init(final StateProviderInitializer initializer) {
@@ -1509,7 +1511,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public ValidationCallback<String> computeState(final NodeParametersInput context) {
+                public ValidationCallback<String> computeValidationCallback(final NodeParametersInput context) {
                     return value -> {
                         if (value == null || value.isEmpty()) {
                             throw new InvalidSettingsException("Field cannot be empty");
@@ -1526,8 +1528,8 @@ public class UpdatesUtilTest {
         final var testValidatorId = "test-validator-uuid";
         final var fileSystemConnector = Mockito.mock(FileSystemConnector.class);
         final var validationContext = Mockito.mock(CustomValidationContext.class);
-        Mockito.when(validationContext.registerValidator(ArgumentMatchers.any(ValidationCallback.class)))
-            .thenReturn(testValidatorId);
+        Mockito.when(validationContext.registerValidator(ArgumentMatchers.any(ValidationCallback.class),
+            ArgumentMatchers.eq(String.class))).thenReturn(testValidatorId);
 
         final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext);
         final var response = buildUpdates(Map.of(SettingsType.MODEL, new TestSettings()),
@@ -1545,7 +1547,7 @@ public class UpdatesUtilTest {
             static final class DependentRef implements ParameterReference<Boolean> {
             }
 
-            static final class ConditionalValidator implements StateProvider<ValidationCallback<String>> {
+            static final class ConditionalValidator implements CustomValidationProvider<String> {
 
                 private Supplier<Boolean> m_enabledSupplier;
 
@@ -1556,7 +1558,7 @@ public class UpdatesUtilTest {
                 }
 
                 @Override
-                public ValidationCallback<String> computeState(final NodeParametersInput context) {
+                public ValidationCallback<String> computeValidationCallback(final NodeParametersInput context) {
                     return value -> {
                         if (m_enabledSupplier.get() && (value == null || value.length() < 5)) {
                             throw new InvalidSettingsException("Must be at least 5 characters");
@@ -1577,8 +1579,8 @@ public class UpdatesUtilTest {
         final var testValidatorId = "test-validator-uuid";
         final var fileSystemConnector = Mockito.mock(FileSystemConnector.class);
         final var validationContext = Mockito.mock(CustomValidationContext.class);
-        Mockito.when(validationContext.registerValidator(ArgumentMatchers.any(ValidationCallback.class)))
-            .thenReturn(testValidatorId);
+        Mockito.when(validationContext.registerValidator(ArgumentMatchers.any(ValidationCallback.class),
+            ArgumentMatchers.eq(String.class))).thenReturn(testValidatorId);
 
         final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext);
         final var response = buildUpdates(Map.of(SettingsType.MODEL, new TestSettings()),

@@ -44,40 +44,45 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 13, 2025 (Paul Bärnreuther): created
+ *   Oct 20, 2025 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.lang.reflect.Type;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
+import org.knime.core.util.Pair;
+import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Put this annotation on a setting field to enable custom validation that is evaluated dynamically in the backend. The
- * validation can depend on {@link NodeParametersInput} and other settings values through a {@link StateProvider}.
+ * State provider used in {@link CustomValidation} to compute a custom validation callback.
  *
- * The state provider must return a {@link ValidationCallback} that will be invoked with the current field value to
- * perform validation.
- *
+ * @param <T> the type of the value to be validated (which is also the field type of the parameter)
  * @author Paul Bärnreuther
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface CustomValidation {
+public interface CustomValidationProvider<T> extends StateProvider<Pair<? extends ValidationCallback<T>, Type>> {
 
     /**
-     * The state provider that supplies the validation callback that can depend on other settings or the current
-     * {@link NodeParametersInput}.
-     *
-     * Use a {@link SimpleValidation} if no other settings or {@link NodeParametersInput} are needed for validation.
-     *
-     * @return the class of the state provider
+     * @noimplement implement {@link #computeValidationCallback(NodeParametersInput)} instead
      */
-    Class<? extends CustomValidationProvider<?>> value();
+    @Override
+    default Pair<? extends ValidationCallback<T>, Type> computeState(final NodeParametersInput parametersInput)
+        throws StateComputationFailureException {
+        final var callback = computeValidationCallback(parametersInput);
+        final var type = GenericTypeFinderUtil.getFirstGenericType(this.getClass(), CustomValidationProvider.class);
+        return new Pair<>(callback, type);
+    }
+
+    /**
+     * See {@link #computeState(NodeParametersInput)}.
+     *
+     * Return null to switch off validation. A provided callback will be used on value change (debounced).
+     *
+     * @param parametersInput the parameters input
+     * @return the validation callback to be used
+     */
+    ValidationCallback<T> computeValidationCallback(NodeParametersInput parametersInput);
 
 }

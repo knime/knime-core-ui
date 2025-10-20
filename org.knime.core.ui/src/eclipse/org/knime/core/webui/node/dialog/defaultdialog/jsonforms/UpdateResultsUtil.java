@@ -50,6 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil.getScopeFromLocation;
 
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -57,6 +58,7 @@ import java.util.stream.Stream;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.validation.CustomValidationContext;
@@ -226,17 +228,20 @@ public final class UpdateResultsUtil {
     private static <I> List<IndexedValue<I>> interceptAndRegisterValidators(final List<IndexedValue<I>> values,
         final Location location, final CustomValidationContext validationContext) {
         return values.stream().map(value -> {
-            if (value.value() == null) {
-                // Switch off validation by sending a null id to the frontend
-                return new IndexedValue<>(value.indices(), null);
-            }
-            if (value.value() instanceof ValidationCallback<?> callback) {
+            if (value.value() instanceof Pair pair) {
+                final var callback = (ValidationCallback<?>)pair.getFirst();
+                if (callback == null) {
+                    // Switch off validation by sending a null id to the frontend
+                    return new IndexedValue<>(value.indices(), null);
+                }
+                final var type = (Type)pair.getSecond();
+
                 // Register the validation callback and get a unique UUID
-                final var validatorId = validationContext.registerValidator(callback);
+                final var validatorId = validationContext.registerValidator(callback, type);
                 // Return the UUID instead of the validation callback
                 return new IndexedValue<>(value.indices(), validatorId);
             }
-            throw new IllegalStateException("Expected ValidationCallback, but got " + value.value());
+            throw new IllegalStateException("Expected Pair with ValidationCallback, but got " + value.value());
         }).toList();
     }
 
