@@ -62,6 +62,7 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.wizard.WizardNode;
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContext;
@@ -99,7 +100,8 @@ public final class NodeParametersUtil {
         final var nodeContext = NodeContext.getContext();
         if (nodeContext == null) {
             // can only happen during tests
-            return new NodeParametersInputImpl(fallbackPortTypesFor(specs), null, specs, null, null, null, null, null);
+            return new NodeParametersInputImpl(fallbackPortTypesFor(specs), null, specs, null, null, null, null, null,
+                null);
         }
         final var nc = nodeContext.getNodeContainer();
         final PortType[] inPortTypes;
@@ -115,12 +117,17 @@ public final class NodeParametersUtil {
             outPortTypes = null;
         }
         DialogNode dialogNode = null;
+        WizardNode wizardNode = null;
         PortsConfiguration portConfig = null;
         CredentialsProvider credentialsProvider = null;
         if (nc instanceof NativeNodeContainer nnc) {
             credentialsProvider = nnc.getNode().getCredentialsProvider();
-            if (nnc.getNode().getNodeModel() instanceof DialogNode model) {
+            final var nodeModel = nnc.getNode().getNodeModel();
+            if (nodeModel instanceof DialogNode model) {
                 dialogNode = model;
+            }
+            if (nodeModel instanceof WizardNode model) {
+                wizardNode = model;
             }
             portConfig = nnc.getNode().getCopyOfCreationConfig()
                 .flatMap(ModifiableNodeCreationConfiguration::getPortConfig).orElse(null);
@@ -131,7 +138,7 @@ public final class NodeParametersUtil {
             : InputPortUtil.getInputPortObjectsExcludingVariablePort(nc);
 
         return new NodeParametersInputImpl(inPortTypes, outPortTypes, specs, nc.getFlowObjectStack(),
-            credentialsProvider, inPortObjects, dialogNode, portConfig);
+            credentialsProvider, inPortObjects, dialogNode, portConfig, wizardNode);
     }
 
     private static PortType[] fallbackPortTypesFor(final PortObjectSpec[] specs) {

@@ -63,6 +63,7 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.wizard.WizardNode;
 import org.knime.core.node.workflow.CredentialsProvider;
 import org.knime.core.node.workflow.FlowObjectStack;
 import org.knime.core.node.workflow.FlowVariable;
@@ -92,9 +93,12 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
 
     private final PortsConfiguration m_portsConfiguration;
 
+    private final WizardNode<?, ?> m_wizardNode;
+
     NodeParametersInputImpl(final PortType[] inTypes, final PortType[] outTypes, final PortObjectSpec[] specs,
         final FlowObjectStack stack, final CredentialsProvider credentialsProvider, final PortObject[] inputPortObjects,
-        final DialogNode<?, ?> dialogNode, final PortsConfiguration portsConfiguration) {
+        final DialogNode<?, ?> dialogNode, final PortsConfiguration portsConfiguration,
+        final WizardNode<?, ?> wizardNode) {
         m_inTypes = inTypes;
         m_outTypes = outTypes;
         m_specs = specs;
@@ -103,17 +107,18 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
         m_inputPortObjects = inputPortObjects;
         m_dialogNode = dialogNode;
         m_portsConfiguration = portsConfiguration;
+        m_wizardNode = wizardNode;
     }
 
     NodeParametersInputImpl(final PortType[] inTypes, final PortType[] outTypes, final PortObjectSpec[] specs,
         final FlowObjectStack stack, final CredentialsProvider credentialsProvider,
         final PortObject[] inputPortObjects) {
-        this(inTypes, outTypes, specs, stack, credentialsProvider, inputPortObjects, null, null);
+        this(inTypes, outTypes, specs, stack, credentialsProvider, inputPortObjects, null, null, null);
     }
 
     NodeParametersInputImpl(final PortType[] inTypes, final PortType[] outTypes, final PortObjectSpec[] specs,
         final FlowObjectStack stack, final CredentialsProvider credentialsProvider) {
-        this(inTypes, outTypes, specs, stack, credentialsProvider, null, null, null);
+        this(inTypes, outTypes, specs, stack, credentialsProvider, null, null, null, null);
     }
 
     /**
@@ -122,7 +127,8 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
     @SuppressWarnings("javadoc")
     public static NodeParametersInput createDefaultNodeSettingsContext(final PortType[] inPortTypes,
         final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider) {
-        return new NodeParametersInputImpl(inPortTypes, null, specs, stack, credentialsProvider, null, null, null);
+        return new NodeParametersInputImpl(inPortTypes, null, specs, stack, credentialsProvider, null, null, null,
+            null);
     }
 
     /**
@@ -133,7 +139,7 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
         final PortObjectSpec[] specs, final FlowObjectStack stack, final CredentialsProvider credentialsProvider,
         final PortObject[] inputPortObjects) {
         return new NodeParametersInputImpl(inPortTypes, null, specs, stack, credentialsProvider, inputPortObjects, null,
-            null);
+            null, null);
     }
 
     /**
@@ -286,5 +292,16 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
         CheckUtils.checkState(m_portsConfiguration != null, "No port configuration is available in this context. "
             + "This method should be called only for nodes with dynamic ports.");
         return m_portsConfiguration;
+    }
+
+    /**
+     * Getter for the {@link WizardNode} of a widget node.
+     *
+     * @return the wizardNode
+     */
+    public WizardNode<?, ?> getWizardNode() {
+        CheckUtils.checkNotNull(m_wizardNode,
+            "No wizard node is available in this context. This method should be called only for widgets.");
+        return m_wizardNode;
     }
 }
