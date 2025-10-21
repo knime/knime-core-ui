@@ -385,7 +385,7 @@ public final class FallbackDialogUtils {
     }
 
     /**
-     * Turns a given JSON object into a {@link NodeSettings}-object. Since the JSON object lags the complete type
+     * Turns a given JSON object into a {@link NodeSettings}-object. Since the JSON object lacks the complete type
      * information required for the settings, another {@link NodeSettings}-object (called 'schema') of the same
      * structure must be supplied where to get the type-infos from (i.e. ConfigEntries).
      *
@@ -403,47 +403,22 @@ public final class FallbackDialogUtils {
                 leaf = leaf.get(pathWithReplacedDots[i]);
             }
             var type = entry.getType();
-            AbstractConfigEntry newEntry;
             var key = path[path.length - 1];
-            switch (type) {
-                case xboolean -> {
-                    newEntry = new ConfigBooleanEntry(key, leaf.booleanValue());
-                }
-                case xint -> {
-                    newEntry = new ConfigIntEntry(key, leaf.intValue());
-                }
-                case xdouble -> {
-                    newEntry = new ConfigDoubleEntry(key, leaf.doubleValue());
-                }
-                case xfloat -> {
-                    newEntry = new ConfigFloatEntry(key, leaf.floatValue());
-                }
-                case xlong -> {
-                    newEntry = new ConfigLongEntry(key, leaf.longValue());
-                }
-                case xshort -> {
-                    newEntry = new ConfigShortEntry(key, (short)leaf.intValue());
-                }
-                case xbyte -> {
-                    newEntry = new ConfigByteEntry(key, (byte)leaf.intValue());
-                }
-                case xstring -> {
-                    newEntry = new ConfigStringEntry(key, leaf.asText());
-                }
-                case xchar -> {
-                    newEntry = new ConfigCharEntry(key, leaf.asText());
-                }
-                case xpassword -> {
-                    newEntry = new ConfigPasswordEntry(key, leaf.asText());
-                }
-                case xtransientstring -> {
-                    newEntry = new ConfigTransientStringEntry(key, leaf.asText());
-                }
-                default -> {
-                    throw new UnsupportedOperationException(
-                        "Unsupported config type: " + type + " for path: " + Arrays.toString(path));
-                }
-            }
+            AbstractConfigEntry newEntry = switch (type) {
+                case xboolean -> new ConfigBooleanEntry(key, leaf.booleanValue());
+                case xint -> new ConfigIntEntry(key, leaf.intValue());
+                case xdouble -> new ConfigDoubleEntry(key, leaf.doubleValue());
+                case xfloat -> new ConfigFloatEntry(key, leaf.floatValue());
+                case xlong -> new ConfigLongEntry(key, leaf.longValue());
+                case xshort -> new ConfigShortEntry(key, (short)leaf.intValue());
+                case xbyte -> new ConfigByteEntry(key, (byte)leaf.intValue());
+                case xstring -> new ConfigStringEntry(key, leaf == null ? null : leaf.asText());
+                case xchar -> new ConfigCharEntry(key, leaf.asText());
+                case xpassword -> new ConfigPasswordEntry(key, leaf.asText());
+                case xtransientstring -> new ConfigTransientStringEntry(key, leaf.asText());
+                case config -> throw new UnsupportedOperationException(String.format(
+                    "Unsupported settings type \"%s\" for for path: %s", ConfigEntries.config, Arrays.toString(path)));
+            };
             setAtPath(extractedModelSettings, path, newEntry);
 
         };
