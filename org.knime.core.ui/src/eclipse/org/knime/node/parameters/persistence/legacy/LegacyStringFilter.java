@@ -53,11 +53,11 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
@@ -76,8 +76,8 @@ import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.ChoicesStateProvider;
+import org.knime.node.parameters.widget.choices.TypedStringChoice;
 import org.knime.node.parameters.widget.choices.filter.TwinlistWidget;
-import org.knime.node.parameters.widget.choices.util.ColumnSelectionUtil;
 import org.knime.node.parameters.widget.choices.util.CompatibleColumnsProvider.DoubleColumnsProvider;
 
 /**
@@ -104,14 +104,13 @@ public final class LegacyStringFilter implements NodeParameters {
 
         private String m_description;
 
-        private String m_inclList;
+        private String m_inclListTitle;
 
-        private String m_exclList;
+        private String m_exclListTitle;
 
         private Class<? extends ChoicesStateProvider<?>> m_choicesProviderClass;
 
-        private Class<? extends StateProvider<?>> m_valueProviderClass;
-
+        private Class<? extends ExclListProvider<?>> m_exclListProviderClass;
 
         /**
          * Constructor.
@@ -121,7 +120,7 @@ public final class LegacyStringFilter implements NodeParameters {
          *            the default description
          */
         protected LegacyStringFilterModification(final boolean showKeepAll, final String columnSelectionDescription) {
-            this(showKeepAll, null, null, null, columnSelectionDescription, null);
+            this(showKeepAll, null, null, null, columnSelectionDescription, null, null);
         }
 
         /**
@@ -131,20 +130,24 @@ public final class LegacyStringFilter implements NodeParameters {
          * @param title the title for the column selection twin list widget, or null to keep the default title
          * @param description the description for the column selection twin list widget, or null to keep the default
          *            description
-         * @param inclList the inclList title, or null to keep the default
-         * @param exclList the exclList title, or null to keep the default
-         * @param choicesProviderClass the choices provider class for the include list, or null to keep the default
+         * @param inclListTitle the inclList title, or null to keep the default
+         * @param exclListTitle the exclList title, or null to keep the default
+         * @param choicesProviderClass the choices provider class for the include list, or {@code null} to keep the
+         *            default if it is non-{@code null}, the {@code exclListProviderClass} must be non-{@code null} as
+         *            well
+         * @param exclListProviderClass provider class for the exclude list
          */
         protected LegacyStringFilterModification(final boolean showKeepAll, final String title,
-            final String description,
-            final String inclList, final String exclList,
-            final Class<? extends ChoicesStateProvider<?>> choicesProviderClass) {
+            final String description, final String inclListTitle, final String exclListTitle,
+            final Class<? extends ChoicesStateProvider<?>> choicesProviderClass,
+            final Class<? extends ExclListProvider<?>> exclListProviderClass) {
             m_showKeepAll = showKeepAll;
             m_title = title;
             m_description = description;
-            m_inclList = inclList;
-            m_exclList = exclList;
+            m_inclListTitle = inclListTitle;
+            m_exclListTitle = exclListTitle;
             m_choicesProviderClass = choicesProviderClass;
+            m_exclListProviderClass = exclListProviderClass;
         }
 
         @Override
@@ -162,17 +165,24 @@ public final class LegacyStringFilter implements NodeParameters {
                 group.find(InclListRef.class).modifyAnnotation(Widget.class).withProperty("description", m_description)
                     .modify();
             }
-            if (m_inclList != null) {
+            if (m_inclListTitle != null) {
                 group.find(InclListRef.class).modifyAnnotation(TwinlistWidget.class)
-                    .withProperty("includedLabel", m_inclList).modify();
+                    .withProperty("includedLabel", m_inclListTitle).modify();
             }
-            if (m_exclList != null) {
+            if (m_exclListTitle != null) {
                 group.find(InclListRef.class).modifyAnnotation(TwinlistWidget.class)
-                    .withProperty("excludedLabel", m_exclList).modify();
+                    .withProperty("excludedLabel", m_exclListTitle).modify();
             }
             if (m_choicesProviderClass != null) {
                 group.find(InclListRef.class).modifyAnnotation(ChoicesProvider.class)
                     .withProperty("value", m_choicesProviderClass).modify();
+                CheckUtils.checkNotNull(m_exclListProviderClass,
+                    "If the inclusion list provider is modified, the exclusion choices provider must be modified with"
+                    + "a compatible implementation as well, but it is missing");
+            }
+            if (m_exclListProviderClass != null) {
+                group.find(ExclListRef.class).modifyAnnotation(ValueProvider.class)
+                    .withProperty("value", m_exclListProviderClass).modify();
             }
         }
     }
@@ -197,6 +207,9 @@ public final class LegacyStringFilter implements NodeParameters {
     }
 
     interface InclListRef extends ParameterReference<String[]>, Modification.Reference {
+    }
+
+    interface ExclListRef extends Modification.Reference {
     }
 
     static final class InclListPersistor implements NodeParametersPersistor<String[]> {
@@ -226,28 +239,63 @@ public final class LegacyStringFilter implements NodeParameters {
     @Effect(predicate = KeepAllColumnsSelectedIsTrue.class, type = Effect.EffectType.DISABLE)
     String[] m_inclList = new String[0];
 
-    static final class ExclListProvider implements StateProvider<String[]> {
+    /**
+     * Base class for exclude list providers that are based on column choices.
+     */
+    public abstract static class ColumnBasedExclListProvider extends ExclListProvider<TypedStringChoice> {
+
+        @Override
+        final String getChoiceID(final TypedStringChoice choice) {
+            return choice.id();
+        }
+    }
+
+    /**
+     * Base class for exclude list providers.
+     *
+     * @param <T> type of choices provided, must match inclusion list provider
+     */
+    public abstract static class ExclListProvider<T> implements StateProvider<String[]> {
 
         private Supplier<String[]> m_inclListSupplier;
+
+        private Supplier<List<T>> m_choicesSupplier;
+
+        /**
+         * @return class for the excl list choices, {@code T} must match the type provided by the inclusion list
+         *         provider
+         */
+        public abstract Class<? extends ChoicesStateProvider<T>> getChoicesProviderClass();
+
+        abstract String getChoiceID(T choice);
 
         @Override
         public void init(final StateProviderInitializer initializer) {
             initializer.computeBeforeOpenDialog();
-            initializer.computeOnValueChange(InclListRef.class);
-            m_inclListSupplier = initializer.getValueSupplier(InclListRef.class);
+            m_inclListSupplier = initializer.computeFromValueSupplier(InclListRef.class);
+            m_choicesSupplier = initializer.computeFromProvidedState(getChoicesProviderClass());
         }
 
         @Override
         public String[] computeState(final NodeParametersInput parametersInput)
             throws StateComputationFailureException {
             final var inclSet = Set.of(m_inclListSupplier.get());
-            return parametersInput.getInTableSpec(0).map(ColumnSelectionUtil::getDoubleColumns).orElse(List.of())
-                .stream().map(DataColumnSpec::getName).filter(Predicate.not(inclSet::contains)).toArray(String[]::new);
+            return m_choicesSupplier.get().stream() //
+                .map(this::getChoiceID) //
+                .filter(Predicate.not(inclSet::contains)).toArray(String[]::new);
+        }
+    }
+
+    static final class DefaultExclListProvider extends ColumnBasedExclListProvider {
+        @Override
+        public Class<? extends ChoicesStateProvider<TypedStringChoice>> getChoicesProviderClass() {
+            return DoubleColumnsProvider.class;
         }
     }
 
     @Persist(configKey = CFG_KEY_EXCL)
-    @ValueProvider(ExclListProvider.class)
+    @ValueProvider(DefaultExclListProvider.class)
+    @Modification.WidgetReference(ExclListRef.class)
     String[] m_exclList = new String[0];
 
     LegacyStringFilter() {
