@@ -10,12 +10,15 @@
   ],
   "exclude": ["**/__tests__/*", "**/__mocks__/*"],
   "compilerOptions": {
+    "composite": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
     "strict": true,
-    "allowJs": true
+    "allowJs": true,
+    "noEmit": true
   }
 }
