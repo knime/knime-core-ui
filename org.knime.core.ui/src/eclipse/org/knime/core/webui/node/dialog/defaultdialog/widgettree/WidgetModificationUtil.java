@@ -59,15 +59,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.function.TriConsumer;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.AnnotationModifier;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetModifier;
 import org.knime.node.parameters.WidgetGroup;
 
 /**
@@ -193,7 +191,8 @@ final class WidgetModificationUtil {
             m_widgetTreeNode.removeAnnotation(annotationClass);
         }
 
-        private final class WidgetTreeNodeAnnotationBuilder<T extends Annotation> implements Modification.AnnotationModifier {
+        private final class WidgetTreeNodeAnnotationBuilder<T extends Annotation>
+            implements Modification.AnnotationModifier {
 
             private final Map<String, Object> m_properties = new HashMap<>();
 
@@ -270,7 +269,13 @@ final class WidgetModificationUtil {
                         .filter(m -> m.getName().equals(entry.getKey())).findFirst()
                         .orElseThrow(() -> new IllegalArgumentException(
                             "No method with name \"" + entry.getKey() + "\" found in " + annotation.getSimpleName()));
-                    if (!method.getReturnType().isInstance(entry.getValue())) {
+
+                    final var expectedType = method.getReturnType();
+                    final var value = entry.getValue();
+
+                    final var typesAreCompatible =
+                        ClassUtils.isAssignable((value == null ? null : value.getClass()), expectedType, true);
+                    if (!typesAreCompatible) {
                         throw new IllegalArgumentException(
                             "The value for method \"" + method.getName() + "\" in " + annotation.getSimpleName()
                                 + " must be of type " + method.getReturnType().getSimpleName());

@@ -104,6 +104,42 @@ class UiSchemaWidgetModificationTest {
     }
 
     @Test
+    void testPrimitiveTypeModification() {
+
+        final class TestSettings implements NodeParameters {
+
+            static final class WidgetGroupSettings implements WidgetGroup {
+
+                static final class FieldReference implements Modification.Reference {
+                }
+
+                @Modification.WidgetReference(FieldReference.class)
+                String m_field;
+            }
+
+            static final class AddWidgetAnnotation implements Modification.Modifier {
+
+                @Override
+                public void modify(final Modification.WidgetGroupModifier group) {
+                    group.find(TestSettings.WidgetGroupSettings.FieldReference.class) //
+                        .addAnnotation(Widget.class) //
+                        .withProperty("title", "Test title") //
+                        .withProperty("description", "Test description") //
+                        .withProperty("advanced", true) //
+                        .modify();
+                }
+
+            }
+
+            @Modification(AddWidgetAnnotation.class)
+            WidgetGroupSettings m_widgetGroup;
+        }
+
+        final var response = buildTestUiSchema(TestSettings.class);
+        assertThatJson(response).inPath("$.elements[0].options.isAdvanced").isBoolean().isTrue();
+    }
+
+    @Test
     void testWorksOnClassAnnotations() {
 
         final class TestSettings implements NodeParameters {
@@ -328,7 +364,8 @@ class UiSchemaWidgetModificationTest {
                 @Override
                 public void modify(final Modification.WidgetGroupModifier group) {
                     group.find(TestSettings.WidgetGroupSettings.FieldReference.class)
-                        .modifyAnnotation(TextInputWidget.class).withProperty("invalidParameter", "some value").modify();
+                        .modifyAnnotation(TextInputWidget.class).withProperty("invalidParameter", "some value")
+                        .modify();
                 }
 
             }
