@@ -50,6 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.persistence;
 
 import java.util.List;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.node.parameters.persistence.Persistor;
@@ -71,8 +72,9 @@ public interface ArrayPersistor<L, S> {
      *
      * @param nodeSettings the node settings to load from
      * @return the length of the array
+     * @throws InvalidSettingsException if the settings are invalid to retrieve the array length
      */
-    int getArrayLength(NodeSettingsRO nodeSettings);
+    int getArrayLength(NodeSettingsRO nodeSettings) throws InvalidSettingsException;
 
     /**
      * Create a load context for the element at the given index.
