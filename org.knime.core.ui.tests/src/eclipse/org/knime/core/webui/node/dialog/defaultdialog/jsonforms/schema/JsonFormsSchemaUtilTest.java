@@ -72,7 +72,6 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.persistence.Persistable;
@@ -486,7 +485,7 @@ class JsonFormsSchemaUtilTest {
                   },
                   "localTime": {
                     "default": "10:30:00",
-                    "format": "date-time",
+                    "format": "time",
                     "type": "string"
                   },
                   "offsetDateTime": {
@@ -496,7 +495,7 @@ class JsonFormsSchemaUtilTest {
                   },
                   "offsetTime": {
                     "default": "10:30Z",
-                    "format": "date-time",
+                    "format": "time",
                     "type": "string"
                   },
                   "zonedDateTime": {
