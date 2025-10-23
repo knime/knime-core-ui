@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
-import type { JsonDataService } from "@knime/ui-extension-service";
+import type {
+  AlertParams,
+  AlertingService,
+  JsonDataService,
+} from "@knime/ui-extension-service";
 
 import { ScriptingService } from "@/scripting-service";
 
@@ -45,6 +49,11 @@ const lock = <T = void>() => {
   return { promise, resolve };
 };
 
+const mockJsonDataService = (backend: MockBackend) =>
+  ({ data: dataFnMock(backend) }) as any as JsonDataService;
+
+const MOCK_ALERTING_SERVICE = { sendAlert: vi.fn() } as any as AlertingService;
+
 describe("scripting-service", () => {
   describe("class EventHandler", () => {
     it("should call event handler on received events", async () => {
@@ -54,9 +63,10 @@ describe("scripting-service", () => {
 
       const events = [promiseA, promiseB, Promise.resolve({ type: "STOP" })];
 
-      const service = new ScriptingService({
-        data: dataFnMock({ getEvent: () => events.shift() }),
-      } as any as JsonDataService);
+      const service = new ScriptingService(
+        mockJsonDataService({ getEvent: () => events.shift() }),
+        MOCK_ALERTING_SERVICE,
+      );
       await nextTick();
 
       const eventHandlerA = vi.fn();
@@ -91,9 +101,10 @@ describe("scripting-service", () => {
         Promise.resolve({ type: "STOP" }),
       ];
 
-      const service = new ScriptingService({
-        data: dataFnMock({ getEvent: () => events.shift() }),
-      } as any as JsonDataService);
+      const service = new ScriptingService(
+        mockJsonDataService({ getEvent: () => events.shift() }),
+        MOCK_ALERTING_SERVICE,
+      );
       await nextTick();
 
       const eventHandler = vi.fn();
@@ -119,12 +130,13 @@ describe("scripting-service", () => {
       const testMethodSpy = vi.fn(() => Promise.resolve(expectedResult));
       const anotherMethodSpy = vi.fn(() => Promise.resolve(expectedResult));
 
-      const service = new ScriptingService({
-        data: dataFnMock({
+      const service = new ScriptingService(
+        mockJsonDataService({
           testMethod: testMethodSpy,
           anotherMethod: anotherMethodSpy,
         }),
-      } as any as JsonDataService);
+        MOCK_ALERTING_SERVICE,
+      );
 
       // Test without options
       const result1 = await service.sendToService("testMethod");
@@ -143,11 +155,10 @@ describe("scripting-service", () => {
     it("isKaiEnabled should call backend correctly", async () => {
       const isKaiEnabledSpy = vi.fn(() => Promise.resolve(true));
 
-      const service = new ScriptingService({
-        data: dataFnMock({
-          isKaiEnabled: isKaiEnabledSpy,
-        }),
-      } as any as JsonDataService);
+      const service = new ScriptingService(
+        mockJsonDataService({ isKaiEnabled: isKaiEnabledSpy }),
+        MOCK_ALERTING_SERVICE,
+      );
 
       const result = await service.isKaiEnabled();
 
@@ -158,11 +169,10 @@ describe("scripting-service", () => {
     it("isLoggedIntoHub should call backend correctly", async () => {
       const isLoggedIntoHubSpy = vi.fn(() => Promise.resolve(false));
 
-      const service = new ScriptingService({
-        data: dataFnMock({
-          isLoggedIntoHub: isLoggedIntoHubSpy,
-        }),
-      } as any as JsonDataService);
+      const service = new ScriptingService(
+        mockJsonDataService({ isLoggedIntoHub: isLoggedIntoHubSpy }),
+        MOCK_ALERTING_SERVICE,
+      );
 
       const result = await service.isLoggedIntoHub();
 
@@ -174,16 +184,28 @@ describe("scripting-service", () => {
       const disclaimer = "AI disclaimer text";
       const getAiDisclaimerSpy = vi.fn(() => Promise.resolve(disclaimer));
 
-      const service = new ScriptingService({
-        data: dataFnMock({
-          getAiDisclaimer: getAiDisclaimerSpy,
-        }),
-      } as any as JsonDataService);
+      const service = new ScriptingService(
+        mockJsonDataService({ getAiDisclaimer: getAiDisclaimerSpy }),
+        MOCK_ALERTING_SERVICE,
+      );
 
       const result = await service.getAiDisclaimer();
 
       expect(getAiDisclaimerSpy).toHaveBeenCalledWith(undefined);
       expect(result).toBe(disclaimer);
     });
+  });
+
+  it("sends alerts via AlertingService", () => {
+    const service = new ScriptingService(
+      mockJsonDataService({}),
+      MOCK_ALERTING_SERVICE,
+    );
+
+    const alert: AlertParams = { type: "error", message: "Test alert" };
+    service.sendAlert(alert);
+
+    expect(MOCK_ALERTING_SERVICE.sendAlert).toHaveBeenCalledOnce();
+    expect(MOCK_ALERTING_SERVICE.sendAlert).toHaveBeenCalledWith(alert);
   });
 });
