@@ -20,11 +20,13 @@ export const dirty = <D>(
   valueComparator?: NoInfer<() => SettingComparator<D | undefined>>,
 ): VueControl<D> =>
   defineControl((props, ctx) => {
-    useDirtySetting({
-      dataPath: computed(() => props.control.path),
-      value: computed(() => props.control.data),
-      valueComparator: valueComparator?.(),
-    });
+    if (props.control.path) {
+      useDirtySetting({
+        dataPath: computed(() => props.control.path),
+        value: computed(() => props.control.data),
+        valueComparator: valueComparator?.(),
+      });
+    }
     return () => h(component, props, ctx.slots);
   });
 

@@ -161,4 +161,70 @@ describe("dirty after initial update", () => {
     expect(getCurrentValues()).toStrictEqual(["initial"]);
     expect(isClean()).toBe(true);
   });
+
+  it("stays clean when a TextMessage receives an initial update", async () => {
+    vi.clearAllMocks();
+    vi.spyOn(JsonDataService.prototype, "initialData").mockResolvedValue({
+      data: {
+        model: {
+          value: "initial",
+        },
+      },
+      schema: {
+        type: "object",
+        properties: {
+          model: {
+            type: "object",
+            properties: {
+              value: {
+                type: "string",
+              },
+            },
+          },
+        },
+      },
+      // eslint-disable-next-line camelcase
+      ui_schema: {
+        elements: [
+          {
+            scope: "#/properties/model/properties/value",
+            type: "Control",
+          },
+          {
+            type: "Control",
+            id: "textMessageId",
+            options: {
+              format: "textMessage",
+            },
+            providedOptions: ["message"],
+          },
+        ],
+      },
+      flowVariableSettings: {},
+      initialUpdates: [
+        {
+          id: "textMessageId",
+          providedOptionName: "message",
+          values: [
+            {
+              indices: [],
+              value: {
+                type: "INFO",
+                title: "Title",
+                description: "Description",
+              },
+            },
+          ],
+        },
+      ],
+    });
+
+    const wrapper = mount(NodeDialog, getOptions());
+    await dynamicImportsSettled(wrapper);
+    await flushPromises();
+
+    expect(wrapper.vm.getCurrentData().model.value).toBe("initial");
+    expect(getCurrentValues()).toStrictEqual(["initial"]);
+    expect(isClean()).toBe(true);
+  });
 });
