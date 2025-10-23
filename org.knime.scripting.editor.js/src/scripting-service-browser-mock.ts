@@ -129,6 +129,10 @@ export const createScriptingServiceMock = (
       });
     },
 
+    sendAlert(alert) {
+      log("Called scriptingService.sendAlert", alert);
+    },
+
     // Console handling
     eventHandlers,
   };

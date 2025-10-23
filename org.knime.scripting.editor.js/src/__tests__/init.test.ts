@@ -20,6 +20,10 @@ const { dialogServiceInstance, jsonDataServiceInstance } = vi.hoisted(() => {
     data: vi.fn(),
   };
 
+  const alertingServiceInstance = {
+    sendAlert: vi.fn(),
+  };
+
   vi.resetModules();
   vi.doMock("@knime/ui-extension-service", () => ({
     JsonDataService: {
@@ -27,6 +31,9 @@ const { dialogServiceInstance, jsonDataServiceInstance } = vi.hoisted(() => {
     },
     DialogService: {
       getInstance: vi.fn(() => Promise.resolve(dialogServiceInstance)),
+    },
+    AlertingService: {
+      getInstance: vi.fn(() => Promise.resolve(alertingServiceInstance)),
     },
   }));
 

@@ -1,4 +1,8 @@
-import { DialogService, JsonDataService } from "@knime/ui-extension-service";
+import {
+  AlertingService,
+  DialogService,
+  JsonDataService,
+} from "@knime/ui-extension-service";
 
 import { consoleHandler } from "./consoleHandler";
 import { displayMode } from "./display-mode";
@@ -38,8 +42,9 @@ export const getSettingsService = (): SettingsServiceType => settingsService;
 export const init = async () => {
   const jsonDataService = await JsonDataService.getInstance();
   const dialogService = await DialogService.getInstance();
+  const alertingService = await AlertingService.getInstance();
 
-  scriptingService = new ScriptingService(jsonDataService);
+  scriptingService = new ScriptingService(jsonDataService, alertingService);
 
   const initialDataAndSettings: {
     initialData: GenericInitialData;

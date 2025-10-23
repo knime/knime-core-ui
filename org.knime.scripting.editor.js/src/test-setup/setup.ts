@@ -39,6 +39,7 @@ initMocked({
     isLoggedIntoHub: vi.fn(() => Promise.resolve(true)),
     getAiDisclaimer: vi.fn(() => Promise.resolve("AI Disclaimer")),
     getAiUsage: vi.fn(() => Promise.resolve(null)),
+    sendAlert: vi.fn(),
   },
   initialData: DEFAULT_INITIAL_DATA,
   settingsService: {

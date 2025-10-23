@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { JsonDataService } from "@knime/ui-extension-service";
+import type {
+  AlertParams,
+  AlertingService,
+  JsonDataService,
+} from "@knime/ui-extension-service";
 
 import { useMainCodeEditorStore } from "./editor";
 import type { PortConfig } from "./initial-data-service";
@@ -63,8 +67,12 @@ export class ScriptingService {
    *
    * @internal
    * @param jsonDataService The JSON data service used for communication with the backend.
+   * @param alertingService The alerting service used to send alerts.
    */
-  constructor(private readonly jsonDataService: JsonDataService) {
+  constructor(
+    private readonly jsonDataService: JsonDataService,
+    private readonly alertingService: AlertingService,
+  ) {
     this.eventPoller = new EventPoller(this.jsonDataService);
   }
 
@@ -141,6 +149,10 @@ export class ScriptingService {
 
   getAiUsage(): Promise<UsageData | null> {
     return this.sendToService("getAiUsage");
+  }
+
+  sendAlert(alert: AlertParams) {
+    this.alertingService?.sendAlert(alert);
   }
 }
 
