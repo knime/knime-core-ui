@@ -38,10 +38,5 @@
     "@typescript-eslint/no-explicit-any": {
       "count": 1
     }
-  },
-  "src/scripting-service-browser-mock.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 9
-    }
   }
 }

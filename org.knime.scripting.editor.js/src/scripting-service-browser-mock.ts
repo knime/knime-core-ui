@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-magic-numbers */
 import { sleep } from "@knime/utils";
 
@@ -20,7 +21,7 @@ const error = (message: any, ...args: any[]) => {
 export type ScriptingServiceMockOptions = {
   sendToServiceMockResponses?: Record<
     string,
-    (options?: any[]) => Promise<any>
+    (...options: any) => Promise<any>
   >;
 };
 
@@ -66,11 +67,11 @@ export const createScriptingServiceMock = (
         opt.sendToServiceMockResponses &&
         methodName in opt.sendToServiceMockResponses
       ) {
-        return opt.sendToServiceMockResponses[methodName](options);
+        return opt.sendToServiceMockResponses[methodName](...(options ?? []));
       }
 
       if (methodName in sendToServiceMockResponses) {
-        return sendToServiceMockResponses[methodName](options);
+        return sendToServiceMockResponses[methodName](...(options ?? []));
       }
 
       // Fallback - Log an error and return undefined
