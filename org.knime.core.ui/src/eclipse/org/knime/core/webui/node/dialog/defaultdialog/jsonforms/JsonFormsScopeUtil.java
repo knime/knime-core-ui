@@ -50,7 +50,9 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -116,9 +118,12 @@ public final class JsonFormsScopeUtil {
      * @return the list of jsonforms scopes
      */
     public static String getScopeFromLocation(final Location location) {
-        final var firstScope = toScope(Stream
-            .concat(Stream.of("#", location.settingsType().getConfigKeyFrontend()), location.paths().get(0).stream())
-            .toList());
+        final var firstPathStream = location.paths().get(0).stream();
+        final var firstScope = toScope(Stream.of(//
+            Stream.of("#"), //
+            Optional.ofNullable(location.settingsType()).map(SettingsType::getConfigKeyFrontend).stream(), //
+            firstPathStream//
+        ).flatMap(Function.identity()).toList());
         final var otherScopes = IntStream.range(1, location.paths().size()).mapToObj(location.paths()::get)
             .map(JsonFormsScopeUtil::toScope);
         final var scopes = Stream.concat(Stream.of(firstScope), otherScopes).toList();
@@ -154,6 +159,11 @@ public final class JsonFormsScopeUtil {
         final List<List<String>> paths = new ArrayList<>();
         List<String> currentPath = new ArrayList<>();
 
+        final var settingsType = SettingsType.fromConfigKey(segments[0]).orElse(null);
+        if (settingsType == null) { // no settings type so the first segment is part of the path
+            currentPath.add(segments[0]);
+        }
+
         for (int i = 1; i < segments.length; i++) {
             final String segment = segments[i];
 
@@ -180,7 +190,7 @@ public final class JsonFormsScopeUtil {
             paths.add(currentPath);
         }
 
-        return new Location(paths, SettingsType.fromConfigKey(segments[0]));
+        return new Location(paths, settingsType);
     }
 
     /**

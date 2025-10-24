@@ -109,6 +109,16 @@ public final class PersistUtil {
     }
 
     /**
+     * Constructs a persist schema from the given persist tree.
+     *
+     * @param tree the persist tree
+     * @return the persist schema as object node
+     */
+    public static ObjectNode constructPersist(final Tree<Persistable> tree) {
+        return new PersistSchemaFactory().createPersistSchemaFromTree(tree);
+    }
+
+    /**
      * Adds the information necessary for the frontend to adapt flow variable handling to custom persisting given by
      * {@link Persist @Persist} annotations and deviations of the {@link Persistable} structure from the
      * {@link WidgetGroup} structure.

@@ -133,13 +133,13 @@ public abstract class LegacyReaderFileSelectionPersistor implements NodeParamete
         var nodeContext = NodeContext.getContext();
         String prefix;
         if (nodeContext != null) {
-            prefix = String.format("The ColumnFilter with key '%s' of the node '%s' is null.", configKey,
+            prefix = String.format("The FileSelection with key '%s' of the node '%s' is null.", configKey,
                 nodeContext.getNodeContainer().getNameWithID());
         } else {
-            prefix = String.format("The ColumnFilter with key '%s' is null. ", configKey);
+            prefix = String.format("The FileSelection with key '%s' is null. ", configKey);
         }
         return prefix
-            + " It is replaced by a new ColumnFilter instance to prevent errors but please fix this issue anyway.";
+            + " It is replaced by a new FileSelection instance to prevent errors but please fix this issue anyway.";
     }
 
     @Override

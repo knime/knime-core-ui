@@ -1,6 +1,6 @@
 import type { Result } from "../../api/types/Result";
 
-import type { DialogSettings } from "./useUpdates";
+import type { DialogSettings, SettingsIdContext } from "./useUpdates";
 
 export type IndexedIsActive = { indices: string[]; isActive: boolean };
 export type IsActiveCallback = (
@@ -18,25 +18,39 @@ export default () => {
 
   const registeredTriggersActive = new Map<string, IsActiveCallback>();
 
+  const getKey = (
+    settingsId: SettingsIdContext | undefined,
+    triggerId: string,
+  ) => {
+    return settingsId
+      ? `dynamicsettings(${settingsId.settingsId}):atPath(${settingsId.currentParentPathSegments}):${triggerId}`
+      : triggerId;
+  };
+
   const registerTrigger = (
     triggerId: string,
     isActive: IsActiveCallback,
     callback: TriggerCallback,
+    settingsId?: SettingsIdContext,
   ) => {
-    registeredTriggers.set(triggerId, callback);
-    registeredTriggersActive.set(triggerId, isActive);
+    const key = getKey(settingsId, triggerId);
+    registeredTriggers.set(key, callback);
+    registeredTriggersActive.set(key, isActive);
   };
 
   const getTriggerCallback = ({
     id,
     indexIds,
+    settingsId,
   }: {
     id: string;
     indexIds?: string[];
+    settingsId?: SettingsIdContext;
   }) => {
-    const callback = registeredTriggers.get(id);
+    const key = getKey(settingsId, id);
+    const callback = registeredTriggers.get(key);
     if (!callback) {
-      throw Error(`No trigger registered for id ${id}`);
+      throw new Error(`No trigger registered for id ${key}`);
     }
     return callback(indexIds ?? []);
   };
@@ -44,13 +58,16 @@ export default () => {
   const getTriggerIsActiveCallback = ({
     id,
     indexIds,
+    settingsId,
   }: {
     id: string;
     indexIds?: string[];
+    settingsId?: SettingsIdContext;
   }) => {
-    const callback = registeredTriggersActive.get(id);
+    const key = getKey(settingsId, id);
+    const callback = registeredTriggersActive.get(key);
     if (!callback) {
-      throw Error(`No trigger registered for id ${id}`);
+      throw new Error(`No trigger registered for id ${key}`);
     }
     return callback(indexIds ?? []);
   };

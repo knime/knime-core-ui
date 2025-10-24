@@ -214,8 +214,8 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
     @Override
     public Tree<WidgetGroup> createTree(final Class<? extends WidgetGroup> rootClass, final SettingsType settingsType) {
         final var tree = super.createTree(rootClass, settingsType);
-        propagateLayoutAdvancedAndEffectAnnotationsToChildren(tree);
         resolveWidgetModifications(tree);
+        propagateLayoutAdvancedAndEffectAnnotationsToChildren(tree);
         return tree;
     }
 

@@ -1,3 +1,5 @@
+import type { SettingsIdContext } from "./useUpdates";
+
 export type StateProviderLocation = (
   | {
       id: string;
@@ -7,6 +9,7 @@ export type StateProviderLocation = (
     }
 ) & {
   providedOptionName: string;
+  settingsId?: SettingsIdContext;
 };
 
 type Key = {
@@ -32,6 +35,12 @@ const isInvokedBy =
       return false;
     }
     if (invocationKey.providedOptionName !== otherKey.providedOptionName) {
+      return false;
+    }
+    if (
+      JSON.stringify(invocationKey.settingsId) !==
+      JSON.stringify(otherKey.settingsId)
+    ) {
       return false;
     }
     if (

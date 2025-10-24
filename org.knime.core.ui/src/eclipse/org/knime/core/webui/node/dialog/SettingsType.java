@@ -49,6 +49,7 @@
 package org.knime.core.webui.node.dialog;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettings;
@@ -117,9 +118,8 @@ public enum SettingsType {
      * @param configKey the config key used to store the settings with the node
      * @return the settings type for the given config key
      */
-    public static SettingsType fromConfigKey(final String configKey) {
-        return Arrays.stream(values()).filter(type -> type.getConfigKeyFrontend().equals(configKey)).findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown config key: " + configKey));
+    public static Optional<SettingsType> fromConfigKey(final String configKey) {
+        return Arrays.stream(values()).filter(type -> type.getConfigKeyFrontend().equals(configKey)).findFirst();
     }
 
     /**
@@ -132,6 +132,7 @@ public enum SettingsType {
 
     /**
      * Whether the settings of this type are the same or specific to a node.
+     *
      * @return true if the settings are node specific, false otherwise
      */
     public boolean isNodeSpecific() {

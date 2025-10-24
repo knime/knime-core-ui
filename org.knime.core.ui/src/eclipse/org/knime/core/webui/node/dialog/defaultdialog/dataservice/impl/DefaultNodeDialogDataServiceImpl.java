@@ -63,6 +63,7 @@ import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DataServiceRequestHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DefaultNodeDialogDataService;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DynamicParametersTriggerInvocationHandlerContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Result;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
@@ -99,6 +100,8 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
 
     private DataServiceTriggerInvocationHandler m_triggerInvocationHandler;
 
+    private final DynamicParametersTriggerInvocationHandlerContext m_dynamicParametersTriggerInvocationHandlerContext;
+
     /**
      * Constructor.
      *
@@ -113,6 +116,8 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         m_buttonActionHandlers = new ButtonWidgetActionHandlerHolder(m_keyToSettingsClassMap.values());
         m_buttonUpdateHandlers = new ButtonWidgetUpdateHandlerHolder(m_keyToSettingsClassMap.values());
         m_requestHandler = new DataServiceRequestHandler();
+        m_dynamicParametersTriggerInvocationHandlerContext =
+            serviceRegistry == null ? null : serviceRegistry.dynamicParametersTriggerInvocationHandlerContext();
     }
 
     DataServiceTriggerInvocationHandler getTriggerInvocationHandler() {
@@ -182,6 +187,17 @@ public final class DefaultNodeDialogDataServiceImpl implements DefaultNodeDialog
         final var triggerInvocationHandler = getTriggerInvocationHandler();
         return m_requestHandler.handleRequest(widgetId,
             () -> triggerInvocationHandler.trigger(triggerClass, rawDependenciesUnparsed));
+    }
+
+    @Override
+    public Result<?> update2WithSettingsId(final String settingsId, final String widgetId, final Trigger trigger,
+        final Map<String, List<IndexedValue<String>>> rawDependencies) throws InterruptedException, ExecutionException {
+        final var triggerInvocationHandler =
+            m_dynamicParametersTriggerInvocationHandlerContext.getTriggerInvocationHandler(settingsId);
+        final var dataServiceTriggerInvocationHandler =
+            new DataServiceTriggerInvocationHandler(createContext(), m_serviceRegistry, triggerInvocationHandler);
+        return m_requestHandler.handleRequest(widgetId,
+            () -> dataServiceTriggerInvocationHandler.trigger(trigger, rawDependencies));
     }
 
     static final class NoHandlerFoundException extends IllegalArgumentException {

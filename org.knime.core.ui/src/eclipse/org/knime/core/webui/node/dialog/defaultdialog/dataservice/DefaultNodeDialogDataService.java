@@ -115,8 +115,8 @@ public interface DefaultNodeDialogDataService extends DialogSettingsUpdateServic
         throws InterruptedException, ExecutionException;
 
     /**
-     * Update method for the new updating mechanism using {@link ParameterReference} and {@link StateProvider}. This will
-     * eventually replace the {@link #update} method.
+     * Update method for the new updating mechanism using {@link ParameterReference} and {@link StateProvider}. This
+     * will eventually replace the {@link #update} method.
      *
      * @param widgetId identifying which pending requests came from the same widget and thus have to be canceled
      * @param trigger the trigger that is to be invoked. This can either be a {@link Trigger.ValueTrigger} induced from
@@ -135,6 +135,15 @@ public interface DefaultNodeDialogDataService extends DialogSettingsUpdateServic
     @Override
     Result<?> update2(String widgetId, Trigger trigger, Map<String, List<IndexedValue<String>>> rawDependencies)
         throws InterruptedException, ExecutionException;
+
+    /**
+     * {@see #update2(String, Trigger, Map)} but for a specific settings ID (used for dynamic parameters).
+     *
+     * @param settingsId defining which parameters are to be used as context
+     */
+    @SuppressWarnings("javadoc")
+    Result<?> update2WithSettingsId(String settingsId, String widgetId, Trigger trigger,
+        Map<String, List<IndexedValue<String>>> rawDependencies) throws InterruptedException, ExecutionException;
 
     /**
      * This method is triggered whenever an input value changes and an external validation is specified.

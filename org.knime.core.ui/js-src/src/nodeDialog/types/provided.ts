@@ -5,9 +5,11 @@ import type { PossibleFlowVariable } from "../api/types";
 import type { Result } from "../api/types/Result";
 import type { IdsRecord } from "../composables/nodeDialog/useArrayIds";
 import type { IndexedIsActive } from "../composables/nodeDialog/useTriggers";
+import type { SettingsIdContext } from "../composables/nodeDialog/useUpdates";
 
 import type { PersistSchema } from "./Persist";
 import type { SettingsData } from "./SettingsData";
+import type { Update, UpdateResult } from "./Update";
 
 type registerWatcher = (params: {
   transformSettings: (
@@ -26,6 +28,7 @@ export interface ProvidedByNodeDialog {
   isTriggerActive: (triggerId: {
     id: string;
     indexIds?: string[];
+    settingsId?: SettingsIdContext;
   }) => Promise<Result<IndexedIsActive[]>>;
   updateData: (path: string) => void;
   getData: getData;
@@ -33,6 +36,14 @@ export interface ProvidedByNodeDialog {
   createArrayAtPath: (path: string) => IdsRecord;
   getDialogPopoverTeleportDest: () => null | HTMLElement;
   getInitialValue: <T>(path: string) => T | undefined;
+  processUpdates: (param: {
+    updates: {
+      globalUpdates?: Update[];
+      initialUpdates?: UpdateResult[];
+    };
+    settingsIdContext?: SettingsIdContext;
+  }) => void;
+  setAdvancedDynamicParameters: (path: string, hasAdvanced: boolean) => void;
 }
 
 type ProvidedFlowVariablesApi = {

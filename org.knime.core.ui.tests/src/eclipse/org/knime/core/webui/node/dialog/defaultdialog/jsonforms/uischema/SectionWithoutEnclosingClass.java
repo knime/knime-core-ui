@@ -54,7 +54,7 @@ import org.knime.node.parameters.layout.Section;
  *
  * @author Paul Bärnreuther
  */
-@Section
+@Section(title = "Section Without Enclosing Class")
 public interface SectionWithoutEnclosingClass {
 
 }

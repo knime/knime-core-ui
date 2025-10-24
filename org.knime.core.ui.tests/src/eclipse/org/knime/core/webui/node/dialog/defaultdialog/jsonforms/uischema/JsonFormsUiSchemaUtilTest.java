@@ -100,7 +100,7 @@ class JsonFormsUiSchemaUtilTest {
     }
 
     interface TestSettingsLayout {
-        @Section
+        @Section(title = "Section1")
         interface Section1 {
         }
 
@@ -130,7 +130,7 @@ class JsonFormsUiSchemaUtilTest {
         final var response = buildTestUiSchema(DummySettings.class);
         assertThatJson(response).inPath("$.elements").isArray().hasSize(2);
         assertThatJson(response).inPath("$.elements[0].type").isString().isEqualTo("Section");
-        assertThatJson(response).inPath("$.elements[0].label").isString().isEqualTo("");
+        assertThatJson(response).inPath("$.elements[0].label").isString().isEqualTo("Section1");
         assertThatJson(response).inPath("$.elements[0]").isObject().doesNotContainKey("description");
         assertThatJson(response).inPath("$.elements[1].type").isString().isEqualTo("Section");
         assertThatJson(response).inPath("$.elements[1].label").isString().isEqualTo("Test section title");

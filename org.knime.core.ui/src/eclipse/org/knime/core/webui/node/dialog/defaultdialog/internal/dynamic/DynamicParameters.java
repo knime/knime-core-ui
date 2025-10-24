@@ -58,11 +58,16 @@ import static org.knime.core.webui.node.dialog.defaultdialog.util.JacksonSeriali
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.List;
+import java.util.function.Supplier;
 
+import org.knime.core.webui.node.dialog.defaultdialog.PersistUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.UpdatesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersDeserializer;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersSerializer;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.persistence.persisttree.PersistTreeFactory;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
@@ -70,8 +75,10 @@ import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.updates.StateProvider;
 
 import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Put this annotation on a field of an interface/abstract class type extending {@link DynamicNodeParameters} in order
@@ -153,17 +160,31 @@ public @interface DynamicParameters {
             final var data = computeParameters(parametersInput);
             final var dataClass = data.getClass();
             final var dataMapper = JsonFormsDataUtil.getMapper();
-            final var widgetTree = new WidgetTreeFactory().createTree(dataClass);
-
             final var serializedData = serialize(data, new DynamicNodeParametersSerializer(this));
+
+            final var widgetTree = new WidgetTreeFactory().createTree(dataClass);
             final var schema = buildSchema(dataClass, widgetTree, parametersInput, dataMapper);
             final var uiSchema = buildUISchema(List.of(widgetTree), parametersInput);
+            final var updates =
+                UpdatesUtil.constructUpdates(widgetTree, (ObjectNode)serializedData, parametersInput, null);
+            final Supplier<TriggerInvocationHandler<String>> triggerInvocationHandler =
+                () -> TriggerInvocationHandler.fromWidgetTrees(List.of(widgetTree), parametersInput);
 
-            return new DataAndDialog<>(//
-                serializedData, //
-                schema.toString(), //
-                uiSchema.toString()//
-            );
+            final var persistTree = new PersistTreeFactory().createTree(dataClass);
+            final var persist = PersistUtil.constructPersist(persistTree);
+
+            try {
+                return new DataAndDialog<>(//
+                    serializedData, //
+                    dataMapper.writeValueAsString(schema), //
+                    dataMapper.writeValueAsString(uiSchema), //
+                    dataMapper.writeValueAsString(persist), //
+                    dataMapper.writeValueAsString(updates), //
+                    triggerInvocationHandler//
+                );
+            } catch (JsonProcessingException ex) {
+                throw new IllegalStateException("Failed to serialize dialog parts.", ex);
+            }
 
         }
 

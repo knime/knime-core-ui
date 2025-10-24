@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import { inject, nextTick } from "vue";
 import { composePaths } from "@jsonforms/core";
 import { get } from "lodash-es";
@@ -39,6 +40,37 @@ const resolveToIndices = (ids: string[] | undefined) =>
 
 export type DialogSettings = { view?: any; model?: any };
 
+export type SettingsIdContext = {
+  settingsId: string;
+  currentParentPathSegments: string[];
+};
+
+const settingsIdToRegisteredWatchersRemoval = new Map<string, (() => void)[]>();
+
+const addRegisteredWatcher = (
+  settingsId: string,
+  unregisterCallback: () => void,
+): void => {
+  if (!settingsIdToRegisteredWatchersRemoval.has(settingsId)) {
+    settingsIdToRegisteredWatchersRemoval.set(settingsId, []);
+  }
+  settingsIdToRegisteredWatchersRemoval
+    .get(settingsId)!
+    .push(unregisterCallback);
+};
+
+export const clearRegisteredWatchersForSettingsId = (
+  settingsId: string,
+): void => {
+  const removals = settingsIdToRegisteredWatchersRemoval.get(settingsId);
+  if (removals) {
+    for (const remove of removals) {
+      remove();
+    }
+    settingsIdToRegisteredWatchersRemoval.delete(settingsId);
+  }
+};
+
 const indicesAreDefined = (indices: (number | null)[]): indices is number[] =>
   !indices.includes(null);
 
@@ -53,8 +85,12 @@ const getToBeAdjustedSegments = (
    */
   values: [number[], unknown][],
   newSettings: DialogSettings,
+  currentParentPathSegments: string[],
 ) => {
   const pathSegments = combineScopeWithIndices(scope, indices ?? []);
+  if (currentParentPathSegments.length > 0) {
+    pathSegments[0] = [...currentParentPathSegments, pathSegments[0]].join(".");
+  }
 
   type SettingsWithPath = {
     settings: object;
@@ -140,7 +176,7 @@ export default ({
   registerWatcher: (params: {
     dependencies: string[];
     transformSettings: TriggerCallback;
-  }) => void;
+  }) => () => void;
   /**
    * Used to trigger a new update depending on value update results (i.e. transitive updates)
    */
@@ -149,6 +185,7 @@ export default ({
     id: string,
     isActive: IsActiveCallback,
     callback: TriggerCallback,
+    settingsId?: SettingsIdContext,
   ) => void;
   sendAlert: (params: AlertParams) => void;
   pathIsControlledByFlowVariable: (path: string) => boolean;
@@ -163,6 +200,7 @@ export default ({
       updateResult: UpdateResult,
       onValueUpdate: (path: string) => void,
       indexIds: string[],
+      settingsIdContext?: SettingsIdContext,
     ) =>
     (newSettings: DialogSettings) => {
       const indices = resolveToIndices(indexIds);
@@ -181,6 +219,9 @@ export default ({
             indices,
             indicesValuePairs.map(({ indices, value }) => [indices, value]),
             newSettings,
+            settingsIdContext
+              ? settingsIdContext.currentParentPathSegments
+              : [],
           );
         toBeAdjustedByLastPathSegment.forEach(
           ({ path, values: [[, value]] }) => {
@@ -198,12 +239,14 @@ export default ({
               ...indexLocation,
               scope: updateResult.scope,
               providedOptionName: updateResult.providedOptionName,
+              settingsId: settingsIdContext,
             };
           }
           return {
             ...indexLocation,
             id: updateResult.id,
             providedOptionName: updateResult.providedOptionName,
+            settingsId: settingsIdContext,
           };
         };
         const { values } = updateResult;
@@ -229,6 +272,7 @@ export default ({
     initialUpdates: UpdateResult[],
     currentSettings: DialogSettings,
     indexIds: string[] = [],
+    settingsIdContext?: SettingsIdContext,
   ) => {
     const updatedPaths: string[] = [];
     initialUpdates
@@ -237,6 +281,7 @@ export default ({
           updateResult,
           (path) => updatedPaths.push(path),
           indexIds,
+          settingsIdContext,
         ),
       )
       .forEach((transform) => {
@@ -246,11 +291,33 @@ export default ({
     nextTick(() => updateData(updatedPaths));
   };
 
-  const setValueTrigger = (scope: string, callback: TriggerCallback) => {
-    registerWatcher({
-      dependencies: [scope],
+  const toScope = (scope: string, settingsIdContext?: SettingsIdContext) => {
+    if (settingsIdContext) {
+      return scope.replace(
+        /^#/,
+        `#/properties/${settingsIdContext.currentParentPathSegments.join(
+          "/properties/",
+        )}`,
+      );
+    }
+    return scope;
+  };
+
+  const setValueTrigger = (
+    scope: string,
+    callback: TriggerCallback,
+    settingsIdContext?: SettingsIdContext,
+  ) => {
+    const registeredWatcherRemoval = registerWatcher({
+      dependencies: [toScope(scope, settingsIdContext)],
       transformSettings: callback,
     });
+    if (settingsIdContext) {
+      addRegisteredWatcher(
+        settingsIdContext.settingsId,
+        registeredWatcherRemoval,
+      );
+    }
   };
 
   const setTrigger = (
@@ -258,15 +325,16 @@ export default ({
     isActive: IsActiveCallback,
     triggerCallback: TriggerCallback,
     triggerInitially?: boolean,
+    settingsIdContext?: SettingsIdContext,
   ): null | ReturnType<TriggerCallback> => {
     if (isValueTrigger(trigger)) {
-      setValueTrigger(trigger.scope, triggerCallback);
+      setValueTrigger(trigger.scope, triggerCallback, settingsIdContext);
       return null;
     }
     if (triggerInitially) {
       return triggerCallback([]);
     }
-    registerTrigger(trigger.id, isActive, triggerCallback);
+    registerTrigger(trigger.id, isActive, triggerCallback, settingsIdContext);
     return null;
   };
 
@@ -294,6 +362,20 @@ export default ({
       options: [null, trigger, currentDependencies],
     });
 
+  const callDataServiceUpdate2WithSettingsId = ({
+    trigger,
+    currentDependencies,
+    settingsId,
+  }: {
+    trigger: Trigger;
+    currentDependencies: Record<string, Pairs>;
+    settingsId: string;
+  }): Promise<Result<UpdateResult[]>> =>
+    jsonDataService.data({
+      method: "settings.update2WithSettingsId",
+      options: [settingsId, null, trigger, currentDependencies],
+    });
+
   const sendAlerts = (messages: string[] | undefined) => {
     messages?.forEach((message) =>
       sendAlert({
@@ -304,22 +386,42 @@ export default ({
   };
 
   const getUpdateResults =
-    ({ dependencies, trigger }: Update) =>
+    (
+      { dependencies, trigger }: Update,
+      settingsIdContext?: SettingsIdContext,
+    ) =>
     (indexIds: string[]) =>
     (dependencySettings: DialogSettings): Promise<Result<UpdateResult[]>> => {
       const indicesBeforeUpdate = resolveToIndices(indexIds);
       if (!indicesAreDefined(indicesBeforeUpdate)) {
         throw Error("Trigger called with wrong ids: No indices found.");
       }
-      const currentDependencies = extractCurrentDependencies(
-        dependencies,
-        dependencySettings,
-        indicesBeforeUpdate,
-      );
-      return callDataServiceUpdate2({
-        trigger,
-        currentDependencies,
-      });
+      if (settingsIdContext) {
+        const parentDependencySettings = get(
+          dependencySettings,
+          settingsIdContext.currentParentPathSegments.join("."),
+        );
+        const currentDependencies = extractCurrentDependencies(
+          dependencies,
+          parentDependencySettings,
+          indicesBeforeUpdate,
+        );
+        return callDataServiceUpdate2WithSettingsId({
+          trigger,
+          currentDependencies,
+          settingsId: settingsIdContext.settingsId,
+        });
+      } else {
+        const currentDependencies = extractCurrentDependencies(
+          dependencies,
+          dependencySettings,
+          indicesBeforeUpdate,
+        );
+        return callDataServiceUpdate2({
+          trigger,
+          currentDependencies,
+        });
+      }
     };
 
   const getOrCreateIndicesEntry = (
@@ -342,12 +444,14 @@ export default ({
     indexIds,
     value,
     settings,
+    settingsIdContext,
   }: {
     scope: string;
     currentIndices: number[];
     indexIds: string[];
     value: unknown;
     settings: object;
+    settingsIdContext?: SettingsIdContext;
   }) => {
     const indices = indexIds.map(getIndex);
     if (!indicesAreDefined(indices)) {
@@ -359,6 +463,7 @@ export default ({
         currentIndices,
         [[indices, value]],
         settings,
+        settingsIdContext ? settingsIdContext.currentParentPathSegments : [],
       );
     return Boolean(
       toBeAdjustedByLastPathSegment.find(({ settings: s, values: [[, v]] }) => {
@@ -406,14 +511,18 @@ export default ({
     }, [] satisfies IndexedIsActive[]);
 
   const getIsUpdateNecessary =
-    ({ dependencies, trigger }: Update) =>
+    (
+      { dependencies, trigger }: Update,
+      settingsIdContext?: SettingsIdContext,
+    ) =>
     (indexIds: string[]) =>
     async (
       dependencySettings: DialogSettings,
     ): Promise<Result<IndexedIsActive[]>> => {
-      const response = await getUpdateResults({ dependencies, trigger })(
-        indexIds,
-      )(dependencySettings);
+      const response = await getUpdateResults(
+        { dependencies, trigger },
+        settingsIdContext,
+      )(indexIds)(dependencySettings);
       if (response.state === "SUCCESS") {
         const isNecessary = isUpdateNecessary({
           updateResult: response.result,
@@ -430,18 +539,27 @@ export default ({
     };
 
   const getTriggerCallback =
-    ({ dependencies, trigger }: Update): TriggerCallback =>
+    (
+      { dependencies, trigger }: Update,
+      settingsIdContext?: SettingsIdContext,
+    ): TriggerCallback =>
     (indexIds) =>
     async (dependencySettings) => {
-      const response = await getUpdateResults({ dependencies, trigger })(
-        indexIds,
-      )(dependencySettings);
+      const response = await getUpdateResults(
+        { dependencies, trigger },
+        settingsIdContext,
+      )(indexIds)(dependencySettings);
       return (newSettings) => {
         if (response.state === "FAIL" || response.state === "SUCCESS") {
           sendAlerts(response.message);
         }
         if (response.state === "SUCCESS") {
-          resolveUpdateResults(response.result ?? [], newSettings, indexIds);
+          resolveUpdateResults(
+            response.result ?? [],
+            newSettings,
+            indexIds,
+            settingsIdContext,
+          );
         }
       };
     };
@@ -452,6 +570,7 @@ export default ({
    */
   const registerUpdates = (
     globalUpdates: Update[],
+    settingsIdContext?: SettingsIdContext,
   ): null | ReturnType<TriggerCallback> => {
     let initialTransformation: null | ReturnType<TriggerCallback> = null;
     globalUpdates.forEach((update) => {
@@ -459,8 +578,9 @@ export default ({
       const inducedInitialTransformation = setTrigger(
         update.trigger,
         isActive,
-        getTriggerCallback(update),
+        getTriggerCallback(update, settingsIdContext),
         update.triggerInitially,
+        settingsIdContext,
       );
       initialTransformation =
         inducedInitialTransformation ?? initialTransformation;

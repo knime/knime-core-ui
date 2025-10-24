@@ -48,36 +48,57 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
 
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.validation.CustomValidationContext;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.CustomFileConnectionFolderReaderWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
+
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
 
 /**
- * Registry record that holds state that is to be held in a default node dialog to be used in an RPC service call.
- *
- * @param fileSystemConnector connector for managing custom file system connections (see
- *            {@link CustomFileConnectionFolderReaderWidget}).
- * @param customValidationContext context for managing custom validation callbacks (see {@link CustomValidation}).
- * @param dynamicParametersTriggerInvocationHandlerContext context for managing state providers within dynamic
- *            parameters provided via {@link DynamicParameters}.
+ * An instance of this class holds dynamically registered TriggerInvocationHandlers for dynamic parameters.
  *
  * @author Paul Bärnreuther
  */
-public record NodeDialogServiceRegistry(//
-    FileSystemConnector fileSystemConnector, //
-    CustomValidationContext customValidationContext, //
-    DynamicParametersTriggerInvocationHandlerContext dynamicParametersTriggerInvocationHandlerContext //
-) {
+public final class DynamicParametersTriggerInvocationHandlerContext {
+
+    final Map<String, Supplier<TriggerInvocationHandler<String>>> m_triggerInvocationHandlers =
+        new ConcurrentHashMap<>();
+
+    final Map<String, TriggerInvocationHandler<String>> m_cachedTriggerInvocationHandlers = new ConcurrentHashMap<>();
 
     /**
-     * Clears all state from both the file system connector and validation context.
+     * Registers a triggerInvocationHandler for part of the dialog and returns a unique UUID as the id to call that
+     * handler.
+     *
+     * @param triggerInvocationHandler the handler to invoke for trigger invocations
+     * @return a unique UUID that can be used as id to invoke the handler
      */
-    public void onDeactivateRpc() {
-        fileSystemConnector.clear();
-        customValidationContext.clear();
-        dynamicParametersTriggerInvocationHandlerContext.clear();
+    public String
+        registerTriggerInvocationHandler(final Supplier<TriggerInvocationHandler<String>> triggerInvocationHandler) {
+
+        final var validatorId = UUID.randomUUID().toString();
+        m_triggerInvocationHandlers.put(validatorId, triggerInvocationHandler);
+
+        return validatorId;
     }
 
+    /**
+     * Gets the trigger invocation handler for the given id. Any id given to the frontend has been registered before via
+     * {@link #registerTriggerInvocationHandler(Supplier)} before.
+     *
+     * @param id the id of the trigger invocation handler
+     * @return the trigger invocation handler for the given id
+     */
+    public TriggerInvocationHandler<String> getTriggerInvocationHandler(final String id) {
+        return m_cachedTriggerInvocationHandlers.computeIfAbsent(id, key -> m_triggerInvocationHandlers.get(key).get());
+    }
+
+    /**
+     * Clears all registered validators.
+     */
+    public void clear() {
+        m_triggerInvocationHandlers.clear();
+        m_cachedTriggerInvocationHandlers.clear();
+    }
 }

@@ -72,6 +72,7 @@ import org.knime.core.node.workflow.NodeID;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.data.DataServiceContextTest;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DynamicParametersTriggerInvocationHandlerContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
@@ -86,12 +87,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUti
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.StateComputationFailureException;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil.DateTimeStringFormatValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.ValidationCallback;
+import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -135,7 +138,10 @@ class DefaultNodeDialogDataServiceImplTest {
         getDataServiceWithRegistry(final Class<? extends NodeParameters> modelSettingsClass) {
         final var fileSystemConnector = new FileSystemConnector();
         final var validationContext = new CustomValidationContext();
-        final var registry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext);
+        final var dynamicParametersTriggerInvocationHandlerContext =
+            new DynamicParametersTriggerInvocationHandlerContext();
+        final var registry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext,
+            dynamicParametersTriggerInvocationHandlerContext);
         return new Pair<>(
             new DefaultNodeDialogDataServiceImpl(Map.of(SettingsType.MODEL, modelSettingsClass), registry), registry);
     }
@@ -430,6 +436,68 @@ class DefaultNodeDialogDataServiceImplTest {
             assertThatJson(result).inPath("$[1].scope").isEqualTo("#/properties/model/properties/secondUpdatedWidget");
             assertThatJson(result).inPath("$[1].values[0].value").isEqualTo(testDepenenciesBarValue + "_second");
 
+        }
+
+        @Test
+        void testUpdate2WithSettingsId() throws ExecutionException, InterruptedException {
+
+            class InnerSettings implements NodeParameters {
+
+                static final class InnerValueRef implements ParameterReference<String> {
+                }
+
+                static final class InnerStateProvider implements StateProvider<String> {
+
+                    private Supplier<String> m_dependencySupplier;
+
+                    @Override
+                    public void init(final StateProviderInitializer initializer) {
+                        m_dependencySupplier = initializer.computeFromValueSupplier(InnerValueRef.class);
+                    }
+
+                    @Override
+                    public String computeState(final NodeParametersInput context) {
+                        return m_dependencySupplier.get() + "_updated";
+                    }
+
+                }
+
+                @Widget(title = "", description = "")
+                @ValueReference(InnerValueRef.class)
+                String m_dependency;
+
+                @Widget(title = "", description = "")
+                @ValueProvider(InnerStateProvider.class)
+                String m_updatedWidget;
+
+            }
+
+            final var dataServiceAndRegistry = getDataServiceWithRegistry(InnerSettings.class);
+            final var dataService = dataServiceAndRegistry.getFirst();
+            final var registry = dataServiceAndRegistry.getSecond();
+
+            // Register a trigger invocation handler for the inner settings
+            final var innerSettings = new InnerSettings();
+            innerSettings.m_dependency = "initial";
+            final var widgetTreeFactory = new WidgetTreeFactory();
+            final var widgetTree = widgetTreeFactory.createTree(InnerSettings.class);
+            final Supplier<TriggerInvocationHandler<String>> triggerInvocationHandler =
+                () -> TriggerInvocationHandler.fromWidgetTrees(List.of(widgetTree), null);
+            final var settingsId = registry.dynamicParametersTriggerInvocationHandlerContext()
+                .registerTriggerInvocationHandler(triggerInvocationHandler);
+
+            // Trigger an update
+            final String testDependencyValue = "custom value";
+            final var testDependency = List.of(new IndexedValue<String>(List.of(), testDependencyValue));
+            final var valueRefScope = "#/properties/dependency";
+            final var valueRefTrigger = new Trigger.ValueTrigger(valueRefScope);
+            final var resultWrapper = dataService.update2WithSettingsId(settingsId, "widgetId", valueRefTrigger,
+                Map.of(valueRefScope, testDependency));
+            final var result = MAPPER.valueToTree(resultWrapper.result());
+
+            assertThatJson(result).inPath("$").isArray().hasSize(1);
+            assertThatJson(result).inPath("$[0].scope").isEqualTo("#/properties/updatedWidget");
+            assertThatJson(result).inPath("$[0].values[0].value").isEqualTo(testDependencyValue + "_updated");
         }
     }
 

@@ -1,23 +1,13 @@
 import { computed, h } from "vue";
 
-import {
-  type VueControl,
-  type VueControlProps,
-  defineControl,
-  mapControls,
-} from "@knime/jsonforms";
+import { type VueControl, defineControl, mapControls } from "@knime/jsonforms";
 
 import { useFlowSettings } from "../composables/components/useFlowVariables";
 import type { allControls } from "../renderers";
 import FlowVariableButtonWrapper from "../uiComponents/flowVariables/components/FlowVariableButtonWrapper.vue";
 
-type OnControllingHandler<D> = (
-  props: VueControlProps<D>,
-) => (path: string, value: any, flowVariableName: string) => void;
-
 export const withFlowVariableButton = <D>(
   component: VueControl<D>,
-  onControllingFlowVariableSet?: OnControllingHandler<D>,
 ): VueControl<D> =>
   defineControl((props, ctx) => {
     const path = computed(() => props.control.path);
@@ -42,8 +32,7 @@ export const withFlowVariableButton = <D>(
                 dataPath: path.value,
                 configPaths,
                 flowSettings,
-                onControllingFlowVariableSet:
-                  onControllingFlowVariableSet?.(props) || props.handleChange,
+                onControllingFlowVariableSet: props.handleChange,
               }),
             ];
           },

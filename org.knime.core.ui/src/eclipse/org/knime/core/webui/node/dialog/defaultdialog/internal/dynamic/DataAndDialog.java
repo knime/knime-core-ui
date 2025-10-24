@@ -48,6 +48,12 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic;
 
+import java.util.Optional;
+import java.util.function.Supplier;
+
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -68,6 +74,21 @@ public final class DataAndDialog<T> {
     @JsonProperty("uiSchema")
     final String m_uiSchema;
 
+    @JsonProperty("persist")
+    final String m_persistSchema; // can be null
+
+    /**
+     * Containing the two fields initialUpdates and globalUpdates
+     */
+    @JsonProperty("updates")
+    final String m_updates; // can be null
+
+    @JsonIgnore // not serialized but instead passed to the rpc service directly
+    private final Supplier<TriggerInvocationHandler<String>> m_triggerInvocationHandlerSupplier; // can be null
+
+    @JsonProperty("settingsId")
+    String m_triggerInvocationHandlerSupplierId; // can be null
+
     /**
      * Creates a new instance of {@link DataAndDialog}.
      *
@@ -76,9 +97,17 @@ public final class DataAndDialog<T> {
      * @param uiSchema the JSON UI schema to be used in the dialog.
      */
     DataAndDialog(final T data, final String schema, final String uiSchema) {
+        this(data, schema, uiSchema, null, null, null);
+    }
+
+    DataAndDialog(final T data, final String schema, final String uiSchema, final String persistSchema,
+        final String updates, final Supplier<TriggerInvocationHandler<String>> triggerInvocationHandlerSupplier) {
         m_data = data;
         m_schema = schema;
         m_uiSchema = uiSchema;
+        m_persistSchema = persistSchema;
+        m_updates = updates;
+        m_triggerInvocationHandlerSupplier = triggerInvocationHandlerSupplier;
     }
 
     /**
@@ -88,6 +117,21 @@ public final class DataAndDialog<T> {
      */
     public T getData() {
         return m_data;
+    }
+
+    /**
+     * Empty if no trigger invocation handler supplier is needed.
+     *
+     * @return the triggerInvocationHandlerSupplier that is not serialized but expected to be passed to the rpc service
+     */
+    @JsonIgnore
+    public Optional<Supplier<TriggerInvocationHandler<String>>> getTriggerInvocationHandlerSupplier() {
+        return Optional.ofNullable(m_triggerInvocationHandlerSupplier);
+    }
+
+    @JsonIgnore
+    public void setTriggerInvocationHandlerSupplierId(final String id) {
+        m_triggerInvocationHandlerSupplierId = id;
     }
 
 }

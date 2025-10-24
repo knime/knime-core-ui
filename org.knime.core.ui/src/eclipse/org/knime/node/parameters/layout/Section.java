@@ -67,7 +67,7 @@ public @interface Section {
     /**
      * @return the title of the section
      */
-    String title() default "";
+    String title();
 
     /**
      * @return an optional description of the section

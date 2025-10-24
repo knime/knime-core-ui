@@ -77,6 +77,8 @@ import org.knime.core.node.workflow.VariableType.BooleanType;
 import org.knime.core.node.workflow.VariableType.IntType;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.UpdatesUtilTest.UIStateUpdateTest.TestDynamicParams;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DynamicParametersTriggerInvocationHandlerContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.validation.CustomValidationContext;
@@ -84,6 +86,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButt
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DefaultClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicParametersProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.CustomFileConnectionFolderReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FSConnectionProvider;
@@ -91,6 +94,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectio
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.CheckboxRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
@@ -1442,7 +1446,10 @@ public class UpdatesUtilTest {
             ArgumentMatchers.anyString(), ArgumentMatchers.anyList())).thenReturn(fileSystemId);
 
         final var validationContext = Mockito.mock(CustomValidationContext.class);
-        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext);
+        final var dynamicParametersTriggerInvocationHandlerSupplier =
+            Mockito.mock(DynamicParametersTriggerInvocationHandlerContext.class);
+        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext,
+            dynamicParametersTriggerInvocationHandlerSupplier);
 
         final var response = buildUpdates(Map.of(SettingsType.MODEL, new TestSettings()),
             createDefaultNodeSettingsContext(), serviceRegistry);
@@ -1482,10 +1489,13 @@ public class UpdatesUtilTest {
         final var testValidatorId = "test-validator-uuid";
         final var fileSystemConnector = Mockito.mock(FileSystemConnector.class);
         final var validationContext = Mockito.mock(CustomValidationContext.class);
+        final var dynamicParametersTriggerInvocationHandlerSupplier =
+            Mockito.mock(DynamicParametersTriggerInvocationHandlerContext.class);
         Mockito.when(validationContext.registerValidator(ArgumentMatchers.any(ValidationCallback.class),
             ArgumentMatchers.eq(String.class))).thenReturn(testValidatorId);
 
-        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext);
+        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext,
+            dynamicParametersTriggerInvocationHandlerSupplier);
         final var response = buildUpdates(Map.of(SettingsType.MODEL, new TestSettings()),
             createDefaultNodeSettingsContext(), serviceRegistry);
 
@@ -1528,10 +1538,13 @@ public class UpdatesUtilTest {
         final var testValidatorId = "test-validator-uuid";
         final var fileSystemConnector = Mockito.mock(FileSystemConnector.class);
         final var validationContext = Mockito.mock(CustomValidationContext.class);
+        final var dynamicParametersTriggerInvocationHandlerSupplier =
+            Mockito.mock(DynamicParametersTriggerInvocationHandlerContext.class);
         Mockito.when(validationContext.registerValidator(ArgumentMatchers.any(ValidationCallback.class),
             ArgumentMatchers.eq(String.class))).thenReturn(testValidatorId);
 
-        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext);
+        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext,
+            dynamicParametersTriggerInvocationHandlerSupplier);
         final var response = buildUpdates(Map.of(SettingsType.MODEL, new TestSettings()),
             createDefaultNodeSettingsContext(), serviceRegistry);
 
@@ -1579,10 +1592,13 @@ public class UpdatesUtilTest {
         final var testValidatorId = "test-validator-uuid";
         final var fileSystemConnector = Mockito.mock(FileSystemConnector.class);
         final var validationContext = Mockito.mock(CustomValidationContext.class);
+        final var dynamicParametersTriggerInvocationHandlerSupplier =
+            Mockito.mock(DynamicParametersTriggerInvocationHandlerContext.class);
         Mockito.when(validationContext.registerValidator(ArgumentMatchers.any(ValidationCallback.class),
             ArgumentMatchers.eq(String.class))).thenReturn(testValidatorId);
 
-        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext);
+        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext,
+            dynamicParametersTriggerInvocationHandlerSupplier);
         final var response = buildUpdates(Map.of(SettingsType.MODEL, new TestSettings()),
             createDefaultNodeSettingsContext(), serviceRegistry);
 
@@ -1593,6 +1609,72 @@ public class UpdatesUtilTest {
         assertThatJson(response)
             .inPath("$.globalUpdates[?(@.trigger.scope == '#/properties/model/properties/enableValidation')]").isArray()
             .hasSizeGreaterThanOrEqualTo(1);
+    }
+
+    static class MyDynamicParameters implements TestDynamicParams {
+
+        static final class TestStringChoicesProvider implements StringChoicesProvider {
+
+            @Override
+            public List<String> choices(final NodeParametersInput context) {
+                return List.of("james", "bond");
+            }
+        }
+
+        @ChoicesProvider(TestStringChoicesProvider.class)
+        @Widget(title = "Dynamic Field", description = "A dynamic field with choices")
+        String dynamicField = "dynamicValue";
+
+    }
+
+    @Test
+    void testDynamicSettingsWidgetIsIntercepted() {
+
+        class TestSettings implements NodeParameters {
+            static class TestDataAndDialogProvider implements DynamicParametersProvider<TestDynamicParams> {
+
+                @Override
+                public void init(final StateProviderInitializer initializer) {
+                    initializer.computeBeforeOpenDialog();
+                }
+
+                @Override
+                public ClassIdStrategy<TestDynamicParams> getClassIdStrategy() {
+                    return new DefaultClassIdStrategy<>(List.of(MyDynamicParameters.class));
+                }
+
+                @Override
+                public TestDynamicParams computeParameters(final NodeParametersInput parametersInput)
+                    throws StateComputationFailureException {
+                    return new MyDynamicParameters();
+                }
+            }
+
+            @DynamicParameters(TestDataAndDialogProvider.class)
+            TestDynamicParams m_dynamicSettings;
+        }
+
+        final var settingsId = "mySettingsId";
+        final var fileSystemConnector = Mockito.mock(FileSystemConnector.class);
+        final var validationContext = Mockito.mock(CustomValidationContext.class);
+        final var dynamicParametersContext = Mockito.mock(DynamicParametersTriggerInvocationHandlerContext.class);
+        Mockito.when(dynamicParametersContext.registerTriggerInvocationHandler(ArgumentMatchers.any()))
+            .thenReturn(settingsId);
+
+        final var serviceRegistry =
+            new NodeDialogServiceRegistry(fileSystemConnector, validationContext, dynamicParametersContext);
+
+        final var response = buildUpdates(Map.of(SettingsType.MODEL, new TestSettings()),
+            createDefaultNodeSettingsContext(), serviceRegistry);
+
+        assertThatJson(response).inPath("$.initialUpdates[0].providedOptionName").isString()
+            .isEqualTo(JsonFormsConsts.UiSchema.TAG_DYNAMIC_SETTINGS);
+        assertThatJson(response).inPath("$.initialUpdates[0].values[0].value.settingsId").isString()
+            .isEqualTo(settingsId);
+        assertThatJson(response).inPath("$.initialUpdates[0].values[0].value.updates").isString().contains("james")
+            .contains("bond");
+
+        Mockito.verify(dynamicParametersContext).registerTriggerInvocationHandler(ArgumentMatchers.any());
     }
 
 }
