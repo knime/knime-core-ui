@@ -40,15 +40,20 @@ export const addIndexToStateProviders = (
     } & Parameters<Provided[typeof injectionKey]>[0],
     callback,
   ) =>
-    addStateProviderListener(
-      {
-        ...location,
-        scope: determineElementScope(location.scope, parentScope),
-        indexIds: [indexId, ...indexIds],
-        indices: [index, ...indices],
-      },
-      callback,
-    );
+    location.settingsId
+      ? /**
+         * Keep untouched in this case since the array index is part of the path of the dynamic settings.
+         */
+        addStateProviderListener({ indexIds, indices, ...location }, callback)
+      : addStateProviderListener(
+          {
+            ...location,
+            scope: determineElementScope(location.scope, parentScope),
+            indexIds: [indexId, ...indexIds],
+            indices: [index, ...indices],
+          },
+          callback,
+        );
 
   provide(injectionKeyParentScope, parentScope);
   provide(injectionKey, wrapperWithIndex);
@@ -61,14 +66,21 @@ export const addIndexToTriggers = (indexId: string) => {
   const wrapperWithIndexTrigger: Provided[typeof injectionKeyTrigger] = (
     triggerId: unknown,
   ) => {
-    const { id, indexIds = [] } = triggerId as {
+    const {
+      id,
+      indexIds = [],
+      settingsId,
+    } = triggerId as {
       id: string;
       indexIds?: string[];
+      settingsId?: string;
     };
-    trigger({
-      id,
-      indexIds: [indexId, ...indexIds],
-    });
+    return settingsId
+      ? trigger({ id, indexIds, settingsId })
+      : trigger({
+          id,
+          indexIds: [indexId, ...indexIds],
+        });
   };
 
   provide(injectionKeyTrigger, wrapperWithIndexTrigger);
@@ -77,11 +89,13 @@ export const addIndexToTriggers = (indexId: string) => {
   const isTriggerActive = inject(injectionKeyIsTriggerActive);
 
   const wrapperWithIndexTriggerIsActive: Provided[typeof injectionKeyIsTriggerActive] =
-    ({ id, indexIds = [] }) =>
-      isTriggerActive({
-        id,
-        indexIds: [indexId, ...indexIds],
-      });
+    ({ id, indexIds = [], settingsId }) =>
+      settingsId
+        ? isTriggerActive({ id, indexIds, settingsId })
+        : isTriggerActive({
+            id,
+            indexIds: [indexId, ...indexIds],
+          });
 
   provide(injectionKeyIsTriggerActive, wrapperWithIndexTriggerIsActive);
 };

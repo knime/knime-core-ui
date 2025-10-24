@@ -48,20 +48,25 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_DYNAMIC_SETTINGS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil.getScopeFromLocation;
 
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.util.Pair;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DynamicParametersTriggerInvocationHandlerContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.validation.CustomValidationContext;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DataAndDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FSConnectionProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.util.JacksonSerializationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.updates.IndexedValue;
@@ -204,8 +209,15 @@ public final class UpdateResultsUtil {
         if (VALIDATOR_ID.equals(providedOptionName)) {
             CheckUtils.checkNotNull(serviceRegistry,
                 "NodeDialogServiceRegistry must be provided when updating validation error.");
-            return new UpdateResult.LocationUiStateUpdateResult<>(scope, providedOptionName, sortByIndices(
-                interceptAndRegisterValidators(values, location, serviceRegistry.customValidationContext())));
+            return new UpdateResult.LocationUiStateUpdateResult<>(scope, providedOptionName,
+                sortByIndices(interceptAndRegisterValidators(values, serviceRegistry.customValidationContext())));
+        }
+        if (TAG_DYNAMIC_SETTINGS.equals(providedOptionName)) {
+            CheckUtils.checkNotNull(serviceRegistry,
+                "NodeDialogServiceRegistry must be provided when updating dynamic parameters data and dialog.");
+            return new UpdateResult.LocationUiStateUpdateResult<>(scope, providedOptionName,
+                sortByIndices(interceptAndRegisterDataAndDialog(values,
+                    serviceRegistry.dynamicParametersTriggerInvocationHandlerContext())));
         }
         return new UpdateResult.LocationUiStateUpdateResult<>(scope, providedOptionName,
             sortByIndices(serializeValues(values, serializeUiState)));
@@ -226,7 +238,7 @@ public final class UpdateResultsUtil {
     }
 
     private static <I> List<IndexedValue<I>> interceptAndRegisterValidators(final List<IndexedValue<I>> values,
-        final Location location, final CustomValidationContext validationContext) {
+        final CustomValidationContext validationContext) {
         return values.stream().map(value -> {
             if (value.value() instanceof Pair pair) {
                 final var callback = (ValidationCallback<?>)pair.getFirst();
@@ -240,6 +252,22 @@ public final class UpdateResultsUtil {
                 final var validatorId = validationContext.registerValidator(callback, type);
                 // Return the UUID instead of the validation callback
                 return new IndexedValue<>(value.indices(), validatorId);
+            }
+            throw new IllegalStateException("Expected Pair with ValidationCallback, but got " + value.value());
+        }).toList();
+    }
+
+    private static <I> List<IndexedValue<I>> interceptAndRegisterDataAndDialog(final List<IndexedValue<I>> values,
+        final DynamicParametersTriggerInvocationHandlerContext context) {
+        return values.stream().map(value -> {
+            if (value.value() instanceof DataAndDialog dataAndDialog) {
+                final Optional<Supplier<TriggerInvocationHandler<String>>> supplier =
+                    Optional.ofNullable(dataAndDialog).flatMap(DataAndDialog::getTriggerInvocationHandlerSupplier);
+                if (supplier.isPresent()) {
+                    final var id = context.registerTriggerInvocationHandler(supplier.get());
+                    dataAndDialog.setTriggerInvocationHandlerSupplierId(id);
+                }
+                return value;
             }
             throw new IllegalStateException("Expected Pair with ValidationCallback, but got " + value.value());
         }).toList();
@@ -280,7 +308,6 @@ public final class UpdateResultsUtil {
      * @param triggerResult the result from the trigger invocation
      * @param serviceRegistry the service registry containing file system connector and validation context (can be null
      *            for components)
-     * @param currentData the current settings data, used to extract field values for initial validation (can be null)
      * @return the list of resulting instructions
      */
     public static <I> List<UpdateResult> toUpdateResults(final TriggerResult<I> triggerResult,

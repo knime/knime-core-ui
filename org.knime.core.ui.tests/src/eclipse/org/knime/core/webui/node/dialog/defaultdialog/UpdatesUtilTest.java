@@ -77,6 +77,7 @@ import org.knime.core.node.workflow.VariableType.BooleanType;
 import org.knime.core.node.workflow.VariableType.IntType;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DynamicParametersTriggerInvocationHandlerContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.validation.CustomValidationContext;
@@ -1442,7 +1443,10 @@ public class UpdatesUtilTest {
             ArgumentMatchers.anyString(), ArgumentMatchers.anyList())).thenReturn(fileSystemId);
 
         final var validationContext = Mockito.mock(CustomValidationContext.class);
-        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext);
+        final var dynamicParametersTriggerInvocationHandlerSupplier =
+            Mockito.mock(DynamicParametersTriggerInvocationHandlerContext.class);
+        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext,
+            dynamicParametersTriggerInvocationHandlerSupplier);
 
         final var response = buildUpdates(Map.of(SettingsType.MODEL, new TestSettings()),
             createDefaultNodeSettingsContext(), serviceRegistry);
@@ -1482,10 +1486,13 @@ public class UpdatesUtilTest {
         final var testValidatorId = "test-validator-uuid";
         final var fileSystemConnector = Mockito.mock(FileSystemConnector.class);
         final var validationContext = Mockito.mock(CustomValidationContext.class);
+        final var dynamicParametersTriggerInvocationHandlerSupplier =
+            Mockito.mock(DynamicParametersTriggerInvocationHandlerContext.class);
         Mockito.when(validationContext.registerValidator(ArgumentMatchers.any(ValidationCallback.class),
             ArgumentMatchers.eq(String.class))).thenReturn(testValidatorId);
 
-        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext);
+        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext,
+            dynamicParametersTriggerInvocationHandlerSupplier);
         final var response = buildUpdates(Map.of(SettingsType.MODEL, new TestSettings()),
             createDefaultNodeSettingsContext(), serviceRegistry);
 
@@ -1528,10 +1535,13 @@ public class UpdatesUtilTest {
         final var testValidatorId = "test-validator-uuid";
         final var fileSystemConnector = Mockito.mock(FileSystemConnector.class);
         final var validationContext = Mockito.mock(CustomValidationContext.class);
+        final var dynamicParametersTriggerInvocationHandlerSupplier =
+            Mockito.mock(DynamicParametersTriggerInvocationHandlerContext.class);
         Mockito.when(validationContext.registerValidator(ArgumentMatchers.any(ValidationCallback.class),
             ArgumentMatchers.eq(String.class))).thenReturn(testValidatorId);
 
-        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext);
+        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext,
+            dynamicParametersTriggerInvocationHandlerSupplier);
         final var response = buildUpdates(Map.of(SettingsType.MODEL, new TestSettings()),
             createDefaultNodeSettingsContext(), serviceRegistry);
 
@@ -1579,10 +1589,13 @@ public class UpdatesUtilTest {
         final var testValidatorId = "test-validator-uuid";
         final var fileSystemConnector = Mockito.mock(FileSystemConnector.class);
         final var validationContext = Mockito.mock(CustomValidationContext.class);
+        final var dynamicParametersTriggerInvocationHandlerSupplier =
+            Mockito.mock(DynamicParametersTriggerInvocationHandlerContext.class);
         Mockito.when(validationContext.registerValidator(ArgumentMatchers.any(ValidationCallback.class),
             ArgumentMatchers.eq(String.class))).thenReturn(testValidatorId);
 
-        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext);
+        final var serviceRegistry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext,
+            dynamicParametersTriggerInvocationHandlerSupplier);
         final var response = buildUpdates(Map.of(SettingsType.MODEL, new TestSettings()),
             createDefaultNodeSettingsContext(), serviceRegistry);
 

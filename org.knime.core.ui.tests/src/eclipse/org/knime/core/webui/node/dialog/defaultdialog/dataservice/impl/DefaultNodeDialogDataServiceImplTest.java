@@ -72,6 +72,7 @@ import org.knime.core.node.workflow.NodeID;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.data.DataServiceContextTest;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DynamicParametersTriggerInvocationHandlerContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.Trigger;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
@@ -135,7 +136,10 @@ class DefaultNodeDialogDataServiceImplTest {
         getDataServiceWithRegistry(final Class<? extends NodeParameters> modelSettingsClass) {
         final var fileSystemConnector = new FileSystemConnector();
         final var validationContext = new CustomValidationContext();
-        final var registry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext);
+        final var dynamicParametersTriggerInvocationHandlerContext =
+            new DynamicParametersTriggerInvocationHandlerContext();
+        final var registry = new NodeDialogServiceRegistry(fileSystemConnector, validationContext,
+            dynamicParametersTriggerInvocationHandlerContext);
         return new Pair<>(
             new DefaultNodeDialogDataServiceImpl(Map.of(SettingsType.MODEL, modelSettingsClass), registry), registry);
     }

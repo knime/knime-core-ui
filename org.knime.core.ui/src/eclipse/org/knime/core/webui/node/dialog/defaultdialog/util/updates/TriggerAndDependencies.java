@@ -52,11 +52,10 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -108,8 +107,8 @@ public class TriggerAndDependencies {
     public Map<LocationAndType, List<IndexedValue<Integer>>>
         extractDependencyValues(final Map<SettingsType, WidgetGroup> settings, final int... triggerIndices) {
         final var mapper = JsonFormsDataUtil.getMapper();
-        final Map<SettingsType, JsonNode> jsonNodes = getDependencySettingsTypes().stream().collect(
-            Collectors.toMap(Function.identity(), settingsType -> mapper.valueToTree(settings.get(settingsType))));
+        final Map<Optional<SettingsType>, JsonNode> jsonNodes = getDependencySettingsTypes().stream()
+            .collect(Collectors.toMap(Optional::of, settingsType -> mapper.valueToTree(settings.get(settingsType))));
         return createDependenciesValuesMap(jsonNodes, triggerIndices);
     }
 
@@ -122,19 +121,20 @@ public class TriggerAndDependencies {
      */
     public Map<LocationAndType, List<IndexedValue<Integer>>> extractDependencyValues(final ObjectNode dataJson,
         final int... triggerIndices) {
-        final Map<SettingsType, JsonNode> dataJsonPerSettingsType = new EnumMap<>(SettingsType.class);
+        final Map<Optional<SettingsType>, JsonNode> dataJsonPerSettingsType = new HashMap<>();
         Stream.of(SettingsType.values()).forEach(settingsType -> {
             final var configKey = settingsType.getConfigKeyFrontend();
             if (dataJson.has(configKey)) {
-                dataJsonPerSettingsType.put(settingsType, dataJson.get(configKey));
+                dataJsonPerSettingsType.put(Optional.of(settingsType), dataJson.get(configKey));
             }
         });
+        dataJsonPerSettingsType.put(Optional.empty(), dataJson);
 
         return createDependenciesValuesMap(dataJsonPerSettingsType, triggerIndices);
     }
 
     private Map<LocationAndType, List<IndexedValue<Integer>>>
-        createDependenciesValuesMap(final Map<SettingsType, JsonNode> jsonNodes, final int[] triggerIndices) {
+        createDependenciesValuesMap(final Map<Optional<SettingsType>, JsonNode> jsonNodes, final int[] triggerIndices) {
         final Map<LocationAndType, List<IndexedValue<Integer>>> dependencyValues = new HashMap<>();
         for (var vertex : m_dependencyVertices) {
             dependencyValues.put(vertex.getLocationAndType(), extractValues(vertex, jsonNodes, triggerIndices));
@@ -143,10 +143,10 @@ public class TriggerAndDependencies {
     }
 
     private static List<IndexedValue<Integer>> extractValues(final DependencyVertex vertex,
-        final Map<SettingsType, JsonNode> jsonNodes, final int[] triggerIndices) {
+        final Map<Optional<SettingsType>, JsonNode> jsonNodes, final int[] triggerIndices) {
         final var locationAndType = vertex.getLocationAndType();
         final var location = locationAndType.location();
-        var groupJsonNode = jsonNodes.get(location.settingsType());
+        var groupJsonNode = jsonNodes.get(Optional.ofNullable(location.settingsType()));
 
         final var paths = location.paths();
         var indexedFieldValues = getIndexedFieldValues(groupJsonNode, paths, triggerIndices);

@@ -71,6 +71,7 @@ const isKeyValuePresentInObject = (
   }
   return false;
 };
+
 export const hasAdvancedOptions = (uischema: object) =>
   isKeyValuePresentInObject(uischema, {
     parentKey: "options",

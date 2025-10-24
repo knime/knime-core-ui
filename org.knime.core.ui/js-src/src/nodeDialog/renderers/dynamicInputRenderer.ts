@@ -6,7 +6,7 @@ import { priorityRanks } from "@knime/jsonforms";
 import { hasFormat, inputFormats } from "../constants/inputFormats";
 
 const DynamicInputControl = defineAsyncComponent(
-  () => import("../uiComponents/DynamicInputControl.vue"),
+  () => import("../uiComponents/dynamicParameters/DynamicInputControl.vue"),
 );
 
 export const dynamicInputRenderer = {

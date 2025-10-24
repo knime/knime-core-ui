@@ -100,7 +100,7 @@ class JsonFormsUiSchemaUtilTest {
     }
 
     interface TestSettingsLayout {
-        @Section
+        @Section(title = "Section1")
         interface Section1 {
         }
 

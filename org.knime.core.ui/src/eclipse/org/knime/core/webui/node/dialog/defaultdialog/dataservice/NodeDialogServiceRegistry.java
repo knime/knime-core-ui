@@ -50,6 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
 
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.validation.CustomValidationContext;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.CustomFileConnectionFolderReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
 
@@ -59,12 +60,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.C
  * @param fileSystemConnector connector for managing custom file system connections (see
  *            {@link CustomFileConnectionFolderReaderWidget}).
  * @param customValidationContext context for managing custom validation callbacks (see {@link CustomValidation}).
+ * @param dynamicParametersTriggerInvocationHandlerContext context for managing state providers within dynamic
+ *            parameters provided via {@link DynamicParameters}.
  *
  * @author Paul Bärnreuther
  */
 public record NodeDialogServiceRegistry(//
     FileSystemConnector fileSystemConnector, //
-    CustomValidationContext customValidationContext //
+    CustomValidationContext customValidationContext, //
+    DynamicParametersTriggerInvocationHandlerContext dynamicParametersTriggerInvocationHandlerContext //
 ) {
 
     /**
@@ -74,4 +78,5 @@ public record NodeDialogServiceRegistry(//
         fileSystemConnector.clear();
         customValidationContext.clear();
     }
+
 }

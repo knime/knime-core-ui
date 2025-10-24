@@ -129,6 +129,22 @@ public final class UpdatesUtil {
     }
 
     /**
+     * Construct updates object node for a single widget tree.
+     *
+     * @param widgetTree the single widget tree
+     * @param jsonData the json data used for initial updates
+     * @param context the current context
+     * @param serviceRegistry to resolve file system and validation related updates
+     * @return the constructed updates object node
+     */
+    public static ObjectNode constructUpdates(final Tree<WidgetGroup> widgetTree, final ObjectNode jsonData,
+        final NodeParametersInput context, final NodeDialogServiceRegistry serviceRegistry) {
+        final var objectNode = JsonFormsDataUtil.getMapper().createObjectNode();
+        addUpdates(objectNode, List.of(widgetTree), jsonData, context, serviceRegistry);
+        return objectNode;
+    }
+
+    /**
      * Adds an array "globalUpdates" with one element for each trigger of an update defined by {@link StateProviders} to
      * the rootNode if any are present. Also adds initially triggered results in a separate array "initialUpdates".
      *

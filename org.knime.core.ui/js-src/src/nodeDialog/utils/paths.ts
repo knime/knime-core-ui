@@ -1,5 +1,5 @@
 import type { ConfigPath } from "../composables/components/useFlowVariables";
-import type { PersistSchema } from "../types/Persist";
+import type { PersistSchema, PersistTreeSchema } from "../types/Persist";
 
 export const composePaths = (path1: string, path2: string) => {
   if (path1 === "") {
@@ -16,6 +16,22 @@ const resolveIndexTemplate = (
     return path;
   }
   return path.replace(/\$\{array_index\}/g, lastIndexSegment);
+};
+
+const pathToPersistSchema = new Map<string, PersistTreeSchema>();
+
+export const addPersistSchemaForPath = (
+  path: string,
+  schema: PersistTreeSchema,
+) => {
+  pathToPersistSchema.set(path, schema);
+};
+
+const isDynamicParametersSchema = (
+  schema: PersistSchema,
+  parentPath: string,
+): schema is PersistTreeSchema => {
+  return pathToPersistSchema.has(parentPath);
 };
 
 /**
@@ -137,6 +153,7 @@ export const getConfigPaths = ({
   path: string;
 }): ConfigPath[] => {
   const segments = path.split(".");
+  let parentPath = "";
   let configPaths: string[][] = [[]];
   let schema = persistSchema;
 
@@ -151,7 +168,10 @@ export const getConfigPaths = ({
       configPaths = configPaths.map((p) => [...p, segment]);
       lastIndexSegment = segment;
       schema = schema.items;
-    } else if (schema.type === "object") {
+    } else if (
+      schema.type === "object" ||
+      isDynamicParametersSchema(schema, parentPath)
+    ) {
       const parentPropertiesRoute = schema.propertiesRoute ?? [];
       const getRoutedParentPaths = () =>
         configPaths.map((parent) => [...parent, ...parentPropertiesRoute]);
@@ -169,7 +189,9 @@ export const getConfigPaths = ({
         );
         continue;
       }
-
+      if (pathToPersistSchema.has(parentPath)) {
+        schema = pathToPersistSchema.get(parentPath)!;
+      }
       schema = schema.properties[segment] ?? {};
 
       const route = [...parentPropertiesRoute, ...(schema.route ?? [])];
@@ -189,6 +211,7 @@ export const getConfigPaths = ({
     } else {
       configPaths = configPaths.map((parent) => [...parent, segment]);
     }
+    parentPath = composePaths(parentPath, segment);
   }
 
   let dataPaths = [segments];

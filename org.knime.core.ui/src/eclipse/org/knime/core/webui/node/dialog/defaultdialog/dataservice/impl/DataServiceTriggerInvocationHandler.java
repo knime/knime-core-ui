@@ -94,6 +94,14 @@ final class DataServiceTriggerInvocationHandler {
         m_triggerInvocationHandler = TriggerInvocationHandler.fromWidgetTrees(widgetTrees, m_context);
     }
 
+    DataServiceTriggerInvocationHandler(final NodeParametersInput context,
+        final NodeDialogServiceRegistry serviceRegistry,
+        final TriggerInvocationHandler<String> triggerInvocationHandler) {
+        m_context = context;
+        m_serviceRegistry = serviceRegistry;
+        m_triggerInvocationHandler = triggerInvocationHandler;
+    }
+
     List<UpdateResult> trigger(final Trigger trigger, final Map<String, List<IndexedValue<String>>> rawDependencies) {
         final Function<LocationAndType, List<IndexedValue<String>>> dependencyProvider =
             locationAndType -> rawDependencies.get(getScopeFromLocation(locationAndType.location())).stream()

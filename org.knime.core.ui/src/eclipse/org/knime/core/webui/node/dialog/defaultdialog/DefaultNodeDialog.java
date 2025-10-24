@@ -58,6 +58,7 @@ import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DynamicParametersTriggerInvocationHandlerContext;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
@@ -89,8 +90,8 @@ public final class DefaultNodeDialog implements NodeDialog, DefaultNodeDialogUIE
 
     private final Map<SettingsType, Class<? extends NodeParameters>> m_settingsClasses;
 
-    private final NodeDialogServiceRegistry m_serviceRegistry =
-        new NodeDialogServiceRegistry(new FileSystemConnector(), new CustomValidationContext());
+    private final NodeDialogServiceRegistry m_serviceRegistry = new NodeDialogServiceRegistry(new FileSystemConnector(),
+        new CustomValidationContext(), new DynamicParametersTriggerInvocationHandlerContext());
 
     /**
      * Creates a new instance.

@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { inject, nextTick, onMounted, provide, ref } from "vue";
+import {
+  computed,
+  inject,
+  nextTick,
+  onMounted,
+  provide,
+  reactive,
+  ref,
+} from "vue";
 import { type JsonSchema, type UISchemaElement } from "@jsonforms/core";
 import { cloneDeep, set } from "lodash-es";
 
@@ -25,7 +33,9 @@ import useStateProviders from "./composables/nodeDialog/useStateProviders";
 import useTriggers, {
   type TriggerCallback,
 } from "./composables/nodeDialog/useTriggers";
-import useUpdates from "./composables/nodeDialog/useUpdates";
+import useUpdates, {
+  type SettingsIdContext,
+} from "./composables/nodeDialog/useUpdates";
 import { initializeRenderers } from "./renderers";
 import type { InitialData } from "./types/InitialData";
 import type { PersistSchema } from "./types/Persist";
@@ -118,10 +128,8 @@ const runWithDependencies = async (
 ) => (await triggerCallback(getCurrentData()))(getCurrentData());
 
 const trigger = (params: unknown) =>
-  runWithDependencies(
-    getTriggerCallback(params as { id: string; indexIds?: string[] }),
-  );
-const isTriggerActive = (params: { id: string; indexIds?: string[] }) =>
+  runWithDependencies(getTriggerCallback(params as { id: string }));
+const isTriggerActive = (params: { id: string }) =>
   getTriggerIsActiveCallback(params)(getCurrentData());
 // UPDATES
 
@@ -156,16 +164,40 @@ const { registerUpdates, resolveUpdateResults } = useUpdates({
   },
   globalArrayIdsRecord,
 });
-const resolveInitialUpdates = (initialUpdates: UpdateResult[]) =>
-  resolveUpdateResults(initialUpdates, getCurrentData());
-const registerGlobalUpdates = (globalUpdates: Update[]) => {
-  const initialTransformation = registerUpdates(globalUpdates);
+
+const resolveInitialUpdates = (
+  initialUpdates: UpdateResult[],
+  settingsIdContext?: SettingsIdContext,
+) =>
+  resolveUpdateResults(initialUpdates, getCurrentData(), [], settingsIdContext);
+const registerGlobalUpdates = (
+  globalUpdates: Update[],
+  settingsIdContext?: SettingsIdContext,
+) => {
+  const initialTransformation = registerUpdates(
+    globalUpdates,
+    settingsIdContext,
+  );
   if (initialTransformation) {
     // we need to wait for the next tick to ensure that array items are already rendered and have an _id
     nextTick(() => {
       runWithDependencies(initialTransformation);
     });
   }
+};
+
+const processUpdates = ({
+  settingsIdContext,
+  updates,
+}: {
+  updates: {
+    globalUpdates?: Update[];
+    initialUpdates?: UpdateResult[];
+  };
+  settingsIdContext?: SettingsIdContext;
+}) => {
+  resolveInitialUpdates(updates.initialUpdates ?? [], settingsIdContext);
+  registerGlobalUpdates(updates.globalUpdates ?? [], settingsIdContext);
 };
 
 // dirty settings
@@ -284,12 +316,25 @@ const changeAdvancedSettings = () => {
   showAdvancedSettings.value = !showAdvancedSettings.value;
 };
 
-const hasAdvancedOptions2 = () => {
+const pathsOfDynamicParametersWithAdvancedOptions = reactive(new Set());
+
+const setAdvancedDynamicParameters = (path: string, hasAdvanced: boolean) => {
+  if (hasAdvanced) {
+    pathsOfDynamicParametersWithAdvancedOptions.add(path);
+  } else {
+    pathsOfDynamicParametersWithAdvancedOptions.delete(path);
+  }
+};
+
+const showAdvancedSettingsButton = computed(() => {
   if (!uischema.value) {
     return false;
   }
+  if (pathsOfDynamicParametersWithAdvancedOptions.size > 0) {
+    return true;
+  }
   return hasAdvancedOptions(uischema.value);
-};
+});
 
 const isSomeModifierKeyPressed = (event: KeyboardEvent) =>
   (["altKey", "ctrlKey", "metaKey", "shiftKey"] as const).some(
@@ -317,8 +362,7 @@ onMounted(async () => {
   setCurrentData(initialSettings.data);
   setRegisterSettingsMethod(dialogService.registerSettings.bind(dialogService));
   persistSchema.value = initialSettings.persist;
-  resolveInitialUpdates(initialSettings.initialUpdates ?? []);
-  registerGlobalUpdates(initialSettings.globalUpdates ?? []);
+  processUpdates({ updates: initialSettings });
   dialogService.setApplyListener(applySettings);
   const hasNodeView = dialogService.hasNodeView();
   renderers.value = initializeRenderers({
@@ -347,6 +391,8 @@ const provided: ProvidedByNodeDialog & ProvidedForFlowVariables = {
   setSubPanelExpanded,
   updateData,
   getInitialValue,
+  processUpdates,
+  setAdvancedDynamicParameters,
 };
 
 Object.entries(provided).forEach(([key, value]) => {
@@ -396,7 +442,7 @@ defineExpose({
     </template>
     <template #bottom>
       <a
-        v-if="hasAdvancedOptions2()"
+        v-if="showAdvancedSettingsButton"
         class="advanced-options"
         tabindex="0"
         role="button"

@@ -7,6 +7,7 @@ export type StateProviderLocation = (
     }
 ) & {
   providedOptionName: string;
+  settingsId?: string;
 };
 
 type Key = {
@@ -32,6 +33,9 @@ const isInvokedBy =
       return false;
     }
     if (invocationKey.providedOptionName !== otherKey.providedOptionName) {
+      return false;
+    }
+    if (invocationKey.settingsId !== otherKey.settingsId) {
       return false;
     }
     if (

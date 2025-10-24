@@ -50,9 +50,9 @@ package org.knime.node.parameters.examples;
 
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.array.ArrayWidget;
-import org.knime.node.parameters.examples.ArrayWidgetExample.OuterSection;
 import org.knime.node.parameters.examples.ArrayWidgetExample.ElementClass.ArrayWidgetElementLayout.HorizontalLayout1;
 import org.knime.node.parameters.examples.ArrayWidgetExample.ElementClass.ArrayWidgetElementLayout.HorizontalLayout2;
+import org.knime.node.parameters.examples.ArrayWidgetExample.OuterSection;
 import org.knime.node.parameters.layout.After;
 import org.knime.node.parameters.layout.HorizontalLayout;
 import org.knime.node.parameters.layout.Layout;
@@ -66,7 +66,7 @@ import org.knime.node.parameters.layout.Section;
 @Layout(OuterSection.class)
 public final class ArrayWidgetExample implements NodeParameters {
 
-    @Section
+    @Section(title = "Outer Section")
     interface OuterSection {
 
     }

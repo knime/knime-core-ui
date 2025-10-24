@@ -62,7 +62,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilLayoutTest.SuperclassAnnotationTestLayout.AfterCenterLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilLayoutTest.SuperclassAnnotationTestLayout.BeforeCenterLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilLayoutTest.SuperclassAnnotationTestLayout.CenterLayout;
@@ -70,6 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFor
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.TestSettingsLayout;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TestLayout.FirstSection;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TestLayout.SecondSection;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.layout.After;
@@ -138,11 +138,11 @@ class JsonFormsUiSchemaUtilLayoutTest {
     }
 
     interface TestDefaultParentLayout {
-        @Section
+        @Section(title="DefaultSection")
         interface DefaultSection {
         }
 
-        @Section
+        @Section(title="Section1")
         interface Section1 {
         }
     }
@@ -190,21 +190,21 @@ class JsonFormsUiSchemaUtilLayoutTest {
 
     interface TestDefaultParentOnSuperClassLayout {
 
-        @Section
+        @Section(title="DefaultSection")
         interface DefaultSection {
         }
 
-        @Section
+        @Section(title="FieldSection")
         @After(DefaultSection.class)
         interface FieldSection {
         }
 
-        @Section
+        @Section(title="SuperClassDefaultSection")
         @After(FieldSection.class)
         interface SuperClassDefaultSection {
         }
 
-        @Section
+        @Section(title="SuperClassFieldSection")
         @After(SuperClassDefaultSection.class)
         interface SuperClassFieldSection {
         }
@@ -262,7 +262,7 @@ class JsonFormsUiSchemaUtilLayoutTest {
 
     interface TestNoLayoutAnnotationLayout {
 
-        @Section
+        @Section(title = "Section1")
         interface Section1 {
         }
     }
@@ -353,7 +353,7 @@ class JsonFormsUiSchemaUtilLayoutTest {
     }
 
     static class TestMultipleRootsOne implements NodeParameters {
-        @Section
+        @Section(title = "Section1")
         static interface Section1 {
         }
 

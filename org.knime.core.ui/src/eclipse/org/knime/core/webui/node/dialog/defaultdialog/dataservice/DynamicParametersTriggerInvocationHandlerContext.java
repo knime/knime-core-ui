@@ -44,46 +44,58 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Mar 21, 2023 (Paul Bärnreuther): created
+ *   Oct 13, 2025 (Paul Bärnreuther): created
  */
-package org.knime.node.parameters.layout;
+package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
 
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import org.knime.core.webui.node.dialog.defaultdialog.util.updates.TriggerInvocationHandler;
 
 /**
- *
- * Annotation to mark a class as a section which can contain several settings and other layout parts. See {@link Layout}
- * on how to add settings to such a section.
+ * An instance of this class holds dynamically registered TriggerInvocationHandlers for dynamic parameters.
  *
  * @author Paul Bärnreuther
  */
-@Retention(RUNTIME)
-@Target(TYPE)
-public @interface Section {
-    /**
-     * @return the title of the section
-     */
-    String title();
+public final class DynamicParametersTriggerInvocationHandlerContext {
+
+    final Map<String, Supplier<TriggerInvocationHandler<String>>> m_triggerInvocationHandlers =
+        new ConcurrentHashMap<>();
+
+    final Map<String, TriggerInvocationHandler<String>> m_cachedTriggerInvocationHandlers = new ConcurrentHashMap<>();
 
     /**
-     * @return an optional description of the section
-     */
-    String description() default "";
-
-    /**
-     * @return Whether the section should be shown in a side drawer, i.e. a separate sub-panel with a nice transition
-     *         animation.
-     */
-    boolean sideDrawer() default false;
-
-    /**
-     * Text for the button that opens the side drawer. Only relevant if {@link #sideDrawer()} is true.
+     * Registers a triggerInvocationHandler for part of the dialog and returns a unique UUID as the id to call that
+     * handler.
      *
-     * @return Text for the button that opens the side drawer. A default 'Set' text is used if this is empty.
+     * @param triggerInvocationHandler the handler to invoke for trigger invocations
+     * @return a unique UUID that can be used as id to invoke the handler
      */
-    String sideDrawerSetText() default "";
+    public String
+        registerTriggerInvocationHandler(final Supplier<TriggerInvocationHandler<String>> triggerInvocationHandler) {
+
+        final var validatorId = UUID.randomUUID().toString();
+        m_triggerInvocationHandlers.put(validatorId, triggerInvocationHandler);
+
+        return validatorId;
+    }
+
+    /**
+     * @param id the id of the trigger invocation handler
+     * @return the trigger invocation handler for the given id
+     */
+    public TriggerInvocationHandler<String> getTriggerInvocationHandler(final String id) {
+        return m_cachedTriggerInvocationHandlers.computeIfAbsent(id, key -> m_triggerInvocationHandlers.get(key).get());
+    }
+
+    /**
+     * Clears all registered validators.
+     */
+    public void clear() {
+        m_triggerInvocationHandlers.clear();
+        m_cachedTriggerInvocationHandlers.clear();
+    }
 }
