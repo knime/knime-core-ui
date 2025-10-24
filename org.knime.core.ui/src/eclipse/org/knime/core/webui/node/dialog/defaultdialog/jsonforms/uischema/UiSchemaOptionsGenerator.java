@@ -941,8 +941,12 @@ final class UiSchemaOptionsGenerator {
 
     private void setDbTableChooserOptions(final ObjectNode options) {
         var rootNode = m_node.getRoot();
-
-        var annotation = rootNode.getRawClass().getAnnotation(DBTableAdapterProvider.class);
+        var currentClass = rootNode.getRawClass();
+        DBTableAdapterProvider annotation = null;
+        while (currentClass != null && annotation == null) {
+            annotation = currentClass.getAnnotation(DBTableAdapterProvider.class);
+            currentClass = currentClass.getSuperclass();
+        }
 
         if (annotation == null) {
             var dbTableAdapterClassName = DBTableAdapterProvider.class.getSimpleName();
