@@ -60,6 +60,7 @@ import org.knime.core.node.workflow.ConnectionContainer.ConnectionType;
 import org.knime.core.node.workflow.NativeNodeContainer;
 import org.knime.core.node.workflow.NodeContainer;
 import org.knime.core.node.workflow.NodeContext;
+import org.knime.core.node.workflow.NodeMessage;
 import org.knime.core.node.workflow.NodeOutPort;
 import org.knime.core.webui.node.DataServiceManager;
 import org.knime.core.webui.node.NodeWrapper;
@@ -330,6 +331,14 @@ public final class NodeViewManager {
      */
     public PageFormat getDefaultPageFormat(final NodeContainer nc) {
         return getNodeView(nc).getDefaultPageFormat();
+    }
+
+    /**
+     * @param nc
+     * @return see {@link NodeView#getViewNodeMessage(NodeMessage)}
+     */
+    public NodeMessage getViewNodeMessage(final NodeContainer nc) {
+        return getNodeView(nc).getViewNodeMessage(nc.getNodeMessage());
     }
 
 }
