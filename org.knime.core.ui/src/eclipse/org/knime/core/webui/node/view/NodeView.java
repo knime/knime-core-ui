@@ -51,6 +51,7 @@ package org.knime.core.webui.node.view;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.workflow.NodeMessage;
 import org.knime.core.webui.UIExtension;
 import org.knime.core.webui.data.DataServiceProvider;
 
@@ -81,6 +82,17 @@ public interface NodeView extends UIExtension, DataServiceProvider {
      * @param settings settings to load
      */
     void loadValidatedSettingsFrom(NodeSettingsRO settings);
+
+    /**
+     * Returns the node message to be displayed in the view. By default, it's the same messages as shown for the node
+     * itself.
+     *
+     * @param nodeMessage the node messages of certain type currently shown on the node
+     * @return the node message to be displayed in the view
+     */
+    default NodeMessage getViewNodeMessage(final NodeMessage nodeMessage) {
+        return nodeMessage;
+    }
 
     /**
      * The default page format is being used to determine the size of the page if it's being displayed together with
