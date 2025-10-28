@@ -49,7 +49,7 @@ const getFlowSettingsFromMap = (
       .map((key) => flowVariablesMap[key]);
 };
 
-const toFlowSetting = (
+export const toFlowSetting = (
   flowVariablesMap: Record<string, FlowSettings>,
   configPaths: {
     configPath: string;

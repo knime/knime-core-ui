@@ -31,7 +31,7 @@ export type PreviewResult =
       errorMessage: string;
     };
 
-type ListItemsForPreview = (params: {
+export type FileFilterPreviewListItemsForPreview = (params: {
   method: "fileFilterPreview.listItemsForPreview";
   options: [
     /**
@@ -64,18 +64,19 @@ export default ({
   additionalFilterOptionsClassIdentifier: string;
   includeSubFolders: Ref<boolean>;
 }) => {
-  const getData = inject("getData") as ListItemsForPreview;
+  const getData = inject("getData") as FileFilterPreviewListItemsForPreview;
 
   const listItemsForPreview = (path: string | null) => {
-    const options: ListItemsForPreview["arguments"]["params"]["options"] = [
-      backendType.value,
-      path,
-      includeSubFolders.value,
-      {
-        additionalFilterOptions: filterOptions.value,
-        additionalFilterOptionsClassIdentifier,
-      } satisfies PreviewItemsConfig,
-    ];
+    const options: FileFilterPreviewListItemsForPreview["arguments"]["params"]["options"] =
+      [
+        backendType.value,
+        path,
+        includeSubFolders.value,
+        {
+          additionalFilterOptions: filterOptions.value,
+          additionalFilterOptionsClassIdentifier,
+        } satisfies PreviewItemsConfig,
+      ];
 
     return getData({
       method: "fileFilterPreview.listItemsForPreview",
@@ -87,3 +88,8 @@ export default ({
     listItemsForPreview,
   };
 };
+
+/**
+ * Combined File Filter Preview API type
+ */
+export type FileFilterPreviewRpcMethods = FileFilterPreviewListItemsForPreview;

@@ -1,13 +1,9 @@
 /* eslint-disable max-lines */
-import { inject, nextTick } from "vue";
+import { nextTick } from "vue";
 import { composePaths } from "@jsonforms/core";
 import { get } from "lodash-es";
 
-import {
-  type AlertParams,
-  JsonDataService,
-  type UIExtensionService,
-} from "@knime/ui-extension-service";
+import { type AlertParams } from "@knime/ui-extension-service";
 
 import type { Result } from "../../api/types/Result";
 import {
@@ -70,6 +66,46 @@ export const clearRegisteredWatchersForSettingsId = (
     settingsIdToRegisteredWatchersRemoval.delete(settingsId);
   }
 };
+
+export type SettingsUpdate2 = (params: {
+  method: "settings.update2";
+  options: [
+    /**
+     * Reserved for future use (currently null)
+     */
+    null,
+    /**
+     * The trigger that caused the update
+     */
+    Trigger,
+    /**
+     * The current dependencies extracted from the settings
+     */
+    Record<string, Pairs>,
+  ];
+}) => Promise<Result<UpdateResult[]>>;
+
+export type SettingsUpdate2WithSettingsId = (params: {
+  method: "settings.update2WithSettingsId";
+  options: [
+    /**
+     * The settings ID for scoped updates
+     */
+    string,
+    /**
+     * Reserved for future use (currently null)
+     */
+    null,
+    /**
+     * The trigger that caused the update
+     */
+    Trigger,
+    /**
+     * The current dependencies extracted from the settings
+     */
+    Record<string, Pairs>,
+  ];
+}) => Promise<Result<UpdateResult[]>>;
 
 const indicesAreDefined = (indices: (number | null)[]): indices is number[] =>
   !indices.includes(null);
@@ -164,6 +200,7 @@ export default ({
   pathIsControlledByFlowVariable,
   setValueAtPath,
   globalArrayIdsRecord,
+  callDataService,
 }: {
   callStateProviderListener: (
     location: { indexIds?: string[] } & StateProviderLocation,
@@ -191,10 +228,8 @@ export default ({
   pathIsControlledByFlowVariable: (path: string) => boolean;
   setValueAtPath: (path: string, value: unknown) => void;
   globalArrayIdsRecord: ArrayRecord;
+  callDataService: SettingsUpdate2 & SettingsUpdate2WithSettingsId;
 }) => {
-  const baseService = inject<() => UIExtensionService>("getKnimeService")!();
-  const jsonDataService = new JsonDataService(baseService);
-
   const resolveUpdateResult =
     (
       updateResult: UpdateResult,
@@ -357,7 +392,7 @@ export default ({
     trigger: Trigger;
     currentDependencies: Record<string, Pairs>;
   }): Promise<Result<UpdateResult[]>> =>
-    jsonDataService.data({
+    callDataService({
       method: "settings.update2",
       options: [null, trigger, currentDependencies],
     });
@@ -371,7 +406,7 @@ export default ({
     currentDependencies: Record<string, Pairs>;
     settingsId: string;
   }): Promise<Result<UpdateResult[]>> =>
-    jsonDataService.data({
+    callDataService({
       method: "settings.update2WithSettingsId",
       options: [settingsId, null, trigger, currentDependencies],
     });

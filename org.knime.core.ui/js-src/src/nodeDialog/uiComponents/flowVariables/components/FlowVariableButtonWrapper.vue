@@ -1,19 +1,14 @@
 <script setup lang="ts">
-import { type Ref } from "vue";
-
-import type { FlowSettings } from "../../../api/types";
-import { type ConfigPath } from "../../../composables/components/useFlowVariables";
 import type { FlowVariableButtonProps } from "../types/FlowVariableButtonProps";
 
 import FlowVariableButton from "./FlowVariableButton.vue";
-import { useProvideForFlowVariables } from "./useProvideForFlowVariables";
+import {
+  useProvideForFlowVariables,
+  type useProvidedFlowVariablesProps,
+} from "./useProvideForFlowVariables";
 
 const props = defineProps<
-  FlowVariableButtonProps & {
-    dataPath: string;
-    configPaths: Ref<ConfigPath[]>;
-    flowSettings: Ref<FlowSettings | null>;
-  }
+  FlowVariableButtonProps & useProvidedFlowVariablesProps
 >();
 
 const emit = defineEmits<{

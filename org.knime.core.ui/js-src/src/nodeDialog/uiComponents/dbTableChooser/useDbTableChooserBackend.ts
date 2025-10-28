@@ -34,7 +34,7 @@ export type ListItemsResult = {
 
 export type ItemTypeResult = DBItemType | null;
 
-type ListItems = (params: {
+export type DBTableChooserListItems = (params: {
   method: "dbTableChooser.listItems";
   options: [
     /**
@@ -50,7 +50,7 @@ type ListItems = (params: {
   ];
 }) => Promise<ListItemsResult>;
 
-type ItemType = (params: {
+export type DBTableChooserItemType = (params: {
   method: "dbTableChooser.itemType";
   options: [
     /**
@@ -69,7 +69,8 @@ export type DbTableChooserBackend = {
 };
 
 export const useDbTableChooserBackend = (): DbTableChooserBackend => {
-  const getData = inject("getData") as ListItems & ItemType;
+  const getData = inject("getData") as DBTableChooserListItems &
+    DBTableChooserItemType;
 
   const listItems = (path: (string | null)[], table: string | null) =>
     getData({
@@ -88,3 +89,9 @@ export const useDbTableChooserBackend = (): DbTableChooserBackend => {
     itemType,
   };
 };
+
+/**
+ * Combined DB Table Chooser API type
+ */
+export type DBTableChooserRpcMethods = DBTableChooserListItems &
+  DBTableChooserItemType;
