@@ -50,6 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -554,7 +555,31 @@ public abstract class PersistenceFactory<T> {
             final var shouldFromClassAnnotation =
                 m_node.getParentAnnotation(LoadDefaultsForAbsentFields.class).isPresent()
                     && m_node.getAnnotation(Migration.class).isEmpty();
+            if (fieldWillBeIgnoredByRouting()) {
+                if (shouldFromFieldAnnotation) {
+                    throw new IllegalStateException(String.format(
+                        "The field %s cannot have @%s with loadDefaultIfAbsent=true since it is routed out of the"
+                            + " persistence tree via @%s.",
+                        m_node.getPath(), Migrate.class.getSimpleName(), PersistWithin.class.getSimpleName()));
+                }
+                if (shouldFromClassAnnotation) {
+                    return false;
+                }
+            }
+
             return shouldFromFieldAnnotation || shouldFromClassAnnotation;
+        }
+
+        private boolean fieldWillBeIgnoredByRouting() {
+            if (m_node instanceof Tree<Persistable> treeNode) {
+                return treeNode.getTypeAnnotation(PersistWithin.class).map(PersistWithin::value)
+                    .flatMap(TreeNodeExtractionMethods::getFirstParentPathSegment).isPresent();
+            }
+            return false;
+        }
+
+        private static Optional<String> getFirstParentPathSegment(final String[] relativePath) {
+            return Arrays.stream(relativePath).findFirst().filter(s -> s.equals(".."));
         }
     }
 

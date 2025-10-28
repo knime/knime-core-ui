@@ -1120,7 +1120,7 @@ class FieldBasedNodeSettingsPersistorTest {
         testSaveLoad(nonDefaultSettings);
     }
 
-    private static final class EmbeddedSettings extends AbstractTestNodeSettings<EmbeddedSettings> {
+    private static class EmbeddedSettings extends AbstractTestNodeSettings<EmbeddedSettings> {
 
         static final class NestedSettings1 implements Persistable {
             int m_foo = 42;
@@ -1151,9 +1151,22 @@ class FieldBasedNodeSettingsPersistorTest {
 
     }
 
+    @LoadDefaultsForAbsentFields
+    private static final class EmbeddedSettingsWithLoadDefault extends EmbeddedSettings {
+
+    }
+
     @Test
     void testEmbedded() throws InvalidSettingsException {
         final var nonDefaultSettings = new EmbeddedSettings();
+        nonDefaultSettings.m_nested1.m_foo = 13;
+        nonDefaultSettings.m_nested1.m_bar = 31;
+        testSaveLoad(nonDefaultSettings);
+    }
+
+    @Test
+    void testEmbeddedWithLoadDefaultForAbsentFields() throws InvalidSettingsException {
+        final var nonDefaultSettings = new EmbeddedSettingsWithLoadDefault();
         nonDefaultSettings.m_nested1.m_foo = 13;
         nonDefaultSettings.m_nested1.m_bar = 31;
         testSaveLoad(nonDefaultSettings);
