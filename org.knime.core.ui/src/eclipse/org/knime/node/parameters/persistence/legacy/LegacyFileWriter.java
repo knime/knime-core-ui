@@ -81,7 +81,7 @@ public class LegacyFileWriter implements NodeParameters {
     @Persistor(FileSelectionWriterPersistor.class)
     @FileWriterWidget
     @Modification.WidgetReference(FileSelectionRef.class)
-    @Widget(title = "File Selection", description = "The file selection.") // To be overwritten by
+    @Widget(title = "File Selection", description = "The file selection.") // To be overwritten using the modifier
     FileSelection m_file = new FileSelection();
 
     @Persist(configKey = CFG_CREATE_MISSING_FOLDERS)

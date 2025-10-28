@@ -97,6 +97,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWri
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.FileSelectionWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
@@ -2154,5 +2155,25 @@ class UiSchemaOptionsTest {
         @FlowVariableFilterWidget(choicesProvider = AllFlowVariablesProvider.class)
         @TypedStringFilterWidgetInternal(hideTypeFilter = true)
         FlowVariableFilter m_flowVarFilter;
+    }
+
+    @Test
+    void testFileSelectionWidgetInternalHideUnusableFileSystems() {
+        class FileSelectionWidgetInternalTestSettings implements NodeParameters {
+
+            @Widget(title = "", description = "")
+            @FileReaderWidget(fileExtensions = {"txt", "csv"})
+            @FileSelectionWidgetInternal(allowOnlyConnectedFS = true)
+            FileSelection m_fileReader;
+
+        }
+
+        var fileSystemType = "myFileSystemType";
+        var fileSystemSpecifier = "fileSystemSpecifier";
+        var context = setupFileSystemMocks(fileSystemType, fileSystemSpecifier);
+
+        var response = buildTestUiSchema(FileSelectionWidgetInternalTestSettings.class, context);
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("fileReader");
+        assertThatJson(response).inPath("$.elements[0].options.allowOnlyConnectedFS").isBoolean().isTrue();
     }
 }

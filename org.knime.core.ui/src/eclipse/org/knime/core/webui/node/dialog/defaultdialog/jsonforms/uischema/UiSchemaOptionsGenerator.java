@@ -128,6 +128,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWi
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.FileSelectionWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
@@ -371,6 +372,14 @@ final class UiSchemaOptionsGenerator {
             final var fileReaderWidget = m_node.getAnnotation(FileReaderWidget.class).orElseThrow();
             resolveFileExtensions(options, fileReaderWidget.fileExtensions());
             addFileSystemInformation(options);
+        }
+
+        if (annotatedWidgets.contains(FileSelectionWidgetInternal.class)) {
+            final var fileSelectionWidgetInternal =
+                m_node.getAnnotation(FileSelectionWidgetInternal.class).orElseThrow();
+            if (fileSelectionWidgetInternal.allowOnlyConnectedFS()) {
+                options.put("allowOnlyConnectedFS", true);
+            }
         }
 
         if (annotatedWidgets.contains(FileWriterWidget.class)) {

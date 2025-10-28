@@ -25,6 +25,10 @@ export type FileChooserOptions = {
    * The file system ID for custom file system connections
    */
   fileSystemId?: BackendType;
+  /**
+   * When true, only shows the connected file system tab in the file chooser browser
+   */
+  allowOnlyConnectedFS?: boolean;
 };
 
 export type FileChooserUiSchema =

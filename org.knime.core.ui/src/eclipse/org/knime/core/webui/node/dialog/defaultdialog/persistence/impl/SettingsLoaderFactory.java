@@ -260,7 +260,7 @@ public final class SettingsLoaderFactory extends PersistenceFactory<ParametersLo
         return settings -> {
             for (String key : relativePath) {
                 if ("..".equals(key)) {
-                    settings = (NodeSettings)settings.getParent();
+                    settings = (NodeSettings)(settings.getParent());
                     if (settings == null) {
                         throw new InvalidSettingsException(
                             "Could not go to parent settings. Reached top of settings tree.");

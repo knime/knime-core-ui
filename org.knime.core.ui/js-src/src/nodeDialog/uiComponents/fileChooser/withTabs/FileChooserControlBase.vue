@@ -21,14 +21,21 @@ const props = defineProps<
   }
 >();
 
+const uischema = computed(() => props.control.uischema as FileChooserUiSchema);
+
+const disabledSinceOnlyConnectedIsAllowed = computed(() => {
+  const hideUnusable = uischema.value.options?.allowOnlyConnectedFS ?? false;
+  const portIndexDefined =
+    typeof uischema.value.options?.portIndex !== "undefined";
+  return hideUnusable && !portIndexDefined;
+});
+
 const isDisabled = computed(
   () =>
     props.disabled ||
-    props.control.uischema.options?.fileSystemConnectionMissing,
+    uischema.value.options?.fileSystemConnectionMissing ||
+    disabledSinceOnlyConnectedIsAllowed.value,
 );
-
-const uischema = computed(() => props.control.uischema as FileChooserUiSchema);
-
 const { validCategories } = useFileChooserFileSystemsOptions(uischema);
 const getDefaultData = () => {
   return {

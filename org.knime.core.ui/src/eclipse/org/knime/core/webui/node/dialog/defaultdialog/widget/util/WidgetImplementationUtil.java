@@ -71,6 +71,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileRea
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.FileSelectionWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
@@ -200,6 +201,7 @@ public final class WidgetImplementationUtil {
             FileReaderWidget.class), //
         new WidgetAnnotation(List.of(FileSelection.class), FileWriterWidget.class), //
         new WidgetAnnotation(List.of(FileSelection.class), FolderSelectionWidget.class), //
+        new WidgetAnnotation(List.of(FileSelection.class), FileSelectionWidgetInternal.class), //
         new WidgetAnnotation(List.of(String.class), LocalFileReaderWidget.class), //
         new WidgetAnnotation(List.of(String.class), LocalFileWriterWidget.class), //
         new WidgetAnnotation(List.of(String.class, Character.class, char.class), TextInputWidget.class), //

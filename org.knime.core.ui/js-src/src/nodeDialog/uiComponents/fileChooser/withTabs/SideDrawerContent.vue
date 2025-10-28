@@ -50,9 +50,10 @@ const {
   isConnected,
   portFileSystemName,
   portIndex,
+  allowOnlyConnectedFS,
 } = useFileChooserBrowseOptions(uischema);
 
-type TabSpec = {
+export type TabSpec = {
   value: keyof typeof FSCategory;
   label: string;
   icon: Component;
@@ -78,25 +79,30 @@ const connectedFileSystemTab: TabSpec[] = isConnected.value
     ]
   : [];
 
-const possibleCategories: TabSpec[] = [
-  ...connectedFileSystemTab,
-  ...localFileSystemTab,
-  {
-    value: "relative-to-current-hubspace",
-    label: mountId.value,
-    icon: isLocal.value ? LocalSpaceIcon : KnimeIcon,
-  },
-  {
-    value: "relative-to-embedded-data",
-    label: "Embedded data",
-    icon: FolderIcon,
-  },
-  {
-    value: "CUSTOM_URL",
-    label: "URL",
-    icon: LinkIcon,
-  },
-];
+const possibleCategories = computed<TabSpec[]>(() => {
+  if (allowOnlyConnectedFS.value && isConnected.value) {
+    return connectedFileSystemTab;
+  }
+  return [
+    ...connectedFileSystemTab,
+    ...localFileSystemTab,
+    {
+      value: "relative-to-current-hubspace",
+      label: mountId.value,
+      icon: isLocal.value ? LocalSpaceIcon : KnimeIcon,
+    },
+    {
+      value: "relative-to-embedded-data",
+      label: "Embedded data",
+      icon: FolderIcon,
+    },
+    {
+      value: "CUSTOM_URL",
+      label: "URL",
+      icon: LinkIcon,
+    },
+  ];
+});
 
 const backendType = computed<BackendType>(() =>
   getBackendType(props.modelValue.fsCategory, portIndex.value),

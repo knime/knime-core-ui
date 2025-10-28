@@ -76,6 +76,10 @@ export const useFileChooserBrowseOptions = (
     }
   });
 
+  const allowOnlyConnectedFS = computed(
+    () => options.value.allowOnlyConnectedFS,
+  );
+
   return {
     filteredExtensions,
     appendedExtension,
@@ -87,5 +91,6 @@ export const useFileChooserBrowseOptions = (
     isConnected,
     portIndex,
     portFileSystemName,
+    allowOnlyConnectedFS,
   };
 };

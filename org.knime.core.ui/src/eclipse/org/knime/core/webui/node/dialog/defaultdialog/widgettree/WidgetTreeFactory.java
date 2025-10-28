@@ -67,6 +67,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileRea
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.FileSelectionWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
@@ -150,6 +151,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         DateTimeFormatPickerWidget.class, //
         Effect.class, //
         FileReaderWidget.class, //
+        FileSelectionWidgetInternal.class, //
         FileWriterWidget.class, //
         FolderSelectionWidget.class, //
         FlowVariableFilterWidget.class, //

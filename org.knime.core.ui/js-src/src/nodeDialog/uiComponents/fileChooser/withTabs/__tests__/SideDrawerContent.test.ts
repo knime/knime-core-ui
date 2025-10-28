@@ -11,7 +11,7 @@ import type {
 } from "../../types/FileChooserProps";
 import { FSCategory } from "../../types/FileChooserProps";
 import ConnectionPreventsTab from "../ConnectionPreventsTab.vue";
-import SideDrawerContent from "../SideDrawerContent.vue";
+import SideDrawerContent, { type TabSpec } from "../SideDrawerContent.vue";
 import UrlTab from "../url/UrlTab.vue";
 
 describe("SideDrawerContent.vue", () => {
@@ -202,5 +202,21 @@ describe("SideDrawerContent.vue", () => {
         ).toBeTruthy();
       },
     );
+
+    it("hides non-connected tabs when allowOnlyConnectedFS is true", async () => {
+      await wrapper.setProps({
+        uischema: {
+          ...wrapper.props().uischema,
+          options: {
+            ...wrapper.props().uischema.options,
+            allowOnlyConnectedFS: true,
+          },
+        },
+      });
+      const tabBar = wrapper.findComponent(TabBar);
+      const tabSpecs: TabSpec[] = tabBar.props().possibleValues as TabSpec[];
+      expect(tabSpecs).toHaveLength(1);
+      expect(tabSpecs[0].value).toBe("CONNECTED");
+    });
   });
 });
