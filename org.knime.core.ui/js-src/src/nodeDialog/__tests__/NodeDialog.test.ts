@@ -51,6 +51,7 @@ describe("NodeDialog.vue", () => {
     });
     vi.spyOn(SharedDataService.prototype, "shareData").mockResolvedValue();
     setApplyListenerSpy = vi.spyOn(DialogService.prototype, "setApplyListener");
+    vi.spyOn(DialogService.prototype, "hasNodeView").mockReturnValue(false);
   });
 
   it("renders empty wrapper", async () => {
@@ -157,39 +158,41 @@ describe("NodeDialog.vue", () => {
     });
   });
 
-  it("provides 'getData' method", () => {
+  it("provides 'getData' method", async () => {
     const wrapper = shallowMount(NodeDialog, getOptions()) as never as Wrapper;
-    const callParams = { method: "foo", options: ["bar"] };
-    wrapper.vm.callDataService(callParams);
+    await flushPromises();
+    const callParams = { method: "foo", options: ["bar"] } as any;
+    wrapper.vm.coreComponent!.getData(callParams);
     expect(wrapper.vm.jsonDataService.data).toHaveBeenCalledWith(callParams);
   });
 
-  it("provides 'sendAlert' method", () => {
+  it("provides 'sendAlert' method", async () => {
     const sendAlert = vi.fn();
     (AlertingService as never as Mock).mockImplementation(() => ({
       sendAlert,
     }));
     const options = getOptions();
     const wrapper = shallowMount(NodeDialog, options) as never as Wrapper;
+    await flushPromises();
     const callParams = { type: "error" as AlertType, message: "message" };
-    wrapper.vm.sendAlert(callParams);
+    wrapper.vm.coreComponent!.sendAlert(callParams);
     expect(sendAlert).toHaveBeenCalledWith(callParams);
   });
 
-  it("provides 'getAvailableFlowVariables' method", () => {
+  it("provides 'getAvailableFlowVariables' method", async () => {
     const wrapper = shallowMount(NodeDialog, getOptions());
+    await flushPromises();
     const path = "path.to.my.setting";
     const currentData: SettingsData = { foo: "bar" } as never;
-    wrapper.vm.setCurrentData(currentData);
-    const flowVariablesMap = {};
-    wrapper.vm.schema = { flowVariablesMap } as never;
-    wrapper.vm.getAvailableFlowVariables(path);
+    wrapper.vm.coreComponent!.setCurrentData(currentData);
+    delete wrapper.vm.flowVariablesMap["view.title"];
+    wrapper.vm.coreComponent!.getAvailableFlowVariables(path);
     expect(wrapper.vm.jsonDataService.data).toHaveBeenCalledWith({
       method: "flowVariables.getAvailableFlowVariables",
       options: [
         JSON.stringify({
           data: currentData,
-          flowVariableSettings: flowVariablesMap,
+          flowVariableSettings: {},
         }),
         ["path", "to", "my", "setting"],
       ],
@@ -198,20 +201,21 @@ describe("NodeDialog.vue", () => {
 
   it("provides 'getFlowVariableOverrideValue' method", async () => {
     const wrapper = await shallowMount(NodeDialog, getOptions());
+    await flushPromises();
     const expectedResult = "value";
     const getDataSpy = vi
       .spyOn(wrapper.vm.jsonDataService, "data")
       .mockResolvedValue(expectedResult);
     const path = "path.to.my.setting";
     const currentData: SettingsData = { foo: "bar" } as never;
-    wrapper.vm.setCurrentData(currentData);
+    wrapper.vm.coreComponent!.setCurrentData(currentData);
     clear(wrapper.vm.flowVariablesMap);
     wrapper.vm.flowVariablesMap.myPath = {
       controllingFlowVariableAvailable: true,
       controllingFlowVariableName: "myVar",
       exposedFlowVariableName: null,
     };
-    const result = await wrapper.vm.getFlowVariableOverrideValue(
+    const result = await wrapper.vm.coreComponent!.getFlowVariableOverrideValue(
       "_persistPath",
       path,
     );
@@ -229,16 +233,17 @@ describe("NodeDialog.vue", () => {
   });
 
   describe("registerWatcher", () => {
-    it("provides registerWatcher method", () => {
+    it("provides registerWatcher method", async () => {
       const wrapper = shallowMount(NodeDialog, getOptions());
-      expect(wrapper.vm.registerWatcher).toBeDefined();
+      await flushPromises();
+      expect(wrapper.vm.coreComponent!.registerWatcher).toBeDefined();
     });
 
     it.skip("adds watcher when calling registerWatcher", async () => {
       const wrapper = shallowMount(NodeDialog, getOptions());
       await flushPromises();
 
-      wrapper.vm.setCurrentData({
+      wrapper.vm.coreComponent!.setCurrentData({
         test: "test",
         test2: "test",
         otherTest: "test",
@@ -248,18 +253,21 @@ describe("NodeDialog.vue", () => {
       const init = vi.fn();
       const dependencies = ["#/properties/test", "#/properties/test2"];
 
-      await wrapper.vm.registerWatcher({ transformSettings, dependencies });
+      await wrapper.vm.coreComponent!.registerWatcher({
+        transformSettings,
+        dependencies,
+      });
 
       // @ts-expect-error
       expect(wrapper.vm.registeredWatchers.length).toBe(1);
-      wrapper.vm.updateData("#/properties/test");
+      wrapper.vm.coreComponent!.updateData("#/properties/test");
       // @ts-expect-error
       expect(wrapper.vm.registeredWatchers[0]).toMatchObject({
         dataPaths: [["test"], ["test2"]],
       });
       expect(init).not.toHaveBeenCalled();
 
-      await wrapper.vm.registerWatcher({
+      await wrapper.vm.coreComponent!.registerWatcher({
         transformSettings,
         init,
         dependencies,
@@ -279,7 +287,7 @@ describe("NodeDialog.vue", () => {
       const wrapper = shallowMount(NodeDialog, getOptions());
       await flushPromises();
 
-      wrapper.vm.setCurrentData({
+      wrapper.vm.coreComponent!.setCurrentData({
         currentData: {
           test: "test",
           test2: "test",
@@ -289,7 +297,7 @@ describe("NodeDialog.vue", () => {
 
       const dependencies = ["#/properties/test", "#/properties/test2"];
 
-      const unwatch = await wrapper.vm.registerWatcher({
+      const unwatch = await wrapper.vm.coreComponent!.registerWatcher({
         transformSettings: vi.fn(),
         dependencies,
       });
@@ -306,7 +314,9 @@ describe("NodeDialog.vue", () => {
 
   describe("updateData (old mechanism: registerWatchers)", () => {
     let wrapper: Wrapper,
-      registeredWatchers: Parameters<Wrapper["vm"]["registerWatcher"]>[0][],
+      registeredWatchers: Parameters<
+        (Wrapper["vm"]["coreComponent"] & object)["registerWatcher"]
+      >[0][],
       transformSettingsSpy: (data: DialogSettings) => void;
 
     const settingsData = {
@@ -322,7 +332,9 @@ describe("NodeDialog.vue", () => {
       wrapper = shallowMount(NodeDialog, getOptions());
       await flushPromises();
 
-      wrapper.vm.setCurrentData(settingsData.currentData as never);
+      wrapper.vm.coreComponent!.setCurrentData(
+        settingsData.currentData as never,
+      );
       transformSettingsSpy = vi.fn();
       registeredWatchers = [
         {
@@ -341,13 +353,13 @@ describe("NodeDialog.vue", () => {
         },
       ];
       registeredWatchers.forEach(async (watcher) => {
-        await wrapper.vm.registerWatcher(watcher);
+        await wrapper.vm.coreComponent!.registerWatcher(watcher);
       });
     });
 
     it("updates data normally if no watchers are triggered", async () => {
       const path = "test4";
-      await wrapper.vm.updateData(path);
+      await wrapper.vm.coreComponent!.updateData(path);
       registeredWatchers.forEach(({ transformSettings }) => {
         expect(transformSettings).not.toHaveBeenCalled();
       });
@@ -355,7 +367,7 @@ describe("NodeDialog.vue", () => {
 
     it("transforms settings for triggered watchers and updates data", async () => {
       const path = "test2";
-      await wrapper.vm.updateData(path);
+      await wrapper.vm.coreComponent!.updateData(path);
       registeredWatchers.forEach(({ transformSettings }) => {
         expect(transformSettings).toHaveBeenCalled();
       });
@@ -366,15 +378,15 @@ describe("NodeDialog.vue", () => {
 
     it("aborts first update when second update is triggered in the meantime", async () => {
       const path = "test1";
-      const firstUpdate = wrapper.vm.updateData(path);
-      const secondUpdate = wrapper.vm.updateData(path);
+      const firstUpdate = wrapper.vm.coreComponent!.updateData(path);
+      const secondUpdate = wrapper.vm.coreComponent!.updateData(path);
       await firstUpdate;
       await secondUpdate;
       expect(transformSettingsSpy).toHaveBeenCalledOnce();
     });
 
     it("reacts to path updates nested inside array layouts", async () => {
-      wrapper.vm.setCurrentData({
+      wrapper.vm.coreComponent!.setCurrentData({
         arrayLayoutSetting: [{ value: "first" }, { value: "second" }],
       });
 
@@ -383,9 +395,9 @@ describe("NodeDialog.vue", () => {
         dependencies: ["#/properties/arrayLayoutSetting"],
       };
 
-      await wrapper.vm.registerWatcher(arrayLayoutWatcher);
+      await wrapper.vm.coreComponent!.registerWatcher(arrayLayoutWatcher);
       const path = "arrayLayoutSetting.0.value";
-      await wrapper.vm.updateData(path);
+      await wrapper.vm.coreComponent!.updateData(path);
 
       expect(arrayLayoutWatcher.transformSettings).toHaveBeenCalled();
     });
@@ -464,7 +476,7 @@ describe("NodeDialog.vue", () => {
         message: ["Success message."],
       });
 
-      await wrapper.vm.updateData("view.firstSetting");
+      await wrapper.vm.coreComponent!.updateData("view.firstSetting");
       expect(dataServiceSpy).toHaveBeenCalledWith({
         method: "settings.update2",
         options: [
@@ -506,7 +518,7 @@ describe("NodeDialog.vue", () => {
         message: ["Success message."],
       });
 
-      await wrapper.vm.trigger({ id: triggerId });
+      await wrapper.vm.coreComponent!.trigger({ id: triggerId });
       expect(dataServiceSpy).toHaveBeenCalledWith({
         method: "settings.update2",
         options: [
@@ -538,7 +550,7 @@ describe("NodeDialog.vue", () => {
       const stateProviderOptionName = "myStateProviderOptionName";
 
       const stateProviderListener = vi.fn();
-      wrapper.vm.addStateProviderListener(
+      wrapper.vm.coreComponent!.addStateProviderListener(
         {
           scope: stateProviderScope,
           providedOptionName: stateProviderOptionName,
@@ -557,7 +569,7 @@ describe("NodeDialog.vue", () => {
         ],
         message: ["Success message."],
       });
-      await wrapper.vm.trigger({ id: triggerId });
+      await wrapper.vm.coreComponent!.trigger({ id: triggerId });
       expect(dataServiceSpy).toHaveBeenCalledWith({
         method: "settings.update2",
         options: [
@@ -593,7 +605,7 @@ describe("NodeDialog.vue", () => {
         message: [errorMessage],
       });
 
-      await wrapper.vm.trigger({ id: triggerId });
+      await wrapper.vm.coreComponent!.trigger({ id: triggerId });
       expect(sendAlert).toHaveBeenCalledWith({
         message: errorMessage,
         type: "error",
@@ -681,11 +693,14 @@ describe("NodeDialog.vue", () => {
       await flushPromises();
       wrapper.vm.flowVariablesMap[persistPath] = flowSettings;
 
-      await wrapper.vm.getFlowVariableOverrideValue(persistPath, "_dataPath");
-
-      expect(wrapper.vm.flawedControllingVariablePaths).toStrictEqual(
-        new Set([persistPath]),
+      await wrapper.vm.coreComponent!.getFlowVariableOverrideValue(
+        persistPath,
+        "_dataPath",
       );
+
+      expect(
+        wrapper.vm.coreComponent!.flawedControllingVariablePaths,
+      ).toStrictEqual(new Set([persistPath]));
       expect(flowSettings.controllingFlowVariableFlawed).toBeTruthy();
     });
 
@@ -707,10 +722,12 @@ describe("NodeDialog.vue", () => {
         controllingFlowVariableName: "otherSettingsVariable",
         controllingFlowVariableFlawed: false,
       } as FlowSettings;
-      wrapper.vm.flawedControllingVariablePaths.add(persistPathFlawedSetting);
+      wrapper.vm.coreComponent!.flawedControllingVariablePaths.add(
+        persistPathFlawedSetting,
+      );
 
-      wrapper.vm.setCurrentData({});
-      await wrapper.vm.getFlowVariableOverrideValue(
+      wrapper.vm.coreComponent!.setCurrentData({});
+      await wrapper.vm.coreComponent!.getFlowVariableOverrideValue(
         persistPathOtherSetting,
         "_dataPath",
       );
@@ -740,15 +757,18 @@ describe("NodeDialog.vue", () => {
         controllingFlowVariableFlawed: true,
       } as FlowSettings;
 
+      delete wrapper.vm.flowVariablesMap["view.title"];
       wrapper.vm.flowVariablesMap[persistPathFlawedSetting] = flawedSettings;
 
       const variableSettingsMapBeforeRequest = JSON.stringify({
         [persistPathFlawedSetting]: flawedSettings,
       });
-      wrapper.vm.flawedControllingVariablePaths.add(persistPathFlawedSetting);
+      wrapper.vm.coreComponent!.flawedControllingVariablePaths.add(
+        persistPathFlawedSetting,
+      );
 
-      wrapper.vm.setCurrentData({});
-      await wrapper.vm.getFlowVariableOverrideValue(
+      wrapper.vm.coreComponent!.setCurrentData({});
+      await wrapper.vm.coreComponent!.getFlowVariableOverrideValue(
         persistPathFlawedSetting,
         "_dataPath",
       );
@@ -786,19 +806,18 @@ describe("NodeDialog.vue", () => {
       });
 
       const wrapper = shallowMount(NodeDialog, getOptions());
-
       await flushPromises();
-      expect(wrapper.vm.possiblyFlawedControllingVariablePaths).toStrictEqual(
-        new Set([initialSetting1, initialSetting2]),
-      );
+      expect(
+        wrapper.vm.coreComponent!.possiblyFlawedControllingVariablePaths,
+      ).toStrictEqual(new Set([initialSetting1, initialSetting2]));
       expect(flowSettings1.controllingFlowVariableFlawed).toBeUndefined();
       expect(flowSettings2.controllingFlowVariableFlawed).toBeUndefined();
       const getDataSpy = vi
         .spyOn(wrapper.vm.jsonDataService, "data")
         .mockResolvedValue("not_undefined");
 
-      wrapper.vm.setCurrentData({});
-      await wrapper.vm.getFlowVariableOverrideValue(
+      wrapper.vm.coreComponent!.setCurrentData({});
+      await wrapper.vm.coreComponent!.getFlowVariableOverrideValue(
         initialSetting1,
         "_dataPath",
       );
@@ -814,7 +833,10 @@ describe("NodeDialog.vue", () => {
        * After the first request, flowSetting1 is known to be not flawed anymore,
        * so it will also be used for subsequent requests.
        */
-      await wrapper.vm.getFlowVariableOverrideValue("other", "_dataPath");
+      await wrapper.vm.coreComponent!.getFlowVariableOverrideValue(
+        "other",
+        "_dataPath",
+      );
       expect(getDataSpy).toHaveBeenCalledWith({
         method: "flowVariables.getFlowVariableOverrideValue",
         options: [
@@ -837,13 +859,16 @@ describe("NodeDialog.vue", () => {
       } as FlowSettings;
       await flushPromises();
       wrapper.vm.flowVariablesMap[persistPath] = flowSettings;
-      wrapper.vm.flawedControllingVariablePaths.add(persistPath);
+      wrapper.vm.coreComponent!.flawedControllingVariablePaths.add(persistPath);
 
-      await wrapper.vm.getFlowVariableOverrideValue(persistPath, "_dataPath");
-
-      expect(wrapper.vm.flawedControllingVariablePaths).toStrictEqual(
-        new Set([]),
+      await wrapper.vm.coreComponent!.getFlowVariableOverrideValue(
+        persistPath,
+        "_dataPath",
       );
+
+      expect(
+        wrapper.vm.coreComponent!.flawedControllingVariablePaths,
+      ).toStrictEqual(new Set([]));
       expect(flowSettings.controllingFlowVariableFlawed).toBeFalsy();
     });
   });

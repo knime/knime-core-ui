@@ -29,7 +29,10 @@ interface ButtonChange {
 type Result = ResultOfType<ButtonChange>;
 
 const registerWatcher = inject("registerWatcher");
-const getData = inject("getData");
+const getData = inject("getData") as (params: {
+  method?: string;
+  options?: unknown[];
+}) => Promise<Result>;
 
 const props = defineProps<VueControlProps<any>>();
 

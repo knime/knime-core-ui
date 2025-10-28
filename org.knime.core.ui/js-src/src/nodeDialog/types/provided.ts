@@ -1,8 +1,8 @@
 import type { Provided as ProvidedByJsonFormsDialog } from "@knime/jsonforms";
-import type { JsonDataService } from "@knime/ui-extension-service";
 
 import type { PossibleFlowVariable } from "../api/types";
 import type { Result } from "../api/types/Result";
+import type { NodeDialogCoreRpcMethods } from "../api/types/RpcTypes";
 import type { IdsRecord } from "../composables/nodeDialog/useArrayIds";
 import type { IndexedIsActive } from "../composables/nodeDialog/useTriggers";
 import type { SettingsIdContext } from "../composables/nodeDialog/useUpdates";
@@ -19,9 +19,7 @@ type registerWatcher = (params: {
   dependencies: string[];
 }) => Promise<() => void>;
 
-type getData = (
-  params: Parameters<JsonDataService["data"]>[0] & object,
-) => Promise<any>;
+type getData = NodeDialogCoreRpcMethods;
 
 export interface ProvidedByNodeDialog {
   registerWatcher: registerWatcher;

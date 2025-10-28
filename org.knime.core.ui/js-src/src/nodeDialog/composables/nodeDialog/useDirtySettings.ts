@@ -38,6 +38,38 @@ export interface FlowVariablesForSettings {
   exposed: FlowVariables<ExposedVariable>;
 }
 
+export const settingStateToFlowVariablesForSettings = <T>({
+  settingState,
+  persistPaths,
+  flowVariablesMap,
+}: {
+  settingState: SettingState<T>;
+  persistPaths: string[];
+  flowVariablesMap: Record<string, FlowSettings>;
+}): FlowVariablesForSettings => {
+  const flowVariablesForSettings = {
+    controlling: toFlowVariablesForSettings(
+      settingState.addControllingFlowVariable,
+    ),
+    exposed: toFlowVariablesForSettings(settingState.addExposedFlowVariable),
+  };
+  persistPaths?.forEach((persistPath) => {
+    const {
+      controllingFlowVariableName = null,
+      exposedFlowVariableName = null,
+    } = flowVariablesMap[persistPath] ?? {};
+    flowVariablesForSettings.controlling.create(
+      persistPath,
+      controllingFlowVariableName,
+    );
+    flowVariablesForSettings.exposed.create(
+      persistPath,
+      exposedFlowVariableName,
+    );
+  });
+  return flowVariablesForSettings;
+};
+
 /**
  * Exported for testing only
  */
@@ -60,7 +92,7 @@ export const injectionKey: InjectionKey<{
   ) => FlowVariablesForSettings;
 }> = Symbol("providedByUseDirtySettings");
 
-export const provideAndGetSetupMethod = () => {
+export const provideAndGetSetupMethodForDirtySettings = () => {
   const getModelOrView = (persistPath: string) => {
     const firstPathSegment = persistPath.split(".")[0] as
       | "model"
@@ -92,25 +124,10 @@ export const provideAndGetSetupMethod = () => {
     if (!settingState) {
       throw new Error(`Setting state for ${dataPath} not found`);
     }
-    const flowVariablesForSettings = {
-      controlling: toFlowVariablesForSettings(
-        settingState.addControllingFlowVariable,
-      ),
-      exposed: toFlowVariablesForSettings(settingState.addExposedFlowVariable),
-    };
-    persistPaths?.forEach((persistPath) => {
-      const {
-        controllingFlowVariableName = null,
-        exposedFlowVariableName = null,
-      } = flowVariablesMap[persistPath] ?? {};
-      flowVariablesForSettings.controlling.create(
-        persistPath,
-        controllingFlowVariableName,
-      );
-      flowVariablesForSettings.exposed.create(
-        persistPath,
-        exposedFlowVariableName,
-      );
+    const flowVariablesForSettings = settingStateToFlowVariablesForSettings({
+      settingState,
+      persistPaths,
+      flowVariablesMap,
     });
     flowVariableStatesForSettings.set(dataPath, flowVariablesForSettings);
     return flowVariablesForSettings;

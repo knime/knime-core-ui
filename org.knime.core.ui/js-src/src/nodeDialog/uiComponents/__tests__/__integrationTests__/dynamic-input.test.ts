@@ -6,7 +6,7 @@ import { InputField, Label } from "@knime/components";
 import { TextControl } from "@knime/jsonforms";
 import { JsonDataService } from "@knime/ui-extension-service";
 
-import type { InitialData } from "@/nodeDialog/types/InitialData";
+import type { NodeDialogInitialData } from "@/nodeDialog/types/InitialData";
 import type { UpdateResult } from "@/nodeDialog/types/Update";
 import NodeDialog from "../../../NodeDialog.vue";
 import { mockRegisterSettings } from "../../../__tests__/__integrationTests__/utils/dirtySettingState";
@@ -14,7 +14,7 @@ import { dynamicImportsSettled } from "../../../__tests__/__integrationTests__/u
 import { getOptions } from "../../../__tests__/utils";
 
 describe("dynamic input", () => {
-  let initialDataMock: InitialData;
+  let initialDataMock: NodeDialogInitialData;
 
   beforeEach(() => {
     vi.clearAllMocks();

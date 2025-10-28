@@ -4,7 +4,7 @@ import flushPromises from "flush-promises";
 
 import { JsonDataService } from "@knime/ui-extension-service";
 
-import type { InitialData } from "@/nodeDialog/types/InitialData";
+import type { NodeDialogInitialData } from "@/nodeDialog/types/InitialData";
 import NodeDialog from "../../NodeDialog.vue";
 import FlowVariableButton from "../../uiComponents/flowVariables/components/FlowVariableButton.vue";
 import { getOptions } from "../utils";
@@ -30,7 +30,7 @@ describe("deprecated flow variables", () => {
     vi.clearAllMocks();
 
     const uiSchemaKey = "ui_schema";
-    const initialDataMock: InitialData = {
+    const initialDataMock: NodeDialogInitialData = {
       data: { model: { value: "initialValue" } },
       schema: {
         type: "object",

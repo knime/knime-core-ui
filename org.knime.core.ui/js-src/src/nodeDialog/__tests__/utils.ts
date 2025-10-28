@@ -1,5 +1,7 @@
 import { vi } from "vitest";
 
+import NodeDialogCore from "../NodeDialogCore.vue";
+
 export const getOptions = ({
   dispatch,
 }: {
@@ -12,6 +14,7 @@ export const getOptions = ({
         getKnimeService: () => ({}),
       },
       stubs: {
+        NodeDialogCore,
         ...(dispatch
           ? {
               JsonFormsDialog: {

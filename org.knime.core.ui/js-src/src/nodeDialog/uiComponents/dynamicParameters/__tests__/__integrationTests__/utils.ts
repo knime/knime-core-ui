@@ -7,7 +7,7 @@ import NodeDialog from "@/nodeDialog/NodeDialog.vue";
 import { mockRegisterSettings } from "@/nodeDialog/__tests__/__integrationTests__/utils/dirtySettingState";
 import { dynamicImportsSettled } from "@/nodeDialog/__tests__/__integrationTests__/utils/dynamicImportsSettled";
 import { getOptions } from "@/nodeDialog/__tests__/utils";
-import type { InitialData } from "@/nodeDialog/types/InitialData";
+import type { NodeDialogInitialData } from "@/nodeDialog/types/InitialData";
 import type { PersistSchema } from "@/nodeDialog/types/Persist";
 import type { Update, UpdateResult } from "@/nodeDialog/types/Update";
 
@@ -34,7 +34,7 @@ export const createDynamicInputInitialData = ({
   initialValue?: object;
   providedOptions?: string[];
   outerPersistSchema?: PersistSchema | null;
-} = {}): InitialData => {
+} = {}): NodeDialogInitialData => {
   const uiSchemaKey = "ui_schema";
 
   return {
@@ -138,7 +138,7 @@ export const createDynamicSettingsUpdate = ({
  * Mocks the initial update that triggers after opening the dialog
  */
 export const mockInitialUpdate = (
-  initialDataMock: InitialData,
+  initialDataMock: NodeDialogInitialData,
   updateResult: UpdateResult,
   additionalHandlers?: (params: any) => Promise<any> | undefined,
 ) => {
@@ -219,7 +219,7 @@ export const mockInitialUpdate = (
  * Mounts the NodeDialog with the provided initial data
  */
 export const mountNodeDialog = async (
-  initialData: InitialData,
+  initialData: NodeDialogInitialData,
 ): Promise<NodeDialogWrapper> => {
   vi.spyOn(JsonDataService.prototype, "initialData").mockResolvedValue(
     initialData,

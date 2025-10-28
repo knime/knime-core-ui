@@ -6,11 +6,10 @@ import type { PersistSchema } from "./Persist";
 import type { SettingsData } from "./SettingsData";
 import type { Update, UpdateResult } from "./Update";
 
-export interface InitialData {
+export type NodeDialogCoreInitialData = {
   data: SettingsData;
   schema: JsonSchema;
   ui_schema: UISchemaElement;
-  flowVariableSettings: Record<string, FlowSettings>;
   /**
    * Data defining the value updates from dependencies to targets
    */
@@ -23,4 +22,8 @@ export interface InitialData {
    * Information on the persist structure used to map flow variables to controls.
    */
   persist: PersistSchema;
-}
+};
+
+export type NodeDialogInitialData = NodeDialogCoreInitialData & {
+  flowVariableSettings: Record<string, FlowSettings>;
+};

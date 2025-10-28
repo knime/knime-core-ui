@@ -1,6 +1,6 @@
 import type { PossibleFlowVariable } from "./types";
 
-type GetAvailableFlowVariables = (params: {
+export type GetAvailableFlowVariables = (params: {
   method: "flowVariables.getAvailableFlowVariables";
   options: [
     /**
@@ -25,7 +25,7 @@ export const getAvailableFlowVariables = (
   });
 };
 
-type GetFlowVariableOverrideValue = (params: {
+export type GetFlowVariableOverrideValue = (params: {
   method: "flowVariables.getFlowVariableOverrideValue";
   options: [
     /**
@@ -51,3 +51,9 @@ export const getFlowVariableOverrideValue = (
     options: [JSON.stringify(currentData), dataPath.split(".")],
   });
 };
+
+/**
+ * Combined Flow Variables API type
+ */
+export type FlowVariablesRpcMethods = GetAvailableFlowVariables &
+  GetFlowVariableOverrideValue;

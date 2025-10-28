@@ -5,7 +5,7 @@ import flushPromises from "flush-promises";
 import { InputField } from "@knime/components";
 import { JsonDataService } from "@knime/ui-extension-service";
 
-import type { InitialData } from "@/nodeDialog/types/InitialData";
+import type { NodeDialogInitialData } from "@/nodeDialog/types/InitialData";
 import NodeDialog from "../../../../NodeDialog.vue";
 import { mockRegisterSettings } from "../../../../__tests__/__integrationTests__/utils/dirtySettingState";
 import { dynamicImportsSettled } from "../../../../__tests__/__integrationTests__/utils/dynamicImportsSettled";
@@ -25,7 +25,7 @@ describe("deprecated flow variables", () => {
 
     const uiSchemaKey = "ui_schema";
     const flowVarName = "myCredentialsVar";
-    const initialDataMock: InitialData = {
+    const initialDataMock: NodeDialogInitialData = {
       data: {
         model: { legacyCredentials: { flowVarName } },
       },

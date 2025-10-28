@@ -16,7 +16,7 @@ interface ListItemsConfig {
   isWriter: boolean;
 }
 
-type ListItems = (params: {
+export type FileChooserListItems = (params: {
   method: "fileChooser.listItems";
   options: [
     /**
@@ -39,7 +39,7 @@ type ListItems = (params: {
   ];
 }) => Promise<FolderAndError | undefined>;
 
-type GetFilePath = (params: {
+export type FileChooserGetFilePath = (params: {
   method: "fileChooser.getFilePath";
   options: [
     /**
@@ -79,7 +79,8 @@ export default ({
   isWriter: Ref<boolean>;
   backendType: Ref<BackendType>;
 }) => {
-  const getData = inject("getData") as GetFilePath & ListItems;
+  const getData = inject("getData") as FileChooserGetFilePath &
+    FileChooserListItems;
 
   const listItems = (path: string | null, nextFolder: string | null) => {
     return getData({
@@ -123,3 +124,9 @@ export const getBackendType = (
   }
   return "relativeToCurrentHubSpace";
 };
+
+/**
+ * Combined File Chooser API type
+ */
+export type FileChooserRpcMethods = FileChooserListItems &
+  FileChooserGetFilePath;

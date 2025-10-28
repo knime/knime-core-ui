@@ -9,12 +9,15 @@ import {
 } from "@knime/ui-extension-renderer/api";
 
 import NodeDialog from "../NodeDialog.vue";
+import type { NodeDialogInitialData } from "../types/InitialData";
 
+import ParentAppWithDialog from "./ParentAppWithDialog.vue";
 import dataServiceMock from "./dataServiceMock";
 
 export default {
   components: {
     NodeDialog,
+    ParentAppWithDialog,
   },
   provide() {
     // load default page mock
@@ -31,6 +34,7 @@ export default {
       currentDialogIndex: 0,
       delay: 500,
       currentKS: null as null | UIExtensionService,
+      mode: "standalone" as "standalone" | "embedded",
     };
   },
   computed: {
@@ -38,7 +42,7 @@ export default {
       // @ts-ignore
       const mocks: Record<
         string,
-        { $schema?: string; result: { name: string } }
+        { $schema?: string; result: { name: string } & NodeDialogInitialData }
       > = import.meta.glob("@@/mocks/*.json", { eager: true });
       delete mocks["/mocks/mock.def.json"];
       Object.keys(mocks).forEach((key) => {
@@ -61,6 +65,14 @@ export default {
     },
     currentDialog() {
       return this.dialogMocks[this.currentDialogIndex]?.config;
+    },
+    mockRpcMethod() {
+      return (request: any) => {
+        const result = dataServiceMock(request);
+        return new Promise((resolve) =>
+          setTimeout(() => resolve(result), this.delay),
+        );
+      };
     },
   },
   watch: {
@@ -167,24 +179,45 @@ export default {
 <template>
   <div class="container">
     <h1>UI Extension based KNIME Node Dialog Dev App</h1>
-    <p>
-      Dialog mock:
-      <select @change="onDialogSelect">
-        <option :value="null">-</option>
-        <option
-          v-for="(dialog, index) in dialogMocks"
-          :key="dialog.name"
-          :value="dialog.name"
-          :selected="index === currentDialogIndex"
-        >
-          {{ dialog.name }}
-        </option>
-      </select>
-    </p>
-    <div class="frame">
+
+    <div class="controls">
+      <p>
+        Dialog mock:
+        <select @change="onDialogSelect">
+          <option :value="null">-</option>
+          <option
+            v-for="(dialog, index) in dialogMocks"
+            :key="dialog.name"
+            :value="dialog.name"
+            :selected="index === currentDialogIndex"
+          >
+            {{ dialog.name }}
+          </option>
+        </select>
+      </p>
+
+      <p>
+        <label>
+          <input v-model="mode" type="radio" value="standalone" />
+          Standalone NodeDialog
+        </label>
+        <label>
+          <input v-model="mode" type="radio" value="embedded" />
+          Embedded in Parent App
+        </label>
+      </p>
+    </div>
+
+    <div class="frame" :class="{ wide: mode === 'embedded' }">
       <NodeDialog
-        v-if="currentDialog && currentKS"
+        v-if="currentDialog && currentKS && mode === 'standalone'"
         :key="currentDialog.result.name"
+      />
+      <ParentAppWithDialog
+        v-if="currentDialog && mode === 'embedded'"
+        :key="currentDialog.result.name"
+        :base-service="getMockBaseService()"
+        :initial-dialog-data="currentDialog.result"
       />
     </div>
     <span
@@ -211,6 +244,21 @@ body {
   flex-direction: column;
 }
 
+.controls {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.controls label {
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.controls input[type="radio"] {
+  cursor: pointer;
+}
+
 .frame {
   position: relative;
   border: 5px solid orange;
@@ -218,5 +266,10 @@ body {
   min-width: 340px;
   height: 600px;
   overflow-y: auto;
+}
+
+.frame.wide {
+  max-width: 800px;
+  min-width: 600px;
 }
 </style>
