@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Test-Node extension for knime-core-ui
 Bundle-SymbolicName: org.knime.core.ui.testing;singleton:=true
-Bundle-Version: 5.8.0.qualifier
+Bundle-Version: 5.9.0.qualifier
 Bundle-ClassPath: .,
  lib/hamcrest-core-1.3.jar,
  lib/jakarta.activation-api-1.2.2.jar,

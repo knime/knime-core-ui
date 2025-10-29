@@ -2,13 +2,13 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: KNIME Core UI Tests
 Bundle-SymbolicName: org.knime.core.ui.tests;singleton:=true
-Bundle-Version: 5.6.0.qualifier
+Bundle-Version: 5.9.0.qualifier
 Bundle-ClassPath: .,
  lib/byte-buddy-1.17.7.jar,
  lib/equalsverifier-4.2.jar,
  lib/objenesis-3.4.jar
 Bundle-Vendor: KNIME AG, Zurich, Switzerland
-Fragment-Host: org.knime.core.ui;bundle-version="5.7.0"
+Fragment-Host: org.knime.core.ui;bundle-version="5.9.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: org.eclipse.jetty.servlet-api;bundle-version="[4.0.6,5.0.0)",
  org.awaitility;bundle-version="[3.0.0,4.0.0)",
