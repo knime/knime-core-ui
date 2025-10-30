@@ -399,19 +399,33 @@ public abstract class PersistenceFactory<T> {
 
         @Override
         public T postProcess(final T result, final Supplier<String[][]> configPathsProvider) {
-            if (shouldLoadDefaultIfAbsent()) {
+            if (shouldLoadDefaultIfAbsent(configPathsProvider)) {
                 return combineWithLoadDefault(result, configPathsProvider, m_node);
             }
             return result;
         }
 
-        private boolean shouldLoadDefaultIfAbsent() {
+        private boolean shouldLoadDefaultIfAbsent(final Supplier<String[][]> configPathsProvider) {
             final var shouldFromFieldAnnotation =
-                m_node.getAnnotation(Migrate.class).map(Migrate::loadDefaultIfAbsent).orElse(false);
+                m_node.getAnnotation(Migrate.class).map(Migrate::loadDefaultIfAbsent).orElse(false).booleanValue();
             final var shouldFromClassAnnotation =
                 m_node.getParentAnnotation(LoadDefaultsForAbsentFields.class).isPresent()
                     && m_node.getAnnotation(Migration.class).isEmpty();
-            return shouldFromFieldAnnotation || shouldFromClassAnnotation;
+
+            if (shouldFromFieldAnnotation) {
+                final var fieldHasNoConfigPaths = configPathsProvider.get().length == 0;
+                if (fieldHasNoConfigPaths) {
+                    throw new IllegalStateException(String.format(
+                        "The field %s cannot have @%s with loadDefaultIfAbsent=true since it has no config paths.",
+                        m_node.getPath(), Migrate.class.getSimpleName()));
+                }
+                return true;
+            }
+            if (shouldFromClassAnnotation) {
+                final var fieldHasNoConfigPaths = configPathsProvider.get().length == 0;
+                return !fieldHasNoConfigPaths;
+            }
+            return false;
         }
     }
 

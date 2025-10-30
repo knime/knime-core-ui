@@ -1033,4 +1033,168 @@ class FieldBasedNodeSettingsPersistorTest {
         int m_fieldName;
     }
 
+    @Test
+    void throwsIfPersistorWithEmptyConfigPathsAndMigrateAreUsedAtTheSameTime() {
+        assertThrows(IllegalStateException.class,
+            () -> loadSettings(PersistorWithEmptyConfigPathsAndMigrate.class, null));
+    }
+
+    static final class PersistorWithEmptyConfigPathsAndMigrate implements NodeParameters {
+
+        static final class EmptyConfigPathsPersistor implements NodeParametersPersistor<Integer> {
+
+            @Override
+            public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                throw new UnsupportedOperationException("not used by tests");
+            }
+
+            @Override
+            public void save(final Integer obj, final NodeSettingsWO settings) {
+                throw new UnsupportedOperationException("not used by tests");
+            }
+
+            @Override
+            public String[][] getConfigPaths() {
+                return new String[0][];
+            }
+        }
+
+        @Persistor(EmptyConfigPathsPersistor.class)
+        @Migrate(loadDefaultIfAbsent = true)
+        int m_fieldName;
+    }
+
+    @Test
+    void allowsPersistorWithEmptyConfigPathsAndMigrationWithDeprecatedKeys() throws InvalidSettingsException {
+        // This should NOT throw an exception since the migration has deprecated config keys
+        var obj = new PersistorWithEmptyConfigPathsAndMigration();
+        obj.m_fieldName = 123;
+        testSaveLoad(obj);
+    }
+
+    static final class PersistorWithEmptyConfigPathsAndMigration extends AbstractTestNodeSettings<PersistorWithEmptyConfigPathsAndMigration> {
+
+        static final class EmptyConfigPathsPersistor implements NodeParametersPersistor<Integer> {
+
+            @Override
+            public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                return settings.getInt("fieldName", 0);
+            }
+
+            @Override
+            public void save(final Integer obj, final NodeSettingsWO settings) {
+                settings.addInt("fieldName", obj);
+            }
+
+            @Override
+            public String[][] getConfigPaths() {
+                return new String[0][];
+            }
+        }
+
+        static final class MigrationWithDeprecatedKeys implements NodeParametersMigration<Integer> {
+
+            @Override
+            public List<ConfigMigration<Integer>> getConfigMigrations() {
+                return List.of(ConfigMigration.builder(settings -> 42).withDeprecatedConfigPath("deprecated").build());
+            }
+        }
+
+        @Persistor(EmptyConfigPathsPersistor.class)
+        @Migration(MigrationWithDeprecatedKeys.class)
+        int m_fieldName;
+
+        @Override
+        public void saveExpected(final NodeSettingsWO settings) {
+            settings.addInt("fieldName", m_fieldName);
+        }
+
+        @Override
+        protected int computeHashCode() {
+            return Objects.hash(m_fieldName);
+        }
+
+        @Override
+        protected boolean equalSettings(final PersistorWithEmptyConfigPathsAndMigration settings) {
+            return m_fieldName == settings.m_fieldName;
+        }
+    }
+
+    @Test
+    void throwsIfPersistorWithEmptyConfigPathsAndMigrationWithoutDeprecatedKeysAreUsedAtTheSameTime() {
+        assertThrows(IllegalStateException.class,
+            () -> loadSettings(PersistorWithEmptyConfigPathsAndMigrationWithoutDeprecatedKeys.class, null));
+    }
+
+    static final class PersistorWithEmptyConfigPathsAndMigrationWithoutDeprecatedKeys implements NodeParameters {
+
+        static final class EmptyConfigPathsPersistor implements NodeParametersPersistor<Integer> {
+
+            @Override
+            public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                throw new UnsupportedOperationException("not used by tests");
+            }
+
+            @Override
+            public void save(final Integer obj, final NodeSettingsWO settings) {
+                throw new UnsupportedOperationException("not used by tests");
+            }
+
+            @Override
+            public String[][] getConfigPaths() {
+                return new String[0][];
+            }
+        }
+
+        static final class MigrationWithoutDeprecatedKeys implements NodeParametersMigration<Integer> {
+
+            @Override
+            public List<ConfigMigration<Integer>> getConfigMigrations() {
+                // Migration without deprecated config keys - just using builder without withDeprecatedConfigPath
+                return List.of(ConfigMigration.builder(settings -> 42).build());
+            }
+        }
+
+        @Persistor(EmptyConfigPathsPersistor.class)
+        @Migration(MigrationWithoutDeprecatedKeys.class)
+        int m_fieldName;
+    }
+
+
+
+    @Test
+    void testPersistorWithEmptyConfigPathsAndLoadDefaultForAbsentFields() throws InvalidSettingsException {
+        // Test that no default should be loaded when @LoadDefaultsForAbsentFields is used with empty config paths
+        var nodeSettings = new NodeSettings(ROOT_KEY);
+        nodeSettings.addInt("fieldName", 84);
+        var loaded = loadSettings(PersistorWithEmptyConfigPathsAndLoadDefault.class, nodeSettings);
+        // The value from settings (84) should be loaded rather than the default constructor value (42)
+        assertEquals(84, loaded.m_fieldName);
+    }
+
+    @LoadDefaultsForAbsentFields
+    static final class PersistorWithEmptyConfigPathsAndLoadDefault implements NodeParameters {
+
+        static final class EmptyConfigPathsPersistor implements NodeParametersPersistor<Integer> {
+
+            @Override
+            public Integer load(final NodeSettingsRO settings) throws InvalidSettingsException {
+                return settings.getInt("fieldName", 0);
+            }
+
+            @Override
+            public void save(final Integer obj, final NodeSettingsWO settings) {
+                settings.addInt("fieldName", obj);
+            }
+
+            @Override
+            public String[][] getConfigPaths() {
+                return new String[0][];
+            }
+        }
+
+        @Persistor(EmptyConfigPathsPersistor.class)
+        int m_fieldName = 42; // Default value that should NOT be loaded
+    }
+
 }
