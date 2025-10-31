@@ -95,7 +95,7 @@ export default (globalArrayIdsRecord: ArrayRecord) => {
           : [...acc, item],
       [] satisfies TriggeredWatcher[],
     );
-    const transformations = [];
+    const transformations: TransformSettings[] = [];
     const withIsToBeAppliedTester = triggeredWatchers.map((item) => ({
       ...item,
       isToBeApplied: getIsToBeAppliedCallback(getKey(item)),
