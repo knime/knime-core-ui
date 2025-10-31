@@ -9,5 +9,10 @@
             factory-class="org.knime.testing.node.view.NodeViewNodeFactory"
             hidden="true">
       </node>
+      <node
+            factory-class="org.knime.testing.node.dialog.scripting.ScriptingDummyNodeFactory"
+            deprecated="false"
+            hidden="true">
+      </node>
    </extension>
 </plugin>
