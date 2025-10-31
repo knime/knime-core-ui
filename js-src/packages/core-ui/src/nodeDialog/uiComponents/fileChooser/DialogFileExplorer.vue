@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { computed, ref, toRef, toRefs, useTemplateRef, watch } from "vue";
+import {
+  type Component,
+  computed,
+  ref,
+  toRef,
+  toRefs,
+  useTemplateRef,
+  watch,
+} from "vue";
 
 import {
   Breadcrumb,
@@ -80,7 +88,7 @@ const displayedItemsInCurrentFolder = computed(() =>
 const breadcrumbItems = computed(() =>
   currentParents.value.map((parent, index) => {
     let text = parent.name;
-    let icon = null;
+    let icon: Component | null = null;
     if (typeof text !== "string") {
       if (parent.path === null) {
         if (props.breadcrumbRoot === null) {
