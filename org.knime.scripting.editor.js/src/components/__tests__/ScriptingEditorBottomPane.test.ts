@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 
-import { getScriptingService } from "@/init";
+import { getScriptingService } from "@knime-scripting-editor/init";
 import { type ConsoleHandler } from "../OutputConsole.vue";
 import ScriptingEditorBottomPane from "../ScriptingEditorBottomPane.vue";
 
@@ -16,13 +16,13 @@ describe("ScriptingEditorBottomPane", () => {
   }));
 
   // Get the console handler
-  vi.mock("@/consoleHandler", () => ({
+  vi.mock("@knime-scripting-editor/consoleHandler", () => ({
     setConsoleHandler: vi.fn(),
     consoleHandler,
   }));
   vi.mock("xterm");
 
-  vi.mock("@/editor");
+  vi.mock("@knime-scripting-editor/editor");
 
   const doMount = async (
     args: {

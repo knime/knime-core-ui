@@ -1,6 +1,7 @@
 import type {
   DialogService,
   JsonDataService,
+  SettingComparator,
 } from "@knime/ui-extension-service";
 
 import type { PublicAPI } from "./types/public-api";
@@ -47,10 +48,18 @@ export class SettingsService {
   }
 
   registerSettings(modelOrView: "model" | "view") {
-    return <T>(initialSetting: T) =>
+    return <T>(
+      initialSetting: T,
+      valueComparator?: SettingComparator<T> | undefined,
+    ) =>
       this.dialogService.registerSettings(modelOrView)({
         initialValue: initialSetting,
+        valueComparator,
       });
+  }
+
+  registerSettings2(modelOrView: "model" | "view") {
+    return this.dialogService.registerSettings(modelOrView);
   }
 }
 

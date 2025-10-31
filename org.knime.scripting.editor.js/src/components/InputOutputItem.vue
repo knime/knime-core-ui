@@ -12,9 +12,9 @@ import { Collapser, PortIcon, useMultiSelection } from "@knime/components";
 import { DataType } from "@knime/kds-components";
 import EyeIcon from "@knime/styles/img/icons/eye.svg";
 
-import { insertionEventHelper } from "@/components/utils/insertionEventHelper";
-import { useInputOutputSelectionStore } from "@/store/io-selection";
-import { useReadonlyStore } from "@/store/readOnly";
+import { insertionEventHelper } from "@knime-scripting-editor/components/utils/insertionEventHelper";
+import { useInputOutputSelectionStore } from "@knime-scripting-editor/store/io-selection";
+import { useReadonlyStore } from "@knime-scripting-editor/store/readOnly";
 
 import { createDragGhost, removeDragGhost } from "./utils/dragGhost";
 

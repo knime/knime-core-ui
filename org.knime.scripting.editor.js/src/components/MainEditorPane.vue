@@ -2,12 +2,12 @@
 import { onMounted, ref, watch } from "vue";
 import { onKeyStroke } from "@vueuse/core";
 
-import { COLUMN_INSERTION_EVENT } from "@/components/InputOutputItem.vue";
-import { insertionEventHelper } from "@/components/utils/insertionEventHelper";
-import { useMainCodeEditor } from "@/editor";
-import { getSettingsService } from "@/init";
-import { type GenericNodeSettings } from "@/settings-service";
-import { useReadonlyStore } from "@/store/readOnly";
+import { COLUMN_INSERTION_EVENT } from "@knime-scripting-editor/components/InputOutputItem.vue";
+import { insertionEventHelper } from "@knime-scripting-editor/components/utils/insertionEventHelper";
+import { useMainCodeEditor } from "@knime-scripting-editor/editor";
+import { getSettingsService } from "@knime-scripting-editor/init";
+import { type GenericNodeSettings } from "@knime-scripting-editor/settings-service";
+import { useReadonlyStore } from "@knime-scripting-editor/store/readOnly";
 
 interface Props {
   showControlBar: boolean;

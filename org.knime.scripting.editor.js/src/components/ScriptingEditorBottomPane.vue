@@ -2,10 +2,10 @@
 import { type Ref, computed } from "vue";
 import { computedAsync } from "@vueuse/core";
 
-import CompactTabBar from "@/components/CompactTabBar.vue";
-import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
-import { getInitialData, getScriptingService } from "@/init";
-import { type PortConfig, type PortConfigs } from "@/initial-data-service";
+import CompactTabBar from "@knime-scripting-editor/components/CompactTabBar.vue";
+import useShouldFocusBePainted from "@knime-scripting-editor/components/utils/shouldFocusBePainted";
+import { getInitialData, getScriptingService } from "@knime-scripting-editor/init";
+import { type PortConfig, type PortConfigs } from "@knime-scripting-editor/initial-data-service";
 
 import InputPortTables from "./InputPortTables.vue";
 

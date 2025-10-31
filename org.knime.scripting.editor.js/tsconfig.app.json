@@ -15,7 +15,7 @@
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@knime-scripting-editor/*": ["./src/*"]
     },
     "strict": true,
     "allowJs": true,

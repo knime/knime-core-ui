@@ -1,3 +1,3 @@
-import LoadingApp from "@/components/LoadingApp.vue";
+import LoadingApp from "@knime-scripting-editor/components/LoadingApp.vue";
 
 export { LoadingApp };

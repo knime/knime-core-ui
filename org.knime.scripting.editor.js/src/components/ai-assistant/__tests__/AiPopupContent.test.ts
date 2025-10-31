@@ -2,21 +2,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 
-import InfinityLoadingBar from "@/components/InfinityLoadingBar.vue";
-import AiPopupContent from "@/components/ai-assistant/AiPopupContent.vue";
-import AiSuggestion from "@/components/ai-assistant/AiSuggestion.vue";
-import { getScriptingService, getSettingsService } from "@/init";
-import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
-import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
+import InfinityLoadingBar from "@knime-scripting-editor/components/InfinityLoadingBar.vue";
+import AiPopupContent from "@knime-scripting-editor/components/ai-assistant/AiPopupContent.vue";
+import AiSuggestion from "@knime-scripting-editor/components/ai-assistant/AiSuggestion.vue";
+import { getScriptingService, getSettingsService } from "@knime-scripting-editor/init";
+import { DEFAULT_INITIAL_DATA } from "@knime-scripting-editor/initial-data-service-browser-mock";
+import { DEFAULT_INITIAL_SETTINGS } from "@knime-scripting-editor/settings-service-browser-mock";
 import {
   clearPromptResponseStore,
   currentInputOutputItems,
   setActiveEditorStoreForAi,
   usageData,
   usePromptResponseStore,
-} from "@/store/ai-bar";
+} from "@knime-scripting-editor/store/ai-bar";
 
-vi.mock("@/editor");
+vi.mock("@knime-scripting-editor/editor");
 
 const doMount = async () => {
   const wrapper = mount(AiPopupContent);

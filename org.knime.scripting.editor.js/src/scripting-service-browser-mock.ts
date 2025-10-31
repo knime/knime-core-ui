@@ -2,7 +2,7 @@
 /* eslint-disable no-magic-numbers */
 import { sleep } from "@knime/utils";
 
-import { log } from "@/log";
+import { log } from "@knime-scripting-editor/log";
 
 import type { ScriptingServiceType } from "./scripting-service";
 

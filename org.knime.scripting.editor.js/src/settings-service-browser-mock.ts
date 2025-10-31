@@ -1,6 +1,6 @@
 import type { SettingState } from "@knime/ui-extension-service";
 
-import { log } from "@/log";
+import { log } from "@knime-scripting-editor/log";
 
 import type {
   GenericNodeSettings,
@@ -61,4 +61,5 @@ export const createSettingsServiceMock = (
     log("Called settings service mock registerSettingsGetterForApply");
   },
   registerSettings: registerSettingsMock,
+  registerSettings2: registerSettingsMock,
 });

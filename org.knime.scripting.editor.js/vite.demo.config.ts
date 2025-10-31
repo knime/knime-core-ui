@@ -12,7 +12,8 @@ export default defineConfig({
   plugins: [vue(), svgLoader({ svgoConfig })],
   resolve: {
     alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "@": fileURLToPath(new URL("../org.knime.core.ui/js-src/src", import.meta.url)),
+      "@knime-scripting-editor": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
   define: {

@@ -1,33 +1,33 @@
-import CompactTabBar from "@/components/CompactTabBar.vue";
+import CompactTabBar from "@knime-scripting-editor/components/CompactTabBar.vue";
 import {
   COLUMN_INSERTION_EVENT,
   type InputOutputModel,
   type SubItem,
   type SubItemType,
-} from "@/components/InputOutputItem.vue";
-import InputOutputPane from "@/components/InputOutputPane.vue";
+} from "@knime-scripting-editor/components/InputOutputItem.vue";
+import InputOutputPane from "@knime-scripting-editor/components/InputOutputPane.vue";
 import OutputConsole, {
   type ConsoleHandler,
   type ConsoleText,
-} from "@/components/OutputConsole.vue";
-import OutputTablePreview from "@/components/OutputTablePreview.vue";
-import ScriptingEditor from "@/components/ScriptingEditor.vue";
-import { type SettingsMenuItem } from "@/components/SettingsPage.vue";
+} from "@knime-scripting-editor/components/OutputConsole.vue";
+import OutputTablePreview from "@knime-scripting-editor/components/OutputTablePreview.vue";
+import ScriptingEditor from "@knime-scripting-editor/components/ScriptingEditor.vue";
+import { type SettingsMenuItem } from "@knime-scripting-editor/components/SettingsPage.vue";
 import {
   type InsertionEvent,
   insertionEventHelper,
-} from "@/components/utils/insertionEventHelper";
-import { type PaneSizes } from "@/components/utils/paneSizes";
-import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
-import { consoleHandler, setConsoleHandler } from "@/consoleHandler";
-import { displayMode } from "@/display-mode";
+} from "@knime-scripting-editor/components/utils/insertionEventHelper";
+import { type PaneSizes } from "@knime-scripting-editor/components/utils/paneSizes";
+import useShouldFocusBePainted from "@knime-scripting-editor/components/utils/shouldFocusBePainted";
+import { consoleHandler, setConsoleHandler } from "@knime-scripting-editor/consoleHandler";
+import { displayMode } from "@knime-scripting-editor/display-mode";
 import type {
   UseCodeEditorParams,
   UseCodeEditorReturn,
   UseDiffEditorParams,
   UseDiffEditorReturn,
-} from "@/editor";
-import editor from "@/editor";
+} from "@knime-scripting-editor/editor";
+import editor from "@knime-scripting-editor/editor";
 import {
   type InitMockData,
   getInitialData,
@@ -36,17 +36,17 @@ import {
   init,
   initConsoleEventHandler,
   initMocked,
-} from "@/init";
+} from "@knime-scripting-editor/init";
 import {
   type GenericInitialData,
   type InputConnectionInfo,
   type KAIConfig,
   type PortConfigs,
-} from "@/initial-data-service";
-import { type ScriptingServiceType } from "@/scripting-service";
-import { type GenericNodeSettings } from "@/settings-service";
-import { setActiveEditorStoreForAi } from "@/store/ai-bar";
-import { useReadonlyStore } from "@/store/readOnly";
+} from "@knime-scripting-editor/initial-data-service";
+import { type ScriptingServiceType } from "@knime-scripting-editor/scripting-service";
+import { type GenericNodeSettings } from "@knime-scripting-editor/settings-service";
+import { setActiveEditorStoreForAi } from "@knime-scripting-editor/store/ai-bar";
+import { useReadonlyStore } from "@knime-scripting-editor/store/readOnly";
 
 export {
   COLUMN_INSERTION_EVENT,

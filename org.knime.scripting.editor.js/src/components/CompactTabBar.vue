@@ -3,7 +3,7 @@ import { useVModel } from "@vueuse/core";
 
 import { TabBar } from "@knime/components";
 
-import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
+import useShouldFocusBePainted from "@knime-scripting-editor/components/utils/shouldFocusBePainted";
 
 const props = defineProps({
   disabled: {

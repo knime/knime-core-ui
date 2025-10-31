@@ -1,4 +1,4 @@
-import type { InputOutputModel } from "@/components/InputOutputItem.vue";
+import type { InputOutputModel } from "@knime-scripting-editor/components/InputOutputItem.vue";
 
 export type PortViewConfig = {
   label: string;

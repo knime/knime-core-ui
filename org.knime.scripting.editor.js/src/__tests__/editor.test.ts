@@ -10,7 +10,7 @@ import {
   useDiffEditor,
   useMainCodeEditor,
   useMainCodeEditorStore,
-} from "@/editor";
+} from "@knime-scripting-editor/editor";
 
 describe("editor", () => {
   const testComponent = <T>(

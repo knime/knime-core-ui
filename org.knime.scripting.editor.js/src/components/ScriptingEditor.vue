@@ -8,10 +8,10 @@ import "@knime/kds-styles/kds-variables.css";
 import {
   MIN_WIDTH_FOR_SHOWING_BUTTON_TEXT,
   type PaneSizes,
-} from "@/components/utils/paneSizes";
-import { displayMode } from "@/display-mode";
-import { getInitialData } from "@/init";
-import { type GenericNodeSettings } from "@/settings-service";
+} from "@knime-scripting-editor/components/utils/paneSizes";
+import { displayMode } from "@knime-scripting-editor/display-mode";
+import { getInitialData } from "@knime-scripting-editor/init";
+import { type GenericNodeSettings } from "@knime-scripting-editor/settings-service";
 
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 import HeaderBar from "./HeaderBar.vue";
