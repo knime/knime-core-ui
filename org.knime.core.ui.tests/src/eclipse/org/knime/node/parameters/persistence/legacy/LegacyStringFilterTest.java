@@ -97,8 +97,8 @@ final class LegacyStringFilterTest {
         var settings = new NodeSettings("Test");
         settingsModelFilterString.saveSettingsTo(settings);
         TestParameters testParameters = loadSettings(TestParameters.class, settings);
-        assertArrayEquals(INCL_LIST, testParameters.stringFilter.m_inclList);
-        assertArrayEquals(EXCL_LIST, testParameters.stringFilter.m_exclList);
+        assertArrayEquals(INCL_LIST, testParameters.stringFilter.m_twinList.m_inclList);
+        assertArrayEquals(EXCL_LIST, testParameters.stringFilter.m_twinList.m_exclList);
         assertEquals(true, testParameters.stringFilter.m_keepAllColumnsSelected);
     }
 }
