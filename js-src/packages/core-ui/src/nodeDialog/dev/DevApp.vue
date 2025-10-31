@@ -3,7 +3,6 @@
 import {
   type Alert,
   type DataValueViewConfig,
-  type UIExtensionPushEvents,
   type UIExtensionService,
   type UIExtensionServiceConfig,
 } from "@knime/ui-extension-renderer/api";
@@ -94,6 +93,7 @@ export default {
     getMockBaseService(): UIExtensionService {
       let initialData = JSON.stringify(this.currentDialog);
       let extensionConfig: UIExtensionServiceConfig = {
+        // @ts-expect-error - TODO explore why this is needed
         initialData,
         nodeId: "0",
         workflowId: "0",
@@ -113,7 +113,7 @@ export default {
             setTimeout(() => resolve({ result: { result } }), this.delay),
           );
         },
-        addPushEventListener: (name: UIExtensionPushEvents.EventType) => {
+        addPushEventListener: (name) => {
           console.log(`Push event listener added for event ${name}`);
           return () => {};
         },
