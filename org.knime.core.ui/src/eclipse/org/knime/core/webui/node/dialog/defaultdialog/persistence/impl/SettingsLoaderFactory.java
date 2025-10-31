@@ -267,13 +267,14 @@ public final class SettingsLoaderFactory extends PersistenceFactory<ParametersLo
         return settings -> {
             for (String key : relativePath) {
                 if ("..".equals(key)) {
+                    final var settingsKey = settings.getKey();
                     settings = (NodeSettings)(settings.getParent());
                     if (settings == null) {
-                        throw new InvalidSettingsException(
-                            "Could not go to parent settings. Reached top of settings tree.");
+                        settings = createEmptySettings(settingsKey, key);
                     }
                 } else {
-                    settings = settings.getNodeSettings(key);
+                    settings = settings.containsKey(key) ? settings.getNodeSettings(key)
+                        : createEmptySettings(settings.getKey(), key);
                 }
             }
             return property.load(settings);
@@ -295,6 +296,10 @@ public final class SettingsLoaderFactory extends PersistenceFactory<ParametersLo
             return Arrays.copyOfRange(relativePath, 1, relativePath.length);
         }
         return relativePath;
+    }
+
+    static final NodeSettings createEmptySettings(final String settingsKey, final String routeKey) {
+        return new NodeSettings(String.format("%s:%s", settingsKey, routeKey));
     }
 
 }

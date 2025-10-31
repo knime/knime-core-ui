@@ -1198,7 +1198,8 @@ class FieldBasedNodeSettingsPersistorTest {
         testSaveLoad(obj);
     }
 
-    static final class PersistorWithEmptyConfigPathsAndMigration extends AbstractTestNodeSettings<PersistorWithEmptyConfigPathsAndMigration> {
+    static final class PersistorWithEmptyConfigPathsAndMigration
+        extends AbstractTestNodeSettings<PersistorWithEmptyConfigPathsAndMigration> {
 
         static final class EmptyConfigPathsPersistor implements NodeParametersPersistor<Integer> {
 
@@ -1286,8 +1287,6 @@ class FieldBasedNodeSettingsPersistorTest {
         int m_fieldName;
     }
 
-
-
     @Test
     void testPersistorWithEmptyConfigPathsAndLoadDefaultForAbsentFields() throws InvalidSettingsException {
         // Test that no default should be loaded when @LoadDefaultsForAbsentFields is used with empty config paths
@@ -1356,6 +1355,21 @@ class FieldBasedNodeSettingsPersistorTest {
         nonDefaultSettings.m_foo = 13;
         nonDefaultSettings.m_bar = 42;
         testSaveLoad(nonDefaultSettings);
+    }
+
+    private static final class ReroutingDownSettingsWithMissingKeys implements Persistable {
+
+        @PersistWithin({"missing", "nested", "path"})
+        @Migrate(loadDefaultIfAbsent = true)
+        int m_foo = 7;
+
+    }
+
+    @Test
+    void testReroutingDownWithMissingKeys() throws InvalidSettingsException {
+        final var emptyNodeSettings = new NodeSettings(ROOT_KEY);
+        final var loadedSettings = loadSettings(ReroutingDownSettingsWithMissingKeys.class, emptyNodeSettings);
+        assertEquals(7, loadedSettings.m_foo);
     }
 
     private static final class ReroutingUpSettings extends AbstractTestNodeSettings<ReroutingUpSettings> {
