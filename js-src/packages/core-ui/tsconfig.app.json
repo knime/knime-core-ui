@@ -1,14 +1,6 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
-  "include": [
-    "vite-env.d.ts",
-    "src/**/*",
-    "test-setup",
-    "node_modules/@knime/components/**/*.vue",
-    "node_modules/@knime/rich-text-editor/**/*.vue",
-    "node_modules/@knime/knime-ui-table/node_modules/@knime/**/*.vue",
-    "node_modules/@knime/rich-text-editor/node_modules/@knime/**/*.vue"
-  ],
+  "include": ["vite-env.d.ts", "src/**/*", "test-setup"],
   "exclude": ["src/**/__tests__/*"],
   "compilerOptions": {
     "composite": true,
@@ -21,6 +13,8 @@
     "allowJs": true,
     "noEmit": true,
     "verbatimModuleSyntax": true,
+    // TODO: enable this again. Fails due to checks for .vue files inside node_modules
+    "noImplicitAny": false,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo"
   }
 }

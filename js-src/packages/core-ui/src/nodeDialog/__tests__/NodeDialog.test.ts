@@ -81,7 +81,6 @@ describe("NodeDialog.vue", () => {
   // Skipped due to problems stubbing JsonFormsDialog
   it.skip("renders advanced settings", async () => {
     const advancedDialogData = { ...dialogInitialData };
-    // @ts-expect-error
     advancedDialogData.ui_schema.options = { isAdvanced: true };
     vi.spyOn(JsonDataService.prototype, "initialData").mockResolvedValueOnce(
       advancedDialogData,
