@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 
 import { Button, type MenuItem } from "@knime/components";
 import SettingsIcon from "@knime/styles/img/icons/cog.svg";
 import FileTextIcon from "@knime/styles/img/icons/file-text.svg";
+import NodeDialogCore from "../../org.knime.core.ui/js-src/src/nodeDialog/NodeDialogCore.vue";
+import useFlowVariableSystem from "../../org.knime.core.ui/js-src/src/nodeDialog/composables/useFlowVariableSystem";
 
 import {
   type ConsoleHandler,
@@ -12,11 +14,17 @@ import {
   ScriptingEditor,
   type SettingsMenuItem,
   consoleHandler,
+  getSettingsService,
+  init,
   initConsoleEventHandler,
   setConsoleHandler,
 } from "../lib/main";
 
 import DebugToolbar from "./DebugToolbar.vue";
+import type { NodeDialogCoreRpcMethods } from "../../org.knime.core.ui/js-src/src/nodeDialog/api/types/RpcTypes";
+import type { InitialData } from "../../org.knime.core.ui/js-src/src/nodeDialog/types/InitialData";
+
+import initialDialogData from "./initialSettingsData.json";
 
 const menuItems: MenuItem[] = [
   {
@@ -54,6 +62,39 @@ const runSelectedLines = () => {
   consola.log("Demo: Running selected lines...");
   consoleHandler.writeln({ text: "Demo: Selected lines executed!" });
 };
+
+//////// NEW
+
+const coreComponent = ref<InstanceType<typeof NodeDialogCore> | null>(null);
+const callRpcMethod: NodeDialogCoreRpcMethods = ({
+  method,
+  options,
+}): Promise<any> => {
+  console.log(`RPC Method called: ${method} with options:`, options);
+  return Promise.resolve({});
+};
+
+const settingsService = getSettingsService();
+const registerSettings = settingsService.registerSettings.bind(settingsService);
+
+const { setInitialFlowVariablesMap, flowVariablesMap } = useFlowVariableSystem({
+  callRpcMethod,
+  getCurrentData: () => coreComponent.value?.getCurrentData() ?? {}, // TODO add other data (combined data)
+});
+
+onMounted(() => {
+  setInitialFlowVariablesMap({
+    disabled: {
+      controllingFlowVariableName: "myVar",
+      controllingFlowVariableAvailable: true,
+      exposedFlowVariableName: null,
+    },
+  });
+});
+
+const handleAlert = (alert: { type: string; message: string }) => {
+  console.log(`Alert received: [${alert.type}] ${alert.message}`);
+};
 </script>
 
 <template>
@@ -65,6 +106,11 @@ const runSelectedLines = () => {
       file-name="demo.py"
       :menu-items="menuItems"
       :to-settings="toSettings"
+      :initial-pane-sizes="{
+        bottom: 0,
+        left: 0,
+        right: 100,
+      }"
       :additional-bottom-pane-tab-content="[
         {
           slotName: 'bottomPaneTabSlot:console',
@@ -103,35 +149,15 @@ const runSelectedLines = () => {
       </template>
 
       <template #right-pane>
-        <div style="padding: 20px; height: 100%; overflow-y: auto">
-          <h3>Demo Right Pane</h3>
-          <p>This is the right pane where you can display:</p>
-          <ul>
-            <li>Variable explorer</li>
-            <li>Function catalog</li>
-            <li>Help documentation</li>
-            <li>Preview panels</li>
-          </ul>
-
-          <h4>Sample Variables</h4>
-          <div
-            style="font-family: monospace; padding: 10px; border-radius: 4px"
-          >
-            <div>input_table: DataFrame (100 rows, 3 columns)</div>
-            <div>output_table: DataFrame (100 rows, 4 columns)</div>
-            <div>demo_column: Series (100 values)</div>
-          </div>
-
-          <h4>Sample Functions</h4>
-          <div
-            style="font-family: monospace; padding: 10px; border-radius: 4px"
-          >
-            <div>knio.input_tables[0]</div>
-            <div>knio.output_tables[0]</div>
-            <div>pd.DataFrame()</div>
-            <div>np.array()</div>
-          </div>
-        </div>
+        <NodeDialogCore
+          v-if="initialDialogData"
+          ref="coreComponent"
+          :initial-data="initialDialogData"
+          :has-node-view="false"
+          :call-rpc-method="callRpcMethod"
+          :register-settings="registerSettings"
+          @alert="handleAlert"
+        />
       </template>
 
       <template #bottom-pane-status-label>
