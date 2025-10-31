@@ -1294,7 +1294,7 @@ class FieldBasedNodeSettingsPersistorTest {
         var nodeSettings = new NodeSettings(ROOT_KEY);
         nodeSettings.addInt("fieldName", 84);
         var loaded = loadSettings(PersistorWithEmptyConfigPathsAndLoadDefault.class, nodeSettings);
-        // The default value should not be loaded, field should remain at default constructor value (0 for int)
+        // The value from settings (84) should be loaded rather than the default constructor value (42)
         assertEquals(84, loaded.m_fieldName);
     }
 
