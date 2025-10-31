@@ -13,6 +13,12 @@ importers:
       '@floating-ui/vue':
         specifier: 1.0.2
         version: 1.0.2(vue@3.5.13(typescript@5.4.5))
+      '@fontsource/roboto':
+        specifier: 5.2.8
+        version: 5.2.8
+      '@fontsource/roboto-mono':
+        specifier: 5.2.8
+        version: 5.2.8
       '@jsonforms/core':
         specifier: 3.4.0
         version: 3.4.0
@@ -23,29 +29,26 @@ importers:
         specifier: 3.4.0
         version: 3.4.0(@jsonforms/core@3.4.0)(@jsonforms/vue@3.4.0(@jsonforms/core@3.4.0)(vue@3.5.13(typescript@5.4.5)))(vue@3.5.13(typescript@5.4.5))
       '@knime/components':
-        specifier: 1.41.9
-        version: 1.41.9(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
+        specifier: 1.41.10
+        version: 1.41.10(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
       '@knime/jsonforms':
         specifier: 1.15.39
-        version: 1.15.39(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.13(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
+        version: 1.15.39(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.13(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
       '@knime/kds-components':
         specifier: 0.0.8
-        version: 0.0.8(@vueuse/core@13.8.0(vue@3.5.13(typescript@5.4.5)))(vue@3.5.13(typescript@5.4.5))
+        version: 0.0.8(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@vueuse/core@13.8.0(vue@3.5.13(typescript@5.4.5)))(vue@3.5.13(typescript@5.4.5))
       '@knime/knime-ui-table':
         specifier: 0.5.24
-        version: 0.5.24(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
+        version: 0.5.24(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
       '@knime/rich-text-editor':
-        specifier: 1.7.34
-        version: 1.7.34(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
+        specifier: 1.7.39
+        version: 1.7.39(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
       '@knime/styles':
         specifier: 1.14.2
-        version: 1.14.2
+        version: 1.14.2(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
       '@knime/ui-extension-service':
         specifier: 2.2.0
         version: 2.2.0
-      '@tiptap/core':
-        specifier: 2.1.10
-        version: 2.1.10(@tiptap/pm@2.27.1)
       '@vueuse/core':
         specifier: 13.8.0
         version: 13.8.0(vue@3.5.13(typescript@5.4.5))
@@ -76,7 +79,7 @@ importers:
         version: 1.16.1
       '@knime/eslint-config':
         specifier: 8.3.0
-        version: 8.3.0(eslint@8.56.0)(postcss-html@1.8.0)(prettier@3.0.0)(stylelint@16.14.1(typescript@5.4.5))(typescript@5.4.5)(vitest@2.1.5(@types/node@22.10.10)(jsdom@20.0.3)(sugarss@4.0.1(postcss@8.5.6)))
+        version: 8.3.0(eslint@8.57.1)(postcss-html@1.8.0)(prettier@3.0.0)(stylelint@16.25.0(typescript@5.4.5))(typescript@5.4.5)(vitest@2.1.5(@types/node@22.10.10)(jsdom@20.0.3)(sugarss@4.0.1(postcss@8.5.6)))
       '@knime/kds-styles':
         specifier: ^0.0.8
         version: 0.0.8
@@ -84,11 +87,11 @@ importers:
         specifier: 1.3.2
         version: 1.3.2(consola@3.2.3)
       '@knime/ui-extension-renderer':
-        specifier: 2.0.13
-        version: 2.0.13(@popperjs/core@2.11.8)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
+        specifier: 2.3.39
+        version: 2.3.39(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
       '@knime/utils':
-        specifier: 1.5.4
-        version: 1.5.4(consola@3.2.3)
+        specifier: 1.7.1
+        version: 1.7.1(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(consola@3.2.3)
       '@knime/vue-headless-virtual-scroller':
         specifier: 0.1.3
         version: 0.1.3(vue@3.5.13(typescript@5.4.5))
@@ -126,8 +129,8 @@ importers:
         specifier: 3.2.3
         version: 3.2.3
       eslint:
-        specifier: 8.56.0
-        version: 8.56.0
+        specifier: 8.57.1
+        version: 8.57.1
       flush-promises:
         specifier: 1.0.2
         version: 1.0.2
@@ -150,8 +153,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0
       stylelint:
-        specifier: 16.14.1
-        version: 16.14.1(typescript@5.4.5)
+        specifier: 16.25.0
+        version: 16.25.0(typescript@5.4.5)
       type-fest:
         specifier: 4.3.1
         version: 4.3.1
@@ -621,8 +624,8 @@ packages:
     resolution: {integrity: sha512-269Z39MS6wVJtsoUl10L60WdkhJVdPG24Q4eZTH3nnF6lpvSShEK3wQjDX9JRWAUPvPh7COouPpU9IrqaZFvtQ==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
-  '@eslint/js@8.56.0':
-    resolution: {integrity: sha512-gMsVel9D7f2HLkBma9VbtzZRehRogVRfbr++f06nL2vnCGCNlzOD+/MUov/F4p8myyAHspEhVobgjpX64q5m6A==}
+  '@eslint/js@8.57.1':
+    resolution: {integrity: sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
   '@floating-ui/core@1.7.3':
@@ -640,8 +643,14 @@ packages:
   '@floating-ui/vue@1.1.8':
     resolution: {integrity: sha512-SNJAa1jbT8Gh1LvWw2uIIViLL0saV2bCY59ISCvJzhbut5DSb2H3LKUK49Xkd7SixTNHKX4LFu59nbwIXt9jjQ==}
 
-  '@humanwhocodes/config-array@0.11.14':
-    resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
+  '@fontsource/roboto-mono@5.2.8':
+    resolution: {integrity: sha512-M0XPRcvkOKiTPooXwX7yJSNpuad3CPcQwsADBfnopz3apBs+VKI47pc42mlvAxJjNTRauu5rndSxHc8F52bR7Q==}
+
+  '@fontsource/roboto@5.2.8':
+    resolution: {integrity: sha512-oh9g4Cg3loVMz9MWeKWfDI+ooxxG1aRVetkiKIb2ESS2rrryGecQ/y4pAj4z5A5ebyw450dYRi/c4k/I3UBhHA==}
+
+  '@humanwhocodes/config-array@0.13.0':
+    resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
     engines: {node: '>=10.10.0'}
     deprecated: Use @eslint/config-array instead
 
@@ -699,12 +708,6 @@ packages:
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
 
-  '@knime/components@1.18.5':
-    resolution: {integrity: sha512-YblbL5sNMmyKQXexZPe/Ra12bdBDxHif9Ht2naHm6rM23P2mcSHIkp2mScyPU/12bxALvVbnhVvr6iNa+L+BdA==}
-    engines: {node: 22.x}
-    peerDependencies:
-      vue: 3.x
-
   '@knime/components@1.34.1':
     resolution: {integrity: sha512-pdGEtmSvg/uvhSnjgTHv9nxVXcAJjJIvptMwwkg2FhRpy8492fp4jv8+TN0lgfhucBoo8irPns5qd4TAX9NlNQ==}
     engines: {node: 22.x}
@@ -712,15 +715,15 @@ packages:
       consola: 3.x
       vue: '>=3.5.0'
 
-  '@knime/components@1.41.5':
-    resolution: {integrity: sha512-9M1jBUGk8jsP7i+K4o7upIDs4lRFqsSScYK1k/dslVNS4DDo1cXQK8WY1zDfVoSQvVo6L7hC3YvUiO8LN66hqw==}
+  '@knime/components@1.41.10':
+    resolution: {integrity: sha512-tPnZ/aqRNfJSswgLrV4/A+d2ozaayecbirCK5k0t04HR6NDXnysYUd1YMokTNuqhAp12zekY4CERBNbQVHQNLA==}
     engines: {node: 22.x}
     peerDependencies:
       consola: 3.x
       vue: '>=3.5.0'
 
-  '@knime/components@1.41.9':
-    resolution: {integrity: sha512-SOn8gVLn6qiv5ajINGvO1q663SAHz7ja6ERU/kpEh0qlOhXPq3J2IGxDvYVuR3p+s84NRP8Kn8g0L5IwJIVT3g==}
+  '@knime/components@1.41.5':
+    resolution: {integrity: sha512-9M1jBUGk8jsP7i+K4o7upIDs4lRFqsSScYK1k/dslVNS4DDo1cXQK8WY1zDfVoSQvVo6L7hC3YvUiO8LN66hqw==}
     engines: {node: 22.x}
     peerDependencies:
       consola: 3.x
@@ -771,6 +774,12 @@ packages:
       consola: 3.x
       vue: '>=3.5.0'
 
+  '@knime/rich-text-editor@1.7.39':
+    resolution: {integrity: sha512-YL8ZiVe0I2rqbX1LDBlf0KCjFvxeQXIG6DQ/iQ6zkHZXqoWrTQ+EUAEl7xmH+yr24rBSu8BjYd+boVzUxAekIA==}
+    peerDependencies:
+      consola: 3.x
+      vue: '>=3.5.0'
+
   '@knime/styles@1.11.0':
     resolution: {integrity: sha512-MEd5n7ZUx8f9xGCTmnVYXakwQQJmHLCLz+rbI33gDrm/EDKxRZ3dSaz9v0wJLAWOVYOKn32CTCHSSn7+VAGwJA==}
     peerDependencies:
@@ -789,23 +798,15 @@ packages:
       '@fontsource/roboto': 5.x
       '@fontsource/roboto-mono': 5.x
 
-  '@knime/styles@1.3.1':
-    resolution: {integrity: sha512-ZmPsS6peAPqwJ1/yueMp0t4a1LjOpyBKfcuG4eHtI5Sex3Y/hOtks3nU0BNbVf4nzmY11PY0XsI86OkAzTTbFg==}
+  '@knime/ui-extension-renderer@2.3.39':
+    resolution: {integrity: sha512-22FwkEjlHxfLFwy5/dU51XzCtF+gq3PQM1L/b/YARBYgrsk4eCF3zzRhen4mhUZ1Tnme2Ts5N7zvmyvk29O/tA==}
     peerDependencies:
-      '@fontsource/roboto': 4.x
-      '@fontsource/roboto-mono': 4.x
-
-  '@knime/ui-extension-renderer@2.0.13':
-    resolution: {integrity: sha512-eAiJc5Ke4u7avlALhjvcTOZ7Qc7xrVWh9vdLCP5tVQCX/GuWiIUFxovqyF3hxc9Iy4cvcJyPwkpW1aDGY5EhMQ==}
-    peerDependencies:
-      vue: 3.x
+      consola: 3.x
+      vue: '>=3.5.0'
 
   '@knime/ui-extension-service@2.2.0':
     resolution: {integrity: sha512-tOc3WlbvifxYM7fGCNfGCKHNgR07455boqXSb4EQ7KicioAEi9XRS0Ni7CuRu77kfVU/TpZfo5PUXJyeXA0+pQ==}
     engines: {node: 22.x}
-
-  '@knime/utils@1.3.0':
-    resolution: {integrity: sha512-3N00gmlX2hfSAaq4/WGyBeN6whluccuUOpKsqQS9ct7vR1Do9+n6O95NfPx6MxFKkaiJ/PDIQf3U23+d1x6l3w==}
 
   '@knime/utils@1.5.4':
     resolution: {integrity: sha512-FYNhY8HpQsrEjKQqeGuHTTD7P7MsJPwGeFnh1QEoqxQIEarLUWMFtlbf2ezlAInc7paajelElhmETVs3gieB9A==}
@@ -1004,11 +1005,6 @@ packages:
 
   '@rushstack/eslint-patch@1.14.1':
     resolution: {integrity: sha512-jGTk8UD/RdjsNZW8qq10r0RBvxL8OWtoT+kImlzPDFilmozzM+9QmIJsmze9UiSBrFU45ZxhTYBypn9q9z/VfQ==}
-
-  '@tiptap/core@2.1.10':
-    resolution: {integrity: sha512-yhUKsac6nlqbPQfwQnp+4Jb110EqmzocXKoZacLwzHpM7JVsr2+LXMDu9kahtrvHNJErJljhnQvDHRsrrYeJkQ==}
-    peerDependencies:
-      '@tiptap/pm': ^2.0.0
 
   '@tiptap/core@2.27.1':
     resolution: {integrity: sha512-nkerkl8syHj44ZzAB7oA2GPmmZINKBKCa79FuNvmGJrJ4qyZwlkDzszud23YteFZEytbc87kVd/fP76ROS6sLg==}
@@ -1220,9 +1216,6 @@ packages:
 
   '@types/uuid@9.0.8':
     resolution: {integrity: sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==}
-
-  '@types/web-bluetooth@0.0.17':
-    resolution: {integrity: sha512-4p9vcSmxAayx72yn70joFoL44c9MO/0+iVEBIQXe3v2h2SiAsEIo/G5v6ObFWvNKRFjbrVadNf9LqEEZeQPzdA==}
 
   '@types/web-bluetooth@0.0.20':
     resolution: {integrity: sha512-g9gZnnXVq7gM7v3tJCWV/qw7w+KeOlSHAhgF9RytFyifW6AF61hdT2ucrYhPq9hLs5JIryeupHV3qGk95dH9ow==}
@@ -1468,9 +1461,6 @@ packages:
   '@vue/tsconfig@0.5.1':
     resolution: {integrity: sha512-VcZK7MvpjuTPx2w6blwnwZAu5/LgBUtejFOi3pPGQFXQN5Ela03FUtd2Qtg4yWGGissVL0dr6Ro1LfOFh+PCuQ==}
 
-  '@vueuse/components@10.11.1':
-    resolution: {integrity: sha512-ThcreQCX/eq61sLkLKjigD4PQvs3Wy4zglICvQH9tP6xl87y5KsQEoizn6OI+R3hrOgwQHLJe7Y0wLLh3fBKcg==}
-
   '@vueuse/components@13.6.0':
     resolution: {integrity: sha512-wJmXlQhCRWBqpnRW4KVbbKqCW28AZ/5hoA/gy7cvTXJUiRdKKfjHFo+7MGwn80dFfIkCA5253T7Y3fbNK4/lUw==}
     peerDependencies:
@@ -1480,12 +1470,6 @@ packages:
     resolution: {integrity: sha512-lAunbZhYdQB/eVQVJqTKTfPnyZUYgd5wgWDl6HymnM1jF1RT/lI/a2oLZNBu49Yr1cY2Eq/7jNvuZz/dMa1EIw==}
     peerDependencies:
       vue: ^3.5.0
-
-  '@vueuse/core@10.11.1':
-    resolution: {integrity: sha512-guoy26JQktXPcz+0n3GukWIy/JDNKti9v6VEMu6kV2sYBsWuGiTU8OWdg+ADfUbHg3/3DlqySDe7JmdHrktiww==}
-
-  '@vueuse/core@10.4.1':
-    resolution: {integrity: sha512-DkHIfMIoSIBjMgRRvdIvxsyboRZQmImofLyOHADqiVbQVilP8VVHDhBX2ZqoItOgu7dWa8oXiNnScOdPLhdEXg==}
 
   '@vueuse/core@10.7.0':
     resolution: {integrity: sha512-4EUDESCHtwu44ZWK3Gc/hZUVhVo/ysvdtwocB5vcauSV4B7NiGY5972WnsojB3vRNdxvAt7kzJWE2h9h7C9d5w==}
@@ -1500,12 +1484,6 @@ packages:
     peerDependencies:
       vue: ^3.5.0
 
-  '@vueuse/metadata@10.11.1':
-    resolution: {integrity: sha512-IGa5FXd003Ug1qAZmyE8wF3sJ81xGLSqTqtQ6jaVfkeZ4i5kS2mwQF61yhVqojRnenVew5PldLyRgvdl4YYuSw==}
-
-  '@vueuse/metadata@10.4.1':
-    resolution: {integrity: sha512-2Sc8X+iVzeuMGHr6O2j4gv/zxvQGGOYETYXEc41h0iZXIRnRbJZGmY/QP8dvzqUelf8vg0p/yEA5VpCEu+WpZg==}
-
   '@vueuse/metadata@10.7.0':
     resolution: {integrity: sha512-GlaH7tKP2iBCZ3bHNZ6b0cl9g0CJK8lttkBNUX156gWvNYhTKEtbweWLm9rxCPIiwzYcr/5xML6T8ZUEt+DkvA==}
 
@@ -1514,12 +1492,6 @@ packages:
 
   '@vueuse/metadata@13.8.0':
     resolution: {integrity: sha512-BYMp3Gp1kBUPv7AfQnJYP96mkX7g7cKdTIgwv/Jgd+pfQhz678naoZOAcknRtPLP4cFblDDW7rF4e3KFa+PfIA==}
-
-  '@vueuse/shared@10.11.1':
-    resolution: {integrity: sha512-LHpC8711VFZlDaYUXEBbFBCQ7GS3dVU9mjOhhMhXP6txTV4EhYQg/KGnQuvt/sPAtoUKq7VVUnL6mVtFoL42sA==}
-
-  '@vueuse/shared@10.4.1':
-    resolution: {integrity: sha512-vz5hbAM4qA0lDKmcr2y3pPdU+2EVw/yzfRsBdu+6+USGa4PxqSQRYIUC9/NcT06y+ZgaTsyURw2I9qOFaaXHAg==}
 
   '@vueuse/shared@10.7.0':
     resolution: {integrity: sha512-kc00uV6CiaTdc3i1CDC4a3lBxzaBE9AgYNtFN87B5OOscqeWElj/uza8qVDmk7/U8JbqoONLbtqiLJ5LGRuqlw==}
@@ -2295,8 +2267,8 @@ packages:
     resolution: {integrity: sha512-wpc+LXeiyiisxPlEkUzU6svyS1frIO3Mgxj1fdy7Pm8Ygzguax2N3Fa/D/ag1WqbOprdI+uY6wMUl8/a2G+iag==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
-  eslint@8.56.0:
-    resolution: {integrity: sha512-Go19xM6T9puCOWntie1/P997aXxFsOi37JIHRWI514Hc6ZnaHGKY9xFhrU65RT6CcBEzZoGG1e6Nq+DT04ZtZQ==}
+  eslint@8.57.1:
+    resolution: {integrity: sha512-ypowyDxpVSYpkXr9WPv2PAZCtNip1Mv5KTW0SCurXv/9iOpcrH9PaqUElksqEB6pChqHGDRCFTyrZlGhnLNGiA==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
@@ -2565,9 +2537,6 @@ packages:
 
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
-
-  gsap@3.13.0:
-    resolution: {integrity: sha512-QL7MJ2WMjm1PHWsoFrAQH/J8wUeqZvMtHO58qdekHpCfhvhSL4gSiz6vJf5EeMP0LOn3ZCprL2ki/gjED8ghVw==}
 
   has-bigints@1.1.0:
     resolution: {integrity: sha512-R3pbpkcIqv2Pm3dUwgjclDRVmWpTJW2DcMzcIhEXEx1oh/CEMObMm3KLmRJOdvhM7o4uQBnwr8pzRK2sJWIqfg==}
@@ -2934,8 +2903,8 @@ packages:
     resolution: {integrity: sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw==}
     engines: {node: '>=0.10.0'}
 
-  known-css-properties@0.35.0:
-    resolution: {integrity: sha512-a/RAk2BfKk+WFGhhOCAYqSiFLc34k8Mt/6NWRI4joER0EYUzXIcFivjjnoD3+XU1DggLn/tZc3DOAgke7l8a4A==}
+  known-css-properties@0.37.0:
+    resolution: {integrity: sha512-JCDrsP4Z1Sb9JwG0aJ8Eo2r7k4Ou5MwmThS/6lcIe1ICyb7UBJKGRIUUdqc2ASdE/42lgz6zFUnzAIhtXnBVrQ==}
 
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
@@ -4145,8 +4114,8 @@ packages:
     peerDependencies:
       stylelint: ^16.23.0
 
-  stylelint@16.14.1:
-    resolution: {integrity: sha512-oqCL7AC3786oTax35T/nuLL8p2C3k/8rHKAooezrPGRvUX0wX+qqs5kMWh5YYT4PHQgVDobHT4tw55WgpYG6Sw==}
+  stylelint@16.25.0:
+    resolution: {integrity: sha512-Li0avYWV4nfv1zPbdnxLYBGq4z8DVZxbRgx4Kn6V+Uftz1rMoF1qiEI3oL4kgWqyYgCgs7gT5maHNZ82Gk03vQ==}
     engines: {node: '>=18.12.0'}
     hasBin: true
 
@@ -5190,9 +5159,9 @@ snapshots:
   '@esbuild/win32-x64@0.21.5':
     optional: true
 
-  '@eslint-community/eslint-utils@4.9.0(eslint@8.56.0)':
+  '@eslint-community/eslint-utils@4.9.0(eslint@8.57.1)':
     dependencies:
-      eslint: 8.56.0
+      eslint: 8.57.1
       eslint-visitor-keys: 3.4.3
 
   '@eslint-community/regexpp@4.12.2': {}
@@ -5211,7 +5180,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@eslint/js@8.56.0': {}
+  '@eslint/js@8.57.1': {}
 
   '@floating-ui/core@1.7.3':
     dependencies:
@@ -5241,7 +5210,11 @@ snapshots:
       - '@vue/composition-api'
       - vue
 
-  '@humanwhocodes/config-array@0.11.14':
+  '@fontsource/roboto-mono@5.2.8': {}
+
+  '@fontsource/roboto@5.2.8': {}
+
+  '@humanwhocodes/config-array@0.13.0':
     dependencies:
       '@humanwhocodes/object-schema': 2.0.3
       debug: 4.4.3
@@ -5305,37 +5278,11 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
-  '@knime/components@1.18.5(@popperjs/core@2.11.8)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))':
-    dependencies:
-      '@floating-ui/vue': 1.0.2(vue@3.5.13(typescript@5.4.5))
-      '@knime/styles': 1.3.1
-      '@knime/utils': 1.3.0
-      '@knime/vue-headless-virtual-scroller': 0.1.3(vue@3.5.13(typescript@5.4.5))
-      '@vueuse/components': 10.11.1(vue@3.5.13(typescript@5.4.5))
-      '@vueuse/core': 10.4.1(vue@3.5.13(typescript@5.4.5))
-      '@vueuse/shared': 10.11.1(vue@3.5.13(typescript@5.4.5))
-      consola: 3.2.3
-      date-fns: 2.30.0
-      date-fns-tz: 2.0.0(date-fns@2.30.0)
-      filesize: 10.0.6
-      focus-trap-vue: 4.0.2(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
-      gsap: 3.13.0
-      lodash-es: 4.17.21
-      typescript: 5.4.5
-      v-calendar: https://bitbucket.org/KNIME/v-calendar/get/048477fd4d4e21a1d364b0a7194a94d70bf84827.tar.gz(@popperjs/core@2.11.8)(vue@3.5.13(typescript@5.4.5))
-      vue: 3.5.13(typescript@5.4.5)
-    transitivePeerDependencies:
-      - '@fontsource/roboto'
-      - '@fontsource/roboto-mono'
-      - '@popperjs/core'
-      - '@vue/composition-api'
-      - focus-trap
-
-  '@knime/components@1.34.1(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))':
+  '@knime/components@1.34.1(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))':
     dependencies:
       '@floating-ui/vue': 1.1.8(vue@3.5.13(typescript@5.4.5))
-      '@knime/styles': 1.11.0
-      '@knime/utils': 1.5.4(consola@3.2.3)
+      '@knime/styles': 1.11.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
+      '@knime/utils': 1.5.4(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(consola@3.2.3)
       '@knime/vue-headless-virtual-scroller': 0.1.3(vue@3.5.13(typescript@5.4.5))
       '@vueuse/components': 13.6.0(vue@3.5.13(typescript@5.4.5))
       '@vueuse/core': 13.6.0(vue@3.5.13(typescript@5.4.5))
@@ -5362,11 +5309,11 @@ snapshots:
       - react
       - react-dom
 
-  '@knime/components@1.41.5(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))':
+  '@knime/components@1.41.10(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))':
     dependencies:
       '@floating-ui/vue': 1.1.8(vue@3.5.13(typescript@5.4.5))
-      '@knime/styles': 1.14.2
-      '@knime/utils': 1.7.0(consola@3.2.3)
+      '@knime/styles': 1.14.3(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
+      '@knime/utils': 1.7.1(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(consola@3.2.3)
       '@knime/vue-headless-virtual-scroller': 0.1.3(vue@3.5.13(typescript@5.4.5))
       '@vueuse/components': 13.8.0(vue@3.5.13(typescript@5.4.5))
       '@vueuse/core': 13.8.0(vue@3.5.13(typescript@5.4.5))
@@ -5393,11 +5340,11 @@ snapshots:
       - react
       - react-dom
 
-  '@knime/components@1.41.9(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))':
+  '@knime/components@1.41.5(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))':
     dependencies:
       '@floating-ui/vue': 1.1.8(vue@3.5.13(typescript@5.4.5))
-      '@knime/styles': 1.14.3
-      '@knime/utils': 1.7.1(consola@3.2.3)
+      '@knime/styles': 1.14.2(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
+      '@knime/utils': 1.7.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(consola@3.2.3)
       '@knime/vue-headless-virtual-scroller': 0.1.3(vue@3.5.13(typescript@5.4.5))
       '@vueuse/components': 13.8.0(vue@3.5.13(typescript@5.4.5))
       '@vueuse/core': 13.8.0(vue@3.5.13(typescript@5.4.5))
@@ -5424,25 +5371,25 @@ snapshots:
       - react
       - react-dom
 
-  '@knime/eslint-config@8.3.0(eslint@8.56.0)(postcss-html@1.8.0)(prettier@3.0.0)(stylelint@16.14.1(typescript@5.4.5))(typescript@5.4.5)(vitest@2.1.5(@types/node@22.10.10)(jsdom@20.0.3)(sugarss@4.0.1(postcss@8.5.6)))':
+  '@knime/eslint-config@8.3.0(eslint@8.57.1)(postcss-html@1.8.0)(prettier@3.0.0)(stylelint@16.25.0(typescript@5.4.5))(typescript@5.4.5)(vitest@2.1.5(@types/node@22.10.10)(jsdom@20.0.3)(sugarss@4.0.1(postcss@8.5.6)))':
     dependencies:
-      '@nuxt/eslint-config': 0.2.0(eslint@8.56.0)
+      '@nuxt/eslint-config': 0.2.0(eslint@8.57.1)
       '@rushstack/eslint-patch': 1.14.1
-      '@typescript-eslint/eslint-plugin': 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5)
-      '@typescript-eslint/parser': 6.21.0(eslint@8.56.0)(typescript@5.4.5)
-      '@vue/eslint-config-typescript': 12.0.0(eslint-plugin-vue@9.33.0(eslint@8.56.0))(eslint@8.56.0)(typescript@5.4.5)
-      eslint: 8.56.0
-      eslint-config-prettier: 9.1.2(eslint@8.56.0)
-      eslint-import-resolver-custom-alias: 1.3.2(eslint-plugin-import@2.32.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0))
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)
-      eslint-plugin-jest: 27.9.0(@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5)
-      eslint-plugin-jest-formatting: 3.1.0(eslint@8.56.0)
-      eslint-plugin-unused-imports: 3.2.0(@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)
-      eslint-plugin-vitest: 0.5.4(@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5)(vitest@2.1.5(@types/node@22.10.10)(jsdom@20.0.3)(sugarss@4.0.1(postcss@8.5.6)))
-      eslint-plugin-vue: 9.33.0(eslint@8.56.0)
+      '@typescript-eslint/eslint-plugin': 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5)
+      '@typescript-eslint/parser': 6.21.0(eslint@8.57.1)(typescript@5.4.5)
+      '@vue/eslint-config-typescript': 12.0.0(eslint-plugin-vue@9.33.0(eslint@8.57.1))(eslint@8.57.1)(typescript@5.4.5)
+      eslint: 8.57.1
+      eslint-config-prettier: 9.1.2(eslint@8.57.1)
+      eslint-import-resolver-custom-alias: 1.3.2(eslint-plugin-import@2.32.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)
+      eslint-plugin-jest: 27.9.0(@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5)
+      eslint-plugin-jest-formatting: 3.1.0(eslint@8.57.1)
+      eslint-plugin-unused-imports: 3.2.0(@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)
+      eslint-plugin-vitest: 0.5.4(@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5)(vitest@2.1.5(@types/node@22.10.10)(jsdom@20.0.3)(sugarss@4.0.1(postcss@8.5.6)))
+      eslint-plugin-vue: 9.33.0(eslint@8.57.1)
       prettier: 3.0.0
-      stylelint: 16.14.1(typescript@5.4.5)
-      stylelint-config-standard-vue: 1.0.0(postcss-html@1.8.0)(stylelint@16.14.1(typescript@5.4.5))
+      stylelint: 16.25.0(typescript@5.4.5)
+      stylelint-config-standard-vue: 1.0.0(postcss-html@1.8.0)(stylelint@16.25.0(typescript@5.4.5))
     transitivePeerDependencies:
       - eslint-import-resolver-typescript
       - eslint-import-resolver-webpack
@@ -5452,17 +5399,17 @@ snapshots:
       - typescript
       - vitest
 
-  '@knime/jsonforms@1.15.39(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.13(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))':
+  '@knime/jsonforms@1.15.39(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(@vueuse/core@13.8.0(vue@3.5.13(typescript@5.4.5)))(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))':
     dependencies:
       '@floating-ui/vue': 1.1.8(vue@3.5.13(typescript@5.4.5))
       '@jsonforms/core': 3.4.0
       '@jsonforms/vue': 3.4.0(@jsonforms/core@3.4.0)(vue@3.5.13(typescript@5.4.5))
       '@jsonforms/vue-vanilla': 3.4.0(@jsonforms/core@3.4.0)(@jsonforms/vue@3.4.0(@jsonforms/core@3.4.0)(vue@3.5.13(typescript@5.4.5)))(vue@3.5.13(typescript@5.4.5))
-      '@knime/components': 1.41.5(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
-      '@knime/kds-components': 0.0.8(@vueuse/core@13.8.0(vue@3.5.13(typescript@5.4.5)))(vue@3.5.13(typescript@5.4.5))
-      '@knime/rich-text-editor': 1.7.34(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
-      '@knime/styles': 1.14.2
-      '@knime/utils': 1.7.0(consola@3.2.3)
+      '@knime/components': 1.41.5(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
+      '@knime/kds-components': 0.0.8(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@vueuse/core@13.8.0(vue@3.5.13(typescript@5.4.5)))(vue@3.5.13(typescript@5.4.5))
+      '@knime/rich-text-editor': 1.7.34(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
+      '@knime/styles': 1.14.2(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
+      '@knime/utils': 1.7.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(consola@3.2.3)
       consola: 3.2.3
       date-fns: 2.30.0
       focus-trap-vue: 4.0.3(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
@@ -5480,11 +5427,11 @@ snapshots:
       - react
       - react-dom
 
-  '@knime/kds-components@0.0.8(@vueuse/core@13.8.0(vue@3.5.13(typescript@5.4.5)))(vue@3.5.13(typescript@5.4.5))':
+  '@knime/kds-components@0.0.8(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@vueuse/core@13.8.0(vue@3.5.13(typescript@5.4.5)))(vue@3.5.13(typescript@5.4.5))':
     dependencies:
       '@knime/kds-styles': 0.0.8
-      '@knime/styles': 1.14.2
-      '@knime/utils': 1.5.4(consola@3.4.2)
+      '@knime/styles': 1.14.2(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
+      '@knime/utils': 1.7.1(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(consola@3.4.2)
       '@vueuse/core': 13.8.0(vue@3.5.13(typescript@5.4.5))
       consola: 3.4.2
       vue: 3.5.13(typescript@5.4.5)
@@ -5496,12 +5443,12 @@ snapshots:
     dependencies:
       modern-normalize: 3.0.1
 
-  '@knime/knime-ui-table@0.5.24(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))':
+  '@knime/knime-ui-table@0.5.24(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))':
     dependencies:
       '@floating-ui/vue': 1.1.8(vue@3.5.13(typescript@5.4.5))
-      '@knime/components': 1.34.1(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
-      '@knime/styles': 1.11.0
-      '@knime/utils': 1.5.4(consola@3.2.3)
+      '@knime/components': 1.34.1(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
+      '@knime/styles': 1.11.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
+      '@knime/utils': 1.5.4(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(consola@3.2.3)
       '@knime/vue-headless-virtual-scroller': 0.1.3(vue@3.5.13(typescript@5.4.5))
       lodash-es: 4.17.21
       raf-throttle: 2.0.6
@@ -5530,11 +5477,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@knime/rich-text-editor@1.7.34(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))':
+  '@knime/rich-text-editor@1.7.34(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))':
     dependencies:
-      '@knime/components': 1.41.5(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
-      '@knime/styles': 1.14.2
-      '@knime/utils': 1.7.0(consola@3.2.3)
+      '@knime/components': 1.41.5(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
+      '@knime/styles': 1.14.2(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
+      '@knime/utils': 1.7.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(consola@3.2.3)
       '@tiptap/core': 2.27.1(@tiptap/pm@2.27.1)
       '@tiptap/extension-character-count': 2.27.1(@tiptap/core@2.27.1(@tiptap/pm@2.27.1))(@tiptap/pm@2.27.1)
       '@tiptap/extension-hard-break': 2.27.1(@tiptap/core@2.27.1(@tiptap/pm@2.27.1))
@@ -5558,8 +5505,38 @@ snapshots:
       - react
       - react-dom
 
-  '@knime/styles@1.11.0':
+  '@knime/rich-text-editor@1.7.39(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))':
     dependencies:
+      '@knime/components': 1.41.10(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
+      '@knime/styles': 1.14.3(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
+      '@knime/utils': 1.7.1(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(consola@3.2.3)
+      '@tiptap/core': 2.27.1(@tiptap/pm@2.27.1)
+      '@tiptap/extension-character-count': 2.27.1(@tiptap/core@2.27.1(@tiptap/pm@2.27.1))(@tiptap/pm@2.27.1)
+      '@tiptap/extension-hard-break': 2.27.1(@tiptap/core@2.27.1(@tiptap/pm@2.27.1))
+      '@tiptap/extension-heading': 2.27.1(@tiptap/core@2.27.1(@tiptap/pm@2.27.1))
+      '@tiptap/extension-link': 2.27.1(@tiptap/core@2.27.1(@tiptap/pm@2.27.1))(@tiptap/pm@2.27.1)
+      '@tiptap/extension-paragraph': 2.27.1(@tiptap/core@2.27.1(@tiptap/pm@2.27.1))
+      '@tiptap/extension-text-align': 2.27.1(@tiptap/core@2.27.1(@tiptap/pm@2.27.1))
+      '@tiptap/extension-underline': 2.27.1(@tiptap/core@2.27.1(@tiptap/pm@2.27.1))
+      '@tiptap/pm': 2.27.1
+      '@tiptap/starter-kit': 2.27.1
+      '@tiptap/vue-3': 2.27.1(@tiptap/core@2.27.1(@tiptap/pm@2.27.1))(@tiptap/pm@2.27.1)(vue@3.5.13(typescript@5.4.5))
+      consola: 3.2.3
+      vue: 3.5.13(typescript@5.4.5)
+    transitivePeerDependencies:
+      - '@emotion/is-prop-valid'
+      - '@fontsource/roboto'
+      - '@fontsource/roboto-mono'
+      - '@popperjs/core'
+      - '@vue/composition-api'
+      - focus-trap
+      - react
+      - react-dom
+
+  '@knime/styles@1.11.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)':
+    dependencies:
+      '@fontsource/roboto': 5.2.8
+      '@fontsource/roboto-mono': 5.2.8
       modern-normalize: 2.0.0
       postcss: 8.4.47
       postcss-import: 16.1.0(postcss@8.4.47)
@@ -5567,8 +5544,10 @@ snapshots:
       postcss-preset-env: 10.0.5(postcss@8.4.47)
       postcss-url: 10.1.3(postcss@8.4.47)
 
-  '@knime/styles@1.14.2':
+  '@knime/styles@1.14.2(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)':
     dependencies:
+      '@fontsource/roboto': 5.2.8
+      '@fontsource/roboto-mono': 5.2.8
       modern-normalize: 2.0.0
       postcss: 8.4.47
       postcss-import: 16.1.0(postcss@8.4.47)
@@ -5576,8 +5555,10 @@ snapshots:
       postcss-preset-env: 10.0.5(postcss@8.4.47)
       postcss-url: 10.1.3(postcss@8.4.47)
 
-  '@knime/styles@1.14.3':
+  '@knime/styles@1.14.3(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)':
     dependencies:
+      '@fontsource/roboto': 5.2.8
+      '@fontsource/roboto-mono': 5.2.8
       modern-normalize: 2.0.0
       postcss: 8.5.6
       postcss-import: 16.1.0(postcss@8.5.6)
@@ -5585,36 +5566,31 @@ snapshots:
       postcss-preset-env: 10.0.5(postcss@8.5.6)
       postcss-url: 10.1.3(postcss@8.5.6)
 
-  '@knime/styles@1.3.1':
+  '@knime/ui-extension-renderer@2.3.39(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))':
     dependencies:
-      modern-normalize: 2.0.0
-      postcss: 8.4.47
-      postcss-import: 16.1.0(postcss@8.4.47)
-      postcss-mixins: 11.0.1(postcss@8.4.47)
-      postcss-preset-env: 10.0.5(postcss@8.4.47)
-      postcss-url: 10.1.3(postcss@8.4.47)
-
-  '@knime/ui-extension-renderer@2.0.13(@popperjs/core@2.11.8)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))':
-    dependencies:
-      '@knime/components': 1.18.5(@popperjs/core@2.11.8)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
-      '@knime/styles': 1.3.1
-      '@vueuse/shared': 10.11.1(vue@3.5.13(typescript@5.4.5))
+      '@knime/components': 1.41.10(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(@popperjs/core@2.11.8)(consola@3.2.3)(focus-trap@7.6.6)(vue@3.5.13(typescript@5.4.5))
+      '@knime/styles': 1.14.3(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
+      '@vueuse/shared': 13.8.0(vue@3.5.13(typescript@5.4.5))
+      consola: 3.2.3
       vue: 3.5.13(typescript@5.4.5)
     transitivePeerDependencies:
+      - '@emotion/is-prop-valid'
       - '@fontsource/roboto'
       - '@fontsource/roboto-mono'
       - '@popperjs/core'
       - '@vue/composition-api'
       - focus-trap
+      - react
+      - react-dom
 
   '@knime/ui-extension-service@2.2.0':
     dependencies:
       color-convert: 2.0.1
       uuid: 9.0.1
 
-  '@knime/utils@1.3.0':
+  '@knime/utils@1.5.4(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(consola@3.2.3)':
     dependencies:
-      '@knime/styles': 1.3.1
+      '@knime/styles': 1.11.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
       consola: 3.2.3
       date-fns: 2.30.0
       date-fns-tz: 2.0.0(date-fns@2.30.0)
@@ -5622,29 +5598,9 @@ snapshots:
       - '@fontsource/roboto'
       - '@fontsource/roboto-mono'
 
-  '@knime/utils@1.5.4(consola@3.2.3)':
+  '@knime/utils@1.7.0(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(consola@3.2.3)':
     dependencies:
-      '@knime/styles': 1.11.0
-      consola: 3.2.3
-      date-fns: 2.30.0
-      date-fns-tz: 2.0.0(date-fns@2.30.0)
-    transitivePeerDependencies:
-      - '@fontsource/roboto'
-      - '@fontsource/roboto-mono'
-
-  '@knime/utils@1.5.4(consola@3.4.2)':
-    dependencies:
-      '@knime/styles': 1.11.0
-      consola: 3.4.2
-      date-fns: 2.30.0
-      date-fns-tz: 2.0.0(date-fns@2.30.0)
-    transitivePeerDependencies:
-      - '@fontsource/roboto'
-      - '@fontsource/roboto-mono'
-
-  '@knime/utils@1.7.0(consola@3.2.3)':
-    dependencies:
-      '@knime/styles': 1.14.2
+      '@knime/styles': 1.14.2(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
       consola: 3.2.3
       date-fns: 2.30.0
       date-fns-tz: 2.0.0(date-fns@2.30.0)
@@ -5653,10 +5609,21 @@ snapshots:
       - '@fontsource/roboto'
       - '@fontsource/roboto-mono'
 
-  '@knime/utils@1.7.1(consola@3.2.3)':
+  '@knime/utils@1.7.1(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(consola@3.2.3)':
     dependencies:
-      '@knime/styles': 1.14.3
+      '@knime/styles': 1.14.3(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
       consola: 3.2.3
+      date-fns: 2.30.0
+      date-fns-tz: 2.0.0(date-fns@2.30.0)
+      dompurify: 3.3.0
+    transitivePeerDependencies:
+      - '@fontsource/roboto'
+      - '@fontsource/roboto-mono'
+
+  '@knime/utils@1.7.1(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)(consola@3.4.2)':
+    dependencies:
+      '@knime/styles': 1.14.3(@fontsource/roboto-mono@5.2.8)(@fontsource/roboto@5.2.8)
+      consola: 3.4.2
       date-fns: 2.30.0
       date-fns-tz: 2.0.0(date-fns@2.30.0)
       dompurify: 3.3.0
@@ -5704,13 +5671,13 @@ snapshots:
     dependencies:
       semver: 7.7.3
 
-  '@nuxt/eslint-config@0.2.0(eslint@8.56.0)':
+  '@nuxt/eslint-config@0.2.0(eslint@8.57.1)':
     dependencies:
       '@rushstack/eslint-patch': 1.14.1
-      '@typescript-eslint/eslint-plugin': 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5)
-      '@typescript-eslint/parser': 6.21.0(eslint@8.56.0)(typescript@5.4.5)
-      eslint: 8.56.0
-      eslint-plugin-vue: 9.33.0(eslint@8.56.0)
+      '@typescript-eslint/eslint-plugin': 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5)
+      '@typescript-eslint/parser': 6.21.0(eslint@8.57.1)(typescript@5.4.5)
+      eslint: 8.57.1
+      eslint-plugin-vue: 9.33.0(eslint@8.57.1)
       typescript: 5.4.5
     transitivePeerDependencies:
       - supports-color
@@ -5810,10 +5777,6 @@ snapshots:
   '@rtsao/scc@1.1.0': {}
 
   '@rushstack/eslint-patch@1.14.1': {}
-
-  '@tiptap/core@2.1.10(@tiptap/pm@2.27.1)':
-    dependencies:
-      '@tiptap/pm': 2.27.1
 
   '@tiptap/core@2.27.1(@tiptap/pm@2.27.1)':
     dependencies:
@@ -6034,22 +5997,20 @@ snapshots:
 
   '@types/uuid@9.0.8': {}
 
-  '@types/web-bluetooth@0.0.17': {}
-
   '@types/web-bluetooth@0.0.20': {}
 
   '@types/web-bluetooth@0.0.21': {}
 
-  '@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5)':
+  '@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5)':
     dependencies:
       '@eslint-community/regexpp': 4.12.2
-      '@typescript-eslint/parser': 6.21.0(eslint@8.56.0)(typescript@5.4.5)
+      '@typescript-eslint/parser': 6.21.0(eslint@8.57.1)(typescript@5.4.5)
       '@typescript-eslint/scope-manager': 6.21.0
-      '@typescript-eslint/type-utils': 6.21.0(eslint@8.56.0)(typescript@5.4.5)
-      '@typescript-eslint/utils': 6.21.0(eslint@8.56.0)(typescript@5.4.5)
+      '@typescript-eslint/type-utils': 6.21.0(eslint@8.57.1)(typescript@5.4.5)
+      '@typescript-eslint/utils': 6.21.0(eslint@8.57.1)(typescript@5.4.5)
       '@typescript-eslint/visitor-keys': 6.21.0
       debug: 4.4.3
-      eslint: 8.56.0
+      eslint: 8.57.1
       graphemer: 1.4.0
       ignore: 5.3.2
       natural-compare: 1.4.0
@@ -6060,14 +6021,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5)':
+  '@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5)':
     dependencies:
       '@typescript-eslint/scope-manager': 6.21.0
       '@typescript-eslint/types': 6.21.0
       '@typescript-eslint/typescript-estree': 6.21.0(typescript@5.4.5)
       '@typescript-eslint/visitor-keys': 6.21.0
       debug: 4.4.3
-      eslint: 8.56.0
+      eslint: 8.57.1
     optionalDependencies:
       typescript: 5.4.5
     transitivePeerDependencies:
@@ -6088,12 +6049,12 @@ snapshots:
       '@typescript-eslint/types': 7.18.0
       '@typescript-eslint/visitor-keys': 7.18.0
 
-  '@typescript-eslint/type-utils@6.21.0(eslint@8.56.0)(typescript@5.4.5)':
+  '@typescript-eslint/type-utils@6.21.0(eslint@8.57.1)(typescript@5.4.5)':
     dependencies:
       '@typescript-eslint/typescript-estree': 6.21.0(typescript@5.4.5)
-      '@typescript-eslint/utils': 6.21.0(eslint@8.56.0)(typescript@5.4.5)
+      '@typescript-eslint/utils': 6.21.0(eslint@8.57.1)(typescript@5.4.5)
       debug: 4.4.3
-      eslint: 8.56.0
+      eslint: 8.57.1
       ts-api-utils: 1.4.3(typescript@5.4.5)
     optionalDependencies:
       typescript: 5.4.5
@@ -6150,42 +6111,42 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/utils@5.62.0(eslint@8.56.0)(typescript@5.4.5)':
+  '@typescript-eslint/utils@5.62.0(eslint@8.57.1)(typescript@5.4.5)':
     dependencies:
-      '@eslint-community/eslint-utils': 4.9.0(eslint@8.56.0)
+      '@eslint-community/eslint-utils': 4.9.0(eslint@8.57.1)
       '@types/json-schema': 7.0.15
       '@types/semver': 7.7.1
       '@typescript-eslint/scope-manager': 5.62.0
       '@typescript-eslint/types': 5.62.0
       '@typescript-eslint/typescript-estree': 5.62.0(typescript@5.4.5)
-      eslint: 8.56.0
+      eslint: 8.57.1
       eslint-scope: 5.1.1
       semver: 7.7.3
     transitivePeerDependencies:
       - supports-color
       - typescript
 
-  '@typescript-eslint/utils@6.21.0(eslint@8.56.0)(typescript@5.4.5)':
+  '@typescript-eslint/utils@6.21.0(eslint@8.57.1)(typescript@5.4.5)':
     dependencies:
-      '@eslint-community/eslint-utils': 4.9.0(eslint@8.56.0)
+      '@eslint-community/eslint-utils': 4.9.0(eslint@8.57.1)
       '@types/json-schema': 7.0.15
       '@types/semver': 7.7.1
       '@typescript-eslint/scope-manager': 6.21.0
       '@typescript-eslint/types': 6.21.0
       '@typescript-eslint/typescript-estree': 6.21.0(typescript@5.4.5)
-      eslint: 8.56.0
+      eslint: 8.57.1
       semver: 7.7.3
     transitivePeerDependencies:
       - supports-color
       - typescript
 
-  '@typescript-eslint/utils@7.18.0(eslint@8.56.0)(typescript@5.4.5)':
+  '@typescript-eslint/utils@7.18.0(eslint@8.57.1)(typescript@5.4.5)':
     dependencies:
-      '@eslint-community/eslint-utils': 4.9.0(eslint@8.56.0)
+      '@eslint-community/eslint-utils': 4.9.0(eslint@8.57.1)
       '@typescript-eslint/scope-manager': 7.18.0
       '@typescript-eslint/types': 7.18.0
       '@typescript-eslint/typescript-estree': 7.18.0(typescript@5.4.5)
-      eslint: 8.56.0
+      eslint: 8.57.1
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -6334,13 +6295,13 @@ snapshots:
       de-indent: 1.0.2
       he: 1.2.0
 
-  '@vue/eslint-config-typescript@12.0.0(eslint-plugin-vue@9.33.0(eslint@8.56.0))(eslint@8.56.0)(typescript@5.4.5)':
+  '@vue/eslint-config-typescript@12.0.0(eslint-plugin-vue@9.33.0(eslint@8.57.1))(eslint@8.57.1)(typescript@5.4.5)':
     dependencies:
-      '@typescript-eslint/eslint-plugin': 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5)
-      '@typescript-eslint/parser': 6.21.0(eslint@8.56.0)(typescript@5.4.5)
-      eslint: 8.56.0
-      eslint-plugin-vue: 9.33.0(eslint@8.56.0)
-      vue-eslint-parser: 9.4.3(eslint@8.56.0)
+      '@typescript-eslint/eslint-plugin': 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5)
+      '@typescript-eslint/parser': 6.21.0(eslint@8.57.1)(typescript@5.4.5)
+      eslint: 8.57.1
+      eslint-plugin-vue: 9.33.0(eslint@8.57.1)
+      vue-eslint-parser: 9.4.3(eslint@8.57.1)
     optionalDependencies:
       typescript: 5.4.5
     transitivePeerDependencies:
@@ -6392,15 +6353,6 @@ snapshots:
 
   '@vue/tsconfig@0.5.1': {}
 
-  '@vueuse/components@10.11.1(vue@3.5.13(typescript@5.4.5))':
-    dependencies:
-      '@vueuse/core': 10.11.1(vue@3.5.13(typescript@5.4.5))
-      '@vueuse/shared': 10.11.1(vue@3.5.13(typescript@5.4.5))
-      vue-demi: 0.14.10(vue@3.5.13(typescript@5.4.5))
-    transitivePeerDependencies:
-      - '@vue/composition-api'
-      - vue
-
   '@vueuse/components@13.6.0(vue@3.5.13(typescript@5.4.5))':
     dependencies:
       '@vueuse/core': 13.6.0(vue@3.5.13(typescript@5.4.5))
@@ -6412,26 +6364,6 @@ snapshots:
       '@vueuse/core': 13.8.0(vue@3.5.13(typescript@5.4.5))
       '@vueuse/shared': 13.8.0(vue@3.5.13(typescript@5.4.5))
       vue: 3.5.13(typescript@5.4.5)
-
-  '@vueuse/core@10.11.1(vue@3.5.13(typescript@5.4.5))':
-    dependencies:
-      '@types/web-bluetooth': 0.0.20
-      '@vueuse/metadata': 10.11.1
-      '@vueuse/shared': 10.11.1(vue@3.5.13(typescript@5.4.5))
-      vue-demi: 0.14.10(vue@3.5.13(typescript@5.4.5))
-    transitivePeerDependencies:
-      - '@vue/composition-api'
-      - vue
-
-  '@vueuse/core@10.4.1(vue@3.5.13(typescript@5.4.5))':
-    dependencies:
-      '@types/web-bluetooth': 0.0.17
-      '@vueuse/metadata': 10.4.1
-      '@vueuse/shared': 10.4.1(vue@3.5.13(typescript@5.4.5))
-      vue-demi: 0.14.10(vue@3.5.13(typescript@5.4.5))
-    transitivePeerDependencies:
-      - '@vue/composition-api'
-      - vue
 
   '@vueuse/core@10.7.0(vue@3.5.13(typescript@5.4.5))':
     dependencies:
@@ -6457,29 +6389,11 @@ snapshots:
       '@vueuse/shared': 13.8.0(vue@3.5.13(typescript@5.4.5))
       vue: 3.5.13(typescript@5.4.5)
 
-  '@vueuse/metadata@10.11.1': {}
-
-  '@vueuse/metadata@10.4.1': {}
-
   '@vueuse/metadata@10.7.0': {}
 
   '@vueuse/metadata@13.6.0': {}
 
   '@vueuse/metadata@13.8.0': {}
-
-  '@vueuse/shared@10.11.1(vue@3.5.13(typescript@5.4.5))':
-    dependencies:
-      vue-demi: 0.14.10(vue@3.5.13(typescript@5.4.5))
-    transitivePeerDependencies:
-      - '@vue/composition-api'
-      - vue
-
-  '@vueuse/shared@10.4.1(vue@3.5.13(typescript@5.4.5))':
-    dependencies:
-      vue-demi: 0.14.10(vue@3.5.13(typescript@5.4.5))
-    transitivePeerDependencies:
-      - '@vue/composition-api'
-      - vue
 
   '@vueuse/shared@10.7.0(vue@3.5.13(typescript@5.4.5))':
     dependencies:
@@ -7272,13 +7186,13 @@ snapshots:
     optionalDependencies:
       source-map: 0.6.1
 
-  eslint-config-prettier@9.1.2(eslint@8.56.0):
+  eslint-config-prettier@9.1.2(eslint@8.57.1):
     dependencies:
-      eslint: 8.56.0
+      eslint: 8.57.1
 
-  eslint-import-resolver-custom-alias@1.3.2(eslint-plugin-import@2.32.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)):
+  eslint-import-resolver-custom-alias@1.3.2(eslint-plugin-import@2.32.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)):
     dependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)
       glob-parent: 6.0.2
       resolve: 1.22.11
 
@@ -7290,17 +7204,17 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.1(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint@8.56.0):
+  eslint-module-utils@2.12.1(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint@8.57.1):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
-      '@typescript-eslint/parser': 6.21.0(eslint@8.56.0)(typescript@5.4.5)
-      eslint: 8.56.0
+      '@typescript-eslint/parser': 6.21.0(eslint@8.57.1)(typescript@5.4.5)
+      eslint: 8.57.1
       eslint-import-resolver-node: 0.3.9
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9
@@ -7309,9 +7223,9 @@ snapshots:
       array.prototype.flatmap: 1.3.3
       debug: 3.2.7
       doctrine: 2.1.0
-      eslint: 8.56.0
+      eslint: 8.57.1
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.1(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint@8.56.0)
+      eslint-module-utils: 2.12.1(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint-import-resolver-node@0.3.9)(eslint@8.57.1)
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
@@ -7323,54 +7237,54 @@ snapshots:
       string.prototype.trimend: 1.0.9
       tsconfig-paths: 3.15.0
     optionalDependencies:
-      '@typescript-eslint/parser': 6.21.0(eslint@8.56.0)(typescript@5.4.5)
+      '@typescript-eslint/parser': 6.21.0(eslint@8.57.1)(typescript@5.4.5)
     transitivePeerDependencies:
       - eslint-import-resolver-typescript
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-plugin-jest-formatting@3.1.0(eslint@8.56.0):
+  eslint-plugin-jest-formatting@3.1.0(eslint@8.57.1):
     dependencies:
-      eslint: 8.56.0
+      eslint: 8.57.1
 
-  eslint-plugin-jest@27.9.0(@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5):
+  eslint-plugin-jest@27.9.0(@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5):
     dependencies:
-      '@typescript-eslint/utils': 5.62.0(eslint@8.56.0)(typescript@5.4.5)
-      eslint: 8.56.0
+      '@typescript-eslint/utils': 5.62.0(eslint@8.57.1)(typescript@5.4.5)
+      eslint: 8.57.1
     optionalDependencies:
-      '@typescript-eslint/eslint-plugin': 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5)
+      '@typescript-eslint/eslint-plugin': 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5)
     transitivePeerDependencies:
       - supports-color
       - typescript
 
-  eslint-plugin-unused-imports@3.2.0(@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0):
+  eslint-plugin-unused-imports@3.2.0(@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1):
     dependencies:
-      eslint: 8.56.0
+      eslint: 8.57.1
       eslint-rule-composer: 0.3.0
     optionalDependencies:
-      '@typescript-eslint/eslint-plugin': 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5)
+      '@typescript-eslint/eslint-plugin': 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5)
 
-  eslint-plugin-vitest@0.5.4(@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5)(vitest@2.1.5(@types/node@22.10.10)(jsdom@20.0.3)(sugarss@4.0.1(postcss@8.5.6))):
+  eslint-plugin-vitest@0.5.4(@typescript-eslint/eslint-plugin@6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5)(vitest@2.1.5(@types/node@22.10.10)(jsdom@20.0.3)(sugarss@4.0.1(postcss@8.5.6))):
     dependencies:
-      '@typescript-eslint/utils': 7.18.0(eslint@8.56.0)(typescript@5.4.5)
-      eslint: 8.56.0
+      '@typescript-eslint/utils': 7.18.0(eslint@8.57.1)(typescript@5.4.5)
+      eslint: 8.57.1
     optionalDependencies:
-      '@typescript-eslint/eslint-plugin': 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5)
+      '@typescript-eslint/eslint-plugin': 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.4.5))(eslint@8.57.1)(typescript@5.4.5)
       vitest: 2.1.5(@types/node@22.10.10)(jsdom@20.0.3)(sugarss@4.0.1(postcss@8.5.6))
     transitivePeerDependencies:
       - supports-color
       - typescript
 
-  eslint-plugin-vue@9.33.0(eslint@8.56.0):
+  eslint-plugin-vue@9.33.0(eslint@8.57.1):
     dependencies:
-      '@eslint-community/eslint-utils': 4.9.0(eslint@8.56.0)
-      eslint: 8.56.0
+      '@eslint-community/eslint-utils': 4.9.0(eslint@8.57.1)
+      eslint: 8.57.1
       globals: 13.24.0
       natural-compare: 1.4.0
       nth-check: 2.1.1
       postcss-selector-parser: 6.1.2
       semver: 7.7.3
-      vue-eslint-parser: 9.4.3(eslint@8.56.0)
+      vue-eslint-parser: 9.4.3(eslint@8.57.1)
       xml-name-validator: 4.0.0
     transitivePeerDependencies:
       - supports-color
@@ -7389,13 +7303,13 @@ snapshots:
 
   eslint-visitor-keys@3.4.3: {}
 
-  eslint@8.56.0:
+  eslint@8.57.1:
     dependencies:
-      '@eslint-community/eslint-utils': 4.9.0(eslint@8.56.0)
+      '@eslint-community/eslint-utils': 4.9.0(eslint@8.57.1)
       '@eslint-community/regexpp': 4.12.2
       '@eslint/eslintrc': 2.1.4
-      '@eslint/js': 8.56.0
-      '@humanwhocodes/config-array': 0.11.14
+      '@eslint/js': 8.57.1
+      '@humanwhocodes/config-array': 0.13.0
       '@humanwhocodes/module-importer': 1.0.1
       '@nodelib/fs.walk': 1.2.8
       '@ungap/structured-clone': 1.3.0
@@ -7701,8 +7615,6 @@ snapshots:
   graceful-fs@4.2.11: {}
 
   graphemer@1.4.0: {}
-
-  gsap@3.13.0: {}
 
   has-bigints@1.1.0: {}
 
@@ -8079,7 +7991,7 @@ snapshots:
 
   kind-of@6.0.3: {}
 
-  known-css-properties@0.35.0: {}
+  known-css-properties@0.37.0: {}
 
   levn@0.4.1:
     dependencies:
@@ -9734,37 +9646,37 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
-  stylelint-config-html@1.1.0(postcss-html@1.8.0)(stylelint@16.14.1(typescript@5.4.5)):
+  stylelint-config-html@1.1.0(postcss-html@1.8.0)(stylelint@16.25.0(typescript@5.4.5)):
     dependencies:
       postcss-html: 1.8.0
-      stylelint: 16.14.1(typescript@5.4.5)
+      stylelint: 16.25.0(typescript@5.4.5)
 
-  stylelint-config-recommended-vue@1.6.1(postcss-html@1.8.0)(stylelint@16.14.1(typescript@5.4.5)):
+  stylelint-config-recommended-vue@1.6.1(postcss-html@1.8.0)(stylelint@16.25.0(typescript@5.4.5)):
     dependencies:
       postcss-html: 1.8.0
       semver: 7.7.3
-      stylelint: 16.14.1(typescript@5.4.5)
-      stylelint-config-html: 1.1.0(postcss-html@1.8.0)(stylelint@16.14.1(typescript@5.4.5))
-      stylelint-config-recommended: 17.0.0(stylelint@16.14.1(typescript@5.4.5))
+      stylelint: 16.25.0(typescript@5.4.5)
+      stylelint-config-html: 1.1.0(postcss-html@1.8.0)(stylelint@16.25.0(typescript@5.4.5))
+      stylelint-config-recommended: 17.0.0(stylelint@16.25.0(typescript@5.4.5))
 
-  stylelint-config-recommended@17.0.0(stylelint@16.14.1(typescript@5.4.5)):
+  stylelint-config-recommended@17.0.0(stylelint@16.25.0(typescript@5.4.5)):
     dependencies:
-      stylelint: 16.14.1(typescript@5.4.5)
+      stylelint: 16.25.0(typescript@5.4.5)
 
-  stylelint-config-standard-vue@1.0.0(postcss-html@1.8.0)(stylelint@16.14.1(typescript@5.4.5)):
+  stylelint-config-standard-vue@1.0.0(postcss-html@1.8.0)(stylelint@16.25.0(typescript@5.4.5)):
     dependencies:
       postcss-html: 1.8.0
-      stylelint: 16.14.1(typescript@5.4.5)
-      stylelint-config-html: 1.1.0(postcss-html@1.8.0)(stylelint@16.14.1(typescript@5.4.5))
-      stylelint-config-recommended-vue: 1.6.1(postcss-html@1.8.0)(stylelint@16.14.1(typescript@5.4.5))
-      stylelint-config-standard: 39.0.1(stylelint@16.14.1(typescript@5.4.5))
+      stylelint: 16.25.0(typescript@5.4.5)
+      stylelint-config-html: 1.1.0(postcss-html@1.8.0)(stylelint@16.25.0(typescript@5.4.5))
+      stylelint-config-recommended-vue: 1.6.1(postcss-html@1.8.0)(stylelint@16.25.0(typescript@5.4.5))
+      stylelint-config-standard: 39.0.1(stylelint@16.25.0(typescript@5.4.5))
 
-  stylelint-config-standard@39.0.1(stylelint@16.14.1(typescript@5.4.5)):
+  stylelint-config-standard@39.0.1(stylelint@16.25.0(typescript@5.4.5)):
     dependencies:
-      stylelint: 16.14.1(typescript@5.4.5)
-      stylelint-config-recommended: 17.0.0(stylelint@16.14.1(typescript@5.4.5))
+      stylelint: 16.25.0(typescript@5.4.5)
+      stylelint-config-recommended: 17.0.0(stylelint@16.25.0(typescript@5.4.5))
 
-  stylelint@16.14.1(typescript@5.4.5):
+  stylelint@16.25.0(typescript@5.4.5):
     dependencies:
       '@csstools/css-parser-algorithms': 3.0.5(@csstools/css-tokenizer@3.0.4)
       '@csstools/css-tokenizer': 3.0.4
@@ -9787,7 +9699,7 @@ snapshots:
       ignore: 7.0.5
       imurmurhash: 0.1.4
       is-plain-object: 5.0.0
-      known-css-properties: 0.35.0
+      known-css-properties: 0.37.0
       mathml-tag-names: 2.1.3
       meow: 13.2.0
       micromatch: 4.0.8
@@ -10152,10 +10064,10 @@ snapshots:
     dependencies:
       vue: 3.5.13(typescript@5.4.5)
 
-  vue-eslint-parser@9.4.3(eslint@8.56.0):
+  vue-eslint-parser@9.4.3(eslint@8.57.1):
     dependencies:
       debug: 4.4.3
-      eslint: 8.56.0
+      eslint: 8.57.1
       eslint-scope: 7.2.2
       eslint-visitor-keys: 3.4.3
       espree: 9.6.1
