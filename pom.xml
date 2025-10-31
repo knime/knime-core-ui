@@ -34,7 +34,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
-                <module>org.knime.core.ui/js-src</module>
+                <module>js-src/packages/knime-core-ui</module> <!-- TODO have one build for the monorepo -->
                 <module>org.knime.core.ui/lib/fetch_jars</module>
                 <module>org.knime.core.ui</module>
                 <module>org.knime.features.core.ui</module>

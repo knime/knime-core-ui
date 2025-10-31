@@ -8,7 +8,7 @@
 		<groupId>org.knime</groupId>
 		<artifactId>knime-core-ui</artifactId>
 		<version>${revision}${changelist}</version>
-		<relativePath>../../pom.xml</relativePath>
+		<relativePath>../../../pom.xml</relativePath>
 	</parent>
 
 	<artifactId>org.knime.core.ui-vue</artifactId>
@@ -26,11 +26,11 @@
 		<sonar.css.stylelint.reportPaths>test-results/stylelint.json</sonar.css.stylelint.reportPaths>
 		<sonar.eslint.reportPaths>test-results/eslint.json</sonar.eslint.reportPaths>
 		<node.version>v22.11.0</node.version>
-		<npm.version>10.9.1</npm.version>
+		<corepack.version>0.34.1</corepack.version>
 	</properties>
 
 	<build>
-	  <resources>
+		<resources>
 			<resource>
 				<directory>${resourcedir}</directory>
 			</resource>
@@ -40,80 +40,80 @@
 			<plugin>
 				<groupId>com.github.eirslett</groupId>
 				<artifactId>frontend-maven-plugin</artifactId>
+				<version>1.15.4</version>
 				<configuration>
 					<installDirectory>${project.build.directory}</installDirectory>
 				</configuration>
 				<executions>
 					<execution>
-						<id>install node and npm</id>
+						<id>install node and corepack</id>
 						<phase>initialize</phase>
 						<goals>
-							<goal>install-node-and-npm</goal>
+							<goal>install-node-and-corepack</goal>
 						</goals>
 						<configuration>
 							<nodeVersion>${node.version}</nodeVersion>
-							<npmVersion>${npm.version}</npmVersion>
+							<corepackVersion>${corepack.version}</corepackVersion>
 						</configuration>
 					</execution>
-
 					<execution>
-						<id>npm ci</id>
+						<id>pnpm install</id>
 						<phase>initialize</phase>
 						<goals>
-							<goal>npm</goal>
+							<goal>corepack</goal>
 						</goals>
 						<configuration>
-							<arguments>ci</arguments>
+							<arguments>pnpm install</arguments>
 						</configuration>
 					</execution>
 					<execution>
-						<id>npm check css</id>
+						<id>pnpm check css</id>
 						<phase>test</phase>
 						<goals>
-							<goal>npm</goal>
+							<goal>corepack</goal>
 						</goals>
 						<configuration>
-							<arguments>run ci:lint:css</arguments>
+							<arguments>pnpm --filter knime-core-ui ci:lint:css</arguments>
 						</configuration>
 					</execution>
 					<execution>
-						<id>npm check js</id>
+						<id>pnpm check js</id>
 						<phase>test</phase>
 						<goals>
-							<goal>npm</goal>
+							<goal>corepack</goal>
 						</goals>
 						<configuration>
-							<arguments>run ci:lint:js</arguments>
+							<arguments>pnpm --filter knime-core-ui ci:lint:js</arguments>
 						</configuration>
 					</execution>
 					<execution>
-						<id>npm run coverage</id>
+						<id>pnpm run coverage</id>
 						<phase>test</phase>
 						<goals>
-							<goal>npm</goal>
+							<goal>corepack</goal>
 						</goals>
 						<configuration>
-							<arguments>run coverage</arguments>
+							<arguments>pnpm --filter knime-core-ui coverage</arguments>
 						</configuration>
 					</execution>
 					<execution>
-						<id>npm run sbom</id>
+						<id>pnpm run sbom</id>
 						<phase>compile</phase>
 						<goals>
-							<goal>npm</goal>
+							<goal>corepack</goal>
 						</goals>
 						<configuration>
-							<arguments>run sbom</arguments>
+							<arguments>pnpm --filter knime-core-ui sbom</arguments>
 						</configuration>
 					</execution>
 					<execution>
-						<id>npm run build</id>
+						<id>pnpm build</id>
 						<phase>compile</phase>
 						<goals>
-							<goal>npm</goal>
+							<goal>corepack</goal>
 						</goals>
 						<configuration>
-							<arguments>run build</arguments>
+							<arguments>pnpm build</arguments>
 						</configuration>
 					</execution>
 				</executions>
