@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, toRef, toRefs, watch, type Component } from "vue";
+import { type Component, computed, ref, toRef, toRefs, watch } from "vue";
 
 import {
   Breadcrumb,
