@@ -1,6 +1,6 @@
 import { provide } from "vue";
 
-import * as flowVariablesApi from "@/nodeDialog/api/flowVariables";
+import * as flowVariablesApi from "../api/flowVariables";
 import type { FlowVariablesRpcMethods } from "../api/flowVariables";
 import type { FlowSettings } from "../api/types";
 import type { ProvidedForFlowVariables } from "../types/provided";
