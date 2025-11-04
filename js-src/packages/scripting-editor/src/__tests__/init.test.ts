@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { displayMode } from "@/display-mode";
+import { displayMode } from "@s/display-mode";
 import {
   getInitialData,
   getScriptingService,
   getSettingsService,
   init,
-} from "@/init";
+} from "@s/init";
 
 const { dialogServiceInstance, jsonDataServiceInstance } = vi.hoisted(() => {
   const dialogServiceInstance = {
@@ -37,7 +37,7 @@ const { dialogServiceInstance, jsonDataServiceInstance } = vi.hoisted(() => {
     },
   }));
 
-  vi.doMock("@/scripting-service", () => {
+  vi.doMock("@s/scripting-service", () => {
     class MockScriptingService {}
     return { ScriptingService: MockScriptingService };
   });

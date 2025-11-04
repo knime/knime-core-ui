@@ -4,8 +4,8 @@ import { onMounted, ref } from "vue";
 import { Button, type MenuItem } from "@knime/components";
 import SettingsIcon from "@knime/styles/img/icons/cog.svg";
 import FileTextIcon from "@knime/styles/img/icons/file-text.svg";
-import NodeDialogCore from "../../org.knime.core.ui/js-src/src/nodeDialog/NodeDialogCore.vue";
-import useFlowVariableSystem from "../../org.knime.core.ui/js-src/src/nodeDialog/composables/useFlowVariableSystem";
+import NodeDialogCore from "@knime/core-ui/src/nodeDialog/NodeDialogCore.vue";
+import useFlowVariableSystem from "@knime/core-ui/src/nodeDialog/composables/useFlowVariableSystem";
 
 import {
   type ConsoleHandler,
@@ -21,8 +21,8 @@ import {
 } from "../lib/main";
 
 import DebugToolbar from "./DebugToolbar.vue";
-import type { NodeDialogCoreRpcMethods } from "../../org.knime.core.ui/js-src/src/nodeDialog/api/types/RpcTypes";
-import type { InitialData } from "../../org.knime.core.ui/js-src/src/nodeDialog/types/InitialData";
+import type { NodeDialogCoreRpcMethods } from "@knime/core-ui/src/nodeDialog/api/types/RpcTypes";
+import type { InitialData } from "@knime/core-ui/src/nodeDialog/types/InitialData";
 
 import initialDialogData from "./initialSettingsData.json";
 

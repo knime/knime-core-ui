@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 
-import AiButton from "@/components/ai-assistant/AiButton.vue";
-import type { PaneSizes } from "@/components/utils/paneSizes";
-import { initMocked } from "@/init";
+import AiButton from "@s/components/ai-assistant/AiButton.vue";
+import type { PaneSizes } from "@s/components/utils/paneSizes";
+import { initMocked } from "@s/init";
 import {
   type GenericInitialData,
   type InputConnectionInfo,
-} from "@/initial-data-service";
-import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
+} from "@s/initial-data-service";
+import { DEFAULT_INITIAL_DATA } from "@s/initial-data-service-browser-mock";
 
 const doMount = async (
   args: {

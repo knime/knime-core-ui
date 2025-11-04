@@ -5,7 +5,7 @@ import type {
   JsonDataService,
 } from "@knime/ui-extension-service";
 
-import { type GenericNodeSettings, SettingsService } from "@/settings-service";
+import { type GenericNodeSettings, SettingsService } from "@s/settings-service";
 
 describe("settings-service", () => {
   it("should create SettingsService instance", () => {

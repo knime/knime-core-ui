@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 
-import { getScriptingService } from "@/init";
+import { getScriptingService } from "@s/init";
 import OutputTablePreview from "../OutputTablePreview.vue";
 
 const mocks = vi.hoisted(() => {

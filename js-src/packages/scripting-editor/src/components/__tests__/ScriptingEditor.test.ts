@@ -5,7 +5,7 @@ import { useElementBounding } from "@vueuse/core";
 
 import { SplitPanel } from "@knime/components";
 
-import { getScriptingService } from "@/init";
+import { getScriptingService } from "@s/init";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
 import HeaderBar from "../HeaderBar.vue";
 import InputOutputPane from "../InputOutputPane.vue";
@@ -54,7 +54,7 @@ vi.mock("@vueuse/core", async (importOriginal) => {
   };
 });
 
-vi.mock("@/editor");
+vi.mock("@s/editor");
 
 describe("ScriptingEditor", () => {
   beforeEach(() => {

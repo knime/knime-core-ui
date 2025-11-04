@@ -4,7 +4,7 @@ import { Terminal } from "@xterm/xterm";
 
 import OutputConsole, {
   type ConsoleHandler,
-} from "@/components/OutputConsole.vue";
+} from "@s/components/OutputConsole.vue";
 
 describe("OutputConsole", () => {
   const doMount = async () => {

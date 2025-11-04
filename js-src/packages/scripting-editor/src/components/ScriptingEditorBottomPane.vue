@@ -2,10 +2,10 @@
 import { type Ref, computed } from "vue";
 import { computedAsync } from "@vueuse/core";
 
-import CompactTabBar from "@/components/CompactTabBar.vue";
-import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
-import { getInitialData, getScriptingService } from "@/init";
-import { type PortConfig, type PortConfigs } from "@/initial-data-service";
+import CompactTabBar from "@s/components/CompactTabBar.vue";
+import useShouldFocusBePainted from "@s/components/utils/shouldFocusBePainted";
+import { getInitialData, getScriptingService } from "@s/init";
+import { type PortConfig, type PortConfigs } from "@s/initial-data-service";
 
 import InputPortTables from "./InputPortTables.vue";
 

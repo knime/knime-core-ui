@@ -14,7 +14,7 @@ import Handlebars from "handlebars";
 import { Collapser, useMultiSelection } from "@knime/components";
 import { DataType } from "@knime/kds-components";
 
-import { useInputOutputSelectionStore } from "@/store/io-selection";
+import { useInputOutputSelectionStore } from "@s/store/io-selection";
 import InputOutputItem, {
   COLUMN_INSERTION_EVENT,
   INPUT_OUTPUT_DRAG_EVENT_ID,

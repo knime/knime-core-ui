@@ -12,7 +12,7 @@ import {
   type UIExtensionService,
 } from "@knime/ui-extension-service";
 
-import { getScriptingService } from "@/init";
+import { getScriptingService } from "@s/init";
 
 type Props = {
   /** Text to show when no data is available yet */

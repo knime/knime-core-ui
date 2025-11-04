@@ -7,7 +7,7 @@ import type {
   JsonDataService,
 } from "@knime/ui-extension-service";
 
-import { ScriptingService } from "@/scripting-service";
+import { ScriptingService } from "@s/scripting-service";
 
 type MockBackend = {
   [key: string]: (options: any[]) => Promise<any> | undefined;

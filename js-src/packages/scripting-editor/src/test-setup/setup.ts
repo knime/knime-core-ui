@@ -1,10 +1,10 @@
 import { vi } from "vitest";
 import { consola } from "consola";
 
-import { initMocked } from "@/init";
-import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
-import type { GenericNodeSettings } from "@/settings-service";
-import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
+import { initMocked } from "@s/init";
+import { DEFAULT_INITIAL_DATA } from "@s/initial-data-service-browser-mock";
+import type { GenericNodeSettings } from "@s/settings-service";
+import { DEFAULT_INITIAL_SETTINGS } from "@s/settings-service-browser-mock";
 
 vi.mock("monaco-editor");
 

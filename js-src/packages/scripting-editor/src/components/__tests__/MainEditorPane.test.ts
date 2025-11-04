@@ -2,10 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 import { onKeyStroke } from "@vueuse/core";
 
-import { useMainCodeEditor } from "@/editor";
-import { getSettingsService } from "@/init";
-import { type GenericNodeSettings } from "@/settings-service";
-import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
+import { useMainCodeEditor } from "@s/editor";
+import { getSettingsService } from "@s/init";
+import { type GenericNodeSettings } from "@s/settings-service";
+import { DEFAULT_INITIAL_SETTINGS } from "@s/settings-service-browser-mock";
 import MainEditorPane from "../MainEditorPane.vue";
 
 vi.mock("@vueuse/core", async (importOriginal) => {
@@ -15,7 +15,7 @@ vi.mock("@vueuse/core", async (importOriginal) => {
     onKeyStroke: vi.fn(),
   };
 });
-vi.mock("@/editor");
+vi.mock("@s/editor");
 
 const registerSettingsGetterForApplyMock = vi.mocked(
   getSettingsService().registerSettingsGetterForApply,
