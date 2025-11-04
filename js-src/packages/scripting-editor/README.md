@@ -1,47 +1,59 @@
 # KNIME Scripting Editor Framework
 
-This package contains the Scripting Editor framework for KNIME Analytics Platform. Use this framework to build dialogs for KNIME nodes that allow the user to write scripts.
+Shared scripting editor components for KNIME Analytics Platform. Use this framework to build dialogs for KNIME nodes that allow users to write scripts.
 
-## Recommended IDE Setup
+## Development
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+### Prerequisites
 
-## Project Setup
+- Node.js 22.x
+- pnpm workspace (install from root: `pnpm install`)
+
+### Standalone Development
+
+Run the demo app for UI development:
 
 ```sh
-npm install
+pnpm run demo
 ```
 
-### Run Demo for UI Development
-
-```sh
-npm run demo
-```
-
-Opens a standalone demo at [http://localhost:3000](http://localhost:3000) with mocked backend services. Perfect for developing and testing UI components without needing to link to other projects or rebuild constantly.
+Opens at [http://localhost:3000](http://localhost:3000) with mocked backend services. Perfect for developing and testing UI components without linking to other projects.
 
 See [demo/README.md](demo/README.md) for detailed documentation.
 
-### Compile and Hot-Reload for Development
+### Build
+
+Development build with watch mode:
 
 ```sh
-npm run build-watch
+pnpm run build-watch
 ```
 
-### Type-Check, Compile and Minify for Production
+Production build:
 
 ```sh
-npm run build
+pnpm run build
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+### Testing
+
+Run unit tests:
 
 ```sh
-npm run test:unit
+pnpm run test:unit
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+Generate coverage report:
 
 ```sh
-npm run lint
+pnpm run coverage
+```
+
+### Code Quality
+
+Lint and format:
+
+```sh
+pnpm run lint
+pnpm run format
 ```
