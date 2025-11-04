@@ -15,10 +15,10 @@ docker run -d --name knime_registry -p 4873:4873 verdaccio/verdaccio
 #    ⇢ Verdaccio shows a funky spinner while you type the password – just ignore it and keep typing.
 npm adduser --registry http://localhost:4873
 
-# 3  In the @knime/scripting-editor repo
-cd path/to/knime/scripting-editor
-npm version prerelease --preid=local.$(git rev-parse --short HEAD)
-npm publish --registry http://localhost:4873
+# 3  In `knime-core-ui/js-src`
+# Update the version of the scripting editor in `js-src/packages/scripting-editor/package.json` and
+echo '@knime:registry=http://localhost:4873' >> .npmrc
+pnpm publish --filter scripting-editor
 
 # 4  In every consumer app
 echo '@knime:registry=http://localhost:4873' >> .npmrc
