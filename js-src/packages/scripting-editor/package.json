@@ -27,9 +27,9 @@
   "dependencies": {
     "@knime/kds-components": "0.0.8",
     "@knime/kds-styles": "0.0.8",
-    "@knime/styles": "1.10.0",
+    "@knime/styles": "1.14.3",
     "@knime/ui-extension-renderer": "2.3.34",
-    "@knime/utils": "1.5.5",
+    "@knime/utils": "1.7.1",
     "@vueuse/core": "13.8.0",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/addon-unicode11": "^0.8.0",
