@@ -1,37 +1,32 @@
-<script lang="ts">
-import { defineComponent } from "vue";
-import type { PropType } from "vue";
+<script setup lang="ts">
+import { computed } from "vue";
 
 import { type MenuItem, SubMenu } from "@knime/components";
 import MenuIcon from "@knime/styles/img/icons/menu-options.svg";
 
 import type { SettingsMenuItem } from "./SettingsPage.vue";
 
-export default defineComponent({
-  name: "HeaderBar",
-  components: { SubMenu, MenuIcon },
-  props: {
-    title: {
-      type: String,
-      default: null,
-    },
-    menuItems: {
-      type: Array as PropType<MenuItem[]>,
-      required: true,
-    },
-  },
-  emits: ["menu-item-click"],
-  computed: {
-    hasMenu() {
-      return !(this.menuItems === null || this.menuItems.length === 0);
-    },
-  },
-  methods: {
-    menuItemClicked(event: Event, item: SettingsMenuItem) {
-      this.$emit("menu-item-click", { event, item });
-    },
-  },
-});
+interface Props {
+  title?: string | null;
+  menuItems: MenuItem[];
+}
+
+interface Emits {
+  (
+    e: "menu-item-click",
+    payload: { event: Event; item: SettingsMenuItem },
+  ): void;
+}
+
+const { title = null, menuItems } = defineProps<Props>();
+
+const emit = defineEmits<Emits>();
+
+const hasMenu = computed(() => menuItems !== null && menuItems.length > 0);
+
+const menuItemClicked = (event: Event, item: SettingsMenuItem) => {
+  emit("menu-item-click", { event, item });
+};
 </script>
 
 <template>
