@@ -47,10 +47,7 @@ export class SettingsService {
   }
 
   registerSettings(modelOrView: "model" | "view") {
-    return <T>(initialSetting: T) =>
-      this.dialogService.registerSettings(modelOrView)({
-        initialValue: initialSetting,
-      });
+    return this.dialogService.registerSettings(modelOrView);
   }
 }
 
