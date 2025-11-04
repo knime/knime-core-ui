@@ -70,13 +70,13 @@
     "vite-svg-loader": "5.1.0",
     "vitest": "2.1.9",
     "vue-tsc": "3.0.4",
-    "vue": "3.5.18"
+    "vue": "catalog:"
   },
   "peerDependencies": {
     "@knime/components": "1.38.0",
     "@knime/ui-extension-service": "2.4.1",
     "monaco-editor": "0.45.x",
-    "vue": "3.5.17"
+    "vue": "catalog:"
   },
   "files": [
     "dist"
