@@ -4,7 +4,6 @@
     "src/**/*",
     "src/**/*.vue",
     "lib/**/*",
-    "node_modules/@knime/**/*",
     "demo/**/*",
     "demo/**/*.vue"
   ],
@@ -19,6 +18,8 @@
     },
     "strict": true,
     "allowJs": true,
+    // TODO: enable this again. Fails due to checks for .vue files inside node_modules
+    "noImplicitAny": false,
     "noEmit": true
   }
 }
