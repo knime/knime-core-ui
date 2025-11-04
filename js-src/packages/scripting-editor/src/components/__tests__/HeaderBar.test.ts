@@ -40,8 +40,13 @@ describe("HeaderBar", () => {
       const wrapper = mount(HeaderBar, { props: defaultProps });
       const event = { id: "myEvent" };
       const item = { text: "myItem" };
-      wrapper.vm.menuItemClicked(event as any, item);
+
+      // Emit the event from the SubMenu component
+      const subMenu = wrapper.findComponent(SubMenu);
+      subMenu.vm.$emit("item-click", event, item);
       await wrapper.vm.$nextTick();
+
+      // Check that the HeaderBar re-emitted the event
       expect(wrapper.emitted("menu-item-click")).toBeTruthy();
       expect(wrapper.emitted("menu-item-click")![0][0]).toEqual({
         event,
