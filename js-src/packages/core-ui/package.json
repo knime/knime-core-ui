@@ -1,5 +1,5 @@
 {
-  "name": "knime-core-ui",
+  "name": "@knime/core-ui",
   "version": "0.1.0",
   "description": "Vue-based view components for KNIME",
   "private": true,
