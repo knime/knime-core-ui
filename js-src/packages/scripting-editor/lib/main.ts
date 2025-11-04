@@ -48,6 +48,11 @@ import { type GenericNodeSettings } from "@s/settings-service";
 import { setActiveEditorStoreForAi } from "@s/store/ai-bar";
 import { useReadonlyStore } from "@s/store/readOnly";
 
+import NodeDialogCore from "@knime/core-ui/src/nodeDialog/NodeDialogCore.vue";
+import useFlowVariableSystem from "@knime/core-ui/src/nodeDialog/composables/useFlowVariableSystem";
+import type { NodeDialogCoreRpcMethods } from "@knime/core-ui/src/nodeDialog/api/types/RpcTypes";
+import type { InitialData } from "@knime/core-ui/src/nodeDialog/types/InitialData";
+
 export {
   COLUMN_INSERTION_EVENT,
   CompactTabBar,
@@ -69,6 +74,8 @@ export {
   setConsoleHandler,
   useReadonlyStore,
   useShouldFocusBePainted,
+  NodeDialogCore,
+  useFlowVariableSystem,
 };
 export type {
   ConsoleHandler,
@@ -90,4 +97,6 @@ export type {
   UseCodeEditorReturn,
   UseDiffEditorParams,
   UseDiffEditorReturn,
+  NodeDialogCoreRpcMethods,
+  InitialData,
 };
