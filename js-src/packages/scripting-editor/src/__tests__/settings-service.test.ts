@@ -124,7 +124,7 @@ describe("settings-service", () => {
 
     expect(typeof registerFunction).toBe("function");
 
-    const result = registerFunction(testInitialValue);
+    const result = registerFunction({ initialValue: testInitialValue });
 
     expect(mockRegisterSettings).toHaveBeenCalledWith("model");
     expect(mockSettingsRegistrar).toHaveBeenCalledWith({
