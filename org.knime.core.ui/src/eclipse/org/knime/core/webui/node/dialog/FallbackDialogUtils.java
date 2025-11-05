@@ -51,6 +51,7 @@ package org.knime.core.webui.node.dialog;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -83,11 +84,15 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.Dialog
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.IntegerRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.NumberRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextMessageRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.util.DotSubstitutionUtil;
+import org.knime.node.parameters.widget.message.TextMessage;
+import org.knime.node.parameters.widget.message.TextMessage.Message;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -130,6 +135,8 @@ public final class FallbackDialogUtils {
         final var uiSchemaElements = uiSchema.putArray(UiSchema.TAG_ELEMENTS);
         var renderers = new ArrayList<DialogElementRendererSpec>();
 
+        addFallbackDialogInfo(uiSchemaElements, renderers);
+
         var configInfos = collectConfigInfos(settings);
         for (var configInfo : configInfos) {
             final JsonNode valueJson = MAPPER.valueToTree(configInfo.value());
@@ -159,6 +166,38 @@ public final class FallbackDialogUtils {
             }
 
         });
+    }
+
+    private static void addFallbackDialogInfo(final ArrayNode uiSchemaElements,
+        final ArrayList<DialogElementRendererSpec> renderers) {
+        var textMessageRendererSpec = new TextMessageRendererSpec() {
+
+            @Override
+            public Optional<TextMessageRendererOptions> getOptions() {
+                return Optional.of(new TextMessageRendererOptions() {
+
+                    @Override
+                    public Optional<Message> getMessage() {
+                        return Optional.of(new Message("Auto-generated dialog",
+                            """
+                            This dialog was created automatically because the node's original dialog is not supported here.
+                            You can still configure the node, but some options may have unclear names, a different order, or missing details.
+                            See the node description for more information.
+                            """,
+                            TextMessage.MessageType.INFO));
+                    }
+
+                });
+            }
+
+            @Override
+            public List<String> getPathWithinValueJsonObject() {
+                return List.of(SettingsType.MODEL.getConfigKeyFrontend());
+            }
+
+        };
+        renderers.add(textMessageRendererSpec);
+        uiSchemaElements.addObject().setAll(RendererToJsonFormsUtil.toUiSchemaElement(textMessageRendererSpec));
     }
 
     private static List<ConfigInfo> collectConfigInfos(final NodeSettingsRO settings) {

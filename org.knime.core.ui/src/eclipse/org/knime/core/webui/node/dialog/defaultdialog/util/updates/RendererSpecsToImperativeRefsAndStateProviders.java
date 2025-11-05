@@ -54,10 +54,10 @@ import java.util.List;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.knime.core.webui.node.dialog.SettingsType;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlValueReference;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.LayoutRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.WidgetRendererSpec;
 import org.knime.node.parameters.updates.StateProvider;
 
 final class RendererSpecsToImperativeRefsAndStateProviders {
@@ -93,16 +93,16 @@ final class RendererSpecsToImperativeRefsAndStateProviders {
         if (nonLocalizedSpec instanceof LayoutRendererSpec layoutSpec) {
             layoutSpec.getElements().stream().map(el -> el.at(path.toArray(String[]::new)))
                 .forEach(this::traverseRendererSpec);
-        } else if (nonLocalizedSpec instanceof ControlRendererSpec controlSpec) {
+        } else if (nonLocalizedSpec instanceof WidgetRendererSpec<?> widgetSpec) {
             final var location = rendererPathToLocation(path);
-            if (controlSpec instanceof ControlValueReference controlValueReference) {
+            if (widgetSpec instanceof ControlValueReference controlValueReference) {
                 m_valueRefs.add(new ImperativeValueRefWrapper(controlValueReference, location));
             }
-            if (!controlSpec.getStateProviderClasses().isEmpty()) {
+            if (!widgetSpec.getStateProviderClasses().isEmpty()) {
                 throw new NotImplementedException(
                     "Declarative state providers are not yet resolved from renderer specs.");
             }
-            controlSpec.getStateProviders().entrySet().forEach(entry -> m_locationUiStateProviders
+            widgetSpec.getStateProviders().entrySet().forEach(entry -> m_locationUiStateProviders
                 .add(new ImperativeLocationUiStateProviderWrapper(entry.getValue(), location, entry.getKey())));
         } else {
             throw new IllegalStateException("Unknown renderer spec type: " + rendererSpec.getClass());

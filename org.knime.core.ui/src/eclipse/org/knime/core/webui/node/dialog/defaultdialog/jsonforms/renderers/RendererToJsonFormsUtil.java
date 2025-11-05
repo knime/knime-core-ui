@@ -145,6 +145,10 @@ public final class RendererToJsonFormsUtil {
             return addControlPropertiesToSchema(control, path, jsonSchemaWithoutProperties, actionOnMissingObject,
                 actionOnPresentProperty);
         }
+        if (nonLocalized instanceof WidgetRendererSpec) {
+            // ignore
+            return jsonSchemaWithoutProperties;
+        }
         if (nonLocalized instanceof LayoutRendererSpec layout) {
             layout.getElements().forEach(el -> addPropertiesToSchema(el.at(path.toArray(String[]::new)),
                 jsonSchemaWithoutProperties, actionOnMissingObject, actionOnPresentProperty));
@@ -206,8 +210,8 @@ public final class RendererToJsonFormsUtil {
     public static ObjectNode toUiSchemaElement(final DialogElementRendererSpec<?> spec) {
         final var nonLocalized = spec.getNonLocalizedRendererSpec();
         final var path = spec.getPathWithinValueJsonObject();
-        if (nonLocalized instanceof ControlRendererSpec control) {
-            return controlToUiSchemaElement(control, path);
+        if (nonLocalized instanceof WidgetRendererSpec widget) {
+            return widgetToUiSchemaElement(widget, path);
         }
         if (nonLocalized instanceof LayoutRendererSpec layout) {
             return layoutToUiSchemaElement(layout, path);
@@ -226,19 +230,20 @@ public final class RendererToJsonFormsUtil {
         return uiSchemaElement;
     }
 
-    private static ObjectNode controlToUiSchemaElement(final ControlRendererSpec control, final List<String> path) {
-        final var uiSchemaElement = FACTORY.objectNode()//
-            .put(UiSchema.TAG_TYPE, UiSchema.TYPE_CONTROL)
-            .put(UiSchema.TAG_SCOPE, JsonFormsScopeUtil.toScope(path, null));
-        final var options = MAPPER.valueToTree(control.getOptions());
+    private static ObjectNode widgetToUiSchemaElement(final WidgetRendererSpec<?> widget, final List<String> path) {
+        final var uiSchemaElement = FACTORY.objectNode().put(UiSchema.TAG_TYPE, UiSchema.TYPE_CONTROL);
+        if (widget instanceof ControlRendererSpec) {
+            uiSchemaElement.put(UiSchema.TAG_SCOPE, JsonFormsScopeUtil.toScope(path, null));
+        }
+        final var options = MAPPER.valueToTree(widget.getOptions());
         if (options instanceof ObjectNode objectNode) {
             getOrCreateOptions(uiSchemaElement).setAll(objectNode);
         } else {
             CheckUtils.checkState(options instanceof NullNode, "Options need to be an object or null");
         }
-        control.getFormat().ifPresent(format -> getOrCreateOptions(uiSchemaElement).put(UiSchema.TAG_FORMAT, format));
+        widget.getFormat().ifPresent(format -> getOrCreateOptions(uiSchemaElement).put(UiSchema.TAG_FORMAT, format));
         final var providedOptionNames =
-            Stream.of(control.getStateProviderClasses().keySet(), control.getStateProviders().keySet())
+            Stream.of(widget.getStateProviderClasses().keySet(), widget.getStateProviders().keySet())
                 .flatMap(Collection::stream).sorted().toList();
         if (!providedOptionNames.isEmpty()) {
             final var providedOptions = uiSchemaElement.putArray(UiSchema.TAG_PROVIDED_OPTIONS);

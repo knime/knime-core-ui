@@ -187,6 +187,17 @@ public class FallbackDialogFactoryTest {
                             "elements": [
                                 {
                                     "type": "Control",
+                                    "options": {
+                                        "format": "textMessage",
+                                        "message": {
+                                            "title":"Auto-generated dialog",
+                                            "description":"This dialog was created automatically because the node\\'s original dialog is not supported here.\\nYou can still configure the node, but some options may have unclear names, a different order, or missing details.\\nSee the node description for more information.\\n",
+                                            "type":"INFO"
+                                        }
+                                    }
+                                },
+                                {
+                                    "type": "Control",
                                     "scope": "#/properties/model/properties/string"
                                 },
                                 {
@@ -392,6 +403,17 @@ public class FallbackDialogFactoryTest {
                         },
                         "ui_schema": {
                             "elements": [
+                                {
+                                    "type": "Control",
+                                    "options": {
+                                        "format": "textMessage",
+                                        "message": {
+                                            "title":"Auto-generated dialog",
+                                            "description":"This dialog was created automatically because the node\\'s original dialog is not supported here.\\nYou can still configure the node, but some options may have unclear names, a different order, or missing details.\\nSee the node description for more information.\\n",
+                                            "type":"INFO"
+                                        }
+                                    }
+                                },
                                 {
                                     "type": "Control",
                                     "scope": "#/properties/model/properties/config<dot>key<dot>with<dot>dots"

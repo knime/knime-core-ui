@@ -44,29 +44,80 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 7, 2025 (Paul Bärnreuther): created
+ *   Nov 5, 2025 (hornm): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 
+import java.util.Map;
 import java.util.Optional;
 
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.imperative.WithImperativeInitializer;
+import org.knime.node.parameters.updates.StateProvider;
+
 /**
- * The specification of a control, i.e. a widget that controls the value of one setting.
+ * The specification of renderer for a widget in a dialog.
  *
- * @author Paul Bärnreuther
+ * @author Martin Horn, KNIME AG, Konstanz, Germany
+ * @param <T>
  */
-public interface ControlRendererSpec extends WidgetRendererSpec<ControlRendererSpec> {
+public interface WidgetRendererSpec<T extends WidgetRendererSpec<T>> extends DialogElementRendererSpec<T> {
 
     /**
-     * @return the title of the control
+     * @noimplement only to be implemented by the provided sub-interfaces
+     * @return the unique id of this control renderer in case it is detected via the id (in contrast to e.g. the
+     *         settings type).
      */
-    String getTitle();
-
-    /**
-     * @return the description of the control
-     */
-    default Optional<String> getDescription() {
+    default Optional<String> getFormat() {
         return Optional.empty();
+    }
+
+    /**
+     * @noimplement only to be implemented by the provided sub-interfaces
+     * @return the required data type of the control
+     */
+    JsonDataType getDataType();
+
+    /**
+     * @return the options for this control renderer
+     */
+    default Object getOptions() {
+        return null;
+    }
+
+    /**
+     * Some options may be provided dynamically by a state provider. This method defines which options are provided by
+     * which state providers.
+     *
+     * @return a mapping from option names which are usually keys in the options object
+     */
+    @SuppressWarnings("rawtypes")
+    default Map<String, Class<? extends StateProvider>> getStateProviderClasses() {
+        return Map.of();
+    }
+
+    /**
+     * Some options may be provided dynamically by a state provider. This method defines which options are provided by
+     * which state provider.
+     *
+     * <p>
+     * In contrast to {@link #getStateProviderClasses()} this method returns instances of state providers which enables
+     * using it in an imperative way. To also reference other imperatively constructed renderers within such a state
+     * provider, let the state provider extend {@link WithImperativeInitializer}!
+     * </p>
+     *
+     * @return a mapping from option names which are usually keys in the options object
+     */
+    default Map<String, StateProvider<?>> getStateProviders() {
+        return Map.of();
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default T getNonLocalizedRendererSpec() {
+        return (T)this;
     }
 
 }

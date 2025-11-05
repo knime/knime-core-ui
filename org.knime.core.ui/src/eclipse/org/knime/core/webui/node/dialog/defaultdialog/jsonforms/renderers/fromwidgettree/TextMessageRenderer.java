@@ -44,29 +44,28 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 7, 2025 (Paul Bärnreuther): created
+ *   Nov 5, 2025 (hornm): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
+package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
 
-import java.util.Optional;
+import java.util.Map;
 
-/**
- * The specification of a control, i.e. a widget that controls the value of one setting.
- *
- * @author Paul Bärnreuther
- */
-public interface ControlRendererSpec extends WidgetRendererSpec<ControlRendererSpec> {
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.TextMessageRendererSpec;
+import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.widget.message.TextMessage;
 
-    /**
-     * @return the title of the control
-     */
-    String getTitle();
+final class TextMessageRenderer implements TextMessageRendererSpec {
 
-    /**
-     * @return the description of the control
-     */
-    default Optional<String> getDescription() {
-        return Optional.empty();
+    private final TextMessage m_annotation;
+
+    TextMessageRenderer(final TextMessage annotation) {
+        m_annotation = annotation;
+    }
+
+    @Override
+    public Map<String, Class<? extends StateProvider>> getStateProviderClasses() {
+        return Map.of(UiSchema.TAG_MESSAGE, m_annotation.value());
     }
 
 }

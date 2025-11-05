@@ -62,13 +62,14 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.ClassUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.WidgetRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.LeafNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.widget.credentials.Credentials;
+import org.knime.node.parameters.widget.message.TextMessage;
 import org.knime.node.parameters.widget.text.TextAreaWidget;
 
 /**
@@ -79,7 +80,7 @@ import org.knime.node.parameters.widget.text.TextAreaWidget;
 public class WidgetTreeRenderers {
 
     record WidgetTreeNodeTester(//
-        Function<TreeNode<WidgetGroup>, ControlRendererSpec> creator, //
+        Function<TreeNode<WidgetGroup>, WidgetRendererSpec<?>> creator, //
         Predicate<TreeNode<WidgetGroup>> tester //
     ) {
     }
@@ -113,9 +114,9 @@ public class WidgetTreeRenderers {
         new WidgetTreeNodeTester(CredentialsRenderer::new,
             node -> Credentials.class.isAssignableFrom(node.getRawClass())), //
         new WidgetTreeNodeTester(LegacyCredentialsRenderer::new,
-            node -> LegacyCredentials.class.isAssignableFrom(node.getRawClass())) //
-
-    };
+            node -> LegacyCredentials.class.isAssignableFrom(node.getRawClass())), //
+        new WidgetTreeNodeTester(node -> new TextMessageRenderer(getPresentAnnotation(node, TextMessage.class)),
+            hasAnnotationAssertingType(TextMessage.class, Void.class))    };
 
     private static Predicate<TreeNode<WidgetGroup>> hasAnnotation(final Class<? extends Annotation> annotationClass) {
         return node -> node.getAnnotation(annotationClass).isPresent();
@@ -178,7 +179,7 @@ public class WidgetTreeRenderers {
      * @param node the node to check
      * @return the renderer spec for the given node or {@code null} if not supported
      */
-    public static ControlRendererSpec getRendererSpec(final TreeNode<WidgetGroup> node) {
+    public static WidgetRendererSpec<?> getRendererSpec(final TreeNode<WidgetGroup> node) {
         if (!(node instanceof LeafNode<WidgetGroup>)) {
             return null;
         }

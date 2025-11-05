@@ -74,7 +74,6 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_INTERVAL_TYPE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_IS_WRITER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_LABEL;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_MESSAGE;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_OPTIONS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_PLACEHOLDER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_POSSIBLE_VALUES;
@@ -139,8 +138,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.EnumUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.WidgetRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree.WidgetTreeRenderers;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.dbtableselection.DBTableSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
@@ -181,7 +180,6 @@ import org.knime.node.parameters.widget.choices.filter.FlowVariableFilterWidget;
 import org.knime.node.parameters.widget.choices.filter.StringFilter;
 import org.knime.node.parameters.widget.choices.filter.TwinlistWidget;
 import org.knime.node.parameters.widget.choices.filter.TypedStringFilter;
-import org.knime.node.parameters.widget.message.TextMessage;
 import org.knime.node.parameters.widget.text.RichTextInputWidget;
 
 import com.fasterxml.jackson.databind.JavaType;
@@ -202,7 +200,7 @@ final class UiSchemaOptionsGenerator {
 
     private final Collection<Tree<WidgetGroup>> m_widgetTrees;
 
-    private final ControlRendererSpec m_rendererSpec;
+    private final WidgetRendererSpec<?> m_rendererSpec;
 
     /**
      *
@@ -331,11 +329,6 @@ final class UiSchemaOptionsGenerator {
         if (annotatedWidgets.contains(OverwriteDialogTitleInternal.class)) {
             final var widget = m_node.getAnnotation(OverwriteDialogTitleInternal.class).orElseThrow();
             control.put(TAG_LABEL, widget.value());
-        }
-
-        if (annotatedWidgets.contains(TextMessage.class)) {
-            options.put(TAG_FORMAT, Format.TEXT_MESSAGE);
-            getOrCreateProvidedOptions(control).add(TAG_MESSAGE);
         }
 
         if (annotatedWidgets.contains(IntervalWidget.class)) {

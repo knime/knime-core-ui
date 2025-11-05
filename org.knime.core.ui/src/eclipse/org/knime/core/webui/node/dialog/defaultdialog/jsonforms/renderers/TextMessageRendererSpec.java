@@ -44,29 +44,46 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 7, 2025 (Paul Bärnreuther): created
+ *   Nov 5, 2025 (hornm): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 
 import java.util.Optional;
 
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts;
+import org.knime.node.parameters.widget.message.TextMessage.Message;
+
 /**
- * The specification of a control, i.e. a widget that controls the value of one setting.
+ * Renderer for a text message.
  *
- * @author Paul Bärnreuther
+ * @author Martin Horn, KNIME AG, Konstanz, Germany
  */
-public interface ControlRendererSpec extends WidgetRendererSpec<ControlRendererSpec> {
+public interface TextMessageRendererSpec extends WidgetRendererSpec<TextMessageRendererSpec> {
 
-    /**
-     * @return the title of the control
-     */
-    String getTitle();
+    @Override
+    default Optional<String> getFormat() {
+        return Optional.of(JsonFormsConsts.UiSchema.Format.TEXT_MESSAGE);
+    }
 
-    /**
-     * @return the description of the control
-     */
-    default Optional<String> getDescription() {
+    @Override
+    default JsonDataType getDataType() {
+        return JsonDataType.NULL;
+    }
+
+    @Override
+    default Optional<TextMessageRendererOptions> getOptions() {
         return Optional.empty();
+    }
+
+    /**
+     * Options for rendering a text message.
+     */
+    interface TextMessageRendererOptions {
+
+        default Optional<Message> getMessage() {
+            return Optional.empty();
+        }
+
     }
 
 }
