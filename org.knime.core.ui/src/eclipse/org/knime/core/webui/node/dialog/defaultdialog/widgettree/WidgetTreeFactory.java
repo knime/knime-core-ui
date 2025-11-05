@@ -196,7 +196,8 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         SubParameters.class, //
         ValueProvider.class, //
         ValueReference.class, //
-        Widget.class //
+        Widget.class, //
+        WidgetInternal.class //
     );
 
     /**

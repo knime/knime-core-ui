@@ -44,43 +44,48 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   26 Jun 2025 (Robin Gerling, KNIME GmbH, Konstanz, Germany): created
+ *   Jul 2, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.internal.widget;
+package org.knime.node.description;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.knime.node.testing.DefaultNodeTestUtil.complete;
+import static org.knime.node.testing.DefaultNodeTestUtil.createStage;
 
+import org.junit.jupiter.api.Test;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
+import org.knime.node.DefaultNode.RequireModel;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
+import org.knime.node.testing.TestWithWorkflowManager;
 
-/**
- * An extension for the {@link Widget} annotation specifying further configuration options.
- *
- * @author Robin Gerling, KNIME GmbH, Konstanz, Germany
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface WidgetInternal {
+class DefaultNodeDescriptionInternalFeaturesTest extends TestWithWorkflowManager {
 
-    /**
-     * @return true if the title should be hidden from the dialog, but should still be available in the node
-     *         description. NB: The whole title element will be hidden, including the flow variable button and the
-     *         description. If you want to hide only the displayed title string, use
-     *         {@link OverwriteDialogTitleInternal} with an empty string instead.
-     */
-    boolean hideControlHeader() default false;
+    @Test
+    void testHideControlInNodeDescription() {
+        final var nc = addNode(complete(createStage(RequireModel.class)//
+            .model(m -> m//
+                .parametersClass(OnlyOneOptionInDescriptionParameters.class) //
+                .configure((i, o) -> {
+                    // No configure
+                }) //
+                .execute((i, o) -> {
+                    // No execute
+                }) //
+            )));
 
-    /**
-     * In rare situations, we want to be able to hide the description of a control from the node description. For
-     * example, this becomes useful if the a setting with identical description and title is persisted differently than
-     * another one and thus has to appear twice in the node parameters. For the user it should appear only once (both in
-     * the dialog using effects and in the node description using this annotation).
-     *
-     * @return an unused value that is only required for documentation purposes. It must be non-empty and should explain
-     *         why the control is to be hidden from the node description.
-     */
-    String hideControlInNodeDescription() default "";
+        final var description = nc.getNode().invokeGetNodeDescription();
+
+        assertThat(description.getDialogOptionGroups().get(0).getOptions()).hasSize(1);
+    }
+
+    static final class OnlyOneOptionInDescriptionParameters implements NodeParameters {
+        @Widget(title = "Some title", description = "Some description")
+        public String m_option1;
+
+        @Widget(title = "Some title", description = "Some description")
+        @WidgetInternal(hideControlInNodeDescription = "To avoid duplicate entries in node description")
+        public String m_option2;
+    }
 
 }

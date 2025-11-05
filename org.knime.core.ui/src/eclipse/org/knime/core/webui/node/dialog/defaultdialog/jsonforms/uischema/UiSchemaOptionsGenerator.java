@@ -320,9 +320,6 @@ final class UiSchemaOptionsGenerator {
                 final var widgetInternal = m_node.getAnnotation(WidgetInternal.class).orElseThrow();
                 if (widgetInternal.hideControlHeader()) {
                     options.put(TAG_HIDE_CONTROL_HEADER, true);
-                } else {
-                    throw new UiSchemaGenerationException(
-                        "The WidgetInternal annotation must have hideControlHeader set to true.");
                 }
             }
         }
