@@ -7,7 +7,12 @@
   "license": "UNLICENSED",
   "author": "KNIME AG, Zurich, Switzerland",
   "scripts": {
-    "audit": "pnpm audit --prod"
+    "audit": "pnpm audit --prod",
+    "prepare": "cd .. && husky ./js-src/.husky"
+  },
+  "devDependencies": {
+    "@knime/eslint-config": "9.4.0",
+    "husky": "9.1.7"
   },
   "engines": {
     "node": "22.x"
