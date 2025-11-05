@@ -44,39 +44,35 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 13, 2025 (Paul Bärnreuther): created
+ *   Nov 5, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
+package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.validation.CustomValidationContext;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithCustomFileSystem;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
+import java.util.Optional;
+
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.FileChooserRendererOptions;
 
 /**
- * Registry record that holds state that is to be held in a default node dialog to be used in an RPC service call.
- *
- * @param fileSystemConnector connector for managing custom file system connections (see {@link WithCustomFileSystem}).
- * @param customValidationContext context for managing custom validation callbacks (see {@link CustomValidation}).
- * @param dynamicParametersTriggerInvocationHandlerContext context for managing state providers within dynamic
- *            parameters provided via {@link DynamicParameters}.
+ * Renderer for MultiFileSelection-based file selection using the new file selection API.
+ * Corresponds to the MultiFileSelectionOptions TypeScript type.
  *
  * @author Paul Bärnreuther
  */
-public record NodeDialogServiceRegistry(//
-    FileSystemConnector fileSystemConnector, //
-    CustomValidationContext customValidationContext, //
-    DynamicParametersTriggerInvocationHandlerContext dynamicParametersTriggerInvocationHandlerContext //
-) {
+public interface MultiFileChooserRendererSpec extends ControlRendererSpec {
 
-    /**
-     * Clears all state from both the file system connector and validation context.
-     */
-    public void onDeactivateRpc() {
-        fileSystemConnector.clear();
-        customValidationContext.clear();
-        dynamicParametersTriggerInvocationHandlerContext.clear();
+    @Override
+    default JsonDataType getDataType() {
+        return JsonDataType.OBJECT;
     }
 
+    @Override
+    default Optional<String> getFormat() {
+        return Optional.of(UiSchema.Format.MULTI_FILE_CHOOSER);
+    }
+
+    @Override
+    default Optional<FileChooserRendererOptions.MultiFileChooserOptions> getOptions() {
+        return Optional.empty();
+    }
 }

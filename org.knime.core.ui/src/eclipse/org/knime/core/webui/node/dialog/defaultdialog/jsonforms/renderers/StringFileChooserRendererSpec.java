@@ -44,31 +44,35 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 7, 2025 (Paul Bärnreuther): created
+ *   Nov 5, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
+package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.util.Optional;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import org.knime.node.parameters.NodeParametersInput;
-import org.knime.node.parameters.updates.StateProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.FileChooserRendererOptions;
 
 /**
- * Put this annotation on a String setting in order to enable a file chooser next to the string input field. The file
- * system connection is provided dynamically and can depend on {@link NodeParametersInput} and other settings values.
- *
- * If no custom connection is needed, use {@link FileReaderWidget} or {@link LocalFileReaderWidget} instead.
+ * Renderer for String-based file selection using the new file selection API.
+ * Corresponds to the StringFileChooserOptions TypeScript type.
  *
  * @author Paul Bärnreuther
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface CustomFileConnectionFolderReaderWidget {
+public interface StringFileChooserRendererSpec extends ControlRendererSpec {
 
-    Class<? extends StateProvider<FSConnectionProvider>> connectionProvider();
+    @Override
+    default JsonDataType getDataType() {
+        return JsonDataType.STRING;
+    }
 
+    @Override
+    default Optional<String> getFormat() {
+        return Optional.of(UiSchema.Format.STRING_FILE_SELECTION);
+    }
+
+    @Override
+    default Optional<FileChooserRendererOptions.StringFileChooserOptions> getOptions() {
+        return Optional.empty();
+    }
 }

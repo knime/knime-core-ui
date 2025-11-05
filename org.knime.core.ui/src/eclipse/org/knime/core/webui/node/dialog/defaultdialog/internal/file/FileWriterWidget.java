@@ -54,9 +54,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
-import org.knime.node.parameters.updates.StateProvider;
-
 /**
  * Put this annotation on a {@link FileSelection} field in order to equip it with additional writer features.
  *
@@ -78,13 +75,5 @@ public @interface FileWriterWidget {
      * @return a file extension (e.g. "pdf" for files which should end with ".pdf")
      */
     String fileExtension() default "";
-
-    /**
-     * This can be used instead of {@link #fileExtension} in order to supply the file extension in a dynamic way, e.g.
-     * depending on other settings. See {@link StateProvider} for more information.
-     *
-     * @return a file extension provider
-     */
-    Class<? extends StateProvider<String>> fileExtensionProvider() default NoopStringProvider.class;
 
 }

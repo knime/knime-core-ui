@@ -66,16 +66,11 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonForms
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_ELEMENTS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_EMPTY_STATE_LABEL;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_EXTERNAL_VALIDATION_HANDLER;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSION;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_EXTENSIONS;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FILE_FILTER_CLASS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_FORMAT;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_HIDE_CONTROL_HEADER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_INTERVAL_TYPE;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_IS_WRITER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_LABEL;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_OPTIONS;
-import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_PLACEHOLDER;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_POSSIBLE_VALUES;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_PROVIDED_OPTIONS;
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.TAG_TYPE;
@@ -93,21 +88,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.util.CheckUtils;
-import org.knime.core.node.workflow.contextv2.HubSpaceLocationInfo;
-import org.knime.core.node.workflow.contextv2.LocalLocationInfo;
-import org.knime.core.node.workflow.contextv2.LocationInfo;
-import org.knime.core.node.workflow.contextv2.ServerLocationInfo;
-import org.knime.core.node.workflow.contextv2.WorkflowContextV2.ExecutorType;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider.DBTableAdapter;
@@ -120,14 +107,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButt
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicNodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.CustomFileConnectionFolderReaderWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelectionWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.FileSelectionWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
@@ -137,7 +117,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.DateTimeUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.EnumUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsScopeUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.RendererToJsonFormsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.WidgetRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree.WidgetTreeRenderers;
@@ -150,16 +129,12 @@ import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.GenericTypeFinderUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.util.MultiFileSelectionUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.DateTimeFormatPickerWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DependencyHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.util.WidgetImplementationUtil.WidgetAnnotation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.ExternalBuiltInValidationUtil;
-import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
-import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
-import org.knime.filehandling.core.util.WorkflowContextUtil;
 import org.knime.node.parameters.Advanced;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
@@ -220,7 +195,7 @@ final class UiSchemaOptionsGenerator {
         m_nodeParametersInput = context;
         m_scope = scope;
         m_widgetTrees = widgetTrees;
-        m_rendererSpec = WidgetTreeRenderers.getRendererSpec(node);
+        m_rendererSpec = WidgetTreeRenderers.getRendererSpec(node, context);
 
     }
 
@@ -287,18 +262,6 @@ final class UiSchemaOptionsGenerator {
                 case STRING_ARRAY:
                     options.put(TAG_FORMAT, Format.COMBO_BOX);
                     break;
-                case FILE_CHOOSER:
-                    options.put(TAG_FORMAT, Format.FILE_CHOOSER);
-                    addWorkflowContextInfo(options);
-                    break;
-                case MULTI_FILE_CHOOSER:
-                    options.put(TAG_FORMAT, Format.MULTI_FILE_CHOOSER);
-                    addWorkflowContextInfo(options);
-                    var filtersClass = MultiFileSelectionUtil.extractFileChooserFiltersClass(m_node)
-                        .orElseThrow(IllegalStateException::new);
-                    setFilterSchemaForMultiFileWidgetChooser(options, filtersClass);
-                    options.put(TAG_FILE_FILTER_CLASS, filtersClass.getName());
-                    break;
                 case DB_TABLE_CHOOSER:
                     options.put(TAG_FORMAT, Format.DB_TABLE_CHOOSER);
                     setDbTableChooserOptions(options);
@@ -358,47 +321,6 @@ final class UiSchemaOptionsGenerator {
             }
         }
 
-        if (annotatedWidgets.contains(FileReaderWidget.class)) {
-            final var fileReaderWidget = m_node.getAnnotation(FileReaderWidget.class).orElseThrow();
-            resolveFileExtensions(options, fileReaderWidget.fileExtensions());
-            addFileSystemInformation(options);
-        }
-
-        if (annotatedWidgets.contains(FileSelectionWidgetInternal.class)) {
-            final var fileSelectionWidgetInternal =
-                m_node.getAnnotation(FileSelectionWidgetInternal.class).orElseThrow();
-            if (fileSelectionWidgetInternal.allowOnlyConnectedFS()) {
-                options.put("allowOnlyConnectedFS", true);
-            }
-        }
-
-        if (annotatedWidgets.contains(FileWriterWidget.class)) {
-            options.put(TAG_IS_WRITER, true);
-            final var fileWriterWidget = m_node.getAnnotation(FileWriterWidget.class).orElseThrow();
-            resolveFileExtension(control, options, fileWriterWidget.fileExtension(),
-                fileWriterWidget.fileExtensionProvider());
-        }
-
-        if (annotatedWidgets.contains(FolderSelectionWidget.class)) {
-            options.put("selectionMode", "FOLDER");
-            addFileSystemInformation(options);
-        }
-
-        if (annotatedWidgets.contains(CustomFileConnectionFolderReaderWidget.class)) {
-            options.put(TAG_FORMAT, Format.CUSTOM_FILE_SYSTEM_FILE_CHOOSER);
-            options.put("selectionMode", "FOLDER");
-            // Mark that the fileSystemId will be provided dynamically
-            getOrCreateProvidedOptions(control).add(UpdateResultsUtil.FILE_SYSTEM_ID);
-        }
-
-        if (annotatedWidgets.contains(LocalFileWriterWidget.class)) {
-            options.put(TAG_FORMAT, Format.LOCAL_FILE_CHOOSER);
-            final var localFileWriterWidget = m_node.getAnnotation(LocalFileWriterWidget.class).orElseThrow();
-            options.put(TAG_PLACEHOLDER, localFileWriterWidget.placeholder());
-            options.put(TAG_IS_WRITER, true);
-            resolveFileExtension(control, options, localFileWriterWidget.fileExtension(),
-                localFileWriterWidget.fileExtensionProvider());
-        }
         if (annotatedWidgets.contains(ButtonWidget.class)) {
             final var buttonWidget = m_node.getAnnotation(ButtonWidget.class).orElseThrow();
             final var handler = buttonWidget.actionHandler();
@@ -612,79 +534,6 @@ final class UiSchemaOptionsGenerator {
         }
     }
 
-    private void addFileSystemInformation(final ObjectNode options) {
-        getFirstFileSystemPortIndex(m_nodeParametersInput)
-            .ifPresent(portIndex -> addFileSystemInformation(options, portIndex));
-    }
-
-    private static OptionalInt getFirstFileSystemPortIndex(final NodeParametersInput context) {
-        final var inPortTypes = context.getInPortTypes();
-        return IntStream.range(0, inPortTypes.length)
-            .filter(i -> FileSystemPortObjectSpec.class.equals(inPortTypes[i].getPortObjectSpecClass())).findAny();
-
-    }
-
-    private void addFileSystemInformation(final ObjectNode options, final int portIndex) {
-        options.put("portIndex", portIndex);
-        final var portObjectSpec =
-            m_nodeParametersInput.getInPortSpec(portIndex).map(spec -> toFileSystemPortObjectSpec(spec, portIndex));
-        portObjectSpec.ifPresent(spec -> {
-            options.put("fileSystemType", spec.getFileSystemType());
-            spec.getFSLocationSpec().getFileSystemSpecifier()
-                .ifPresent(fileSystemSpecifier -> options.put("fileSystemSpecifier", fileSystemSpecifier));
-        });
-        if (portObjectSpec.flatMap(FileSystemPortObjectSpec::getFileSystemConnection).isEmpty()) {
-            options.put("fileSystemConnectionMissing", true);
-        }
-    }
-
-    private static FileSystemPortObjectSpec toFileSystemPortObjectSpec(final PortObjectSpec spec, final int portIndex) {
-        if (spec instanceof FileSystemPortObjectSpec fsSpec) {
-            return fsSpec;
-        }
-        throw new IllegalStateException(String.format("Port at index %s is not a file system port", portIndex));
-    }
-
-    private static void addWorkflowContextInfo(final ObjectNode options) {
-        WorkflowContextUtil.getWorkflowContextV2Optional().ifPresent(context -> {
-            addExecutorTypeInformation(options, context.getExecutorType());
-            addLocationInfo(options, context.getLocationInfo());
-        });
-    }
-
-    private static void addExecutorTypeInformation(final ObjectNode options, final ExecutorType executorType) {
-        if (executorType == ExecutorType.ANALYTICS_PLATFORM) {
-            addLocalExecutorInfo(options);
-        }
-    }
-
-    private static void addLocalExecutorInfo(final ObjectNode options) {
-        options.put("isLocal", true);
-    }
-
-    private static void addLocationInfo(final ObjectNode options, final LocationInfo locationInfo) {
-        if (locationInfo instanceof LocalLocationInfo) {
-            addLocalLocationInfo(options);
-        } else if (locationInfo instanceof HubSpaceLocationInfo hubSpace) {
-            addhubSpaceLocationInfo(options, hubSpace);
-        } else if (locationInfo instanceof ServerLocationInfo server) {
-            addServerLocationInfo(options, server);
-        }
-    }
-
-    private static void addLocalLocationInfo(final ObjectNode options) {
-        options.put("mountId", "Local space");
-    }
-
-    private static void addhubSpaceLocationInfo(final ObjectNode options, final HubSpaceLocationInfo hubSpace) {
-        options.put("mountId", hubSpace.getDefaultMountId());
-        options.put("spacePath", hubSpace.getSpacePath());
-    }
-
-    private static void addServerLocationInfo(final ObjectNode options, final ServerLocationInfo server) {
-        options.put("mountId", server.getDefaultMountId());
-    }
-
     private <E extends Enum<E>> List<String> getDisabledEnumConstants() {
         @SuppressWarnings("unchecked")
         var enumClass = (Class<E>)m_fieldClass;
@@ -708,26 +557,6 @@ final class UiSchemaOptionsGenerator {
                 .error(String.format("Exception when accessing field %s.", constantName), ex);
         }
         return Optional.empty();
-    }
-
-    private static void resolveFileExtensions(final ObjectNode options, final String[] extensions) {
-        if (extensions.length > 0) {
-            final var fileExtensionsNode = options.putArray(TAG_FILE_EXTENSIONS);
-            Arrays.stream(extensions).forEach(fileExtensionsNode::add);
-        }
-    }
-
-    private static void resolveFileExtension(final ObjectNode uiSchema, final ObjectNode options,
-        final String fileExtension, final Class<? extends StateProvider<String>> fileExtensionProvider) {
-        if (!fileExtension.isEmpty()) {
-            options.put(TAG_FILE_EXTENSION, fileExtension);
-        }
-        if (!fileExtensionProvider.equals(NoopStringProvider.class)) {
-            CheckUtils.check(fileExtension.isEmpty(), UiSchemaGenerationException::new,
-                () -> "The parameter \"fileExtension\" and \"fileExtensionProvider\" "
-                    + "cannot be used in combination.");
-            getOrCreateProvidedOptions(uiSchema).add(TAG_FILE_EXTENSION);
-        }
     }
 
     private static <M extends Enum<M>> void generateStates(final ArrayNode states,
@@ -926,16 +755,6 @@ final class UiSchemaOptionsGenerator {
     static boolean hasElementCheckboxWidgetAnnotation(final TreeNode<WidgetGroup> field) {
         return field.getPossibleAnnotations().contains(ArrayWidgetInternal.ElementCheckboxWidget.class)
             && field.getAnnotation(ArrayWidgetInternal.ElementCheckboxWidget.class).isPresent();
-    }
-
-    private void setFilterSchemaForMultiFileWidgetChooser(final ObjectNode options,
-        final Class<? extends FileChooserFilters> cls) {
-        var elementTree = new WidgetTreeFactory().createTree(cls, null);
-
-        var filterSubUiSchema =
-            JsonFormsUiSchemaUtil.buildUISchema(List.of(elementTree), m_widgetTrees, m_nodeParametersInput);
-
-        options.set("filterSubUiSchema", filterSubUiSchema);
     }
 
     private void setDbTableChooserOptions(final ObjectNode options) {

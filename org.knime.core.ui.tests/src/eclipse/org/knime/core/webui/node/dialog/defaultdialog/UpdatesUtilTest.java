@@ -88,11 +88,10 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DefaultCl
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicParametersProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.CustomFileConnectionFolderReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FSConnectionProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectionWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.SingleFileSelectionMode;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithCustomFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
@@ -512,14 +511,14 @@ public class UpdatesUtilTest {
 
             }
 
-            static final class MyInitialFileExtensionProvider implements StateProvider<String> {
+            static final class MyInitialPlaceholderProvider implements StateProvider<String> {
 
                 @Override
                 public void init(final StateProviderInitializer initializer) {
                     initializer.computeBeforeOpenDialog();
                 }
 
-                public static final String RESULT = "txt";
+                public static final String RESULT = "some placeholder";
 
                 @Override
                 public String computeState(final NodeParametersInput context) {
@@ -529,7 +528,7 @@ public class UpdatesUtilTest {
             }
 
             @Widget(title = "", description = "")
-            @LocalFileWriterWidget(fileExtensionProvider = MyInitialFileExtensionProvider.class)
+            @TextInputWidget(placeholderProvider = MyInitialPlaceholderProvider.class)
             String m_localFileWriter;
 
             static final class MyValueProvider implements StateProvider<MySetting> {
@@ -560,9 +559,9 @@ public class UpdatesUtilTest {
         assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(2);
         assertThatJson(response).inPath("$.initialUpdates[0].scope").isString()
             .isEqualTo("#/properties/model/properties/localFileWriter");
-        assertThatJson(response).inPath("$.initialUpdates[0].providedOptionName").isString().isEqualTo("fileExtension");
+        assertThatJson(response).inPath("$.initialUpdates[0].providedOptionName").isString().isEqualTo("placeholder");
         assertThatJson(response).inPath("$.initialUpdates[0].values[0].value").isString()
-            .isEqualTo(TestSettings.MyInitialFileExtensionProvider.RESULT);
+            .isEqualTo(TestSettings.MyInitialPlaceholderProvider.RESULT);
         assertThatJson(response).inPath("$.initialUpdates[1].scope").isString()
             .isEqualTo("#/properties/model/properties/valueUpdateSetting");
         assertThatJson(response).inPath("$.initialUpdates[1].values[0].value").isObject().containsEntry("value",
@@ -632,14 +631,14 @@ public class UpdatesUtilTest {
             TestSettings() {
             }
 
-            static final class MyInitialFileExtensionProvider implements StateProvider<String> {
+            static final class MyInitialPlaceholderProvider implements StateProvider<String> {
 
                 @Override
                 public void init(final StateProviderInitializer initializer) {
                     initializer.computeAfterOpenDialog();
                 }
 
-                public static final String RESULT = "txt";
+                public static final String RESULT = "some placeholder";
 
                 @Override
                 public String computeState(final NodeParametersInput context) {
@@ -649,7 +648,7 @@ public class UpdatesUtilTest {
             }
 
             @Widget(title = "", description = "")
-            @LocalFileWriterWidget(fileExtensionProvider = MyInitialFileExtensionProvider.class)
+            @TextInputWidget(placeholderProvider = MyInitialPlaceholderProvider.class)
             String m_localFileWriter;
 
             static final class MyValueProvider implements StateProvider<String> {
@@ -703,40 +702,6 @@ public class UpdatesUtilTest {
             public String computeState(final NodeParametersInput context) {
                 throw new IllegalStateException("Should not be called within this test");
             }
-
-        }
-
-        @Test
-        void testFileWriterWidgetFileExtensionProvider() {
-
-            class TestSettings implements NodeParameters {
-
-                @FileWriterWidget(fileExtensionProvider = MyStringProvider.class)
-                FileSelection m_fileChooser;
-
-            }
-
-            final var settings = new TestSettings();
-            final var response = buildUpdates(settings);
-
-            assertThatJson(response).inPath("$.globalUpdates").isArray().hasSize(1);
-
-        }
-
-        @Test
-        void testLocalFileWriterWidgetFileExtensionProvider() {
-
-            class TestSettings implements NodeParameters {
-
-                @LocalFileWriterWidget(fileExtensionProvider = MyStringProvider.class)
-                String m_fileChooser;
-
-            }
-
-            final var settings = new TestSettings();
-            final var response = buildUpdates(settings);
-
-            assertThatJson(response).inPath("$.globalUpdates").isArray().hasSize(1);
 
         }
 
@@ -1437,7 +1402,8 @@ public class UpdatesUtilTest {
 
         class TestSettings implements NodeParameters {
             @Widget(title = "", description = "")
-            @CustomFileConnectionFolderReaderWidget(connectionProvider = TestConnectionProvider.class)
+            @FileSelectionWidget(SingleFileSelectionMode.FILE)
+            @WithCustomFileSystem(connectionProvider = TestConnectionProvider.class)
             String m_path;
         }
         final var fileSystemId = "myFileSystemId";

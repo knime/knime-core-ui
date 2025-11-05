@@ -42,34 +42,36 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Oct 30, 2023 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Put this annotation on a String setting in order to enable a file chooser next to the string input field.
+ * Annotation to explicitly configure which file system options are available in the file chooser. Can be applied to
+ * {@link FileSelection}, {@link MultiFileSelection}, or {@link String} fields. Cannot be used together with
+ * {@link WithCustomFileSystem}. Use {@link WithCustomFileSystem} if you want to only allow a custom file system option.
  *
- * @author Paul Bärnreuther
+ * @author Paul Baernreuther
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface LocalFileReaderWidget {
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface WithFileSystem {
 
     /**
-     * @return the placeholder of the string input field
+     * The file system options that are available to the user. The tabs will be displayed in the standard order
+     * regardless of the order specified here: CONNECTED (if present), LOCAL, SPACE, EMBEDDED, CUSTOM_URL.
+     *
+     * When CONNECTED is included:
+     * <ul>
+     * <li>If a file system port is connected, the CONNECTED tab is shown and other tabs are disabled</li>
+     * <li>If no file system port is connected, the CONNECTED tab is hidden entirely</li>
+     * </ul>
+     *
+     * @return array of available file system options
      */
-    String placeholder() default "";
-
-    /**
-     * @return the valid extensions by which the browsable files should be filtered
-     */
-    String[] fileExtensions() default {};
+    FileSystemOption[] value();
 }

@@ -64,6 +64,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewUtils.AdditionalFilterConfiguration;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewUtils.PreviewResult;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
@@ -130,6 +131,7 @@ public final class FileFilterPreviewDataService {
      *            <li>"connected${portIndex}": For the file system connected at portIndex.</li>
      *            </ul>
      * @param path the current path or null to reference the root level.
+     * @param filterMode the filter mode (one of the multi file selection modes)
      * @param includeSubfolders if true, display files recursively in child directories
      * @param additionalFilterConfiguration the additional filter configuration to filter the files by
      * @return the list of items together with the total number of items before filtering
@@ -138,6 +140,7 @@ public final class FileFilterPreviewDataService {
     public PreviewResult listItemsForPreview( //
         final String fileSystemId, //
         final String path, //
+        final MultiFileSelectionMode filterMode, //
         final boolean includeSubfolders, //
         final AdditionalFilterConfiguration additionalFilterConfiguration//
     ) throws IOException {
@@ -145,7 +148,8 @@ public final class FileFilterPreviewDataService {
             additionalFilterConfiguration.toFileChooserFilters(getFilterClasses(), JsonFormsDataUtil.getMapper());
 
         try (var fileSystem = m_fsConnector.getFileChooserBackend(fileSystemId).getFileSystem()) {
-            return listFilteredAndSortedItemsForPreview(fileSystem, path, includeSubfolders, fileChooserFilters);
+            return listFilteredAndSortedItemsForPreview(fileSystem, path, filterMode, includeSubfolders,
+                fileChooserFilters);
         }
     }
 
@@ -154,8 +158,10 @@ public final class FileFilterPreviewDataService {
     private static final NodeLogger LOGGER = NodeLogger.getLogger(FileFilterPreviewDataService.class);
 
     private static PreviewResult listFilteredAndSortedItemsForPreview(final FileSystem fileSystem,
-        final String folderInput, final boolean includeSubfolders, final FileChooserFilters listItemConfig)
-        throws IOException {
+        final String folderInput, final MultiFileSelectionMode filterMode, final boolean includeSubfolders,
+        final FileChooserFilters listItemConfig) throws IOException {
+
+        filterMode.assertMultiSelection();
 
         final Path folder = fileSystem.getPath(folderInput);
 
@@ -168,6 +174,7 @@ public final class FileFilterPreviewDataService {
             var filterResult = FileChooserFilters.getPassingFilesInFolder( //
                 listItemConfig, //
                 folder, //
+                filterMode, //
                 includeSubfolders, //
                 LIMIT_FILES_FOR_PREVIEW //
             );

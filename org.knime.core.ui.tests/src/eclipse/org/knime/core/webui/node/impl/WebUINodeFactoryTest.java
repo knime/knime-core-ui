@@ -54,6 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Optional;
 
 import org.apache.xmlbeans.XmlException;
@@ -84,9 +85,11 @@ import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
-import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionWidget;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.testing.util.TableTestUtil;
 import org.xml.sax.SAXException;
@@ -194,7 +197,7 @@ class WebUINodeFactoryTest {
 
         static final class TestFileChooserFilters implements FileChooserFilters {
             @Override
-            public boolean passesFilter(final Path root, final Path path) {
+            public boolean passesFilter(final Path root, final Path path, final BasicFileAttributes attrs) {
                 return false;
             }
 
@@ -209,8 +212,10 @@ class WebUINodeFactoryTest {
         }
 
         @Widget(title = "Some file selection", description = "Some Description")
+        @MultiFileSelectionWidget(value = {MultiFileSelectionMode.FILE, MultiFileSelectionMode.FOLDER,
+            MultiFileSelectionMode.FILES_IN_FOLDERS})
         MultiFileSelection<TestFileChooserFilters> m_someFileSelection =
-            new MultiFileSelection<>(new TestFileChooserFilters());
+            new MultiFileSelection<>(MultiFileSelectionMode.FILE, new TestFileChooserFilters());
     }
 
     /**

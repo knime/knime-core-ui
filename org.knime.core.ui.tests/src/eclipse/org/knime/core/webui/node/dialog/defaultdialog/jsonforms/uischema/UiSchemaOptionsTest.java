@@ -54,7 +54,6 @@ import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.
 import static org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtilTest.buildUiSchema;
 
 import java.math.BigDecimal;
-import java.nio.file.Path;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -72,7 +71,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.knime.core.data.DataType;
 import org.knime.core.node.port.PortObjectSpec;
-import org.knime.core.node.port.PortType;
 import org.knime.core.util.Pair;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
@@ -85,26 +83,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButt
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.ClassIdStrategy;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.CustomFileConnectionFolderReaderWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FSConnectionProvider;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelectionWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileReaderWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.FileSelectionWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.TypedStringFilterWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.WidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema.Format;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.DialogElementRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.schema.JsonFormsSchemaUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.TestButtonActionHandler.TestStates;
@@ -124,10 +110,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.DeclaringDe
 import org.knime.core.webui.node.dialog.defaultdialog.widget.handler.WidgetHandlerException;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil.DateTimeStringFormatValidation;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.DateTimeFormatValidationUtil.DateTimeTemporalFormatValidation;
-import org.knime.filehandling.core.connections.FSConnection;
-import org.knime.filehandling.core.connections.FSLocation;
-import org.knime.filehandling.core.port.FileSystemPortObject;
-import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.node.parameters.Advanced;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
@@ -138,9 +120,7 @@ import org.knime.node.parameters.persistence.Persistable;
 import org.knime.node.parameters.updates.ButtonReference;
 import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
-import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.StateProvider;
-import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
@@ -219,9 +199,6 @@ class UiSchemaOptionsTest {
             LegacyCredentials m_legacyCredentials;
 
             @Widget(title = "", description = "")
-            FileSelection m_fileSelection;
-
-            @Widget(title = "", description = "")
             StringFilter m_nameFilter;
 
             @Widget(title = "", description = "")
@@ -241,10 +218,6 @@ class UiSchemaOptionsTest {
 
             @Widget(title = "", description = "")
             DataType m_dataType;
-
-            @Widget(title = "", description = "")
-            MultiFileSelection<MyVerySpecialTestFilterSettings> m_multiFileSelection =
-                new MultiFileSelection<>(new MyVerySpecialTestFilterSettings());
 
             @Widget(title = "", description = "")
             DBTableSelection m_dbTableSelection;
@@ -269,67 +242,32 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[6].options.format").isString().isEqualTo("credentials");
         assertThatJson(response).inPath("$.elements[7].scope").isString().contains("legacyCredentials");
         assertThatJson(response).inPath("$.elements[7].options.format").isString().isEqualTo("legacyCredentials");
-        assertThatJson(response).inPath("$.elements[8].scope").isString().contains("fileSelection");
-        assertThatJson(response).inPath("$.elements[8].options.format").isString().isEqualTo("fileChooser");
-        assertThatJson(response).inPath("$.elements[9].scope").isString().contains("nameFilter");
-        assertThatJson(response).inPath("$.elements[9].options.format").isString().isEqualTo("nameFilter");
-        assertThatJson(response).inPath("$.elements[10].scope").isString().contains("interval");
+        assertThatJson(response).inPath("$.elements[8].scope").isString().contains("nameFilter");
+        assertThatJson(response).inPath("$.elements[8].options.format").isString().isEqualTo("nameFilter");
+        assertThatJson(response).inPath("$.elements[9].scope").isString().contains("interval");
+        assertThatJson(response).inPath("$.elements[9].options.format").isString().isEqualTo("interval");
+        assertThatJson(response).inPath("$.elements[9].options.intervalType").isString()
+            .isEqualTo(IntervalWidget.IntervalType.DATE_OR_TIME.name());
+        assertThatJson(response).inPath("$.elements[10].scope").isString().contains("variableLengthInterval");
         assertThatJson(response).inPath("$.elements[10].options.format").isString().isEqualTo("interval");
         assertThatJson(response).inPath("$.elements[10].options.intervalType").isString()
-            .isEqualTo(IntervalWidget.IntervalType.DATE_OR_TIME.name());
-        assertThatJson(response).inPath("$.elements[11].scope").isString().contains("variableLengthInterval");
+            .isEqualTo(IntervalWidget.IntervalType.DATE.name());
+        assertThatJson(response).inPath("$.elements[11].scope").isString().contains("fixedLengthInterval");
         assertThatJson(response).inPath("$.elements[11].options.format").isString().isEqualTo("interval");
         assertThatJson(response).inPath("$.elements[11].options.intervalType").isString()
-            .isEqualTo(IntervalWidget.IntervalType.DATE.name());
-        assertThatJson(response).inPath("$.elements[12].scope").isString().contains("fixedLengthInterval");
-        assertThatJson(response).inPath("$.elements[12].options.format").isString().isEqualTo("interval");
-        assertThatJson(response).inPath("$.elements[12].options.intervalType").isString()
             .isEqualTo(IntervalWidget.IntervalType.TIME.name());
-        assertThatJson(response).inPath("$.elements[13].scope").isString().contains("zonedDateTime");
-        assertThatJson(response).inPath("$.elements[13].options.format").isString().isEqualTo("zonedDateTime");
-        assertThatJson(response).inPath("$.elements[13].options.possibleValues").isArray();
+        assertThatJson(response).inPath("$.elements[12].scope").isString().contains("zonedDateTime");
+        assertThatJson(response).inPath("$.elements[12].options.format").isString().isEqualTo("zonedDateTime");
+        assertThatJson(response).inPath("$.elements[12].options.possibleValues").isArray();
+        assertThatJson(response).inPath("$.elements[12].options.showMilliseconds").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[13].scope").isString().contains("localDateTime");
+        assertThatJson(response).inPath("$.elements[13].options.format").isString().isEqualTo("dateTime");
         assertThatJson(response).inPath("$.elements[13].options.showMilliseconds").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[14].scope").isString().contains("localDateTime");
-        assertThatJson(response).inPath("$.elements[14].options.format").isString().isEqualTo("dateTime");
-        assertThatJson(response).inPath("$.elements[14].options.showMilliseconds").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[15].scope").isString().contains("dataType");
-        assertThatJson(response).inPath("$.elements[15].options.format").isString().isEqualTo("dropDown");
-        assertThatJson(response).inPath("$.elements[15].providedOptions").isArray().containsExactly("possibleValues");
-
-        assertThatJson(response).inPath("$.elements[16].scope").isString().contains("multiFileSelection");
-        assertThatJson(response).inPath("$.elements[16].options.format").isString().isEqualTo("multiFileChooser");
-        assertThatJson(response).inPath("$.elements[16].options").isObject().doesNotContainKey("isWriter");
-        assertThatJson(response).inPath("$.elements[16].options.filterSubUiSchema").isObject().containsKey("elements");
-        // custom filter class has one field
-        assertThatJson(response).inPath("$.elements[16].options.filterSubUiSchema.elements").isArray().hasSize(1);
-        assertThatJson(response).inPath("$.elements[16].options.filterSubUiSchema.elements[0]") //
-            .isObject() //
-            .containsKey("scope");
-        assertThatJson(response).inPath("$.elements[16].options.filterSubUiSchema.elements[0].scope") //
-            .isString() //
-            .contains("someVeryImportantField"); // name of the field inside the filter class we're using for this test
-
-        assertThatJson(response).inPath("$.elements[17].scope").isString().contains("dbTableSelection");
-        assertThatJson(response).inPath("$.elements[17].options.format").isString().isEqualTo("dbTableChooser");
-    }
-
-    /**
-     * Used for testing the default settings for a field of type {@link MultiFileSelection}.
-     */
-    class MyVerySpecialTestFilterSettings implements FileChooserFilters {
-
-        @Widget(title = "", description = "")
-        String m_someVeryImportantField;
-
-        @Override
-        public boolean passesFilter(final Path root, final Path path) throws IllegalStateException {
-            return false;
-        }
-
-        @Override
-        public boolean followSymlinks() {
-            return false;
-        }
+        assertThatJson(response).inPath("$.elements[14].scope").isString().contains("dataType");
+        assertThatJson(response).inPath("$.elements[14].options.format").isString().isEqualTo("dropDown");
+        assertThatJson(response).inPath("$.elements[14].providedOptions").isArray().containsExactly("possibleValues");
+        assertThatJson(response).inPath("$.elements[15].scope").isString().contains("dbTableSelection");
+        assertThatJson(response).inPath("$.elements[15].options.format").isString().isEqualTo("dbTableChooser");
     }
 
     @Test
@@ -532,24 +470,6 @@ class UiSchemaOptionsTest {
             String m_prop;
         }
         assertThrows(UiSchemaGenerationException.class, () -> buildTestUiSchema(NonApplicableStyleSettings.class));
-    }
-
-    @Test
-    void testFolderSelectionWidgetSetsAppropriateSettings() {
-        class SettingsWithFolderSelection implements NodeParameters {
-            @Widget(title = "", description = "")
-            @FolderSelectionWidget
-            FileSelection m_myFolderSelection;
-        }
-
-        var fileSystemType = "myFileSystemType";
-        var fileSystemSpecifier = "fileSystemSpecifier";
-        var context = setupFileSystemMocks(fileSystemType, fileSystemSpecifier);
-
-        var response = buildTestUiSchema(SettingsWithFolderSelection.class, context);
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("myFolderSelection");
-        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("fileChooser");
-        assertThatJson(response).inPath("$.elements[0].options.selectionMode").isString().isEqualTo("FOLDER");
     }
 
     @Test
@@ -1213,186 +1133,6 @@ class UiSchemaOptionsTest {
     }
 
     @Test
-    void testLocalFileReaderWidget() {
-        class LocalFileReaderWidgetTestSettings implements NodeParameters {
-
-            @Widget(title = "", description = "")
-            @LocalFileReaderWidget
-            String m_defaultOptions;
-
-            @Widget(title = "", description = "")
-            @LocalFileReaderWidget(placeholder = "myPlaceholder", fileExtensions = {"txt", "csv"})
-            String m_specialOptions;
-
-        }
-        var response = buildTestUiSchema(LocalFileReaderWidgetTestSettings.class);
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("defaultOptions");
-        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("localFileChooser");
-        assertThatJson(response).inPath("$.elements[0].options.placeholder").isString().isEqualTo("");
-        assertThatJson(response).inPath("$.elements[0].options").isObject().doesNotContainKey("isWriter");
-        assertThatJson(response).inPath("$.elements[1].scope").isString().contains("specialOptions");
-        assertThatJson(response).inPath("$.elements[1].options.placeholder").isString().isEqualTo("myPlaceholder");
-        assertThatJson(response).inPath("$.elements[1].options.fileExtensions").isArray().containsExactly("txt", "csv");
-    }
-
-    static final class MyValueRef implements ParameterReference<String> {
-    }
-
-    static final class MyFileExtensionProvider implements StateProvider<String> {
-
-        @Override
-        public void init(final StateProviderInitializer initializer) {
-            initializer.computeOnValueChange(MyValueRef.class);
-        }
-
-        @Override
-        public String computeState(final NodeParametersInput context) {
-            throw new RuntimeException("Should not be called within this test");
-        }
-
-    }
-
-    @Test
-    void testLocalFileWriterWidget() {
-        class LocalFileWriterWidgetTestSettings implements NodeParameters {
-
-            @Widget(title = "", description = "")
-            @LocalFileWriterWidget
-            String m_defaultOptions;
-
-            @Widget(title = "", description = "")
-            @LocalFileWriterWidget(placeholder = "myPlaceholder", fileExtension = "pdf")
-            String m_specialOptions;
-
-            @Widget(title = "", description = "")
-            @LocalFileWriterWidget(fileExtensionProvider = MyFileExtensionProvider.class)
-            String m_providedExtension;
-
-            @Widget(title = "", description = "")
-            @ValueReference(MyValueRef.class)
-            String m_dependency;
-        }
-        var response = buildTestUiSchema(LocalFileWriterWidgetTestSettings.class);
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("defaultOptions");
-        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("localFileChooser");
-        assertThatJson(response).inPath("$.elements[0].options.placeholder").isString().isEqualTo("");
-        assertThatJson(response).inPath("$.elements[0].options").isObject().doesNotContainKey("extension");
-        assertThatJson(response).inPath("$.elements[1].scope").isString().contains("specialOptions");
-        assertThatJson(response).inPath("$.elements[1].options.placeholder").isString().isEqualTo("myPlaceholder");
-        assertThatJson(response).inPath("$.elements[1].options.fileExtension").isString().isEqualTo("pdf");
-        assertThatJson(response).inPath("$.elements[1].options").isObject().doesNotContainKey("fileExtensionProvider");
-        assertThatJson(response).inPath("$.elements[1].options.isWriter").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[2].scope").isString().contains("providedExtension");
-        assertThatJson(response).inPath("$.elements[2].options").isObject().doesNotContainKey("fileExtension");
-        assertThatJson(response).inPath("$.elements[2].providedOptions").isArray().containsExactly("fileExtension");
-        assertThatJson(response).inPath("$.elements[2].options.isWriter").isBoolean().isTrue();
-    }
-
-    @Test
-    void testFileWriterWidget() {
-        class FileWriterWidgetTestSettings implements NodeParameters {
-
-            @Widget(title = "", description = "")
-            @FileWriterWidget
-            FileSelection m_defaultOptions;
-
-            @Widget(title = "", description = "")
-            @FileWriterWidget(fileExtension = "pdf")
-            FileSelection m_staticExtension;
-
-            @Widget(title = "", description = "")
-            @FileWriterWidget(fileExtensionProvider = MyFileExtensionProvider.class)
-            FileSelection m_providedExtension;
-
-            @Widget(title = "", description = "")
-            @ValueReference(MyValueRef.class)
-            String m_dependency;
-
-        }
-        var response = buildTestUiSchema(FileWriterWidgetTestSettings.class);
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("defaultOptions");
-        assertThatJson(response).inPath("$.elements[0].options").isObject().doesNotContainKeys("fileExtension",
-            "fileExtensionProvider");
-        assertThatJson(response).inPath("$.elements[0].options.isWriter").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[1].scope").isString().contains("staticExtension");
-        assertThatJson(response).inPath("$.elements[1].options.fileExtension").isString().isEqualTo("pdf");
-        assertThatJson(response).inPath("$.elements[1].options").isObject().doesNotContainKey("fileExtensionProvider");
-        assertThatJson(response).inPath("$.elements[1].options.isWriter").isBoolean().isTrue();
-        assertThatJson(response).inPath("$.elements[2].scope").isString().contains("providedExtension");
-        assertThatJson(response).inPath("$.elements[2].options").isObject().doesNotContainKey("fileExtension");
-        assertThatJson(response).inPath("$.elements[2].providedOptions").isArray().containsExactly("fileExtension");
-        assertThatJson(response).inPath("$.elements[2].options.isWriter").isBoolean().isTrue();
-    }
-
-    @SuppressWarnings("resource")
-    NodeParametersInput setupFileSystemMocks(final String fileSystemType, final String fileSystemSpecifier) {
-        final var context = Mockito.mock(NodeParametersInput.class);
-        final var spec = Mockito.mock(FileSystemPortObjectSpec.class);
-        final var location = Mockito.mock(FSLocation.class);
-        Mockito.when(location.getFileSystemSpecifier()).thenReturn(Optional.of(fileSystemSpecifier));
-        Mockito.when(spec.getFileSystemType()).thenReturn(fileSystemType);
-        Mockito.when(spec.getFSLocationSpec()).thenReturn(location);
-        Mockito.when(spec.getFileSystemConnection()).thenReturn(Optional.of(Mockito.mock(FSConnection.class)));
-        Mockito.when(context.getInPortSpec(0)).thenReturn(Optional.of(spec));
-        Mockito.when(context.getInPortTypes()).thenReturn(new PortType[]{FileSystemPortObject.TYPE});
-
-        return context;
-    }
-
-    @Test
-    void testFileReaderWidget() {
-        class FileWriterWidgetTestSettings implements NodeParameters {
-
-            @Widget(title = "", description = "")
-            @FileReaderWidget(fileExtensions = {"txt", "csv"})
-            FileSelection m_fileReader;
-
-        }
-
-        var fileSystemType = "myFileSystemType";
-        var fileSystemSpecifier = "fileSystemSpecifier";
-        var context = setupFileSystemMocks(fileSystemType, fileSystemSpecifier);
-
-        var response = buildTestUiSchema(FileWriterWidgetTestSettings.class, context);
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("fileReader");
-        assertThatJson(response).inPath("$.elements[0].options.fileExtensions").isArray().containsExactly("txt", "csv");
-        assertThatJson(response).inPath("$.elements[0].options.portIndex").isNumber().isZero();
-        assertThatJson(response).inPath("$.elements[0].options.fileSystemType").isString().isEqualTo(fileSystemType);
-        assertThatJson(response).inPath("$.elements[0].options.fileSystemSpecifier").isString()
-            .isEqualTo(fileSystemSpecifier);
-        assertThatJson(response).inPath("$.elements[0].options").isObject()
-            .doesNotContainKey("fileSystemConnectionMissing");
-    }
-
-    @Test
-    void testCustomFileConnectionFolderReaderWidget() {
-        class DummyConnectionProvider implements StateProvider<FSConnectionProvider> {
-            @Override
-            public FSConnectionProvider computeState(final NodeParametersInput context) {
-                return null; // Not needed for UI schema test
-            }
-
-            @Override
-            public void init(final StateProviderInitializer initializer) {
-            }
-        }
-
-        class CustomFileConnectionFolderReaderWidgetTestSettings implements NodeParameters {
-            @Widget(title = "", description = "")
-            @CustomFileConnectionFolderReaderWidget(connectionProvider = DummyConnectionProvider.class)
-            String m_folderPath;
-        }
-
-        var response = buildTestUiSchema(CustomFileConnectionFolderReaderWidgetTestSettings.class);
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("folderPath");
-        assertThatJson(response).inPath("$.elements[0].options.format").isString()
-            .isEqualTo(Format.CUSTOM_FILE_SYSTEM_FILE_CHOOSER);
-        assertThatJson(response).inPath("$.elements[0].options.selectionMode").isString().isEqualTo("FOLDER");
-        assertThatJson(response).inPath("$.elements[0].providedOptions").isArray()
-            .containsExactly(UpdateResultsUtil.FILE_SYSTEM_ID);
-    }
-
-    @Test
     void testDateTimeFormatPickerWidget() {
 
         class DateTimeFormatProvider extends ComprehensiveDateTimeFormatProvider {
@@ -1468,39 +1208,6 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("textAreaIncreasedRows");
         assertThatJson(response).inPath("$.elements[1].options.rows").isNumber().isEqualTo(BigDecimal.valueOf(10));
         assertThatJson(response).inPath("$.elements[1].options.format").isString().isEqualTo(Format.TEXT_AREA);
-    }
-
-    @Test
-    void testMultiFileReader() {
-        class MultiFileChooserTestSettings implements NodeParameters {
-
-            @Widget(title = "", description = "")
-            @FileReaderWidget(fileExtensions = {"txt", "csv"})
-            MultiFileSelection<MyVerySpecialTestFilterSettings> m_myReader;
-        }
-
-        var fileSystemType = "myFileSystemType";
-        var fileSystemSpecifier = "fileSystemSpecifier";
-        var context = setupFileSystemMocks(fileSystemType, fileSystemSpecifier);
-
-        var response = buildTestUiSchema(MultiFileChooserTestSettings.class, context);
-
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("myReader");
-        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("multiFileChooser");
-        assertThatJson(response).inPath("$.elements[0].options.fileSystemType").isString().isEqualTo(fileSystemType);
-        assertThatJson(response).inPath("$.elements[0].options.fileExtensions").isArray().containsExactly("txt", "csv");
-        assertThatJson(response).inPath("$.elements[0].options.fileSystemSpecifier").isString()
-            .isEqualTo(fileSystemSpecifier);
-        assertThatJson(response).inPath("$.elements[0].options.filterSubUiSchema").isObject().containsKey("elements");
-        // custom filter class has one field
-        assertThatJson(response).inPath("$.elements[0].options.filterSubUiSchema.elements").isArray().hasSize(1);
-        assertThatJson(response).inPath("$.elements[0].options.filterSubUiSchema.elements[0]") //
-            .isObject() //
-            .containsKey("scope");
-        assertThatJson(response).inPath("$.elements[0].options.filterSubUiSchema.elements[0].scope") //
-            .isString() //
-            .contains("someVeryImportantField"); // name of the field inside the filter class we're using for this test
-
     }
 
     static final class TestStringProvider implements StateProvider<String> {
@@ -2157,23 +1864,4 @@ class UiSchemaOptionsTest {
         FlowVariableFilter m_flowVarFilter;
     }
 
-    @Test
-    void testFileSelectionWidgetInternalHideUnusableFileSystems() {
-        class FileSelectionWidgetInternalTestSettings implements NodeParameters {
-
-            @Widget(title = "", description = "")
-            @FileReaderWidget(fileExtensions = {"txt", "csv"})
-            @FileSelectionWidgetInternal(allowOnlyConnectedFS = true)
-            FileSelection m_fileReader;
-
-        }
-
-        var fileSystemType = "myFileSystemType";
-        var fileSystemSpecifier = "fileSystemSpecifier";
-        var context = setupFileSystemMocks(fileSystemType, fileSystemSpecifier);
-
-        var response = buildTestUiSchema(FileSelectionWidgetInternalTestSettings.class, context);
-        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("fileReader");
-        assertThatJson(response).inPath("$.elements[0].options.allowOnlyConnectedFS").isBoolean().isTrue();
-    }
 }

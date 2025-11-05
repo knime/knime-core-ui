@@ -2,43 +2,78 @@ import { type Ref, computed, onMounted, ref, watch } from "vue";
 
 import { useProvidedState } from "@knime/jsonforms";
 
-import { type FileChooserUiSchema } from "../../../types/FileChooserUiSchema";
+import {
+  type FileChooserOptionsBase,
+  type FileChooserUiSchema,
+  type FileSystemOption,
+  type FileSystemsOptions,
+} from "../../../types/FileChooserUiSchema";
 import { FSCategory } from "../types/FileChooserProps";
 
-export const useFileChooserFileSystemsOptions = (
-  uischema: Ref<FileChooserUiSchema>,
+export const useFileSystems = (
+  uiSchemaOptions: Ref<FileChooserOptionsBase & FileSystemsOptions>,
 ) => {
-  const isLocal = computed(() => uischema.value.options?.isLocal);
+  const fileSystems = computed<FileSystemOption[]>(
+    () =>
+      uiSchemaOptions.value.fileSystems ?? [
+        "CONNECTED",
+        "LOCAL",
+        "SPACE",
+        "EMBEDDED",
+        "CUSTOM_URL",
+      ],
+  );
   const isConnected = computed(
-    () => typeof uischema.value.options?.portIndex !== "undefined",
+    () =>
+      Boolean(uiSchemaOptions.value.connectedFSOptions) &&
+      fileSystems.value.includes("CONNECTED"),
+  );
+
+  const isLocal = computed(
+    () => uiSchemaOptions.value.isLocal && fileSystems.value.includes("LOCAL"),
   );
   const validCategories = computed<(keyof typeof FSCategory)[]>(() =>
     isConnected.value
       ? ["CONNECTED"]
       : [
           ...(isLocal.value ? ["LOCAL" as const] : []),
-          "relative-to-current-hubspace",
-          "relative-to-embedded-data",
-          "CUSTOM_URL",
+          ...(fileSystems.value.includes("SPACE")
+            ? ["relative-to-current-hubspace" as const]
+            : []),
+          ...(fileSystems.value.includes("EMBEDDED")
+            ? ["relative-to-embedded-data" as const]
+            : []),
+          ...(fileSystems.value.includes("CUSTOM_URL")
+            ? ["CUSTOM_URL" as const]
+            : []),
         ],
   );
 
-  return { isLocal, isConnected, validCategories };
+  return {
+    isLocal,
+    validCategories,
+    fileSystems,
+    isConnected,
+  };
 };
 
 export const useFileChooserBrowseOptions = (
   uischema: Ref<FileChooserUiSchema>,
 ) => {
   const options = computed(() => uischema.value.options ?? {});
-  const { isLocal, isConnected } = useFileChooserFileSystemsOptions(uischema);
+  const { isLocal, isConnected, fileSystems } = useFileSystems(options);
   const filteredExtensions = ref<string[]>([]);
   const appendedExtension = ref<string | null>(null);
   const isWriter = computed(() => options.value.isWriter);
-  const mountId = computed(() => options.value.mountId ?? "Current space");
-  const spacePath = computed(() => options.value.spacePath);
-  const portIndex = computed(() => options.value.portIndex);
+  const mountId = computed(
+    () => options.value.spaceFSOptions?.mountId ?? "Current space",
+  );
+  const spacePath = computed(() => options.value.spaceFSOptions?.spacePath);
+  const portIndex = computed(() => options.value.connectedFSOptions?.portIndex);
   const portFileSystemName = computed(
-    () => options.value.fileSystemType ?? "Connected File System",
+    () =>
+      options.value.connectedFSOptions?.fileSystemType ??
+      "Connected File System",
   );
   const isLoaded = ref(false);
 
@@ -76,10 +111,6 @@ export const useFileChooserBrowseOptions = (
     }
   });
 
-  const allowOnlyConnectedFS = computed(
-    () => options.value.allowOnlyConnectedFS,
-  );
-
   return {
     filteredExtensions,
     appendedExtension,
@@ -91,6 +122,6 @@ export const useFileChooserBrowseOptions = (
     isConnected,
     portIndex,
     portFileSystemName,
-    allowOnlyConnectedFS,
+    fileSystems,
   };
 };

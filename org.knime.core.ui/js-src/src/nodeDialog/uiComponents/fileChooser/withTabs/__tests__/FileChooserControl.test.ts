@@ -23,13 +23,20 @@ import FolderLenseIcon from "@knime/styles/img/icons/folder-lense.svg";
 import { createPersistSchema } from "@@/test-setup/utils/createPersistSchema";
 import type { FlowSettings } from "@/nodeDialog/api/types";
 import { injectionKey as flowVariablesMapInjectionKey } from "@/nodeDialog/composables/components/useProvidedFlowVariablesMap";
+import type { FileChooserOptions } from "@/nodeDialog/types/FileChooserUiSchema";
 import SettingsSubPanelForFileChooser from "../../settingsSubPanel/SettingsSubPanelForFileChooser.vue";
 import FSLocationTextControl from "../FSLocationTextControl.vue";
 import FileChooserControl from "../FileChooserControl.vue";
 import SideDrawerContent from "../SideDrawerContent.vue";
 
 describe("FileChooserControl.vue", () => {
-  let props: VueControlTestProps<typeof FileChooserControl>,
+  let props: VueControlTestProps<typeof FileChooserControl> & {
+      control: {
+        uischema: {
+          options: FileChooserOptions;
+        };
+      };
+    },
     wrapper: VueWrapper<any, any>,
     handleChange: Mock;
 
@@ -255,9 +262,13 @@ describe("FileChooserControl.vue", () => {
       );
     });
 
-    it("switches to CONNECTED if any other fsCategory is given and ", () => {
+    it("switches to CONNECTED if any other fsCategory is given and isLocal is false", () => {
       props.control.data.path.fsCategory = "relative-to-current-hubspace";
-      props.control.uischema.options!.portIndex = 1;
+      props.control.uischema.options!.connectedFSOptions = {
+        portIndex: 1,
+        fileSystemSpecifier: "mySpecifier",
+        fileSystemType: "Connected File System",
+      };
       const { handleChange } = mountFileChooserControl({
         props,
         stubs: {
@@ -275,7 +286,11 @@ describe("FileChooserControl.vue", () => {
 
     it("does not switch to a valid category when overwritten by a flow variable.", () => {
       props.control.data.path.fsCategory = "CONNECTED";
-      props.control.uischema.options!.portIndex = 1;
+      props.control.uischema.options!.connectedFSOptions = {
+        portIndex: 1,
+        fileSystemSpecifier: "mySpecifier",
+        fileSystemType: "Connected File System",
+      };
       const { changeValue } = mountFileChooserControl({
         props,
         stubs: {

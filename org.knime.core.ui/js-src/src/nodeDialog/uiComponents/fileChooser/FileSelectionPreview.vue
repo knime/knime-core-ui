@@ -5,10 +5,13 @@ import { FunctionButton, LoadingIcon } from "@knime/components";
 import ErrorIcon from "@knime/styles/img/icons/circle-close.svg";
 import FileIcon from "@knime/styles/img/icons/file.svg";
 
+import type { MultiFileFilterMode } from "@/nodeDialog/types/FileChooserUiSchema";
+
 import type { PreviewResult } from "./composables/useFileFilterPreviewBackend";
 
 type PropType = {
   previewData: PreviewResult;
+  filterMode: MultiFileFilterMode;
   expandByDefault?: boolean;
   isLoading?: boolean;
 };
@@ -24,9 +27,20 @@ const allItems = computed<string[]>(() =>
     : [],
 );
 
+const itemDescription = computed<string>(() => {
+  switch (props.filterMode) {
+    case "FILES_AND_FOLDERS":
+      return "files/folders";
+    case "FOLDERS":
+      return "folders";
+    default:
+      return "files";
+  }
+});
+
 const headerText = computed(() => {
   if (props.previewData.resultType === "ERROR") {
-    return "Error loading files";
+    return `Error loading ${itemDescription.value}`;
   }
 
   const numerator = allItems.value.length;
@@ -39,7 +53,7 @@ const headerText = computed(() => {
     props.previewData.numFilesBeforeFilteringIsOnlyLowerBound ? "+" : ""
   }`;
 
-  return `${numeratorText} of ${denominatorText} files`;
+  return `${numeratorText} of ${denominatorText} ${itemDescription.value}`;
 });
 
 const showAll = ref(props.expandByDefault);

@@ -410,9 +410,11 @@
       "type" : "Control",
       "scope" : "#/properties/model/properties/fileSelection",
       "options" : {
-        "format" : "fileChooser",
         "isLocal" : true,
-        "mountId" : "Local space"
+        "spaceFSOptions" : {
+          "mountId" : "Local space"
+        },
+        "format" : "fileChooser"
       }
     }, {
       "type" : "Control",

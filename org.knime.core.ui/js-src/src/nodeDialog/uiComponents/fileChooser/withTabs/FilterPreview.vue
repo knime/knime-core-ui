@@ -5,7 +5,10 @@ import { FunctionButton } from "@knime/components";
 import { SettingsSubPanel, type VueControlProps } from "@knime/jsonforms";
 import NextArrowIcon from "@knime/styles/img/icons/arrow-next.svg";
 
-import type { FileChooserUiSchema } from "@/nodeDialog/types/FileChooserUiSchema";
+import type {
+  FileChooserUiSchema,
+  MultiFileChooserOptions,
+} from "@/nodeDialog/types/FileChooserUiSchema";
 import FileSelectionPreview from "../FileSelectionPreview.vue";
 import FilterSettings from "../FilterSettings.vue";
 import { getBackendType } from "../composables/useFileChooserBackend";
@@ -42,11 +45,13 @@ const backendConnection = useFileFilterPreviewBackend({
   backendType,
   includeSubFolders,
   filterOptions,
-  additionalFilterOptionsClassIdentifier:
-    props.control.uischema.options?.additionalFilterOptionsClassIdentifier,
+  additionalFilterOptionsClassIdentifier: (
+    props.control.uischema.options as MultiFileChooserOptions
+  )?.filters.classId,
 });
 
 const selectedPath = computed(() => props.control.data.path.path);
+const filterMode = computed(() => props.control.data.filterMode);
 
 const mostRecentPreviewQueryId = ref(0);
 const refreshPreview = async () => {
@@ -57,6 +62,7 @@ const refreshPreview = async () => {
 
   const previewResult = await backendConnection.listItemsForPreview(
     selectedPath.value,
+    filterMode.value,
   );
 
   if (currentQueryId === mostRecentPreviewQueryId.value) {
@@ -66,7 +72,7 @@ const refreshPreview = async () => {
 };
 
 watch(
-  [includeSubFolders, filterOptions, selectedPath],
+  [includeSubFolders, filterOptions, selectedPath, filterMode],
   () => refreshPreview(),
   {
     deep: true,
@@ -78,7 +84,11 @@ const filterSettingsRef = ref<typeof FilterSettings | null>(null);
 </script>
 
 <template>
-  <FileSelectionPreview :preview-data :is-loading="previewDataIsLoading">
+  <FileSelectionPreview
+    :preview-data
+    :is-loading="previewDataIsLoading"
+    :filter-mode
+  >
     <template #header-buttons-right>
       <FunctionButton class="filter-button" @click="filterPanelRef?.expand()">
         Edit filters
@@ -94,6 +104,7 @@ const filterSettingsRef = ref<typeof FilterSettings | null>(null);
     <div class="filter-settings-drawer-content">
       <FileSelectionPreview
         :preview-data
+        :filter-mode
         :is-loading="previewDataIsLoading"
         expand-by-default
       >

@@ -53,7 +53,12 @@ export type BackendType =
 
 export type MultiFileSelection = {
   path: FileChooserValue;
-  fileOrFolder: "FILE" | "FOLDER";
+  filterMode:
+    | "FILE"
+    | "FOLDER"
+    | "FOLDERS"
+    | "FILES_IN_FOLDERS"
+    | "FILES_AND_FOLDERS";
   includeSubfolders: boolean;
   filters: Record<string, any>;
 };

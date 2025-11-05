@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -71,9 +72,10 @@ public interface FileChooserFilters extends NodeParameters {
      *
      * @param root the folder being searched
      * @param path the file or folder to check
+     * @param attrs the file attributes of the file or folder to check
      * @return true if the file or folder passes the filter, false otherwise
      */
-    boolean passesFilter(final Path root, final Path path);
+    boolean passesFilter(final Path root, final Path path, BasicFileAttributes attrs);
 
     /**
      * Whether to follow symlinks or not. If true, then the file visitor will follow symlinks and include files that are
@@ -90,14 +92,16 @@ public interface FileChooserFilters extends NodeParameters {
      *
      * @param filters the filters to use
      * @param root the folder to search within
+     * @param filterMode the mode to use when filtering files
      * @param includeSubFolders whether to include files in subfolders, i.e. whether to search recursively
      * @param limit the maximum number of files to return.
      * @return a {@link FilterResult} containing the files that pass the filter and the total number of files before
      *         filtering
      * @throws IOException if the file visitor throws an IOException
+     * @throws IllegalArgumentException if the provided filter mode is not a multi-file selection mode
      */
     static FilterResult getPassingFilesInFolder(final FileChooserFilters filters, final Path root,
-        final boolean includeSubFolders, final int limit) throws IOException {
+        final MultiFileSelectionMode filterMode, final boolean includeSubFolders, final int limit) throws IOException {
 
         if (!Files.isDirectory(root)) {
             throw new IllegalArgumentException("Root path must be a folder");
@@ -107,7 +111,8 @@ public interface FileChooserFilters extends NodeParameters {
             options.add(FileVisitOption.FOLLOW_LINKS);
         }
 
-        var walker = new FileChooserFilterFileVisitor(path -> filters.passesFilter(root, path), limit);
+        var walker = new FileChooserFilterFileVisitor(filterMode,
+            (path, attrs) -> filters.passesFilter(root, path, attrs), limit, includeSubFolders);
         Files.walkFileTree(root, options, includeSubFolders ? Integer.MAX_VALUE : 1, walker);
         return walker.getFilterResult();
     }

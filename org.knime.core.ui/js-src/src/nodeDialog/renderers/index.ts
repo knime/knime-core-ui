@@ -29,7 +29,6 @@ import { buttonRenderer } from "./buttonRenderer";
 import { configurationNodeNotSupportedRenderer } from "./configurationNodeNotSupportedRenderer";
 import { controlWithSubParametersRenderer } from "./controlWithSubParametersRenderer";
 import { credentialsRenderer } from "./credentialsRenderer";
-import { customFileSystemFileChooserRenderer } from "./customFileSystemFileChooserRenderer";
 import { dbTableChooserRenderer } from "./dbTableChooserRenderer";
 import { dynamicInputRenderer } from "./dynamicInputRenderer";
 import { dynamicValueRenderer } from "./dynamicValueRenderer";
@@ -41,14 +40,13 @@ import {
 } from "./fileChooserRenderer";
 import { labeledGroupRenderer } from "./labeledGroupRenderer";
 import { legacyCredentialsRenderer } from "./legacyCredentialsRenderer";
-import { localFileChooserRenderer } from "./localFileChooserRenderer";
 import { multiFileChooserRenderer } from "./multiFileChooserRenderer";
+import { stringFileChooserRenderer } from "./stringFileChooserRenderer";
 import { vennDiagramLayoutRenderer } from "./vennDiagramRenderer";
 
 const coreUIControls: Record<string, VueControlRenderer> = {
   buttonRenderer, // since it will be removed soon and is based on the old update mechanism
-  localFileChooserRenderer, // since it would require api calls
-  customFileSystemFileChooserRenderer, // since it would require api calls
+  stringFileChooserRenderer, // since it would require api calls
   fileChooserRenderer,
   multiFileChooserRenderer,
   dbTableChooserRenderer,

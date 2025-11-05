@@ -8,12 +8,13 @@ import {
   mountJsonFormsControlLabelContent,
 } from "@knime/jsonforms/testing";
 
+import type { StringFileChooserOptions } from "@/nodeDialog/types/FileChooserUiSchema";
 import DialogFileExplorer from "../../DialogFileExplorer.vue";
 import FileBrowserButton from "../../FileBrowserButton.vue";
-import LocalFileChooserControl from "../LocalFileChooserControl.vue";
+import StringFileChooserControl from "../StringFileChooserControl.vue";
 
-describe("LocalFileChooserControl.vue", () => {
-  let props: VueControlTestProps<typeof LocalFileChooserControl>,
+describe("StringFileChooserControl.vue", () => {
+  let props: VueControlTestProps<typeof StringFileChooserControl>,
     wrapper: VueWrapper;
 
   const providedForSubPanel = {
@@ -41,9 +42,8 @@ describe("LocalFileChooserControl.vue", () => {
           type: "Control",
           scope: "#/properties/view/properties/localFile",
           options: {
-            format: "localFileChooser",
-            isWriter: false,
-          },
+            fileSystem: "LOCAL",
+          } satisfies StringFileChooserOptions,
         },
       },
       labelForId,
@@ -52,7 +52,7 @@ describe("LocalFileChooserControl.vue", () => {
     };
 
     const component = await mountJsonFormsControlLabelContent(
-      LocalFileChooserControl,
+      StringFileChooserControl,
       {
         props,
         // @ts-expect-error
@@ -79,7 +79,7 @@ describe("LocalFileChooserControl.vue", () => {
 
   it("calls changeValue when text input is changed", () => {
     const { wrapper, changeValue } = mountJsonFormsControlLabelContent(
-      LocalFileChooserControl,
+      StringFileChooserControl,
       {
         props,
         // @ts-expect-error
@@ -112,7 +112,7 @@ describe("LocalFileChooserControl.vue", () => {
     props.control.uischema.options!.isWriter = true;
 
     const { wrapper } = mountJsonFormsControlLabelContent(
-      LocalFileChooserControl,
+      StringFileChooserControl,
       {
         props,
         // @ts-expect-error

@@ -1,5 +1,6 @@
 import type { Ref } from "vue";
 
+import type { MultiFileFilterMode } from "@/nodeDialog/types/FileChooserUiSchema";
 import inject from "../../../utils/inject";
 import type { BackendType } from "../types";
 
@@ -43,6 +44,10 @@ export type FileFilterPreviewListItemsForPreview = (params: {
      */
     path: string | null,
     /**
+     * The filter mode under which to list the items
+     */
+    filterMode: MultiFileFilterMode,
+    /**
      * Whether to include items in subfolders recursively in the preview
      */
     includeSubFolders: boolean,
@@ -66,11 +71,15 @@ export default ({
 }) => {
   const getData = inject("getData") as FileFilterPreviewListItemsForPreview;
 
-  const listItemsForPreview = (path: string | null) => {
+  const listItemsForPreview = (
+    path: string | null,
+    filterMode: MultiFileFilterMode,
+  ) => {
     const options: FileFilterPreviewListItemsForPreview["arguments"]["params"]["options"] =
       [
         backendType.value,
         path,
+        filterMode,
         includeSubFolders.value,
         {
           additionalFilterOptions: filterOptions.value,

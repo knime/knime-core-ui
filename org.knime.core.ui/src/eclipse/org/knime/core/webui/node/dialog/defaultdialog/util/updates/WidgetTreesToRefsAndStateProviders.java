@@ -65,9 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicPa
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersDeserializer;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersSerializer;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.CustomFileConnectionFolderReaderWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithCustomFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
@@ -273,18 +271,6 @@ final class WidgetTreesToRefsAndStateProviders {
 
     private static List<UiStateProviderAnnotationSpec<? extends Annotation, ? extends StateProvider>> uiStateProviderAnnotationSpecs =
         List.of( //
-            new UiStateProviderAnnotationSpec<>(//
-                UiSchema.TAG_FILE_EXTENSION, //
-                FileWriterWidget.class, //
-                FileWriterWidget::fileExtensionProvider, //
-                NoopStringProvider.class //
-            ), //
-            new UiStateProviderAnnotationSpec<>( //
-                UiSchema.TAG_FILE_EXTENSION, //
-                LocalFileWriterWidget.class, //
-                LocalFileWriterWidget::fileExtensionProvider, //
-                NoopStringProvider.class //
-            ), //
             new UiStateProviderAnnotationSpec<>( //
                 CredentialsRendererSpec.HAS_PASSWORD, //
                 CredentialsWidgetInternal.class, //
@@ -407,8 +393,8 @@ final class WidgetTreesToRefsAndStateProviders {
             ), //
             new UiStateProviderAnnotationSpec<>( //
                 UpdateResultsUtil.FILE_SYSTEM_ID, //
-                CustomFileConnectionFolderReaderWidget.class, //
-                CustomFileConnectionFolderReaderWidget::connectionProvider, //
+                WithCustomFileSystem.class, //
+                WithCustomFileSystem::connectionProvider, //
                 null //
             ), //
             new UiStateProviderAnnotationSpec<>( //

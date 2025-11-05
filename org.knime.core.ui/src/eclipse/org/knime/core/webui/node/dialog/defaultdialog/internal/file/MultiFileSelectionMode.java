@@ -42,55 +42,71 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Feb 13, 2024 (Paul Bärnreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
-import org.knime.node.parameters.updates.StateProvider;
-
 /**
- * Put this annotation on a String setting in order to enable a file chooser with writer capabilities next to the string
- * input field.
+ * Enumeration of selection modes for multi-file selection widgets.
  *
- * @author Paul Bärnreuther
+ * @author Paul Baernreuther
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface LocalFileWriterWidget {
+public enum MultiFileSelectionMode {
+        /** Select a single file */
+        FILE,
+        /** Select a single folder */
+        FOLDER,
+        /** Select a folder and apply filters to files within it */
+        FILES_IN_FOLDERS(true, false),
+        /** Select a folder and apply filters to subfolders within it */
+        FOLDERS(false, true),
+        /** Select a folder and apply filters to both files and subfolders within it */
+        FILES_AND_FOLDERS(true, true),
+        /** Select a single workflow */
+        WORKFLOW;
+
+    private final boolean m_includeFiles;
+
+    private final boolean m_includeFolders;
+
+    private final boolean m_isSingleSelection;
+
+    MultiFileSelectionMode(final boolean includeFiles, final boolean includeFolders) {
+        m_includeFiles = includeFiles;
+        m_includeFolders = includeFolders;
+        m_isSingleSelection = false;
+    }
+
+    MultiFileSelectionMode() {
+        m_includeFiles = false;
+        m_includeFolders = false;
+        m_isSingleSelection = true;
+    }
 
     /**
-     * @return the placeholder of the string input field
+     * Whether the selected files can include non-folder files.
+     *
+     * @return whether files are included
      */
-    String placeholder() default "";
+    public boolean includesFiles() {
+        return m_includeFiles;
+    }
 
     /**
-     * A single valid file extension. When selecting a file path from the file explorer this has two effects:
-     * <ol>
-     * <li>Only files with this extension are shown in the explorer</li>
-     * <li>Whenever a file is chosen, i.e. when the explorer is closed, the extension is appended if the file does not
-     * already exist and does not already end with the extension.
-     * </ol>
+     * Whether the selected files can include folders.
      *
-     *
-     * @return a file extension (e.g. "pdf" for files which should end with ".pdf")
+     * @return whether folders are included
      */
-    String fileExtension() default "";
+    public boolean includesFolders() {
+        return m_includeFolders;
+    }
 
     /**
-     * This can be used instead of {@link #fileExtension} in order to supply the file extension in a dynamic way, e.g.
-     * depending on other settings. See {@link StateProvider} for more information.
-     *
-     * @return a file extension provider
+     * Asserts that this selection mode supports multi-selection.
      */
-    Class<? extends StateProvider<String>> fileExtensionProvider() default NoopStringProvider.class;
+    public void assertMultiSelection() {
+        if (m_isSingleSelection) {
+            throw new IllegalStateException("The selection mode " + this + " does not support multi-selection.");
+        }
+    }
 
 }

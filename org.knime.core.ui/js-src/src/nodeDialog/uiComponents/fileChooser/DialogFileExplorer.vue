@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, toRef, toRefs, watch } from "vue";
+import { computed, ref, toRef, toRefs, useTemplateRef, watch } from "vue";
 
 import {
   Breadcrumb,
@@ -143,10 +143,6 @@ const { listItems, getFilePath } = useFileChooserBackend({
   backendType,
 });
 
-const selectedFileName = computed(() =>
-  selectedItem.value?.selectionType === "FILE" ? selectedItem.value?.name : "",
-);
-
 const loadNewFolder = (
   path: string | null,
   folderName: string | null = null,
@@ -195,30 +191,41 @@ const onChangeSelectedItemIds = (itemIds: string[]) => {
 };
 
 // this is fine since we only render the field when isWriter and selectionMode is FILE
-const inputFieldFileName = computed({
-  get: () => selectedFileName.value,
+const inputFieldModelValue = computed({
+  get: () =>
+    selectedItem.value?.selectionType === props.selectionMode
+      ? selectedItem.value?.name
+      : "",
   set: (value) => {
     selectedItem.value = {
       name: value,
-      selectionType: "FILE",
+      selectionType: props.selectionMode,
     };
   },
 });
 
-const { clickOutsideExceptions } = useDialogFileExplorerButtons({
-  actions: {
-    chooseSelectedItem: () => onChooseItem(selectedItem.value?.name ?? ""),
-    goIntoSelectedFolder: () => {
-      if (selectedItem.value?.selectionType === "FOLDER") {
-        changeDirectory(selectedItem.value.name);
-      }
-      return Promise.resolve();
+const inputField = useTemplateRef<HTMLElement>("input-field");
+
+const { clickOutsideExceptions: clickOutsideExceptionsButtons } =
+  useDialogFileExplorerButtons({
+    actions: {
+      chooseSelectedItem: () => onChooseItem(selectedItem.value?.name ?? ""),
+      goIntoSelectedFolder: () => {
+        if (selectedItem.value?.selectionType === "FOLDER") {
+          changeDirectory(selectedItem.value.name);
+        }
+        return Promise.resolve();
+      },
     },
-  },
-  selectionMode: toRef(props, "selectionMode"),
-  selectedItem,
-  isRootParent: computed(() => currentPath.value === null),
-});
+    selectionMode: toRef(props, "selectionMode"),
+    selectedItem,
+    isRootParent: computed(() => currentPath.value === null),
+  });
+
+const clickOutsideExceptions = computed(() => [
+  ...clickOutsideExceptionsButtons.value,
+  inputField,
+]);
 const openFile = (item: FileExplorerItem) => {
   onChangeSelectedItemIds([item.id]);
   emit("applyAndClose");
@@ -248,12 +255,9 @@ watch(
         >({{ displayedError }})</span
       >
     </div>
-    <div
-      v-if="isWriter && props.selectionMode === 'FILE'"
-      class="name-input-wrapper"
-    >
+    <div v-if="isWriter" class="name-input-wrapper">
       <span>Name:</span>
-      <InputField v-model="inputFieldFileName" />
+      <InputField ref="input-field" v-model="inputFieldModelValue" />
     </div>
     <FileExplorer
       class="explorer"

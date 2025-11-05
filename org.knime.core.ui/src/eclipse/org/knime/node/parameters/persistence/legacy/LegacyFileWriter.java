@@ -53,7 +53,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelectionWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.SingleFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetModifier;
@@ -134,8 +134,8 @@ public class LegacyFileWriter implements NodeParameters {
     public interface LegacyFileWriterModifier extends Modification.Modifier {
 
         /**
-         * Use the resulting widget modifier to set title and ui of the file selection. E.g. make it a
-         * {@link FolderSelectionWidget} if folders should be selected.
+         * Use the resulting widget modifier to set title and ui of the file selection. E.g. make it use
+         * {@link SingleFileSelectionMode#FOLDER} if folders should be selected instead of files.
          *
          * @param group the widget group modifier
          * @return the file selection widget modifier

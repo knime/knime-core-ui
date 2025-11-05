@@ -57,6 +57,7 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -64,14 +65,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.knime.node.parameters.NodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewUtils.AdditionalFilterConfiguration;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewUtils.PreviewResult;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.mockito.MockedConstruction;
@@ -148,7 +150,7 @@ final class FileFilterPreviewDataServiceTest {
         var result = m_service.listItemsForPreview( //
             "local", //
             getStringResolvingTo(m_tempDir), //
-            false, //
+            MultiFileSelectionMode.FILES_IN_FOLDERS, false, //
             constructFilterParameter(new FileFilters(true)) //
         );
 
@@ -163,7 +165,7 @@ final class FileFilterPreviewDataServiceTest {
         var result = m_service.listItemsForPreview( //
             "local", //
             getStringResolvingTo(m_tempDir), //
-            true, //
+            MultiFileSelectionMode.FILES_IN_FOLDERS, true, //
             constructFilterParameter(new FileFilters(true)) //
         );
 
@@ -174,11 +176,76 @@ final class FileFilterPreviewDataServiceTest {
     }
 
     @Test
+    void testNonRecursiveFolders() throws IOException {
+        var result = m_service.listItemsForPreview( //
+            "local", //
+            getStringResolvingTo(m_tempDir), //
+            MultiFileSelectionMode.FOLDERS, false, //
+            constructFilterParameter(new FileFilters(true)) //
+        );
+
+        assertThat(result).isInstanceOf(PreviewResult.Success.class);
+        var successResult = (PreviewResult.Success)result;
+
+        assertThat(successResult.m_itemsAfterFiltering).hasSize(1);
+        assertThat(successResult.m_itemsAfterFiltering.get(0)).isEqualTo("subdir");
+    }
+
+    @Test
+    void testRecursiveFolders() throws IOException {
+        var result = m_service.listItemsForPreview( //
+            "local", //
+            getStringResolvingTo(m_tempDir), //
+            MultiFileSelectionMode.FOLDERS, true, //
+            constructFilterParameter(new FileFilters(true)) //
+        );
+
+        assertThat(result).isInstanceOf(PreviewResult.Success.class);
+        var successResult = (PreviewResult.Success)result;
+
+        assertThat(successResult.m_itemsAfterFiltering).hasSize(1);
+        assertThat(successResult.m_itemsAfterFiltering.get(0)).isEqualTo("subdir");
+    }
+
+    @Test
+    void testNonRecursiveFilesAndFolders() throws IOException {
+        var result = m_service.listItemsForPreview( //
+            "local", //
+            getStringResolvingTo(m_tempDir), //
+            MultiFileSelectionMode.FILES_AND_FOLDERS, false, //
+            constructFilterParameter(new FileFilters(true)) //
+        );
+
+        assertThat(result).isInstanceOf(PreviewResult.Success.class);
+        var successResult = (PreviewResult.Success)result;
+
+        assertThat(successResult.m_itemsAfterFiltering).hasSize(3);
+        assertThat(successResult.m_itemsAfterFiltering).containsExactlyInAnyOrder("file1.txt", "file2.txt", "subdir");
+    }
+
+    @Test
+    void testRecursiveFilesAndFolders() throws IOException {
+        var result = m_service.listItemsForPreview( //
+            "local", //
+            getStringResolvingTo(m_tempDir), //
+            MultiFileSelectionMode.FILES_AND_FOLDERS, true, //
+            constructFilterParameter(new FileFilters(true)) //
+        );
+
+        assertThat(result).isInstanceOf(PreviewResult.Success.class);
+        var successResult = (PreviewResult.Success)result;
+
+        assertThat(successResult.m_itemsAfterFiltering.size()).isEqualTo(5);
+        assertThat(successResult.m_itemsAfterFiltering).containsExactly( //
+            "file1.txt", "file2.txt", "subdir", "subdir/file3.csv", "subdir/file4.txt");
+    }
+
+    @Test
     void testPathsAreRelativeToProvidedFolder() throws IOException {
         var result = m_service.listItemsForPreview( //
             "local", //
             getStringResolvingTo(m_tempDir), //
-            true, //
+            MultiFileSelectionMode.FILES_IN_FOLDERS, true, //
             constructFilterParameter(new FileFilters(true)) //
         );
 
@@ -199,7 +266,7 @@ final class FileFilterPreviewDataServiceTest {
         result = m_service.listItemsForPreview( //
             "local", //
             getStringResolvingTo(m_subDir), //
-            true, //
+            MultiFileSelectionMode.FILES_IN_FOLDERS, true, //
             constructFilterParameter(new FileFilters(true)) //
         );
 
@@ -216,7 +283,7 @@ final class FileFilterPreviewDataServiceTest {
         var result = m_service.listItemsForPreview( //
             "local", //
             getStringResolvingTo(m_tempDir), //
-            true, //
+            MultiFileSelectionMode.FILES_IN_FOLDERS, true, //
             constructFilterParameter(new FileFilters(false)) //
         );
 
@@ -231,7 +298,7 @@ final class FileFilterPreviewDataServiceTest {
         var result = m_service.listItemsForPreview( //
             "local", //
             getStringResolvingTo(m_file1), //
-            true, //
+            MultiFileSelectionMode.FILES_IN_FOLDERS, true, //
             constructFilterParameter(new FileFilters(true)) //
         );
         assertThat(result).isInstanceOf(PreviewResult.Error.class);
@@ -245,7 +312,7 @@ final class FileFilterPreviewDataServiceTest {
         var result = m_service.listItemsForPreview( //
             "local", //
             getStringResolvingTo(m_tempDir.resolve("nonexistent")), //
-            true, //
+            MultiFileSelectionMode.FILES_IN_FOLDERS, true, //
             constructFilterParameter(new FileFilters(true)) //
         );
 
@@ -259,8 +326,8 @@ final class FileFilterPreviewDataServiceTest {
         final var wrongFileFilterParams = new AdditionalFilterConfiguration(
             JsonFormsDataUtil.getMapper().valueToTree(new FileFilters(true)), EmptySettings.class.getName());
         final var somePath = getStringResolvingTo(m_tempDir);
-        assertThrows(IllegalStateException.class,
-            () -> m_service.listItemsForPreview("local", somePath, false, wrongFileFilterParams));
+        assertThrows(IllegalStateException.class, () -> m_service.listItemsForPreview("local", somePath,
+            MultiFileSelectionMode.FILES_IN_FOLDERS, false, wrongFileFilterParams));
     }
 
     static final class EmptySettings implements NodeParameters {
@@ -287,7 +354,8 @@ final class FileFilterPreviewDataServiceTest {
         }
 
         @Override
-        public boolean passesFilter(final Path root, final Path path) throws IllegalStateException {
+        public boolean passesFilter(final Path root, final Path path, final BasicFileAttributes attrs)
+            throws IllegalStateException {
             return m_allowAll;
         }
 

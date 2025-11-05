@@ -3,6 +3,7 @@ import { computed } from "vue";
 
 import { type VueControlProps } from "@knime/jsonforms";
 
+import type { MultiFileChooserOptions } from "@/nodeDialog/types/FileChooserUiSchema";
 import { composePaths } from "@/nodeDialog/utils/paths";
 import FieldRenderer from "../FieldRenderer.vue";
 
@@ -16,7 +17,9 @@ const props = defineProps<{
 const FILTERS_PATH = "filters";
 const path = computed(() => composePaths(props.control.path, FILTERS_PATH));
 const uischema = computed(
-  () => props.control.uischema.options?.filterSubUiSchema,
+  () =>
+    (props.control.uischema.options as MultiFileChooserOptions)?.filters
+      .uiSchema,
 );
 
 defineExpose({

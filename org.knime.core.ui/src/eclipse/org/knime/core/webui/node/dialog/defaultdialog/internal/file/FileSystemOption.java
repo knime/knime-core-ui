@@ -42,33 +42,24 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Oct 28, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.internal.widget;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
 /**
- * Attach to a {@link FileSelection} to customize its behavior for internal usage.
+ * Enumeration of available file system options for file selection widgets.
+ * Used to configure which file system tabs are displayed in the file chooser dialog.
  *
- * @author Paul Bärnreuther
+ * @author Paul Baernreuther
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface FileSelectionWidgetInternal {
-
-    /**
-     * Use this in case a path is to be selectable only from the input port file system.
-     *
-     * @return true if only file systems available from input port shall be shown
-     */
-    boolean allowOnlyConnectedFS();
-
+public enum FileSystemOption {
+    /** Local file system */
+    LOCAL,
+    /** KNIME Hub Space */
+    SPACE,
+    /** Embedded workflow data */
+    EMBEDDED,
+    /** Custom URL connection */
+    CUSTOM_URL,
+    /** Connected file system from input port */
+    CONNECTED
 }

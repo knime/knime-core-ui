@@ -42,25 +42,31 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   May 26, 2025 (david): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Widget to select a single folder. Should annotate a field of type {@link FileSelection}.
- *
- * @author David Hickey, TNG Technology Consulting GmbH
- */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface FolderSelectionWidget {
+import org.knime.node.parameters.updates.StateProvider;
 
+/**
+ * Annotation to configure a custom file system connection via a StateProvider. Can be applied to {@link String} fields
+ * only. Cannot be used together with {@link WithFileSystem}.
+ *
+ * @author Paul Baernreuther
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface WithCustomFileSystem {
+
+    /**
+     * A StateProvider that dynamically provides the file system connection. The connection can depend on node input and
+     * other settings values.
+     *
+     * @return a connection provider
+     */
+    Class<? extends StateProvider<FSConnectionProvider>> connectionProvider();
 }

@@ -60,6 +60,9 @@ import org.knime.node.parameters.widget.choices.Label;
 /**
  * A setting that represents a selection of a single or many files. This setting is used for multi file selection.
  *
+ * It has to be used together with a {@link MultiFileSelectionWidget} in the dialog, which determines the possible
+ * filter modes. Make sure to initialize the setting with a valid filter mode and filters.
+ *
  * Note that although this class implements {@link WidgetGroup} it has a custom renderer and thus is not just the sum of
  * its widgets in the dialog. It additionally shows a preview of the selected files with the applied filters.
  *
@@ -71,10 +74,12 @@ public final class MultiFileSelection<F extends FileChooserFilters> implements P
     /**
      * Constructor. An initial non-null filter must be provided.
      *
+     * @param filterMode the initial filter mode. It must be listed in the associated MultiFileSelectionWidget.value()
      * @param filters the filters to use initially, not null.
      * @param path the path to the file or folder to select, not null.
      */
-    public MultiFileSelection(final F filters, final FSLocation path) {
+    public MultiFileSelection(final MultiFileSelectionMode filterMode, final F filters, final FSLocation path) {
+        m_filterMode = filterMode;
         m_filters = Objects.requireNonNull(filters, "Filters must not be null");
         m_path = Objects.requireNonNull(path, "Path must not be null");
     }
@@ -82,10 +87,11 @@ public final class MultiFileSelection<F extends FileChooserFilters> implements P
     /**
      * Constructor. An initial non-null filter must be provided. The initial selected path is set to the default path.
      *
+     * @param filterMode the initial filter mode. It must be listed in the associated MultiFileSelectionWidget.value()
      * @param filters the filters to use initially, not null.
      */
-    public MultiFileSelection(final F filters) {
-        this(filters, new FSLocation(FSCategory.LOCAL, ""));
+    public MultiFileSelection(final MultiFileSelectionMode filterMode, final F filters) {
+        this(filterMode, filters, new FSLocation(FSCategory.LOCAL, ""));
     }
 
     /**
@@ -98,7 +104,7 @@ public final class MultiFileSelection<F extends FileChooserFilters> implements P
      * The selection mode (FILE or FOLDER).
      */
     @Widget(title = "Type", description = "The selection mode.")
-    public FileOrFolder m_fileOrFolder = FileOrFolder.FILE; // NOSONAR
+    public MultiFileSelectionMode m_filterMode = MultiFileSelectionMode.FILE; // NOSONAR
 
     /**
      * The root location of the file selection (if the selection mode is FOLDER), or the file itself (if the selection

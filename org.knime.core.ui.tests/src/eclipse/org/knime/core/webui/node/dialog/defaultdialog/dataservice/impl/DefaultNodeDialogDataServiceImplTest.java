@@ -81,7 +81,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActi
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonChange;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil.UpdateResult;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.PasswordHolder;
@@ -208,7 +207,7 @@ class DefaultNodeDialogDataServiceImplTest {
                 @ValueReference(MyValueRef.class)
                 String m_dependency;
 
-                static final class MyFileExtensionProvider implements StateProvider<String> {
+                static final class MyPlaceholderProvider implements StateProvider<String> {
 
                     private Supplier<String> m_valueSupplier;
 
@@ -225,7 +224,7 @@ class DefaultNodeDialogDataServiceImplTest {
 
                 }
 
-                @LocalFileWriterWidget(fileExtensionProvider = MyFileExtensionProvider.class)
+                @TextInputWidget(placeholderProvider = MyPlaceholderProvider.class)
                 String m_updatedWidget;
 
             }
@@ -243,7 +242,7 @@ class DefaultNodeDialogDataServiceImplTest {
             assertThatJson(result).inPath("$").isArray().hasSize(1);
             assertThatJson(result).inPath("$[0].scope").isEqualTo("#/properties/model/properties/updatedWidget");
             assertThatJson(result).inPath("$[0].values[0].value").isEqualTo(testDepenencyValue);
-            assertThatJson(result).inPath("$[0].providedOptionName").isEqualTo("fileExtension");
+            assertThatJson(result).inPath("$[0].providedOptionName").isEqualTo("placeholder");
         }
 
         @Test

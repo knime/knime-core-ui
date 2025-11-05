@@ -48,8 +48,6 @@
  */
 package org.knime.node.parameters.persistence.legacy;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Objects;
@@ -58,6 +56,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.PersistWithin;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
@@ -110,35 +109,13 @@ public final class LegacyMultiFileSelection implements Persistable, WidgetGroup 
         this(new FSLocation(FSCategory.LOCAL, ""));
     }
 
-    static final class FileOrFolderPersistor implements NodeParametersPersistor<FileOrFolder> {
-        @Override
-        public FileOrFolder load(final NodeSettingsRO settings) throws InvalidSettingsException {
-            String mode = settings.getString("filter_mode", "FILE");
-            if (mode.equals("FILE")) {
-                return FileOrFolder.FILE;
-            } else {
-                return FileOrFolder.FOLDER;
-            }
-        }
-
-        @Override
-        public void save(final FileOrFolder param, final NodeSettingsWO settingsWO) {
-            settingsWO.addString("filter_mode", param == FileOrFolder.FOLDER ? "FILES_IN_FOLDERS" : "FILE");
-        }
-
-        @Override
-        public String[][] getConfigPaths() {
-            return new String[][]{{"filter_mode"}};
-        }
-    }
-
     /**
      * The selection mode (FILE or FOLDER).
      */
     @Widget(title = "Type", description = "The selection mode.")
-    @Persistor(FileOrFolderPersistor.class)
+    @Persist(configKey = "filter_mode")
     @PersistWithin("filter_mode")
-    public FileOrFolder m_fileOrFolder = FileOrFolder.FILE; // NOSONAR
+    public MultiFileSelectionMode m_filterMode = MultiFileSelectionMode.FILE; // NOSONAR
 
     /**
      * The root location of the file selection (if the selection mode is FOLDER), or the file itself (if the selection
@@ -356,18 +333,12 @@ public final class LegacyMultiFileSelection implements Persistable, WidgetGroup 
         boolean m_followSymlinks = false;
 
         @Override
-        public boolean passesFilter(final Path root, final Path path) {
+        public boolean passesFilter(final Path root, final Path path, final BasicFileAttributes attrs) {
             // We're constructing a FileAndFolderFilter here, as that is what is also used
             // in the model and was used in the old dialog. This way we ensure the same
             // filtering behavior in the dialog preview as in the model.
             FileAndFolderFilter filter = new FileAndFolderFilter(root, toFilterOptionsSettings());
-            try {
-                BasicFileAttributes attrs = Files.readAttributes(path, BasicFileAttributes.class);
-                return filter.test(path, attrs);
-            } catch (IOException e) { // NOSONAR
-                // If we can't read attributes, fallback to legacy logic: skip file
-                return false;
-            }
+            return filter.test(path, attrs);
         }
 
         private FilterOptionsSettings toFilterOptionsSettings() {

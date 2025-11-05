@@ -59,15 +59,14 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidg
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.CustomFileConnectionFolderReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelectionWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileReaderWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithCustomFileSystem;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.FileSelectionWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
@@ -124,6 +123,8 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
          * Since {@link MultiFileSelection} is a {@link WidgetGroup}.
          */
         FileReaderWidget.class, //
+        MultiFileSelectionWidget.class, //
+        WithFileSystem.class, //
         ValueReference.class, //
         ValueProvider.class, //
         Modification.class, //
@@ -146,20 +147,16 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         ColumnFilterWidget.class, //
         CredentialsWidget.class, //
         CredentialsWidgetInternal.class, //
-        CustomFileConnectionFolderReaderWidget.class, //
         CustomValidation.class, //
         DateTimeFormatPickerWidget.class, //
         Effect.class, //
         FileReaderWidget.class, //
-        FileSelectionWidgetInternal.class, //
         FileWriterWidget.class, //
-        FolderSelectionWidget.class, //
+        FileSelectionWidget.class, //
         FlowVariableFilterWidget.class, //
         ArrayWidgetInternal.ElementCheckboxWidget.class, //
         IntervalWidget.class, //
         Layout.class, //
-        LocalFileReaderWidget.class, //
-        LocalFileWriterWidget.class, //
         Modification.WidgetReference.class, //
         NumberInputWidget.class, //
         OptionalWidget.class, //
@@ -182,6 +179,8 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         ValueSwitchWidget.class, //
         Widget.class, //
         WidgetInternal.class, //
+        WithCustomFileSystem.class, //
+        WithFileSystem.class, //
         DynamicSettingsWidget.class//
     );
 

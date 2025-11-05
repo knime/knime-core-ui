@@ -16,14 +16,17 @@ const doMount = ({
   previewData = DEFAULT_SUCCESS_DATA,
   isLoading = false,
   expandByDefault = true,
+  filterMode = "FILES_IN_FOLDERS",
 }: {
   previewData?: PreviewResult;
   isLoading?: boolean;
   expandByDefault?: boolean;
+  filterMode?: "FILES_IN_FOLDERS" | "FOLDERS" | "FILES_AND_FOLDERS";
 }) => {
   return mount(FileSelectionPreview, {
     props: {
       previewData,
+      filterMode,
       isLoading,
       expandByDefault,
     },
@@ -61,38 +64,48 @@ describe("FileSelectionPreview", () => {
     expect(wrapper.find(".header-text").text()).toBe("2 of 3 files");
   });
 
-  it("displays sensible header text when items are filtered out", () => {
-    const wrapperWithPostLowerBound = doMount({
-      previewData: {
-        ...DEFAULT_SUCCESS_DATA,
-        numFilesAfterFilteringIsOnlyLowerBound: true,
-      },
-    });
-    expect(wrapperWithPostLowerBound.find(".header-text").text()).toBe(
-      "2+ of 3 files",
-    );
+  it.each([
+    ["FILES_IN_FOLDERS", "files"],
+    ["FOLDERS", "folders"],
+    ["FILES_AND_FOLDERS", "files/folders"],
+  ] as const)(
+    "displays sensible header text when items are filtered out using %s filter mode",
+    (filterMode, expectedDescription) => {
+      const wrapperWithPostLowerBound = doMount({
+        previewData: {
+          ...DEFAULT_SUCCESS_DATA,
+          numFilesAfterFilteringIsOnlyLowerBound: true,
+        },
+        filterMode,
+      });
+      expect(wrapperWithPostLowerBound.find(".header-text").text()).toBe(
+        `2+ of 3 ${expectedDescription}`,
+      );
 
-    const wrapperWithPreLowerBound = doMount({
-      previewData: {
-        ...DEFAULT_SUCCESS_DATA,
-        numFilesBeforeFilteringIsOnlyLowerBound: true,
-      },
-    });
-    expect(wrapperWithPreLowerBound.find(".header-text").text()).toBe(
-      "2 of 3+ files",
-    );
+      const wrapperWithPreLowerBound = doMount({
+        previewData: {
+          ...DEFAULT_SUCCESS_DATA,
+          numFilesBeforeFilteringIsOnlyLowerBound: true,
+        },
+        filterMode,
+      });
+      expect(wrapperWithPreLowerBound.find(".header-text").text()).toBe(
+        `2 of 3+ ${expectedDescription}`,
+      );
 
-    const wrapperWithBothLowerBounds = doMount({
-      previewData: {
-        ...DEFAULT_SUCCESS_DATA,
-        numFilesAfterFilteringIsOnlyLowerBound: true,
-        numFilesBeforeFilteringIsOnlyLowerBound: true,
-      },
-    });
-    expect(wrapperWithBothLowerBounds.find(".header-text").text()).toBe(
-      "2+ of 3+ files",
-    );
-  });
+      const wrapperWithBothLowerBounds = doMount({
+        previewData: {
+          ...DEFAULT_SUCCESS_DATA,
+          numFilesAfterFilteringIsOnlyLowerBound: true,
+          numFilesBeforeFilteringIsOnlyLowerBound: true,
+        },
+        filterMode,
+      });
+      expect(wrapperWithBothLowerBounds.find(".header-text").text()).toBe(
+        `2+ of 3+ ${expectedDescription}`,
+      );
+    },
+  );
 
   it("displays the loading state", () => {
     const wrapper = doMount({ isLoading: true });

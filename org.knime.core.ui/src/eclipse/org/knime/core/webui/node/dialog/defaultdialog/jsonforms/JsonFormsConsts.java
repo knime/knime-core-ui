@@ -205,26 +205,6 @@ public final class JsonFormsConsts {
         public static final String TAG_DEPENDENCIES = "dependencies";
 
         /**
-         * The boolean flag indicator of a file chooser widget whether it has writer capabilities.
-         */
-        public static final String TAG_IS_WRITER = "isWriter";
-
-        /**
-         * Used for providing multiple valid file extension to a file reader widget.
-         */
-        public static final String TAG_FILE_EXTENSIONS = "fileExtensions";
-
-        /**
-         * Used for providing a single valid file extension to a file chooser/writer widget.
-         */
-        public static final String TAG_FILE_EXTENSION = "fileExtension";
-
-        /**
-         * Used with multi file selection to specify the java class corresponding to the filter class
-         */
-        public static final String TAG_FILE_FILTER_CLASS = "additionalFilterOptionsClassIdentifier";
-
-        /**
          * Used for rich text to adjust validations to incorporate the $$["flowVarName"] - Syntax
          */
         public static final String TAG_USE_FLOW_VAR_TEMPLATES = "useFlowVarTemplates";
@@ -326,13 +306,11 @@ public final class JsonFormsConsts {
 
             public static final String RICH_TEXT_INPUT = "richTextInput";
 
-            public static final String LOCAL_FILE_CHOOSER = "localFileChooser";
-
             public static final String FILE_CHOOSER = "fileChooser";
 
-            public static final String CUSTOM_FILE_SYSTEM_FILE_CHOOSER = "customFileSystemFileChooser";
-
             public static final String MULTI_FILE_CHOOSER = "multiFileChooser";
+
+            public static final String STRING_FILE_SELECTION = "stringFileChooser";
 
             public static final String DB_TABLE_CHOOSER = "dbTableChooser";
 

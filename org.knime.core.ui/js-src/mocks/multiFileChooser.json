@@ -98,17 +98,19 @@
           "options": {
             "format": "multiFileChooser",
             "isLocal": true,
-            "filterSubUiSchema": {
-              "type": "Section",
-              "label": "My Filter",
-              "elements": [
-                {
-                  "type": "Control",
-                  "scope": "#/properties/someFilterValue"
-                }
-              ]
-            },
-            "additionalFilterOptionsClassIdentifier": "someClassIdentifier"
+            "filters": {
+              "classId": "someClassIdentifier",
+              "uiSchema": {
+                "type": "Section",
+                "label": "My Filter",
+                "elements": [
+                  {
+                    "type": "Control",
+                    "scope": "#/properties/someFilterValue"
+                  }
+                ]
+              }
+            }
           }
         }
       ]

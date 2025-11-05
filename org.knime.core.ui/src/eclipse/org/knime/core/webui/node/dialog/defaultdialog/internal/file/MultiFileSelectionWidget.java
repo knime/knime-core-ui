@@ -42,43 +42,40 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   16 May 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
-import java.util.Optional;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileReaderWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.LocalFileChooserRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
-import org.knime.node.parameters.WidgetGroup;
+/**
+ * Annotation for multi-file selection widgets. Configures which selection modes are available
+ * to the user. Can be applied to {@link MultiFileSelection} fields.
+ * Use {@link FileReaderWidget} or {@link FileWriterWidget} to specify file extensions either as a
+ * separate annotation or via the {@link #fileReaderWidget()} field.
+ *
+ * @author Paul Baernreuther
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface MultiFileSelectionWidget {
 
-final class LocalFileChooserRenderer extends WidgetTreeControlRendererSpec implements LocalFileChooserRendererSpec {
+    /**
+     * The selection modes that are available to the user. If only one mode is specified,
+     * no mode switcher will be displayed in the UI. For two modes, a horizontal value switch
+     * is used. For more than two modes, vertical radio buttons are displayed.
+     *
+     * @return array of available selection modes
+     */
+    MultiFileSelectionMode[] value();
 
-    private final LocalFileReaderWidget m_annotation;
-
-    LocalFileChooserRenderer(final TreeNode<WidgetGroup> node, final LocalFileReaderWidget annotation) {
-        super(node);
-        m_annotation = annotation;
-    }
-
-    @Override
-    public Optional<LocalFileChooserRendererOptions> getOptions() {
-        return Optional.of(new LocalFileChooserRendererOptions() {
-
-            @Override
-            public Optional<String> getPlaceholder() {
-                return Optional.of(m_annotation.placeholder());
-            }
-
-            @Override
-            public Optional<String[]> getFileExtensions() {
-                return Optional.of(m_annotation.fileExtensions());
-            }
-
-        });
-    }
-
+    /**
+     * Optional {@link FileReaderWidget} annotation to specify file extensions.
+     * Can also be specified as a separate annotation on the field instead.
+     *
+     * @return the file reader widget annotation, or a default empty annotation
+     */
+    FileReaderWidget fileReaderWidget() default @FileReaderWidget(fileExtensions = {});
 }

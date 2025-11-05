@@ -11,7 +11,7 @@ import type {
 } from "../../types/FileChooserProps";
 import { FSCategory } from "../../types/FileChooserProps";
 import ConnectionPreventsTab from "../ConnectionPreventsTab.vue";
-import SideDrawerContent, { type TabSpec } from "../SideDrawerContent.vue";
+import SideDrawerContent from "../SideDrawerContent.vue";
 import UrlTab from "../url/UrlTab.vue";
 
 describe("SideDrawerContent.vue", () => {
@@ -33,7 +33,9 @@ describe("SideDrawerContent.vue", () => {
       uischema: {
         scope: "#/properties/some/properties/scope",
         options: {
-          mountId: testSpaceName,
+          spaceFSOptions: {
+            mountId: testSpaceName,
+          },
         },
       },
       selectionMode: "FILE",
@@ -94,7 +96,7 @@ describe("SideDrawerContent.vue", () => {
 
   it("renders current hub space tab", async () => {
     const spacePath = "mySpacePath";
-    props.uischema.options!.spacePath = spacePath;
+    props.uischema.options!.spaceFSOptions!.spacePath = spacePath;
     const wrapper = mountSideDrawerContent();
     expect(wrapper.findComponent(TabBar).props().modelValue).toBe(
       "relative-to-current-hubspace",
@@ -152,7 +154,11 @@ describe("SideDrawerContent.vue", () => {
     let wrapper: ReturnType<typeof mountSideDrawerContent>;
 
     beforeEach(() => {
-      props.uischema.options!.portIndex = 1;
+      props.uischema.options!.connectedFSOptions = {
+        portIndex: 1,
+        fileSystemType: "Connected File System",
+        fileSystemSpecifier: "defaultSpecifier",
+      };
       wrapper = mountSideDrawerContent();
     });
 
@@ -163,7 +169,10 @@ describe("SideDrawerContent.vue", () => {
           ...wrapper.props().uischema,
           options: {
             ...wrapper.props().uischema.options,
-            fileSystemSpecifier: fsSpecifier,
+            connectedFSOptions: {
+              ...wrapper.props().uischema.options!.connectedFSOptions!,
+              fileSystemSpecifier: fsSpecifier,
+            },
           },
         },
       });
@@ -202,21 +211,5 @@ describe("SideDrawerContent.vue", () => {
         ).toBeTruthy();
       },
     );
-
-    it("hides non-connected tabs when allowOnlyConnectedFS is true", async () => {
-      await wrapper.setProps({
-        uischema: {
-          ...wrapper.props().uischema,
-          options: {
-            ...wrapper.props().uischema.options,
-            allowOnlyConnectedFS: true,
-          },
-        },
-      });
-      const tabBar = wrapper.findComponent(TabBar);
-      const tabSpecs: TabSpec[] = tabBar.props().possibleValues as TabSpec[];
-      expect(tabSpecs).toHaveLength(1);
-      expect(tabSpecs[0].value).toBe("CONNECTED");
-    });
   });
 });

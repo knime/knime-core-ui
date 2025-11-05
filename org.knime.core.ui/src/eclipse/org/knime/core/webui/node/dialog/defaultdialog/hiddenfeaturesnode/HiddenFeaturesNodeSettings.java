@@ -48,11 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
 
-import org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode.HiddenFeaturesNodeSettings.FileSelectionHiddenFeaturesSideDrawerSection.CustomFileChooserFiltersSection;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelectionWidget;
 import org.knime.node.parameters.NodeParameters;
-import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.Layout;
 import org.knime.node.parameters.layout.Section;
 import org.knime.node.parameters.migration.LoadDefaultsForAbsentFields;
@@ -63,19 +59,6 @@ class HiddenFeaturesNodeSettings implements NodeParameters {
     @Section(title = "File Selection Hidden Features", sideDrawer = true)
     interface FileSelectionHiddenFeaturesSideDrawerSection {
 
-        @Section(title = "Multi File Selection")
-        interface MultiFileSelectionSection {
-
-        }
-
-        @Section(title = "Folder Selection")
-        interface FileSelectionWithFolderSection {
-
-        }
-
-        @Section(title = "Custom Connection Folder Selection")
-        interface CustomFileChooserFiltersSection {
-        }
     }
 
     @Section(title = "Custom Validation", sideDrawer = true)
@@ -85,22 +68,13 @@ class HiddenFeaturesNodeSettings implements NodeParameters {
     @Section(title = "Sub Parameters", sideDrawer = true)
     interface SupParametersSection {
     }
-    
+
     @Section(title = "Inject Fallback Dialog", sideDrawer = true)
     interface InjectFallbackDialogSideDrawerSection {
     }
 
-    @Layout(FileSelectionHiddenFeaturesSideDrawerSection.MultiFileSelectionSection.class)
-    HiddenFeatureMultiFileSelectionParameters m_multiFileSelection = new HiddenFeatureMultiFileSelectionParameters();
-
-    @Widget(title = "File Selection with Folder", description = "A file selection that allows selecting folders.")
-    @FolderSelectionWidget
-    @Layout(FileSelectionHiddenFeaturesSideDrawerSection.FileSelectionWithFolderSection.class)
-    FileSelection m_testSelectionWithFolder = new FileSelection();
-
-    @Layout(CustomFileChooserFiltersSection.class)
-    HiddenFeatureCustomFileConnectionParameters m_customFileConnection =
-        new HiddenFeatureCustomFileConnectionParameters();
+    @Layout(FileSelectionHiddenFeaturesSideDrawerSection.class)
+    HiddenFeatureNewFileSelectionParameters m_newFileSelection = new HiddenFeatureNewFileSelectionParameters();
 
     @Layout(CustomValidationSideDrawerSection.class)
     HiddenFeatureCustomValidationParameters m_customValidation = new HiddenFeatureCustomValidationParameters();

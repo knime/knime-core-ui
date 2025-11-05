@@ -116,14 +116,17 @@ public final class JsonFormsUiSchemaUtil {
     }
 
     /**
+     * Call this method to build the uischema of sub layouts which are dependent on the parent layout.
+     *
+     * @param widgetTrees to derive the uischema from
      * @param parentWidgetTrees of the fields of the "outside" layout. With UIEXT-1673 This can be removed again
+     * @param context the context
+     * @return the uischema
      */
-    static ObjectNode buildUISchema(final Collection<Tree<WidgetGroup>> widgetTrees,
-        final Collection<Tree<WidgetGroup>> parentWidgetTrees, final NodeParametersInput context
-        ){
+    public static ObjectNode buildUISchema(final Collection<Tree<WidgetGroup>> widgetTrees,
+        final Collection<Tree<WidgetGroup>> parentWidgetTrees, final NodeParametersInput context) {
         final var layoutTreeRoot = widgetTreesToLayoutTreeRoot(widgetTrees);
-        return new LayoutNodesGenerator(layoutTreeRoot, widgetTrees, parentWidgetTrees, context)
-            .build();
+        return new LayoutNodesGenerator(layoutTreeRoot, widgetTrees, parentWidgetTrees, context).build();
     }
 
     /**

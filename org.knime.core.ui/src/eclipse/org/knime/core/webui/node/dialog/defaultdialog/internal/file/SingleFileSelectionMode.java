@@ -42,41 +42,19 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   Oct 13, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.dataservice;
-
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.validation.CustomValidationContext;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithCustomFileSystem;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
 /**
- * Registry record that holds state that is to be held in a default node dialog to be used in an RPC service call.
+ * Enumeration of selection modes for single file/folder selection widgets.
  *
- * @param fileSystemConnector connector for managing custom file system connections (see {@link WithCustomFileSystem}).
- * @param customValidationContext context for managing custom validation callbacks (see {@link CustomValidation}).
- * @param dynamicParametersTriggerInvocationHandlerContext context for managing state providers within dynamic
- *            parameters provided via {@link DynamicParameters}.
- *
- * @author Paul Bärnreuther
+ * @author Paul Baernreuther
  */
-public record NodeDialogServiceRegistry(//
-    FileSystemConnector fileSystemConnector, //
-    CustomValidationContext customValidationContext, //
-    DynamicParametersTriggerInvocationHandlerContext dynamicParametersTriggerInvocationHandlerContext //
-) {
-
-    /**
-     * Clears all state from both the file system connector and validation context.
-     */
-    public void onDeactivateRpc() {
-        fileSystemConnector.clear();
-        customValidationContext.clear();
-        dynamicParametersTriggerInvocationHandlerContext.clear();
-    }
-
+public enum SingleFileSelectionMode {
+    /** Select a single file */
+    FILE,
+    /** Select a single folder */
+    FOLDER,
+    /** Select a single workflow (not yet supported - will throw runtime exception) */
+    WORKFLOW
 }

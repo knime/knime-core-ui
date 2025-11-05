@@ -50,9 +50,11 @@ package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.layout.After;
@@ -69,7 +71,7 @@ public class HiddenFeatureMultiFileSelectionParameters implements NodeParameters
     static final class TestFileChooserFilters implements FileChooserFilters {
 
         @Override
-        public boolean passesFilter(final Path root, final Path path) {
+        public boolean passesFilter(final Path root, final Path path, final BasicFileAttributes attrs) {
             if (Files.isDirectory(path)) {
                 return true;
             }
@@ -103,6 +105,7 @@ public class HiddenFeatureMultiFileSelectionParameters implements NodeParameters
 
     }
 
-    MultiFileSelection<TestFileChooserFilters> m_fileSelection = new MultiFileSelection<>(new TestFileChooserFilters());
+    MultiFileSelection<TestFileChooserFilters> m_fileSelection =
+        new MultiFileSelection<>(MultiFileSelectionMode.FILE, new TestFileChooserFilters());
 
 }

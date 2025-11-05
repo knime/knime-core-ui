@@ -42,50 +42,32 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
- *
- * History
- *   16 May 2025 (Robin Gerling): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
-import java.util.Optional;
-
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * A local file chooser renderer for a string setting.
+ * Annotation for single file/folder selection widgets. Can be applied to {@link FileSelection} or {@link String}
+ * fields.
  *
- * @author Robin Gerling
+ * If a file browser should be shown, this annotation is required in the {@link String} case. It is not required in the
+ * {@link FileSelection} case and the default behavior is to use mode {@link SingleFileSelectionMode#FILE}.
+ *
+ * @author Paul Baernreuther
  */
-public interface LocalFileChooserRendererSpec extends ControlRendererSpec {
-
-    @Override
-    default JsonDataType getDataType() {
-        return JsonDataType.STRING;
-    }
-
-    @Override
-    default Optional<String> getFormat() {
-        return Optional.of(UiSchema.Format.LOCAL_FILE_CHOOSER);
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface FileSelectionWidget {
 
     /**
-     * Options for rendering a local file chooser component.
+     * The selection mode for this widget.
+     *
+     * @return the selection mode
      */
-    interface LocalFileChooserRendererOptions {
+    SingleFileSelectionMode value();
 
-        default Optional<String> getPlaceholder() {
-            return Optional.empty();
-        }
-
-        default Optional<String[]> getFileExtensions() {
-            return Optional.empty();
-        }
-
-    }
-
-    @Override
-    default Optional<LocalFileChooserRendererOptions> getOptions() {
-        return Optional.empty();
-    }
 }

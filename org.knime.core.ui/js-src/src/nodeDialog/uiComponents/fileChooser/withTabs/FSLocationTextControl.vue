@@ -1,13 +1,13 @@
+<!-- eslint-disable import/order -->
 <script lang="ts">
-// eslint-disable-next-line import/order
+import type { FileChooserOptions } from "@/nodeDialog/types/FileChooserUiSchema";
 import { FSCategory, type FileChooserValue } from "../types/FileChooserProps";
+import { useFileSystems } from "../composables/useFileChooserBrowseOptions";
 
 interface Props {
   modelValue: FileChooserValue;
   disabled: boolean;
-  isLocal?: boolean;
-  portIndex?: number;
-  fileSystemSpecifier?: string;
+  options: FileChooserOptions;
   isValid: boolean;
 }
 export type { Props };
@@ -21,7 +21,7 @@ export const prefixes: [keyof typeof FSCategory, string][] = [
 </script>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, toRef, watch } from "vue";
 
 import { InputField } from "@knime/components";
 
@@ -38,14 +38,17 @@ const emit = defineEmits<{
   "update:modelValue": [FileChooserValue];
 }>();
 
-const isConnected = computed(() => typeof props.portIndex !== "undefined");
+const { isConnected, isLocal } = useFileSystems(toRef(props, "options"));
 
 const { getFilePath } = useFileChooserBackend({
   filteredExtensions: ref([]), // only relevant for browsing
   appendedExtension: ref(null), // We do not wish to append anything here, since the user should be able to manually access any file
   isWriter: ref(false), // only relevant for browsing
   backendType: computed(() =>
-    getBackendType(props.modelValue.fsCategory, props.portIndex),
+    getBackendType(
+      props.modelValue.fsCategory,
+      props.options.connectedFSOptions?.portIndex,
+    ),
   ),
 });
 
@@ -110,7 +113,7 @@ const textToFsLocation = (text: string): FileChooserValue => {
       timeout: props.modelValue.timeout,
       context: {
         fsToString: "", // won't be used in case of isConnected = true
-        fsSpecifier: props.fileSystemSpecifier,
+        fsSpecifier: props.options.connectedFSOptions?.fileSystemSpecifier,
       },
     };
   }
@@ -123,7 +126,7 @@ const textToFsLocation = (text: string): FileChooserValue => {
       };
     }
   }
-  const defaultCategory: keyof typeof FSCategory = props.isLocal
+  const defaultCategory: keyof typeof FSCategory = isLocal.value
     ? "LOCAL"
     : "relative-to-current-hubspace";
   return {

@@ -22,8 +22,10 @@ describe("FSLocationTextControl.vue", () => {
         fsCategory: "relative-to-current-hubspace",
       },
       disabled: false,
-      isLocal: false,
       isValid: true,
+      options: {
+        isLocal: false,
+      },
     };
   });
 
@@ -110,7 +112,11 @@ describe("FSLocationTextControl.vue", () => {
 
   it("shows connected path", async () => {
     props.modelValue.fsCategory = "CONNECTED";
-    props.portIndex = 1;
+    props.options.connectedFSOptions = {
+      portIndex: 1,
+      fileSystemType: "Connected File System",
+      fileSystemSpecifier: "mySpecifier",
+    };
     const path = "myLocalPath";
     props.modelValue.path = path;
     expect(
@@ -141,7 +147,11 @@ describe("FSLocationTextControl.vue", () => {
     async (fsCategory) => {
       const fsToString = "myFsPathString";
       props.modelValue.fsCategory = fsCategory;
-      props.portIndex = 1;
+      props.options.connectedFSOptions = {
+        portIndex: 1,
+        fileSystemType: "Connected File System",
+        fileSystemSpecifier: "defaultSpecifier",
+      };
       props.modelValue.context = {
         fsToString,
       };
@@ -223,7 +233,7 @@ describe("FSLocationTextControl.vue", () => {
   });
 
   it("emits LOCAL FS location on text input in case of isLocal", async () => {
-    props.isLocal = true;
+    props.options.isLocal = true;
     const wrapper = await mountFsLocationTextInput();
     const path = "foo";
     wrapper.findComponent(InputField).vm.$emit("update:model-value", path);
@@ -240,7 +250,10 @@ describe("FSLocationTextControl.vue", () => {
 
   describe("connected via port", () => {
     beforeEach(() => {
-      props.portIndex = 1;
+      props.options.connectedFSOptions = {
+        portIndex: 1,
+        fileSystemType: "Connected File System",
+      };
     });
 
     it("emits CONNECTED FS location on text input", async () => {
@@ -264,7 +277,7 @@ describe("FSLocationTextControl.vue", () => {
 
     it("adds fileSystemSpecifier if present", async () => {
       const fsSpecifier = "mySpecifier";
-      props.fileSystemSpecifier = fsSpecifier;
+      props.options.connectedFSOptions!.fileSystemSpecifier = fsSpecifier;
       const wrapper = await mountFsLocationTextInput();
       const path = "foo";
       wrapper.findComponent(InputField).vm.$emit("update:model-value", path);

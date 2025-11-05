@@ -50,7 +50,7 @@ const {
   isConnected,
   portFileSystemName,
   portIndex,
-  allowOnlyConnectedFS,
+  fileSystems,
 } = useFileChooserBrowseOptions(uischema);
 
 export type TabSpec = {
@@ -59,48 +59,36 @@ export type TabSpec = {
   icon: Component;
 };
 
-const localFileSystemTab: TabSpec[] = isLocal.value
-  ? [
-      {
-        value: "LOCAL",
-        label: "Local file system",
-        icon: ComputerDesktopIcon,
-      },
-    ]
-  : [];
-
-const connectedFileSystemTab: TabSpec[] = isConnected.value
-  ? [
-      {
-        value: "CONNECTED",
-        label: portFileSystemName.value,
-        icon: PluginInputIcon,
-      },
-    ]
-  : [];
+const conditionalTab = (condition: boolean | undefined, tab: TabSpec) =>
+  condition ? [tab] : [];
 
 const possibleCategories = computed<TabSpec[]>(() => {
-  if (allowOnlyConnectedFS.value && isConnected.value) {
-    return connectedFileSystemTab;
-  }
   return [
-    ...connectedFileSystemTab,
-    ...localFileSystemTab,
-    {
+    ...conditionalTab(isConnected.value, {
+      value: "CONNECTED",
+      label: portFileSystemName.value,
+      icon: PluginInputIcon,
+    }),
+    ...conditionalTab(isLocal.value, {
+      value: "LOCAL",
+      label: "Local file system",
+      icon: ComputerDesktopIcon,
+    }),
+    ...conditionalTab(fileSystems.value.includes("SPACE"), {
       value: "relative-to-current-hubspace",
       label: mountId.value,
       icon: isLocal.value ? LocalSpaceIcon : KnimeIcon,
-    },
-    {
+    }),
+    ...conditionalTab(fileSystems.value.includes("EMBEDDED"), {
       value: "relative-to-embedded-data",
       label: "Embedded data",
       icon: FolderIcon,
-    },
-    {
+    }),
+    ...conditionalTab(fileSystems.value.includes("CUSTOM_URL"), {
       value: "CUSTOM_URL",
       label: "URL",
       icon: LinkIcon,
-    },
+    }),
   ];
 });
 

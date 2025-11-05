@@ -62,16 +62,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButt
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.CustomFileConnectionFolderReaderWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FolderSelectionWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileReaderWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.FileSelectionWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.OverwriteDialogTitleInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.RichTextInputWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.SortListWidget;
@@ -89,7 +80,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.IntervalWidget;
 import org.knime.node.parameters.Advanced;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
-import org.knime.node.parameters.persistence.legacy.LegacyMultiFileSelection;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
@@ -149,10 +139,8 @@ public final class WidgetImplementationUtil {
             DATE_INTERVAL, //
             DB_TABLE_CHOOSER, //
             DYNAMIC_VALUE, //
-            FILE_CHOOSER, //
             FLOW_VARIABLE_FILTER, //
             INTERVAL, //
-            MULTI_FILE_CHOOSER, //
             NAME_FILTER, //
             SINGLE_SELECTION, //
             STRING_ARRAY, //
@@ -196,14 +184,7 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), CredentialsWidgetInternal.class), //
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), PasswordWidget.class), //
         new WidgetAnnotation(List.of(Credentials.class, LegacyCredentials.class), UsernameWidget.class), //
-        new WidgetAnnotation(List.of(String.class), CustomFileConnectionFolderReaderWidget.class), //
-        new WidgetAnnotation(List.of(FileSelection.class, MultiFileSelection.class, LegacyMultiFileSelection.class),
-            FileReaderWidget.class), //
-        new WidgetAnnotation(List.of(FileSelection.class), FileWriterWidget.class), //
-        new WidgetAnnotation(List.of(FileSelection.class), FolderSelectionWidget.class), //
-        new WidgetAnnotation(List.of(FileSelection.class), FileSelectionWidgetInternal.class), //
-        new WidgetAnnotation(List.of(String.class), LocalFileReaderWidget.class), //
-        new WidgetAnnotation(List.of(String.class), LocalFileWriterWidget.class), //
+
         new WidgetAnnotation(List.of(String.class, Character.class, char.class), TextInputWidget.class), //
         new WidgetAnnotation(List.of(Void.class), SimpleButtonWidget.class), //
         new WidgetAnnotation(List.of(Void.class), TextMessage.class), //
@@ -222,9 +203,6 @@ public final class WidgetImplementationUtil {
         new DefaultWidget(List.of(StringOrEnum.class), DefaultWidgetType.SINGLE_SELECTION), //
         new DefaultWidget(List.of(String[].class), DefaultWidgetType.STRING_ARRAY), //
         new DefaultWidget(List.of(ZoneId.class), DefaultWidgetType.ZONE_ID), //
-        new DefaultWidget(List.of(FileSelection.class), DefaultWidgetType.FILE_CHOOSER), //
-        new DefaultWidget(List.of(MultiFileSelection.class, LegacyMultiFileSelection.class),
-            DefaultWidgetType.MULTI_FILE_CHOOSER), //
         new DefaultWidget(List.of(DBTableSelection.class), DefaultWidgetType.DB_TABLE_CHOOSER), //
         new DefaultWidget(List.of(Interval.class), DefaultWidgetType.INTERVAL), //
         new DefaultWidget(List.of(DateInterval.class), DefaultWidgetType.DATE_INTERVAL), //

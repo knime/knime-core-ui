@@ -6,7 +6,7 @@ import type { VueControlPropsForLabelContent } from "@knime/jsonforms";
 import type { FileChooserUiSchema } from "@/nodeDialog/types/FileChooserUiSchema";
 import { useFlowSettings } from "../../../composables/components/useFlowVariables";
 import FileBrowserButton from "../FileBrowserButton.vue";
-import { useFileChooserFileSystemsOptions } from "../composables/useFileChooserBrowseOptions";
+import { useFileSystems } from "../composables/useFileChooserBrowseOptions";
 import useFileChooserStateChange from "../composables/useFileChooserStateChange";
 import useSideDrawerContent from "../composables/useSideDrawerContent";
 import { type FileChooserValue } from "../types/FileChooserProps";
@@ -23,20 +23,15 @@ const props = defineProps<
 
 const uischema = computed(() => props.control.uischema as FileChooserUiSchema);
 
-const disabledSinceOnlyConnectedIsAllowed = computed(() => {
-  const hideUnusable = uischema.value.options?.allowOnlyConnectedFS ?? false;
-  const portIndexDefined =
-    typeof uischema.value.options?.portIndex !== "undefined";
-  return hideUnusable && !portIndexDefined;
-});
+const options = computed(() => uischema.value.options!);
+const { validCategories } = useFileSystems(options);
 
 const isDisabled = computed(
   () =>
     props.disabled ||
-    uischema.value.options?.fileSystemConnectionMissing ||
-    disabledSinceOnlyConnectedIsAllowed.value,
+    options.value.connectedFSOptions?.fileSystemConnectionMissing ||
+    validCategories.value.length === 0,
 );
-const { validCategories } = useFileChooserFileSystemsOptions(uischema);
 const getDefaultData = () => {
   return {
     path: "",
@@ -44,7 +39,7 @@ const getDefaultData = () => {
     fsCategory: validCategories.value[0],
     context: {
       fsToString: "",
-      fsSpecifier: uischema.value.options?.fileSystemSpecifier,
+      fsSpecifier: options.value.connectedFSOptions?.fileSystemSpecifier,
     },
   };
 };
@@ -90,7 +85,8 @@ const { onFsCategoryUpdate } = useFileChooserStateChange(
 onMounted(() => {
   if (
     !isOverwritten.value &&
-    !validCategories.value.includes(data.value.fsCategory)
+    !validCategories.value.includes(data.value.fsCategory) &&
+    validCategories.value.length > 0
   ) {
     onFsCategoryUpdate(validCategories.value[0]);
   }
@@ -109,10 +105,8 @@ const { onApply, sideDrawerValue } = useSideDrawerContent<FileChooserValue>({
       class="flex-grow"
       :model-value="data"
       :disabled="isDisabled"
-      :is-local="uischema.options?.isLocal"
       :is-valid
-      :port-index="uischema.options?.portIndex"
-      :file-system-specifier="uischema.options?.fileSystemSpecifier"
+      :options
       @update:model-value="changePath"
     />
     <FileBrowserButton
@@ -125,7 +119,7 @@ const { onApply, sideDrawerValue } = useSideDrawerContent<FileChooserValue>({
         v-model="sideDrawerValue"
         :disabled="isDisabled"
         :uischema
-        :selection-mode="uischema.options?.selectionMode ?? 'FILE'"
+        :selection-mode="options?.selectionMode ?? 'FILE'"
         @apply-and-close="applyAndClose"
       />
     </FileBrowserButton>

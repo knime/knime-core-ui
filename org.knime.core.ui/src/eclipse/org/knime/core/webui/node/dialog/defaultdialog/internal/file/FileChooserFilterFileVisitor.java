@@ -55,7 +55,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.function.BiPredicate;
 
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters.FilterResult;
 
@@ -65,48 +65,89 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserF
  */
 final class FileChooserFilterFileVisitor extends SimpleFileVisitor<Path> {
 
-    private final Predicate<Path> m_pathFilter;
+    private final BiPredicate<Path, BasicFileAttributes> m_pathFilter;
 
     private final int m_limitToAcceptedFiles;
 
-    private final List<Path> m_acceptedFilePaths;
+    private final List<Path> m_acceptedFilePaths = new ArrayList<>();
 
+    private final boolean m_includeSubfolders;
+
+    private final boolean m_includeFiles;
+
+    private final boolean m_includeFolders;
+
+    /**
+     * Counts files AND folders encountered.
+     */
     private int m_numEncounteredFiles;
+
+    private int m_numEncounteredFolders;
 
     private boolean m_wereAnySubtreesSkipped;
 
-    FileChooserFilterFileVisitor(final Predicate<Path> pathFilter, final int limitToAcceptedFiles) {
+    FileChooserFilterFileVisitor(final MultiFileSelectionMode filterMode,
+        final BiPredicate<Path, BasicFileAttributes> pathFilter, final int limitToAcceptedFiles,
+        final boolean includeSubfolders) {
+        m_includeFiles = filterMode.includesFiles();
+        m_includeFolders = filterMode.includesFolders();
         m_pathFilter = pathFilter;
         m_limitToAcceptedFiles = limitToAcceptedFiles;
-
-        m_acceptedFilePaths = new ArrayList<>();
-        m_numEncounteredFiles = 0;
-        m_wereAnySubtreesSkipped = false;
+        m_includeSubfolders = includeSubfolders;
     }
 
     @Override
     public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
-        boolean isFileLike = attrs.isRegularFile() || attrs.isOther();
 
-        if (isFileLike) {
-            ++m_numEncounteredFiles;
-            boolean passesFilter = m_pathFilter.test(file);
-            boolean limitNotHit = m_acceptedFilePaths.size() < m_limitToAcceptedFiles;
-            if (passesFilter && limitNotHit) {
-                m_acceptedFilePaths.add(file);
+        /**
+         * also called for directories (if max depth is hit by Files.walkFileTree) for these directories
+         * #preVisitDirectory is not being invoked.
+         */
+        if (attrs.isDirectory()) {
+            /* Tested before files because for a Windows Junction attrs.isOther() and attrs.isDirectory() return true
+             * but we want to treat them as directories */
+            if (m_includeFolders) {
+                testAndAddFile(file, attrs);
             }
+        } else if (attrs.isRegularFile() || attrs.isOther()) {
+            if (m_includeFiles) {
+                testAndAddFile(file, attrs);
+            }
+        } else {
+            // we only care for files and folders
         }
-
         return super.visitFile(file, attrs);
+    }
+
+    void testAndAddFile(final Path file, final BasicFileAttributes attrs) {
+        testAndAddFile(file, m_pathFilter.test(file, attrs));
+    }
+
+    void testAndAddFile(final Path file, final boolean passesFilter) {
+        ++m_numEncounteredFiles;
+        boolean limitNotHit = m_acceptedFilePaths.size() < m_limitToAcceptedFiles;
+        if (passesFilter && limitNotHit) {
+            m_acceptedFilePaths.add(file);
+        }
     }
 
     @Override
     public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
-        boolean shouldSkipSubtree = m_acceptedFilePaths.size() >= m_limitToAcceptedFiles || !m_pathFilter.test(dir);
 
-        m_wereAnySubtreesSkipped |= shouldSkipSubtree;
+        final var isRootDir = m_numEncounteredFolders == 0;
+        m_numEncounteredFolders++;
+        if (isRootDir) {
+            return super.preVisitDirectory(dir, attrs);
+        }
+        final var limitReached = m_acceptedFilePaths.size() >= m_limitToAcceptedFiles;
+        final var shouldSkipFolder = limitReached || !m_pathFilter.test(dir, attrs);
+        if (m_includeSubfolders && m_includeFolders) {
+            testAndAddFile(dir, !shouldSkipFolder);
+        }
 
-        return shouldSkipSubtree //
+        m_wereAnySubtreesSkipped |= shouldSkipFolder;
+
+        return shouldSkipFolder //
             ? FileVisitResult.SKIP_SUBTREE //
             : super.preVisitDirectory(dir, attrs);
     }

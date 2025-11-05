@@ -10,7 +10,8 @@ export default (
   uischema: Ref<FileChooserUiSchema>,
 ) => {
   const onPathUpdate = (path: string) => {
-    const fsSpecifier = uischema.value.options?.fileSystemSpecifier;
+    const fsSpecifier =
+      uischema.value.options?.connectedFSOptions?.fileSystemSpecifier;
     onChange(
       mergeDeep(currentValue.value, {
         path,

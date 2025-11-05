@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { VueWrapper, mount } from "@vue/test-utils";
+import type { UISchemaElement } from "@jsonforms/core";
 import flushPromises from "flush-promises";
 
 import { Label, ValueSwitch } from "@knime/components";
 import { JsonDataService } from "@knime/ui-extension-service";
 
-import type { FileChooserOptions } from "@/nodeDialog/types/FileChooserUiSchema";
+import type { MultiFileChooserOptions } from "@/nodeDialog/types/FileChooserUiSchema";
 import NodeDialog from "../../../../../NodeDialog.vue";
 import { mockRegisterSettings } from "../../../../../__tests__/__integrationTests__/utils/dirtySettingState";
 import { dynamicImportsSettled } from "../../../../../__tests__/__integrationTests__/utils/dynamicImportsSettled";
@@ -30,7 +31,7 @@ describe("multi file selection", () => {
             fsCategory: "LOCAL",
             timeout: 0,
           },
-          fileOrFolder: "FILE",
+          filterMode: "FILE",
           filters: {
             someFilterValue: "someFilterValue",
           },
@@ -62,7 +63,7 @@ describe("multi file selection", () => {
                     },
                   },
                 },
-                fileOrFolder: {
+                filterMode: {
                   type: "string",
                   title: "Type",
                   oneOf: [
@@ -102,10 +103,20 @@ describe("multi file selection", () => {
           options: {
             format: "multiFileChooser",
             isLocal: true,
-            additionalFilterOptionsClassIdentifier: "someClassIdentifier",
-          } satisfies FileChooserOptions & {
+            filters: {
+              classId: "someClassIdentifier",
+              uiSchema: {
+                elements: [
+                  {
+                    type: "Control",
+                    scope: "#/properties/someFilterValue",
+                  },
+                ],
+              } as unknown as UISchemaElement,
+            },
+            possibleFilterModes: ["FILE", "FILES_IN_FOLDERS"],
+          } satisfies MultiFileChooserOptions & {
             format: string;
-            additionalFilterOptionsClassIdentifier: string;
           },
         },
       ],
@@ -198,8 +209,8 @@ describe("multi file selection", () => {
           text: "File",
         },
         {
-          id: "FOLDER",
-          text: "Folder",
+          id: "FILES_IN_FOLDERS",
+          text: "Files in folders",
         },
       ],
     });
@@ -218,7 +229,7 @@ describe("multi file selection", () => {
 
     await resolveInitialBackendRequests();
 
-    typeSwitch.vm.$emit("update:model-value", "FOLDER");
+    typeSwitch.vm.$emit("update:model-value", "FILES_IN_FOLDERS");
     await flushPromises();
     expect([...methodToData.keys()]).toStrictEqual([
       "fileFilterPreview.listItemsForPreview",
@@ -229,6 +240,7 @@ describe("multi file selection", () => {
     expect(listItemsForPreview.options).toStrictEqual([
       "local",
       "initial/path",
+      "FILES_IN_FOLDERS",
       false,
       {
         additionalFilterOptions: {

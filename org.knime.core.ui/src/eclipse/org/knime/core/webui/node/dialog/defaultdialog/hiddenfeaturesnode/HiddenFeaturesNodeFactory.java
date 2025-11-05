@@ -50,6 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
 
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeFactory;
+import org.knime.filehandling.core.port.FileSystemPortObject;
 
 /**
  * Factory for the hidden features node.
@@ -72,6 +73,7 @@ public class HiddenFeaturesNodeFactory extends WebUINodeFactory<HiddenFeaturesNo
                 """)//
         .modelSettingsClass(HiddenFeaturesNodeSettings.class)//
         .nodeType(NodeType.Other)//
+        .addInputPort("File connection", FileSystemPortObject.TYPE, "Used for file chooser test cases.")//
         .build();
 
     @SuppressWarnings("javadoc")
