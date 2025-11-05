@@ -127,7 +127,7 @@ watch(
   () => props.value,
   (newValue) => {
     if (newValue === null) {
-      emit("updateValue", initialValue);
+      emit("updateValue", initialValue.value);
     }
   },
   { immediate: true },
