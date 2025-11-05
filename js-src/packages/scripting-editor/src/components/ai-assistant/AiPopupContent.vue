@@ -452,7 +452,7 @@ const getDaysLeftInMonth = (date: Date = new Date()): number => {
       margin-right: var(--ai-bar-margin);
       margin-left: var(--ai-bar-margin);
       line-height: 15.23px;
-      word-wrap: break-word;
+      overflow-wrap: break-word;
       max-height: 100px;
       text-overflow: ellipsis;
       overflow: hidden;
@@ -481,7 +481,7 @@ const getDaysLeftInMonth = (date: Date = new Date()): number => {
 
       & .error-text {
         white-space: normal;
-        word-wrap: break-word;
+        overflow-wrap: break-word;
         font-size: 12px;
       }
     }
