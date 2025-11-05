@@ -6,6 +6,9 @@
   "private": true,
   "license": "UNLICENSED",
   "author": "KNIME AG, Zurich, Switzerland",
+  "scripts": {
+    "audit": "pnpm audit --prod"
+  },
   "engines": {
     "node": "22.x"
   },

@@ -20,7 +20,6 @@
     "ci:lint-format": "run-p ci:lint:* format:check -c",
     "ci:lint:js": "npm run lint:js && npm run lint:js -- -f json -o test-results/eslint.json",
     "ci:lint:css": "npm run lint:css -- -f json -o test-results/stylelint.json",
-    "audit": "npm audit --omit dev",
     "coverage": "vitest run --coverage",
     "postinstall": "license-check -c"
   },
