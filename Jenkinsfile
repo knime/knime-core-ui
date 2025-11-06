@@ -27,7 +27,7 @@ try {
         }
     ]
     
-    node('maven && java17 && large') {
+    node('maven && java21 && large') {
 
         parallel buildConfigs
 
