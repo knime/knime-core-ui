@@ -83,12 +83,18 @@ class NumberRenderer extends WidgetTreeControlRendererSpec implements NumberRend
         if (m_annotation.isEmpty()) {
             return Optional.empty();
         }
+        final Optional<Double> stepSize = m_annotation.map(NumberInputWidget::stepSize)
+            .filter(size -> size > 0); // Filter out -1 sentinel value
         final Optional<MinValidation> minValidation = m_annotation.map(ann -> ann.minValidation())
             .filter(cls -> !TypeDependentMinValidation.class.equals(cls)).map(InstantiationUtil::createInstance);
         final Optional<MaxValidation> maxValidation = m_annotation.map(ann -> ann.maxValidation())
             .filter(cls -> !TypeDependentMaxValidation.class.equals(cls)).map(InstantiationUtil::createInstance);
 
         return Optional.of(new NumberRendererOptions() {
+            @Override
+            public Optional<Double> getStepSize() {
+                return stepSize;
+            }
 
             @Override
             public Optional<NumberRendererValidationOptions> getValidation() {
