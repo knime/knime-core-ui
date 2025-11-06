@@ -1567,6 +1567,22 @@ class UiSchemaOptionsTest {
             @Widget(title = "", description = "")
             @NumberInputWidget(minValidation = IsPositiveIntegerValidation.class)
             Duration m_positiveDuration;
+
+            @Widget(title = "", description = "")
+            @NumberInputWidget(stepSize = 100)
+            int m_intWithStepSize;
+
+            @Widget(title = "", description = "")
+            @NumberInputWidget(stepSize = 0.5)
+            double m_doubleWithStepSize;
+
+            @Widget(title = "", description = "")
+            @NumberInputWidget(stepSize = 1.e-3)
+            double m_doubleWithScientificNotationStepSize;
+
+            @Widget(title = "", description = "")
+            @NumberInputWidget(stepSize = 50, minValidation = IsNonNegativeValidation.class)
+            int m_withStepSizeAndValidation;
         }
 
         var response = buildTestUiSchema(NumberInputWidgetTestSettings.class);
@@ -1578,6 +1594,7 @@ class UiSchemaOptionsTest {
             .isFalse();
         assertThatJson(response).inPath("$.elements[0].options.validation.min.errorMessage").isString()
             .isEqualTo("The value must be at least -42.");
+        assertThatJson(response).inPath("$.elements[0].options.stepSize").isAbsent();
 
         assertThatJson(response).inPath("$.elements[1].scope").isString().contains("numberInputMax");
         assertThatJson(response).inPath("$.elements[1].options.validation.max.parameters.max").isNumber()
@@ -1586,12 +1603,15 @@ class UiSchemaOptionsTest {
             .isTrue();
         assertThatJson(response).inPath("$.elements[1].options.validation.max.errorMessage").isString()
             .isEqualTo("The value must be less than 42.");
+        assertThatJson(response).inPath("$.elements[1].options.stepSize").isAbsent();
 
         assertThatJson(response).inPath("$.elements[2].scope").isString().contains("numberInputMinProvider");
         assertThatJson(response).inPath("$.elements[2].providedOptions").isArray().containsExactly("validation.min");
+        assertThatJson(response).inPath("$.elements[2].options.stepSize").isAbsent();
 
         assertThatJson(response).inPath("$.elements[3].scope").isString().contains("numberInputMaxProvider");
         assertThatJson(response).inPath("$.elements[3].providedOptions").isArray().containsExactly("validation.max");
+        assertThatJson(response).inPath("$.elements[3].options.stepSize").isAbsent();
 
         assertThatJson(response).inPath("$.elements[4].scope").isString().contains("nonNegative");
         assertThatJson(response).inPath("$.elements[4].options.validation.min.parameters.min").isNumber()
@@ -1600,6 +1620,7 @@ class UiSchemaOptionsTest {
             .isFalse();
         assertThatJson(response).inPath("$.elements[4].options.validation.min.errorMessage").isString()
             .isEqualTo("The value must be at least 0.");
+        assertThatJson(response).inPath("$.elements[4].options.stepSize").isAbsent();
 
         assertThatJson(response).inPath("$.elements[5].scope").isString().contains("positiveInteger");
         assertThatJson(response).inPath("$.elements[5].options.validation.min.parameters.min").isNumber()
@@ -1608,6 +1629,7 @@ class UiSchemaOptionsTest {
             .isFalse();
         assertThatJson(response).inPath("$.elements[5].options.validation.min.errorMessage").isString()
             .isEqualTo("The value must be at least 1.");
+        assertThatJson(response).inPath("$.elements[5].options.stepSize").isAbsent();
 
         assertThatJson(response).inPath("$.elements[6].scope").isString().contains("positiveDuration");
         assertThatJson(response).inPath("$.elements[6].options.validation.min.parameters.min").isNumber()
@@ -1616,6 +1638,25 @@ class UiSchemaOptionsTest {
             .isFalse();
         assertThatJson(response).inPath("$.elements[6].options.validation.min.errorMessage").isString()
             .isEqualTo("The value must be at least 1.");
+        assertThatJson(response).inPath("$.elements[6].options.stepSize").isAbsent();
+
+        assertThatJson(response).inPath("$.elements[7].scope").isString().contains("intWithStepSize");
+        assertThatJson(response).inPath("$.elements[7].options.stepSize").isNumber()
+            .isEqualTo(BigDecimal.valueOf(100.0));
+
+        assertThatJson(response).inPath("$.elements[8].scope").isString().contains("doubleWithStepSize");
+        assertThatJson(response).inPath("$.elements[8].options.stepSize").isNumber()
+            .isEqualTo(BigDecimal.valueOf(0.5));
+
+        assertThatJson(response).inPath("$.elements[9].scope").isString().contains("doubleWithScientificNotationStepSize");
+        assertThatJson(response).inPath("$.elements[9].options.stepSize").isNumber()
+            .isEqualTo(BigDecimal.valueOf(0.001));
+
+        assertThatJson(response).inPath("$.elements[10].scope").isString().contains("withStepSizeAndValidation");
+        assertThatJson(response).inPath("$.elements[10].options.stepSize").isNumber()
+            .isEqualTo(BigDecimal.valueOf(50.0));
+        assertThatJson(response).inPath("$.elements[10].options.validation.min.parameters.min").isNumber()
+            .isEqualTo(BigDecimal.valueOf(0.0));
     }
 
     private static void assertNumericValidation(final ObjectNode response, final int elementIndex, final String scope,
