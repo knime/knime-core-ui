@@ -77,6 +77,8 @@ class NumberRenderer extends WidgetTreeControlRendererSpec implements NumberRend
 
     private Optional<MaxValidation> m_maxValidation;
 
+    private Optional<Double> m_stepSize;
+
     private boolean m_minValidationProviderPresent;
 
     private boolean m_maxValidationProviderPresent;
@@ -85,6 +87,8 @@ class NumberRenderer extends WidgetTreeControlRendererSpec implements NumberRend
         super(node);
         m_annotation = node.getAnnotation(NumberInputWidget.class);
         m_typeBounds = getTypeBounds(node);
+        // Filter out -1 sentinel value
+        m_stepSize = m_annotation.map(NumberInputWidget::stepSize).filter(size -> size > 0);
         m_minValidation = m_annotation.map(ann -> ann.minValidation())
             .filter(cls -> !TypeDependentMinValidation.class.equals(cls)).map(InstantiationUtil::createInstance);
         m_maxValidation = m_annotation.map(ann -> ann.maxValidation())
@@ -114,6 +118,10 @@ class NumberRenderer extends WidgetTreeControlRendererSpec implements NumberRend
         }
 
         return Optional.of(new NumberRendererOptions() {
+            @Override
+            public Optional<Double> getStepSize() {
+                return m_stepSize;
+            }
 
             @Override
             public Optional<NumberRendererValidationOptions> getValidation() {
