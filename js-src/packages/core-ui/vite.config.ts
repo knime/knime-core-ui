@@ -4,6 +4,7 @@ import { URL, fileURLToPath } from "node:url";
 import type { LibraryOptions } from "vite";
 import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vitest/config";
+import sbom from "rollup-plugin-sbom";
 import svgLoader from "vite-svg-loader";
 
 // @ts-ignore
@@ -99,7 +100,18 @@ export default defineConfig(({ mode }) => {
     define: {
       "process.env": { NODE_ENV: process.env.NODE_ENV }, // needed by v-calendar
     },
-    plugins: [vue(), svgLoader({ svgoConfig })],
+    plugins: [
+      vue(),
+      svgLoader({ svgoConfig }),
+      sbom({
+        outDir: "sbom",
+        outFilename: `sbom-${mode}.json`,
+        includeWellKnown: false,
+        generateSerial: true,
+        // do not add root component - they are added via merge-sbom.ts
+        autodetect: false,
+      }),
+    ],
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("./src", import.meta.url)),
