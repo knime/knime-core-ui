@@ -75,11 +75,18 @@ public interface NumberRendererSpec extends ControlRendererSpec {
             .flatMap(NumberRendererValidationOptions::getMax).or(() -> getDefaultMaxValidations(getTypeBounds()));
         final var minValidation = customOptions.flatMap(NumberRendererOptions::getValidation)
             .flatMap(NumberRendererValidationOptions::getMin).or(() -> getDefaultMinValidations(getTypeBounds()));
-        if (minValidation.isEmpty() && maxValidation.isEmpty()) {
+        final var stepSize = customOptions.flatMap(NumberRendererOptions::getStepSize);
+
+        if (minValidation.isEmpty() && maxValidation.isEmpty() && stepSize.isEmpty()) {
             return Optional.empty();
         }
 
         return Optional.of(new NumberRendererOptions() {
+
+            @Override
+            public Optional<Double> getStepSize() {
+                return stepSize;
+            }
 
             @Override
             public Optional<NumberRendererValidationOptions> getValidation() {
@@ -179,6 +186,12 @@ public interface NumberRendererSpec extends ControlRendererSpec {
      */
     interface NumberRendererOptions extends ValidationOptions<NumberRendererValidationOptions> {
 
+        /**
+         * @return the step size for the number input spinner buttons
+         */
+        default Optional<Double> getStepSize() {
+            return Optional.empty();
+        }
     }
 
     @Override

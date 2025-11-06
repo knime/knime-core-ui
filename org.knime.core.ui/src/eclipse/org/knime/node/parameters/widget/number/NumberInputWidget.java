@@ -72,6 +72,18 @@ import org.knime.node.parameters.widget.number.NumberInputWidgetValidation.MinVa
 public @interface NumberInputWidget {
 
     /**
+     * Add this field to define a step size for the number input.
+     *
+     * <h3>Default Value</h3>
+     * <p>
+     * If not specified (default -1), the frontend will use type-appropriate defaults:
+     * <p>
+     *
+     * @return the step size for this number input, or -1 if not specified
+     */
+    double stepSize() default -1;
+
+    /**
      * Add this field to define a minimum for the number input.
      *
      * <p>
