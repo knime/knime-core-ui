@@ -13,7 +13,7 @@
     "_dev": "run-p \"_dev:build -- --mode {1} --watch\" \"_dev:serve -- --port {2}\" --",
     "_dev:build": "vite build",
     "_dev:serve": "vite preview",
-    "build": "npm run cleanDist && run-p type-check build:*",
+    "build": "pnpm cleanDist && run-p type-check build:* && pnpm sbom:merge",
     "build:NodeDialog": "vite build --mode NodeDialog",
     "build:TableView": "vite build --mode TableView",
     "build:DeferredTableView": "vite build --mode DeferredTableView",
@@ -38,7 +38,7 @@
     "coverage": "run-p coverage:*",
     "coverage:unit": "vitest run --coverage ",
     "coverage:integration": "vitest run --coverage --mode integration",
-    "sbom": "npx @cyclonedx/cyclonedx-npm --output-file bom.json --ignore-npm-errors --omit dev",
+    "sbom:merge": "tsx scripts/merge-sbom.ts dist/sbom/ bom.json && rimraf dist/sbom",
     "postinstall": "license-check -c"
   },
   "license": "UNLICENSED",
@@ -68,6 +68,7 @@
     "uuid": "9.0.1"
   },
   "devDependencies": {
+    "@cyclonedx/cyclonedx-library": "^9.2.0",
     "@cyclonedx/cyclonedx-npm": "1.16.1",
     "@knime/eslint-config": "8.3.0",
     "@knime/kds-styles": "^0.0.8",
@@ -94,7 +95,9 @@
     "postcss-preset-env": "^10.4.0",
     "prettier": "3.0.0",
     "rimraf": "^6.1.0",
+    "rollup-plugin-sbom": "^3.0.0",
     "stylelint": "16.25.0",
+    "tsx": "^4.20.6",
     "type-fest": "4.3.1",
     "typescript": "5.4.5",
     "vite": "5.4.11",
