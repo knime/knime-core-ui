@@ -19,6 +19,40 @@ npm install
 
 and then use the following commands. For detailed explanations see [Vue CLI docs]:
 
+#### Using local dependencies
+
+If developing knime dependencies (e.g. `@webapps-common:packages/jsonforms`) then you can clone the appropriate repo and
+link the target package(s) to this one.
+
+1. Clone the repo to any location
+2. If package uses `pnpm` then it must be built (see its README for specific build instructions)
+   ```bash
+   cd path/to/webapps-common/packages/jsonforms
+   pnpm run build
+   ```
+3. Link the package globally
+   ```bash
+   cd path/to/webapps-common/packages/jsonforms
+   npm link
+   ```
+   - this will symlink the package to
+     `$XDG_CONFIG_HOME/nvm/versions/node/<node-version>/lib/node_modules/@knime/jsonforms`
+4. Link to `jsonforms` to `js-src`
+   ```bash
+   cd path/to/knime-core-ui/org.knime.core.ui/js-src
+   npm link @knime/jsonforms
+   ```
+   - this will symlink the package to `./node_modules/@knime/jsonforms`
+
+> Note: running `npm install` or `npm link` will overwrite any pre-existing symlinks.
+> If linking multiple packages then link them all at once, e.g.: `npm link @knime/jsonforms @knime/components`
+
+Now if building in watch mode (default behavior for `npm dev:NodeDialog`) file changes in package dependencies that can
+be built with `npm` (e.g. `@knime/components`) will trigger a rebuild.
+
+Package dependencies that use `pnpm` do not trigger rebuilt from `vite` - they must be manually rebuilt after each
+change. Alternatively one can build them with `pnpm build --watch`.
+
 ### View development in KNIME Analytics Platform
 
 First, depending on which view you want to develop, start the according dev command (see [package.json](package.json)) which
@@ -31,12 +65,12 @@ npm run dev:TableView
 Second, please add following to the run configuration in Eclipse and start KNIME Analytics Platform:
 
 ```
--Dorg.knime.ui.dev.node.view.url=http://localhost:4000/<ComponentName>.umd.js
+-Dorg.knime.ui.dev.node.view.url=http://localhost:4000/<ComponentName>.js
 -Dchromium.remote_debugging_port=8888
 ```
 
 `<ComponentName>` needs to be filled with the component you want to develop, e.g.:
-`-Dorg.knime.ui.dev.node.view.url=http://localhost:4000/TableView.umd.js`
+`-Dorg.knime.ui.dev.node.view.url=http://localhost:4000/TableView.js`
 
 When opening a view in KNIME Analytics Platform the above JS file will be loaded instead of the bundled one.
 Hot-code reloading is not supported yet, so you need to refresh the browser window manually for now.
@@ -54,7 +88,7 @@ npm run dev:NodeDialog
 and set the following in the run configuration of Eclipse:
 
 ```
--Dorg.knime.ui.dev.node.dialog.url=http://localhost:3333/NodeDialog.umd.js
+-Dorg.knime.ui.dev.node.dialog.url=http://localhost:3333/NodeDialog.js
 ```
 
 For dialogs there also is a standalone dev app with mocks available:
