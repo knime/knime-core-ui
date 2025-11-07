@@ -34,7 +34,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
-                <module>org.knime.core.ui/js-src</module>
+                <module>js-src</module>
                 <module>org.knime.core.ui/lib/fetch_jars</module>
                 <module>org.knime.core.ui</module>
                 <module>org.knime.features.core.ui</module>
@@ -46,7 +46,7 @@
         <profile>
             <id>test</id>
             <modules>
-                <module>org.knime.core.ui/js-src</module>
+                <module>js-src</module>
                 <module>org.knime.core.ui/lib/fetch_jars</module>
                 <module>org.knime.core.ui.tests/lib/fetch_jars</module>
                 <module>org.knime.core.ui.testing/lib/fetch_jars</module>

@@ -8,6 +8,8 @@
   "author": "KNIME AG, Zurich, Switzerland",
   "scripts": {
     "audit": "pnpm audit --prod",
+    "build:apps": "pnpm run --filter @knime/core-ui build",
+    "coverage": "pnpm run -r --sequential coverage",
     "prepare": "cd .. && husky ./js-src/.husky"
   },
   "devDependencies": {
