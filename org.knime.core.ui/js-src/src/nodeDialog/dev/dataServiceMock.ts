@@ -345,18 +345,24 @@ const mockFileFilterPreview = (rpcRequest: {
       numItemsBeforeFiltering: 0,
     };
   }
-  const includeSubFolders = rpcRequest.params[2];
+  const filterMode = rpcRequest.params[2] as string;
+  const includeSubFolders = rpcRequest.params[3];
   const filterValue =
-    rpcRequest.params[3].additionalFilterOptions.someFilterValue;
+    rpcRequest.params[4].additionalFilterOptions.someFilterValue;
+  const allFiles = [
+    ...(filterMode === "FILES_IN_FOLDERS" || filterMode === "FILES_AND_FOLDERS"
+      ? [...(includeSubFolders ? ["some/path/to/file1.txt"] : []), "file2.txt"]
+      : []),
+    ...(filterMode === "FILES_AND_FOLDERS" || filterMode === "FOLDERS"
+      ? ["someFolder"]
+      : []),
+  ];
   return {
     resultType: "SUCCESS",
-    itemsAfterFiltering: [
-      ...(includeSubFolders ? ["some/path/to/file1.txt"] : []),
-      "file2.txt",
-    ].filter((item) => item.includes(filterValue)),
+    itemsAfterFiltering: allFiles.filter((item) => item.includes(filterValue)),
     numFilesAfterFilteringIsOnlyLowerBound: false,
     numFilesBeforeFilteringIsOnlyLowerBound: includeSubFolders,
-    numItemsBeforeFiltering: includeSubFolders ? 1000 : 1,
+    numItemsBeforeFiltering: includeSubFolders ? 1000 : allFiles.length,
   };
 };
 

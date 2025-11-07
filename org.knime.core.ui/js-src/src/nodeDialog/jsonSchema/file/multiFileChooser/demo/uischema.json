@@ -1,0 +1,14 @@
+{
+  "$schema": "../uischema.def.json",
+  "type": "Control",
+  "scope": "#/properties/multiFileSelection",
+  "options": {
+    "fileSystems": ["LOCAL", "SPACE"],
+    "fileExtensions": ["csv", "txt"],
+    "possibleFilterModes": ["FILE", "FILES_IN_FOLDERS"],
+    "filters": {
+      "classId": "org.example.FilterClass",
+      "uiSchema": {}
+    }
+  }
+}

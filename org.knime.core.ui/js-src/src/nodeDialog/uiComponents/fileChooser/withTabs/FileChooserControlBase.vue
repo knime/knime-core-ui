@@ -24,12 +24,18 @@ const props = defineProps<
 const uischema = computed(() => props.control.uischema as FileChooserUiSchema);
 
 const options = computed(() => uischema.value.options!);
-const { validCategories } = useFileSystems(options);
+const { validCategories, isConnected } = useFileSystems(options);
+
+const isConnectedButNoFileConnectionIsAvailable = computed(
+  () =>
+    isConnected.value &&
+    options.value.connectedFSOptions?.fileSystemConnectionMissing,
+);
 
 const isDisabled = computed(
   () =>
     props.disabled ||
-    options.value.connectedFSOptions?.fileSystemConnectionMissing ||
+    isConnectedButNoFileConnectionIsAvailable.value ||
     validCategories.value.length === 0,
 );
 const getDefaultData = () => {

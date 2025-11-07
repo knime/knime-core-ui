@@ -1,0 +1,10 @@
+{
+  "$schema": "../uischema.def.json",
+  "type": "Control",
+  "scope": "#/properties/fileSelection",
+  "options": {
+    "fileSystems": ["LOCAL", "SPACE"],
+    "selectionMode": "FILE",
+    "fileExtensions": ["csv", "txt"]
+  }
+}

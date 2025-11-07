@@ -43,44 +43,23 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  */
-package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * Annotation to explicitly configure which file system options are available in the file chooser. Can be applied to
- * {@link FileSelection}, {@link MultiFileSelection}, or {@link String} fields. Cannot be used together with
- * {@link WithCustomFileSystem}.
+ * Examples demonstrating usage patterns for file chooser widgets in KNIME node dialogs.
  *
- * In case of a String field provide exactly one file system with this annotation or use {@link WithCustomFileSystem} if
- * you want to only allow a custom file system option.
+ * <p>
+ * This package contains example implementations showing how to use different field types with file chooser widgets:
+ * </p>
+ * <ul>
+ * <li>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.file.examples.FileSelectionExample} - Using
+ * {@link org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection} fields for single file/folder
+ * selection (reader/writer; possible to restrict the usable file systems)</li>
+ * <li>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.file.examples.StringFileChooserExample} - Using
+ * String fields with file chooser widgets, including custom file system connections</li>
+ * <li>{@link org.knime.core.webui.node.dialog.defaultdialog.internal.file.examples.MultiFileSelectionExample} - Using
+ * {@link org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection} for multiple file selection
+ * with filter options.</li>
+ * </ul>
  *
- * @author Paul Baernreuther
+ * @author Paul Bärnreuther
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface WithFileSystem {
-
-    /**
-     * The file system options that are available to the user. The tabs will be displayed in the standard order
-     * regardless of the order specified here: CONNECTED (if present), LOCAL (if present), SPACE, EMBEDDED, CUSTOM_URL.
-     *
-     * When CONNECTED is included:
-     * <ul>
-     * <li>If a file system port is connected, the CONNECTED tab is shown and other tabs are disabled</li>
-     * <li>If no file system port is connected, the CONNECTED tab is hidden entirely</li>
-     * </ul>
-     *
-     * When LOCAL is included:
-     * <ul>
-     * <li>If the workflow is executed in a local executor, the LOCAL tab is shown and enabled</li>
-     * <li>If the workflow is executed in a remote executor, the LOCAL tab is not shown</li>
-     * </ul>
-     *
-     * @return array of available file system options
-     */
-    FileSystemOption[] value();
-}
+package org.knime.core.webui.node.dialog.defaultdialog.internal.file.examples;

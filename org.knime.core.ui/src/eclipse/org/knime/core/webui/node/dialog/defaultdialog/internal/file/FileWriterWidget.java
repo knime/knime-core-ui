@@ -55,7 +55,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Put this annotation on a {@link FileSelection} field in order to equip it with additional writer features.
+ * Put this annotation on a {@link FileSelection} (or {@link String}) field in order to equip it with additional writer
+ * features.
  *
  * @author Paul Bärnreuther
  */

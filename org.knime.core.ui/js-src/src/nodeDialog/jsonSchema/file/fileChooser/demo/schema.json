@@ -1,0 +1,26 @@
+{
+  "$schema": "../schema.def.json",
+  "type": "object",
+  "properties": {
+    "path": {
+      "type": "string"
+    },
+    "timeout": {
+      "type": "number"
+    },
+    "fsCategory": {
+      "type": "string"
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "fsToString": {
+          "type": "string"
+        },
+        "fsSpecifier": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

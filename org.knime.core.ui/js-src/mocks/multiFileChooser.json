@@ -10,7 +10,7 @@
             "fsCategory": "",
             "timeout": 0
           },
-          "fileOrFolder": "FOLDER",
+          "filterMode": "FILES_IN_FOLDERS",
           "filters": {
             "someFilterValue": "file"
           },
@@ -43,9 +43,9 @@
                     }
                   }
                 },
-                "fileOrFolder": {
+                "filterMode": {
                   "type": "string",
-                  "title": "Type",
+                  "title": "Mode",
                   "oneOf": [
                     {
                       "const": "FILE",
@@ -54,6 +54,22 @@
                     {
                       "const": "FOLDER",
                       "title": "Folder"
+                    },
+                    {
+                      "const": "FILES_IN_FOLDERS",
+                      "title": "Files in folders"
+                    },
+                    {
+                      "const": "FOLDERS",
+                      "title": "Folders"
+                    },
+                    {
+                      "const": "FILES_AND_FOLDERS",
+                      "title": "Files and folders"
+                    },
+                    {
+                      "const": "WORKFLOW",
+                      "title": "Workflow"
                     }
                   ]
                 },
@@ -78,7 +94,7 @@
                   "fsCategory": "",
                   "timeout": 0
                 },
-                "fileOrFolder": "FILE",
+                "filterMode": "FILE",
                 "filters": {
                   "someFilterValue": "file"
                 },
@@ -98,6 +114,13 @@
           "options": {
             "format": "multiFileChooser",
             "isLocal": true,
+            "possibleFilterModes": [
+              "FILE",
+              "FOLDER",
+              "FILES_IN_FOLDERS",
+              "FOLDERS",
+              "FILES_AND_FOLDERS"
+            ],
             "filters": {
               "classId": "someClassIdentifier",
               "uiSchema": {

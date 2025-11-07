@@ -46,15 +46,16 @@
 package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
 /**
- * Enumeration of selection modes for single file/folder selection widgets.
+ * Enumeration of selection modes for single file/folder selection widgets. To be used within a
+ * {@link FileSelectionWidget} annotation.
  *
  * @author Paul Baernreuther
  */
 public enum SingleFileSelectionMode {
-    /** Select a single file */
-    FILE,
-    /** Select a single folder */
-    FOLDER,
-    /** Select a single workflow (not yet supported - will throw runtime exception) */
-    WORKFLOW
+        /** Select a single file */
+        FILE,
+        /** Select a single folder */
+        FOLDER,
+        /** Select a single workflow (not yet supported - will throw runtime exception) */
+        WORKFLOW
 }

@@ -90,22 +90,31 @@
  * </tr>
  * <td>String</td>
  * <td>Text Input</td>
- * <td>{@link LocalFileReaderWidget}<br>
- * {@link LocalFileWriterWidget}<br>
- * {@link DateTimeFormatPickerWidget}<br>
+ * <td>{@link DateTimeFormatPickerWidget}<br>
+ * To make it a file selection of one specific file system, use:
+ * <ul>
+ * <li>{@link FileSelectionWidget} or {@link FileReaderWidget} or {@link FileWriterWidget}</li>
+ * <li>{@link WithFileSystem} or {@link WithCustomFileSystem}</li>
+ * </ul>
+ * </td>
  * <td>✓</td>
  * </tr>
  * <tr>
  * <td>{@link FileSelection}</td>
  * <td>Path file chooser (with limited file system options)</td>
- * <td>{@link FileReaderWidget}<br>
- * {@link FileWriterWidget}</td>
+ * <td>{@link FileSelectionWidget} (enables changing the selection mode to folder selection)<br>
+ * {@link FileReaderWidget}<br>
+ * {@link FileWriterWidget}<br>
+ * {@link WithFileSystem}<br>
+ * </td>
  * <td></td>
  * </tr>
  * <tr>
  * <td>{@link MultiFileSelection}</td>
- * <td>Path file chooser which can also accept a folder.</td>
- * <td>{@link FileReaderWidget}</td>
+ * <td>File chooser that allows switching between different filter modes including filter options. It is required to
+ * define the used filter modes using a {@link MultiFileSelectionWidget} annotation.</td></td>
+ * <td>{@link FileReaderWidget}<br>
+ * {@link WithFileSystem}</td>
  * <td></td>
  * </tr>
  * <tr>
@@ -132,7 +141,8 @@
  * <td>{@link DateTimeFormatPickerWidget}</td>
  * <td></td>
  * </tr>
- *  * <tr>
+ * *
+ * <tr>
  * <td>{@link StringOrEnum}</td>
  * <td>Use a {@link ChoicesProvider} for setting the dynamic choices.</td>
  * <td><br>

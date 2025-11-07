@@ -142,8 +142,10 @@
               "scope": "#/properties/view/properties/empty",
               "options": {
                 "format": "fileChooser",
-                "spacePath": "Users/j_bond/Public",
-                "mountId": "My-KNIME-Hub ;)"
+                "spaceFSOptions": {
+                  "spacePath": "Users/j_bond/Public",
+                  "mountId": "My-KNIME-Hub ;)"
+                }
               }
             },
             {
@@ -152,8 +154,10 @@
               "options": {
                 "format": "fileChooser",
                 "isLocal": true,
-                "spacePath": "Users/j_bond/Public",
-                "mountId": "My-KNIME-Hub ;)"
+                "spaceFSOptions": {
+                  "spacePath": "Users/j_bond/Public",
+                  "mountId": "My-KNIME-Hub ;)"
+                }
               }
             },
             {
@@ -162,8 +166,10 @@
               "options": {
                 "format": "fileChooser",
                 "isWriter": true,
-                "spacePath": "Users/j_bond/Public",
-                "mountId": "My-KNIME-Hub ;)"
+                "spaceFSOptions": {
+                  "spacePath": "Users/j_bond/Public",
+                  "mountId": "My-KNIME-Hub ;)"
+                }
               }
             },
             {
@@ -171,8 +177,10 @@
               "scope": "#/properties/view/properties/disabledPath",
               "options": {
                 "format": "fileChooser",
-                "spacePath": "Users/j_bond/Public",
-                "mountId": "My-KNIME-Hub ;)"
+                "spaceFSOptions": {
+                  "spacePath": "Users/j_bond/Public",
+                  "mountId": "My-KNIME-Hub ;)"
+                }
               }
             },
             {
@@ -180,8 +188,10 @@
               "scope": "#/properties/view/properties/overwrittenByNonSupported",
               "options": {
                 "format": "fileChooser",
-                "spacePath": "Users/j_bond/Public",
-                "mountId": "My-KNIME-Hub ;)"
+                "spaceFSOptions": {
+                  "spacePath": "Users/j_bond/Public",
+                  "mountId": "My-KNIME-Hub ;)"
+                }
               }
             },
             {
@@ -189,8 +199,10 @@
               "scope": "#/properties/view/properties/pathCustom",
               "options": {
                 "format": "fileChooser",
-                "spacePath": "Users/j_bond/Public",
-                "mountId": "My-KNIME-Hub ;)"
+                "spaceFSOptions": {
+                  "spacePath": "Users/j_bond/Public",
+                  "mountId": "My-KNIME-Hub ;)"
+                }
               }
             }
           ]

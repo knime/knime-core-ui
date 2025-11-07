@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json.schemastore.org/schema-draft-v4.json",
+  "title": "FileChooserRenderer UiSchema schema",
+  "description": "Meta Schema for the UiSchema of the FileChooserRenderer",
+  "allOf": [
+    {
+      "$ref": "../../control.uischema.def.json"
+    },
+    {
+      "properties": {
+        "options": {
+          "type": "object",
+          "properties": {
+            "fileSystems": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "LOCAL",
+                  "SPACE",
+                  "EMBEDDED",
+                  "CUSTOM_URL",
+                  "CONNECTED"
+                ]
+              }
+            },
+            "selectionMode": {
+              "type": "string",
+              "enum": ["FILE", "FOLDER"]
+            },
+            "isLocal": {
+              "type": "boolean"
+            },
+            "isWriter": {
+              "type": "boolean"
+            },
+            "fileExtension": {
+              "type": "string"
+            },
+            "fileExtensions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "connectedFSOptions": {
+              "type": "object",
+              "properties": {
+                "fileSystemType": {
+                  "type": "string"
+                },
+                "fileSystemSpecifier": {
+                  "type": "string"
+                },
+                "fileSystemConnectionMissing": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "portIndex": {
+                  "type": "number"
+                }
+              },
+              "required": ["fileSystemType", "portIndex"],
+              "additionalProperties": false
+            },
+            "spaceFSOptions": {
+              "type": "object",
+              "properties": {
+                "mountId": {
+                  "type": "string"
+                },
+                "spacePath": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "providedOptions": {
+          "type": "array"
+        }
+      }
+    }
+  ]
+}

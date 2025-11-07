@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/schema-draft-v4.json",
+  "title": "FileChooser Schema schema",
+  "description": "Meta Schema for the schema of the FileChooser",
+  "allOf": [
+    {
+      "$ref": "../../control.schema.def.json"
+    },
+    {
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "object"
+        }
+      }
+    }
+  ]
+}

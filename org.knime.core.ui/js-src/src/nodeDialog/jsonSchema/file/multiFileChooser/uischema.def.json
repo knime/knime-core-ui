@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json.schemastore.org/schema-draft-v4.json",
+  "title": "MultiFileChooserRenderer UiSchema schema",
+  "description": "Meta Schema for the UiSchema of the MultiFileChooserRenderer",
+  "allOf": [
+    {
+      "$ref": "../../control.uischema.def.json"
+    },
+    {
+      "properties": {
+        "options": {
+          "type": "object",
+          "properties": {
+            "fileSystems": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "LOCAL",
+                  "SPACE",
+                  "EMBEDDED",
+                  "CUSTOM_URL",
+                  "CONNECTED"
+                ]
+              }
+            },
+            "isLocal": {
+              "type": "boolean"
+            },
+            "fileExtensions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "connectedFSOptions": {
+              "type": "object",
+              "properties": {
+                "fileSystemType": {
+                  "type": "string"
+                },
+                "fileSystemSpecifier": {
+                  "type": "string"
+                },
+                "fileSystemConnectionMissing": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "portIndex": {
+                  "type": "number"
+                }
+              },
+              "required": ["fileSystemType", "portIndex"],
+              "additionalProperties": false
+            },
+            "spaceFSOptions": {
+              "type": "object",
+              "properties": {
+                "mountId": {
+                  "type": "string"
+                },
+                "spacePath": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "possibleFilterModes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "FILE",
+                  "FOLDER",
+                  "FILES_IN_FOLDERS",
+                  "FOLDERS",
+                  "FILES_AND_FOLDERS",
+                  "WORKFLOW"
+                ]
+              }
+            },
+            "filters": {
+              "type": "object",
+              "properties": {
+                "classId": {
+                  "type": "string"
+                },
+                "uiSchema": {
+                  "type": "object"
+                }
+              },
+              "required": ["classId", "uiSchema"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["possibleFilterModes", "filters"],
+          "additionalProperties": false
+        },
+        "providedOptions": {
+          "type": "array"
+        }
+      }
+    }
+  ]
+}

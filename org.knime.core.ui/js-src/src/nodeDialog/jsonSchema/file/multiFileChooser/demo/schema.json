@@ -1,0 +1,48 @@
+{
+  "$schema": "../schema.def.json",
+  "type": "object",
+  "properties": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "timeout": {
+          "type": "number"
+        },
+        "fsCategory": {
+          "type": "string"
+        },
+        "context": {
+          "type": "object",
+          "properties": {
+            "fsToString": {
+              "type": "string"
+            },
+            "fsSpecifier": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "filterMode": {
+      "type": "string",
+      "enum": [
+        "FILE",
+        "FOLDER",
+        "FILES_IN_FOLDERS",
+        "FOLDERS",
+        "FILES_AND_FOLDERS",
+        "WORKFLOW"
+      ]
+    },
+    "includeSubfolders": {
+      "type": "boolean"
+    },
+    "filters": {
+      "type": "object"
+    }
+  }
+}

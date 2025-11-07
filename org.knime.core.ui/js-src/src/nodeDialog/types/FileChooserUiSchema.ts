@@ -45,12 +45,6 @@ export interface ReaderOptions {
 }
 export interface FileChooserOptionsBase extends ReaderOptions {
   /**
-   * Not actually set statically in the options but rather provided dynamically via state provider mechanism.
-   * Listed here for ts typing completeness.
-   * The file system ID for custom file system connections
-   */
-  fileSystemId?: BackendType;
-  /**
    * Whether local file browsing is allowed
    */
   isLocal?: boolean;
@@ -103,6 +97,12 @@ type SingleSelectionOptionsBase = FileChooserOptionsBase &
  * Options for String-based file selection using the new API
  */
 export type StringFileChooserOptions = SingleSelectionOptionsBase & {
+  /**
+   * Not actually set statically in the options but rather provided dynamically via state provider mechanism.
+   * Listed here for ts typing completeness.
+   * The file system ID for custom file system connections
+   */
+  fileSystemId?: BackendType;
   /**
    * The file system to use. If null, fileSystemId from provided state will be used.
    */

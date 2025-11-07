@@ -96,17 +96,26 @@ public final class LegacyMultiFileSelection implements Persistable, WidgetGroup 
     /**
      * Constructor with initially selected path.
      *
+     * @param filterMode the initial filter mode. It must be listed in the associated MultiFileSelectionWidget.value()
+     *
      * @param path the path to the file or folder to select, not null.
      */
-    public LegacyMultiFileSelection(final FSLocation path) {
+    public LegacyMultiFileSelection(final MultiFileSelectionMode filterMode, final FSLocation path) {
         m_path = Objects.requireNonNull(path, "Path must not be null");
+        m_filterMode = filterMode;
     }
 
     /**
      * Constructor. The initial selected path is set to the default path.
+     *
+     * @param filterMode the initial filter mode. It must be listed in the associated MultiFileSelectionWidget.value()
      */
-    public LegacyMultiFileSelection() {
-        this(new FSLocation(FSCategory.LOCAL, ""));
+    public LegacyMultiFileSelection(final MultiFileSelectionMode filterMode) {
+        this(filterMode, new FSLocation(FSCategory.LOCAL, ""));
+    }
+
+    LegacyMultiFileSelection() {
+        // for framework.
     }
 
     /**
@@ -338,6 +347,17 @@ public final class LegacyMultiFileSelection implements Persistable, WidgetGroup 
             // in the model and was used in the old dialog. This way we ensure the same
             // filtering behavior in the dialog preview as in the model.
             FileAndFolderFilter filter = new FileAndFolderFilter(root, toFilterOptionsSettings());
+            if (!attrs.isDirectory() && root.equals(path.getParent())) {
+                /**
+                 * Legacy behavior: The old filter used to check for each file whether its parent satisfies the folder
+                 * name filter option. With the new visitor, instead, we check for the correct folder name already when
+                 * entering the folder with one exception: This method is never called for the root folder. So to
+                 * replicate old behavior, we have to check the root folder here.
+                 */
+                if (!filter.testFolderName(root)) {
+                    return false;
+                }
+            }
             return filter.test(path, attrs);
         }
 

@@ -112,11 +112,6 @@ final class MultiFileChooserRenderer extends WidgetTreeControlRendererSpec imple
         if (values.contains(MultiFileSelectionMode.WORKFLOW)) {
             throw new UiSchemaGenerationException("Workflow selection is not supported yet.");
         }
-        if (m_fileReaderAnnotation.isPresent()
-            && m_multiFileSelectionAnnotation.fileReaderWidget().fileExtensions().length > 0) {
-            throw new UiSchemaGenerationException("MultiFileSelectionWidget: fileReaderWidget attribute"
-                + " and @FileReaderWidget annotation are mutually exclusive");
-        }
     }
 
     @Override
@@ -135,8 +130,7 @@ final class MultiFileChooserRenderer extends WidgetTreeControlRendererSpec imple
 
             @Override
             public Optional<String[]> getFileExtensions() {
-                return m_fileReaderAnnotation.or(() -> Optional.of(m_multiFileSelectionAnnotation.fileReaderWidget()))
-                    .map(FileReaderWidget::fileExtensions).filter(exts -> exts.length > 0);
+                return m_fileReaderAnnotation.map(FileReaderWidget::fileExtensions).filter(exts -> exts.length > 0);
             }
 
             @Override
@@ -168,10 +162,11 @@ final class MultiFileChooserRenderer extends WidgetTreeControlRendererSpec imple
                         var elementTree = new WidgetTreeFactory().createTree(m_filtersClass, null);
 
                         /**
-                         * Parent widget trees are not supported for filter sub-UI schemas. I.e. the legacy button will not work
-                         * in there. TODO: UIEXT-1673: Remove this comment
+                         * Parent widget trees are not supported for filter sub-UI schemas. I.e. the legacy button will
+                         * not work in there. TODO: UIEXT-1673: Remove this comment
                          */
-                        return JsonFormsUiSchemaUtil.buildUISchema(List.of(elementTree), List.of(), m_nodeParametersInput);
+                        return JsonFormsUiSchemaUtil.buildUISchema(List.of(elementTree), List.of(),
+                            m_nodeParametersInput);
                     }
                 };
             }

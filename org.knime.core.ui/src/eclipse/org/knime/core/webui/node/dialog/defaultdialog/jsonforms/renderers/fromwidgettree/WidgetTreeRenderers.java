@@ -69,8 +69,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWi
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.ControlRendererSpec;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileReaderWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.file.LocalFileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.WidgetRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.credentials.LegacyCredentials;
@@ -106,7 +104,7 @@ public class WidgetTreeRenderers {
          * @param nodeParametersInput the node parameters input
          * @return the renderer spec
          */
-        ControlRendererSpec create(TreeNode<WidgetGroup> node, NodeParametersInput nodeParametersInput);
+        WidgetRendererSpec<?> create(TreeNode<WidgetGroup> node, NodeParametersInput nodeParametersInput);
     }
 
     record WidgetTreeNodeTester(//
@@ -120,7 +118,7 @@ public class WidgetTreeRenderers {
         }
 
         @Override
-        public ControlRendererSpec create(final TreeNode<WidgetGroup> node,
+        public WidgetRendererSpec<?> create(final TreeNode<WidgetGroup> node,
             final NodeParametersInput nodeParametersInput) {
             return creator().apply(node);
         }
@@ -174,14 +172,13 @@ public class WidgetTreeRenderers {
             hasAnnotationAssertingTypes(MultiFileSelectionWidget.class, MultiFileSelection.class,
                 LegacyMultiFileSelection.class)),
         new WidgetTreeNodeTesterWithInput(StringFileChooserRenderer::new,
-            hasOneOfAnnotations(FileSelectionWidget.class, FileReaderWidget.class, FileWriterWidget.class)
-                .and(node -> String.class.equals(node.getRawClass()))),
+            hasOneOfAnnotations(FileSelectionWidget.class, FileReaderWidget.class,
+                FileWriterWidget.class).and(node -> String.class.equals(node.getRawClass()))),
         new WidgetTreeNodeTester(TextRenderer::new, //
             node -> String.class.equals(node.getRawClass())
                 || ClassUtils.primitiveToWrapper(node.getRawClass()).equals(Character.class)), //
         new WidgetTreeNodeTester(node -> new TextMessageRenderer(getPresentAnnotation(node, TextMessage.class)),
-            hasAnnotationAssertingType(TextMessage.class, Void.class))
-    };
+            hasAnnotationAssertingTypes(TextMessage.class, Void.class))};
 
     private static Predicate<TreeNode<WidgetGroup>> hasAnnotation(final Class<? extends Annotation> annotationClass) {
         return node -> node.getPossibleAnnotations().contains(annotationClass)

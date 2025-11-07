@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json.schemastore.org/schema-draft-v4.json",
+  "title": "MultiFileChooser Schema schema",
+  "description": "Meta Schema for the schema of the MultiFileChooser",
+  "allOf": [
+    {
+      "$ref": "../../control.schema.def.json"
+    },
+    {
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "object"
+        },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "object"
+            },
+            "filterMode": {
+              "type": "object"
+            },
+            "includeSubfolders": {
+              "type": "object"
+            },
+            "filters": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -407,21 +407,6 @@ class UiSchemaOptionsFileSelectionTest {
         }
 
         @Test
-        void testMultiFileWithNestedFileReaderWidget() {
-            class Settings implements NodeParameters {
-                @Widget(title = "", description = "")
-                @MultiFileSelectionWidget(
-                    value = {MultiFileSelectionMode.FILE, MultiFileSelectionMode.FILES_IN_FOLDERS},
-                    fileReaderWidget = @FileReaderWidget(fileExtensions = {"txt", "json"}))
-                MultiFileSelection<DummyFileChooserFilters> m_multiFile =
-                    new MultiFileSelection<>(MultiFileSelectionMode.FILE, new DummyFileChooserFilters());
-            }
-            var uiSchema = buildUiSchema(Settings.class);
-            assertThatJson(uiSchema).inPath("$.elements[0].options.fileExtensions").isArray()//
-                .containsExactly("txt", "json");
-        }
-
-        @Test
         void testThrowsMultiFileWithoutMultiFileOption() {
             class Settings implements NodeParameters {
                 @Widget(title = "", description = "")
