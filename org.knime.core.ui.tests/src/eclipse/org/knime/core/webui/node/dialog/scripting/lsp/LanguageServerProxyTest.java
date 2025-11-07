@@ -68,17 +68,17 @@ final class LanguageServerProxyTest {
 
     private MockLanguageServer m_server;
 
-    private LanguageServerProxy proxy;
+    private LanguageServerProxy m_proxy;
 
     @BeforeEach
     void before() throws IOException {
         m_server = new MockLanguageServer();
-        proxy = new LanguageServerProxy(m_server.m_mockedPb);
+        m_proxy = new LanguageServerProxy(m_server.m_mockedPb);
     }
 
     @AfterEach
     void after() throws IOException {
-        proxy.close();
+        m_proxy.close();
         m_server.close();
     }
 
@@ -86,7 +86,7 @@ final class LanguageServerProxyTest {
     @Timeout(value = 2, unit = TimeUnit.SECONDS)
     void readMessageFromServer() throws Exception {
         var recievedMessage = new CompletableFuture<String>();
-        proxy.setMessageListener((l) -> recievedMessage.complete(l));
+        m_proxy.setMessageListener(recievedMessage::complete);
 
         var message = "Hello World";
         var messageBytes = message.getBytes(StandardCharsets.UTF_8);
@@ -94,14 +94,15 @@ final class LanguageServerProxyTest {
         m_server.writeStdout("\r\n");
         m_server.writeStdout(messageBytes);
 
-        Assertions.assertEquals(message, recievedMessage.get());
+        Assertions.assertEquals(message, recievedMessage.get(),
+            "The proxy should correctly read the message from the server");
     }
 
     @Test
     @Timeout(value = 2, unit = TimeUnit.SECONDS)
     void readMessageWithSpecialCharsFromServer() throws Exception {
         var recievedMessage = new CompletableFuture<String>();
-        proxy.setMessageListener((l) -> recievedMessage.complete(l));
+        m_proxy.setMessageListener(recievedMessage::complete);
 
         var message = "Hello Wörld";
         var messageBytes = message.getBytes(StandardCharsets.UTF_8);
@@ -109,14 +110,15 @@ final class LanguageServerProxyTest {
         m_server.writeStdout("\r\n");
         m_server.writeStdout(messageBytes);
 
-        Assertions.assertEquals(message, recievedMessage.get());
+        Assertions.assertEquals(message, recievedMessage.get(),
+            "The proxy should correctly read messages with special characters from the server");
     }
 
     @Test
     @Timeout(value = 2, unit = TimeUnit.SECONDS)
     void ignoresContentTypeHeaderFromServer() throws Exception {
         var recievedMessage = new CompletableFuture<String>();
-        proxy.setMessageListener((l) -> recievedMessage.complete(l));
+        m_proxy.setMessageListener(recievedMessage::complete);
 
         var message = "foo";
         var messageBytes = message.getBytes(StandardCharsets.UTF_8);
@@ -126,14 +128,15 @@ final class LanguageServerProxyTest {
         m_server.writeStdout("\r\n");
         m_server.writeStdout(messageBytes);
 
-        Assertions.assertEquals(message, recievedMessage.get());
+        Assertions.assertEquals(message, recievedMessage.get(),
+            "The proxy should ignore Content-Type headers and still read the message correctly");
     }
 
     @Test
     @Timeout(value = 2, unit = TimeUnit.SECONDS)
     void writesMessageToServer() throws Exception {
         var message = "Hello world";
-        proxy.sendMessage(message);
+        m_proxy.sendMessage(message);
 
         m_server.expectStdin("Content-Length: " + message.getBytes(StandardCharsets.UTF_8).length + "\r\n");
         m_server.expectStdin("\r\n");
@@ -144,7 +147,7 @@ final class LanguageServerProxyTest {
     @Timeout(value = 2, unit = TimeUnit.SECONDS)
     void writesMessageWithSpecialCharsToServer() throws Exception {
         var message = "Hello Wörld";
-        proxy.sendMessage(message);
+        m_proxy.sendMessage(message);
 
         m_server.expectStdin("Content-Length: " + message.getBytes(StandardCharsets.UTF_8).length + "\r\n");
         m_server.expectStdin("\r\n");
@@ -192,7 +195,7 @@ final class LanguageServerProxyTest {
         void expectStdin(final String expected) throws IOException {
             var data = new byte[expected.getBytes(StandardCharsets.UTF_8).length];
             readStdin(data);
-            Assertions.assertEquals(expected, new String(data));
+            Assertions.assertEquals(expected, new String(data), "Expected stdin to match the sent message");
         }
 
         void close() throws IOException {
