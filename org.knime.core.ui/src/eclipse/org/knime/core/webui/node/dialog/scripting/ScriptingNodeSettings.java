@@ -46,7 +46,7 @@
  * History
  *   Nov 16, 2023 (benjamin): created
  */
-package org.knime.scripting.editor;
+package org.knime.core.webui.node.dialog.scripting;
 
 import java.util.Map;
 import java.util.Optional;

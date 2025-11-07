@@ -46,9 +46,9 @@
  * History
  *   Apr 4, 2025 (benjaminwilhelm): created
  */
-package org.knime.scripting.editor;
+package org.knime.core.webui.node.dialog.scripting;
 
-import org.knime.scripting.editor.InputOutputModelNameAndTypeUtils.NameAndType;
+import org.knime.core.webui.node.dialog.scripting.InputOutputModelNameAndTypeUtils.NameAndType;
 
 /**
  * A request for the K-AI code generation.

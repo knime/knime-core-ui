@@ -46,7 +46,7 @@
  * History
  *   Aug 19, 2024 (david): created
  */
-package org.knime.scripting.editor;
+package org.knime.core.webui.node.dialog.scripting;
 
 import java.util.HashMap;
 import java.util.Map;
