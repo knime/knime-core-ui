@@ -46,7 +46,7 @@
  * History
  *   Oct 6, 2025 (benjaminwilhelm): created
  */
-package org.knime.scripting.editor;
+package org.knime.core.webui.node.dialog.scripting;
 
 import java.io.IOException;
 import java.io.InputStream;

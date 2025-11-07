@@ -46,7 +46,7 @@
  * History
  *   Aug 10, 2022 (benjamin): created
  */
-package org.knime.scripting.editor;
+package org.knime.core.webui.node.dialog.scripting;
 
 import java.util.Arrays;
 import java.util.Objects;

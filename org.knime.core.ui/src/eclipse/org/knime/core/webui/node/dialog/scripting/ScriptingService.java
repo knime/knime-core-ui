@@ -46,10 +46,10 @@
  * History
  *   Jul 22, 2022 (benjamin): created
  */
-package org.knime.scripting.editor;
+package org.knime.core.webui.node.dialog.scripting;
 
-import static org.knime.scripting.editor.CodeKaiHandlerDependency.getCodeKaiHandler;
-import static org.knime.scripting.editor.CodeKaiHandlerDependency.getProjectId;
+import static org.knime.core.webui.node.dialog.scripting.CodeKaiHandlerDependency.getCodeKaiHandler;
+import static org.knime.core.webui.node.dialog.scripting.CodeKaiHandlerDependency.getProjectId;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -69,9 +69,9 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.VariableType;
+import org.knime.core.webui.node.dialog.scripting.lsp.LanguageServerProxy;
 import org.knime.gateway.api.webui.entity.KaiUsageEnt;
 import org.knime.gateway.impl.webui.kai.CodeKaiHandler;
-import org.knime.scripting.editor.lsp.LanguageServerProxy;
 
 /**
  * A base scripting service that provides an JSON-RPC endpoint for a scripting dialog with {@link #getJsonRpcService()}.

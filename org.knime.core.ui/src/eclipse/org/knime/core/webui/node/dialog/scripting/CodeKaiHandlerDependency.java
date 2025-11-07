@@ -44,49 +44,37 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Jul 30, 2024 (david): created
+ *   Apr 4, 2025 (benjaminwilhelm): created
  */
-package org.knime.scripting.editor;
+package org.knime.core.webui.node.dialog.scripting;
 
-import java.util.Map;
+import java.util.Optional;
 
-import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.NodeAndVariableSettingsRO;
-import org.knime.core.webui.node.dialog.NodeAndVariableSettingsWO;
-import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.data.DataServiceContext;
+import org.knime.gateway.impl.webui.kai.CodeKaiHandler;
+import org.knime.gateway.impl.webui.kai.CodeKaiHandler.ProjectId;
 
 /**
- * Used by the {@link ScriptingNodeSettingsService} to supply settings data to the editor and then save it again.
+ * Utilities for getting the {@link CodeKaiHandler} and projectId from the {@link DataServiceContext}.
  *
- * @author David Hickey, TNG Technology Consulting GmbH
+ * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("restriction") // VariableSettings is yet not public API
-public interface GenericSettingsIOManager {
+@SuppressWarnings("restriction")
+final class CodeKaiHandlerDependency {
 
     /**
-     * Convert the provided NodeSettings to a map.
-     *
-     * @param settings the settings to read from
-     * @return the map representation of the settings
-     * @throws InvalidSettingsException if the settings are invalid. This could happen if the user has overridden
-     *             specific settings by flow variable, and the resulting settings are invalid. Settings supplied by us
-     *             should always be valid.
+     * @return the {@link CodeKaiHandler} from the current data service dependencies or empty if K-AI is not installed
      */
-    Map<String, Object> convertNodeSettingsToMap(Map<SettingsType, NodeAndVariableSettingsRO> settings)
-        throws InvalidSettingsException;
+    static Optional<CodeKaiHandler> getCodeKaiHandler() {
+        return Optional.ofNullable(DataServiceContext.get().getOtherDependency(CodeKaiHandler.class));
+    }
 
     /**
-     * Write the provided map to the provided NodeSettings. Must also set the variable settings. In most cases it
-     * suffices to call {@link ScriptingNodeSettings#copyVariableSettings(Map, Map)} with the previous settings.
-     *
-     * @param data the map to read from
-     * @param previousSettings the version the node settings that were used when opening the dialog
-     * @param settings the settings to write to
-     * @throws InvalidSettingsException if the settings are invalid. This should only happen in the event of an
-     *             implementation error, because we expect the frontend to give us valid settings.
+     * @return the projectId from the current data service dependencies or {@code null} if there is none
      */
-    void writeMapToNodeSettings(final Map<String, Object> data,
-        Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
-        Map<SettingsType, NodeAndVariableSettingsWO> settings) throws InvalidSettingsException;
-
+    static String getProjectId() {
+        return Optional.ofNullable(DataServiceContext.get().getOtherDependency(ProjectId.class)) //
+            .map(pid -> pid.projectId()) //
+            .orElse(null);
+    }
 }

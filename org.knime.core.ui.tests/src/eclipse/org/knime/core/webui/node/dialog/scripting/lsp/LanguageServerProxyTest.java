@@ -43,7 +43,7 @@
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
  */
-package org.knime.scripting.editor.lsp;
+package org.knime.core.webui.node.dialog.scripting.lsp;
 
 import java.io.IOException;
 import java.io.PipedInputStream;

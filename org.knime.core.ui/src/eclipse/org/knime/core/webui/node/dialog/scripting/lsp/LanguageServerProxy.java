@@ -46,7 +46,7 @@
  * History
  *   Jul 1, 2022 (benjamin): created
  */
-package org.knime.scripting.editor.lsp;
+package org.knime.core.webui.node.dialog.scripting.lsp;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

@@ -46,7 +46,7 @@
  * History
  *   11 Feb 2025 (chaubold): created
  */
-package org.knime.scripting.editor;
+package org.knime.core.webui.node.dialog.scripting;
 
 import java.util.Arrays;
 import java.util.stream.Stream;

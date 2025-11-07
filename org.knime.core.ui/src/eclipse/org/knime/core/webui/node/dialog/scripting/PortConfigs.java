@@ -46,7 +46,7 @@
  * History
  *   Apr 17, 2024 (Paul Bärnreuther): created
  */
-package org.knime.scripting.editor;
+package org.knime.core.webui.node.dialog.scripting;
 
 import java.util.Collections;
 import java.util.List;
