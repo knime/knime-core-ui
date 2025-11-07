@@ -124,6 +124,7 @@ export default defineConfig(({ mode }) => {
     ...(isHTMLBuildMode ? { base: "./" } : {}),
     build: {
       lib: getCurrentLibrary(mode as ComponentLibraries),
+      outDir: "../../../org.knime.core.ui/js-src/dist",
       emptyOutDir: false,
       cssCodeSplit: false,
       rollupOptions: isHTMLBuildMode
@@ -208,7 +209,6 @@ export default defineConfig(({ mode }) => {
         exclude: [
           "buildtools/",
           "coverage/**",
-          "dist/**",
           "lib/**",
           "**/*.d.ts",
           "**/__tests__/**",

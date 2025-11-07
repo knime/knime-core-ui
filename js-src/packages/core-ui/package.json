@@ -26,7 +26,7 @@
     "type-check": "vue-tsc -p tsconfig.vitest.json",
     "format": "prettier --cache --write .",
     "format:check": "prettier --cache --check .",
-    "cleanDist": "rimraf dist",
+    "cleanDist": "rimraf ../../../org.knime.core.ui/js-src/dist",
     "lint": "run-p 'lint:* -- --fix'",
     "lint:js": "eslint . --cache --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts",
     "lint:css": "stylelint --cache '**/*.{css,vue}'",
@@ -38,7 +38,7 @@
     "coverage": "run-p coverage:*",
     "coverage:unit": "vitest run --coverage ",
     "coverage:integration": "vitest run --coverage --mode integration",
-    "sbom:merge": "tsx scripts/merge-sbom.ts dist/sbom/ bom.json && rimraf dist/sbom",
+    "sbom:merge": "tsx scripts/merge-sbom.ts ../../../org.knime.core.ui/js-src/dist/sbom bom.json && rimraf ../../../org.knime.core.ui/js-src/dist/sbom",
     "postinstall": "license-check -c"
   },
   "license": "UNLICENSED",
