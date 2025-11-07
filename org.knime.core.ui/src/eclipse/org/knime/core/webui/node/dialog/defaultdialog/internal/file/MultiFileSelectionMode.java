@@ -52,17 +52,19 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
  */
 public enum MultiFileSelectionMode {
         /** Select a single file */
-        FILE,
+        FILE("File", "Select a single file."),
         /** Select a single folder */
-        FOLDER,
+        FOLDER("Folder", "Select a single folder."),
         /** Select a folder and apply filters to files within it */
-        FILES_IN_FOLDERS(true, false),
+        FILES_IN_FOLDERS("Files in folders", "Select a folder and apply filters to select files within it.", true,
+            false),
         /** Select a folder and apply filters to subfolders within it */
-        FOLDERS(false, true),
+        FOLDERS("Folders", "Select a folder and apply filters to select subfolders within it.", false, true),
         /** Select a folder and apply filters to both files and subfolders within it */
-        FILES_AND_FOLDERS(true, true),
+        FILES_AND_FOLDERS("Files and folders",
+            "Select a folder and apply filters to select both files and subfolders within it.", true, true),
         /** Select a single workflow */
-        WORKFLOW;
+        WORKFLOW("Workflow", "Select a single workflow.");
 
     private final boolean m_includeFiles;
 
@@ -70,16 +72,25 @@ public enum MultiFileSelectionMode {
 
     private final boolean m_isSingleSelection;
 
-    MultiFileSelectionMode(final boolean includeFiles, final boolean includeFolders) {
+    private final String m_title;
+
+    private final String m_description;
+
+    MultiFileSelectionMode(final String title, final String description, final boolean includeFiles,
+        final boolean includeFolders) {
         m_includeFiles = includeFiles;
         m_includeFolders = includeFolders;
         m_isSingleSelection = false;
+        m_title = title;
+        m_description = description;
     }
 
-    MultiFileSelectionMode() {
+    MultiFileSelectionMode(final String title, final String description) {
         m_includeFiles = false;
         m_includeFolders = false;
         m_isSingleSelection = true;
+        m_title = title;
+        m_description = description;
     }
 
     /**
@@ -107,6 +118,25 @@ public enum MultiFileSelectionMode {
         if (m_isSingleSelection) {
             throw new IllegalStateException("The selection mode " + this + " does not support multi-selection.");
         }
+    }
+
+    /**
+     * Gets the description of this selection mode.
+     *
+     * @return the description
+     */
+    public String getDescription() {
+        return m_description;
+
+    }
+
+    /**
+     * Gets the title of this selection mode.
+     *
+     * @return the title
+     */
+    public String getTitle() {
+        return m_title;
     }
 
 }

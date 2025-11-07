@@ -240,7 +240,7 @@ class WebUINodeFactoryTest {
         final var options = nodeDescription.getDialogOptionGroups().get(0).getOptions();
         assertThat(options).hasSize(4);
 
-        assertThat(options.get(0).getName()).isEqualTo("Type");
+        assertThat(options.get(0).getName()).isEqualTo("Mode");
         assertThat(options.get(1).getName()).isEqualTo("Source");
         assertThat(options.get(2).getName()).isEqualTo("Include Subfolders");
         assertThat(options.get(3).getName()).isEqualTo("Some filter setting");

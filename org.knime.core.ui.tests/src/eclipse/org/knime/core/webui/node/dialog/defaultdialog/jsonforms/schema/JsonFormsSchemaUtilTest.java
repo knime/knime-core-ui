@@ -70,6 +70,9 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.node.parameters.Widget;
@@ -219,35 +222,67 @@ class JsonFormsSchemaUtilTest {
         testSettings(ModifiedDescriptionWithinArraySettings.class);
     }
 
-    private static class ArrayWidgetWithConfigKeysTest implements WidgetGroup {
-        /**
-         * containing the modified description from {@link ChangeDescription}.
-         */
-        private static String SNAPSHOT = "{\"widgetGroup\":{\"type\":\"array\"," //
-            + "\"configKeys\":[\"configKey\"]," //
-            + "\"items\":" //
-            + "{\"type\":\"object\",\"properties\":" //
-            + "{\"test\":{\"type\":\"integer\",\"format\":\"int32\",\"default\":0,\"description\":\"modified description\"}" //
-            + "}}}}";
-
-        static final class FieldReference implements ParameterReference<String> {
-
-        }
-
-        static final class WidgetGroupSettings implements WidgetGroup {
-
-            @Widget(title = "", description = "some description")
-            @Modification.WidgetReference(ChangeDescription.FieldReference.class)
-            int test;
-        }
-
-        @Modification(ChangeDescription.class)
-        WidgetGroupSettings[] m_configKey;
-
+    @Test
+    void testInternalDescriptionModificationForMultiFileSelection() throws JsonProcessingException {
+        testSettings(MultiFileSelectionSetting.class);
     }
 
-    @Test
-    void testArrayWidgetWithConfigKeys() throws JsonProcessingException {
+    private static class MultiFileSelectionSetting implements WidgetGroup {
+        private static String SNAPSHOT =
+            """
+                    {\
+                        "multiFileSelection": {\
+                          "type": "object",\
+                          "properties": {\
+                            "filterMode": {\
+                              "oneOf": [\
+                                {\
+                                  "const": "FILE",\
+                                  "title": "File"\
+                                },\
+                                {\
+                                  "const": "FOLDER",\
+                                  "title": "Folder"\
+                                },\
+                                {\
+                                  "const": "FILES_IN_FOLDERS",\
+                                  "title": "Files in folders"\
+                                },\
+                                {\
+                                  "const": "FOLDERS",\
+                                  "title": "Folders"\
+                                },\
+                                {\
+                                  "const": "FILES_AND_FOLDERS",\
+                                  "title": "Files and folders"\
+                                },\
+                                {\
+                                  "const": "WORKFLOW",\
+                                  "title": "Workflow"\
+                                }\
+                              ],\
+                              "title": "Mode",\
+                              "description": "Determine the mode how to select one or multiple files.\\n<ul>\\n<li><b>File</b>: Select a single file.</li>\\n<li><b>Files in folders</b>: Select a folder and apply filters to select files within it.</li>\\n</ul>",\
+                              "default": "FILE"\
+                            },\
+                            "filters": {},\
+                            "includeSubfolders": {\
+                              "type": "boolean",\
+                              "title": "Include Subfolders",\
+                              "description": "Whether to include subfolders when selecting multiple files within a folder.",\
+                              "default": false\
+                            },\
+                            "path": {\
+                              "type": "object",\
+                              "title": "Source",\
+                              "description": "The path to the file or folder to select."\
+                            }\
+                          }\
+                        }\
+                      }""";
+
+        @MultiFileSelectionWidget({MultiFileSelectionMode.FILE, MultiFileSelectionMode.FILES_IN_FOLDERS})
+        MultiFileSelection<?> m_multiFileSelection;
 
     }
 

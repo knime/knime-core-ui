@@ -54,6 +54,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,11 +62,17 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.function.TriConsumer;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.ArrayParentNode;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.Tree;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.util.DescriptionUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.util.DescriptionUtil.TitleAndDescription;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
+import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetModificationUtil.WidgetTreeNodeModifier.WidgetTreeNodeAnnotationBuilder;
+import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 
 /**
@@ -170,7 +177,8 @@ final class WidgetModificationUtil {
             final var existingAnnotation =
                 m_widgetTreeNode.getAnnotation(annotationClass).orElseThrow(() -> new IllegalStateException(
                     "Annotation cannot be modified because it is not present: " + annotationClass.getSimpleName()));
-            return new WidgetTreeNodeAnnotationBuilder<>(annotationClass, existingAnnotation);
+            return new WidgetTreeNodeAnnotationBuilder<>(m_widgetTreeNode, m_addOrReplaceAnnotation, annotationClass,
+                existingAnnotation);
         }
 
         @Override
@@ -179,7 +187,8 @@ final class WidgetModificationUtil {
                 throw new IllegalStateException(
                     "Annotation cannot be added because it is already present: " + annotationClass.getSimpleName());
             }
-            return new WidgetTreeNodeAnnotationBuilder<>(annotationClass, null);
+            return new WidgetTreeNodeAnnotationBuilder<>(m_widgetTreeNode, m_addOrReplaceAnnotation, annotationClass,
+                null);
         }
 
         @Override
@@ -191,7 +200,7 @@ final class WidgetModificationUtil {
             m_widgetTreeNode.removeAnnotation(annotationClass);
         }
 
-        private final class WidgetTreeNodeAnnotationBuilder<T extends Annotation>
+        static final class WidgetTreeNodeAnnotationBuilder<T extends Annotation>
             implements Modification.AnnotationModifier {
 
             private final Map<String, Object> m_properties = new HashMap<>();
@@ -200,9 +209,17 @@ final class WidgetModificationUtil {
 
             private final T m_existingAnnotation;
 
-            public WidgetTreeNodeAnnotationBuilder(final Class<T> annotationClass, final T existingAnnotation) {
+            private final TriConsumer<TreeNode<WidgetGroup>, Class<? extends Annotation>, Annotation> m_addOrReplaceAnnotation;
+
+            private final TreeNode<WidgetGroup> m_widgetTreeNode;
+
+            public WidgetTreeNodeAnnotationBuilder(final TreeNode<WidgetGroup> widgetTreeNode,
+                final TriConsumer<TreeNode<WidgetGroup>, Class<? extends Annotation>, Annotation> addOrReplaceAnnotation,
+                final Class<T> annotationClass, final T existingAnnotation) {
                 m_annotationClass = annotationClass;
                 m_existingAnnotation = existingAnnotation;
+                m_addOrReplaceAnnotation = addOrReplaceAnnotation;
+                m_widgetTreeNode = widgetTreeNode;
             }
 
             @Override
@@ -286,6 +303,60 @@ final class WidgetModificationUtil {
 
         }
 
+    }
+
+    static final class InternalModificationsUtil {
+        private InternalModificationsUtil() {
+            // utility class
+        }
+
+        static void performInternalModifications(final Tree<WidgetGroup> tree,
+            final TriConsumer<TreeNode<WidgetGroup>, Class<? extends Annotation>, Annotation> addOrReplaceAnnotation) {
+            tree.getWidgetAndWidgetTreeNodes()
+                .forEach(treeNode -> performInternalModificationsForNode(treeNode, addOrReplaceAnnotation));
+
+        }
+
+        private static void performInternalModificationsForNode(final TreeNode<WidgetGroup> node,
+            final TriConsumer<TreeNode<WidgetGroup>, Class<? extends Annotation>, Annotation> addOrReplaceAnnotation) {
+            if (node instanceof Tree<WidgetGroup> treeNode) {
+                addMultiFileSelectionFilterModesToDescription(treeNode, addOrReplaceAnnotation);
+            } else if (node instanceof ArrayParentNode<WidgetGroup> arrayParentNode) {
+                performInternalModifications(arrayParentNode.getElementTree(), addOrReplaceAnnotation);
+            }
+        }
+
+        private static void addMultiFileSelectionFilterModesToDescription(final Tree<WidgetGroup> treeNode,
+            final TriConsumer<TreeNode<WidgetGroup>, Class<? extends Annotation>, Annotation> addOrReplaceAnnotation) {
+            treeNode.getAnnotation(MultiFileSelectionWidget.class).map(MultiFileSelectionWidget::value)
+                .ifPresent(filterModes -> addFilterModesToDescription(treeNode.getChildByName("filterMode"),
+                    filterModes, addOrReplaceAnnotation));
+        }
+
+        private static void addFilterModesToDescription(final TreeNode<WidgetGroup> filterModeNode,
+            final MultiFileSelectionMode[] filterModes,
+            final TriConsumer<TreeNode<WidgetGroup>, Class<? extends Annotation>, Annotation> addOrReplaceAnnotation) {
+            final var existingWidgetAnnotation = filterModeNode.getAnnotation(Widget.class)
+                .orElseThrow(() -> new IllegalStateException("Expected Widget annotation on filterMode node"));
+            if (existingWidgetAnnotation.description().contains("<ul>")) {
+                // already modified
+                return;
+            }
+            final var entries = Arrays.stream(filterModes)
+                .map(InternalModificationsUtil::getMultiFileSelectionModeTitleAndDescription).toList();
+            DescriptionUtil.getDescriptionsUlString(entries);
+            new WidgetTreeNodeAnnotationBuilder<>(filterModeNode, addOrReplaceAnnotation, Widget.class,
+                existingWidgetAnnotation)
+                    .withProperty("description",
+                        existingWidgetAnnotation.description() + DescriptionUtil.getDescriptionsUlString(entries))
+                    .modify();
+
+        }
+
+        private static TitleAndDescription
+            getMultiFileSelectionModeTitleAndDescription(final MultiFileSelectionMode mode) {
+            return new TitleAndDescription(mode.getTitle(), mode.getDescription());
+        }
     }
 
 }

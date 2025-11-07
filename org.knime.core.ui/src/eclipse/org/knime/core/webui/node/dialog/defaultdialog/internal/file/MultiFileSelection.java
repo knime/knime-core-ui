@@ -103,7 +103,7 @@ public final class MultiFileSelection<F extends FileChooserFilters> implements P
     /**
      * The selection mode (FILE or FOLDER).
      */
-    @Widget(title = "Type", description = "The selection mode.")
+    @Widget(title = "Mode", description = "Determine the mode how to select one or multiple files.")
     public MultiFileSelectionMode m_filterMode = MultiFileSelectionMode.FILE; // NOSONAR
 
     /**

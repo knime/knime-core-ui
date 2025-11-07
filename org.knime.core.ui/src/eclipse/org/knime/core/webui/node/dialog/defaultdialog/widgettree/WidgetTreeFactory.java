@@ -48,6 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widgettree;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetModificationUtil.InternalModificationsUtil.performInternalModifications;
+
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
@@ -217,6 +219,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
     public Tree<WidgetGroup> createTree(final Class<? extends WidgetGroup> rootClass, final SettingsType settingsType) {
         final var tree = super.createTree(rootClass, settingsType);
         resolveWidgetModifications(tree);
+        performInternalModifications(tree, super::performAddOrReplaceAnnotation);
         propagateLayoutAdvancedAndEffectAnnotationsToChildren(tree);
         return tree;
     }
@@ -260,6 +263,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
                 resolveWidgetModifications(apn);
             }
         });
+
     }
 
     private void resolveWidgetModifications(final ArrayParentNode<WidgetGroup> arrayParentNode) {
