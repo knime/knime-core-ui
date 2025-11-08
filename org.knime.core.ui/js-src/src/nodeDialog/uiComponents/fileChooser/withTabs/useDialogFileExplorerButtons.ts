@@ -1,5 +1,6 @@
 import { type Ref, computed, onMounted, watch } from "vue";
 
+import type { FileSelectionMode } from "@/nodeDialog/types/FileChooserUiSchema";
 import type { SelectedItem } from "../DialogFileExplorer.vue";
 import { GO_INTO_FOLDER_INJECTION_KEY } from "../settingsSubPanel/SettingsSubPanelForFileChooser.vue";
 import { useApplyButton } from "../settingsSubPanel/useApplyButton";
@@ -14,7 +15,7 @@ export const useDialogFileExplorerButtons = ({
     chooseSelectedItem: () => Promise<void>;
     goIntoSelectedFolder: () => Promise<void>;
   };
-  selectionMode: Ref<"FILE" | "FOLDER">;
+  selectionMode: Ref<FileSelectionMode>;
   selectedItem: Ref<SelectedItem | null>;
   isRootParent: Ref<boolean>;
 }) => {
@@ -51,15 +52,21 @@ export const useDialogFileExplorerButtons = ({
       if (!newSelectedItem) {
         goIntoFolderButtonDisabled.value = true;
         applyButtonDisabled.value = mode === "FILE" || isRoot;
+        applyText.value = mode === "FILE" ? "Choose file" : "Choose folder";
       } else if (newSelectedItem.selectionType === "FILE") {
-        applyButtonDisabled.value = mode !== "FILE";
+        applyButtonDisabled.value = mode === "FOLDER";
         goIntoFolderButtonDisabled.value = true;
+        applyText.value = mode === "FOLDER" ? "Choose folder" : "Choose file";
       } else if (newSelectedItem.selectionType === "FOLDER") {
-        applyButtonDisabled.value = mode !== "FOLDER";
+        applyButtonDisabled.value = mode === "FILE";
         goIntoFolderButtonDisabled.value = false;
+        applyText.value = mode === "FILE" ? "Choose file" : "Choose folder";
+      } else if (newSelectedItem.selectionType === "FILE_OR_FOLDER") {
+        // only possible if mode is FILE_OR_FOLDER and item is determined via the text input field
+        applyButtonDisabled.value = false;
+        goIntoFolderButtonDisabled.value = true;
+        applyText.value = "Choose";
       }
-
-      applyText.value = `Choose ${mode === "FILE" ? "file" : "folder"}`;
     },
     { immediate: true },
   );

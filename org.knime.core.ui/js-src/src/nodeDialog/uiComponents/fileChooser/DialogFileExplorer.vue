@@ -10,6 +10,8 @@ import {
 } from "@knime/components";
 import HouseIcon from "@knime/styles/img/icons/house.svg";
 
+import type { FileSelectionMode } from "@/nodeDialog/types/FileChooserUiSchema";
+
 import useFileChooserBackend from "./composables/useFileChooserBackend";
 import type {
   BackendType,
@@ -27,7 +29,7 @@ export interface DialogFileExplorerProps {
   appendedExtension?: string | null;
   backendType: BackendType;
   breadcrumbRoot?: string | null;
-  selectionMode?: "FILE" | "FOLDER";
+  selectionMode?: FileSelectionMode;
 }
 
 const currentPath = ref<string | null>(null);
@@ -44,12 +46,25 @@ const props = withDefaults(defineProps<DialogFileExplorerProps>(), {
 
 export type SelectedItem = {
   name: string;
-  selectionType: "FILE" | "FOLDER";
+  selectionType: FileSelectionMode;
 } | null;
 
 const selectedItem = ref<SelectedItem>(null);
 
 const allItemsInCurrentFolder = ref<FileExplorerItem[]>([]);
+
+const selectionModeToSelectableItems: Record<
+  FileSelectionMode,
+  FileSelectionMode[]
+> = {
+  FILE: ["FILE"],
+  FOLDER: ["FOLDER"],
+  FILE_OR_FOLDER: ["FILE", "FOLDER", "FILE_OR_FOLDER"],
+};
+
+const selectableItems = computed(
+  () => selectionModeToSelectableItems[props.selectionMode],
+);
 
 const displayedItemsInCurrentFolder = computed(() =>
   allItemsInCurrentFolder.value.map((item) => ({
@@ -57,7 +72,7 @@ const displayedItemsInCurrentFolder = computed(() =>
     ...{
       disabled:
         item.disabled ||
-        (props.selectionMode === "FOLDER" && !item.isDirectory),
+        (!selectableItems.value.includes("FILE") && !item.isDirectory),
     },
   })),
 );
@@ -192,10 +207,16 @@ const onChangeSelectedItemIds = (itemIds: string[]) => {
 
 // this is fine since we only render the field when isWriter and selectionMode is FILE
 const inputFieldModelValue = computed({
-  get: () =>
-    selectedItem.value?.selectionType === props.selectionMode
-      ? selectedItem.value?.name
-      : "",
+  get: () => {
+    const selectedItemValue = selectedItem.value;
+    if (
+      selectedItemValue &&
+      selectableItems.value.includes(selectedItemValue.selectionType)
+    ) {
+      return selectedItemValue.name;
+    }
+    return "";
+  },
   set: (value) => {
     selectedItem.value = {
       name: value,

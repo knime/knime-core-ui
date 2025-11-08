@@ -1,3 +1,5 @@
+import type { MultiFileFilterMode } from "@/nodeDialog/types/FileChooserUiSchema";
+
 import type { FileChooserValue } from "./FileChooserProps";
 
 export interface Item {
@@ -53,12 +55,7 @@ export type BackendType =
 
 export type MultiFileSelection = {
   path: FileChooserValue;
-  filterMode:
-    | "FILE"
-    | "FOLDER"
-    | "FOLDERS"
-    | "FILES_IN_FOLDERS"
-    | "FILES_AND_FOLDERS";
+  filterMode: MultiFileFilterMode;
   includeSubfolders: boolean;
   filters: Record<string, any>;
 };

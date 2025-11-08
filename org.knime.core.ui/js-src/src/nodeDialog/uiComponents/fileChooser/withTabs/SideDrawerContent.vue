@@ -23,11 +23,7 @@ import ConnectionPreventsTab from "./ConnectionPreventsTab.vue";
 import KnimeIcon from "./knime.svg";
 import UrlTab from "./url/UrlTab.vue";
 
-type PropType = FileChooserProps & {
-  selectionMode: "FILE" | "FOLDER";
-};
-
-const props = defineProps<PropType>();
+const props = defineProps<FileChooserProps>();
 const emit = defineEmits(["update:modelValue", "applyAndClose"]);
 
 const uischema = toRef(props, "uischema");
@@ -39,6 +35,10 @@ const { onFsCategoryUpdate, onPathUpdate, onTimeoutUpdate } =
     },
     uischema,
   );
+
+const selectionMode = computed(
+  () => uischema.value.options?.selectionMode ?? "FILE",
+);
 const {
   filteredExtensions,
   appendedExtension,

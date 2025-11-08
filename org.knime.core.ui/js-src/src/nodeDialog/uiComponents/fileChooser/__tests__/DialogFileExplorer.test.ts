@@ -435,4 +435,119 @@ describe("DialogFileExplorer.vue", () => {
       expect(inputField.props().modelValue).toBe("");
     });
   });
+
+  describe("using the FILE_OR_FOLDER selection mode", () => {
+    beforeEach(() => {
+      props.selectionMode = "FILE_OR_FOLDER";
+    });
+
+    it("does not disable files in FILE_OR_FOLDER mode", async () => {
+      const wrapper = shallowMountFileChooser();
+      await flushPromises();
+
+      const explorerProps = wrapper.findComponent(FileExplorer).props();
+      const fileItem = explorerProps.items.find(
+        (item: any) => !item.isDirectory,
+      );
+
+      expect(fileItem?.disabled).toBe(false);
+    });
+
+    it("does not disable folders in FILE_OR_FOLDER mode", async () => {
+      const wrapper = shallowMountFileChooser();
+      await flushPromises();
+
+      const explorerProps = wrapper.findComponent(FileExplorer).props();
+      const folderItem = explorerProps.items.find(
+        (item: any) => item.isDirectory,
+      );
+
+      expect(folderItem?.disabled).toBe(false);
+    });
+
+    it("allows selecting and choosing a file", async () => {
+      const wrapper = shallowMountFileChooser();
+      await flushPromises();
+
+      await wrapper
+        .findComponent(FileExplorer)
+        .vm.$emit("update:selectedItemIds", [fileName]);
+
+      await onApply.value!();
+
+      expect(dataServiceSpy).toHaveBeenCalledWith({
+        method: "fileChooser.getFilePath",
+        options: ["local", null, fileName, null],
+      });
+      await flushPromises();
+      expect(wrapper.emitted("chooseItem")).toStrictEqual([[filePath]]);
+    });
+
+    it("allows selecting and choosing a folder", async () => {
+      const wrapper = shallowMountFileChooser();
+      await flushPromises();
+
+      await wrapper
+        .findComponent(FileExplorer)
+        .vm.$emit("update:selectedItemIds", [directoryName]);
+
+      await onApply.value!();
+
+      expect(dataServiceSpy).toHaveBeenCalledWith({
+        method: "fileChooser.getFilePath",
+        options: ["local", null, directoryName, null],
+      });
+    });
+
+    describe("with writer mode", () => {
+      beforeEach(() => {
+        props.isWriter = true;
+      });
+
+      it("shows input field and accepts file selection", async () => {
+        const wrapper = shallowMountFileChooser();
+        await flushPromises();
+
+        const inputField = wrapper.findComponent(InputField);
+        expect(inputField.exists()).toBeTruthy();
+
+        await wrapper
+          .findComponent(FileExplorer)
+          .vm.$emit("update:selectedItemIds", [fileName]);
+
+        expect(inputField.props().modelValue).toBe(fileName);
+      });
+
+      it("shows input field and accepts folder selection", async () => {
+        const wrapper = shallowMountFileChooser();
+        await flushPromises();
+
+        const inputField = wrapper.findComponent(InputField);
+        expect(inputField.exists()).toBeTruthy();
+
+        await wrapper
+          .findComponent(FileExplorer)
+          .vm.$emit("update:selectedItemIds", [directoryName]);
+
+        expect(inputField.props().modelValue).toBe(directoryName);
+      });
+
+      it("allows manual text input and emits the typed value", async () => {
+        const wrapper = shallowMountFileChooser();
+        await flushPromises();
+
+        const inputField = wrapper.findComponent(InputField);
+        const inputText = "newFileOrFolder.txt";
+        await inputField.vm.$emit("update:model-value", inputText);
+
+        expect(inputField.props().modelValue).toBe(inputText);
+
+        await onApply.value!();
+        expect(dataServiceSpy).toHaveBeenCalledWith({
+          method: "fileChooser.getFilePath",
+          options: ["local", null, inputText, null],
+        });
+      });
+    });
+  });
 });

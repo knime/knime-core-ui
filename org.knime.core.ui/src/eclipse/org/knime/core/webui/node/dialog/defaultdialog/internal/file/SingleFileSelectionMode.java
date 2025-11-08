@@ -56,6 +56,8 @@ public enum SingleFileSelectionMode {
         FILE,
         /** Select a single folder */
         FOLDER,
+        /** Select a single file or folder */
+        FILE_OR_FOLDER,
         /** Select a single workflow (not yet supported - will throw runtime exception) */
         WORKFLOW
 }

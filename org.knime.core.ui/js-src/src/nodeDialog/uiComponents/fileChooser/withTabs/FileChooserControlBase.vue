@@ -125,7 +125,6 @@ const { onApply, sideDrawerValue } = useSideDrawerContent<FileChooserValue>({
         v-model="sideDrawerValue"
         :disabled="isDisabled"
         :uischema
-        :selection-mode="options?.selectionMode ?? 'FILE'"
         @apply-and-close="applyAndClose"
       />
     </FileBrowserButton>

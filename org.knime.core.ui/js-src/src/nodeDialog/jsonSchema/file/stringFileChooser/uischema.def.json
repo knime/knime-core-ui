@@ -24,7 +24,7 @@
             },
             "selectionMode": {
               "type": "string",
-              "enum": ["FILE", "FOLDER"]
+              "enum": ["FILE", "FOLDER", "FILE_OR_FOLDER"]
             },
             "isLocal": {
               "type": "boolean"

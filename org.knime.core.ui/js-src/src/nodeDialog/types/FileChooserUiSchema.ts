@@ -2,10 +2,7 @@ import type { UISchemaElement } from "@jsonforms/core";
 
 import type { UiSchemaWithProvidedOptions } from "@knime/jsonforms";
 
-import type {
-  BackendType,
-  MultiFileSelection,
-} from "../uiComponents/fileChooser/types";
+import type { BackendType } from "../uiComponents/fileChooser/types";
 
 export interface ConnectedFSOptions {
   /**
@@ -81,17 +78,22 @@ export type FileSystemOption =
   | "CONNECTED";
 
 // "WORKFLOW" omitted for now
-export type FileSelectionMode = "FILE" | "FOLDER";
+export type FileSelectionMode = "FILE" | "FOLDER" | "FILE_OR_FOLDER";
 
 // "WORKFLOW" omitted for now
-export type MultiFileFilterMode = MultiFileSelection["filterMode"];
+export type MultiFileFilterMode =
+  | "FILE"
+  | "FOLDER"
+  | "FOLDERS"
+  | "FILES_IN_FOLDERS"
+  | "FILES_AND_FOLDERS";
 
 type SingleSelectionOptionsBase = FileChooserOptionsBase &
   WriterOptions & {
     /**
      * Whether a file or a folder is to be chosen
      */
-    selectionMode?: "FILE" | "FOLDER"; // default "FILE"
+    selectionMode?: FileSelectionMode; // default "FILE"
   };
 /**
  * Options for String-based file selection using the new API

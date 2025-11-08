@@ -14,6 +14,12 @@
             "path": ""
           }
         },
+        "fileOrFolder": {
+          "path": {
+            "fsCategory": "SPACE",
+            "path": "InitialValue"
+          }
+        },
         "writer": {
           "path": {
             "fsCategory": "LOCAL",
@@ -68,6 +74,10 @@
             },
             "empty": {
               "title": "Default",
+              "properties": {}
+            },
+            "fileOrFolder": {
+              "title": "File or Folder",
               "properties": {}
             },
             "writer": {
@@ -142,6 +152,19 @@
               "scope": "#/properties/view/properties/empty",
               "options": {
                 "format": "fileChooser",
+                "spaceFSOptions": {
+                  "spacePath": "Users/j_bond/Public",
+                  "mountId": "My-KNIME-Hub ;)"
+                }
+              }
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/view/properties/fileOrFolder",
+              "options": {
+                "format": "fileChooser",
+                "selectionMode": "FILE_OR_FOLDER",
+                "isWriter": true,
                 "spaceFSOptions": {
                   "spacePath": "Users/j_bond/Public",
                   "mountId": "My-KNIME-Hub ;)"
