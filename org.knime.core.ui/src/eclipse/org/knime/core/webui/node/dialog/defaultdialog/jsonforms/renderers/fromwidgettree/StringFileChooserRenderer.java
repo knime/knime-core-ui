@@ -94,7 +94,8 @@ final class StringFileChooserRenderer extends WidgetTreeControlRendererSpec impl
         m_fileWriterAnnotation = node.getAnnotation(FileWriterWidget.class);
         m_withFileSystemAnnotation = node.getAnnotation(WithFileSystem.class);
         m_customFileSystemAnnotation = node.getAnnotation(WithCustomFileSystem.class);
-        m_contextInfoProvider = new WorkflowContextInfoProvider(nodeParametersInput);
+        m_contextInfoProvider = new WorkflowContextInfoProvider(nodeParametersInput,
+            m_withFileSystemAnnotation.map(WithFileSystem::value).orElse(new FileSystemOption[0]));
 
         validateAnnotations();
     }
@@ -166,7 +167,7 @@ final class StringFileChooserRenderer extends WidgetTreeControlRendererSpec impl
 
             @Override
             public Optional<Boolean> getIsLocal() {
-                return WorkflowContextInfoProvider.getIsLocal();
+                return m_contextInfoProvider.getIsLocal();
             }
 
             @Override
@@ -176,7 +177,7 @@ final class StringFileChooserRenderer extends WidgetTreeControlRendererSpec impl
 
             @Override
             public Optional<FileChooserRendererOptions.SpaceFSOptions> getSpaceFSOptions() {
-                return WorkflowContextInfoProvider.getSpaceFSOptions();
+                return m_contextInfoProvider.getSpaceFSOptions();
             }
         });
     }

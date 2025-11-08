@@ -51,11 +51,13 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromw
 import java.util.Optional;
 import java.util.stream.IntStream;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.contextv2.HubSpaceLocationInfo;
 import org.knime.core.node.workflow.contextv2.LocalLocationInfo;
 import org.knime.core.node.workflow.contextv2.ServerLocationInfo;
 import org.knime.core.node.workflow.contextv2.WorkflowContextV2.ExecutorType;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSystemOption;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.FileChooserRendererOptions;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
@@ -71,14 +73,28 @@ final class WorkflowContextInfoProvider {
 
     private final NodeParametersInput m_nodeParametersInput;
 
-    WorkflowContextInfoProvider(final NodeParametersInput nodeParametersInput) {
+    private final boolean m_allowsConnectedFS;
+
+    private final boolean m_allowsSpaceFS;
+
+    private final boolean m_allowsLocalFS;
+
+    WorkflowContextInfoProvider(final NodeParametersInput nodeParametersInput,
+        final FileSystemOption[] fileSystemOptions) {
         m_nodeParametersInput = nodeParametersInput;
+        m_allowsConnectedFS =
+            fileSystemOptions == null || ArrayUtils.contains(fileSystemOptions, FileSystemOption.CONNECTED);
+        m_allowsSpaceFS = fileSystemOptions == null || ArrayUtils.contains(fileSystemOptions, FileSystemOption.SPACE);
+        m_allowsLocalFS = fileSystemOptions == null || ArrayUtils.contains(fileSystemOptions, FileSystemOption.LOCAL);
     }
 
     /**
      * @return whether the current execution environment is local (which enables local file system access)
      */
-    static Optional<Boolean> getIsLocal() {
+    Optional<Boolean> getIsLocal() {
+        if (!m_allowsLocalFS) {
+            return Optional.empty();
+        }
         return WorkflowContextUtil.getWorkflowContextV2Optional()
             .map(context -> context.getExecutorType() == ExecutorType.ANALYTICS_PLATFORM);
     }
@@ -87,6 +103,9 @@ final class WorkflowContextInfoProvider {
      * @return options for connected file system. Required if file system option CONNECTED is used.
      */
     Optional<FileChooserRendererOptions.ConnectedFSOptions> getConnectedFSOptions() {
+        if (!m_allowsConnectedFS) {
+            return Optional.empty();
+        }
         return getFirstFileSystemPortIndex().flatMap(portIndex -> m_nodeParametersInput.getInPortSpec(portIndex)
             .map(spec -> toFileSystemPortObjectSpec(spec, portIndex))
             .map(spec -> createConnectedFSOptions(spec, portIndex)));
@@ -95,7 +114,10 @@ final class WorkflowContextInfoProvider {
     /**
      * @return options for space file system. Required if file system option SPACE is used.
      */
-    static Optional<FileChooserRendererOptions.SpaceFSOptions> getSpaceFSOptions() {
+    Optional<FileChooserRendererOptions.SpaceFSOptions> getSpaceFSOptions() {
+        if (!m_allowsSpaceFS) {
+            return Optional.empty();
+        }
         return WorkflowContextUtil.getWorkflowContextV2Optional()
             .flatMap(context -> createSpaceFSOptions(context.getLocationInfo()));
     }

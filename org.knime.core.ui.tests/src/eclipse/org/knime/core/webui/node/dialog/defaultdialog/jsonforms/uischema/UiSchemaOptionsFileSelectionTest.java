@@ -215,8 +215,9 @@ class UiSchemaOptionsFileSelectionTest {
         final var fileSystemSpecifier = "someSpecifier";
         final var context = setupFileSystemMocks(fileSystemType, fileSystemSpecifier);
         final var uiSchemaWithConnection = buildTestUiSchema(settingsClass, context);
-
-        assertThatJson(uiSchemaWithConnection).inPath("$.elements[0].options.connectedFSOptions").isObject()
+        assertThatJson(uiSchemaWithConnection).inPath("$.elements[0].options").isObject()
+            .doesNotContainKey("connectedFSOptions");
+        assertThatJson(uiSchemaWithConnection).inPath("$.elements[1].options.connectedFSOptions").isObject()
             .containsEntry("fileSystemType", fileSystemType)//
             .containsEntry("fileSystemSpecifier", fileSystemSpecifier) //
             .containsEntry("fileSystemConnectionMissing", false)//
@@ -237,8 +238,8 @@ class UiSchemaOptionsFileSelectionTest {
         final var context = contextSetup.nodeParametersInput();
         try {
             var uiSchema = buildTestUiSchema(settingsClass, context);
-
-            assertThatJson(uiSchema).inPath("$.elements[0].options.spaceFSOptions").isObject()
+            assertThatJson(uiSchema).inPath("$.elements[0].options").isObject().doesNotContainKey("spaceFSOptions");
+            assertThatJson(uiSchema).inPath("$.elements[2].options.spaceFSOptions").isObject()
                 .containsEntry("mountId", mountId)//
                 .containsEntry("spacePath", spacePath);
         } finally {
@@ -255,6 +256,7 @@ class UiSchemaOptionsFileSelectionTest {
         try {
             var uiSchema = buildTestUiSchema(settingsClass, context);
 
+            assertThatJson(uiSchema).inPath("$.elements[1].options").isObject().doesNotContainKey("isLocal");
             assertThatJson(uiSchema).inPath("$.elements[0].options.isLocal").isBoolean().isEqualTo(true);
         } finally {
             contextSetup.closeStaticMocks().run();
@@ -285,21 +287,54 @@ class UiSchemaOptionsFileSelectionTest {
 
     static final class FileChooserSettings implements NodeParameters {
         @Widget(title = "", description = "")
-        FileSelection m_fileSelection = new FileSelection();
+        @WithFileSystem(FileSystemOption.LOCAL)
+        FileSelection m_fileSelectionLocal = new FileSelection();
+
+        @Widget(title = "", description = "")
+        @WithFileSystem(FileSystemOption.CONNECTED)
+        FileSelection m_fileSelectionConnected = new FileSelection();
+
+        @Widget(title = "", description = "")
+        @WithFileSystem(FileSystemOption.SPACE)
+        FileSelection m_fileSelectionSpace = new FileSelection();
+
     }
 
     static final class MultiFileChooserSettings implements NodeParameters {
         @Widget(title = "", description = "")
         @MultiFileSelectionWidget({MultiFileSelectionMode.FILE, MultiFileSelectionMode.FILES_IN_FOLDERS})
-        MultiFileSelection<DummyFileChooserFilters> m_multiFileSelection =
+        @WithFileSystem(FileSystemOption.LOCAL)
+        MultiFileSelection<DummyFileChooserFilters> m_multiFileSelectionLocal =
+            new MultiFileSelection<>(MultiFileSelectionMode.FILE, new DummyFileChooserFilters());
+
+        @Widget(title = "", description = "")
+        @MultiFileSelectionWidget({MultiFileSelectionMode.FILE, MultiFileSelectionMode.FILES_IN_FOLDERS})
+        @WithFileSystem(FileSystemOption.CONNECTED)
+        MultiFileSelection<DummyFileChooserFilters> m_multiFileSelectionConnected =
+            new MultiFileSelection<>(MultiFileSelectionMode.FILE, new DummyFileChooserFilters());
+
+        @Widget(title = "", description = "")
+        @MultiFileSelectionWidget({MultiFileSelectionMode.FILE, MultiFileSelectionMode.FILES_IN_FOLDERS})
+        @WithFileSystem(FileSystemOption.SPACE)
+        MultiFileSelection<DummyFileChooserFilters> m_multiFileSelectionSpace =
             new MultiFileSelection<>(MultiFileSelectionMode.FILE, new DummyFileChooserFilters());
     }
 
     static final class StringFileChooserSettings implements NodeParameters {
         @Widget(title = "", description = "")
         @FileSelectionWidget(SingleFileSelectionMode.FILE)
+        @WithFileSystem(FileSystemOption.LOCAL)
+        String m_stringFileSelectionLocal = "";
+
+        @Widget(title = "", description = "")
+        @FileSelectionWidget(SingleFileSelectionMode.FILE)
         @WithFileSystem(FileSystemOption.CONNECTED)
-        String m_stringFileSelection = "";
+        String m_stringFileSelectionConnected = "";
+
+        @Widget(title = "", description = "")
+        @FileSelectionWidget(SingleFileSelectionMode.FILE)
+        @WithFileSystem(FileSystemOption.SPACE)
+        String m_stringFileSelectionSpace = "";
     }
 
     @Nested

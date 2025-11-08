@@ -92,7 +92,8 @@ final class MultiFileChooserRenderer extends WidgetTreeControlRendererSpec imple
             node.getAnnotation(MultiFileSelectionWidget.class).orElseThrow(IllegalStateException::new);
         m_fileReaderAnnotation = node.getAnnotation(FileReaderWidget.class);
         m_withFileSystemAnnotation = node.getAnnotation(WithFileSystem.class);
-        m_contextInfoProvider = new WorkflowContextInfoProvider(nodeParametersInput);
+        m_contextInfoProvider = new WorkflowContextInfoProvider(nodeParametersInput,
+            m_withFileSystemAnnotation.map(WithFileSystem::value).orElse(null));
         m_nodeParametersInput = nodeParametersInput;
         m_filtersClass =
             MultiFileSelectionUtil.extractFileChooserFiltersClass(m_node).orElseThrow(IllegalStateException::new);
@@ -135,7 +136,7 @@ final class MultiFileChooserRenderer extends WidgetTreeControlRendererSpec imple
 
             @Override
             public Optional<Boolean> getIsLocal() {
-                return WorkflowContextInfoProvider.getIsLocal();
+                return m_contextInfoProvider.getIsLocal();
             }
 
             @Override
@@ -145,7 +146,7 @@ final class MultiFileChooserRenderer extends WidgetTreeControlRendererSpec imple
 
             @Override
             public Optional<FileChooserRendererOptions.SpaceFSOptions> getSpaceFSOptions() {
-                return WorkflowContextInfoProvider.getSpaceFSOptions();
+                return m_contextInfoProvider.getSpaceFSOptions();
             }
 
             @Override

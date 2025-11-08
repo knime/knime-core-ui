@@ -86,7 +86,8 @@ final class FileChooserRenderer extends WidgetTreeControlRendererSpec implements
         m_fileReaderAnnotation = node.getAnnotation(FileReaderWidget.class);
         m_fileWriterAnnotation = node.getAnnotation(FileWriterWidget.class);
         m_withFileSystemAnnotation = node.getAnnotation(WithFileSystem.class);
-        m_contextInfoProvider = new WorkflowContextInfoProvider(nodeParametersInput);
+        m_contextInfoProvider = new WorkflowContextInfoProvider(nodeParametersInput,
+            m_withFileSystemAnnotation.map(WithFileSystem::value).orElse(null));
 
         validateAnnotations();
     }
@@ -130,7 +131,7 @@ final class FileChooserRenderer extends WidgetTreeControlRendererSpec implements
 
             @Override
             public Optional<Boolean> getIsLocal() {
-                return WorkflowContextInfoProvider.getIsLocal();
+                return m_contextInfoProvider.getIsLocal();
             }
 
             @Override
@@ -140,7 +141,7 @@ final class FileChooserRenderer extends WidgetTreeControlRendererSpec implements
 
             @Override
             public Optional<FileChooserRendererOptions.SpaceFSOptions> getSpaceFSOptions() {
-                return WorkflowContextInfoProvider.getSpaceFSOptions();
+                return m_contextInfoProvider.getSpaceFSOptions();
             }
         });
     }
