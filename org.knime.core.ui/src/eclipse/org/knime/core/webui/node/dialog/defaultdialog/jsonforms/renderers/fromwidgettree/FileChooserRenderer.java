@@ -49,6 +49,7 @@
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectionWidget;
@@ -143,6 +144,13 @@ final class FileChooserRenderer extends WidgetTreeControlRendererSpec implements
             public Optional<FileChooserRendererOptions.SpaceFSOptions> getSpaceFSOptions() {
                 return m_contextInfoProvider.getSpaceFSOptions();
             }
+
+            @Override
+            public Optional<String> getPlaceholder() {
+                return m_fileSelectionAnnotation.map(FileSelectionWidget::placeholder)
+                    .filter(Predicate.not(String::isEmpty));
+            }
+
         });
     }
 

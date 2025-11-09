@@ -70,4 +70,11 @@ public @interface FileSelectionWidget {
      */
     SingleFileSelectionMode value();
 
+    /**
+     * Placeholder text to show when no value is set.
+     *
+     * @return the placeholder text
+     */
+    String placeholder() default "";
+
 }

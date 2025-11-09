@@ -94,6 +94,10 @@ type SingleSelectionOptionsBase = FileChooserOptionsBase &
      * Whether a file or a folder is to be chosen
      */
     selectionMode?: FileSelectionMode; // default "FILE"
+    /**
+     * Placeholder for the file chooser input field
+     */
+    placeholder?: string;
   };
 /**
  * Options for String-based file selection using the new API

@@ -214,6 +214,16 @@ public final class FileChooserRendererOptions {
         default Optional<SingleFileSelectionMode> getSelectionMode() {
             return Optional.empty();
         }
+
+        /**
+         * Placeholder text to show in the file chooser input field
+         *
+         * @return the placeholder text
+         */
+        default Optional<String> getPlaceholder() {
+            return Optional.empty();
+        }
+
     }
 
     /**

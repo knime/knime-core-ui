@@ -149,6 +149,7 @@ const onTextInput = (text: string) => {
     ref="inputField"
     :model-value="currentValue"
     :disabled="disabled"
+    :placeholder="options.placeholder"
     compact
     :is-valid
     @update:model-value="onTextInput"

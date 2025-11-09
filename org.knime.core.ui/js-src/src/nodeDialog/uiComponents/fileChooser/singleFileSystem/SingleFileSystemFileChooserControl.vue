@@ -25,6 +25,7 @@ const { appendedExtension, filteredExtensions, isLoaded, isWriter } =
 const selectionMode = computed(
   () => uischema.value.options?.selectionMode ?? "FILE",
 );
+const placeholder = computed(() => uischema.value.options?.placeholder);
 </script>
 
 <template>
@@ -34,7 +35,7 @@ const selectionMode = computed(
       class="flex-grow"
       :disabled="disabled"
       :model-value="control.data"
-      :placeholder="control.uischema.options?.placeholder"
+      :placeholder
       :is-valid
       compact
       @update:model-value="changeValue"
