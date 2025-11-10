@@ -51,8 +51,8 @@ package org.knime.core.webui.node.dialog.scripting;
 import java.util.Optional;
 
 import org.knime.core.webui.data.DataServiceContext;
-import org.knime.gateway.impl.webui.kai.CodeKaiHandler;
-import org.knime.gateway.impl.webui.kai.CodeKaiHandler.ProjectId;
+import org.knime.core.webui.node.dialog.scripting.kai.CodeKaiHandler;
+import org.knime.core.webui.node.dialog.scripting.kai.CodeKaiHandler.ProjectId;
 
 /**
  * Utilities for getting the {@link CodeKaiHandler} and projectId from the {@link DataServiceContext}.

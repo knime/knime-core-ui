@@ -69,9 +69,9 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.VariableType;
+import org.knime.core.webui.node.dialog.scripting.kai.CodeKaiHandler;
+import org.knime.core.webui.node.dialog.scripting.kai.CodeKaiHandler.KaiUsage;
 import org.knime.core.webui.node.dialog.scripting.lsp.LanguageServerProxy;
-import org.knime.gateway.api.webui.entity.KaiUsageEnt;
-import org.knime.gateway.impl.webui.kai.CodeKaiHandler;
 
 /**
  * A base scripting service that provides an JSON-RPC endpoint for a scripting dialog with {@link #getJsonRpcService()}.
@@ -386,7 +386,7 @@ public abstract class ScriptingService {
         /**
          * @return get the current AI usage data for the user
          */
-        public KaiUsageEnt getAiUsage() {
+        public KaiUsage getAiUsage() {
             var projectId = getProjectId();
             return getCodeKaiHandler().map(h -> {
                 try {
