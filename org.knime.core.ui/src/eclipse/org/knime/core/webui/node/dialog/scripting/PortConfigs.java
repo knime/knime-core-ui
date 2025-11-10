@@ -59,14 +59,12 @@ import org.knime.core.node.workflow.NodeContainerState;
 import org.knime.core.node.workflow.NodeID;
 import org.knime.core.webui.node.port.PortViewManager;
 import org.knime.core.webui.node.port.PortViewManager.PortViewDescriptor;
-import org.knime.gateway.api.entity.NodeIDEnt;
 
 /**
  * Configuration for port views shown in the scripting editor
  *
  * @author Paul Bärnreuther
  */
-@SuppressWarnings("restriction") // web-ui is not yet public API
 class PortConfigs {
 
     record PortViewConfig(String label, int portViewIdx) {
@@ -83,13 +81,13 @@ class PortConfigs {
     }
 
     private static String nodeIdToString(final NodeID nodeID, final NodeContainer nodeContainer) {
-        return new NodeIDEnt(nodeID, nodeContainer.getParent().getProjectWFM().isComponentProjectWFM()).toString();
+        return nodeIdToString(nodeID, nodeContainer.getParent().getProjectWFM().isComponentProjectWFM());
     }
 
     private static PortConfig createInputPortConfig(final int portIdx, final NodeContainer nodeContainer) {
         final var nodeId = nodeContainer.getID();
         final var connection = nodeContainer.getParent().getIncomingConnectionFor(nodeId, portIdx);
-        if (connection == null || connection.getType() !=  ConnectionType.STD) {
+        if (connection == null || connection.getType() != ConnectionType.STD) {
             return new PortConfig(null, 0, Collections.emptyList(), "null");
         }
 
@@ -127,5 +125,32 @@ class PortConfigs {
 
     public PortConfig[] getInputPorts() {
         return m_inputPorts;
+    }
+
+    // NOTE: The following code reproduces the `toString` logic of NodeIDEnt. We cannot use that class here, because
+    // we cannot depend on the gateway-impl bundle
+
+    private static String nodeIdToString(final NodeID nodeID, final boolean hasComponentProjectParent) {
+        var nodeIds = extractNodeIDs(nodeID.toString(), hasComponentProjectParent);
+        final var sb = new StringBuilder("root");
+        for (int i : nodeIds) {
+            sb.append(":" + i);
+        }
+        return sb.toString();
+    }
+
+    private static int[] extractNodeIDs(final String s, final boolean hasComponentProjectParent) {
+        final int index = s.indexOf(':');
+        final int start = hasComponentProjectParent ? 1 : 0;
+        if (index >= start) {
+            final var split = s.substring(index + 1).split(":");
+            final var ids = new int[split.length - start];
+            for (int i = start; i < split.length; i++) {
+                ids[i - start] = Integer.parseInt(split[i]);
+            }
+            return ids;
+        } else {
+            return new int[0];
+        }
     }
 }
