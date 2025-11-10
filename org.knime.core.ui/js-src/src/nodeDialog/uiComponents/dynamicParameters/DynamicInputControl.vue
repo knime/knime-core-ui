@@ -165,7 +165,7 @@ watch(dynamicSettings, (newDynamicSettings) => {
 
 <template>
   <DispatchRenderer
-    v-if="dynamicSettings"
+    v-if="dynamicSettings?.uiSchema"
     :uischema="providedUiSchema"
     :schema="providedSchema"
     :path="props.control.path"
