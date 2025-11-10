@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import { composePaths } from "@jsonforms/core";
 
 import { FunctionButton } from "@knime/components";
 import { SettingsSubPanel, type VueControlProps } from "@knime/jsonforms";
@@ -72,11 +73,23 @@ const refreshPreview = async () => {
 };
 
 watch(
-  [includeSubFolders, filterOptions, selectedPath, filterMode],
+  filterMode,
+  (newMode) => {
+    if (props.control.data.filters.filterMode !== newMode) {
+      props.handleChange(
+        composePaths(composePaths(props.control.path, "filters"), "filterMode"),
+        newMode,
+      );
+    }
+  },
+  { immediate: true },
+);
+
+watch(
+  [includeSubFolders, filterOptions, selectedPath],
   () => refreshPreview(),
   {
     deep: true,
-    immediate: true,
   },
 );
 

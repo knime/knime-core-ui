@@ -173,8 +173,33 @@ public final class LegacyMultiFileSelection implements Persistable, WidgetGroup 
      * without breaking compatibility.
      */
     public static final class MultiFileChooserFilters implements FileChooserFilters {
+
+        /**
+         * This value is automatically updated when the filter mode changes. It has to be called "filterMode" since the
+         * frontend sets the value directly.
+         */
+        @ValueReference(FilterModeRef.class)
+        @Persistor(DoNotPersist.class)
+        MultiFileSelectionMode m_filterMode = MultiFileSelectionMode.FILE;
+
+        /**
+         * A ref to the current value of the filter mode. Use it within the filter options if those should depend on the
+         * filter mode.
+         */
+        public interface FilterModeRef extends ParameterReference<MultiFileSelectionMode> {
+
+        }
+
+        static final class IsOnlyFoldersSelection implements EffectPredicateProvider {
+            @Override
+            public EffectPredicate init(final PredicateInitializer i) {
+                return i.getEnum(FilterModeRef.class).isOneOf(MultiFileSelectionMode.FOLDERS);
+            }
+        }
+
         // ---- Sections ----------------------------------------------------
         @Section(title = "File filter options")
+        @Effect(predicate = IsOnlyFoldersSelection.class, type = EffectType.HIDE)
         interface FileFilterSection {
         }
 

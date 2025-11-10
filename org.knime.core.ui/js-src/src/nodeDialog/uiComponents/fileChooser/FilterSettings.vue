@@ -28,10 +28,10 @@ defineExpose({
    * and returning to the saved state.
    */
   resetFilters: () => {
-    props.handleChange(
-      path.value,
-      props.control.schema.default?.[FILTERS_PATH],
-    );
+    props.handleChange(path.value, {
+      ...props.control.schema.default?.[FILTERS_PATH],
+      filterMode: props.control.data.filters.filterMode,
+    });
   },
 });
 </script>

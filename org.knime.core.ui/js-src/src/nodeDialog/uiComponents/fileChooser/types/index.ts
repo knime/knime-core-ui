@@ -57,5 +57,5 @@ export type MultiFileSelection = {
   path: FileChooserValue;
   filterMode: MultiFileFilterMode;
   includeSubfolders: boolean;
-  filters: Record<string, any>;
+  filters: Record<string, any> & { filterMode?: MultiFileFilterMode };
 };

@@ -245,6 +245,7 @@ describe("multi file selection", () => {
       {
         additionalFilterOptions: {
           someFilterValue: "someFilterValue",
+          filterMode: "FILES_IN_FOLDERS",
         },
         additionalFilterOptionsClassIdentifier: "someClassIdentifier",
       },

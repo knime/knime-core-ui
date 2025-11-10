@@ -56,15 +56,57 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.List;
 
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.persistence.NodeParametersPersistor;
+import org.knime.node.parameters.updates.ValueReference;
 
 /**
  * Additional filters for the file chooser dialog. Used when the selection mode is 'folder' to decide which files within
  * the chosen folder get chosen.
  *
+ * To make the contained parameters dependable on the filter mode, it is possible to add a field of type
+ * {@link MultiFileSelectionMode} called {@code m_filterMode} and depend on it using {@link ValueReference}, i.e. add
+ * these lines to your implementation:
+ *
+ * <pre>
+ * &#64;ValueReference(FilterModeRef.class)
+ * &#64;Persistor(DoNotPersist.class)
+ * MultiFileSelectionMode m_filterMode = MultiFileSelectionMode.FILE;
+ *
+ * public interface FilterModeRef extends ParameterReference<MultiFileSelectionMode> {
+ * }
+ *
+ * </pre>
+ *
+ *
  * @author David Hickey, TNG Technology Consulting GmbH
+ * @author Paul Bärnreuther
  */
 public interface FileChooserFilters extends NodeParameters {
+
+    /**
+     * Use this on a field of type {@link MultiFileSelectionMode} to avoid persisting it. See {@link FileChooserFilters}
+     * for an example.
+     */
+    final class DoNotPersist implements NodeParametersPersistor<MultiFileSelectionMode> {
+        @Override
+        public MultiFileSelectionMode load(final NodeSettingsRO settings) throws InvalidSettingsException {
+            return MultiFileSelectionMode.FILE;
+        }
+
+        @Override
+        public void save(final MultiFileSelectionMode param, final NodeSettingsWO settingsWO) {
+            // Do nothing
+        }
+
+        @Override
+        public String[][] getConfigPaths() {
+            return new String[0][];
+        }
+    }
 
     /**
      * Should accept any file or folder as argument. If a folder passes the filter, then its children will be evaluated.
