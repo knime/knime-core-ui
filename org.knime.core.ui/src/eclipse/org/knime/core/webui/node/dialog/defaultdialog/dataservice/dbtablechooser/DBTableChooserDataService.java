@@ -448,6 +448,14 @@ public final class DBTableChooserDataService {
         abstract class DBTableAdapter {
 
             /**
+             * Some databases support catalogs while others do not.
+             *
+             * @return true if the database supports catalogs, false otherwise
+             * @throws SQLException if a database error occurs while checking for catalog support
+             */
+            public abstract boolean supportsCatalogs() throws SQLException;
+
+            /**
              * Lists the catalogues in the database. If the database does not support catalogues (e.g. SQLite and most
              * databases), this should return an empty optional.
              *

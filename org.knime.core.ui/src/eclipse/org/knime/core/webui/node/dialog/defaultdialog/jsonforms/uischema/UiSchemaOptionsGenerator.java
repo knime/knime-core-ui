@@ -790,7 +790,7 @@ final class UiSchemaOptionsGenerator {
 
     private static boolean isCatalogsSupported(final DBTableAdapter adapter) {
         try {
-            return adapter.listCatalogs().isPresent();
+            return adapter.supportsCatalogs();
         } catch (SQLException ex) {
             throw new UiSchemaGenerationException("""
                     Could not check whether the underlying DBTableAdapter supports catalogues, \
