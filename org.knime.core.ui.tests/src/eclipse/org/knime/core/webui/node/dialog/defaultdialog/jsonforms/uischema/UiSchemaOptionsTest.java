@@ -1838,6 +1838,11 @@ class UiSchemaOptionsTest {
         }
 
         @Override
+        public boolean supportsCatalogs() throws SQLException {
+            return false;
+        }
+
+        @Override
         public Optional<List<String>> listCatalogs() throws SQLException {
             return Optional.empty();
         }
@@ -1870,8 +1875,8 @@ class UiSchemaOptionsTest {
         }
 
         @Override
-        public Optional<List<String>> listCatalogs() throws SQLException {
-            return Optional.of(List.of("catalog1", "catalog2"));
+        public boolean supportsCatalogs() throws SQLException {
+            return true;
         }
     }
 

@@ -391,6 +391,11 @@ final class DBTableChooserDataServiceTest {
         }
 
         @Override
+        public boolean supportsCatalogs() throws SQLException {
+            return true;
+        }
+
+        @Override
         public Optional<List<String>> listCatalogs() {
             return Optional.of(List.of("catalogue1"));
         }
@@ -461,6 +466,11 @@ final class DBTableChooserDataServiceTest {
     static class AdapterWithoutCatalogues extends BaseTestAdapter {
         protected AdapterWithoutCatalogues(final Supplier<PortObjectSpec[]> context) {
             super(context);
+        }
+
+        @Override
+        public boolean supportsCatalogs() throws SQLException {
+            return false;
         }
 
         @Override
