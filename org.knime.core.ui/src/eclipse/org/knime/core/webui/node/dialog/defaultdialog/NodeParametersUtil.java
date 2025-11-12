@@ -57,6 +57,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.context.ModifiableNodeCreationConfiguration;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.core.node.dialog.DialogNode;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
@@ -101,7 +102,7 @@ public final class NodeParametersUtil {
         if (nodeContext == null) {
             // can only happen during tests
             return new NodeParametersInputImpl(fallbackPortTypesFor(specs), null, specs, null, null, null, null, null,
-                null);
+                null, null);
         }
         final var nc = nodeContext.getNodeContainer();
         final PortType[] inPortTypes;
@@ -119,6 +120,7 @@ public final class NodeParametersUtil {
         DialogNode dialogNode = null;
         WizardNode wizardNode = null;
         PortsConfiguration portConfig = null;
+        URLConfiguration urlConfig = null;
         CredentialsProvider credentialsProvider = null;
         if (nc instanceof NativeNodeContainer nnc) {
             credentialsProvider = nnc.getNode().getCredentialsProvider();
@@ -129,8 +131,9 @@ public final class NodeParametersUtil {
             if (nodeModel instanceof WizardNode model) {
                 wizardNode = model;
             }
-            portConfig = nnc.getNode().getCopyOfCreationConfig()
-                .flatMap(ModifiableNodeCreationConfiguration::getPortConfig).orElse(null);
+            final var creationConfig = nnc.getNode().getCopyOfCreationConfig();
+            portConfig = creationConfig.flatMap(ModifiableNodeCreationConfiguration::getPortConfig).orElse(null);
+            urlConfig = creationConfig.flatMap(ModifiableNodeCreationConfiguration::getURLConfig).orElse(null);
         }
 
         final var inPortObjects = nc.getParent() == null // This function is used by tests that mock the container
@@ -138,7 +141,7 @@ public final class NodeParametersUtil {
             : InputPortUtil.getInputPortObjectsExcludingVariablePort(nc);
 
         return new NodeParametersInputImpl(inPortTypes, outPortTypes, specs, nc.getFlowObjectStack(),
-            credentialsProvider, inPortObjects, dialogNode, portConfig, wizardNode);
+            credentialsProvider, inPortObjects, dialogNode, portConfig, urlConfig, wizardNode);
     }
 
     private static PortType[] fallbackPortTypesFor(final PortObjectSpec[] specs) {

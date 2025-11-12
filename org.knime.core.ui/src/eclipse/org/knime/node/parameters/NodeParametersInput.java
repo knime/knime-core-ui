@@ -55,6 +55,7 @@ import org.knime.core.data.DataTable;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.context.ports.PortsConfiguration;
+import org.knime.core.node.context.url.URLConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -163,5 +164,14 @@ public interface NodeParametersInput {
      *             has a port configuration.
      */
     PortsConfiguration getPortsConfiguration();
+
+    /**
+     * Getter for the {@link URLConfiguration} of a configurable node, i.e., a node that can be created via file drag
+     * and drop.
+     *
+     * @return the URL configuration, if present (i.e., if the node has been created via file drag and drop), otherwise
+     *         {@link Optional#empty()}
+     */
+    Optional<URLConfiguration> getURLConfiguration();
 
 }
