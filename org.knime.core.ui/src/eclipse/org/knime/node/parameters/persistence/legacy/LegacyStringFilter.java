@@ -65,6 +65,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.Widget
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.migration.Migrate;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
 import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
@@ -169,6 +170,7 @@ public final class LegacyStringFilter implements NodeParameters {
     @Persist(configKey = CFG_KEY_KEEP_ALL)
     @ValueReference(KeepAllColumnsSelectedRef.class)
     @Modification.WidgetReference(KeepAllColumnsSelectedRef.class)
+    @Migrate(loadDefaultIfAbsent = true)
     boolean m_keepAllColumnsSelected;
 
     static final class KeepAllColumnsSelectedIsTrue implements EffectPredicateProvider {
