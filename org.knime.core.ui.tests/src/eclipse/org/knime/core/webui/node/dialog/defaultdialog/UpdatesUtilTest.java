@@ -1005,6 +1005,10 @@ public class UpdatesUtilTest {
                 @Widget(title = "Data type", description = "Select the data type to be displayed in the table")
                 DataType m_dataType = StringCell.TYPE;
 
+
+                @SuppressWarnings("unused")
+                DataType m_dataTypeWithoutWidgetAnnotation; // No widget, so no choices are provided.
+
                 static final class OnlyStringAndDoubleChoicesProvider implements DataTypeChoicesProvider {
                     @Override
                     public List<DataType> choices(final NodeParametersInput context) {

@@ -92,6 +92,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMinVali
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopPatternValidationProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.validation.custom.CustomValidation;
+import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.array.ArrayWidget;
 import org.knime.node.parameters.layout.SubParameters;
@@ -207,6 +208,9 @@ final class WidgetTreesToRefsAndStateProviders {
 
         @Override
         public Optional<List<UiState>> getUiStateProviders(final TreeNode<WidgetGroup> node) {
+            if (node.getPossibleAnnotations().contains(Widget.class) && node.getAnnotation(Widget.class).isEmpty()) {
+                return Optional.empty();
+            }
             if (!fieldType.isAssignableFrom(node.getRawClass())) {
                 return Optional.empty();
             }
