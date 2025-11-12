@@ -191,7 +191,7 @@ public class FallbackDialogFactoryTest {
                                         "format": "textMessage",
                                         "message": {
                                             "title":"Auto-generated dialog",
-                                            "description":"This dialog was created automatically because the node\\'s original dialog is not supported here.\\nYou can still configure the node, but some options may have unclear names, a different order, or missing details.\\nSee the node description for more information.\\n",
+                                            "description":"You’re seeing an auto-generated dialog because the original one is not supported here yet.\\nYou can still configure the node as usual. See the node description for more details.\\n",
                                             "type":"INFO"
                                         }
                                     }
@@ -409,7 +409,7 @@ public class FallbackDialogFactoryTest {
                                         "format": "textMessage",
                                         "message": {
                                             "title":"Auto-generated dialog",
-                                            "description":"This dialog was created automatically because the node\\'s original dialog is not supported here.\\nYou can still configure the node, but some options may have unclear names, a different order, or missing details.\\nSee the node description for more information.\\n",
+                                            "description":"You’re seeing an auto-generated dialog because the original one is not supported here yet.\\nYou can still configure the node as usual. See the node description for more details.\\n",
                                             "type":"INFO"
                                         }
                                     }

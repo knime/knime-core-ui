@@ -180,9 +180,8 @@ public final class FallbackDialogUtils {
                     public Optional<Message> getMessage() {
                         return Optional.of(new Message("Auto-generated dialog",
                             """
-                            This dialog was created automatically because the node's original dialog is not supported here.
-                            You can still configure the node, but some options may have unclear names, a different order, or missing details.
-                            See the node description for more information.
+                            You’re seeing an auto-generated dialog because the original one is not supported here yet.
+                            You can still configure the node as usual. See the node description for more details.
                             """,
                             TextMessage.MessageType.INFO));
                     }
