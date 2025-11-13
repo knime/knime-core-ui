@@ -68,6 +68,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.UpdatesUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettingsImpl;
+import org.knime.core.webui.node.dialog.defaultdialog.tree.syntax.NodeParametersSyntaxValidationUtil;
+import org.knime.core.webui.node.dialog.defaultdialog.tree.syntax.NodeParametersSyntaxValidationUtil.NodeParametersSyntaxError;
 import org.knime.node.parameters.NodeParameters;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -122,6 +124,16 @@ final class JsonFormsSnapshot extends Snapshot {
                         String.format("Exception while trying to write snapshot: %s", ex.getMessage()), ex);
                 }
             }));
+        for (var entry : instances.entrySet()) {
+            try {
+                NodeParametersSyntaxValidationUtil.validateNodeParametersSyntax(entry.getKey(),
+                    entry.getValue().getClass());
+            } catch (NodeParametersSyntaxError e) {
+                throw new IllegalStateException(String.format("Syntax error encountered in node parameters %s: %s",
+                    entry.getValue().getClass().getSimpleName(), e.getMessage()), e);
+            }
+
+        }
 
         // turn it into the json-forms representation
         final var context = NodeParametersUtil.createDefaultNodeSettingsContext(specs);
