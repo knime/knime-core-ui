@@ -74,7 +74,6 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
-@SuppressWarnings("restriction")
 public final class ScriptingNodeSettingsService implements NodeSettingsService {
 
     private static final ObjectMapper MAPPER = new ObjectMapper() //
@@ -89,6 +88,8 @@ public final class ScriptingNodeSettingsService implements NodeSettingsService {
     private final GenericInitialDataBuilder m_initialDataSupplier;
 
     /**
+     * Create a new ScriptingNodeSettingsService.
+     *
      * @param settingsIOManagerSupplier supplier that provides an implementation of {@link GenericSettingsIOManager}. It
      *            will be called multiple times and should ideally return a clean new instance each time.
      * @param initialDataBuilder supplier that provides the initial data for the node.

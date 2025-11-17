@@ -98,7 +98,7 @@ public final class OutputTablePreviewUtils {
          *
          * @return serialized table view initial data, or null if no table is available
          */
-        public String getInitialData();
+        String getInitialData();
     }
 
     /**
@@ -114,7 +114,6 @@ public final class OutputTablePreviewUtils {
      * @param nameOfResource the file name of the resource
      * @return a stream of the resource
      */
-    @SuppressWarnings("restriction") // usage of internal CoreUIPlugin API
     public static InputStream getCoreUIResource(final String nameOfResource) {
         try {
             return Files.newInputStream(getAbsoluteBasePath(CoreUIPlugin.class, null, "js-src/dist/" + nameOfResource));

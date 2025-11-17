@@ -49,8 +49,10 @@
 package org.knime.core.webui.node.dialog.scripting;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -102,6 +104,48 @@ public record InputOutputModel(String name, //
     public static final String VIEW_PORT_TYPE_NAME = "view";
 
     private static final String UNSUPPORTED_TYPE = "not supported";
+
+    @Override
+    public boolean equals(final Object other) {
+        if (other instanceof InputOutputModel o) {
+            return Objects.equals(name, o.name) //
+                && Objects.equals(codeAlias, o.codeAlias) //
+                && Objects.equals(subItemCodeAliasTemplate, o.subItemCodeAliasTemplate) //
+                && Objects.equals(requiredImport, o.requiredImport) //
+                && multiSelection == o.multiSelection //
+                && Objects.deepEquals(subItems, o.subItems) //
+                && Objects.equals(portType, o.portType) //
+                && Objects.equals(portIconColor, o.portIconColor); //
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash( //
+            name, //
+            codeAlias, //
+            subItemCodeAliasTemplate, //
+            requiredImport, //
+            multiSelection, //
+            Arrays.deepHashCode(subItems), //
+            portType, //
+            portIconColor //
+        );
+    }
+
+    @Override
+    public String toString() {
+        return "InputOutputModel[name=" + name //
+            + ", codeAlias=" + codeAlias //
+            + ", subItemCodeAliasTemplate=" + subItemCodeAliasTemplate //
+            + ", requiredImport=" + requiredImport //
+            + ", multiSelection=" + multiSelection //
+            + ", subItems=" + Arrays.toString(subItems) //
+            + ", portType=" + portType //
+            + ", portIconColor=" + portIconColor //
+            + "]";
+    }
 
     /**
      * The type of an InputOutputModelSubItem
@@ -209,6 +253,8 @@ public record InputOutputModel(String name, //
     }
 
     /**
+     * Creates a builder for an {@link InputOutputModel} that represents an object port
+     *
      * @param portIconColor The color of the port icon
      * @return A builder for an {@link InputOutputModel} that represents an object port
      */
@@ -227,6 +273,8 @@ public record InputOutputModel(String name, //
     public interface RequiresNameBuilder {
 
         /**
+         * Set the name of the item.
+         *
          * @param name The name of the item
          * @return A builder for all optional parameters
          */
@@ -239,7 +287,7 @@ public record InputOutputModel(String name, //
      * {@link InputOutputModel#flowVariables()}, {@link InputOutputModel#portObject(String)}, or
      * {@link InputOutputModel#view()}, to create builders for input/output models.
      */
-    public static class Builder {
+    public static final class Builder {
 
         private final String m_portType;
 
@@ -264,6 +312,8 @@ public record InputOutputModel(String name, //
         }
 
         /**
+         * Set the code alias.
+         *
          * @param codeAlias The code alias needed to access this item in the code. Can be null in which case code
          *            insertion is disabled (default).
          * @return this builder
@@ -274,6 +324,8 @@ public record InputOutputModel(String name, //
         }
 
         /**
+         * Set the sub item code alias template.
+         *
          * @param subItemCodeAliasTemplate A Handlebars.js template that is used for code alias insertion of one or
          *            multiple sub items. It should have a single input parameter { subItems: { name: string,
          *            insertionText: string | null }[] } that can be used to fill in the subItems. Can be null in which
@@ -286,6 +338,8 @@ public record InputOutputModel(String name, //
         }
 
         /**
+         * Set the required import statement.
+         *
          * @param requiredImport The import statement that is needed to use this object or null if there is none
          * @return this builder
          */
@@ -295,6 +349,8 @@ public record InputOutputModel(String name, //
         }
 
         /**
+         * Set whether to enable multi selection.
+         *
          * @param multiSelection Whether to enable simultaneous selection of multiple subitems in the frontend (default:
          *            false)
          * @return this builder
@@ -364,7 +420,7 @@ public record InputOutputModel(String name, //
          */
         public Builder subItems(final Collection<FlowVariable> flowVariables,
             final Predicate<VariableType<?>> isSupportedPredicate) {
-            return subItems(flowVariables, type -> type.toString(), isSupportedPredicate);
+            return subItems(flowVariables, Object::toString, isSupportedPredicate);
         }
 
         /**

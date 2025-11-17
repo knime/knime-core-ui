@@ -68,15 +68,16 @@ import org.knime.core.webui.node.dialog.VariableSettingsWO;
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("restriction") // SettingsType is not yet public API
+@SuppressWarnings("javadoc")
 public abstract class ScriptingNodeSettings {
 
+    /** The type of settings to use for the user script. */
     protected final SettingsType m_scriptSettingsType;
 
     /**
      * @param scriptSettingsType the type of settings to use for the user script
      */
-    public ScriptingNodeSettings(final SettingsType scriptSettingsType) {
+    protected ScriptingNodeSettings(final SettingsType scriptSettingsType) {
         m_scriptSettingsType = scriptSettingsType;
     }
 
@@ -110,9 +111,7 @@ public abstract class ScriptingNodeSettings {
      * @param key
      * @return an optional containing the name of the overriding flow variable, or empty if there isn't one
      */
-    public static Optional<String> getOverridingFlowVariableName(final NodeAndVariableSettingsRO settings,
-        final String key) {
-
+    public static Optional<String> getOverridingFlowVariableName(final VariableSettingsRO settings, final String key) {
         try {
             String overridingFlowVarName = null;
             if (settings.isVariableSetting(key) && (overridingFlowVarName = settings.getUsedVariable(key)) != null) {
@@ -150,8 +149,8 @@ public abstract class ScriptingNodeSettings {
      */
     public static void copyVariableSettings(final Map<SettingsType, NodeAndVariableSettingsRO> previousSettings,
         final Map<SettingsType, NodeAndVariableSettingsWO> settings) {
-        for (var settingType : settings.keySet()) {
-            copyVariableSettings(previousSettings.get(settingType), settings.get(settingType));
+        for (var settingEntry : settings.entrySet()) {
+            copyVariableSettings(previousSettings.get(settingEntry.getKey()), settingEntry.getValue());
         }
     }
 

@@ -60,7 +60,6 @@ import org.knime.core.webui.node.dialog.SettingsType;
  *
  * @author David Hickey, TNG Technology Consulting GmbH
  */
-@SuppressWarnings("restriction") // VariableSettings is yet not public API
 public interface GenericSettingsIOManager {
 
     /**

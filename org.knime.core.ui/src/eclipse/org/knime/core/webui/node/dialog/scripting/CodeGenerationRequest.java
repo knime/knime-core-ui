@@ -53,21 +53,56 @@ import org.knime.core.webui.node.dialog.scripting.InputOutputModelNameAndTypeUti
 /**
  * A request for the K-AI code generation.
  *
+ * @param endpointPath The endpoint path to send the request to.
+ * @param body The body of the request.
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
 public record CodeGenerationRequest(String endpointPath, RequestBody body) {
 
+    /**
+     * The body of a code generation request.
+     *
+     * @param code The existing code in the scripting node.
+     * @param user_query The user's query for code generation.
+     * @param inputs The input data available in the node.
+     * @param outputs The expected outputs of the node.
+     * @param version The version of the plugin making the request (can be <code>null</code>).
+     */
     public record RequestBody(String code, String user_query, CodeGenerationRequest.Inputs inputs,
         CodeGenerationRequest.Outputs outputs, String version) {
+
+        /**
+         * Constructor without version.
+         *
+         * @param code The existing code in the scripting node.
+         * @param user_query The user's query for code generation.
+         * @param inputs The input data available in the node.
+         * @param outputs The expected outputs of the node.
+         */
         public RequestBody(final String code, final String user_query, final CodeGenerationRequest.Inputs inputs,
             final CodeGenerationRequest.Outputs outputs) {
             this(code, user_query, inputs, outputs, null);
         }
     }
 
+    /**
+     * Inputs available to the node.
+     *
+     * @param tables The names and types of the input columns for each input table.
+     * @param num_objects The number of input objects (tables, images, etc.).
+     * @param flow_variables The names and types of the available flow variables.
+     */
     public record Inputs(NameAndType[][] tables, long num_objects, NameAndType[] flow_variables) { // NOSONAR: we don't need hash or equals here
     }
 
+    /**
+     * Outputs expected from the node.
+     *
+     * @param num_tables The number of output tables.
+     * @param num_objects The number of output objects (tables, images, etc.).
+     * @param num_images The number of output images.
+     * @param has_view Whether the node has a view.
+     */
     public record Outputs(long num_tables, long num_objects, long num_images, boolean has_view) {
     }
 }

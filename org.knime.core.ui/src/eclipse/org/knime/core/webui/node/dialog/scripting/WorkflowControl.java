@@ -73,6 +73,11 @@ public class WorkflowControl {
 
     private final NodeContainer m_nc;
 
+    /**
+     * Create a new WorkflowControl for the given scripting node.
+     *
+     * @param nc the {@link NodeContainer} of the scripting node
+     */
     public WorkflowControl(final NodeContainer nc) {
         m_nc = nc;
     }
@@ -196,14 +201,12 @@ public class WorkflowControl {
     public InputConnectionInfo[] getInputConnectionInfo() {
         var inputPortTypes = getInputPortTypes();
 
-        InputConnectionInfo[] inputConnectionInfo = new InputConnectionInfo[getNrInPorts()];
+        var inputConnectionInfo = new InputConnectionInfo[getNrInPorts()];
         Arrays.setAll(inputConnectionInfo,
             i -> new InputConnectionInfo(ConnectionStatus.MISSING_CONNECTION, inputPortTypes[i].isOptional()));
 
-        runForEachIncomingConnection((destPortIdx, outPort) -> {
-            inputConnectionInfo[destPortIdx] =
-                new InputConnectionInfo(getPortConnectionStatus(outPort), inputPortTypes[destPortIdx].isOptional());
-        });
+        runForEachIncomingConnection((destPortIdx, outPort) -> inputConnectionInfo[destPortIdx] =
+            new InputConnectionInfo(getPortConnectionStatus(outPort), inputPortTypes[destPortIdx].isOptional()));
 
         return inputConnectionInfo;
     }
@@ -219,13 +222,15 @@ public class WorkflowControl {
     }
 
     /**
+     * Information about an input port.
+     *
      * @param portType the port type
      * @param portSpec the spec which might be <code>null</code> if the spec are not known
      */
     public static record InputPortInfo(PortType portType, PortObjectSpec portSpec) {
     }
 
-    private static interface ConnectedPortConsumer {
+    private interface ConnectedPortConsumer {
         void accept(int destPortIdx, NodeOutPort outPort);
     }
 

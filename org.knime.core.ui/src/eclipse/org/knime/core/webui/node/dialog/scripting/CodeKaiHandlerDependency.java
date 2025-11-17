@@ -59,8 +59,10 @@ import org.knime.core.webui.node.dialog.scripting.kai.CodeKaiHandler.ProjectId;
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
-@SuppressWarnings("restriction")
 final class CodeKaiHandlerDependency {
+
+    private CodeKaiHandlerDependency() {
+    }
 
     /**
      * @return the {@link CodeKaiHandler} from the current data service dependencies or empty if K-AI is not installed
@@ -74,7 +76,7 @@ final class CodeKaiHandlerDependency {
      */
     static String getProjectId() {
         return Optional.ofNullable(DataServiceContext.get().getOtherDependency(ProjectId.class)) //
-            .map(pid -> pid.projectId()) //
+            .map(ProjectId::projectId) //
             .orElse(null);
     }
 }
