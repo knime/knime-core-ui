@@ -122,6 +122,8 @@ import org.knime.node.parameters.updates.Effect;
 import org.knime.node.parameters.updates.Effect.EffectType;
 import org.knime.node.parameters.updates.StateProvider;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.EnumChoice;
+import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.StringChoice;
@@ -460,6 +462,41 @@ class UiSchemaOptionsTest {
         assertThatJson(response).inPath("$.elements[0].scope").isString().contains("foo");
         assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("valueSwitch");
         assertThatJson(response).inPath("$.elements[0].options.disabledOptions").isArray().containsExactly("B");
+    }
+
+    @Test
+    void testValueSwitchWidgetWithChoices() {
+        class ValueSwitchSettings implements NodeParameters {
+
+            @Widget(title = "", description = "")
+            @ValueSwitchWidget
+            @ChoicesProvider(MyEnumCustomChoicesProvider.class)
+            MyEnumCustomChoicesProvider.MyEnum m_foo;
+
+        }
+
+        // check that format is still valueSwitch when choices provider is present
+        var response = buildTestUiSchema(ValueSwitchSettings.class);
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("foo");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("valueSwitch");
+
+    }
+
+    static final class MyEnumCustomChoicesProvider implements EnumChoicesProvider<MyEnumCustomChoicesProvider.MyEnum> {
+        enum MyEnum {
+                A, //
+                B, //
+                C
+        }
+
+        @Override
+        public List<EnumChoice<MyEnumCustomChoicesProvider.MyEnum>> computeState(final NodeParametersInput context) {
+            return List.of( //
+                new EnumChoice<>(MyEnumCustomChoicesProvider.MyEnum.A, "Option A"), //
+                new EnumChoice<>(MyEnumCustomChoicesProvider.MyEnum.B, "Option B"), //
+                new EnumChoice<>(MyEnumCustomChoicesProvider.MyEnum.C, "Option C"));
+        }
+
     }
 
     @Test

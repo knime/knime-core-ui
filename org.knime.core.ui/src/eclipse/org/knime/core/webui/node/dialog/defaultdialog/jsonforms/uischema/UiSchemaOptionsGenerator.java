@@ -392,7 +392,7 @@ final class UiSchemaOptionsGenerator {
             final var choicesProvider = m_node.getAnnotation(ChoicesProvider.class).orElseThrow();
             getOrCreateProvidedOptions(control).add(TAG_POSSIBLE_VALUES);
             assertCorrectChoicesProviderIfNecessary(choicesProvider);
-            if (!isFilter && !isSingleSelection) {
+            if (!isFilter && !isSingleSelection && !isValueSwitch && !isRadioButtons) {
                 options.put(TAG_FORMAT, getChoicesComponentFormat());
             }
         }
