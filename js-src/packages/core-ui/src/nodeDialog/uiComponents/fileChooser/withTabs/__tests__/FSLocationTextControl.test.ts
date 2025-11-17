@@ -11,7 +11,7 @@ import FSLocationTextControl, {
 
 describe("FSLocationTextControl.vue", () => {
   const currentSpacePrefix = "knime://knime.space/";
-  const embeddedDataPrefix = "knime://knime.workflow.data/";
+  const embeddedDataPrefix = "knime://knime.workflow/data/";
   let props: FSLocationTextInputProps;
 
   beforeEach(() => {

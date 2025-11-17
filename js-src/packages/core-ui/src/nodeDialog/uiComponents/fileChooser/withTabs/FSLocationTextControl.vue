@@ -13,7 +13,7 @@ interface Props {
 export type { Props };
 
 const currentSpacePrefix = "knime://knime.space/";
-const embeddedDataPrefix = "knime://knime.workflow.data/";
+const embeddedDataPrefix = "knime://knime.workflow/data/";
 export const prefixes: [keyof typeof FSCategory, string][] = [
   ["relative-to-current-hubspace", currentSpacePrefix],
   ["relative-to-embedded-data", embeddedDataPrefix],
