@@ -50,6 +50,7 @@ package org.knime.core.webui.node.dialog.scripting;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.knime.core.node.workflow.NodeContext;
 
@@ -64,16 +65,16 @@ import org.knime.core.node.workflow.NodeContext;
  */
 public final class GenericInitialDataBuilder {
 
-    private Map<String, DataSupplier> m_dataSuppliers = new HashMap<>();
+    private Map<String, Supplier<Object>> m_dataSuppliers = new HashMap<>();
 
     /**
-     * Add a new {@link DataSupplier} to this service.
+     * Add a new {@link Supplier} to this service.
      *
      * @param key the key under which the data will be sent to the frontend
      * @param supplier the supplier that provides the data
      * @return this, for builder-style chaining
      */
-    public GenericInitialDataBuilder addDataSupplier(final String key, final DataSupplier supplier) {
+    public GenericInitialDataBuilder addDataSupplier(final String key, final Supplier<Object> supplier) {
         if (m_dataSuppliers.containsKey(key)) {
             throw new IllegalArgumentException("Data supplier with key '%s' already exists.".formatted(key));
         }
@@ -83,15 +84,15 @@ public final class GenericInitialDataBuilder {
     }
 
     /**
-     * Build the initial data map using the given {@link DataSupplier}s.
+     * Build the initial data map using the given {@link Supplier}s.
      *
      * @return a map of the data that will be sent to the frontend
      */
     public Map<String, Object> toMap() {
         Map<String, Object> result = new HashMap<>();
 
-        for (Map.Entry<String, DataSupplier> entry : m_dataSuppliers.entrySet()) {
-            result.put(entry.getKey(), entry.getValue().getData());
+        for (Map.Entry<String, Supplier<Object>> entry : m_dataSuppliers.entrySet()) {
+            result.put(entry.getKey(), entry.getValue().get());
         }
 
         return result;
@@ -105,7 +106,6 @@ public final class GenericInitialDataBuilder {
      * @return a new initial data service, which can be extended to include additional data suppliers
      */
     public static GenericInitialDataBuilder createDefaultInitialDataBuilder(final NodeContext context) {
-
         return new GenericInitialDataBuilder() //
             .addDataSupplier("inputPortConfigs", createInputPortConfigsSupplier(context)) //
             .addDataSupplier("inputConnectionInfo", createInputConnectionInfoSupplier(context)) //
@@ -119,34 +119,33 @@ public final class GenericInitialDataBuilder {
      */
 
     /**
-     * Create a {@link DataSupplier} that provides a summary of the current status of incoming Ports. Each port is
+     * Create a {@link Supplier} that provides a summary of the current status of incoming Ports. Each port is
      * represented by an entry in the returning array.
      *
      * @param context the node context for the current node (see {@link NodeContext#getContext()})
      * @return the data supplier
      */
-    public static DataSupplier createInputConnectionInfoSupplier(final NodeContext context) {
-        return () -> {
-            return new WorkflowControl(context.getNodeContainer()).getInputConnectionInfo();
-        };
+    public static Supplier<Object> createInputConnectionInfoSupplier(final NodeContext context) {
+        return () -> new WorkflowControl(context.getNodeContainer()).getInputConnectionInfo();
+
     }
 
     /**
-     * Create a {@link DataSupplier} that provides the input port configs.
+     * Create a {@link Supplier} that provides the input port configs.
      *
      * @param context the node context for the current node (see {@link NodeContext#getContext()})
      * @return the data supplier
      */
-    public static DataSupplier createInputPortConfigsSupplier(final NodeContext context) {
+    public static Supplier<Object> createInputPortConfigsSupplier(final NodeContext context) {
         return () -> new PortConfigs(context.getNodeContainer());
     }
 
     /**
-     * Create a {@link DataSupplier} that provides the KAI configuration.
+     * Create a {@link Supplier} that provides the KAI configuration.
      *
      * @return the data supplier
      */
-    public static DataSupplier createKAIConfigSupplier() {
+    public static Supplier<Object> createKAIConfigSupplier() {
         return () -> {
             Map<String, Object> result = new HashMap<>();
 
@@ -158,24 +157,5 @@ public final class GenericInitialDataBuilder {
 
             return result;
         };
-    }
-
-    /**
-     * Used by the {@link GenericInitialDataBuilder} to supply data to the editor in a composable way.
-     */
-    @FunctionalInterface
-    public static interface DataSupplier {
-
-        /**
-         * Return the data for which this supplier is responsible. The settings and specs are provided, but the supplier
-         * may ignore them.
-         *
-         * @param settings the settings for the node, which may be from the file or overridden by flow variables.
-         * @param specs the specs for the ports connected to the node, including the flow variables.
-         * @return the data whatever data the supplier is responsible for, which will be serialised to JSON and then
-         *         sent to the editor along with the data from the other suppliers.
-         */
-        Object getData();
-
     }
 }
