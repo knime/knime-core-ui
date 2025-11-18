@@ -109,6 +109,12 @@ public class LegacyFileWriter implements NodeParameters {
             fileSystemChooserInternals.addBoolean("has_fs_port", false);
             fileSystemChooserInternals.addBoolean("overwritten_by_variable", false);
             fileSystemChooserInternals.addString("convenience_fs_category", "LOCAL");
+            fileSystemChooserInternals.addString("relative_to", "knime.workflow");
+            fileSystemChooserInternals.addString("mountpoint", "LOCAL");
+            fileSystemChooserInternals.addString("spaceId", "");
+            fileSystemChooserInternals.addString("spaceName", "");
+            fileSystemChooserInternals.addInt("custom_url_timeout", 1000);
+            fileSystemChooserInternals.addBoolean("connected_fs", true);
         }
 
         @Override
