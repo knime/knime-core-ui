@@ -305,7 +305,18 @@ public final class WebUINodeConfiguration { // NOSONAR
          * @return this build stage
          */
         public NodeOptionals addInputTable(final String name, final String description, final boolean configurable) {
-            return addInputPort(name, BufferedDataTable.TYPE, description, configurable);
+            return addInputPort(name, BufferedDataTable.TYPE, description, configurable, false);
+        }
+
+        /**
+         * Adds another optional input table to the node.
+         *
+         * @param name the name of the node's next input table
+         * @param description the description of the node's next input table
+         * @return this build stage
+         */
+        public NodeOptionals addOptionalInputTable(final String name, final String description) {
+            return addInputPort(name, BufferedDataTable.TYPE, description, false, true);
         }
 
         /**
@@ -317,7 +328,7 @@ public final class WebUINodeConfiguration { // NOSONAR
          * @return this build stage
          */
         public NodeOptionals addInputPort(final String name, final PortType type, final String description) {
-            return addInputPort(name, type, description, false);
+            return addInputPort(name, type, description, false, false);
         }
 
         /**
@@ -331,7 +342,21 @@ public final class WebUINodeConfiguration { // NOSONAR
          */
         public NodeOptionals addInputPort(final String name, final PortType type, final String description,
             final boolean configurable) {
-            m_inputPortDescriptions.add(new PortDescription(name, type, description, configurable));
+            return addInputPort(name, type, description, configurable, false);
+        }
+
+        /**
+         * Adds another input port to the node.
+         *
+         * @param name the name of the node's next input port
+         * @param type the type of the node's next input port
+         * @param description the description of the node's next input port
+         * @param configurable whether the port is configurable
+         * @return this build stage
+         */
+        private NodeOptionals addInputPort(final String name, final PortType type, final String description,
+            final boolean configurable, final boolean optional) {
+            m_inputPortDescriptions.add(new PortDescription(name, type, description, configurable, optional));
             return this;
         }
 

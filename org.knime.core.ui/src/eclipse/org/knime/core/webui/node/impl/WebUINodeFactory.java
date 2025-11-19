@@ -310,6 +310,9 @@ public abstract class WebUINodeFactory<M extends NodeModel> extends NodeFactory<
                 dynamicPortAdders.add(() -> ports.appendChild(port));
             } else {
                 port.setAttribute("index", Integer.toString(index));
+                if (portDesc.isOptional()) {
+                    port.setAttribute("optional", "true");
+                }
                 index++;
                 port.appendChild(parseDocumentFragment(portDesc.getDescription(), docBuilder, doc));
                 fixedPortAdders.add(() -> ports.appendChild(port));

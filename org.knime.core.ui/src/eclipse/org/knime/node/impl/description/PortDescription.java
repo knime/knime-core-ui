@@ -57,10 +57,11 @@ import org.knime.core.node.ConfigurableNodeFactory;
  * @param name the name of the port
  * @param description the description of the port
  * @param configurable whether the port is configurable (see {@link ConfigurableNodeFactory})
+ * @param optional whether the port is optional
  *
  * @author Adrian Nembach, KNIME GmbH, Konstanz, Germany
  */
-public record PortDescription(String id, String name, String description, boolean configurable) {
+public record PortDescription(String id, String name, String description, boolean configurable, boolean optional) {
 
     /**
      * Utility method used by the AI Migration Pipeline to generate descriptions for non-dynamic ports.
@@ -70,7 +71,7 @@ public record PortDescription(String id, String name, String description, boolea
      * @return a new port description
      */
     public static PortDescription fixedPort(final String name, final String description) {
-        return new PortDescription(null, name, description, false);
+        return new PortDescription(null, name, description, false, false);
     }
 
     /**
@@ -82,7 +83,18 @@ public record PortDescription(String id, String name, String description, boolea
      * @return a new port description
      */
     public static PortDescription dynamicPort(final String id, final String name, final String description) {
-        return new PortDescription(id, name, description, true);
+        return new PortDescription(id, name, description, true, false);
+    }
+
+    /**
+     * Utility method used by the AI Migration Pipeline to generate descriptions for optional ports.
+     *
+     * @param name the name of the port
+     * @param description the description of the port
+     * @return a new port description
+     */
+    public static PortDescription optionalPort(final String name, final String description) {
+        return new PortDescription(null, name, description, false, true);
     }
 
 }

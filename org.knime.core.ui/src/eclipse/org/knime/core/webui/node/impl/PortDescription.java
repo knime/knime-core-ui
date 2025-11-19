@@ -69,6 +69,8 @@ public final class PortDescription { // NOSONAR
 
     private final boolean m_configurable;
 
+    private final boolean m_optional;
+
     /**
      * Constructor.
      *
@@ -88,10 +90,23 @@ public final class PortDescription { // NOSONAR
      */
     public PortDescription(final String name, final PortType type, final String description,
         final boolean configurable) {
+        this(name, type, description, configurable, false);
+    }
+
+    /**
+     * @param name the name of the port
+     * @param type the type of the port
+     * @param description the description of the port
+     * @param configurable whether the port is configurable (see {@link ConfigurableNodeFactory})
+     * @param optional whether the port is optional
+     */
+    public PortDescription(final String name, final PortType type, final String description, final boolean configurable,
+        final boolean optional) {
         m_name = name;
         m_description = description;
         m_type = type;
         m_configurable = configurable;
+        m_optional = optional;
     }
 
     /**
@@ -121,6 +136,13 @@ public final class PortDescription { // NOSONAR
      */
     public boolean isConfigurable() {
         return m_configurable;
+    }
+
+    /**
+     * @return whether the port is optional
+     */
+    public boolean isOptional() {
+        return m_optional;
     }
 
 }

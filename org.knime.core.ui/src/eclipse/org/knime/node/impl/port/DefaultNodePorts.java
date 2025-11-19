@@ -153,7 +153,7 @@ public final class DefaultNodePorts {
     record OneSidePortGroup(String id, PortGroupConfiguration portGroupConfig, String name, String description) {
 
         PortDescription getDescription() {
-            return new PortDescription(id, name, description, portGroupConfig.isConfigurable());
+            return new PortDescription(id, name, description, portGroupConfig.isConfigurable(), false);
         }
 
         void addToPortGroupConfiguration(final PortGroup.PortGroupLocation portLocation,
@@ -169,7 +169,7 @@ public final class DefaultNodePorts {
         public Optional<PortDescription> getDescription(final PortGroup.PortLocation portLocation) {
             final var name = portLocation == PortLocation.INPUT ? inputName : outputName;
             final var description = portLocation == PortLocation.INPUT ? inputDescription : outputDescription;
-            return Optional.of(new PortDescription(id, name, description, portGroupConfig.isConfigurable()));
+            return Optional.of(new PortDescription(id, name, description, portGroupConfig.isConfigurable(), false));
 
         }
 

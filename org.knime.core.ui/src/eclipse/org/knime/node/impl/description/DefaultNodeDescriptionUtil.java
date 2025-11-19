@@ -261,6 +261,9 @@ public final class DefaultNodeDescriptionUtil {
                 dynamicPortAdders.add(() -> ports.appendChild(port));
             } else {
                 port.setAttribute("index", Integer.toString(index));
+                if (portDesc.optional()) {
+                    port.setAttribute("optional", "true");
+                }
                 index++;
                 port.appendChild(parseDocumentFragment(portDesc.description(), docBuilder, doc));
                 fixedPortAdders.add(() -> ports.appendChild(port));
