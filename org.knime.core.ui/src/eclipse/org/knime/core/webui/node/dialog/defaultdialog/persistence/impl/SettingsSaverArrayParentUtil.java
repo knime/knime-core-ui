@@ -53,7 +53,11 @@ import java.util.Iterator;
 import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
 
+import org.knime.core.node.NodeSettingsWO;
+
 final class SettingsSaverArrayParentUtil {
+
+    static final String IS_NULL = "is_null";
 
     private SettingsSaverArrayParentUtil() {
         // Utility class
@@ -73,8 +77,9 @@ final class SettingsSaverArrayParentUtil {
         void saveAtIndex(int index, Object element);
     }
 
-    static void save(final Object container, final AtIndexSaver elementSaver) {
+    static void save(final Object container, final AtIndexSaver elementSaver, final Runnable nullSaver) {
         if (container == null) {
+            nullSaver.run();
             return;
         }
         if (container.getClass().isArray()) {
@@ -110,5 +115,9 @@ final class SettingsSaverArrayParentUtil {
 
     private static void iterateIndexed(final int size, final IntConsumer indexedAction) {
         IntStream.range(0, size).forEach(indexedAction);
+    }
+
+    static void saveIsNull(final NodeSettingsWO nodeSettings) {
+        nodeSettings.addBoolean(IS_NULL, true);
     }
 }

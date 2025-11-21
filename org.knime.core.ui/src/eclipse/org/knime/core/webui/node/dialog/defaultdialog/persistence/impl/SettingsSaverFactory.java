@@ -159,7 +159,8 @@ public final class SettingsSaverFactory extends PersistenceFactory<ParametersSav
     protected ParametersSaver getForArray(final ArrayParentNode<Persistable> arrayNode,
         final ParametersSaver elementProperty) {
         return (obj, settings) -> SettingsSaverArrayParentUtil.save(obj,
-            (i, objAtI) -> elementProperty.save(objAtI, settings.addNodeSettings(Integer.toString(i))));
+            (i, objAtI) -> elementProperty.save(objAtI, settings.addNodeSettings(Integer.toString(i))),
+            () -> SettingsSaverArrayParentUtil.saveIsNull(settings));
     }
 
     @Override
@@ -169,13 +170,16 @@ public final class SettingsSaverFactory extends PersistenceFactory<ParametersSav
         return (obj, settings) -> {
             final var size = SettingsSaverArrayParentUtil.getSize(obj);
             final var saveDtos = IntStream.range(0, size).mapToObj(customArrayPersistor::createElementSaveDTO).toList();
-            SettingsSaverArrayParentUtil.save(obj, (i, objAtI) -> {
-                for (final var child : arrayNode.getElementTree().getChildren()) {
-                    final var childValue = child.getFromParentValue(objAtI);
-                    final var childElementFieldPersistor = elementFieldPersistors.get(child);
-                    childElementFieldPersistor.save(childValue, saveDtos.get(i));
-                }
-            });
+            SettingsSaverArrayParentUtil.save(obj, //
+                (i, objAtI) -> {
+                    for (final var child : arrayNode.getElementTree().getChildren()) {
+                        final var childValue = child.getFromParentValue(objAtI);
+                        final var childElementFieldPersistor = elementFieldPersistors.get(child);
+                        childElementFieldPersistor.save(childValue, saveDtos.get(i));
+                    }
+                }, () -> {
+                    throw new IllegalStateException("Cannot save null array with custom array persistor.");
+                });
             customArrayPersistor.save(saveDtos, settings);
         };
     }
