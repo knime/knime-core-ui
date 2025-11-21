@@ -67,6 +67,7 @@ import org.osgi.framework.FrameworkUtil;
  * Utility methods for the output table preview in scripting nodes.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
+ * @noreference This class is not intended to be referenced by clients.
  */
 public final class OutputTablePreviewUtils {
 

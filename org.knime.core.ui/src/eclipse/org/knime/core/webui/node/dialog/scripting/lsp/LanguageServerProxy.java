@@ -71,6 +71,7 @@ import org.knime.core.node.NodeLogger;
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
  * @see <a href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/">
  *      https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/</a>
+ * @noreference This class is not intended to be referenced by clients.
  */
 public final class LanguageServerProxy implements AutoCloseable {
 

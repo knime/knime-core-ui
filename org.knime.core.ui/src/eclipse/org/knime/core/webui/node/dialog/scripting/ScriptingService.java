@@ -81,6 +81,7 @@ import org.knime.core.webui.node.dialog.scripting.lsp.LanguageServerProxy;
  * Extend the {@link ScriptingService} to implement additional functionality for a specific scripting dialog.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
+ * @noreference This class is not intended to be referenced by clients.
  */
 public abstract class ScriptingService {
 

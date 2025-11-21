@@ -56,6 +56,7 @@ import org.knime.core.webui.node.dialog.scripting.InputOutputModelNameAndTypeUti
  * @param endpointPath The endpoint path to send the request to.
  * @param body The body of the request.
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
+ * @noreference This record is not intended to be referenced by clients.
  */
 public record CodeGenerationRequest(String endpointPath, RequestBody body) {
 

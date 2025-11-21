@@ -73,6 +73,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
  * the initial data.
  *
  * @author David Hickey, TNG Technology Consulting GmbH
+ * @noreference This class is not intended to be referenced by clients.
  */
 public final class ScriptingNodeSettingsService implements NodeSettingsService {
 

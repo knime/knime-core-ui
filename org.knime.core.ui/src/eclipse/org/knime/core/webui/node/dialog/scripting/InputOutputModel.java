@@ -80,6 +80,7 @@ import org.knime.core.node.workflow.VariableType;
  * @param subItems A (possibly empty) list of sub items.
  * @param portType The type of this item, e.g. flow variable, input table, etc.
  * @param portIconColor The color of the port icon.
+ * @noreference This record is not intended to be referenced by clients.
  */
 public record InputOutputModel(String name, //
     String codeAlias, //

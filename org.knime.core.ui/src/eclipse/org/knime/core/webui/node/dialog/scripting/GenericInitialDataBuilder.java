@@ -62,6 +62,7 @@ import org.knime.core.node.workflow.NodeContext;
  * Each supplier has an associated name, which is the key that it will have when it is sent to the frontend as JSON.
  *
  * @author David Hickey, TNG Technology Consulting GmbH
+ * @noreference This class is not intended to be referenced by clients.
  */
 public final class GenericInitialDataBuilder {
 

@@ -55,6 +55,8 @@ import java.io.IOException;
  *
  * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
+ * @noreference This interface is not intended to be referenced by clients.
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface CodeKaiHandler {
 

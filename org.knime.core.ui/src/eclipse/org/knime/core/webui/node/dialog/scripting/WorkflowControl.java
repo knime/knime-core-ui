@@ -66,6 +66,7 @@ import org.knime.core.node.workflow.NodeOutPort;
  * A utility to control the workflow of a scripting node.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Konstanz, Germany
+ * @noreference This class is not intended to be referenced by clients.
  */
 public class WorkflowControl {
 

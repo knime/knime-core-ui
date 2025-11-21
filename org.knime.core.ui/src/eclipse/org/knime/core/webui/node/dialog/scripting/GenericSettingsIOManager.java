@@ -59,6 +59,8 @@ import org.knime.core.webui.node.dialog.SettingsType;
  * Used by the {@link ScriptingNodeSettingsService} to supply settings data to the editor and then save it again.
  *
  * @author David Hickey, TNG Technology Consulting GmbH
+ * @noreference This interface is not intended to be referenced by clients.
+ * @noimplement This interface is not intended to be implemented by clients.
  */
 public interface GenericSettingsIOManager {
 

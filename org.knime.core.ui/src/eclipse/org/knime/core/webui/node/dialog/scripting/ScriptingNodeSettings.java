@@ -67,6 +67,7 @@ import org.knime.core.webui.node.dialog.VariableSettingsWO;
  * To be used together with {@link GenericInitialDataBuilder} to build a {@link ScriptingNodeSettingsService}.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
+ * @noreference This class is not intended to be referenced by clients.
  */
 @SuppressWarnings("javadoc")
 public abstract class ScriptingNodeSettings {
