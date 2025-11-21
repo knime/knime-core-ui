@@ -209,6 +209,12 @@ class FieldBasedNodeSettingsPersistorTest {
     }
 
     @Test
+    void testNullArraySettings() throws InvalidSettingsException {
+        var settings = new NullArraySettings();
+        testSaveLoad(settings);
+    }
+
+    @Test
     void testThrowsOnOtherCollections() throws InvalidSettingsException {
         var settings = new NonAllowedCollectionsSettigns();
 
@@ -733,6 +739,28 @@ class FieldBasedNodeSettingsPersistorTest {
         protected boolean equalSettings(final AllAllowedTypesArraySettings settings) {
             return Objects.deepEquals(m_bar, settings.m_bar) && m_baz.equals(settings.m_baz)
                 && m_bimms.equals(settings.m_bimms) && m_bams.equals(settings.m_bams);
+        }
+
+    }
+
+    private static final class NullArraySettings extends AbstractTestNodeSettings<NullArraySettings> {
+
+        ElementSettings[] m_bar;
+
+        @Override
+        public void saveExpected(final NodeSettingsWO settings) {
+            var barSettings = settings.addNodeSettings("bar");
+            barSettings.addBoolean("is_null", true);
+        }
+
+        @Override
+        protected int computeHashCode() {
+            return 0;
+        }
+
+        @Override
+        protected boolean equalSettings(final NullArraySettings settings) {
+            return m_bar == null && settings.m_bar == null;
         }
 
     }

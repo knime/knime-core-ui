@@ -148,6 +148,9 @@ public final class ConfigMappingsFactory extends PersistenceFactory<GetConfigMap
 
     static <T> T extractFromArrayOrCollection(final ArrayParentNode<Persistable> arrayNode, final Object obj,
         final Function<Object[], T> fromArray, final Function<Collection, T> fromCollection) {
+        if (obj == null) {
+            return fromCollection.apply(List.of());
+        }
         if (arrayNode.getRawClass().isArray()) {
             return fromArray.apply((Object[])obj);
         }

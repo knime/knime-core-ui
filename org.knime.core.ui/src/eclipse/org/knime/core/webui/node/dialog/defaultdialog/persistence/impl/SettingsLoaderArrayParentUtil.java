@@ -48,6 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.persistence.impl;
 
+import static org.knime.core.webui.node.dialog.defaultdialog.persistence.impl.SettingsSaverArrayParentUtil.IS_NULL;
+
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -91,6 +93,9 @@ final class SettingsLoaderArrayParentUtil {
 
     static Object instantiateFromSettings(final ArrayParentNode<?> node, final NodeSettingsRO settings,
         final AtIndexLoader elementProvider) throws InvalidSettingsException {
+        if (settings.getBoolean(IS_NULL, false)) {
+            return null;
+        }
         int size = countIndexedChildren(settings);
         return instantiateFromSize(node, elementProvider, size);
     }
