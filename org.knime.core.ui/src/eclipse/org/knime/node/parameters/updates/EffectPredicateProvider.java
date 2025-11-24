@@ -48,13 +48,16 @@
  */
 package org.knime.node.parameters.updates;
 
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.And;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.Not;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.Or;
+import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
-import org.knime.node.parameters.NodeParameters;
 
 /**
  * Use the initializer to create a predicate depending on other fields in the current {@link NodeParameters} or the
@@ -74,8 +77,8 @@ import org.knime.node.parameters.NodeParameters;
 public interface EffectPredicateProvider {
 
     /**
-     * Use the initializer to create a predicate depending on other fields in the current {@link NodeParameters},
-     * the {@link NodeParametersInput} or on another {@link EffectPredicateProvider}.
+     * Use the initializer to create a predicate depending on other fields in the current {@link NodeParameters}, the
+     * {@link NodeParametersInput} or on another {@link EffectPredicateProvider}.
      *
      * @param i
      * @return the provided predicate
@@ -118,10 +121,10 @@ public interface EffectPredicateProvider {
      * <ul>
      * <li>Once a predicate is constructed, one can use {@link EffectPredicate#and}, {@link EffectPredicate#or} and
      * {@link EffectPredicate#negate}</li>
-     * <li>Different syntax with the same effect {@link EffectPredicateProvider#and}, {@link EffectPredicateProvider#or} and
-     * {@link EffectPredicateProvider#not}</li>
-     * <li>To make use of the predicate provided by another {@link EffectPredicateProvider}, use {@link #getPredicate} either
-     * by class or by instance.
+     * <li>Different syntax with the same effect {@link EffectPredicateProvider#and}, {@link EffectPredicateProvider#or}
+     * and {@link EffectPredicateProvider#not}</li>
+     * <li>To make use of the predicate provided by another {@link EffectPredicateProvider}, use {@link #getPredicate}
+     * either by class or by instance.
      * </ul>
      * </p>
      *
@@ -166,6 +169,13 @@ public interface EffectPredicateProvider {
          * @return an object that can be further transformed to a predicate using one of its methods
          */
         <E extends Enum<E>> EnumReference<E> getEnum(Class<? extends ParameterReference<E>> reference);
+
+        /**
+         * @param reference bound to exactly one {@link MultiFileSelection} field via {@link ValueReference}
+         * @return an object that can be further transformed to a predicate using one of its methods
+         */
+        <F extends FileChooserFilters> MultiFileSelectionReference
+            getMultiFileSelectionMode(Class<? extends ParameterReference<MultiFileSelection<F>>> reference);
 
         /**
          * Returned by {@link PredicateInitializer#getString}
@@ -218,6 +228,30 @@ public interface EffectPredicateProvider {
         }
 
         /**
+         * Returned by {@link PredicateInitializer#getMultiFileSelectionMode}
+         *
+         * @author Paul Bärnreuther
+         */
+        interface MultiFileSelectionReference {
+
+            /**
+             * Whether one of the {@link MultiFileSelectionMode}s that allow multiple files is selected.
+             *
+             * @return predicate that is fulfilled, when multiple file selection mode is selected.
+             */
+            default EffectPredicate isMultiFileSelection() {
+                return getSelectionMode().isOneOf(//
+                    MultiFileSelectionMode.FILES_IN_FOLDERS, //
+                    MultiFileSelectionMode.FOLDERS, //
+                    MultiFileSelectionMode.FILES_AND_FOLDERS//
+                );
+            }
+
+            EnumReference<MultiFileSelectionMode> getSelectionMode();
+
+        }
+
+        /**
          * Returned by {@link PredicateInitializer#getArray}
          *
          * @author Paul Bärnreuther
@@ -231,7 +265,8 @@ public interface EffectPredicateProvider {
 
             /**
              *
-             * Note that {@link EffectPredicateProvider} is a functional interface, so an implementation could look like this:
+             * Note that {@link EffectPredicateProvider} is a functional interface, so an implementation could look like
+             * this:
              *
              * {@code  i.getArray(ArrayFieldReference.class).containsElementSatisfying(
              *      el -> el.getBoolean(ElementBooleanFieldReference.class).isTrue()
@@ -283,9 +318,9 @@ public interface EffectPredicateProvider {
 
         /**
          * Use this method in case a {@link EffectPredicateProvider} is used in the context of two different
-         * {@link NodeParameters} (e.g. by reusing the same {@link WidgetGroup} within both of them. This way, one
-         * can avoid an error that a {@link ValueReference} annotations is missing in one of the cases and instead one
-         * can use {@link #never} or {@link #always} to create a constant effect not depending on the reference.
+         * {@link NodeParameters} (e.g. by reusing the same {@link WidgetGroup} within both of them. This way, one can
+         * avoid an error that a {@link ValueReference} annotations is missing in one of the cases and instead one can
+         * use {@link #never} or {@link #always} to create a constant effect not depending on the reference.
          *
          * @param reference
          * @return whether the reference can be accessed using one of the other methods {@link #getString},
@@ -294,12 +329,13 @@ public interface EffectPredicateProvider {
         boolean isMissing(Class<? extends ParameterReference<?>> reference);
 
         /**
-         * This method can be used to create an effect that is constant as long as the
-         * {@link NodeParametersInput} does not change. I.e., e.g., the one can depend on the presence of certain
-         * columns (or column types) or if dynamic ports are enabled/shown or not.
+         * This method can be used to create an effect that is constant as long as the {@link NodeParametersInput} does
+         * not change. I.e., e.g., the one can depend on the presence of certain columns (or column types) or if dynamic
+         * ports are enabled/shown or not.
          *
          * @param predicate on the {@link NodeParametersInput} when the dialog is opened
-         * @return a {@link EffectPredicate} that can be returned in {@link #init} or combined with other {@link EffectPredicate}s
+         * @return a {@link EffectPredicate} that can be returned in {@link #init} or combined with other
+         *         {@link EffectPredicate}s
          */
         EffectPredicate getConstant(java.util.function.Predicate<NodeParametersInput> predicate);
 
@@ -342,7 +378,8 @@ public interface EffectPredicateProvider {
     }
 
     /**
-     * Use this method with {@link #init} to combine multiple predicates. Alternatively, use {@link EffectPredicate#and}.
+     * Use this method with {@link #init} to combine multiple predicates. Alternatively, use
+     * {@link EffectPredicate#and}.
      *
      * @param predicates
      * @return A predicate that is fulfilled if and only if all of the given predicates are fulfilled.

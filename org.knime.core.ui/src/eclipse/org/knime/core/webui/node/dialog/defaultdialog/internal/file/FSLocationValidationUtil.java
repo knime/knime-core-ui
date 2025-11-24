@@ -44,38 +44,45 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 6, 2023 (Paul Bärnreuther): created
+ *   Nov 25, 2025 (Paul Bärnreuther): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
+
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.util.CheckUtils;
+import org.knime.filehandling.core.connections.FSCategory;
+import org.knime.filehandling.core.connections.FSLocation;
 
 /**
- * A visitor visiting all permitted implementations of {@link Condition} which is used to translate the condition to a
- * implementation dependent format.
+ * Shared util class for validation of parameters containing {@link FSLocation} fields.
  *
  * @author Paul Bärnreuther
- * @param <T> the type of the returned value on visiting a {@link Condition}
  */
-@SuppressWarnings("javadoc")
-public interface ConditionVisitor<T> {
+final class FSLocationValidationUtil {
 
-    <E extends Enum<E>> T visit(OneOfEnumCondition<E> oneOfEnumCondition);
+    private FSLocationValidationUtil() {
+        // prevent instantiation
+    }
 
-    <E extends Enum<E>> T visit(IsEnumChoiceCondition oneOfSinlgeSelectionCondition);
-
-    T visit(IsStringChoiceCondition isRegularStringCondition);
-
-    T visit(TrueCondition trueCondition);
-
-    T visit(FalseCondition falseCondition);
-
-    T visit(HasMultipleItemsCondition hasMultipleItemsCondition);
-
-    T visit(IsSpecificStringCondition isSpecificStringCondition);
-
-    T visit(PatternCondition patternCondition);
-
-    T visit(ArrayContainsCondition arrayContainsCondition);
-
-    T visit(MultiFileSelectionModeCondition multiFileSelectionModeCondition);
+    /**
+     * Validates the given location for settings correctness.
+     *
+     * @param location the location to validate
+     * @throws InvalidSettingsException if the settings are invalid
+     */
+    static void validateFSLocation(final FSLocation location) throws InvalidSettingsException {
+        if (location == null) {
+            return;
+        }
+        if (location.getFSCategory() == FSCategory.CUSTOM_URL) {
+            try {
+                final int timeout = Integer.parseInt(location.getFileSystemSpecifier().orElseThrow(
+                    () -> new InvalidSettingsException("No timeout for custom URL file system provided.")));
+                CheckUtils.checkSetting(timeout >= 0, "The custom URL timeout must not be negative.");
+            } catch (final NumberFormatException e) {
+                throw new InvalidSettingsException("The custom URL timeout must be an integer.", e);
+            }
+        }
+    }
 
 }

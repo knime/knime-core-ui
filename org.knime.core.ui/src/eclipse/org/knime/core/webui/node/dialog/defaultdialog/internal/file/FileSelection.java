@@ -51,7 +51,6 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 import java.util.Objects;
 
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.node.util.CheckUtils;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.node.parameters.persistence.Persistable;
@@ -118,19 +117,7 @@ public final class FileSelection implements Persistable {
      * @throws InvalidSettingsException if the current path is invalid
      */
     public void validate() throws InvalidSettingsException {
-        if (m_path == null) {
-            return;
-        }
-        if (m_path.getFSCategory() == FSCategory.CUSTOM_URL) {
-            try {
-                final int timeout = Integer.parseInt(m_path.getFileSystemSpecifier().orElseThrow(
-                    () -> new InvalidSettingsException("No timeout for custom URL file system provided.")));
-                CheckUtils.checkSetting(timeout >= 0, "The custom URL timeout must not be negative.");
-            } catch (final NumberFormatException e) {
-                throw new InvalidSettingsException("The custom URL timeout must be an integer.", e);
-            }
-        }
-
+        FSLocationValidationUtil.validateFSLocation(m_path);
     }
 
 }

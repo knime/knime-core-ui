@@ -50,6 +50,7 @@ package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
 import java.util.Objects;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.filehandling.core.connections.FSCategory;
 import org.knime.filehandling.core.connections.FSLocation;
 import org.knime.node.parameters.Widget;
@@ -141,5 +142,23 @@ public final class MultiFileSelection<F extends FileChooserFilters> implements P
             @Label(value = "Folder", description = "Select all files in a folder. Optionally, it is then also possible "
                 + "to define filter options to select only specific files within the selected folder.")
             FOLDER;
+    }
+
+    /**
+     * Call this method to validate the current path.
+     *
+     * @throws InvalidSettingsException if the current path is invalid
+     */
+    public void validate() throws InvalidSettingsException {
+        FSLocationValidationUtil.validateFSLocation(m_path);
+    }
+
+    /**
+     * Get the selected file system location.
+     *
+     * @return the selected FSLocation
+     */
+    public FSLocation getFSLocation() {
+        return m_path;
     }
 }

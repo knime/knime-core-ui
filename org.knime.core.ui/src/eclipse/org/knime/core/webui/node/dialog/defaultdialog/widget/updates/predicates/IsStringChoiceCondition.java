@@ -73,7 +73,7 @@ public interface IsStringChoiceCondition extends Condition {
     }
 
     /**
-     * @return condition on the
+     * @return condition on the selected string choice
      */
     Condition condition();
 

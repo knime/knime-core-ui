@@ -48,6 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema;
 
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
@@ -61,8 +63,8 @@ import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
-import org.knime.node.parameters.updates.ParameterReference;
 import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer;
+import org.knime.node.parameters.updates.ParameterReference;
 
 class DefaultPredicateInitializer implements PredicateInitializer {
 
@@ -142,6 +144,14 @@ class DefaultPredicateInitializer implements PredicateInitializer {
     public <E extends Enum<E>> StringOrEnumReference<E>
         getStringOrEnum(final Class<? extends ParameterReference<StringOrEnum<E>>> reference) {
         return new ConditionToPredicateTranslator.StringOrEnumFieldReference<>(
+            condition -> createPredicate(reference, condition));
+    }
+
+
+    @Override
+    public <F extends FileChooserFilters> MultiFileSelectionReference
+        getMultiFileSelectionMode(final Class<? extends ParameterReference<MultiFileSelection<F>>> reference) {
+        return new ConditionToPredicateTranslator.MultiFileSelectionFieldReference(
             condition -> createPredicate(reference, condition));
     }
 

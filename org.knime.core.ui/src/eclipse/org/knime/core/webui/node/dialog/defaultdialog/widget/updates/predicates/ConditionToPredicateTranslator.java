@@ -50,17 +50,20 @@ package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates
 
 import java.util.function.Function;
 
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.ArrayReference;
 import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.BooleanReference;
 import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.EnumReference;
+import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.MultiFileSelectionReference;
 import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.StringOrEnumReference;
 import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.StringReference;
 
 /**
  * This class allows for translating the methods provided by the reference interfaces returned by the
- * {@link EffectPredicateProvider} back to individual condition classes to be further processed using the visitor pattern.
+ * {@link EffectPredicateProvider} back to individual condition classes to be further processed using the visitor
+ * pattern.
  *
  * @author Paul Bärnreuther
  */
@@ -161,6 +164,21 @@ public class ConditionToPredicateTranslator {
         public StringReference isStringChoice() {
             return new StringFieldReference(
                 condition -> this.<IsStringChoiceCondition> createPredicate(() -> condition));
+        }
+
+    }
+
+    public static final class MultiFileSelectionFieldReference extends ConditionToPredicateTranslator
+        implements MultiFileSelectionReference {
+
+        public MultiFileSelectionFieldReference(final Function<Condition, EffectPredicate> conditionToPredicate) {
+            super(conditionToPredicate);
+        }
+
+        @Override
+        public EnumReference<MultiFileSelectionMode> getSelectionMode() {
+            return new EnumFieldReference<>(
+                condition -> this.<MultiFileSelectionModeCondition> createPredicate(() -> condition));
         }
 
     }
