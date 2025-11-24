@@ -45,6 +45,7 @@
  *
  * History
  *   Oct 27, 2025 (Paul Bärnreuther): created
+ *   Nov 21, 2025 (Thomas Reifenberger): updated
  */
 package org.knime.node.parameters.persistence.legacy;
 
@@ -62,33 +63,54 @@ import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.Settin
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.persistence.NodeParametersPersistor;
-import org.knime.node.parameters.persistence.Persist;
 import org.knime.node.parameters.persistence.Persistor;
 
 /**
  *
- * Parameters that are backwards-compatible to a {@link SettingsModelWriterFileChooser} that does not have mulitple
- * filter modes and also no overwrite policy options.
+ * Parameters that are backwards-compatible to a {@link SettingsModelWriterFileChooser}.
  *
- * The corresponding version with overwrite policy options is to be implemented when needed.
+ * This class does not provide optional features.
+ *
+ * Use the {@link Modifier} interface to adapt the widgets accordingly.
+ *
+ * <br>
+ * <br>
+ *
+ * The {@link LegacyFileWriter} class hierarchy provides the different options that are needed for legacy support:
+ * <table border="1" cellpadding="3" cellspacing="0">
+ * <tr>
+ * <th>Class</th>
+ * <th>Create Missing Folders</th>
+ * <th>Overwrite Policy</th>
+ * </tr>
+ * <tr>
+ * <td>{@link LegacyFileWriter}</td>
+ * <td>No</td>
+ * <td>No</td>
+ * </tr>
+ * <tr>
+ * <td>{@link LegacyFileWriterWithCreateMissingFolders}</td>
+ * <td>Yes</td>
+ * <td>No</td>
+ * </tr>
+ * <tr>
+ * <td>{@link LegacyFileWriterWithOverwritePolicyOptions}</td>
+ * <td>Yes</td>
+ * <td>Yes</td>
+ * </tr>
+ * </table>
+ * For future migrations, this hierarchy can be extended as needed and de-duplicated using composition if necessary.
  *
  * @author Paul Bärnreuther
+ * @author Thomas Reifenberger
  */
 public class LegacyFileWriter implements NodeParameters {
-
-    static final String CFG_CREATE_MISSING_FOLDERS = "create_missing_folders";
 
     @Persistor(FileSelectionWriterPersistor.class)
     @FileWriterWidget
     @Modification.WidgetReference(FileSelectionRef.class)
     @Widget(title = "File Selection", description = "The file selection.") // To be overwritten using the modifier
     FileSelection m_file = new FileSelection();
-
-    @Persist(configKey = CFG_CREATE_MISSING_FOLDERS)
-    @Widget(title = "Create missing folders",
-        description = "If enabled, missing folders in the specified path will be created automatically.")
-    @Modification.WidgetReference(CreateMissingFoldersRef.class)
-    boolean m_createMissingFolders;
 
     static final class FileSelectionWriterPersistor implements NodeParametersPersistor<FileSelection> {
 
@@ -128,16 +150,13 @@ public class LegacyFileWriter implements NodeParameters {
 
     }
 
-    interface CreateMissingFoldersRef extends Modification.Reference {
-
-    }
-
     /**
      * Modifiers for legacy {@link FileWriterWidget}.
      *
      * @author Paul Bärnreuther
+     * @author Thomas Reifenberger
      */
-    public interface LegacyFileWriterModifier extends Modification.Modifier {
+    public interface Modifier extends Modification.Modifier {
 
         /**
          * Use the resulting widget modifier to set title and ui of the file selection. E.g. make it use
@@ -146,20 +165,9 @@ public class LegacyFileWriter implements NodeParameters {
          * @param group the widget group modifier
          * @return the file selection widget modifier
          */
-        static WidgetModifier findFileSelection(final WidgetGroupModifier group) {
+        default WidgetModifier findFileSelection(final WidgetGroupModifier group) {
             return group.find(FileSelectionRef.class);
         }
-
-        /**
-         * Finds the "create missing folders" widget modifier.
-         *
-         * @param group the widget group modifier
-         * @return the "create missing folders" widget modifier
-         */
-        static WidgetModifier findCreateMissingFolders(final WidgetGroupModifier group) {
-            return group.find(CreateMissingFoldersRef.class);
-        }
-
     }
 
 }

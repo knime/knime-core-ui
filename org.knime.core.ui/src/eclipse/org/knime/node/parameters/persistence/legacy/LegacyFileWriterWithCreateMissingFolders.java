@@ -44,7 +44,8 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Nov 18, 2025 (Thomas Reifenberger): created
+ *   Oct 27, 2025 (Paul Bärnreuther): created
+ *   Nov 21, 2025 (Thomas Reifenberger): updated
  */
 package org.knime.node.parameters.persistence.legacy;
 
@@ -55,61 +56,48 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.Widget
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.persistence.Persist;
-import org.knime.node.parameters.widget.choices.Label;
-import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
  * Parameters that are backwards-compatible to a {@link SettingsModelWriterFileChooser}.
- *
- * This class provides an additional option to create missing folders and to specify an overwrite policy.
- *
+ * 
+ * This class provides an additional option to create missing folders.
+ * 
  * Use the {@link Modifier} interface to adapt the widgets accordingly.
- *
+ * 
  * <br>
  * See {@link LegacyFileWriter} for an overview of available LegacyFileWriter... implementations.
  *
+ * @author Paul Bärnreuther
  * @author Thomas Reifenberger
  */
-public class LegacyFileWriterWithOverwritePolicyOptions extends LegacyFileWriterWithCreateMissingFolders {
+public class LegacyFileWriterWithCreateMissingFolders extends LegacyFileWriter {
 
-    private static final String CFG_IF_PATH_EXISTS = "if_path_exists";
+    static final String CFG_CREATE_MISSING_FOLDERS = "create_missing_folders";
 
-    @Widget(title = "If exists",
-        description = "Specify the behavior of the node in case the output file already exists.")
-    @ValueSwitchWidget
-    @Persist(configKey = CFG_IF_PATH_EXISTS)
-    @Modification.WidgetReference(OverwritePolicyRef.class)
-    OverwritePolicy m_overwritePolicy = OverwritePolicy.overwrite;
+    @Persist(configKey = CFG_CREATE_MISSING_FOLDERS)
+    @Widget(title = "Create missing folders",
+        description = "If enabled, missing folders in the specified path will be created automatically.")
+    @Modification.WidgetReference(CreateMissingFoldersRef.class)
+    boolean m_createMissingFolders;
 
-    enum OverwritePolicy {
-            // Values are lowercase for backwards compatibility of configuration entry
-            @Label(value = "Fail",
-                description = "Will issue an error during the node's execution (to prevent unintentional overwrite).")
-            fail, // NOSONAR
-            @Label(value = "Overwrite", description = "Will replace any existing file.")
-            overwrite, // NOSONAR
-            @Label(value = "Ignore",
-                description = "Will ignore if a file  already exists and continues the copying process.")
-            ignore, // NOSONAR
-    }
-
-    interface OverwritePolicyRef extends Modification.Reference {
+    interface CreateMissingFoldersRef extends Modification.Reference {
     }
 
     /**
      * Modifiers for legacy {@link FileWriterWidget}.
      *
+     * @author Paul Bärnreuther
      * @author Thomas Reifenberger
      */
-    public interface Modifier extends LegacyFileWriterWithCreateMissingFolders.Modifier {
+    public interface Modifier extends LegacyFileWriter.Modifier {
         /**
-         * Finds the "overwrite policy" widget modifier.
+         * Finds the "create missing folders" widget modifier.
          *
          * @param group the widget group modifier
-         * @return the "overwrite policy" widget modifier
+         * @return the "create missing folders" widget modifier
          */
-        default WidgetModifier findOverwritePolicy(final WidgetGroupModifier group) {
-            return group.find(OverwritePolicyRef.class);
+        default WidgetModifier findCreateMissingFolders(final WidgetGroupModifier group) {
+            return group.find(CreateMissingFoldersRef.class);
         }
 
     }
