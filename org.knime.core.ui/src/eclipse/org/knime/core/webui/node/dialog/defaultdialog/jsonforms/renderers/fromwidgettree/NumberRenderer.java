@@ -54,6 +54,7 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.ClassUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.NumberRendererSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopMaxValidationProvider;
@@ -72,10 +73,38 @@ class NumberRenderer extends WidgetTreeControlRendererSpec implements NumberRend
 
     private final TypeBounds m_typeBounds;
 
+    private Optional<MinValidation> m_minValidation;
+
+    private Optional<MaxValidation> m_maxValidation;
+
+    private boolean m_minValidationProviderPresent;
+
+    private boolean m_maxValidationProviderPresent;
+
     NumberRenderer(final TreeNode<WidgetGroup> node) {
         super(node);
         m_annotation = node.getAnnotation(NumberInputWidget.class);
         m_typeBounds = getTypeBounds(node);
+        m_minValidation = m_annotation.map(ann -> ann.minValidation())
+            .filter(cls -> !TypeDependentMinValidation.class.equals(cls)).map(InstantiationUtil::createInstance);
+        m_maxValidation = m_annotation.map(ann -> ann.maxValidation())
+            .filter(cls -> !TypeDependentMaxValidation.class.equals(cls)).map(InstantiationUtil::createInstance);
+        m_minValidationProviderPresent = m_annotation.map(ann -> ann.minValidationProvider())
+            .filter(cls -> !NoopMinValidationProvider.class.equals(cls)).isPresent();
+        m_maxValidationProviderPresent = m_annotation.map(ann -> ann.maxValidationProvider())
+            .filter(cls -> !NoopMaxValidationProvider.class.equals(cls)).isPresent();
+        validateAnnotation();
+    }
+
+    private void validateAnnotation() {
+        if (m_minValidation.isPresent() && m_minValidationProviderPresent) {
+            throw new UiSchemaGenerationException("NumberInputWidget cannot have both static minValidation and"
+                + " dynamic minValidationProvider defined.");
+        }
+        if (m_maxValidation.isPresent() && m_maxValidationProviderPresent) {
+            throw new UiSchemaGenerationException("NumberInputWidget cannot have both static maxValidation and"
+                + " dynamic maxValidationProvider defined.");
+        }
     }
 
     @Override
@@ -83,10 +112,6 @@ class NumberRenderer extends WidgetTreeControlRendererSpec implements NumberRend
         if (m_annotation.isEmpty()) {
             return Optional.empty();
         }
-        final Optional<MinValidation> minValidation = m_annotation.map(ann -> ann.minValidation())
-            .filter(cls -> !TypeDependentMinValidation.class.equals(cls)).map(InstantiationUtil::createInstance);
-        final Optional<MaxValidation> maxValidation = m_annotation.map(ann -> ann.maxValidation())
-            .filter(cls -> !TypeDependentMaxValidation.class.equals(cls)).map(InstantiationUtil::createInstance);
 
         return Optional.of(new NumberRendererOptions() {
 
@@ -96,12 +121,12 @@ class NumberRenderer extends WidgetTreeControlRendererSpec implements NumberRend
 
                     @Override
                     public Optional<MinValidation> getMin() {
-                        return minValidation;
+                        return m_minValidation;
                     }
 
                     @Override
                     public Optional<MaxValidation> getMax() {
-                        return maxValidation;
+                        return m_maxValidation;
                     }
                 });
 
@@ -113,12 +138,10 @@ class NumberRenderer extends WidgetTreeControlRendererSpec implements NumberRend
     @Override
     public Map<String, Class<? extends StateProvider>> getStateProviderClasses() {
         final Map<String, Class<? extends StateProvider>> stateProviderClasses = new HashMap<>();
-        if (m_annotation.map(ann -> ann.minValidationProvider())
-            .filter(cls -> !NoopMinValidationProvider.class.equals(cls)).isPresent()) {
+        if (m_minValidationProviderPresent) {
             stateProviderClasses.put(TAG_MIN_VALIDATION, m_annotation.get().minValidationProvider());
         }
-        if (m_annotation.map(ann -> ann.maxValidationProvider())
-            .filter(cls -> !NoopMaxValidationProvider.class.equals(cls)).isPresent()) {
+        if (m_maxValidationProviderPresent) {
             stateProviderClasses.put(TAG_MAX_VALIDATION, m_annotation.get().maxValidationProvider());
         }
         return stateProviderClasses;
