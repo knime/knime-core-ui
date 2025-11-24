@@ -71,6 +71,14 @@ public record NodeDialogServiceRegistry(//
 ) {
 
     /**
+     * Default constructor initializing with new instances of all components.
+     */
+    public NodeDialogServiceRegistry() {
+        this(new FileSystemConnector(), new CustomValidationContext(),
+            new DynamicParametersTriggerInvocationHandlerContext());
+    }
+
+    /**
      * Clears all state from both the file system connector and validation context.
      */
     public void onDeactivateRpc() {

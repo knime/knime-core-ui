@@ -187,7 +187,8 @@ public final class UpdatesUtil {
         final var widgetTrees =
             SettingsTypeMapUtil.map(settings, (type, s) -> widgetTreeFactory.createTree(s.getClass(), type));
         // Tests do not need file system connector
-        addUpdates(rootNode, widgetTrees.values(), SettingsTypeMapUtil.map(settings), context, null);
+        addUpdates(rootNode, widgetTrees.values(), SettingsTypeMapUtil.map(settings), context,
+            new NodeDialogServiceRegistry());
     }
 
     static void addUpdates(final ObjectNode rootNode, final Collection<Tree<WidgetGroup>> widgetTrees,
