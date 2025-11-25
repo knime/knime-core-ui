@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { VueWrapper, mount } from "@vue/test-utils";
 import type { UISchemaElement } from "@jsonforms/core";
 import flushPromises from "flush-promises";
@@ -18,6 +18,10 @@ import MultiFileChooserControl from "../../MultiFileChooserControl.vue";
 describe("multi file selection", () => {
   beforeEach(() => {
     mockRegisterSettings();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   const uiSchemaKey = "ui_schema";

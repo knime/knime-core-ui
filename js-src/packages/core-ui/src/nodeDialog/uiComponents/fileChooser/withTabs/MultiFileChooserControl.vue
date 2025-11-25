@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { type VueControlProps } from "@knime/jsonforms";
+import { type VueControlProps, useProvidedState } from "@knime/jsonforms";
 
 import { fileChooserForMultiFileFormat } from "@/nodeDialog/renderers/fileChooserRenderer";
 import type {
@@ -21,6 +21,8 @@ const uiSchema = computed(
   () => props.control.uischema as MultiFileChooserUiSchema,
 );
 
+const connectedFSOptions = useProvidedState(uiSchema, "connectedFSOptions");
+
 const selectionMode = computed(() => {
   const filterMode = props.control.data?.filterMode;
   return filterMode === "FILE" ? "FILE" : "FOLDER";
@@ -31,8 +33,11 @@ const showFilters = computed(() => {
   return filterMode !== "FILE" && filterMode !== "FOLDER";
 });
 
+// Merge connectedFSOptions from state provider into options for child components
 const pathSelectionOptions = computed<FileChooserOptions>(() => ({
   ...uiSchema.value.options,
+  connectedFSOptions:
+    connectedFSOptions.value ?? uiSchema.value.options?.connectedFSOptions,
   selectionMode: selectionMode.value,
 }));
 

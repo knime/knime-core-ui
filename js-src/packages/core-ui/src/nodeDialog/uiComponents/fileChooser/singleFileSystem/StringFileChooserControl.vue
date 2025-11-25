@@ -18,6 +18,7 @@ const uischema = computed<StringFileChooserUiSchema>(
   () => props.control.uischema as StringFileChooserUiSchema,
 );
 const fileSystemId = useProvidedState(uischema, "fileSystemId");
+const connectedFSOptions = useProvidedState(uischema, "connectedFSOptions");
 
 const fileSystem = computed(() => uischema.value.options?.fileSystem ?? null);
 
@@ -45,22 +46,20 @@ const backendType = computed(() => {
     return fileSystemId.value;
   }
   const fsCategory = mapFileSystemToCategory(fileSystem.value);
-  const portIndex = uischema.value.options?.connectedFSOptions?.portIndex;
+  const portIndex = connectedFSOptions.value?.portIndex;
   return getBackendType(fsCategory, portIndex);
 });
 
 const disabledSinceOnlyConnectedIsAllowed = computed(() => {
   const isConnectedFS = fileSystem.value === "CONNECTED";
-  const hasConnectedFSOptions = Boolean(
-    uischema.value.options?.connectedFSOptions,
-  );
+  const hasConnectedFSOptions = Boolean(connectedFSOptions.value);
   return isConnectedFS && !hasConnectedFSOptions;
 });
 
 const isDisabled = computed(
   () =>
     props.disabled ||
-    uischema.value.options?.connectedFSOptions?.fileSystemConnectionMissing ||
+    connectedFSOptions.value?.fileSystemConnectionMissing ||
     disabledSinceOnlyConnectedIsAllowed.value,
 );
 </script>
