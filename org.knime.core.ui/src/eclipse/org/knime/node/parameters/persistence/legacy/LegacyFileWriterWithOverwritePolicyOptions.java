@@ -89,7 +89,7 @@ public class LegacyFileWriterWithOverwritePolicyOptions extends LegacyFileWriter
             @Label(value = "Overwrite", description = "Will replace any existing file.")
             overwrite, // NOSONAR
             @Label(value = "Ignore",
-                description = "Will ignore if a file  already exists and continues the copying process.")
+                description = "Will ignore if a file already exists and continues the copying process.")
             ignore, // NOSONAR
     }
 
