@@ -60,7 +60,14 @@ export const useFileSystems = (
 export const useFileChooserBrowseOptions = (
   uischema: Ref<FileChooserUiSchema>,
 ) => {
-  const options = computed(() => uischema.value.options ?? {});
+  const connectedFSOptions = useProvidedState(uischema, "connectedFSOptions");
+  const baseOptions = computed(() => uischema.value.options ?? {});
+  // Merge connectedFSOptions from state provider into options
+  const options = computed(() => ({
+    ...baseOptions.value,
+    connectedFSOptions:
+      connectedFSOptions.value ?? baseOptions.value.connectedFSOptions,
+  }));
   const { isLocal, isConnected, fileSystems } = useFileSystems(options);
   const filteredExtensions = ref<string[]>([]);
   const appendedExtension = ref<string | null>(null);
@@ -69,11 +76,9 @@ export const useFileChooserBrowseOptions = (
     () => options.value.spaceFSOptions?.mountId ?? "Current space",
   );
   const spacePath = computed(() => options.value.spaceFSOptions?.spacePath);
-  const portIndex = computed(() => options.value.connectedFSOptions?.portIndex);
+  const portIndex = computed(() => connectedFSOptions.value?.portIndex);
   const portFileSystemName = computed(
-    () =>
-      options.value.connectedFSOptions?.fileSystemType ??
-      "Connected File System",
+    () => connectedFSOptions.value?.fileSystemType ?? "Connected File System",
   );
   const isLoaded = ref(false);
 

@@ -1,7 +1,10 @@
 <script setup lang="ts" generic="T">
 import { computed, onMounted, watch } from "vue";
 
-import type { VueControlPropsForLabelContent } from "@knime/jsonforms";
+import {
+  type VueControlPropsForLabelContent,
+  useProvidedState,
+} from "@knime/jsonforms";
 
 import type { FileChooserUiSchema } from "@/nodeDialog/types/FileChooserUiSchema";
 import { useFlowSettings } from "../../../composables/components/useFlowVariables";
@@ -23,13 +26,20 @@ const props = defineProps<
 
 const uischema = computed(() => props.control.uischema as FileChooserUiSchema);
 
-const options = computed(() => uischema.value.options!);
+const baseOptions = computed(() => uischema.value.options!);
+const connectedFSOptions = useProvidedState(uischema, "connectedFSOptions");
+// Merge connectedFSOptions from state provider into options for child components
+const options = computed(() => ({
+  ...baseOptions.value,
+  connectedFSOptions:
+    connectedFSOptions.value ?? baseOptions.value.connectedFSOptions,
+}));
 const { validCategories, isConnected } = useFileSystems(options);
 
 const isConnectedButNoFileConnectionIsAvailable = computed(
   () =>
-    isConnected.value &&
-    options.value.connectedFSOptions?.fileSystemConnectionMissing,
+    isConnected.value && connectedFSOptions.value?.fileSystemConnectionMissing,
+  // maybe null, maybe optional? (Port is dynamic)
 );
 
 const isDisabled = computed(
@@ -45,7 +55,7 @@ const getDefaultData = () => {
     fsCategory: validCategories.value[0],
     context: {
       fsToString: "",
-      fsSpecifier: options.value.connectedFSOptions?.fileSystemSpecifier,
+      fsSpecifier: connectedFSOptions.value?.fileSystemSpecifier,
     },
   };
 };
