@@ -42,59 +42,21 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   Nov 25, 2025 (created)
  */
-package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.updates;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.FileChooserRendererOptions.ConnectedFSOptions;
-import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopConnectedFSOptionsProvider;
-import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Annotation to explicitly configure which file system options are available in the file chooser. Can be applied to
- * {@link FileSelection}, {@link MultiFileSelection}, or {@link String} fields. Cannot be used together with
- * {@link WithCustomFileSystem}.
+ * Marker class used as ignored default only.
  *
- * In case of a String field provide exactly one file system with this annotation or use {@link WithCustomFileSystem} if
- * you want to only allow a custom file system option.
- *
- * @author Paul Baernreuther
+ * @author Auto-generated
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface WithFileSystem {
+public final class NoopConnectedFSOptionsProvider extends NoopProvider<Optional<ConnectedFSOptions>> {
 
-    /**
-     * The file system options that are available to the user. The tabs will be displayed in the standard order
-     * regardless of the order specified here: CONNECTED (if present), LOCAL (if present), SPACE, EMBEDDED, CUSTOM_URL.
-     *
-     * When CONNECTED is included:
-     * <ul>
-     * <li>If a file system port is connected, the CONNECTED tab is shown and other tabs are disabled</li>
-     * <li>If no file system port is connected, the CONNECTED tab is hidden entirely</li>
-     * </ul>
-     *
-     * When LOCAL is included:
-     * <ul>
-     * <li>If the workflow is executed in a local executor, the LOCAL tab is shown and enabled</li>
-     * <li>If the workflow is executed in a remote executor, the LOCAL tab is not shown</li>
-     * </ul>
-     *
-     * @return array of available file system options
-     */
-    FileSystemOption[] value();
-
-    /**
-     * A StateProvider that dynamically provides the correct port index of the file system. The connection can depend on
-     * node input and other settings values.
-     *
-     * @return a connection provider
-     */
-    Class<? extends StateProvider<Optional<ConnectedFSOptions>>> connectionProvider()
-        default NoopConnectedFSOptionsProvider.class;
 }

@@ -92,8 +92,9 @@ final class MultiFileChooserRenderer extends WidgetTreeControlRendererSpec imple
             node.getAnnotation(MultiFileSelectionWidget.class).orElseThrow(IllegalStateException::new);
         m_fileReaderAnnotation = node.getAnnotation(FileReaderWidget.class);
         m_withFileSystemAnnotation = node.getAnnotation(WithFileSystem.class);
+        // TODO UIEXT-3068: Provide state provider as third arg
         m_contextInfoProvider = new WorkflowContextInfoProvider(nodeParametersInput,
-            m_withFileSystemAnnotation.map(WithFileSystem::value).orElse(null));
+            m_withFileSystemAnnotation.map(WithFileSystem::value).orElse(null), null);
         m_nodeParametersInput = nodeParametersInput;
         m_filtersClass =
             MultiFileSelectionUtil.extractFileChooserFiltersClass(m_node).orElseThrow(IllegalStateException::new);

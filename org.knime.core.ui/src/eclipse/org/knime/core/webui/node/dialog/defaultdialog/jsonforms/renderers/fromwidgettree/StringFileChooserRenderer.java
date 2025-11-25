@@ -95,8 +95,9 @@ final class StringFileChooserRenderer extends WidgetTreeControlRendererSpec impl
         m_fileWriterAnnotation = node.getAnnotation(FileWriterWidget.class);
         m_withFileSystemAnnotation = node.getAnnotation(WithFileSystem.class);
         m_customFileSystemAnnotation = node.getAnnotation(WithCustomFileSystem.class);
+        // TODO UIEXT-3068: Provide state provider as third arg
         m_contextInfoProvider = new WorkflowContextInfoProvider(nodeParametersInput,
-            m_withFileSystemAnnotation.map(WithFileSystem::value).orElse(new FileSystemOption[0]));
+            m_withFileSystemAnnotation.map(WithFileSystem::value).orElse(new FileSystemOption[0]), null);
 
         validateAnnotations();
     }

@@ -59,9 +59,11 @@ import org.knime.core.node.workflow.contextv2.ServerLocationInfo;
 import org.knime.core.node.workflow.contextv2.WorkflowContextV2.ExecutorType;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSystemOption;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.FileChooserRendererOptions;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.FileChooserRendererOptions.ConnectedFSOptions;
 import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 import org.knime.filehandling.core.util.WorkflowContextUtil;
 import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
  * Helper class to provide workflow context information for file chooser renderers. Provides isLocal,
@@ -79,13 +81,19 @@ final class WorkflowContextInfoProvider {
 
     private final boolean m_allowsLocalFS;
 
-    WorkflowContextInfoProvider(final NodeParametersInput nodeParametersInput,
-        final FileSystemOption[] fileSystemOptions) {
+    Class<? extends StateProvider<Optional<ConnectedFSOptions>>> m_connectedFSOptionsProvider;
+
+    WorkflowContextInfoProvider( //
+            final NodeParametersInput nodeParametersInput, //
+            final FileSystemOption[] fileSystemOptions, //
+            final Class<? extends StateProvider<Optional<ConnectedFSOptions>>> connectedFSOptionsProvider //
+            ) {
         m_nodeParametersInput = nodeParametersInput;
         m_allowsConnectedFS =
             fileSystemOptions == null || ArrayUtils.contains(fileSystemOptions, FileSystemOption.CONNECTED);
         m_allowsSpaceFS = fileSystemOptions == null || ArrayUtils.contains(fileSystemOptions, FileSystemOption.SPACE);
         m_allowsLocalFS = fileSystemOptions == null || ArrayUtils.contains(fileSystemOptions, FileSystemOption.LOCAL);
+        m_connectedFSOptionsProvider = connectedFSOptionsProvider;
     }
 
     /**
@@ -100,15 +108,15 @@ final class WorkflowContextInfoProvider {
     }
 
     /**
-     * @return options for connected file system. Required if file system option CONNECTED is used.
+     * @return options for connected file system. Required if file system option CONNECTED is used
+     * but can be superceded if the options are provided by a state provider.
      */
     Optional<FileChooserRendererOptions.ConnectedFSOptions> getConnectedFSOptions() {
-        if (!m_allowsConnectedFS) {
+        if (!m_allowsConnectedFS || m_connectedFSOptionsProvider != null) {
             return Optional.empty();
         }
         return getFirstFileSystemPortIndex().flatMap(portIndex -> m_nodeParametersInput.getInPortSpec(portIndex)
-            .map(spec -> toFileSystemPortObjectSpec(spec, portIndex))
-            .map(spec -> createConnectedFSOptions(spec, portIndex)));
+            .map(spec -> ConnectedFSOptions.fromSpec(spec, portIndex)));
     }
 
     /**
@@ -127,38 +135,6 @@ final class WorkflowContextInfoProvider {
         return IntStream.range(0, inPortTypes.length)
             .filter(i -> FileSystemPortObjectSpec.class.equals(inPortTypes[i].getPortObjectSpecClass())).boxed()
             .findFirst();
-    }
-
-    private static FileSystemPortObjectSpec toFileSystemPortObjectSpec(final PortObjectSpec spec, final int portIndex) {
-        if (spec instanceof FileSystemPortObjectSpec fsSpec) {
-            return fsSpec;
-        }
-        throw new IllegalStateException(String.format("Port at index %s is not a file system port", portIndex));
-    }
-
-    private static FileChooserRendererOptions.ConnectedFSOptions
-        createConnectedFSOptions(final FileSystemPortObjectSpec spec, final int portIndex) {
-        return new FileChooserRendererOptions.ConnectedFSOptions() {
-            @Override
-            public String getFileSystemType() {
-                return spec.getFileSystemType();
-            }
-
-            @Override
-            public String getFileSystemSpecifier() {
-                return spec.getFSLocationSpec().getFileSystemSpecifier().orElse(null);
-            }
-
-            @Override
-            public boolean isFileSystemConnectionMissing() {
-                return spec.getFileSystemConnection().isEmpty();
-            }
-
-            @Override
-            public int getPortIndex() {
-                return portIndex;
-            }
-        };
     }
 
     private static Optional<FileChooserRendererOptions.SpaceFSOptions> createSpaceFSOptions(final Object locationInfo) {
