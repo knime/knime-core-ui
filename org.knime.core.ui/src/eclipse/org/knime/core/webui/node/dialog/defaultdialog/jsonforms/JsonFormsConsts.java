@@ -245,6 +245,11 @@ public final class JsonFormsConsts {
         public static final String TAG_DYNAMIC_SETTINGS = "dynamicSettings";
 
         /**
+         * Used for providing dynamic connected filesystem options
+         */
+        public static final String TAG_CONNECTED_FS_OPTIONS = "connectedFSOptions";
+
+        /**
          * Used to indicate whether sub parameters should be shown in a {@link SubParameters} setting.
          */
         public static final String TAG_SHOW_SUB_PARAMETERS = "showSubParameters";
