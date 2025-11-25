@@ -10,6 +10,9 @@ import {
 } from "../../../types/FileChooserUiSchema";
 import { FSCategory } from "../types/FileChooserProps";
 
+const toSentenceCase = (str: string) =>
+  str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+
 export const useFileSystems = (
   uiSchemaOptions: Ref<FileChooserOptionsBase & FileSystemsOptions>,
 ) => {
@@ -70,7 +73,13 @@ export const useFileSystems = (
 export const useFileChooserBrowseOptions = (
   uischema: Ref<FileChooserUiSchema>,
 ) => {
-  const options = computed(() => uischema.value.options ?? {});
+  const connectedFSOptions = useProvidedState(uischema, "connectedFSOptions");
+  // Merge connectedFSOptions from state provider into options
+  const options = computed(() => ({
+    ...(uischema.value.options ?? {}),
+    connectedFSOptions:
+      connectedFSOptions.value ?? uischema.value.options?.connectedFSOptions,
+  }));
   const { isLocal, isConnected, fileSystems } = useFileSystems(options);
   const filteredExtensions = ref<string[]>([]);
   const appendedExtension = ref<string | null>(null);
@@ -82,11 +91,11 @@ export const useFileChooserBrowseOptions = (
   const relativeWorkflowPath = computed(
     () => options.value.spaceFSOptions?.relativeWorkflowPath,
   );
-  const portIndex = computed(() => options.value.connectedFSOptions?.portIndex);
-  const portFileSystemName = computed(
-    () =>
-      options.value.connectedFSOptions?.fileSystemType ??
-      "Connected File System",
+  const portIndex = computed(() => connectedFSOptions.value?.portIndex);
+  const portFileSystemName = computed(() =>
+    toSentenceCase(
+      connectedFSOptions.value?.fileSystemType ?? "Connected file system",
+    ),
   );
   const isLoaded = ref(false);
 

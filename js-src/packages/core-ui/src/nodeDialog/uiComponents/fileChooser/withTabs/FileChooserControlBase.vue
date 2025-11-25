@@ -1,7 +1,10 @@
 <script setup lang="ts" generic="T">
 import { computed, onMounted, watch } from "vue";
 
-import type { VueControlPropsForLabelContent } from "@knime/jsonforms";
+import {
+  type VueControlPropsForLabelContent,
+  useProvidedState,
+} from "@knime/jsonforms";
 
 import type { FileChooserUiSchema } from "@/nodeDialog/types/FileChooserUiSchema";
 import { useFlowSettings } from "../../../composables/components/useFlowVariables";
@@ -23,7 +26,13 @@ const props = defineProps<
 
 const uischema = computed(() => props.control.uischema as FileChooserUiSchema);
 
-const options = computed(() => uischema.value.options!);
+const connectedFSOptions = useProvidedState(uischema, "connectedFSOptions");
+// Merge connectedFSOptions from state provider into options for child components
+const options = computed(() => ({
+  ...uischema.value.options!,
+  connectedFSOptions:
+    connectedFSOptions.value ?? uischema.value.options?.connectedFSOptions,
+}));
 const { validCategories, isConnectedButNoFileConnectionIsAvailable } =
   useFileSystems(options);
 
@@ -40,7 +49,7 @@ const getDefaultData = () => {
     fsCategory: validCategories.value[0],
     context: {
       fsToString: "",
-      fsSpecifier: options.value.connectedFSOptions?.fileSystemSpecifier,
+      fsSpecifier: connectedFSOptions.value?.fileSystemSpecifier,
     },
   };
 };

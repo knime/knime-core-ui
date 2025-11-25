@@ -50,6 +50,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.knime.core.node.port.PortObjectSpec;
+
 /**
  * Annotation to explicitly configure which file system options are available in the file chooser. Can be applied to
  * {@link FileSelection}, {@link MultiFileSelection}, or {@link String} fields. Cannot be used together with
@@ -80,7 +82,24 @@ public @interface WithFileSystem {
      * <li>If the workflow is executed in a remote executor, the LOCAL tab is not shown</li>
      * </ul>
      *
+     * If this annotation is not used, all file systems are available.
+     *
      * @return array of available file system options
      */
-    FileSystemOption[] value();
+    FileSystemOption[] value() default {
+        FileSystemOption.CONNECTED,
+        FileSystemOption.LOCAL,
+        FileSystemOption.SPACE,
+        FileSystemOption.EMBEDDED,
+        FileSystemOption.CUSTOM_URL,
+    };
+
+    /**
+     * A StateProvider that dynamically provides the correct port index of the file system. The
+     * connection can depend on node input and other settings values. If not provided, the first
+     * file system port in the array of {@link PortObjectSpec} will be used.
+     *
+     * @return a connection provider
+     */
+    Class<? extends ConnectedFSOptionsProvider> connectionProvider() default ConnectedFSOptionsProvider.class;
 }

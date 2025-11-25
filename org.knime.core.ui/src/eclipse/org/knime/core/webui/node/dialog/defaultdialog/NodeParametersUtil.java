@@ -97,12 +97,28 @@ public final class NodeParametersUtil {
      * @throws NullPointerException if the argument is null
      */
     public static NodeParametersInput createDefaultNodeSettingsContext(final PortObjectSpec[] specs) {
+        return createDefaultNodeSettingsContext(specs, null);
+    }
+
+    /**
+     * Method to create a new {@link NodeParametersInput} from input {@link PortObjectSpec PortObjectSpecs} and
+     * {@link PortsConfiguration}
+     *
+     * @param specs the non-null specs with which to create the schema
+     * @param portsConfiguration the configuration of in and out ports (only used in tests)
+     * @return the newly created context
+     * @throws NullPointerException if the argument is null
+     */
+    public static NodeParametersInput createDefaultNodeSettingsContext( //
+        final PortObjectSpec[] specs, //
+        final PortsConfiguration portsConfiguration //
+    ) {
         Objects.requireNonNull(specs, () -> "Port object specs must not be null.");
         final var nodeContext = NodeContext.getContext();
         if (nodeContext == null) {
             // can only happen during tests
-            return new NodeParametersInputImpl(fallbackPortTypesFor(specs), null, specs, null, null, null, null, null,
-                null, null);
+            return new NodeParametersInputImpl(fallbackPortTypesFor(specs), null, specs, null, null, null, null,
+                portsConfiguration, null, null);
         }
         final var nc = nodeContext.getNodeContainer();
         final PortType[] inPortTypes;
@@ -139,6 +155,11 @@ public final class NodeParametersUtil {
         final var inPortObjects = nc.getParent() == null // This function is used by tests that mock the container
             ? new PortObject[0] // When mocked the container is not a child of a workflow manager
             : InputPortUtil.getInputPortObjectsExcludingVariablePort(nc);
+
+        if (portConfig == null) {
+            // can only happen in tests
+            portConfig = portsConfiguration;
+        }
 
         return new NodeParametersInputImpl(inPortTypes, outPortTypes, specs, nc.getFlowObjectStack(),
             credentialsProvider, inPortObjects, dialogNode, portConfig, urlConfig, wizardNode);

@@ -42,26 +42,68 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   3 Dec 2025 (Tim Crundall): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
+import java.util.Optional;
+
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.FileChooserRendererOptions.ConnectedFSOptions;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.updates.StateProvider;
+
 /**
- * Enumeration of available file system options for file selection widgets.
- * Used to configure which file system tabs are displayed in the file chooser dialog.
+ * A class that provides a {@link ConnectedFSOptions} of a specified inport
+ * index.
  *
- * Any new additions should be reflected in default value in {@link WithFileSystem}
+ * This is necessary for nodes with multiple optional file system inports where the default
+ * behavior (which is to take the first available file system port spec) must be overridden and
+ * instead identify the correct port based on {@link NodeParametersInput}.
  *
- * @author Paul Baernreuther
+ * Typically used in tandem with {@link WithFileSystem}
+ *
+ * @author Tim Crundall, TNG Technology Consulting GmbH
  */
-public enum FileSystemOption {
-    /** Local file system */
-    LOCAL,
-    /** KNIME Hub Space */
-    SPACE,
-    /** Embedded workflow data */
-    EMBEDDED,
-    /** Custom URL connection */
-    CUSTOM_URL,
-    /** Connected file system from input port */
-    CONNECTED
+public interface ConnectedFSOptionsProvider extends StateProvider<Optional<ConnectedFSOptions>> {
+
+    /**
+     * Determine the port index based on context.
+     *
+     * @param context the context that holds any available information that might be relevant for
+     * determining the port index
+     *
+     * @return port index
+     */
+    int getPortIndex(final NodeParametersInput context);
+
+    /**
+     * {@inheritDoc}
+     *
+     * Here, the state provider is already configured to compute the state initially before the
+     * dialog is opened. If this is desired but other initial configurations (like dependencies) are
+     * desired, override this method and call super.init within it. If provided state should instead
+     * be asynchronously loaded once the dialog is opened, override this method without calling
+     * super.init to configure the initializer to do so.
+     */
+    @Override
+    default void init(final StateProviderInitializer initializer) {
+        initializer.computeBeforeOpenDialog();
+    }
+
+    /**
+     * Use the provided port index to extract and return the {@link ConnectedFSOptions} of the
+     * file system connected to that port.
+     */
+    @Override
+    default Optional<ConnectedFSOptions> computeState(final NodeParametersInput context) {
+        var inputPortIndex = getPortIndex(context);
+        if (inputPortIndex == -1) {
+            return Optional.empty();
+        }
+        return Optional.of(inputPortIndex)
+            .flatMap(portIndex -> context.getInPortSpec(portIndex)
+                .map(spec -> ConnectedFSOptions.fromSpec(spec, portIndex)));
+    }
 }

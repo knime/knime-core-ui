@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.ConnectedFSOptionsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileReaderWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSystemOption;
@@ -60,6 +61,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWi
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.SingleFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithCustomFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithFileSystem;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.UpdateResultsUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.StringFileChooserRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.FileChooserRendererOptions;
@@ -95,8 +97,11 @@ final class StringFileChooserRenderer extends WidgetTreeControlRendererSpec impl
         m_fileWriterAnnotation = node.getAnnotation(FileWriterWidget.class);
         m_withFileSystemAnnotation = node.getAnnotation(WithFileSystem.class);
         m_customFileSystemAnnotation = node.getAnnotation(WithCustomFileSystem.class);
-        m_contextInfoProvider = new WorkflowContextInfoProvider(nodeParametersInput,
-            m_withFileSystemAnnotation.map(WithFileSystem::value).orElse(new FileSystemOption[0]));
+        m_contextInfoProvider = new WorkflowContextInfoProvider( //
+            nodeParametersInput, //
+            m_withFileSystemAnnotation.map(WithFileSystem::value).orElse(new FileSystemOption[0]), //
+            m_withFileSystemAnnotation.map(WithFileSystem::connectionProvider).orElse(null) //
+        );
 
         validateAnnotations();
     }
@@ -195,6 +200,8 @@ final class StringFileChooserRenderer extends WidgetTreeControlRendererSpec impl
         Map<String, Class<? extends StateProvider>> stateProviders = new HashMap<>();
         m_customFileSystemAnnotation
             .ifPresent(ann -> stateProviders.put(UpdateResultsUtil.FILE_SYSTEM_ID, ann.connectionProvider()));
+        m_withFileSystemAnnotation.filter(Predicate.not(ConnectedFSOptionsProvider.class::equals))
+            .ifPresent(ann -> stateProviders.put(UiSchema.TAG_CONNECTED_FS_OPTIONS, ann.connectionProvider()));
         return stateProviders;
 
     }

@@ -68,7 +68,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicPa
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersDeserializer;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersSerializer;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.ConnectedFSOptionsProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithCustomFileSystem;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.CredentialsWidgetInternal;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
@@ -406,6 +408,12 @@ final class WidgetTreesToRefsAndStateProviders {
                 WithCustomFileSystem.class, //
                 WithCustomFileSystem::connectionProvider, //
                 null //
+            ), //
+            new UiStateProviderAnnotationSpec<>( //
+                UiSchema.TAG_CONNECTED_FS_OPTIONS,  //
+                WithFileSystem.class, //
+                WithFileSystem::connectionProvider, //
+                ConnectedFSOptionsProvider.class //
             ), //
             new UiStateProviderAnnotationSpec<>( //
                 UpdateResultsUtil.VALIDATOR_ID, //

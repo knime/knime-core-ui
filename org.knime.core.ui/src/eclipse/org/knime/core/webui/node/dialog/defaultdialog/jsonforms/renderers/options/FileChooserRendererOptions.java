@@ -50,9 +50,11 @@ package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.optio
 
 import java.util.Optional;
 
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSystemOption;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.SingleFileSelectionMode;
+import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
 
 /**
  * Shared option interfaces for file chooser renderers, mirroring the TypeScript type hierarchy.
@@ -89,6 +91,52 @@ public final class FileChooserRendererOptions {
          * @return the index of the port this file chooser is connected to
          */
         int getPortIndex();
+
+        /**
+         * Creates a ConnectedFSOptions instance from a FileSystemPortObjectSpec.
+         *
+         * @param spec the FileSystemPortObjectSpec to extract information from
+         * @param portIndex the index of the port this file system is connected to
+         * @return a ConnectedFSOptions instance
+         * @throws IllegalStateException if the provided spec is not a FileSystemPortObjectSpec
+         */
+        static ConnectedFSOptions fromSpec(final PortObjectSpec spec, final int portIndex) {
+            if (!(spec instanceof FileSystemPortObjectSpec fsSpec)) {
+                throw new IllegalStateException(String.format("Port at index %s is not a file system port", portIndex));
+            }
+            return fromFileSystemSpec(fsSpec, portIndex);
+        }
+
+        /**
+         * Creates a ConnectedFSOptions instance from a FileSystemPortObjectSpec.
+         *
+         * @param spec the FileSystemPortObjectSpec to extract information from
+         * @param portIndex the index of the port this file system is connected to
+         * @return a ConnectedFSOptions instance
+         */
+        static ConnectedFSOptions fromFileSystemSpec(final FileSystemPortObjectSpec spec, final int portIndex) {
+            return new ConnectedFSOptions() {
+                @Override
+                public String getFileSystemType() {
+                    return spec.getFileSystemType();
+                }
+
+                @Override
+                public String getFileSystemSpecifier() {
+                    return spec.getFSLocationSpec().getFileSystemSpecifier().orElse(null);
+                }
+
+                @Override
+                public boolean isFileSystemConnectionMissing() {
+                    return spec.getFileSystemConnection().isEmpty();
+                }
+
+                @Override
+                public int getPortIndex() {
+                    return portIndex;
+                }
+            };
+        }
     }
 
     /**

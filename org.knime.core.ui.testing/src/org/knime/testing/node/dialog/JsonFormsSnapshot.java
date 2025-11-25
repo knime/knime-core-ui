@@ -60,6 +60,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.util.workflow.def.FallibleSupplier;
 import org.knime.core.webui.node.dialog.SettingsType;
@@ -96,6 +97,8 @@ final class JsonFormsSnapshot extends Snapshot {
 
     private final PortObjectSpec[] m_specs;
 
+    private final PortsConfiguration m_portConfig;
+
     /** Lazy initialized to avoid error handling during construction. */
     private JsonNode m_jsonForms;
 
@@ -106,11 +109,14 @@ final class JsonFormsSnapshot extends Snapshot {
      * @throws JsonProcessingException
      */
     JsonFormsSnapshot(final String label, final int instance,
-            final Map<SettingsType, FallibleSupplier<NodeParameters>> settings, final PortObjectSpec[] specs) {
+            final Map<SettingsType, FallibleSupplier<NodeParameters>> settings,
+            final PortObjectSpec[] specs, final PortsConfiguration portConfig
+    ) {
         m_label = label;
         m_instance = instance;
         m_settings = settings;
         m_specs = specs;
+        m_portConfig = portConfig;
     }
 
     @Override
@@ -124,7 +130,7 @@ final class JsonFormsSnapshot extends Snapshot {
     }
 
     private static JsonNode jsonForms(final Map<SettingsType, FallibleSupplier<NodeParameters>> settings,
-        final PortObjectSpec[] specs) throws JsonProcessingException {
+        final PortObjectSpec[] specs, final PortsConfiguration portConfig) throws JsonProcessingException {
 
         Map<SettingsType, NodeParameters> instances =
             settings.entrySet().stream().collect(Collectors.toMap(Entry::getKey, e -> {
@@ -147,7 +153,7 @@ final class JsonFormsSnapshot extends Snapshot {
         }
 
         // turn it into the json-forms representation
-        final var context = NodeParametersUtil.createDefaultNodeSettingsContext(specs);
+        final var context = NodeParametersUtil.createDefaultNodeSettingsContext(specs, portConfig);
         var jsonFormsSettings = new JsonFormsSettingsImpl(instances, context);
         var mapper = JsonFormsDataUtil.getMapper();
         var objectNode = mapper.createObjectNode();
@@ -162,7 +168,7 @@ final class JsonFormsSnapshot extends Snapshot {
     @Override
     public void writeGroundTruth(final Path snapshotFile) throws IOException {
         if (m_jsonForms == null) {
-            m_jsonForms = jsonForms(m_settings, m_specs);
+            m_jsonForms = jsonForms(m_settings, m_specs, m_portConfig);
         }
         try {
             var jsonFormsString =
@@ -177,7 +183,7 @@ final class JsonFormsSnapshot extends Snapshot {
     @Override
     public void compareWithSnapshotAndWriteDebugFile(final Path snapshotFile) throws IOException {
         if (m_jsonForms == null) {
-            m_jsonForms = jsonForms(m_settings, m_specs);
+            m_jsonForms = jsonForms(m_settings, m_specs, m_portConfig);
         }
         var expectedJsonFormsString = Files.readString(snapshotFile, StandardCharsets.UTF_8);
         var debugFile = snapshotFile.getParent().resolve(getDebugFilename());

@@ -149,7 +149,8 @@ describe("SideDrawerContent.vue", () => {
   });
 
   describe("when a file system port exists", () => {
-    let wrapper: ReturnType<typeof mountSideDrawerContent>;
+    let wrapper: ReturnType<typeof mountSideDrawerContent>,
+      connectedFSOptionsCallbacks: Array<(value: unknown) => void>;
 
     beforeEach(() => {
       props.uischema.options!.connectedFSOptions = {
@@ -157,23 +158,38 @@ describe("SideDrawerContent.vue", () => {
         fileSystemType: "Connected File System",
         fileSystemSpecifier: "defaultSpecifier",
       };
-      wrapper = mountSideDrawerContent();
+      props.uischema.providedOptions = ["connectedFSOptions"];
+
+      connectedFSOptionsCallbacks = [];
+      const addStateProviderListener = vi.fn((identifier, callback) => {
+        if (identifier.providedOptionName === "connectedFSOptions") {
+          connectedFSOptionsCallbacks.push(callback);
+        }
+      });
+
+      wrapper = shallowMount(SideDrawerContent, {
+        props,
+        global: {
+          provide: {
+            addStateProviderListener,
+          },
+        },
+      });
     });
 
     it("renders CONNECTED tab", async () => {
       const fsSpecifier = "myFileSystemSpecifier";
-      await wrapper.setProps({
-        uischema: {
-          ...wrapper.props().uischema,
-          options: {
-            ...wrapper.props().uischema.options,
-            connectedFSOptions: {
-              ...wrapper.props().uischema.options!.connectedFSOptions!,
-              fileSystemSpecifier: fsSpecifier,
-            },
-          },
-        },
-      });
+      const updatedConnectedFSOptions = {
+        portIndex: 1,
+        fileSystemType: "Connected File System",
+        fileSystemSpecifier: fsSpecifier,
+      };
+
+      // Update connectedFSOptions via state provider - call all callbacks
+      connectedFSOptionsCallbacks.forEach((callback) =>
+        callback(updatedConnectedFSOptions),
+      );
+      await flushPromises();
       await wrapper
         .findComponent(TabBar)
         .vm.$emit("update:model-value", "CONNECTED");

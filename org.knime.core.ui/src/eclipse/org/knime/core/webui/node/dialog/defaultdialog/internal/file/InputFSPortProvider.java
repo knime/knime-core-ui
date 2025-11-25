@@ -42,26 +42,37 @@
  *  may freely choose the license terms applicable to such Node, including
  *  when such Node is propagated with or for interoperation with KNIME.
  * ---------------------------------------------------------------------
+ *
+ * History
+ *   2 Dec 2025 (Tim Crundall): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.internal.file;
 
+import org.knime.node.parameters.NodeParametersInput;
+
 /**
- * Enumeration of available file system options for file selection widgets.
- * Used to configure which file system tabs are displayed in the file chooser dialog.
  *
- * Any new additions should be reflected in default value in {@link WithFileSystem}
- *
- * @author Paul Baernreuther
+ * @author Tim Crundall, TNG Technology Consulting GmbH
  */
-public enum FileSystemOption {
-    /** Local file system */
-    LOCAL,
-    /** KNIME Hub Space */
-    SPACE,
-    /** Embedded workflow data */
-    EMBEDDED,
-    /** Custom URL connection */
-    CUSTOM_URL,
-    /** Connected file system from input port */
-    CONNECTED
+public abstract class InputFSPortProvider implements ConnectedFSOptionsProvider {
+
+    /**
+     * A convenience wrapper around {@link ConnectedFSOptionsProvider} which uses a port group id to
+     * identify the correct file system port index.
+     *
+     * Typically used in tandem with {@link WithFileSystem}
+     *
+     * @return group id of the port group the desired port belongs to. E.g. "Destination File System Connection"
+     */
+    protected abstract String getGroupId();
+
+    @Override
+    public int getPortIndex(final NodeParametersInput context) {
+        var fsPortIndex = context.getPortsConfiguration().getInputPortLocation().get(getGroupId());
+        if (fsPortIndex == null || fsPortIndex.length == 0) {
+            return -1;
+        }
+
+        return fsPortIndex[0];
+    }
 }

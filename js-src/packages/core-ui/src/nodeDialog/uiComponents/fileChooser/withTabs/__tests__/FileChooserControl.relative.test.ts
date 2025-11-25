@@ -59,12 +59,12 @@ describe("FileChooserControl.vue - Relative Path Features", () => {
     const component = mountJsonFormsControlLabelContent(FileChooserControl, {
       props,
       provide: {
-        // @ts-expect-error
-        setSubPanelExpanded: vi.fn(),
+        // @ts-expect-error - getPersistSchema is not in ProvidedMethods type
         getPersistSchema: () => ({}),
         [flowVariablesMapInjectionKey as symbol]: flowVariablesMap,
         getData,
-        addStateProviderListener: vi.fn(),
+        // TODO UIEXT-3073: Remove "as any" once updated to vitest 3.2.4
+        addStateProviderListener: vi.fn() as any,
         ...provide,
       },
       stubs: {

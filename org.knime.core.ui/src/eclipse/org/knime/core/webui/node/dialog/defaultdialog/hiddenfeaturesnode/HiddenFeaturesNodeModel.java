@@ -48,6 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
 
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.webui.node.impl.WebUINodeConfiguration;
 import org.knime.core.webui.node.impl.WebUINodeModel;
 
@@ -55,6 +57,14 @@ class HiddenFeaturesNodeModel extends WebUINodeModel<HiddenFeaturesNodeSettings>
 
     HiddenFeaturesNodeModel(final WebUINodeConfiguration config) {
         super(config, HiddenFeaturesNodeSettings.class);
+    }
+
+    @Override
+    protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs, final HiddenFeaturesNodeSettings modelSettings)
+        throws InvalidSettingsException {
+        // This node is a hidden test node with a FileSystem input port.
+        // It produces no output, so we return an empty array.
+        return new PortObjectSpec[0];
     }
 
 }

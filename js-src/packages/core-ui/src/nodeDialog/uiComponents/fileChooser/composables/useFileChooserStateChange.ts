@@ -1,5 +1,7 @@
 import { type Ref } from "vue";
 
+import { useProvidedState } from "@knime/jsonforms";
+
 import { type FileChooserUiSchema } from "../../../types/FileChooserUiSchema";
 import { mergeDeep } from "../../../utils";
 import type { FSCategory, FileChooserValue } from "../types/FileChooserProps";
@@ -9,9 +11,10 @@ export default (
   onChange: (value: FileChooserValue) => void,
   uischema: Ref<FileChooserUiSchema>,
 ) => {
+  const connectedFSOptions = useProvidedState(uischema, "connectedFSOptions");
+
   const onPathUpdate = (path: string) => {
-    const fsSpecifier =
-      uischema.value.options?.connectedFSOptions?.fileSystemSpecifier;
+    const fsSpecifier = connectedFSOptions.value?.fileSystemSpecifier;
     onChange(
       mergeDeep(currentValue.value, {
         path,
