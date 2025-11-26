@@ -53,19 +53,15 @@ import java.util.function.Predicate;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DataValue;
-import org.knime.core.data.MissingCell;
+import org.knime.core.data.v2.IndexedRowReadPredicate;
 import org.knime.core.node.InvalidSettingsException;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.valuefilter.ValueFilterOperator;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.valuefilter.ValueFilterValidationUtil;
+import org.knime.core.node.util.CheckUtils;
 import org.knime.node.parameters.migration.Migration;
 import org.knime.node.parameters.persistence.Persistor;
 
 /**
  * Filter operator that defines a predicate based on {@link DataValue}s of multiple concrete types configured by
  * {@link FilterValueParameters parameters}.
- *
- * In case you only want to filter {@link DataValue}s of a single concrete type {@code V}, consider implementing
- * {@link ValueFilterOperator ValueFilterOperator&lt;V&gt;} instead.
  *
  * @param <P> the type of parameters to create the predicate with
  *
@@ -79,7 +75,7 @@ public interface FilterOperator<P extends FilterValueParameters> extends FilterO
     /**
      * Creates the predicate for filtering data values of type {@code V} based on the given filter parameters.
      *
-     * For validation of the given runtime spec, you can use the methods in {@link ValueFilterValidationUtil}.
+     * For validation of the given runtime spec, you can use the methods in {@link FilterValidationUtil}.
      *
      * @param runtimeColumnSpec the column spec at runtime, whose values are to be filtered
      * @param configureColumnType the column type at configuration time
@@ -92,14 +88,43 @@ public interface FilterOperator<P extends FilterValueParameters> extends FilterO
         P filterParameters) throws InvalidSettingsException;
 
     /**
-     * Indicates whether this operator considers missing cells as matching the filter criterion or not. In any case,
-     * {@link MissingCell} is never passed to the predicate created by this operator.
+     * Creates an {@link IndexedRowReadPredicate} based on the given operator and filter parameters.
      *
-     * @implNote The default implementation returns {@code false}, i.e. missing cells never match the filter criterion.
+     * The returned predicate handles missing values according to the operator's {@link #mapMissingTo() mapping}.
      *
-     * @return {@code true} if missing cells should match the filter criterion, {@code false} otherwise
+     * @param operator operator to create the predicate with
+     * @param runtimeColumnSpec the column spec at runtime, whose values are to be filtered
+     * @param columnIndex the index of the column to filter
+     * @param configureColumnType the column type at configuration time
+     * @param filterParameters the parameters to create the predicate with
+     * @return the created predicate
+     * @throws InvalidSettingsException in case the predicate could not be created due to invalid settings
      */
-    default boolean returnTrueForMissingCells() {
+    static IndexedRowReadPredicate toPredicate(final FilterOperator<FilterValueParameters> operator,
+        final DataColumnSpec runtimeColumnSpec, final int columnIndex, final DataType configureColumnType,
+        final FilterValueParameters filterParameters) throws InvalidSettingsException {
+        final var predicate = CheckUtils.checkSettingNotNull(
+            operator.createPredicate(runtimeColumnSpec, configureColumnType, filterParameters),
+            "Operator \"%s\" returned 'null' predicate and can thus not be evaluated", operator.getLabel());
+        final var missingAsTrue = operator.mapMissingTo();
+        return (index, read) -> {
+            if (read.isMissing(columnIndex)) {
+                return missingAsTrue;
+            }
+            final var dataValue = read.getValue(columnIndex);
+            return predicate.test(dataValue);
+        };
+    }
+
+    /**
+     * Specifies whether a missing cell should match the predicate created by this operator or not.
+     *
+     * @implNote The default implementation returns {@code false}, i.e. comparison with missing cells are mapped to
+     *           {@code false} -- criteria never match missing cells.
+     *
+     * @return {@code true} if missing cells should be considered to match the predicate, {@code false} otherwise
+     */
+    default boolean mapMissingTo() {
         return false;
     }
 

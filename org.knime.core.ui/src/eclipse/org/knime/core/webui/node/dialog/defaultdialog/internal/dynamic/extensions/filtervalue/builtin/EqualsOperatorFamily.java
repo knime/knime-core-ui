@@ -58,8 +58,8 @@ import org.knime.core.data.DataValue;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValidationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters.SingleCellValueParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.valuefilter.ValueFilterValidationUtil;
 
 /**
  * A family of operators for equality comparisons between a data value and a reference data cell, obtained from the
@@ -117,7 +117,7 @@ public class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueP
         final P filterParameters) throws InvalidSettingsException {
         final var type = runtimeColumnSpec.getType();
         if (!type.isCompatible(m_dataType.getPreferredValueClass())) { // not isASuperType!
-            throw ValueFilterValidationUtil.createInvalidSettingsException(builder -> builder
+            throw FilterValidationUtil.createInvalidSettingsException(builder -> builder
                 .withSummary("Operator \"%s\" for column \"%s\" expects data of type \"%s\", but got \"%s\""
                     .formatted(operator.getLabel(), runtimeColumnSpec.getName(), m_dataType.getName(), type.getName()))
                 .addResolutions(
@@ -169,7 +169,7 @@ public class EqualsOperatorFamily<C extends DataCell, P extends SingleCellValueP
         }
 
         @Override
-        public boolean returnTrueForMissingCells() {
+        public boolean mapMissingTo() {
             return true;
         }
 

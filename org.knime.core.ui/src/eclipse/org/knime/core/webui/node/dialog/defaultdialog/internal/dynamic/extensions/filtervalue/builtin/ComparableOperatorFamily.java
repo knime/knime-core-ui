@@ -61,8 +61,8 @@ import org.knime.core.data.DataValueComparatorDelegator;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorFamily;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValidationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters.SingleCellValueParameters;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.valuefilter.ValueFilterValidationUtil;
 
 /**
  * Operator family for data types that have a comparator.
@@ -114,7 +114,7 @@ public class ComparableOperatorFamily<C extends DataCell, P extends SingleCellVa
         final FilterOperator<P> operator) throws InvalidSettingsException {
         final var type = runtimeColumnSpec.getType();
         if (!type.isCompatible(m_dataType.getPreferredValueClass())) { // not isASuperType!
-            throw ValueFilterValidationUtil.createInvalidSettingsException(builder -> builder
+            throw FilterValidationUtil.createInvalidSettingsException(builder -> builder
                 .withSummary("Operator \"%s\" for column \"%s\" expects data of type \"%s\", but got \"%s\""
                     .formatted(operator.getLabel(), runtimeColumnSpec.getName(), m_dataType.getName(), type.getName()))
                 .addResolutions(

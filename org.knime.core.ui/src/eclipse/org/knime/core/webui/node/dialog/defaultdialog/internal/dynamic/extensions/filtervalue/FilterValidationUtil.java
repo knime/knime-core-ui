@@ -46,7 +46,7 @@
  * History
  *   23 Sept 2025 (Manuel Hotz, KNIME GmbH, Konstanz, Germany): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.valuefilter;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue;
 
 import java.util.function.UnaryOperator;
 
@@ -56,9 +56,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.message.Message;
 import org.knime.core.node.message.MessageBuilder;
 import org.knime.core.node.util.CheckUtils;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorBase;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterValueParameters;
 
 /**
  * Utility methods for validation in filter operators.
@@ -68,9 +65,9 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  * @noreference This class is not intended to be referenced by clients.
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
-public final class ValueFilterValidationUtil {
+public final class FilterValidationUtil {
 
-    private ValueFilterValidationUtil() {
+    private FilterValidationUtil() {
         // hidden
     }
 
@@ -174,7 +171,7 @@ public final class ValueFilterValidationUtil {
      * @return the resolution message
      */
     public static String resolutionChangeInput(final DataType... compatibleTypes) {
-        return ValueFilterValidationUtil
+        return FilterValidationUtil
             .appendElements(new StringBuilder("Convert the input column to a compatible type, e.g. "), compatibleTypes)
             .toString();
     }
