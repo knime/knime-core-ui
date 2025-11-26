@@ -1,0 +1,42 @@
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/js-src"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "18:00"
+    cooldown:
+      default-days: 5
+      exclude:
+        - "@knime/*"
+    groups:
+      knimeKds:
+        patterns:
+          - "@knime/kds-*"
+      vueuse:
+        patterns:
+          - "*vueuse*"
+      vitest:
+        patterns:
+          - "*vitest*"
+      jsonforms:
+        patterns:
+          - "@jsonforms/*"
+      typescriptEslint:
+        patterns:
+          - "@typescript-eslint/*"
+      xterm:
+        patterns:
+          - "@xterm/*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "18:00"
+    cooldown:
+      default-days: 5
