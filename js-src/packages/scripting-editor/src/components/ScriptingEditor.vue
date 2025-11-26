@@ -29,6 +29,8 @@ const commonMenuItems: MenuItem[] = [
   // TODO: add actual common menu items
 ];
 
+// I added an important comment here
+
 // Props
 interface Props {
   title?: string | null;
