@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - "releases/**"
+
+jobs:
+  lint-test-build:
+    name: ${{ matrix.package }} - Lint, tests, and build
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [core-ui, scripting-editor]
+    defaults:
+      run:
+        working-directory: js-src
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: js-src/package.json
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22.11.0"
+          cache: "pnpm"
+          cache-dependency-path: js-src/pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm install
+      - name: Audit
+        if: matrix.package == 'core-ui'
+        run: pnpm run audit
+      - name: Type check
+        run: |
+          cd packages/${{ matrix.package }}
+          pnpm run type-check
+      - name: Lint and format check
+        run: |
+          cd packages/${{ matrix.package }}
+          pnpm run ci:lint-format
+      - name: Run coverage
+        run: |
+          cd packages/${{ matrix.package }}
+          pnpm run coverage
+      - name: Build
+        run: |
+          cd packages/${{ matrix.package }}
+          pnpm run build
