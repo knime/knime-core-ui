@@ -48,6 +48,7 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.util.updates;
 
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
@@ -61,7 +62,9 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.ClassUtils;
 import org.knime.core.data.DataType;
 import org.knime.core.node.util.CheckUtils;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DataAndDialog;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicParametersProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersDeserializer;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersSerializer;
@@ -108,8 +111,11 @@ import org.knime.node.parameters.widget.message.TextMessage;
 import org.knime.node.parameters.widget.number.NumberInputWidget;
 import org.knime.node.parameters.widget.text.TextInputWidget;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 
 final class WidgetTreesToRefsAndStateProviders {
 
@@ -444,6 +450,15 @@ final class WidgetTreesToRefsAndStateProviders {
             .ifPresent(valueReference -> addValueRef(valueReference.value(), type, pathsWithSettingsKey, node));
         node.getAnnotation(ValueProvider.class)
             .ifPresent(valueProvider -> addValueProvider(valueProvider.value(), type, pathsWithSettingsKey, node));
+        if (node instanceof Tree<WidgetGroup> tree && tree.isDynamic()) {
+            /**
+             * Dynamic nodes always have a dynamic parameter provider that serves simultaneously as ui state provider
+             * and as value provider.
+             */
+            final var dynamicParametersAnnotation = node.getAnnotation(DynamicParameters.class).orElseThrow();
+            final var dynamicParametersProviderClass = dynamicParametersAnnotation.value();
+            addDynamicParametersValueProvider(dynamicParametersProviderClass, pathsWithSettingsKey);
+        }
     }
 
     private void addValueRef(final Class<? extends ParameterReference> valueRef, final Class<?> type,
@@ -474,6 +489,22 @@ final class WidgetTreesToRefsAndStateProviders {
                 (field, annotationValue) -> field.isAssignableFrom(annotationValue));
             m_valueProviders.add(new ValueProviderWrapper(valueProviderClass, pathWithSettingsKey, specialSerializer));
         }
+    }
+
+    private void addDynamicParametersValueProvider(final Class<? extends DynamicParametersProvider> valueProviderClass,
+        final Location pathWithSettingsKey) {
+        JsonSerializer<Object> specialSerializer = new JsonSerializer<>() {
+
+            @Override
+            public void serialize(final Object value, final JsonGenerator gen, final SerializerProvider serializers)
+                throws IOException {
+                @SuppressWarnings("unchecked") // The dynamic parameters provider returns a DataAndDialog<JsonNode>
+                final var json = (JsonNode)((DataAndDialog<Object>)value).getData();
+                gen.writeTree(json);
+            }
+        };
+
+        m_valueProviders.add(new ValueProviderWrapper(valueProviderClass, pathWithSettingsKey, specialSerializer));
     }
 
     private static <T> void validateAgainstType(final Class<?> fieldType, final Class<? extends T> implementingClass,

@@ -1005,7 +1005,6 @@ public class UpdatesUtilTest {
                 @Widget(title = "Data type", description = "Select the data type to be displayed in the table")
                 DataType m_dataType = StringCell.TYPE;
 
-
                 @SuppressWarnings("unused")
                 DataType m_dataTypeWithoutWidgetAnnotation; // No widget, so no choices are provided.
 
@@ -1637,11 +1636,19 @@ public class UpdatesUtilTest {
         final var response = buildUpdates(Map.of(SettingsType.MODEL, new TestSettings()),
             createDefaultNodeSettingsContext(), serviceRegistry);
 
-        assertThatJson(response).inPath("$.initialUpdates[0].providedOptionName").isString()
+        assertThatJson(response).inPath("$.initialUpdates").isArray().hasSize(2);
+
+        // value update is derived from dynamic parameters update
+        assertThatJson(response).inPath("$.initialUpdates[0]").isObject().doesNotContainKey("providedOptionName");
+        assertThatJson(response).inPath("$.initialUpdates[0].values[0].value.dynamicField").isString()
+            .isEqualTo("dynamicValue");
+
+        // updates are derived from dynamic parameters
+        assertThatJson(response).inPath("$.initialUpdates[1].providedOptionName").isString()
             .isEqualTo(JsonFormsConsts.UiSchema.TAG_DYNAMIC_SETTINGS);
-        assertThatJson(response).inPath("$.initialUpdates[0].values[0].value.settingsId").isString()
+        assertThatJson(response).inPath("$.initialUpdates[1].values[0].value.settingsId").isString()
             .isEqualTo(settingsId);
-        assertThatJson(response).inPath("$.initialUpdates[0].values[0].value.updates").isString().contains("james")
+        assertThatJson(response).inPath("$.initialUpdates[1].values[0].value.updates").isString().contains("james")
             .contains("bond");
 
         Mockito.verify(dynamicParametersContext).registerTriggerInvocationHandler(ArgumentMatchers.any());

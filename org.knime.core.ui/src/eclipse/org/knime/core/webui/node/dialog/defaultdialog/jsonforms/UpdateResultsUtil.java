@@ -308,7 +308,7 @@ public final class UpdateResultsUtil {
     private static <I> IndexedValue<I> serializeValue(final UnaryOperator<Object> serialize,
         final IndexedValue<I> value) {
         if (value.specialSerializer() != null) {
-            final var serializedValue = JacksonSerializationUtil.serialize(value, value.specialSerializer());
+            final var serializedValue = JacksonSerializationUtil.serialize(value.value(), value.specialSerializer());
             return new IndexedValue<>(value.indices(), serializedValue);
         }
         return new IndexedValue<>(value.indices(), serialize.apply(value.value()));
