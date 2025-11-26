@@ -48,7 +48,9 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
@@ -57,6 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSystemOp
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionMode;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelectionWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithFileSystem;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.MultiFileChooserRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.FileChooserRendererOptions;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.JsonFormsUiSchemaUtil;
@@ -66,6 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.util.MultiFileSelectionUti
 import org.knime.core.webui.node.dialog.defaultdialog.widgettree.WidgetTreeFactory;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.updates.StateProvider;
 
 /**
  * Renderer for MultiFileSelection-based file selection using the new file selection API.
@@ -92,9 +96,11 @@ final class MultiFileChooserRenderer extends WidgetTreeControlRendererSpec imple
             node.getAnnotation(MultiFileSelectionWidget.class).orElseThrow(IllegalStateException::new);
         m_fileReaderAnnotation = node.getAnnotation(FileReaderWidget.class);
         m_withFileSystemAnnotation = node.getAnnotation(WithFileSystem.class);
-        // TODO UIEXT-3068: Provide state provider as third arg
-        m_contextInfoProvider = new WorkflowContextInfoProvider(nodeParametersInput,
-            m_withFileSystemAnnotation.map(WithFileSystem::value).orElse(null), null);
+        m_contextInfoProvider = new WorkflowContextInfoProvider( //
+            nodeParametersInput, //
+            m_withFileSystemAnnotation.map(WithFileSystem::value).orElse(null), //
+            m_withFileSystemAnnotation.map(WithFileSystem::connectionProvider).orElse(null) //
+        );
         m_nodeParametersInput = nodeParametersInput;
         m_filtersClass =
             MultiFileSelectionUtil.extractFileChooserFiltersClass(m_node).orElseThrow(IllegalStateException::new);
@@ -175,4 +181,11 @@ final class MultiFileChooserRenderer extends WidgetTreeControlRendererSpec imple
         });
     }
 
+    @Override
+    public Map<String, Class<? extends StateProvider>> getStateProviderClasses() {
+        Map<String, Class<? extends StateProvider>> stateProviders = new HashMap<>();
+        m_withFileSystemAnnotation
+            .ifPresent(ann -> stateProviders.put(UiSchema.TAG_CONNECTED_FS_OPTIONS, ann.connectionProvider()));
+        return stateProviders;
+    }
 }

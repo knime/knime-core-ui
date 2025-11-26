@@ -165,9 +165,7 @@ final class FileChooserRenderer extends WidgetTreeControlRendererSpec implements
     public Map<String, Class<? extends StateProvider>> getStateProviderClasses() {
         Map<String, Class<? extends StateProvider>> stateProviders = new HashMap<>();
         m_withFileSystemAnnotation
-            // TODO 3068: Refactor string into constant
             .ifPresent(ann -> stateProviders.put(UiSchema.TAG_CONNECTED_FS_OPTIONS, ann.connectionProvider()));
         return stateProviders;
-
     }
 }
