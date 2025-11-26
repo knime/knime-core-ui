@@ -1,0 +1,49 @@
+name: Publish Scripting Editor to npm
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Publish Scripting Editor to npm
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: js-src/packages/scripting-editor
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: js-src/package.json
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22.11.0"
+          cache: "pnpm"
+          cache-dependency-path: js-src/pnpm-lock.yaml
+          registry-url: "https://registry.npmjs.org"
+      - name: Install dependencies
+        run: |
+          cd ../..
+          pnpm install
+      - name: Build
+        run: pnpm run build
+      - name: Bump version
+        run: npm version patch --no-git-tag-version
+      - name: Get version
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+      - name: Commit and tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          git commit -m "Bump scripting-editor version to ${{ steps.version.outputs.version }} [skip ci]"
+          git tag "v${{ steps.version.outputs.version }}" -am "Bump scripting-editor version to ${{ steps.version.outputs.version }}"
+          git push && git push --tags
+      - name: Publish to npm
+        run: npm publish
