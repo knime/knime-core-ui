@@ -61,6 +61,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.knime.core.node.NodeLogger;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.ConnectedFileChooserBackend.UnableToCreateConnectedFileSystemException;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewUtils.AdditionalFilterConfiguration;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileFilterPreviewUtils.PreviewResult;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileChooserFilters;
@@ -150,6 +151,8 @@ public final class FileFilterPreviewDataService {
         try (var fileSystem = m_fsConnector.getFileChooserBackend(fileSystemId).getFileSystem()) {
             return listFilteredAndSortedItemsForPreview(fileSystem, path, filterMode, includeSubfolders,
                 fileChooserFilters);
+        } catch (UnableToCreateConnectedFileSystemException ex) { // NOSONAR
+            return new PreviewResult.Error(ex.getMessage());
         }
     }
 

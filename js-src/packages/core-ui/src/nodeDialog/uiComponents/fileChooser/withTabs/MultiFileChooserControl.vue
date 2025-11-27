@@ -10,6 +10,7 @@ import type {
   MultiFileFilterMode,
 } from "@/nodeDialog/types/FileChooserUiSchema";
 import FieldControl from "../../FieldControl.vue";
+import { useFileSystems } from "../composables/useFileChooserBrowseOptions";
 import type { MultiFileSelection } from "../types";
 
 import FilterPreview from "./FilterPreview.vue";
@@ -66,6 +67,13 @@ const showFilterMode = computed(() => possibleFilterModes.value.length > 1);
 const filterModeFormat = computed(() =>
   possibleFilterModes.value.length > 2 ? "radio" : "valueSwitch",
 );
+const { isConnectedButNoFileConnectionIsAvailable, isConnected } =
+  useFileSystems(pathSelectionOptions);
+const hideFilterPreview = computed(
+  () =>
+    isConnectedButNoFileConnectionIsAvailable.value ||
+    (!isConnected.value && props.control.data?.path.fsCategory === "CONNECTED"),
+);
 </script>
 
 <template>
@@ -85,7 +93,7 @@ const filterModeFormat = computed(() =>
     />
     <template v-if="showFilters">
       <FieldControl field-name="includeSubfolders" :control />
-      <FilterPreview v-bind="props" />
+      <FilterPreview v-if="!hideFilterPreview" v-bind="props" />
     </template>
   </div>
 </template>

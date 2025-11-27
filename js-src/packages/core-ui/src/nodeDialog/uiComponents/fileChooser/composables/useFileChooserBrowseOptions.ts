@@ -29,6 +29,12 @@ export const useFileSystems = (
       fileSystems.value.includes("CONNECTED"),
   );
 
+  const isConnectedButNoFileConnectionIsAvailable = computed(
+    () =>
+      isConnected.value &&
+      uiSchemaOptions.value.connectedFSOptions?.fileSystemConnectionMissing,
+  );
+
   const isLocal = computed(
     () => uiSchemaOptions.value.isLocal && fileSystems.value.includes("LOCAL"),
   );
@@ -54,6 +60,7 @@ export const useFileSystems = (
     validCategories,
     fileSystems,
     isConnected,
+    isConnectedButNoFileConnectionIsAvailable,
   };
 };
 

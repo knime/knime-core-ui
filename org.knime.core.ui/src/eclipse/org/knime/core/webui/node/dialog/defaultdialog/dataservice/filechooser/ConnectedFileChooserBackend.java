@@ -58,6 +58,15 @@ import org.knime.filehandling.core.port.FileSystemPortObjectSpec;
  */
 class ConnectedFileChooserBackend extends SimpleFileChooserBackend {
 
+    static final class UnableToCreateConnectedFileSystemException extends RuntimeException {
+
+        private static final long serialVersionUID = 1L;
+
+        public UnableToCreateConnectedFileSystemException() {
+            super("Unable to create a file system connection for the connected port.");
+        }
+    }
+
     private final FileSystemPortObjectSpec m_portObjectSpec;
 
     /**
@@ -69,8 +78,7 @@ class ConnectedFileChooserBackend extends SimpleFileChooserBackend {
 
     @Override
     FSConnection createFSConnection() {
-        return m_portObjectSpec.getFileSystemConnection().orElseThrow(
-            () -> new IllegalStateException("Unable to create a file system connection for the connected port."));
+        return m_portObjectSpec.getFileSystemConnection().orElseThrow(UnableToCreateConnectedFileSystemException::new);
     }
 
     @Override

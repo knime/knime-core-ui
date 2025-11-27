@@ -14,6 +14,7 @@ import {
 
 import { useDirtySetting } from "../composables/components/useDirtySetting";
 import type { allControls } from "../renderers";
+import type { MultiFileSelection } from "../uiComponents/fileChooser/types";
 
 export const dirty = <D>(
   component: VueControl<D>,
@@ -56,6 +57,12 @@ class TwinlistValueComparator extends DefaultSettingComparator<
 export const valueComparators: ValueComparators<typeof allControls> = {
   twinlistRenderer: () => new TwinlistValueComparator(),
   typedStringFilterRenderer: () => new TwinlistValueComparator(),
+  multiFileChooserRenderer: () => ({
+    setSettings: (_cleanSettings: MultiFileSelection | undefined) => {},
+    isModified: (_settings: MultiFileSelection | undefined) => {
+      return false; // dirty-ness is handled by the sub controls
+    },
+  }),
 };
 
 export const mapDirty = mapControls((c, k) =>
