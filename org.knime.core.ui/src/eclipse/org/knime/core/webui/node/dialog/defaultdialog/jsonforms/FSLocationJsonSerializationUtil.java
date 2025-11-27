@@ -97,6 +97,8 @@ final class FSLocationJsonSerializationUtil {
 
     private static final String RELATIVE_TO_CURRENT_HUBSPACE = "relative-to-current-hubspace";
 
+    private static final String RELATIVE_TO_WORKFLOW = "relative-to-workflow";
+
     private static final String RELATIVE_TO_EMBEDDED_DATA = "relative-to-embedded-data";
 
     static final class FSLocationSerializer extends JsonSerializer<FSLocation> {
@@ -120,6 +122,9 @@ final class FSLocationJsonSerializationUtil {
         private static String toFrontendFsCategory(final FSLocation fsLocation) {
             if (isCurrentHubSpace(fsLocation)) {
                 return RELATIVE_TO_CURRENT_HUBSPACE;
+            }
+            if (isRelativeToWorkflow(fsLocation)) {
+                return RELATIVE_TO_WORKFLOW;
             }
             if (isEmbeddedData(fsLocation)) {
                 return RELATIVE_TO_EMBEDDED_DATA;
@@ -159,6 +164,9 @@ final class FSLocationJsonSerializationUtil {
             if (fsCategory.equals(RELATIVE_TO_CURRENT_HUBSPACE)) {
                 return new FSLocation(FSCategory.RELATIVE, RelativeTo.SPACE.getSettingsValue(), path);
             }
+            if (fsCategory.equals(RELATIVE_TO_WORKFLOW)) {
+                return new FSLocation(FSCategory.RELATIVE, RelativeTo.WORKFLOW.getSettingsValue(), path);
+            }
             if (fsCategory.equals(RELATIVE_TO_EMBEDDED_DATA)) {
                 return new FSLocation(FSCategory.RELATIVE, RelativeTo.WORKFLOW_DATA.getSettingsValue(), path);
             }
@@ -190,6 +198,10 @@ final class FSLocationJsonSerializationUtil {
         return isRelativeTo(fsLocation, RelativeTo.SPACE);
     }
 
+    static boolean isRelativeToWorkflow(final FSLocation fsLocation) {
+        return isRelativeTo(fsLocation, RelativeTo.WORKFLOW);
+    }
+
     static boolean isEmbeddedData(final FSLocation fsLocation) {
         return isRelativeTo(fsLocation, RelativeTo.WORKFLOW_DATA);
     }
@@ -201,7 +213,7 @@ final class FSLocationJsonSerializationUtil {
 
     static boolean useFileSystemSpecifierIfPresent(final String fsCategory) {
         return !isLocal(fsCategory) && !isCustomURL(fsCategory) && !fsCategory.equals(RELATIVE_TO_CURRENT_HUBSPACE)
-            && !fsCategory.equals(RELATIVE_TO_EMBEDDED_DATA);
+            && !fsCategory.equals(RELATIVE_TO_WORKFLOW) && !fsCategory.equals(RELATIVE_TO_EMBEDDED_DATA);
     }
 
 }

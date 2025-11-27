@@ -117,6 +117,21 @@ public class FSLocationJsonSerializationUtilTest {
     }
 
     @Test
+    void testSerializeRelativeToWorkflow() {
+        class TestSettings {
+            FileSelection fileChooser = new FileSelection(
+                new FSLocation(FSCategory.RELATIVE, RelativeTo.WORKFLOW.getSettingsValue(), "../myPath"));
+        }
+        final var result = MAPPER.valueToTree(new TestSettings());
+        assertThatJson(result).inPath("fileChooser.path.path").isString().isEqualTo("../myPath");//
+        assertThatJson(result).inPath("fileChooser.path.fsCategory").isString().isEqualTo("relative-to-workflow");
+        assertThatJson(result).inPath("fileChooser.path.timeout").isIntegralNumber().isEqualTo(10000);
+        assertThatJson(result).inPath("fileChooser.path.context.fsToString").isString()
+            .isEqualTo("(RELATIVE, knime.workflow, ../myPath)");
+
+    }
+
+    @Test
     void testSerializeEmbeddedData() {
         class TestSettings {
             FileSelection fileChooser = new FileSelection(
@@ -171,6 +186,7 @@ public class FSLocationJsonSerializationUtilTest {
             Arguments.of(new FSLocation(FSCategory.CUSTOM_URL, "1", "myPath")), //
             Arguments.of(new FSLocation(FSCategory.MOUNTPOINT, "mountpointSpecifier", "myPath")), //
             Arguments.of(new FSLocation(FSCategory.RELATIVE, RelativeTo.SPACE.getSettingsValue(), "myPath")), //
+            Arguments.of(new FSLocation(FSCategory.RELATIVE, RelativeTo.WORKFLOW.getSettingsValue(), "../myPath")), //
             Arguments.of(new FSLocation(FSCategory.RELATIVE, RelativeTo.WORKFLOW_DATA.getSettingsValue(), "myPath")), //
             Arguments.of(new FSLocation(FSCategory.HUB_SPACE, "myPath")), //
             Arguments.of(new FSLocation(FSCategory.CONNECTED, "myPath")),

@@ -6,6 +6,7 @@ export enum FSCategory {
   CONNECTED,
   "relative-to-current-hubspace",
   "relative-to-embedded-data",
+  "relative-to-workflow",
 }
 
 export interface FileChooserValue {

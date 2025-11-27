@@ -59,12 +59,12 @@ describe("SideDrawerContent.vue", () => {
     expect(tabBar.exists()).toBeTruthy();
     expect(tabBar.props().possibleValues).toStrictEqual([
       {
-        value: "relative-to-current-hubspace",
+        value: "SPACE",
         label: testSpaceName,
         icon: expect.anything(),
       },
       {
-        value: "relative-to-embedded-data",
+        value: "EMBEDDED",
         label: "Embedded data",
         icon: expect.anything(),
       },
@@ -98,9 +98,7 @@ describe("SideDrawerContent.vue", () => {
     const spacePath = "mySpacePath";
     props.uischema.options!.spaceFSOptions!.spacePath = spacePath;
     const wrapper = mountSideDrawerContent();
-    expect(wrapper.findComponent(TabBar).props().modelValue).toBe(
-      "relative-to-current-hubspace",
-    );
+    expect(wrapper.findComponent(TabBar).props().modelValue).toBe("SPACE");
     await flushPromises();
     const fileExplorerTab = wrapper.findComponent(DialogFileExplorer);
     expect(fileExplorerTab.exists()).toBeTruthy();

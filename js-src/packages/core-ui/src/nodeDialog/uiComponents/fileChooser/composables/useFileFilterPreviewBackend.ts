@@ -4,6 +4,8 @@ import type { MultiFileFilterMode } from "@/nodeDialog/types/FileChooserUiSchema
 import inject from "../../../utils/inject";
 import type { BackendType } from "../types";
 
+import type { FileChooserResolveRelativePath } from "./useFileChooserBackend";
+
 export type FilterOptions = {
   [key: string]: any;
 };
@@ -69,7 +71,8 @@ export default ({
   additionalFilterOptionsClassIdentifier: string;
   includeSubFolders: Ref<boolean>;
 }) => {
-  const getData = inject("getData") as FileFilterPreviewListItemsForPreview;
+  const getData = inject("getData") as FileFilterPreviewListItemsForPreview &
+    FileChooserResolveRelativePath;
 
   const listItemsForPreview = (
     path: string | null,
@@ -93,12 +96,21 @@ export default ({
     });
   };
 
+  const resolveRelativePath = (path: string, relativeTo: string) => {
+    return getData({
+      method: "fileChooser.resolveRelativePath",
+      options: [backendType.value, path, relativeTo],
+    });
+  };
+
   return {
     listItemsForPreview,
+    resolveRelativePath,
   };
 };
 
 /**
  * Combined File Filter Preview API type
  */
-export type FileFilterPreviewRpcMethods = FileFilterPreviewListItemsForPreview;
+export type FileFilterPreviewRpcMethods = FileFilterPreviewListItemsForPreview &
+  FileChooserResolveRelativePath;

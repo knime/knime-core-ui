@@ -105,6 +105,11 @@ public final class FileChooserRendererOptions {
          * @return the path within the space to start browsing from
          */
         String getSpacePath();
+
+        /**
+         * @return the relative workflow path within the space
+         */
+        Optional<String> getRelativeWorkflowPath();
     }
 
     /**

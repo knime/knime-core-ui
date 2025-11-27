@@ -48,14 +48,20 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.fromwidgettree;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.util.CheckUtils;
+import org.knime.core.node.workflow.contextv2.AnalyticsPlatformExecutorInfo;
 import org.knime.core.node.workflow.contextv2.HubSpaceLocationInfo;
 import org.knime.core.node.workflow.contextv2.LocalLocationInfo;
+import org.knime.core.node.workflow.contextv2.RestLocationInfo;
 import org.knime.core.node.workflow.contextv2.ServerLocationInfo;
+import org.knime.core.node.workflow.contextv2.WorkflowContextV2;
 import org.knime.core.node.workflow.contextv2.WorkflowContextV2.ExecutorType;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSystemOption;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.FileChooserRendererOptions;
@@ -119,7 +125,7 @@ final class WorkflowContextInfoProvider {
             return Optional.empty();
         }
         return WorkflowContextUtil.getWorkflowContextV2Optional()
-            .flatMap(context -> createSpaceFSOptions(context.getLocationInfo()));
+            .flatMap(WorkflowContextInfoProvider::createSpaceFSOptions);
     }
 
     private Optional<Integer> getFirstFileSystemPortIndex() {
@@ -161,7 +167,9 @@ final class WorkflowContextInfoProvider {
         };
     }
 
-    private static Optional<FileChooserRendererOptions.SpaceFSOptions> createSpaceFSOptions(final Object locationInfo) {
+    private static Optional<FileChooserRendererOptions.SpaceFSOptions>
+        createSpaceFSOptions(final WorkflowContextV2 contextV2) {
+        final var locationInfo = contextV2.getLocationInfo();
         if (locationInfo instanceof LocalLocationInfo) {
             return Optional.of(new FileChooserRendererOptions.SpaceFSOptions() {
                 @Override
@@ -172,6 +180,11 @@ final class WorkflowContextInfoProvider {
                 @Override
                 public String getSpacePath() {
                     return null;
+                }
+
+                @Override
+                public Optional<String> getRelativeWorkflowPath() {
+                    return getLocalCurrentWorkflowPath(contextV2);
                 }
             });
         } else if (locationInfo instanceof HubSpaceLocationInfo hubSpace) {
@@ -185,6 +198,18 @@ final class WorkflowContextInfoProvider {
                 public String getSpacePath() {
                     return hubSpace.getSpacePath();
                 }
+
+                @Override
+                public Optional<String> getRelativeWorkflowPath() {
+                    final var restCurrentWorkflowPath = getRestCurrentWorkflowPath(hubSpace);
+                    final var spacePathString = hubSpace.getSpacePath();
+                    if (spacePathString == null) {
+                        return restCurrentWorkflowPath;
+                    }
+                    return restCurrentWorkflowPath.map(Paths::get).map(Paths.get(spacePathString)::relativize)
+                        .map(Path::toString);
+                }
+
             });
         } else if (locationInfo instanceof ServerLocationInfo server) {
             return Optional.of(new FileChooserRendererOptions.SpaceFSOptions() {
@@ -197,8 +222,40 @@ final class WorkflowContextInfoProvider {
                 public String getSpacePath() {
                     return null;
                 }
+
+                @Override
+                public Optional<String> getRelativeWorkflowPath() {
+                    return getRestCurrentWorkflowPath(server)
+                        // leading slash exists. See RestLocationInfoBuilderFactory
+                        .map(path -> path.startsWith("/") ? path.substring(1) : path);
+                }
             });
         }
         return Optional.empty();
+    }
+
+    /**
+     * Copied from model of the "Extract Context Properties" node.
+     */
+    private static Optional<String> getLocalCurrentWorkflowPath(final WorkflowContextV2 contextV2) {
+        if (contextV2 == null) {
+            return Optional.empty();
+        }
+
+        final var executorInfo = (AnalyticsPlatformExecutorInfo)contextV2.getExecutorInfo();
+        final var mountPoint = executorInfo.getMountpoint().orElse(null);
+        if (mountPoint == null) {
+            return Optional.empty();
+        }
+
+        final var wfLocation = executorInfo.getLocalWorkflowPath().toAbsolutePath();
+        final var mpLocation = mountPoint.getSecond().toAbsolutePath();
+        CheckUtils.checkState(wfLocation.startsWith(mpLocation),
+            "Workflow '%s' is not contained in mountpoint root '%s'.", wfLocation, mpLocation);
+        return Optional.of(mpLocation.relativize(wfLocation).toString());
+    }
+
+    private static Optional<String> getRestCurrentWorkflowPath(final RestLocationInfo hubSpace) {
+        return Optional.ofNullable(hubSpace.getWorkflowPath());
     }
 }
