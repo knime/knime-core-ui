@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type Component, computed, toRef } from "vue";
+import { type Component, computed, ref, toRef } from "vue";
 
 import { TabBar } from "@knime/components";
 import ComputerDesktopIcon from "@knime/styles/img/icons/computer-desktop.svg";
@@ -7,6 +7,7 @@ import FolderIcon from "@knime/styles/img/icons/folder.svg";
 import LinkIcon from "@knime/styles/img/icons/link.svg";
 import LocalSpaceIcon from "@knime/styles/img/icons/local-space.svg";
 import PluginInputIcon from "@knime/styles/img/icons/plugin-input.svg";
+import WorkflowIcon from "@knime/styles/img/icons/workflow.svg";
 
 import DialogFileExplorer from "../DialogFileExplorer.vue";
 import { getBackendType } from "../composables/useFileChooserBackend";
@@ -14,7 +15,6 @@ import { useFileChooserBrowseOptions } from "../composables/useFileChooserBrowse
 import useFileChooserStateChange from "../composables/useFileChooserStateChange";
 import { type BackendType } from "../types";
 import type {
-  FSCategory,
   FileChooserProps,
   FileChooserValue,
 } from "../types/FileChooserProps";
@@ -47,14 +47,17 @@ const {
   isLoaded,
   spacePath,
   mountId,
+  relativeWorkflowPath,
   isConnected,
   portFileSystemName,
   portIndex,
   fileSystems,
 } = useFileChooserBrowseOptions(uischema);
 
+type TabType = "CONNECTED" | "LOCAL" | "SPACE" | "EMBEDDED" | "CUSTOM_URL";
+
 export type TabSpec = {
-  value: keyof typeof FSCategory;
+  value: TabType;
   label: string;
   icon: Component;
 };
@@ -75,12 +78,12 @@ const possibleCategories = computed<TabSpec[]>(() => {
       icon: ComputerDesktopIcon,
     }),
     ...conditionalTab(fileSystems.value.includes("SPACE"), {
-      value: "relative-to-current-hubspace",
+      value: "SPACE",
       label: mountId.value,
       icon: isLocal.value ? LocalSpaceIcon : KnimeIcon,
     }),
     ...conditionalTab(fileSystems.value.includes("EMBEDDED"), {
-      value: "relative-to-embedded-data",
+      value: "EMBEDDED",
       label: "Embedded data",
       icon: FolderIcon,
     }),
@@ -90,6 +93,63 @@ const possibleCategories = computed<TabSpec[]>(() => {
       icon: LinkIcon,
     }),
   ];
+});
+
+const isRelativeToWorkflow = computed(
+  () => props.modelValue.fsCategory === "relative-to-workflow",
+);
+const initialFSCategoryIsRelativeToWorkflow = isRelativeToWorkflow.value;
+const relativeToWorkflowLastSelected = ref(isRelativeToWorkflow.value);
+const updateIsRelativeTo = (isRelative: boolean) => {
+  relativeToWorkflowLastSelected.value = isRelative;
+  onFsCategoryUpdate(
+    isRelative ? "relative-to-workflow" : "relative-to-current-hubspace",
+  );
+};
+
+const tabType = computed<TabType>({
+  get: () => {
+    const fsCategory = props.modelValue.fsCategory;
+    if (
+      fsCategory === "relative-to-workflow" ||
+      fsCategory === "relative-to-current-hubspace"
+    ) {
+      return "SPACE";
+    }
+    if (fsCategory === "relative-to-embedded-data") {
+      return "EMBEDDED";
+    }
+    return fsCategory;
+  },
+  set: (value: TabType) => {
+    if (value === "SPACE") {
+      onFsCategoryUpdate(
+        relativeToWorkflowLastSelected.value ||
+          initialFSCategoryIsRelativeToWorkflow
+          ? "relative-to-workflow"
+          : "relative-to-current-hubspace",
+      );
+    } else if (value === "EMBEDDED") {
+      onFsCategoryUpdate("relative-to-embedded-data");
+    } else {
+      onFsCategoryUpdate(value);
+    }
+  },
+});
+
+const relativeToOptions = computed(() => {
+  const isSpaceTab = tabType.value === "SPACE";
+  const relativeWorkflowPathValue = relativeWorkflowPath.value;
+  return isSpaceTab && relativeWorkflowPathValue
+    ? {
+        relativeToPath: relativeWorkflowPathValue,
+        rootLabel: "Space",
+        relativeRootLabel: "Workflow",
+        isRelativeTo: isRelativeToWorkflow.value,
+        relativeRootIcon: WorkflowIcon,
+        initialFilePathIsRelative: initialFSCategoryIsRelativeToWorkflow,
+      }
+    : null;
 });
 
 const backendType = computed<BackendType>(() =>
@@ -106,12 +166,9 @@ const breadcrumbRoot = computed(() => {
   return null;
 });
 
-const browseAction: Record<
-  Exclude<keyof typeof FSCategory, "CONNECTED">,
-  string
-> = {
-  "relative-to-current-hubspace": "browse the current space",
-  "relative-to-embedded-data": "browse the embedded data",
+const browseAction: Record<Exclude<TabType, "CONNECTED">, string> = {
+  SPACE: "browse the current space",
+  EMBEDDED: "browse the embedded data",
   CUSTOM_URL: "use a URL to read files",
   LOCAL: "browse the local file system",
 };
@@ -119,11 +176,7 @@ const browseAction: Record<
 
 <template>
   <div class="flex">
-    <TabBar
-      :possible-values="possibleCategories"
-      :model-value="modelValue.fsCategory"
-      @update:model-value="onFsCategoryUpdate"
-    />
+    <TabBar v-model="tabType" :possible-values="possibleCategories" />
     <div class="flex-grow">
       <ConnectionPreventsTab
         v-if="isConnected && modelValue.fsCategory !== 'CONNECTED'"
@@ -147,7 +200,9 @@ const browseAction: Record<
         :initial-file-path="modelValue.path"
         :breadcrumb-root="breadcrumbRoot"
         :selection-mode="selectionMode"
+        :relative-to-options="relativeToOptions"
         @choose-item="onPathUpdate"
+        @update:is-relative-to="updateIsRelativeTo"
         @apply-and-close="emit('applyAndClose')"
       />
     </div>

@@ -154,7 +154,8 @@
                 "format": "fileChooser",
                 "spaceFSOptions": {
                   "spacePath": "Users/j_bond/Public",
-                  "mountId": "My-KNIME-Hub ;)"
+                  "mountId": "My-KNIME-Hub ;)",
+                  "relativeWorkflowPath": "my/workflow/path"
                 }
               }
             },

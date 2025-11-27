@@ -122,7 +122,7 @@ describe("DialogFileExplorer.vue", () => {
     const wrapper = shallowMountFileChooser();
     expect(dataServiceSpy).toHaveBeenCalledWith({
       method: "fileChooser.listItems",
-      options: ["local", null, "", { extensions: [], isWriter: false }],
+      options: ["local", null, "", { extensions: [], isWriter: false }, null],
     });
     expect(wrapper.findComponent(Breadcrumb).exists()).toBeFalsy();
     expect(wrapper.findComponent(FileExplorer).exists()).toBeFalsy();
@@ -209,6 +209,7 @@ describe("DialogFileExplorer.vue", () => {
             null,
             initialFilePath,
             { extensions: [], isWriter: false },
+            null,
           ],
         });
         await flushPromises();
@@ -248,6 +249,7 @@ describe("DialogFileExplorer.vue", () => {
           parentFolderPath,
           null,
           expect.any(Object),
+          null,
         ],
       });
     });
@@ -262,7 +264,13 @@ describe("DialogFileExplorer.vue", () => {
     });
     expect(dataServiceSpy).toHaveBeenNthCalledWith(2, {
       method: "fileChooser.listItems",
-      options: [newBackendType, null, "", { extensions: [], isWriter: false }],
+      options: [
+        newBackendType,
+        null,
+        "",
+        { extensions: [], isWriter: false },
+        null,
+      ],
     });
   });
 
@@ -316,7 +324,7 @@ describe("DialogFileExplorer.vue", () => {
       await flushPromises();
       expect(dataServiceSpy).toHaveBeenCalledWith({
         method: "fileChooser.getFilePath",
-        options: ["local", null, fileName, null],
+        options: ["local", null, fileName, null, null],
       });
       await flushPromises();
       expect(wrapper.emitted("chooseItem")).toBeUndefined();
@@ -339,6 +347,7 @@ describe("DialogFileExplorer.vue", () => {
           folderFromBackend.path,
           directoryName,
           { extensions: [], isWriter: false },
+          null,
         ],
       });
     });
@@ -355,6 +364,7 @@ describe("DialogFileExplorer.vue", () => {
           null,
           "",
           { extensions: props.filteredExtensions, isWriter: false },
+          null,
         ],
       });
     });
@@ -371,7 +381,7 @@ describe("DialogFileExplorer.vue", () => {
       onApply.value!();
       expect(dataServiceSpy).toHaveBeenCalledWith({
         method: "fileChooser.getFilePath",
-        options: ["local", null, fileName, props.appendedExtension],
+        options: ["local", null, fileName, props.appendedExtension, null],
       });
     });
   });
@@ -386,7 +396,7 @@ describe("DialogFileExplorer.vue", () => {
       await flushPromises();
       expect(dataServiceSpy).toHaveBeenCalledWith({
         method: "fileChooser.listItems",
-        options: ["local", null, "", { isWriter: true, extensions: [] }],
+        options: ["local", null, "", { isWriter: true, extensions: [] }, null],
       });
       const inputField = wrapper.findComponent(InputField);
       expect(inputField.exists()).toBeTruthy();
@@ -402,7 +412,7 @@ describe("DialogFileExplorer.vue", () => {
       await onApply.value!();
       expect(dataServiceSpy).toHaveBeenCalledWith({
         method: "fileChooser.getFilePath",
-        options: ["local", null, inputText, null],
+        options: ["local", null, inputText, null, null],
       });
       await flushPromises();
       expect(wrapper.emitted("chooseItem")).toStrictEqual([[filePath]]);
@@ -477,7 +487,7 @@ describe("DialogFileExplorer.vue", () => {
 
       expect(dataServiceSpy).toHaveBeenCalledWith({
         method: "fileChooser.getFilePath",
-        options: ["local", null, fileName, null],
+        options: ["local", null, fileName, null, null],
       });
       await flushPromises();
       expect(wrapper.emitted("chooseItem")).toStrictEqual([[filePath]]);
@@ -495,7 +505,7 @@ describe("DialogFileExplorer.vue", () => {
 
       expect(dataServiceSpy).toHaveBeenCalledWith({
         method: "fileChooser.getFilePath",
-        options: ["local", null, directoryName, null],
+        options: ["local", null, directoryName, null, null],
       });
     });
 
@@ -545,7 +555,7 @@ describe("DialogFileExplorer.vue", () => {
         await onApply.value!();
         expect(dataServiceSpy).toHaveBeenCalledWith({
           method: "fileChooser.getFilePath",
-          options: ["local", null, inputText, null],
+          options: ["local", null, inputText, null, null],
         });
       });
     });

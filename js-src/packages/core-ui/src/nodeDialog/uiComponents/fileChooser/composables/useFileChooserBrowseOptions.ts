@@ -44,7 +44,10 @@ export const useFileSystems = (
       : [
           ...(isLocal.value ? ["LOCAL" as const] : []),
           ...(fileSystems.value.includes("SPACE")
-            ? ["relative-to-current-hubspace" as const]
+            ? [
+                "relative-to-current-hubspace" as const,
+                "relative-to-workflow" as const,
+              ]
             : []),
           ...(fileSystems.value.includes("EMBEDDED")
             ? ["relative-to-embedded-data" as const]
@@ -76,6 +79,9 @@ export const useFileChooserBrowseOptions = (
     () => options.value.spaceFSOptions?.mountId ?? "Current space",
   );
   const spacePath = computed(() => options.value.spaceFSOptions?.spacePath);
+  const relativeWorkflowPath = computed(
+    () => options.value.spaceFSOptions?.relativeWorkflowPath,
+  );
   const portIndex = computed(() => options.value.connectedFSOptions?.portIndex);
   const portFileSystemName = computed(
     () =>
@@ -126,6 +132,7 @@ export const useFileChooserBrowseOptions = (
     isLocal,
     mountId,
     spacePath,
+    relativeWorkflowPath,
     isConnected,
     portIndex,
     portFileSystemName,

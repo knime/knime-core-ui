@@ -95,29 +95,68 @@ public final class FileChooserDataService {
 
     record Folder(List<Object> items, String path, List<ParentFolder> parentFolders) {
 
-        static FolderAndError asRootFolder(final List<Object> items, final String errorMessage,
-            final String inputPath) {
-            return new FolderAndError(new Folder(items, null, getParentFolders(null)),
+        static FolderAndError asRootFolder(final List<Object> items, final String errorMessage, final String inputPath,
+            final Path relativeToPath, final FileChooserBackend fileChooserBackend) {
+            return new FolderAndError(
+                new Folder(items, null, getParentFolders(null, relativeToPath, fileChooserBackend)),
                 Optional.ofNullable(errorMessage), inputPath);
         }
 
         static FolderAndError asNonRootFolder(final Path path, final List<Object> items, final String errorMessage,
-            final Path inputPath) {
-            final var folder = new Folder(items, path.toString(), getParentFolders(path));
+            final Path inputPath, final Path relativeToPath, final FileChooserBackend fileChooserBackend) {
+            final var folder =
+                new Folder(items, path.toString(), getParentFolders(path, relativeToPath, fileChooserBackend));
             String relativePath = getFilePathRelativeToFolder(path, inputPath);
             return new FolderAndError(folder, Optional.ofNullable(errorMessage), relativePath);
         }
 
-        static List<ParentFolder> getParentFolders(final Path path) {
-            if (path == null) {
-                return List.of(new ParentFolder(null, null));
+        static List<ParentFolder> getParentFolders(final Path path, final Path relativeToPath,
+            final FileChooserBackend fileChooserBackend) {
+            if (relativeToPath == null) {
+                if (path == null) {
+                    return List.of(new ParentFolder(null, null));
+                }
+                return Stream.concat(getParentFolders(path.getParent(), null, fileChooserBackend).stream(),
+                    Stream.of(new ParentFolder(path.toString(),
+                        path.getFileName() == null ? null : path.getFileName().toString())))
+                    .toList();
             }
-            return Stream.concat(//
-                getParentFolders(path.getParent()).stream(), //
-                Stream.of(new ParentFolder(path.toString(),
-                    path.getFileName() == null ? null : path.getFileName().toString()))//
-            ).toList();
+            final List<ParentFolder> parents = new ArrayList<>();
+            Path currentPath = relativeToPath;
+            parents.add(new ParentFolder(currentPath.toString(), null));
+            final Path targetPath = path == null ? getDefaultPath(fileChooserBackend, relativeToPath) : path;
+            final Path relativePath = relativeToPath.relativize(targetPath);
+            for (final Path segment : relativePath) {
+                final String segmentStr = segment.toString();
+                if ("..".equals(segmentStr)) {
+                    if (currentPath == null) {
+                        throw new IllegalStateException("Cannot navigate to parent of null path");
+                    }
+                    currentPath = currentPath.getParent();
+                } else {
+                    currentPath = currentPath == null ? segment : currentPath.resolve(segment);
+                }
+                parents.add(new ParentFolder(currentPath == null ? null : currentPath.toString(), segmentStr));
+            }
+            return parents;
         }
+    }
+
+    /**
+     * Resolves a relative path against a base path and normalizes the result.
+     *
+     * @param fileSystemId specifying the file system
+     * @param path the relative path to resolve
+     * @param relativeTo the base path to resolve against
+     * @return the resolved and normalized path
+     */
+    public String resolveRelativePath(final String fileSystemId, final String path, final String relativeTo) {
+        final var fileChooserBackend = m_fsConnector.getFileChooserBackend(fileSystemId);
+        final var fileSystem = fileChooserBackend.getFileSystem();
+        final Path relativeToPath = fileSystem.getPath(relativeTo);
+        final Path pathToResolve = fileSystem.getPath(path);
+        final Path resolved = relativeToPath.resolve(pathToResolve).normalize();
+        return resolved.toString();
     }
 
     /**
@@ -174,6 +213,7 @@ public final class FileChooserDataService {
      * @param nextFolder - the name of the to be accessed folder relative to the path or ".." if the parent folder
      *            should be accessed. Set to null in order to access the path directly.
      * @param listItemsConfig additional configuration for the filters applied to the listed files
+     * @param relativeTo the path to which the parent folder paths should be relative. If null, the paths are absolute.
      * @return A list of items in the next folder possibly together with an error message explaining why the returned
      *         folder is not the requested one.
      *
@@ -181,8 +221,9 @@ public final class FileChooserDataService {
      * @throws IOException
      */
     public FolderAndError listItems(final String fileSystemId, final String path, final String nextFolder,
-        final ListItemsConfig listItemsConfig) throws IOException {
+        final ListItemsConfig listItemsConfig, final String relativeTo) throws IOException {
         final var fileChooserBackend = m_fsConnector.getFileChooserBackend(fileSystemId);
+        final Path relativeToPath = relativeTo == null ? null : fileChooserBackend.getFileSystem().getPath(relativeTo);
         final Path nextPath;
         try {
             nextPath = getNextPath(path, nextFolder, fileChooserBackend.getFileSystem());
@@ -190,16 +231,17 @@ public final class FileChooserDataService {
             final var errorMessage = String.format("The selected path %s is not a valid path", nextFolder);
             if ("".equals(nextFolder)) {
 
-                return Folder.asRootFolder(getRootItems(fileChooserBackend), errorMessage, nextFolder);
+                return Folder.asRootFolder(getRootItems(fileChooserBackend), errorMessage, nextFolder, relativeToPath,
+                    fileChooserBackend);
             }
-            final var folderAndErrorForEmptyPath = listItems(fileSystemId, null, "", listItemsConfig);
+            final var folderAndErrorForEmptyPath = listItems(fileSystemId, null, "", listItemsConfig, relativeTo);
             return new FolderAndError(folderAndErrorForEmptyPath.folder(), Optional.of(errorMessage), "");
         }
         if ((nextPath == null && fileChooserBackend.isAbsoluteFileSystem())) {
-            return Folder.asRootFolder(getRootItems(fileChooserBackend), null, "");
+            return Folder.asRootFolder(getRootItems(fileChooserBackend), null, "", relativeToPath, fileChooserBackend);
         }
         final Deque<Path> pathStack = toFragments(fileChooserBackend, nextPath);
-        return getItemsInFolder(fileChooserBackend, pathStack, listItemsConfig);
+        return getItemsInFolder(fileChooserBackend, pathStack, listItemsConfig, relativeToPath);
     }
 
     private static Deque<Path> toFragments(final FileChooserBackend fileChooserBackend, final Path nextPath) {
@@ -256,25 +298,36 @@ public final class FileChooserDataService {
      * @param fileName the name of the to be accessed file relative to the path.
      * @param appendedExtension a file extension that is added to the filename whenever it does not already exist or end
      *            with the extension.
+     * @param relativeToRoot the root relative to which the path should be given. If null, the path relative to the file
+     *            system root is returned.
      * @return the full path of the file
      */
     public PathAndError getFilePath(final String fileSystemId, final String path, final String fileName,
-        final String appendedExtension) {
+        final String appendedExtension, final String relativeToRoot) {
         final var fileChooserBackend = m_fsConnector.getFileChooserBackend(fileSystemId);
         final var fileSystem = fileChooserBackend.getFileSystem();
         Path nextPath;
+        Path relativeToPath = null;
         try {
             nextPath = path == null ? fileSystem.getPath(fileName) : fileSystem.getPath(path, fileName);
+            if (relativeToRoot != null) {
+                relativeToPath = fileSystem.getPath(relativeToRoot);
+            }
         } catch (InvalidPathException ex) { // NOSONAR
             return PathAndError.ofError(String.format("%s is not a valid file name.", fileName));
         }
         if (appendedExtension != null) {
             nextPath = appendExtensionIfNotPresent(nextPath, appendedExtension);
         }
+
         if (fileChooserBackend.isAbsoluteFileSystem()) {
             nextPath = nextPath.toAbsolutePath();
-
+            relativeToPath = relativeToPath == null ? null : relativeToPath.toAbsolutePath();
         }
+        if (relativeToPath != null) {
+            nextPath = relativeToPath.relativize(nextPath);
+        }
+
         return PathAndError.ofPath(nextPath.toString());
     }
 
@@ -318,16 +371,21 @@ public final class FileChooserDataService {
     }
 
     private static FolderAndError getItemsInFolder(final FileChooserBackend fileChooserBackend,
-        final Deque<Path> pathStack, final ListItemsConfig listItemConfig) throws IOException {
+        final Deque<Path> pathStack, final ListItemsConfig listItemConfig, final Path relativeToPath)
+        throws IOException {
         String errorMessage = null;
         Path inputPath = pathStack.peek();
         while (!pathStack.isEmpty()) {
             final var path = pathStack.pop();
+            if (relativeToPath == null && path.startsWith("..")) {
+                errorMessage = String.format("The selected path %s is not accessible", inputPath);
+                continue;
+            }
             try {
                 final var folderContent =
                     listFilteredAndSortedItems(path, fileChooserBackend.getFileSystem(), listItemConfig) //
                         .stream().map(fileChooserBackend::pathToObject).toList();
-                return createFolder(path, folderContent, errorMessage, fileChooserBackend, inputPath);
+                return createFolder(path, folderContent, errorMessage, fileChooserBackend, inputPath, relativeToPath);
             } catch (NotDirectoryException ex) { //NOSONAR
                 /**
                  * Do not set an error message in this case, since we intentionally get here when opening the file
@@ -357,17 +415,22 @@ public final class FileChooserDataService {
             }
         }
         return Folder.asRootFolder(getRootItems(fileChooserBackend),
-            errorMessage == null ? String.format("The selected path %s does not exist", inputPath) : errorMessage, "");
+            errorMessage == null ? String.format("The selected path %s does not exist", inputPath) : errorMessage, "",
+            relativeToPath, fileChooserBackend);
     }
 
     private static FolderAndError createFolder(final Path path, final List<Object> folderContent,
-        final String errorMessage, final FileChooserBackend fileChooserBackend, final Path inputPath) {
+        final String errorMessage, final FileChooserBackend fileChooserBackend, final Path inputPath,
+        final Path relativeToPath) {
         if (fileChooserBackend.isAbsoluteFileSystem()) {
-            return Folder.asNonRootFolder(path.toAbsolutePath(), folderContent, errorMessage, inputPath);
+            return Folder.asNonRootFolder(path.toAbsolutePath(), folderContent, errorMessage, inputPath, relativeToPath,
+                fileChooserBackend);
         } else {
             return getEmptyPathFolder(fileChooserBackend).equals(path)
-                ? Folder.asRootFolder(folderContent, errorMessage, getFilePathRelativeToFolder(path, inputPath))
-                : Folder.asNonRootFolder(path, folderContent, errorMessage, inputPath);
+                ? Folder.asRootFolder(folderContent, errorMessage, getFilePathRelativeToFolder(path, inputPath),
+                    relativeToPath, fileChooserBackend)
+                : Folder.asNonRootFolder(path, folderContent, errorMessage, inputPath, relativeToPath,
+                    fileChooserBackend);
         }
     }
 

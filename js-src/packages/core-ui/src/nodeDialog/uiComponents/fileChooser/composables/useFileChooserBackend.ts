@@ -36,6 +36,10 @@ export type FileChooserListItems = (params: {
      *  additional configuration for the filters applied to the listed files
      */
     ListItemsConfig,
+    /**
+     * The path to which the file path is relative. If null, the absolute path is returned.
+     */
+    string | null,
   ];
 }) => Promise<FolderAndError | undefined>;
 
@@ -58,8 +62,30 @@ export type FileChooserGetFilePath = (params: {
      * A file extension that is added to the filename whenever it does not already exist or end with the extension.
      */
     string | null,
+    /**
+     * The path to which the file path is relative. If null, the absolute path is returned.
+     */
+    string | null,
   ];
 }) => Promise<PathAndError>;
+
+export type FileChooserResolveRelativePath = (params: {
+  method: "fileChooser.resolveRelativePath";
+  options: [
+    /**
+     * The id of the used file system.
+     */
+    BackendType,
+    /**
+     * The relative path to resolve.
+     */
+    string,
+    /**
+     * The base path to resolve against.
+     */
+    string,
+  ];
+}) => Promise<string>;
 
 export default ({
   filteredExtensions,
@@ -80,9 +106,14 @@ export default ({
   backendType: Ref<BackendType>;
 }) => {
   const getData = inject("getData") as FileChooserGetFilePath &
-    FileChooserListItems;
+    FileChooserListItems &
+    FileChooserResolveRelativePath;
 
-  const listItems = (path: string | null, nextFolder: string | null) => {
+  const listItems = (
+    path: string | null,
+    nextFolder: string | null,
+    relativeTo: string | null,
+  ) => {
     return getData({
       method: "fileChooser.listItems",
       options: [
@@ -93,19 +124,37 @@ export default ({
           extensions: filteredExtensions.value,
           isWriter: isWriter.value,
         },
+        relativeTo,
       ],
     });
   };
-  const getFilePath = (path: string | null, fileName: string) => {
+  const getFilePath = (
+    path: string | null,
+    fileName: string,
+    relativeTo: string | null,
+  ) => {
     return getData({
       method: "fileChooser.getFilePath",
-      options: [backendType.value, path, fileName, appendedExtension?.value],
+      options: [
+        backendType.value,
+        path,
+        fileName,
+        appendedExtension?.value,
+        relativeTo,
+      ],
+    });
+  };
+  const resolveRelativePath = (path: string, relativeTo: string) => {
+    return getData({
+      method: "fileChooser.resolveRelativePath",
+      options: [backendType.value, path, relativeTo],
     });
   };
 
   return {
     listItems,
     getFilePath,
+    resolveRelativePath,
   };
 };
 
@@ -129,4 +178,5 @@ export const getBackendType = (
  * Combined File Chooser API type
  */
 export type FileChooserRpcMethods = FileChooserListItems &
-  FileChooserGetFilePath;
+  FileChooserGetFilePath &
+  FileChooserResolveRelativePath;

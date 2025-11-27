@@ -426,7 +426,7 @@ class FileChooserDataServiceTest {
             final var path = relativizeIfNecessary(m_subFolder).toString();
             final var fileName = file.getFileName().toString();
             when(m_fileSystem.getPath(eq(path), eq(fileName))).thenReturn(file);
-            final var filePath = m_service.getFilePath("local", path, fileName, null);
+            final var filePath = m_service.getFilePath("local", path, fileName, null, null);
             assertThat(filePath.errorMessage()).isNull();
             assertThat(filePath.path()).isEqualTo(file.toString());
         }
@@ -437,7 +437,7 @@ class FileChooserDataServiceTest {
             final var path = relativizeIfNecessary(m_subFolder).toString();
             final var fileName = file.getFileName().toString();
             when(m_fileSystem.getPath(eq(path), eq(fileName))).thenThrow(InvalidPathException.class);
-            final var filePath = m_service.getFilePath("local", path, fileName, null);
+            final var filePath = m_service.getFilePath("local", path, fileName, null, null);
             assertThat(filePath.path()).isNull();
             assertThat(filePath.errorMessage()).isEqualTo("aFile is not a valid file name.");
         }
@@ -453,7 +453,7 @@ class FileChooserDataServiceTest {
                 final var path = relativizeIfNecessary(m_subFolder).toString();
                 final var fileName = file.getFileName().toString();
                 when(m_fileSystem.getPath(eq(path), eq(fileName))).thenReturn(file);
-                final var filePath = m_service.getFilePath("local", path, fileName, APPENDED_EXTENSION);
+                final var filePath = m_service.getFilePath("local", path, fileName, APPENDED_EXTENSION, null);
                 assertThat(filePath.path()).doesNotEndWith("." + APPENDED_EXTENSION);
             }
 
@@ -463,7 +463,7 @@ class FileChooserDataServiceTest {
                 final var path = relativizeIfNecessary(m_subFolder).toString();
                 final var fileName = directory.getFileName().toString();
                 when(m_fileSystem.getPath(eq(path), eq(fileName))).thenReturn(directory);
-                final var filePath = m_service.getFilePath("local", path, fileName, APPENDED_EXTENSION);
+                final var filePath = m_service.getFilePath("local", path, fileName, APPENDED_EXTENSION, null);
                 assertThat(filePath.path()).endsWith("." + APPENDED_EXTENSION);
             }
 
@@ -473,7 +473,7 @@ class FileChooserDataServiceTest {
                 final var path = relativizeIfNecessary(m_subFolder).toString();
                 final var fileName = file.getFileName().toString();
                 when(m_fileSystem.getPath(eq(path), eq(fileName))).thenReturn(file);
-                final var filePath = m_service.getFilePath("local", path, fileName, APPENDED_EXTENSION);
+                final var filePath = m_service.getFilePath("local", path, fileName, APPENDED_EXTENSION, null);
                 assertThat(filePath.path()).endsWith("." + APPENDED_EXTENSION);
             }
 
@@ -483,9 +483,114 @@ class FileChooserDataServiceTest {
                 final var path = relativizeIfNecessary(m_subFolder).toString();
                 final var fileName = file.getFileName().toString();
                 when(m_fileSystem.getPath(eq(path), eq(fileName))).thenReturn(file);
-                final var filePath = m_service.getFilePath("local", path, fileName, APPENDED_EXTENSION);
+                final var filePath = m_service.getFilePath("local", path, fileName, APPENDED_EXTENSION, null);
                 assertThat(filePath.path()).doesNotEndWith(APPENDED_EXTENSION + "." + APPENDED_EXTENSION);
             }
+        }
+
+        @Test
+        void testGetFilePathWithRelativeToReturnsRelativePath() throws IOException {
+            // Given: workflows/data-analysis/config.json
+            final var dataAnalysisFolder = Files.createTempDirectory(m_subFolder, "data-analysis");
+            final var preprocessingFolder = Files.createTempDirectory(dataAnalysisFolder, "preprocessing");
+            final var file = Files.writeString(dataAnalysisFolder.resolve("config.json"), "");
+
+            final var dataAnalysisPath = relativizeIfNecessary(dataAnalysisFolder).toString();
+            final var fileName = file.getFileName().toString();
+            final var relativeToPath = relativizeIfNecessary(preprocessingFolder).toString();
+
+            when(m_fileSystem.getPath(eq(dataAnalysisPath), eq(fileName))).thenReturn(relativizeIfNecessary(file));
+            when(m_fileSystem.getPath(eq(relativeToPath))).thenReturn(relativizeIfNecessary(preprocessingFolder));
+
+            // When: getFilePath is called with relativeTo parameter
+            final var filePath = m_service.getFilePath("local", dataAnalysisPath, fileName, null, relativeToPath);
+
+            // Then: the returned path is "../config.json"
+            assertThat(filePath.errorMessage()).isNull();
+            final var separator = m_subFolder.getFileSystem().getSeparator();
+            assertThat(filePath.path()).isEqualTo(".." + separator + "config.json");
+        }
+
+        @Test
+        void testGetFilePathWithoutRelativeToReturnsAbsolutePath() throws IOException {
+            // Given: workflows/data-analysis/output/results.csv
+            final var dataAnalysisFolder = Files.createTempDirectory(m_subFolder, "data-analysis");
+            final var outputFolder = Files.createTempDirectory(dataAnalysisFolder, "output");
+            final var file = Files.writeString(outputFolder.resolve("results.csv"), "");
+
+            final var outputPath = relativizeIfNecessary(outputFolder).toString();
+            final var fileName = file.getFileName().toString();
+
+            when(m_fileSystem.getPath(eq(outputPath), eq(fileName))).thenReturn(relativizeIfNecessary(file));
+
+            // When: getFilePath is called without relativeTo parameter
+            final var filePath = m_service.getFilePath("local", outputPath, fileName, null, null);
+
+            // Then: the returned path is the full path
+            assertThat(filePath.errorMessage()).isNull();
+            assertThat(filePath.path()).isEqualTo(relativizeIfNecessary(file).toString());
+        }
+
+        @Test
+        void testResolveRelativePathWithUpwardNavigation() throws IOException {
+            // Given: relativeTo path is "workflows/data-analysis/preprocessing"
+            // And: relative path is "../../results/output.csv"
+            final var workflowsFolder = Files.createTempDirectory(m_subFolder, "workflows");
+            final var dataAnalysisFolder = Files.createTempDirectory(workflowsFolder, "data-analysis");
+            final var preprocessingFolder = Files.createTempDirectory(dataAnalysisFolder, "preprocessing");
+            final var resultsFolder = Files.createTempDirectory(workflowsFolder, "results");
+
+            final var relativeToPath = relativizeIfNecessary(preprocessingFolder);
+            final var expectedResultPath = relativizeIfNecessary(resultsFolder.resolve("output.csv"));
+
+            final var relativePath = relativeToPath.relativize(
+                relativeToPath.resolve("..").resolve("..").resolve(resultsFolder.getFileName()).resolve("output.csv"));
+
+            when(m_fileSystem.getPath(eq(relativeToPath.toString()))).thenReturn(relativeToPath);
+            when(m_fileSystem.getPath(eq(relativePath.toString()))).thenReturn(relativePath);
+
+            // When: resolveRelativePath is called
+            final var resolved =
+                m_service.resolveRelativePath("local", relativePath.toString(), relativeToPath.toString());
+
+            // Then: the returned path is "workflows/results/output.csv"
+            assertThat(resolved).isEqualTo(expectedResultPath.toString());
+        }
+
+        @Test
+        void testListItemsGeneratesRelativeParentFolders() throws IOException {
+            // Given: relativeTo path is "workflows/data-analysis/preprocessing"
+            // And: current path is "workflows/data-analysis/results/output/final"
+            final var workflowsFolder = Files.createTempDirectory(m_subFolder, "workflows");
+            final var dataAnalysisFolder = Files.createTempDirectory(workflowsFolder, "data-analysis");
+            final var preprocessingFolder = Files.createTempDirectory(dataAnalysisFolder, "preprocessing");
+            final var resultsFolder = Files.createTempDirectory(dataAnalysisFolder, "results");
+            final var outputFolder = Files.createTempDirectory(resultsFolder, "output");
+            final var finalFolder = Files.createTempDirectory(outputFolder, "final");
+
+            final var relativeToPath = preprocessingFolder;
+            final var currentPath = relativizeIfNecessary(finalFolder);
+
+            when(m_fileSystem.getPath(eq(relativeToPath.toString()))).thenReturn(relativeToPath);
+            when(m_fileSystem.getPath(eq(currentPath.toString()))).thenReturn(currentPath);
+
+            // When: listItems is called with relativeTo parameter
+            final var result = new PerformListItemsBuilder().withFolder(currentPath.toString()).build()
+                .performListItems(relativeToPath.toString());
+
+            // Then: parent folders are relative to the relativeTo path
+            final var parentFolders = result.folder().parentFolders();
+            assertThat(parentFolders).isNotEmpty();
+            assertThat(parentFolders.get(0).path()).isEqualTo(relativeToPath.toString());
+            assertThat(parentFolders.get(0).name()).isNull();
+            assertThat(parentFolders.get(1).name()).isEqualTo("..");
+            assertThat(parentFolders.get(1).path()).isEqualTo(dataAnalysisFolder.toString());
+            assertThat(parentFolders.get(2).name()).isEqualTo(resultsFolder.getFileName().toString());
+            assertThat(parentFolders.get(2).path()).isEqualTo(resultsFolder.toString());
+            assertThat(parentFolders.get(3).name()).isEqualTo(outputFolder.getFileName().toString());
+            assertThat(parentFolders.get(3).path()).isEqualTo(outputFolder.toString());
+            assertThat(parentFolders.get(4).name()).isEqualTo(finalFolder.getFileName().toString());
+            assertThat(parentFolders.get(4).path()).isEqualTo(finalFolder.toString());
         }
 
         private Path relativizeIfNecessary(final Path absolutePath) {
@@ -503,6 +608,8 @@ class FileChooserDataServiceTest {
 
         interface PerformListItems {
             FolderAndError performListItems() throws IOException;
+
+            FolderAndError performListItems(String relativeTo) throws IOException;
         }
 
         static final class PerformListItemsBuilder {
@@ -528,7 +635,12 @@ class FileChooserDataServiceTest {
 
                     @Override
                     public FolderAndError performListItems() throws IOException {
-                        return m_dataService.listItems(m_fileSystemId, m_path, m_folder, config);
+                        return m_dataService.listItems(m_fileSystemId, m_path, m_folder, config, null);
+                    }
+
+                    @Override
+                    public FolderAndError performListItems(final String relativeTo) throws IOException {
+                        return m_dataService.listItems(m_fileSystemId, m_path, m_folder, config, relativeTo);
                     }
 
                 };

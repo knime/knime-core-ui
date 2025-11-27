@@ -32,6 +32,10 @@ export interface SpaceFSOptions {
    * The path within the space to start browsing from
    */
   spacePath?: string;
+  /**
+   * Relative path of the current workflow within the space
+   */
+  relativeWorkflowPath?: string;
 }
 
 export interface ReaderOptions {

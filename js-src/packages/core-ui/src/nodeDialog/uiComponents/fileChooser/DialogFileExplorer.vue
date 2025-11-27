@@ -14,7 +14,9 @@ import {
   FileExplorer,
   type FileExplorerItem,
   InputField,
+  Label,
   LoadingIcon,
+  ValueSwitch,
 } from "@knime/components";
 import HouseIcon from "@knime/styles/img/icons/house.svg";
 
@@ -38,10 +40,19 @@ export interface DialogFileExplorerProps {
   backendType: BackendType;
   breadcrumbRoot?: string | null;
   selectionMode?: FileSelectionMode;
+  /**
+   * If this option is provided, the user is presented with the
+   * ability to choose the file/folder relative to the path specified here.
+   */
+  relativeToOptions?: {
+    isRelativeTo: boolean;
+    initialFilePathIsRelative: boolean;
+    relativeToPath: string;
+    rootLabel: string;
+    relativeRootLabel: string;
+    relativeRootIcon: Component;
+  } | null;
 }
-
-const currentPath = ref<string | null>(null);
-const currentParents = ref<ParentFolder[]>([]);
 
 const props = withDefaults(defineProps<DialogFileExplorerProps>(), {
   initialFilePath: "",
@@ -51,6 +62,49 @@ const props = withDefaults(defineProps<DialogFileExplorerProps>(), {
   breadcrumbRoot: null,
   selectionMode: "FILE",
 });
+
+const emit = defineEmits<{
+  chooseItem: [
+    /**
+     * The full path of the chosen file
+     */
+    filePath: string,
+  ];
+  "update:isRelativeTo": [isRelative: boolean];
+  applyAndClose: [];
+  cancel: [];
+}>();
+
+const relativeToModelValue = computed({
+  get: () => (props.relativeToOptions?.isRelativeTo ? "RELATIVE" : "ROOT"),
+  set: (value: "RELATIVE" | "ROOT") =>
+    emit("update:isRelativeTo", value === "RELATIVE"),
+});
+const relativeToValueSwitchItems = computed(() =>
+  props.relativeToOptions
+    ? [
+        {
+          id: "ROOT",
+          text: props.relativeToOptions.rootLabel,
+        },
+        {
+          id: "RELATIVE",
+          text: props.relativeToOptions.relativeRootLabel,
+        },
+      ]
+    : [],
+);
+const relativeTo = computed(() => {
+  if (!props.relativeToOptions) {
+    return null;
+  }
+  return relativeToModelValue.value === "RELATIVE"
+    ? props.relativeToOptions.relativeToPath
+    : null;
+});
+
+const currentPath = ref<string | null>(null);
+const currentParents = ref<ParentFolder[]>([]);
 
 export type SelectedItem = {
   name: string;
@@ -90,7 +144,12 @@ const breadcrumbItems = computed(() =>
     let text = parent.name;
     let icon: Component | null = null;
     if (typeof text !== "string") {
-      if (parent.path === null) {
+      if (
+        props.relativeToOptions?.relativeRootIcon &&
+        parent.path === props.relativeToOptions.relativeToPath
+      ) {
+        icon = props.relativeToOptions.relativeRootIcon;
+      } else if (parent.path === null) {
         if (props.breadcrumbRoot === null) {
           icon = HouseIcon;
         } else {
@@ -109,17 +168,6 @@ const breadcrumbItems = computed(() =>
     };
   }),
 );
-
-const emit = defineEmits<{
-  chooseItem: [
-    /**
-     * The full path of the chosen file
-     */
-    filePath: string,
-  ];
-  applyAndClose: [];
-  cancel: [];
-}>();
 
 const isLoading = ref(true);
 
@@ -159,7 +207,7 @@ const handleListItemsResult = (folderAndError: FolderAndError | undefined) => {
 const { filteredExtensions, appendedExtension, isWriter, backendType } =
   toRefs(props);
 
-const { listItems, getFilePath } = useFileChooserBackend({
+const { listItems, getFilePath, resolveRelativePath } = useFileChooserBackend({
   filteredExtensions,
   appendedExtension,
   isWriter,
@@ -172,7 +220,7 @@ const loadNewFolder = (
 ) => {
   selectedItem.value = null;
   isLoading.value = true;
-  listItems(path, folderName).then(handleListItemsResult);
+  listItems(path, folderName, relativeTo.value).then(handleListItemsResult);
 };
 
 const changeDirectory = (nextFolder: string) =>
@@ -182,7 +230,11 @@ const onBreadcrumbItemClick = ({ path }: { path?: string | null }) =>
   loadNewFolder(path ?? null);
 
 const onChooseItem = async (name: string) => {
-  const { path, errorMessage } = await getFilePath(currentPath.value, name);
+  const { path, errorMessage } = await getFilePath(
+    currentPath.value,
+    name,
+    relativeTo.value,
+  );
   if (path === null) {
     setErrorMessage(errorMessage);
     return Promise.reject(errorMessage);
@@ -234,6 +286,7 @@ const inputFieldModelValue = computed({
 });
 
 const inputField = useTemplateRef<HTMLElement>("input-field");
+const relativeToLabel = useTemplateRef<HTMLElement>("relative-to-label");
 
 const { clickOutsideExceptions: clickOutsideExceptionsButtons } =
   useDialogFileExplorerButtons({
@@ -254,16 +307,42 @@ const { clickOutsideExceptions: clickOutsideExceptionsButtons } =
 const clickOutsideExceptions = computed(() => [
   ...clickOutsideExceptionsButtons.value,
   inputField,
+  relativeToLabel,
 ]);
 const openFile = (item: FileExplorerItem) => {
   onChangeSelectedItemIds([item.id]);
   emit("applyAndClose");
 };
 
+const initialLoadingCompleted = ref(false);
+
 watch(
   () => backendType.value,
-  () => listItems(null, props.initialFilePath).then(handleListItemsResult),
+  async () => {
+    initialLoadingCompleted.value = false;
+    let initialPath = props.initialFilePath;
+    if (
+      relativeTo.value &&
+      props.relativeToOptions?.initialFilePathIsRelative
+    ) {
+      initialPath = await resolveRelativePath(initialPath, relativeTo.value);
+    }
+    listItems(null, initialPath, relativeTo.value).then((result) => {
+      handleListItemsResult(result);
+      initialLoadingCompleted.value = true;
+    });
+  },
   { immediate: true },
+);
+
+// Update breadcrumb when relativeTo changes
+watch(
+  () => relativeTo.value,
+  () =>
+    initialLoadingCompleted.value &&
+    listItems(currentPath.value, null, relativeTo.value).then((result) => {
+      currentParents.value = result!.folder.parentFolders;
+    }),
 );
 </script>
 
@@ -300,6 +379,18 @@ watch(
       @open-file="openFile"
       @update:selected-item-ids="onChangeSelectedItemIds"
     />
+    <Label
+      v-if="relativeToOptions"
+      ref="relative-to-label"
+      class="relative-to-option"
+      text="Choose relative to"
+    >
+      <ValueSwitch
+        v-model="relativeToModelValue"
+        :possible-values="relativeToValueSwitchItems"
+        compact
+      />
+    </Label>
   </template>
 </template>
 
@@ -348,5 +439,9 @@ watch(
   min-height: 0;
   overflow-y: auto;
   flex: 1;
+}
+
+.relative-to-option {
+  margin-top: 10px;
 }
 </style>

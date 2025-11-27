@@ -13,10 +13,12 @@ interface Props {
 export type { Props };
 
 const currentSpacePrefix = "knime://knime.space/";
+const workflowPrefix = "knime://knime.workflow/";
 const embeddedDataPrefix = "knime://knime.workflow/data/";
 export const prefixes: [keyof typeof FSCategory, string][] = [
   ["relative-to-current-hubspace", currentSpacePrefix],
-  ["relative-to-embedded-data", embeddedDataPrefix],
+  ["relative-to-embedded-data", embeddedDataPrefix], // check before workflow!
+  ["relative-to-workflow", workflowPrefix],
 ];
 </script>
 
@@ -59,6 +61,9 @@ const fsLocationToText = async (fsLocation: FileChooserValue) => {
   ) {
     return currentSpacePrefix + fsLocation.path;
   }
+  if (!isConnected.value && fsLocation.fsCategory === "relative-to-workflow") {
+    return workflowPrefix + fsLocation.path;
+  }
   if (
     !isConnected.value &&
     fsLocation.fsCategory === "relative-to-embedded-data"
@@ -69,7 +74,11 @@ const fsLocationToText = async (fsLocation: FileChooserValue) => {
     return fsLocation.path;
   }
   if (!isConnected.value && fsLocation.fsCategory === "LOCAL") {
-    const { path, errorMessage } = await getFilePath(null, fsLocation.path);
+    const { path, errorMessage } = await getFilePath(
+      null,
+      fsLocation.path,
+      null,
+    );
     if (errorMessage) {
       return fsLocation.path;
     }

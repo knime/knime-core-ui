@@ -42,6 +42,7 @@ const previewDataIsLoading = ref(true);
 const filterPanelRef = ref<typeof SettingsSubPanel | null>(null);
 
 const filterOptions = computed(() => props.control.data?.filters);
+
 const backendConnection = useFileFilterPreviewBackend({
   backendType,
   includeSubFolders,
@@ -51,7 +52,7 @@ const backendConnection = useFileFilterPreviewBackend({
   )?.filters.classId,
 });
 
-const selectedPath = computed(() => props.control.data.path.path);
+const selectedPath = computed(() => props.control.data.path);
 const filterMode = computed(() => props.control.data.filterMode);
 
 const mostRecentPreviewQueryId = ref(0);
@@ -59,10 +60,19 @@ const refreshPreview = async () => {
   previewDataIsLoading.value = true;
 
   ++mostRecentPreviewQueryId.value;
+  let currentPath = selectedPath.value.path;
+  if (
+    selectedPath.value.fsCategory === "relative-to-workflow" &&
+    uischema.value.options?.spaceFSOptions?.relativeWorkflowPath
+  ) {
+    currentPath = await backendConnection.resolveRelativePath(
+      currentPath,
+      uischema.value.options.spaceFSOptions.relativeWorkflowPath,
+    );
+  }
   const currentQueryId = mostRecentPreviewQueryId.value;
-
   const previewResult = await backendConnection.listItemsForPreview(
-    selectedPath.value,
+    currentPath,
     filterMode.value,
   );
 

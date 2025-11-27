@@ -179,6 +179,7 @@ describe("multi file selection", () => {
       null,
       "initial/path",
       null,
+      null,
     ]);
     getFilePath.resolve({
       errorMessage: null,
