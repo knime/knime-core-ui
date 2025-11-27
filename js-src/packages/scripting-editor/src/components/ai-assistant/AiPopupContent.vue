@@ -28,6 +28,7 @@ import {
   activeEditorStore,
   clearPromptResponseStore,
   currentInputOutputItems,
+  isUserLicensed,
   showDisclaimer,
   usageData,
   usePromptResponseStore,
@@ -223,15 +224,33 @@ if (id !== null) {
   hubId.value = id;
 }
 
+/** displayed if user is not allowed to use AI features (e.g. a consumer) */
+const unlicensedUserMessage = ref("");
+
 /** Fetch usage data in background and update store */
 const fetchUsageData = () => {
   getScriptingService()
     .getAiUsage()
     .then((usage) => {
+      // -1 for limit indicates unlimited usage
+      if (usage?.limit === -1) {
+        usageData.value = null;
+      }
+
       usageData.value = usage;
+      isUserLicensed.value = true;
     })
     .catch((error) => {
       consola.warn("Failed to fetch AI usage data:", error);
+      // TODO: Replace with a proper error communication channel (AP-25330)
+      const unauthorizedPrefix = "403:";
+      if (error?.message.startsWith(unauthorizedPrefix)) {
+        isUserLicensed.value = false;
+        unlicensedUserMessage.value = error.message.slice(
+          unauthorizedPrefix.length,
+        );
+      }
+
       usageData.value = null;
     });
 };
@@ -260,6 +279,7 @@ const getDaysLeftInMonth = (date: Date = new Date()): number => {
       <span class="notification"> K-AI has been disabled. </span>
     </div>
 
+    <!-- user not logged in -->
     <div v-show="status === 'unauthorized'" class="notification-bar">
       <span class="notification">
         To start generating code with our AI assistant, please log into your
@@ -269,25 +289,45 @@ const getDaysLeftInMonth = (date: Date = new Date()): number => {
         Login to {{ hubId }}
       </Button>
     </div>
+
+    <!-- script not editable -->
     <div v-show="status === 'readonly'" class="notification-bar">
       <span class="notification">
         Script is overwritten by a flow variable.
       </span>
     </div>
+
+    <!-- user not licensed for AI features -->
+    <div v-show="isUserLicensed === false" class="notification-bar">
+      <InlineMessage
+        variant="info"
+        title="AI features unavailable"
+        class="unlicensed-user-message"
+      >
+        {{ unlicensedUserMessage }}
+      </InlineMessage>
+    </div>
+
+    <!-- K-AI is actionable -->
     <div
       v-show="
         status !== 'disabledOrUninstalled' &&
         status !== 'newlyDisabled' &&
         status !== 'unauthorized' &&
-        status !== 'readonly'
+        status !== 'readonly' &&
+        isUserLicensed !== false
       "
     >
+      <!-- disclaimer -->
       <Transition name="disclaimer-slide-fade">
         <AiDisclaimer
           v-if="showDisclaimer && isWithinLimit"
           @accept-disclaimer="showDisclaimer = false"
         />
       </Transition>
+
+      <!-- main interaction area once disclaimer is clicked away -->
+      <!-- diff of K-AI-generated content -->
       <Transition name="slide-fade">
         <AiSuggestion
           v-if="promptResponseStore.promptResponse"
@@ -295,6 +335,8 @@ const getDaysLeftInMonth = (date: Date = new Date()): number => {
           @accept-suggestion="acceptSuggestion"
         />
       </Transition>
+
+      <!-- user input area -->
       <div
         class="chat-controls"
         :class="{ 'chat-controls-border-top': hasTopContent }"
@@ -304,7 +346,10 @@ const getDaysLeftInMonth = (date: Date = new Date()): number => {
             {{ promptResponseStore.promptResponse.message.content }}
           </div>
         </Transition>
+
         <InfinityLoadingBar v-if="status === 'waiting'" />
+
+        <!-- user ran out of AI interactions -->
         <InlineMessage
           v-if="!isWithinLimit"
           variant="info"
@@ -316,6 +361,7 @@ const getDaysLeftInMonth = (date: Date = new Date()): number => {
           {{ getDaysLeftInMonth() }}
           days to use it again.
         </InlineMessage>
+        <!-- otherwise render input field -->
         <div v-else class="chat-controls-text-input">
           <textarea
             ref="textarea"
@@ -349,12 +395,14 @@ const getDaysLeftInMonth = (date: Date = new Date()): number => {
             </FunctionButton>
           </div>
         </div>
+
         <div v-if="status === 'error'" class="error-message">
           <WarningIcon class="error-icon" />
           <span class="error-text">
             {{ errorText }}
           </span>
         </div>
+
         <div v-if="promptTooLong" class="error-message">
           <WarningIcon class="error-icon" />
           <span class="error-text">
@@ -362,6 +410,7 @@ const getDaysLeftInMonth = (date: Date = new Date()): number => {
             {{ MAX_PROMPT_LENGTH }} characters or less."
           </span>
         </div>
+
         <div class="usage-limit">
           <span
             v-if="usageData && usageData.limit !== null && isWithinLimit"
@@ -555,7 +604,12 @@ const getDaysLeftInMonth = (date: Date = new Date()): number => {
     vertical-align: middle;
     border-top: 1px solid var(--knime-porcelain);
     position: relative;
-    height: 49px;
+    min-height: 49px;
+
+    & .unlicensed-user-message {
+      margin: var(--ai-bar-margin);
+      flex-grow: 1;
+    }
   }
 }
 
