@@ -22,8 +22,8 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22.11.0"
-          cache: "pnpm"
+          node-version-file: js-src/package.json
+          cache: pnpm
           cache-dependency-path: js-src/pnpm-lock.yaml
           registry-url: "https://registry.npmjs.org"
       - name: Install dependencies
