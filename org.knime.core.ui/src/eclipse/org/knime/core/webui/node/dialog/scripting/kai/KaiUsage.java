@@ -44,76 +44,67 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   15 Sep 2023 (chaubold): created
+ *   Nov 28, 2025 (benjaminwilhelm): created
  */
 package org.knime.core.webui.node.dialog.scripting.kai;
 
-import java.io.IOException;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Interface for a service that provides code suggestions via K-AI.
+ * Usage information about K-AI interactions.
+ * <p>
+ * The serialized JSON must match the TypeScript type {@code UsageData} in {@code scripting-service.ts}. Both must be
+ * kept in sync.
  *
- * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
- * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
- * @noreference This interface is not intended to be referenced by clients.
- * @noimplement This interface is not intended to be implemented by clients.
+ * @see org.knime.core.webui.node.dialog.scripting.kai.KaiUsage.Unknown
+ * @see org.knime.core.webui.node.dialog.scripting.kai.KaiUsage.Limited
+ * @see org.knime.core.webui.node.dialog.scripting.kai.KaiUsage.Unlimited
+ * @see org.knime.core.webui.node.dialog.scripting.kai.KaiUsage.Unlicensed
  */
-public interface CodeKaiHandler {
+public sealed interface KaiUsage permits KaiUsage.Unknown, KaiUsage.Limited, KaiUsage.Unlimited, KaiUsage.Unlicensed {
+
+    /** @return the type discriminator for JSON serialization */
+    @JsonProperty
+    String type();
+
+    /** Unknown usage status. */
+    public record Unknown() implements KaiUsage {
+        @Override
+        public String type() {
+            return "UNKNOWN";
+        }
+    }
 
     /**
-     * @return whether all K-AI-related features are enabled
-     */
-    boolean isKaiEnabled();
-
-    /**
-     * @return the ID of the Hub hosting the backend
-     */
-    String getHubId();
-
-    /**
-     * @param projectId the ID of the workflow-project required for authentication.
-     * @return the AI usage for the currently authenticated user.
-     * @since 5.8
-     */
-    KaiUsage getUsage(String projectId);
-
-    /**
-     * Log in to the currently selected Hub end point
+     * Limited usage with a quota.
      *
-     * @return true if already logged in or the login was successful
+     * @param limit the maximum number of allowed interactions
+     * @param used the number of interactions used so far
      */
-    boolean loginToHub();
+    public record Limited(int limit, int used) implements KaiUsage {
+        @Override
+        public String type() {
+            return "LIMITED";
+        }
+    }
+
+    /** Unlimited usage. */
+    public record Unlimited() implements KaiUsage {
+        @Override
+        public String type() {
+            return "UNLIMITED";
+        }
+    }
 
     /**
-     * @param projectId the projectId of the current project
-     * @return true if the user is logged in to the currently selected Hub end point
-     */
-    boolean isLoggedIn(String projectId);
-
-    /**
-     * @return the disclaimer users have to accept before they can use the code generation AI
-     */
-    String getDisclaimer();
-
-    /**
-     * Send a POST request to the provided end point path at the selected KNIME Hub
+     * Unlicensed user with a message.
      *
-     * @param projectId the projectId of the current project
-     * @param endpointPath The end point at the selected KNIME Hub to call
-     * @param request An object that will be turned into JSON using Jackson and sent as data to the endpoint
-     * @return The response of the request as String (probably contains JSON content)
-     * @throws IOException In case of connection errors or malformed request data.
+     * @param message a message explaining the unlicensed status
      */
-    String sendRequest(String projectId, final String endpointPath, final Object request) throws IOException;
-
-    /**
-     * A data service dependency that provides the project id of the current project such that it can be passed to
-     * {@link CodeKaiHandler#isLoggedIn} and {@link CodeKaiHandler#sendRequest} which needs this information to get the
-     * authentication token from the AuthTokenProvider
-     * (<code>org.knime.gateway.impl.webui.kai.KaiHandlerFactory.AuthTokenProvider</code>).
-     *
-     * @param projectId the projectId of the current project
-     */
-    public record ProjectId(String projectId) {
+    public record Unlicensed(String message) implements KaiUsage {
+        @Override
+        public String type() {
+            return "UNLICENSED";
+        }
     }
 }
