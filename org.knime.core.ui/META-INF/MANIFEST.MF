@@ -145,5 +145,5 @@ Require-Bundle: org.knime.shared.workflow.def;bundle-version="[5.9.0,6.0.0)",
  org.apache.commons.commons-io;bundle-version="[2.15.1,3.0.0)",
  com.googlecode.owasp-java-html-sanitizer;bundle-version="[20220608.1.0,20220609.0.0)"
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-17
+Bundle-RequiredExecutionEnvironment: JavaSE-21
 Automatic-Module-Name: org.knime.core.ui
