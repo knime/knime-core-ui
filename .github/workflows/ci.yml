@@ -18,7 +18,7 @@ jobs:
         package: [core-ui, scripting-editor]
     defaults:
       run:
-        working-directory: js-src
+        working-directory: js-src/packages/${{ matrix.package }}
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
@@ -31,23 +31,16 @@ jobs:
           cache: pnpm
           cache-dependency-path: js-src/pnpm-lock.yaml
       - name: Install dependencies
+        working-directory: js-src
         run: pnpm install
       - name: Audit
-        if: matrix.package == 'core-ui'
+        working-directory: js-src
         run: pnpm run audit
       - name: Type check
-        run: |
-          cd packages/${{ matrix.package }}
-          pnpm run type-check
+        run: pnpm run type-check
       - name: Lint and format check
-        run: |
-          cd packages/${{ matrix.package }}
-          pnpm run ci:lint-format
+        run: pnpm run ci:lint-format
       - name: Run coverage
-        run: |
-          cd packages/${{ matrix.package }}
-          pnpm run coverage
+        run: pnpm run coverage
       - name: Build
-        run: |
-          cd packages/${{ matrix.package }}
-          pnpm run build
+        run: pnpm run build

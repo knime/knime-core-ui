@@ -26,9 +26,8 @@ jobs:
           cache: pnpm
           cache-dependency-path: js-src/pnpm-lock.yaml
       - name: Install dependencies
-        run: |
-          cd ../..
-          pnpm install
+        working-directory: js-src
+        run: pnpm install
       - name: Build
         run: pnpm run build
       - name: Bump version
