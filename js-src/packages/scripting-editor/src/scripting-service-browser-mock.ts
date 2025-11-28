@@ -23,6 +23,7 @@ export type ScriptingServiceMockOptions = {
     string,
     (...options: any) => Promise<any>
   >;
+  unlicensedKaiUser?: boolean;
 };
 
 export const createScriptingServiceMock = (
@@ -123,10 +124,20 @@ export const createScriptingServiceMock = (
 
     getAiUsage() {
       log("Called scriptingService.getAiUsage");
-      return Promise.resolve({
-        limit: 500,
-        used: aiUsage,
-      });
+      return Promise.resolve(
+        opt.unlicensedKaiUser
+          ? {
+              type: "UNLICENSED",
+              message:
+                "You need a KNIME Hub team license to use AI features. " +
+                "Please contact your team administrator or upgrade your plan.",
+            }
+          : {
+              type: "LIMITED",
+              limit: 500,
+              used: aiUsage,
+            },
+      );
     },
 
     sendAlert(alert) {

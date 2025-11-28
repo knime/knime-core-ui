@@ -43,7 +43,7 @@ describe("AiPopup", () => {
   beforeEach(() => {
     vi.resetModules();
     clearPromptResponseStore();
-    usageData.value = null; // Clear usage data for each test
+    usageData.value = { type: "UNKNOWN" }; // Clear usage data for each test
     setActiveEditorStoreForAi({
       text: ref(""),
       editorModel: "myEditorModel",
@@ -336,6 +336,7 @@ describe("AiPopup", () => {
     it("fetches initial usage data when user is logged in", async () => {
       const scriptingService = getScriptingService();
       vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        type: "LIMITED",
         limit: 100,
         used: 25,
       });
@@ -344,6 +345,11 @@ describe("AiPopup", () => {
       await flushPromises();
 
       expect(scriptingService.getAiUsage).toHaveBeenCalledOnce();
+      expect(usageData.value).toEqual({
+        type: "LIMITED",
+        limit: 100,
+        used: 25,
+      });
     });
 
     it("does not fetch usage data when user is not logged in", async () => {
@@ -354,11 +360,13 @@ describe("AiPopup", () => {
       await flushPromises();
 
       expect(scriptingService.getAiUsage).not.toHaveBeenCalled();
+      expect(usageData.value).toEqual({ type: "UNKNOWN" });
     });
 
     it("displays usage counter for regular users within limit", async () => {
       const scriptingService = getScriptingService();
       vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        type: "LIMITED",
         limit: 100,
         used: 25,
       });
@@ -374,8 +382,7 @@ describe("AiPopup", () => {
     it("hides usage counter for pro users (null limit)", async () => {
       const scriptingService = getScriptingService();
       vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
-        limit: null,
-        used: 500,
+        type: "UNLIMITED",
       });
 
       const bar = await doMount();
@@ -388,6 +395,7 @@ describe("AiPopup", () => {
     it("shows limit exceeded message when usage exceeds limit", async () => {
       const scriptingService = getScriptingService();
       vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        type: "LIMITED",
         limit: 100,
         used: 100,
       });
@@ -405,6 +413,7 @@ describe("AiPopup", () => {
     it("hides text input when limit is exceeded", async () => {
       const scriptingService = getScriptingService();
       vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        type: "LIMITED",
         limit: 100,
         used: 100,
       });
@@ -445,6 +454,7 @@ describe("AiPopup", () => {
     it("fetches usage data after successful login", async () => {
       const scriptingService = getScriptingService();
       vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        type: "LIMITED",
         limit: 100,
         used: 10,
       });
@@ -458,9 +468,11 @@ describe("AiPopup", () => {
       expect(scriptingService.getAiUsage).toHaveBeenCalledTimes(2); // Once on mount, once on login
     });
 
-    it("hides usage counter when backend returns null (old backend)", async () => {
+    it("hides usage counter when backend returns UNKNOWN", async () => {
       const scriptingService = getScriptingService();
-      vi.mocked(scriptingService.getAiUsage).mockResolvedValue(null);
+      vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        type: "UNKNOWN",
+      });
 
       const bar = await doMount();
       await flushPromises();
@@ -478,6 +490,55 @@ describe("AiPopup", () => {
 
       // January has 31 days, so 31 - 15 = 16 days left
       expect(daysLeft).toBe(16);
+    });
+
+    it("shows unlicensed user message when user lacks AI license", async () => {
+      const scriptingService = getScriptingService();
+      vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        type: "UNLICENSED",
+        message: "Please upgrade to access AI features",
+      });
+
+      const bar = await doMount();
+      await flushPromises();
+
+      const unlicensedNotification = bar.findAll(".notification-bar").at(3);
+      expect(unlicensedNotification?.exists()).toBeTruthy();
+      expect(unlicensedNotification?.isVisible()).toBeTruthy();
+      expect(unlicensedNotification?.text()).toContain(
+        "AI features unavailable",
+      );
+      expect(unlicensedNotification?.text()).toContain(
+        "Please upgrade to access AI features",
+      );
+    });
+
+    it("hides text input when user is unlicensed", async () => {
+      const scriptingService = getScriptingService();
+      vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        type: "UNLICENSED",
+        message: "Please upgrade to access AI features",
+      });
+
+      const bar = await doMount();
+      await flushPromises();
+
+      const chatControls = bar.find(".chat-controls-text-input");
+      expect(chatControls.exists()).toBeFalsy();
+    });
+
+    it("hides usage counter for unlicensed users", async () => {
+      const scriptingService = getScriptingService();
+      vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        type: "UNLICENSED",
+        message: "Please upgrade to access AI features",
+      });
+
+      const bar = await doMount();
+      await flushPromises();
+
+      const usageCounter = bar.find(".usage-counter");
+      expect(usageCounter.exists()).toBeFalsy();
     });
   });
 });

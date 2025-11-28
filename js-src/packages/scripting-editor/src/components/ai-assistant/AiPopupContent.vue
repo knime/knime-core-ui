@@ -28,7 +28,6 @@ import {
   activeEditorStore,
   clearPromptResponseStore,
   currentInputOutputItems,
-  isUserLicensed,
   showDisclaimer,
   usageData,
   usePromptResponseStore,
@@ -224,46 +223,30 @@ if (id !== null) {
   hubId.value = id;
 }
 
-/** displayed if user is not allowed to use AI features (e.g. a consumer) */
-const unlicensedUserMessage = ref("");
-
 /** Fetch usage data in background and update store */
 const fetchUsageData = () => {
   getScriptingService()
     .getAiUsage()
     .then((usage) => {
-      // -1 for limit indicates unlimited usage
-      if (usage?.limit === -1) {
-        usageData.value = null;
-      }
-
       usageData.value = usage;
-      isUserLicensed.value = true;
     })
     .catch((error) => {
       consola.warn("Failed to fetch AI usage data:", error);
-      // TODO: Replace with a proper error communication channel (AP-25330)
-      const unauthorizedPrefix = "403:";
-      if (error?.message.startsWith(unauthorizedPrefix)) {
-        isUserLicensed.value = false;
-        unlicensedUserMessage.value = error.message.slice(
-          unauthorizedPrefix.length,
-        );
-      }
-
-      usageData.value = null;
+      usageData.value = { type: "UNKNOWN" };
     });
 };
 
 /** false if the usage limit is exceeded and the message prompt should not be shown */
-const isWithinLimit = computed(() => {
-  // Pro users (null limit) or users without data loaded are within limit
-  if (usageData.value === null || usageData.value.limit === null) {
-    return true;
-  }
-  // Check if used is less than limit
-  return usageData.value.used < usageData.value.limit;
-});
+const isWithinLimit = computed(
+  () =>
+    // UNKNOWN or UNLIMITED types are always within limit
+    usageData.value.type === "UNKNOWN" ||
+    usageData.value.type === "UNLIMITED" ||
+    // LIMITED type is within limit if used < limit
+    (usageData.value.type === "LIMITED" &&
+      usageData.value.used < usageData.value.limit),
+  // UNLICENSED type is never within limit
+);
 
 /** @returns the days left in the current month */
 const getDaysLeftInMonth = (date: Date = new Date()): number => {
@@ -298,13 +281,13 @@ const getDaysLeftInMonth = (date: Date = new Date()): number => {
     </div>
 
     <!-- user not licensed for AI features -->
-    <div v-show="isUserLicensed === false" class="notification-bar">
+    <div v-show="usageData.type === 'UNLICENSED'" class="notification-bar">
       <InlineMessage
         variant="info"
         title="AI features unavailable"
         class="unlicensed-user-message"
       >
-        {{ unlicensedUserMessage }}
+        {{ usageData.type === "UNLICENSED" ? usageData.message : "" }}
       </InlineMessage>
     </div>
 
@@ -315,7 +298,7 @@ const getDaysLeftInMonth = (date: Date = new Date()): number => {
         status !== 'newlyDisabled' &&
         status !== 'unauthorized' &&
         status !== 'readonly' &&
-        isUserLicensed !== false
+        usageData.type !== 'UNLICENSED'
       "
     >
       <!-- disclaimer -->
@@ -413,11 +396,10 @@ const getDaysLeftInMonth = (date: Date = new Date()): number => {
 
         <div class="usage-limit">
           <span
-            v-if="usageData && usageData.limit !== null && isWithinLimit"
+            v-if="usageData.type === 'LIMITED' && isWithinLimit"
             class="usage-counter"
           >
-            {{ usageData?.used ?? "−" }}/{{ usageData?.limit ?? "−" }} monthly
-            interactions
+            {{ usageData.used }}/{{ usageData.limit }} monthly interactions
           </span>
           <span class="usage-disclaimer"> K-AI can make mistakes </span>
         </div>

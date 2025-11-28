@@ -57,7 +57,4 @@ export const currentInputOutputItems: Ref<InputOutputModel[]> = ref<
 // Cache for AI usage data to avoid loading delays when opening the popup
 // null = no data available (not fetched, fetch failed, or old backend)
 // UsageData = valid usage data
-export const usageData = ref<UsageData | null>(null);
-
-// AI features are not available to unlicensed users, i.e. users without a team
-export const isUserLicensed = ref<boolean | null>(null);
+export const usageData = ref<UsageData>({ type: "UNKNOWN" });

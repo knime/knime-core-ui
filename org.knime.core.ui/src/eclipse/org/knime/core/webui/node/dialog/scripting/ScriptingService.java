@@ -70,7 +70,7 @@ import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.VariableType;
 import org.knime.core.webui.node.dialog.scripting.kai.CodeKaiHandler;
-import org.knime.core.webui.node.dialog.scripting.kai.CodeKaiHandler.KaiUsage;
+import org.knime.core.webui.node.dialog.scripting.kai.KaiUsage;
 import org.knime.core.webui.node.dialog.scripting.lsp.LanguageServerProxy;
 
 /**
@@ -392,11 +392,12 @@ public abstract class ScriptingService {
             return getCodeKaiHandler().map(h -> {
                 try {
                     return h.getUsage(projectId);
-                } catch (Exception e) { // NOSONAR - throws KaiUsageException but this cannot be imported here
+                } catch (Exception e) { // NOSONAR - we want to catch all exceptions
+                    // because they are not handled nicely by the framework if we let them propagate
                     LOGGER.warn("Retrieving AI usage data failed: " + e.getMessage(), e);
-                    return null;
+                    return new KaiUsage.Unknown();
                 }
-            }).orElse(null);
+            }).orElseGet(KaiUsage.Unknown::new);
         }
 
         /**

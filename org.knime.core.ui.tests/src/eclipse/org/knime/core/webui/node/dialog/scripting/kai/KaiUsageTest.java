@@ -44,76 +44,70 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   15 Sep 2023 (chaubold): created
+ *   Nov 28, 2024 (benjaminwilhelm): created
  */
 package org.knime.core.webui.node.dialog.scripting.kai;
 
-import java.io.IOException;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.Map;
+
+import org.junit.jupiter.api.Test;
+import org.knime.core.webui.data.rpc.json.impl.ObjectMapperUtil;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Interface for a service that provides code suggestions via K-AI.
+ * Tests for {@link KaiUsage} to ensure proper JSON serialization matching the TypeScript {@code UsageData} type.
  *
- * @author Carsten Haubold, KNIME GmbH, Konstanz, Germany
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
- * @noreference This interface is not intended to be referenced by clients.
- * @noimplement This interface is not intended to be implemented by clients.
  */
-public interface CodeKaiHandler {
+class KaiUsageTest {
 
-    /**
-     * @return whether all K-AI-related features are enabled
-     */
-    boolean isKaiEnabled();
+    private static final ObjectMapper MAPPER = ObjectMapperUtil.getInstance().getObjectMapper();
 
-    /**
-     * @return the ID of the Hub hosting the backend
-     */
-    String getHubId();
+    @Test
+    void testUnknownUsage() throws Exception {
+        var usage = new KaiUsage.Unknown();
+        assertEquals("UNKNOWN", usage.type(), "Unknown usage type should be 'UNKNOWN'");
 
-    /**
-     * @param projectId the ID of the workflow-project required for authentication.
-     * @return the AI usage for the currently authenticated user.
-     * @since 5.8
-     */
-    KaiUsage getUsage(String projectId);
+        // Verify JSON structure matches TypeScript type
+        var json = MAPPER.writeValueAsString(usage);
+        assertThatJson(json).isEqualTo(Map.of("type", "UNKNOWN"));
+    }
 
-    /**
-     * Log in to the currently selected Hub end point
-     *
-     * @return true if already logged in or the login was successful
-     */
-    boolean loginToHub();
+    @Test
+    void testLimitedUsage() throws Exception {
+        var usage = new KaiUsage.Limited(100, 42);
+        assertEquals("LIMITED", usage.type(), "Limited usage type should be 'LIMITED'");
+        assertEquals(100, usage.limit(), "Limited usage limit should be 100");
+        assertEquals(42, usage.used(), "Limited usage used should be 42");
 
-    /**
-     * @param projectId the projectId of the current project
-     * @return true if the user is logged in to the currently selected Hub end point
-     */
-    boolean isLoggedIn(String projectId);
+        // Verify JSON structure matches TypeScript type
+        var json = MAPPER.writeValueAsString(usage);
+        assertThatJson(json).isEqualTo(Map.of("type", "LIMITED", "limit", 100, "used", 42));
+    }
 
-    /**
-     * @return the disclaimer users have to accept before they can use the code generation AI
-     */
-    String getDisclaimer();
+    @Test
+    void testUnlimitedUsage() throws Exception {
+        var usage = new KaiUsage.Unlimited();
+        assertEquals("UNLIMITED", usage.type(), "Unlimited usage type should be 'UNLIMITED'");
 
-    /**
-     * Send a POST request to the provided end point path at the selected KNIME Hub
-     *
-     * @param projectId the projectId of the current project
-     * @param endpointPath The end point at the selected KNIME Hub to call
-     * @param request An object that will be turned into JSON using Jackson and sent as data to the endpoint
-     * @return The response of the request as String (probably contains JSON content)
-     * @throws IOException In case of connection errors or malformed request data.
-     */
-    String sendRequest(String projectId, final String endpointPath, final Object request) throws IOException;
+        // Verify JSON structure matches TypeScript type
+        var json = MAPPER.writeValueAsString(usage);
+        assertThatJson(json).isEqualTo(Map.of("type", "UNLIMITED"));
+    }
 
-    /**
-     * A data service dependency that provides the project id of the current project such that it can be passed to
-     * {@link CodeKaiHandler#isLoggedIn} and {@link CodeKaiHandler#sendRequest} which needs this information to get the
-     * authentication token from the AuthTokenProvider
-     * (<code>org.knime.gateway.impl.webui.kai.KaiHandlerFactory.AuthTokenProvider</code>).
-     *
-     * @param projectId the projectId of the current project
-     */
-    public record ProjectId(String projectId) {
+    @Test
+    void testUnlicensedUsage() throws Exception {
+        var usage = new KaiUsage.Unlicensed("Please purchase a license");
+        assertEquals("UNLICENSED", usage.type(), "Unlicensed usage type should be 'UNLICENSED'");
+        assertEquals("Please purchase a license", usage.message(),
+            "Unlicensed usage message should match the provided message");
+
+        // Verify JSON structure matches TypeScript type
+        var json = MAPPER.writeValueAsString(usage);
+        assertThatJson(json).isEqualTo(Map.of("type", "UNLICENSED", "message", "Please purchase a license"));
     }
 }
