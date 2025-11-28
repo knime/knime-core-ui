@@ -13,10 +13,22 @@ import type { PublicAPI } from "./types/public-api";
 
 type LanguageServerStatus = { status: "RUNNING" | "ERROR"; message?: string };
 
-export type UsageData = {
-  limit: number | null;
-  used: number;
-};
+type UnknownUsageData = { type: "UNKNOWN" };
+type LimitedUsageData = { type: "LIMITED"; limit: number; used: number };
+type UnlimitedUsageData = { type: "UNLIMITED" };
+type UnlicensedUsageData = { type: "UNLICENSED"; message: string };
+
+/**
+ * Usage data for K-AI interactions.
+ *
+ * This type must match the JSON serialization of the Java type
+ * `org.knime.core.webui.node.dialog.scripting.kai.CodeKaiHandler.KaiUsage`.
+ */
+export type UsageData =
+  | UnknownUsageData
+  | LimitedUsageData
+  | UnlimitedUsageData
+  | UnlicensedUsageData;
 
 // TODO AP-19341: use Java-to-JS events
 /**
@@ -147,7 +159,7 @@ export class ScriptingService {
     return this.sendToService("getAiDisclaimer");
   }
 
-  getAiUsage(): Promise<UsageData | null> {
+  getAiUsage(): Promise<UsageData> {
     return this.sendToService("getAiUsage");
   }
 
