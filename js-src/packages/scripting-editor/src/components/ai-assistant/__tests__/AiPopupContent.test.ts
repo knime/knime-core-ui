@@ -43,7 +43,7 @@ describe("AiPopup", () => {
   beforeEach(() => {
     vi.resetModules();
     clearPromptResponseStore();
-    usageData.value = null; // Clear usage data for each test
+    usageData.value = { type: "UNKNOWN" }; // Clear usage data for each test
     setActiveEditorStoreForAi({
       text: ref(""),
       editorModel: "myEditorModel",
@@ -336,6 +336,7 @@ describe("AiPopup", () => {
     it("fetches initial usage data when user is logged in", async () => {
       const scriptingService = getScriptingService();
       vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        type: "LIMITED",
         limit: 100,
         used: 25,
       });
@@ -344,6 +345,11 @@ describe("AiPopup", () => {
       await flushPromises();
 
       expect(scriptingService.getAiUsage).toHaveBeenCalledOnce();
+      expect(usageData.value).toEqual({
+        type: "LIMITED",
+        limit: 100,
+        used: 25,
+      });
     });
 
     it("does not fetch usage data when user is not logged in", async () => {
@@ -354,11 +360,13 @@ describe("AiPopup", () => {
       await flushPromises();
 
       expect(scriptingService.getAiUsage).not.toHaveBeenCalled();
+      expect(usageData.value).toEqual({ type: "UNKNOWN" });
     });
 
     it("displays usage counter for regular users within limit", async () => {
       const scriptingService = getScriptingService();
       vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        type: "LIMITED",
         limit: 100,
         used: 25,
       });
@@ -374,8 +382,7 @@ describe("AiPopup", () => {
     it("hides usage counter for pro users (null limit)", async () => {
       const scriptingService = getScriptingService();
       vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
-        limit: null,
-        used: 500,
+        type: "UNLIMITED",
       });
 
       const bar = await doMount();
@@ -388,6 +395,7 @@ describe("AiPopup", () => {
     it("shows limit exceeded message when usage exceeds limit", async () => {
       const scriptingService = getScriptingService();
       vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        type: "LIMITED",
         limit: 100,
         used: 100,
       });
@@ -405,6 +413,7 @@ describe("AiPopup", () => {
     it("hides text input when limit is exceeded", async () => {
       const scriptingService = getScriptingService();
       vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        type: "LIMITED",
         limit: 100,
         used: 100,
       });
@@ -445,6 +454,7 @@ describe("AiPopup", () => {
     it("fetches usage data after successful login", async () => {
       const scriptingService = getScriptingService();
       vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        type: "LIMITED",
         limit: 100,
         used: 10,
       });
@@ -458,9 +468,11 @@ describe("AiPopup", () => {
       expect(scriptingService.getAiUsage).toHaveBeenCalledTimes(2); // Once on mount, once on login
     });
 
-    it("hides usage counter when backend returns null (old backend)", async () => {
+    it("hides usage counter when backend returns UNKNOWN", async () => {
       const scriptingService = getScriptingService();
-      vi.mocked(scriptingService.getAiUsage).mockResolvedValue(null);
+      vi.mocked(scriptingService.getAiUsage).mockResolvedValue({
+        type: "UNKNOWN",
+      });
 
       const bar = await doMount();
       await flushPromises();

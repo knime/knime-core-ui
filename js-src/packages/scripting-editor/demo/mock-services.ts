@@ -33,6 +33,7 @@ const scriptingService = createScriptingServiceMock({
       return Promise.resolve();
     },
   },
+  unlicensedKaiUser: false,
 });
 
 const settingsService = createSettingsServiceMock(DEFAULT_INITIAL_SETTINGS);

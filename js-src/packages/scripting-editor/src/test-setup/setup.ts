@@ -38,7 +38,7 @@ initMocked({
     isKaiEnabled: vi.fn(() => Promise.resolve(true)),
     isLoggedIntoHub: vi.fn(() => Promise.resolve(true)),
     getAiDisclaimer: vi.fn(() => Promise.resolve("AI Disclaimer")),
-    getAiUsage: vi.fn(() => Promise.resolve(null)),
+    getAiUsage: vi.fn(() => Promise.resolve({ type: "UNKNOWN" } as const)),
     sendAlert: vi.fn(),
   },
   initialData: DEFAULT_INITIAL_DATA,
