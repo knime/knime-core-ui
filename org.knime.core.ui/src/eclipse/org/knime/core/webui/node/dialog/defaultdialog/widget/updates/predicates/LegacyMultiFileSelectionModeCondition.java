@@ -44,39 +44,32 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 6, 2023 (Paul Bärnreuther): created
+ *   Dec 01, 2025 (Thomas Reifenberger): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
+import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+
 /**
- * A visitor visiting all permitted implementations of {@link Condition} which is used to translate the condition to a
- * implementation dependent format.
+ * Condition for multi-file selection mode enum values.
  *
- * @author Paul Bärnreuther
- * @param <T> the type of the returned value on visiting a {@link Condition}
+ * @author Thomas Reifenberger
  */
-@SuppressWarnings("javadoc")
-public interface ConditionVisitor<T> {
+public interface LegacyMultiFileSelectionModeCondition extends Condition {
 
-    <E extends Enum<E>> T visit(OneOfEnumCondition<E> oneOfEnumCondition);
+    /**
+     * See the field name within {@link StringOrEnum}
+     */
+    String FILTER_MODE_PROPERTY_NAME = "filterMode";
 
-    <E extends Enum<E>> T visit(IsEnumChoiceCondition oneOfSinlgeSelectionCondition);
+    @Override
+    default <T> T accept(final ConditionVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 
-    T visit(IsStringChoiceCondition isRegularStringCondition);
+    /**
+     * @return condition on the multi-file selection mode
+     */
+    Condition condition();
 
-    T visit(TrueCondition trueCondition);
-
-    T visit(FalseCondition falseCondition);
-
-    T visit(HasMultipleItemsCondition hasMultipleItemsCondition);
-
-    T visit(IsSpecificStringCondition isSpecificStringCondition);
-
-    T visit(PatternCondition patternCondition);
-
-    T visit(ArrayContainsCondition arrayContainsCondition);
-
-    T visit(MultiFileSelectionModeCondition multiFileSelectionModeCondition);
-
-    T visit(LegacyMultiFileSelectionModeCondition multiFileSelectionModeCondition);
 }

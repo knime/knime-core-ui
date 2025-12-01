@@ -67,6 +67,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsEnumChoiceCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsSpecificStringCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.IsStringChoiceCondition;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.LegacyMultiFileSelectionModeCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.MultiFileSelectionModeCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.OneOfEnumCondition;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.PatternCondition;
@@ -174,6 +175,16 @@ class JsonFormsConditionResolver implements ConditionVisitor<ObjectNode> {
         final var properties = node.putObject(TAG_PROPERTIES);
         node.putArray(TAG_REQUIRED).add(MultiFileSelectionModeCondition.FILTER_MODE_PROPERTY_NAME);
         properties.set(MultiFileSelectionModeCondition.FILTER_MODE_PROPERTY_NAME,
+            multiFileSelectionModeCondition.condition().accept(this));
+        return node;
+    }
+
+    @Override
+    public ObjectNode visit(final LegacyMultiFileSelectionModeCondition multiFileSelectionModeCondition) {
+        final var node = getMapper().createObjectNode();
+        final var properties = node.putObject(TAG_PROPERTIES);
+        node.putArray(TAG_REQUIRED).add(LegacyMultiFileSelectionModeCondition.FILTER_MODE_PROPERTY_NAME);
+        properties.set(LegacyMultiFileSelectionModeCondition.FILTER_MODE_PROPERTY_NAME,
             multiFileSelectionModeCondition.condition().accept(this));
         return node;
     }

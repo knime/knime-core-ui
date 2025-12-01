@@ -58,6 +58,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.persistence.legacy.LegacyMultiFileSelection;
 
 /**
  * Use the initializer to create a predicate depending on other fields in the current {@link NodeParameters} or the
@@ -178,6 +179,14 @@ public interface EffectPredicateProvider {
             getMultiFileSelectionMode(Class<? extends ParameterReference<MultiFileSelection<F>>> reference);
 
         /**
+         * @param reference bound to exactly one {@link LegacyMultiFileSelection} field via {@link ValueReference}
+         * @return an object that can be further transformed to a predicate using one of its methods
+         */
+        LegacyMultiFileSelectionReference
+            getLegacyMultiFileSelectionMode(Class<? extends ParameterReference<LegacyMultiFileSelection>> reference);
+
+
+        /**
          * Returned by {@link PredicateInitializer#getString}
          *
          * @author Paul Bärnreuther
@@ -250,6 +259,18 @@ public interface EffectPredicateProvider {
             EnumReference<MultiFileSelectionMode> getSelectionMode();
 
         }
+
+        /**
+         * Returned by {@link PredicateInitializer#getLegacyMultiFileSelectionMode}
+         *
+         * @author Thomas Reifenberger
+         */
+        interface LegacyMultiFileSelectionReference {
+
+            EnumReference<MultiFileSelectionMode> getSelectionMode();
+
+        }
+
 
         /**
          * Returned by {@link PredicateInitializer#getArray}
