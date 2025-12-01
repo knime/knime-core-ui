@@ -58,6 +58,7 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.context.ports.PortsConfiguration;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.util.workflow.def.FallibleSupplier;
 import org.knime.core.webui.node.dialog.SettingsType;
@@ -95,6 +96,9 @@ public final class SnapshotTestConfiguration {
              */
             OptionalInputTableSpec addInputTableSpec(DataTableSpec spec);
 
+            /** @param portConfig replaces all ports configuration with the given configuration. */
+            OptionalInputTableSpec withPortsConfiguration(PortsConfiguration portConfig);
+
             /**
              * Convenience inline builder to add data table specs. Specs will be provided to the settings in the order
              * they are added in the builder.
@@ -103,6 +107,7 @@ public final class SnapshotTestConfiguration {
 
             /** @param specs replaces all input specs with the given specs. */
             OptionalTests withInputPortObjectSpecs(PortObjectSpec[] specs);
+
         }
 
         /** Specify column names for the previous call to {@link OptionalInputTableSpec#addInputTableSpec()} */
@@ -221,6 +226,8 @@ public final class SnapshotTestConfiguration {
 
         private List<PortObjectSpec> m_portObjectSpecs = new ArrayList<>();
 
+        private PortsConfiguration m_portConfig;
+
         private List<Map<SettingsType, FallibleSupplier<NodeParameters>>> m_jsonFormsTests = new ArrayList<>();
 
         private BuilderImplementation() {
@@ -229,6 +236,12 @@ public final class SnapshotTestConfiguration {
         @Override
         public BuilderStage.OptionalTests withInputPortObjectSpecs(final PortObjectSpec[] specs) {
             m_portObjectSpecs = List.of(specs);
+            return this;
+        }
+
+        @Override
+        public BuilderStage.OptionalInputTableSpec withPortsConfiguration(final PortsConfiguration portConfig) {
+            m_portConfig = portConfig;
             return this;
         }
 
@@ -309,7 +322,7 @@ public final class SnapshotTestConfiguration {
 
             for (var i = 0; i < m_jsonFormsTests.size(); i++) {
                 snapshotTests.add(new JsonFormsSnapshot(i, m_jsonFormsTests.get(i),
-                    m_portObjectSpecs.toArray(PortObjectSpec[]::new)));
+                    m_portObjectSpecs.toArray(PortObjectSpec[]::new), m_portConfig));
             }
 
             for (var i = 0; i < m_settingsAsserts.size(); i++) {
