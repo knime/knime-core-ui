@@ -10,6 +10,9 @@ import {
 } from "../../../types/FileChooserUiSchema";
 import { FSCategory } from "../types/FileChooserProps";
 
+const toSentenceCase = (str: string) =>
+  str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+
 export const useFileSystems = (
   uiSchemaOptions: Ref<FileChooserOptionsBase & FileSystemsOptions>,
 ) => {
@@ -89,8 +92,10 @@ export const useFileChooserBrowseOptions = (
     () => options.value.spaceFSOptions?.relativeWorkflowPath,
   );
   const portIndex = computed(() => connectedFSOptions.value?.portIndex);
-  const portFileSystemName = computed(
-    () => connectedFSOptions.value?.fileSystemType ?? "Connected File System",
+  const portFileSystemName = computed(() =>
+    toSentenceCase(
+      connectedFSOptions.value?.fileSystemType ?? "Connected file system",
+    ),
   );
   const isLoaded = ref(false);
 
