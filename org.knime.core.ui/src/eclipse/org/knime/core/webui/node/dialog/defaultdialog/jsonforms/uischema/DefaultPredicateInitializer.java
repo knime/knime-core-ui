@@ -61,12 +61,13 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.ScopedPredicate;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.persistence.legacy.LegacyMultiFileSelection;
 import org.knime.node.parameters.updates.EffectPredicate;
 import org.knime.node.parameters.updates.EffectPredicateProvider;
-import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer;
 import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.legacy.LegacyPredicateInitializer;
 
-class DefaultPredicateInitializer implements PredicateInitializer {
+class DefaultPredicateInitializer implements LegacyPredicateInitializer {
 
     private ScopeFromReference m_scopeFromReference;
 
@@ -147,11 +148,17 @@ class DefaultPredicateInitializer implements PredicateInitializer {
             condition -> createPredicate(reference, condition));
     }
 
-
     @Override
     public <F extends FileChooserFilters> MultiFileSelectionReference
-        getMultiFileSelectionMode(final Class<? extends ParameterReference<MultiFileSelection<F>>> reference) {
+        getMultiFileSelection(final Class<? extends ParameterReference<MultiFileSelection<F>>> reference) {
         return new ConditionToPredicateTranslator.MultiFileSelectionFieldReference(
+            condition -> createPredicate(reference, condition));
+    }
+
+    @Override
+    public LegacyMultiFileSelectionReference
+        getLegacyMultiFileSelection(final Class<? extends ParameterReference<LegacyMultiFileSelection>> reference) {
+        return new ConditionToPredicateTranslator.LegacyMultiFileSelectionFieldReference(
             condition -> createPredicate(reference, condition));
     }
 

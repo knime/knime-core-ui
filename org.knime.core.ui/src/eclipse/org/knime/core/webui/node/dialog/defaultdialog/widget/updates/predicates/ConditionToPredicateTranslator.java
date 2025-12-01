@@ -56,6 +56,7 @@ import org.knime.node.parameters.updates.EffectPredicateProvider;
 import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.ArrayReference;
 import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.BooleanReference;
 import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.EnumReference;
+import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.LegacyMultiFileSelectionReference;
 import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.MultiFileSelectionReference;
 import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.StringOrEnumReference;
 import org.knime.node.parameters.updates.EffectPredicateProvider.PredicateInitializer.StringReference;
@@ -172,6 +173,22 @@ public class ConditionToPredicateTranslator {
         implements MultiFileSelectionReference {
 
         public MultiFileSelectionFieldReference(final Function<Condition, EffectPredicate> conditionToPredicate) {
+            super(conditionToPredicate);
+        }
+
+        @Override
+        public EnumReference<MultiFileSelectionMode> getSelectionMode() {
+            return new EnumFieldReference<>(
+                condition -> this.<MultiFileSelectionModeCondition> createPredicate(() -> condition));
+        }
+
+    }
+
+    public static final class LegacyMultiFileSelectionFieldReference extends ConditionToPredicateTranslator
+        implements LegacyMultiFileSelectionReference {
+
+        public LegacyMultiFileSelectionFieldReference(
+            final Function<Condition, EffectPredicate> conditionToPredicate) {
             super(conditionToPredicate);
         }
 

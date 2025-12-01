@@ -48,7 +48,8 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.StringOrEnum;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.MultiFileSelection;
+import org.knime.node.parameters.persistence.legacy.LegacyMultiFileSelection;
 
 /**
  * Condition for multi-file selection mode enum values.
@@ -58,7 +59,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.setting.singleselection.St
 public interface MultiFileSelectionModeCondition extends Condition {
 
     /**
-     * See the field name within {@link StringOrEnum}
+     * See the field name within {@link MultiFileSelection} or {@link LegacyMultiFileSelection}.
      */
     String FILTER_MODE_PROPERTY_NAME = "filterMode";
 

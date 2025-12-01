@@ -175,7 +175,7 @@ public interface EffectPredicateProvider {
          * @return an object that can be further transformed to a predicate using one of its methods
          */
         <F extends FileChooserFilters> MultiFileSelectionReference
-            getMultiFileSelectionMode(Class<? extends ParameterReference<MultiFileSelection<F>>> reference);
+            getMultiFileSelection(Class<? extends ParameterReference<MultiFileSelection<F>>> reference);
 
         /**
          * Returned by {@link PredicateInitializer#getString}
@@ -246,6 +246,17 @@ public interface EffectPredicateProvider {
                     MultiFileSelectionMode.FILES_AND_FOLDERS//
                 );
             }
+
+            EnumReference<MultiFileSelectionMode> getSelectionMode();
+
+        }
+
+        /**
+         * Returned by {@link PredicateInitializer#getLegacyMultiFileSelectionMode}
+         *
+         * @author Thomas Reifenberger
+         */
+        interface LegacyMultiFileSelectionReference {
 
             EnumReference<MultiFileSelectionMode> getSelectionMode();
 

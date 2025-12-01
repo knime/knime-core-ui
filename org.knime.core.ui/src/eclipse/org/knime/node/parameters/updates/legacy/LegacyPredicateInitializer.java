@@ -44,37 +44,27 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Apr 6, 2023 (Paul Bärnreuther): created
+ *   8 Dec 2025 (Thomas Reifenberger): created
  */
-package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
+package org.knime.node.parameters.updates.legacy;
+
+import org.knime.node.parameters.persistence.legacy.LegacyMultiFileSelection;
+import org.knime.node.parameters.updates.EffectPredicateProvider;
+import org.knime.node.parameters.updates.ParameterReference;
+import org.knime.node.parameters.updates.ValueReference;
 
 /**
- * A visitor visiting all permitted implementations of {@link Condition} which is used to translate the condition to a
- * implementation dependent format.
  *
- * @author Paul Bärnreuther
- * @param <T> the type of the returned value on visiting a {@link Condition}
+ * @author Thomas Reifenberger
  */
-@SuppressWarnings("javadoc")
-public interface ConditionVisitor<T> {
+public interface LegacyPredicateInitializer extends EffectPredicateProvider.PredicateInitializer {
 
-    <E extends Enum<E>> T visit(OneOfEnumCondition<E> oneOfEnumCondition);
+        /**
+         * @param reference bound to exactly one {@link LegacyMultiFileSelection} field via {@link ValueReference}
+         * @return an object that can be further transformed to a predicate using one of its methods
+         */
+        LegacyMultiFileSelectionReference
+            getLegacyMultiFileSelection(Class<? extends ParameterReference<LegacyMultiFileSelection>> reference);
 
-    <E extends Enum<E>> T visit(IsEnumChoiceCondition oneOfSinlgeSelectionCondition);
 
-    T visit(IsStringChoiceCondition isRegularStringCondition);
-
-    T visit(TrueCondition trueCondition);
-
-    T visit(FalseCondition falseCondition);
-
-    T visit(HasMultipleItemsCondition hasMultipleItemsCondition);
-
-    T visit(IsSpecificStringCondition isSpecificStringCondition);
-
-    T visit(PatternCondition patternCondition);
-
-    T visit(ArrayContainsCondition arrayContainsCondition);
-
-    T visit(MultiFileSelectionModeCondition multiFileSelectionModeCondition);
 }
