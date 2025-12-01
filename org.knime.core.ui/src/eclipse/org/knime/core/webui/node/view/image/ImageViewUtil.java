@@ -88,7 +88,10 @@ public final class ImageViewUtil {
      */
     public static final ReusablePage PAGE = Page.create().fromFile().bundleClass(ImageViewUtil.class)
         .basePath("js-src/dist").relativeFilePath("ImageView.js") //
-        .addResources(imageId -> new ByteArrayInputStream(IMAGE_DATA_MAP.remove(imageId)), "img", true) //
+        .addResources(imageId -> {
+            final var image = IMAGE_DATA_MAP.remove(imageId);
+            return image != null ? new ByteArrayInputStream(image) : null;
+        }, "img", true) //
         .getReusablePage(IMAGE_VIEW_PAGE_ID);
 
     /**
