@@ -2,7 +2,7 @@
 import { type Ref, computed, onMounted, ref } from "vue";
 
 import { Dropdown } from "@knime/components";
-import { DataType } from "@knime/kds-components";
+import { KdsDataType } from "@knime/kds-components";
 
 import type { PossibleFlowVariable } from "../../../api/types";
 import { injectForFlowVariables } from "../../../utils/inject";
@@ -146,12 +146,12 @@ const placeholder = computed(() => {
           ]"
         >
           <template v-if="isMissing">
-            <DataType size="small" />
+            <KdsDataType size="small" />
             <span>(MISSING) {{ selectedValue }}</span>
           </template>
           <template v-else>
             <template v-if="slotData.typeId">
-              <DataType
+              <KdsDataType
                 :icon-name="slotData.typeId"
                 :icon-title="slotData.typeText"
                 size="small"

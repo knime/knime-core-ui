@@ -12,7 +12,7 @@ import { mount } from "@vue/test-utils";
 import Handlebars from "handlebars";
 
 import { Collapser, useMultiSelection } from "@knime/components";
-import { DataType } from "@knime/kds-components";
+import { KdsDataType } from "@knime/kds-components";
 
 import { useInputOutputSelectionStore } from "@/store/io-selection";
 import InputOutputItem, {
@@ -455,7 +455,7 @@ describe("InputOutputItem", () => {
       expect(content?.find(".sub-item-name").text()).toStrictEqual(
         inputOutputItemWithRowsAndAlias?.subItems?.[itemIndex].name,
       );
-      expect(content?.findComponent(DataType).exists()).toBeFalsy();
+      expect(content?.findComponent(KdsDataType).exists()).toBeFalsy();
     });
 
     it("renders sub items with data type icons", () => {
@@ -467,8 +467,8 @@ describe("InputOutputItem", () => {
       expect(content?.find(".sub-item-name").text()).toStrictEqual(
         subItem?.name,
       );
-      expect(content?.findComponent(DataType).exists()).toBeTruthy();
-      expect(content?.findComponent(DataType).props()).toStrictEqual({
+      expect(content?.findComponent(KdsDataType).exists()).toBeTruthy();
+      expect(content?.findComponent(KdsDataType).props()).toStrictEqual({
         iconName: subItem?.type.id,
         iconTitle: subItem?.type.title,
         size: "small",
@@ -497,8 +497,8 @@ describe("InputOutputItem", () => {
         });
         const content = wrapper.findAll(".sub-item-content").at(itemIndex);
         expect(content?.find(".sub-item-name").text()).toBe("row 1");
-        expect(content?.findComponent(DataType).exists()).toBeTruthy();
-        expect(content?.findComponent(DataType).props()).toStrictEqual({
+        expect(content?.findComponent(KdsDataType).exists()).toBeTruthy();
+        expect(content?.findComponent(KdsDataType).props()).toStrictEqual({
           iconName,
           iconTitle,
           size: "small",

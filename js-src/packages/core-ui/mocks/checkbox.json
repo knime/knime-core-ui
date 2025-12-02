@@ -26,7 +26,7 @@
       "elements": [
         {
           "type": "Section",
-          "label": "Checkboxes",
+          "label": "Checkbox",
           "elements": [
             {
               "type": "Control",

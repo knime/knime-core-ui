@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-import { DataType as KdsDataType } from "@knime/kds-components";
+import { KdsDataType } from "@knime/kds-components";
 
 import type { DataType } from "../types";
 

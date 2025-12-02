@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { shallowMount } from "@vue/test-utils";
 
-import { DataType } from "@knime/kds-components";
+import { KdsDataType } from "@knime/kds-components";
 
 import SubHeaderTypeRenderer from "../components/SubHeaderTypeRenderer.vue";
 
@@ -46,8 +46,8 @@ describe("SubHeaderTypeRenderer", () => {
         subHeader: "datatype1",
       },
     });
-    expect(wrapper.findComponent(DataType).exists()).toBeTruthy();
-    expect(wrapper.findComponent(DataType).props()).toEqual({
+    expect(wrapper.findComponent(KdsDataType).exists()).toBeTruthy();
+    expect(wrapper.findComponent(KdsDataType).props()).toEqual({
       size: "small",
       iconName: "col1And2TypeId",
       iconTitle: "col1And2TypeName",

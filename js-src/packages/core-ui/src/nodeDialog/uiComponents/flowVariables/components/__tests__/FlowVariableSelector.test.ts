@@ -13,7 +13,7 @@ import { mount } from "@vue/test-utils";
 import flushPromises from "flush-promises";
 
 import { Dropdown } from "@knime/components";
-import { DataType } from "@knime/kds-components";
+import { KdsDataType } from "@knime/kds-components";
 
 import { type FlowSettings } from "../../../../api/types";
 import { injectionKey as providedByComponentKey } from "../../../../composables/components/useFlowVariables";
@@ -285,7 +285,7 @@ describe("FlowVariableSelector.vue", () => {
       const noneOption = wrapper.findComponent(Dropdown).find("li");
       expect(noneOption.text()).toBe("None");
       expect(noneOption.find(".data-type-entry").exists()).toBeTruthy();
-      expect(noneOption.findComponent(DataType).exists()).toBeFalsy();
+      expect(noneOption.findComponent(KdsDataType).exists()).toBeFalsy();
     });
 
     it("renders a typed value", async () => {
@@ -297,7 +297,7 @@ describe("FlowVariableSelector.vue", () => {
       const noneOption = wrapper.findComponent(Dropdown).findAll("li");
       expect(noneOption[1].text()).toBe("var1");
       expect(noneOption[1].find(".data-type-entry").exists()).toBeTruthy();
-      expect(noneOption[1].findComponent(DataType).exists()).toBeTruthy();
+      expect(noneOption[1].findComponent(KdsDataType).exists()).toBeTruthy();
     });
 
     it("renders a missing value", async () => {
@@ -314,7 +314,7 @@ describe("FlowVariableSelector.vue", () => {
       const dataTypeEntry = wrapper.find(".data-type-entry");
       expect(dataTypeEntry.exists()).toBeTruthy();
       expect(dataTypeEntry.text()).toBe("(MISSING) varMissing");
-      expect(dataTypeEntry.findComponent(DataType).exists()).toBeTruthy();
+      expect(dataTypeEntry.findComponent(KdsDataType).exists()).toBeTruthy();
     });
   });
 });

@@ -9,7 +9,7 @@ import type { Component } from "vue";
 import Handlebars, { type HelperOptions } from "handlebars";
 
 import { Collapser, PortIcon, useMultiSelection } from "@knime/components";
-import { DataType } from "@knime/kds-components";
+import { KdsDataType } from "@knime/kds-components";
 import EyeIcon from "@knime/styles/img/icons/eye.svg";
 
 import { insertionEventHelper } from "@/components/utils/insertionEventHelper";
@@ -381,13 +381,13 @@ const fallbackType = computed(() => {
                 subItem.supported,
             }"
           >
-            <DataType
+            <KdsDataType
               v-if="subItem.type.id"
               size="small"
               :icon-name="subItem.type.id"
               :icon-title="subItem.type.title"
             />
-            <DataType
+            <KdsDataType
               v-else-if="subItem.type.displayName === 'UNKNOWN' && fallbackType"
               size="small"
               :icon-name="fallbackType.id"

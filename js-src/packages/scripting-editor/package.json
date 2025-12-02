@@ -24,8 +24,8 @@
     "postinstall": "license-check -c"
   },
   "dependencies": {
-    "@knime/kds-components": "0.0.8",
-    "@knime/kds-styles": "0.0.8",
+    "@knime/kds-components": "catalog:",
+    "@knime/kds-styles": "catalog:",
     "@knime/styles": "1.14.3",
     "@knime/ui-extension-renderer": "2.3.34",
     "@knime/utils": "1.7.1",
