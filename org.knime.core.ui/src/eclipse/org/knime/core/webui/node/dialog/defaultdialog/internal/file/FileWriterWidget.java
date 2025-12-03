@@ -54,6 +54,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
+import org.knime.node.parameters.updates.StateProvider;
+
 /**
  * Put this annotation on a {@link FileSelection} (or {@link String}) field in order to equip it with additional writer
  * features.
@@ -77,4 +80,10 @@ public @interface FileWriterWidget {
      */
     String fileExtension() default "";
 
+    /**
+     * A provider returning a valid file extension as defined in {@link #fileExtension()}.
+     *
+     * @return a class of a state provider returning a file extension
+     */
+    Class<? extends StateProvider<String>> fileExtensionProvider() default NoopStringProvider.class;
 }

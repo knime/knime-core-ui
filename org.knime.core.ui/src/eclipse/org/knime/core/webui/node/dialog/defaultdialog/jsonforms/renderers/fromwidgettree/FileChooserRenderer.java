@@ -166,6 +166,8 @@ final class FileChooserRenderer extends WidgetTreeControlRendererSpec implements
         Map<String, Class<? extends StateProvider>> stateProviders = new HashMap<>();
         m_withFileSystemAnnotation
             .ifPresent(ann -> stateProviders.put(UiSchema.TAG_CONNECTED_FS_OPTIONS, ann.connectionProvider()));
+        m_fileWriterAnnotation
+            .ifPresent(ann -> stateProviders.put(UiSchema.TAG_FILE_EXTENSION, ann.fileExtensionProvider()));
         return stateProviders;
     }
 }

@@ -201,6 +201,8 @@ final class StringFileChooserRenderer extends WidgetTreeControlRendererSpec impl
             .ifPresent(ann -> stateProviders.put(UpdateResultsUtil.FILE_SYSTEM_ID, ann.connectionProvider()));
         m_withFileSystemAnnotation
             .ifPresent(ann -> stateProviders.put(UiSchema.TAG_CONNECTED_FS_OPTIONS, ann.connectionProvider()));
+        m_fileWriterAnnotation
+            .ifPresent(ann -> stateProviders.put(UiSchema.TAG_FILE_EXTENSION, ann.fileExtensionProvider()));
         return stateProviders;
 
     }
