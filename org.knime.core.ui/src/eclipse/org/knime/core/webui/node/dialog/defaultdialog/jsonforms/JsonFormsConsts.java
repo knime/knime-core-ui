@@ -255,6 +255,11 @@ public final class JsonFormsConsts {
         public static final String TAG_SHOW_SUB_PARAMETERS = "showSubParameters";
 
         /**
+         * Used for providing the file extension of a file writer widget dynamically.
+         */
+        public static final String TAG_FILE_EXTENSION = "fileExtension";
+
+        /**
          * Several formats which are written to the options of the ui-schema of an ui element
          *
          * @author Paul Bärnreuther

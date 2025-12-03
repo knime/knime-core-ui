@@ -69,6 +69,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSe
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersDeserializer;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.impl.DynamicNodeParametersSerializer;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.ConnectedFSOptionsProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithCustomFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithFileSystem;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.widget.ArrayWidgetInternal;
@@ -410,7 +411,7 @@ final class WidgetTreesToRefsAndStateProviders {
                 null //
             ), //
             new UiStateProviderAnnotationSpec<>( //
-                UiSchema.TAG_CONNECTED_FS_OPTIONS,  //
+                UiSchema.TAG_CONNECTED_FS_OPTIONS, //
                 WithFileSystem.class, //
                 WithFileSystem::connectionProvider, //
                 ConnectedFSOptionsProvider.class //
@@ -420,11 +421,18 @@ final class WidgetTreesToRefsAndStateProviders {
                 CustomValidation.class, //
                 CustomValidation::value, //
                 null //
-            ), new UiStateProviderAnnotationSpec<>( //
+            ), //
+            new UiStateProviderAnnotationSpec<>( //
                 UiSchema.TAG_SHOW_SUB_PARAMETERS, //
                 SubParameters.class, //
                 SubParameters::showSubParametersProvider, //
                 NoopBooleanProvider.class //
+            ), //
+            new UiStateProviderAnnotationSpec<>( //
+                UiSchema.TAG_FILE_EXTENSION, //
+                FileWriterWidget.class, //
+                FileWriterWidget::fileExtensionProvider, //
+                NoopStringProvider.class //
             ));
 
     static final List<UiStateProviderSpec> uiStateProviderSpecs = Stream.of( //

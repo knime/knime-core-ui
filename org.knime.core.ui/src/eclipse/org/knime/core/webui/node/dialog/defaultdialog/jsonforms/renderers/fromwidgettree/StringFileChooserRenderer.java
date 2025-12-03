@@ -67,6 +67,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.String
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.FileChooserRendererOptions;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
+import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
 import org.knime.node.parameters.updates.StateProvider;
@@ -203,6 +204,9 @@ final class StringFileChooserRenderer extends WidgetTreeControlRendererSpec impl
         m_withFileSystemAnnotation.map(WithFileSystem::connectionProvider)
             .filter(Predicate.not(ConnectedFSOptionsProvider.class::equals))
             .ifPresent(provider -> stateProviders.put(UiSchema.TAG_CONNECTED_FS_OPTIONS, provider));
+        m_fileWriterAnnotation.map(FileWriterWidget::fileExtensionProvider)
+            .filter(Predicate.not(NoopStringProvider.class::equals))
+            .ifPresent(fileExtensionProvider -> stateProviders.put(UiSchema.TAG_FILE_EXTENSION, fileExtensionProvider));
         return stateProviders;
 
     }
