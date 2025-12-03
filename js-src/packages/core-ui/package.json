@@ -10,7 +10,7 @@
     "dev:TableView": "pnpm _dev TableView 4000",
     "dev:TextView": "pnpm _dev TextView 4000",
     "dev:ImageView": "pnpm _dev ImageView 4000",
-    "_dev": "pnpm _dev:build -- --mode {1} && run-p \"_dev:build -- --mode {1} --watch\" \"_dev:serve -- --port {2}\" --",
+    "_dev": "run-p \"_dev:build --mode {1} --watch\" \"_dev:serve --port {2}\" --",
     "_dev:build": "vite build",
     "_dev:serve": "vite preview",
     "build": "pnpm cleanDist && run-p type-check build:* && pnpm sbom:merge",

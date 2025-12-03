@@ -22,10 +22,6 @@ overrides:
 importers:
 
   .:
-    dependencies:
-      '@knime/jsonforms':
-        specifier: link:../../webapps-common/packages/jsonforms
-        version: link:../../webapps-common/packages/jsonforms
     devDependencies:
       '@knime/eslint-config':
         specifier: 9.4.0
