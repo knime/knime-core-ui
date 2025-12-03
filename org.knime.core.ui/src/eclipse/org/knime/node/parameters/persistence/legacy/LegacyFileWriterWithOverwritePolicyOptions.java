@@ -75,21 +75,32 @@ public class LegacyFileWriterWithOverwritePolicyOptions extends LegacyFileWriter
     private static final String CFG_IF_PATH_EXISTS = "if_path_exists";
 
     @Widget(title = "If exists",
-        description = "Specify the behavior of the node in case the output file already exists.")
+        description = "Specify the behavior of the node in case the output file already exists." + "<ul>"
+            + "<li><b>Fail</b>: Will issue an error during the node's execution "
+            + "(to prevent unintentional overwrite).</li>" //
+            + "<li><b>Overwrite</b>: Will replace any existing file.</li>"
+            + "<li><b>Ignore</b>: Will ignore if a file already exists and continues the copying process.</li>"
+            + "</ul>")
     @ValueSwitchWidget
     @Persist(configKey = CFG_IF_PATH_EXISTS)
     @Modification.WidgetReference(OverwritePolicyRef.class)
     OverwritePolicy m_overwritePolicy = OverwritePolicy.overwrite;
 
-    enum OverwritePolicy {
-            // Values are lowercase for backwards compatibility of configuration entry
-            @Label(value = "Fail",
-                description = "Will issue an error during the node's execution (to prevent unintentional overwrite).")
+    /**
+     * Overwrite policies for file writing.
+     *
+     * @author Thomas Reifenberger
+     */
+    public enum OverwritePolicy {
+            /* Values are lowercase for backwards compatibility of configuration entry.
+             * The descriptions are intentionally omitted and moved to the widget description to allow restricting
+             * the available options with a ChoicesProvider and adapting the description with a Modifier.
+             */
+            @Label(value = "Fail")
             fail, // NOSONAR
-            @Label(value = "Overwrite", description = "Will replace any existing file.")
+            @Label(value = "Overwrite")
             overwrite, // NOSONAR
-            @Label(value = "Ignore",
-                description = "Will ignore if a file  already exists and continues the copying process.")
+            @Label(value = "Ignore")
             ignore, // NOSONAR
     }
 
