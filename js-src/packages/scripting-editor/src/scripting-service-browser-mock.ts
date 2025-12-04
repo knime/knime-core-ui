@@ -4,6 +4,7 @@ import { sleep } from "@knime/utils";
 
 import { log } from "@/log";
 
+import type { CodeSuggestion } from "./components/ai-assistant/AiPopupContent.vue";
 import type { ScriptingServiceType } from "./scripting-service";
 
 const SLEEP_TIME_ANY_CALL = 100;
@@ -43,15 +44,16 @@ export const createScriptingServiceMock = (
       if (typeof fn !== "undefined") {
         fn({
           status: "SUCCESS",
-          code: JSON.stringify({
+          error: null,
+          response: {
             code: "// THIS IS A FAKE AI SUGGESTION",
-            interactionId: "mock-interaction-id",
-            usage: {
+            updatedUsage: {
+              type: "LIMITED",
               limit: 500,
-              used: aiUsage++,
+              used: ++aiUsage,
             },
-          }),
-        });
+          },
+        } satisfies CodeSuggestion);
       }
       return {};
     },
