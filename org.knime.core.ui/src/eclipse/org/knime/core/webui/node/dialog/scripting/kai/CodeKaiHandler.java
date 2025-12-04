@@ -101,10 +101,20 @@ public interface CodeKaiHandler {
      * @param projectId the projectId of the current project
      * @param endpointPath The end point at the selected KNIME Hub to call
      * @param request An object that will be turned into JSON using Jackson and sent as data to the endpoint
-     * @return The response of the request as String (probably contains JSON content)
+     * @return The response of the request
      * @throws IOException In case of connection errors or malformed request data.
      */
-    String sendRequest(String projectId, final String endpointPath, final Object request) throws IOException;
+    CodeRequestResponse sendRequest(String projectId, final String endpointPath, final Object request)
+        throws IOException;
+
+    /**
+     * The response of a code request containing the generated code and the updated usage information.
+     *
+     * @param code The generated code.
+     * @param updatedUsage The updated usage information after the code request.
+     */
+    public record CodeRequestResponse(String code, KaiUsage updatedUsage) {
+    }
 
     /**
      * A data service dependency that provides the project id of the current project such that it can be passed to
