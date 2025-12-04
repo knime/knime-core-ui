@@ -1,5 +1,6 @@
 <script lang="ts">
 /* eslint-disable no-console */
+import { useKdsLegacyMode } from "@knime/kds-components";
 import {
   type Alert,
   type DataValueViewConfig,
@@ -27,6 +28,11 @@ export default {
     return {
       getKnimeService: () => this.currentKS,
     };
+  },
+  setup() {
+    const { legacyMode } = useKdsLegacyMode(true);
+
+    return { legacyMode };
   },
   data() {
     return {
@@ -204,6 +210,10 @@ export default {
         <label>
           <input v-model="mode" type="radio" value="embedded" />
           Embedded in Parent App
+        </label>
+        <label>
+          <input v-model="legacyMode" type="checkbox" />
+          KDS Legacy Mode
         </label>
       </p>
     </div>
