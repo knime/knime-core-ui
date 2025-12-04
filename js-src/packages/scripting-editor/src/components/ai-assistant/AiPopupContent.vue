@@ -4,6 +4,23 @@
  * that show the diff and disclaimer.
  */
 export default {};
+
+type CodeRequestResponse = {
+  code: string;
+  updatedUsage: UsageData;
+};
+
+export type CodeSuggestion =
+  | {
+      response: null;
+      status: "ERROR" | "CANCELLED";
+      error: string;
+    }
+  | {
+      response: CodeRequestResponse;
+      status: "SUCCESS";
+      error: null;
+    };
 </script>
 
 <script setup lang="ts">
@@ -78,18 +95,6 @@ const abortRequest = () => {
   status.value = "waiting";
 };
 
-type CodeSuggestion = {
-  code: string;
-  status: "SUCCESS" | "ERROR" | "CANCELLED";
-  error: string | undefined;
-};
-
-type AIResponseData = {
-  code: string;
-  interactionId: string;
-  usage?: UsageData;
-};
-
 const errorText = ref<string | null>(null);
 
 const handleCodeSuggestion = (codeSuggestion: CodeSuggestion) => {
@@ -100,19 +105,19 @@ const handleCodeSuggestion = (codeSuggestion: CodeSuggestion) => {
     status.value = "error";
   } else if (codeSuggestion.status === "CANCELLED") {
     status.value = "idle";
-  } else {
-    const responseData: AIResponseData = JSON.parse(codeSuggestion.code);
-    const suggestedCode = responseData.code;
-
-    // Update usage data if provided
-    if (responseData.usage) {
-      usageData.value = responseData.usage;
-    }
+  } else if (codeSuggestion.status === "SUCCESS") {
+    // Update usage data
+    usageData.value = codeSuggestion.response.updatedUsage;
 
     message = { role: "request", content: input.value };
-    promptResponseStore.promptResponse = { suggestedCode, message };
+    promptResponseStore.promptResponse = {
+      suggestedCode: codeSuggestion.response.code,
+      message,
+    };
     status.value = "idle";
     input.value = "";
+  } else {
+    consola.error("Unknown code suggestion status received: ", codeSuggestion);
   }
   nextTick(() => {
     textarea.value?.focus();

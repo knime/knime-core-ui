@@ -3,7 +3,9 @@ import { ref } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 
 import InfinityLoadingBar from "@/components/InfinityLoadingBar.vue";
-import AiPopupContent from "@/components/ai-assistant/AiPopupContent.vue";
+import AiPopupContent, {
+  type CodeSuggestion,
+} from "@/components/ai-assistant/AiPopupContent.vue";
 import AiSuggestion from "@/components/ai-assistant/AiSuggestion.vue";
 import { getScriptingService, getSettingsService } from "@/init";
 import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
@@ -37,6 +39,17 @@ const mockSuggestCode = () => {
     }),
   );
   return mockedSendToService;
+};
+
+const getHandleCodeSuggestion = () => {
+  const registerEventHandler = vi.mocked(
+    getScriptingService().registerEventHandler,
+  );
+  const handleCodeSuggestion = registerEventHandler.mock.calls.find(
+    (call) => call[0] === "codeSuggestion",
+  )?.[1];
+  expect(handleCodeSuggestion).toBeDefined();
+  return handleCodeSuggestion! as (codeSuggestion: CodeSuggestion) => void;
 };
 
 describe("AiPopup", () => {
@@ -170,10 +183,15 @@ describe("AiPopup", () => {
   it("show diff editor when code suggestion is available", async () => {
     const bar = await doMount();
     expect(bar.findComponent(AiSuggestion).exists()).toBeFalsy();
-    await (bar.vm as any).handleCodeSuggestion({
-      code: JSON.stringify({ code: "some code" }),
+    getHandleCodeSuggestion()({
+      response: {
+        code: "some code",
+        updatedUsage: { type: "UNKNOWN" },
+      },
       status: "SUCCESS",
+      error: null,
     });
+    await flushPromises();
     expect(bar.findComponent(AiSuggestion).exists()).toBeTruthy();
   });
 
@@ -427,17 +445,19 @@ describe("AiPopup", () => {
 
     it("updates usage data from AI response", async () => {
       const bar = await doMount();
+
+      // Simulate receiving a code suggestion with updated usage data
+      getHandleCodeSuggestion()({
+        response: {
+          code: "my code",
+          updatedUsage: { type: "LIMITED", limit: 100, used: 50 },
+        },
+        status: "SUCCESS",
+        error: null,
+      });
       await flushPromises();
 
-      await (bar.vm as any).handleCodeSuggestion({
-        code: JSON.stringify({
-          code: "some code",
-          interactionId: "test-id",
-          usage: { limit: 100, used: 50 },
-        }),
-        status: "SUCCESS",
-      });
-
+      // Verify that the usage counter is updated
       const usageCounter = bar.find(".usage-counter");
       expect(usageCounter.text()).toBe("50/100 monthly interactions");
     });
