@@ -70,6 +70,7 @@ import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.VariableType;
 import org.knime.core.webui.node.dialog.scripting.kai.CodeKaiHandler;
+import org.knime.core.webui.node.dialog.scripting.kai.CodeKaiHandler.CodeRequestResponse;
 import org.knime.core.webui.node.dialog.scripting.kai.KaiUsage;
 import org.knime.core.webui.node.dialog.scripting.lsp.LanguageServerProxy;
 
@@ -488,7 +489,7 @@ public abstract class ScriptingService {
 
     /** Information about a code suggestion */
     @SuppressWarnings("javadoc")
-    public static record CodeSuggestion(CodeSuggestionStatus status, String code, String error) {
+    public static record CodeSuggestion(CodeSuggestionStatus status, CodeRequestResponse response, String error) {
     }
 
     @SuppressWarnings("javadoc")
