@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="SettingValue extends Stringifyable">
 import { computed, onMounted, ref } from "vue";
+import { set } from "lodash-es";
 import { v4 as uuidv4 } from "uuid";
 
 import { FunctionButton, LoadingIcon } from "@knime/components";
@@ -33,6 +34,10 @@ const getData = inject("getData") as (params: {
   method?: string;
   options?: unknown[];
 }) => Promise<Result>;
+
+const applyData = inject("applyData") as
+  | undefined
+  | ((dataTransformer: (data: any) => void) => Promise<void>);
 
 const props = defineProps<VueControlProps<any>>();
 
@@ -131,6 +136,11 @@ const onUpdate = (dependencySettings: SettingsData) => {
 };
 
 const onClick = async () => {
+  if (applyData && props.control.uischema.options?.incrementAndApplyOnClick) {
+    applyData((data) => set(data, props.control.path, props.control.data + 1));
+    return;
+  }
+
   const { id, nextState } = currentState.value;
   const lastSuccessfulState = currentState.value;
   const resetCallback = () => {

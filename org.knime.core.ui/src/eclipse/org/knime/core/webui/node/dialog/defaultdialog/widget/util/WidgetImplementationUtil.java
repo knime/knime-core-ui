@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
 
 import org.knime.core.data.DataType;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.IncrementAndApplyOnClick;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
@@ -175,6 +176,7 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(FlowVariableFilter.class), FlowVariableFilterWidget.class), //
         new WidgetAnnotation(List.of(String[].class), SortListWidget.class), //
         new WidgetAnnotation(ButtonWidget.class), //
+        new WidgetAnnotation(List.of(Integer.class), IncrementAndApplyOnClick.class), //
         new WidgetAnnotation(List.of(Interval.class), IntervalWidget.class), //
         new WidgetAnnotation(List.of(TemporalFormat.class, String.class), DateTimeFormatPickerWidget.class), //
         new WidgetAnnotation(List.of(String.class), RichTextInputWidget.class), //

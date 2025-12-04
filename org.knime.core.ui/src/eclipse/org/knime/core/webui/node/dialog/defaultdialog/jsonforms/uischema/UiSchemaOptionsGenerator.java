@@ -102,6 +102,7 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonActi
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonState;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.Icon;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.IncrementAndApplyOnClick;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.NoopButtonUpdateHandler;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
@@ -337,6 +338,10 @@ final class UiSchemaOptionsGenerator {
                 updateOptions.put("updateHandler", updateHandlerClass.getName());
                 final var updateDependencies = updateOptions.putArray(TAG_DEPENDENCIES);
                 addDependencies(updateDependencies, updateHandlerClass);
+            }
+
+            if (annotatedWidgets.contains(IncrementAndApplyOnClick.class)) {
+                options.put("incrementAndApplyOnClick", true);
             }
         }
         if (annotatedWidgets.contains(SimpleButtonWidget.class)) {

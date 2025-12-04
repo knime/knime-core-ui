@@ -72,6 +72,13 @@ export interface NodeDialogCoreProps {
    */
   callRpcMethod: NodeDialogCoreRpcMethods;
   /**
+   * Function to apply the dialog settings.
+   *
+   * @param dataTransformer A function that optionally transforms the data-part
+   * (i.e. model- or view-data) of the settings before applying them
+   */
+  callApplyData?: (dataTransformer: (data: any) => void) => Promise<void>;
+  /**
    * Pass down {@link DialogService.registerSettings} here to automatically handle dirtiness.
    * For that it is necessary that the used data are nested inside a "view" or a "model" property
    */
@@ -428,6 +435,7 @@ const provided: ProvidedByNodeDialog & ProvidedForFlowVariables = {
   isTriggerActive,
   registerWatcher,
   getData: callDataService,
+  applyData: props.callApplyData,
   flowVariablesApi: {
     getAvailableFlowVariables,
     getFlowVariableOverrideValue,

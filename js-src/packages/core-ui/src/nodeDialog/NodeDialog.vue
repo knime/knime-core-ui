@@ -47,6 +47,17 @@ const handleSetControlsVisibility = (visible: boolean) => {
 
 const coreComponent = ref<InstanceType<typeof NodeDialogCore> | null>(null);
 
+const callApplyData = async (dataTransformer) => {
+  const data = coreComponent.value?.getDataAndFlowVariableSettings();
+  if (data) {
+    if (dataTransformer) {
+      const transformed = cloneDeep(data.data);
+      dataTransformer(transformed);
+      data.data = transformed;
+    }
+    await jsonDataService!.applyData(data);
+  }
+};
 onMounted(async () => {
   const initialSettings =
     (await jsonDataService.initialData()) as NodeDialogInitialData;
@@ -81,6 +92,7 @@ defineExpose({
     :initial-data="initialData"
     :has-node-view="hasNodeView"
     :call-rpc-method="callRpcMethod"
+    :call-apply-data="callApplyData"
     :register-settings="registerSettings"
     @publish-data="handlePublishData"
     @alert="handleAlert"
