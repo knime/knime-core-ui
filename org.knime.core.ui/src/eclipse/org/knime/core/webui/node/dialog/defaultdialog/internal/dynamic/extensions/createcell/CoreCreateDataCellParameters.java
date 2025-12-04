@@ -59,6 +59,10 @@ import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.createcell.CreateDataCellParameters.SpecificTypeParameters;
 import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.persistence.Persistor;
+import org.knime.node.parameters.persistence.legacy.EnumBooleanPersistor;
+import org.knime.node.parameters.widget.choices.Label;
+import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
 /**
  * Dynamically loaded parameters core data types.
@@ -159,7 +163,23 @@ final class CoreCreateDataCellParameters {
 
     static final class BooleanCellParameters implements SpecificTypeParameters {
         @Widget(title = CUSTOM_VALUE_TITLE, description = CUSTOM_VALUE_DESCRIPTION)
-        boolean m_value;
+        @ValueSwitchWidget
+        @Persistor(FalseTruePersistor.class)
+        FalseTrue m_value = FalseTrue.FALSE;
+
+        static final class FalseTruePersistor extends EnumBooleanPersistor<FalseTrue> {
+
+            FalseTruePersistor() {
+                super("value", FalseTrue.class, FalseTrue.TRUE);
+            }
+        }
+
+        enum FalseTrue {
+                @Label("false")
+                FALSE, //
+                @Label("true")
+                TRUE
+        }
 
         @Override
         public DataType getSpecificType() {
@@ -168,12 +188,12 @@ final class CoreCreateDataCellParameters {
 
         @Override
         public DataCell createSpecificCell() {
-            return BooleanCellFactory.create(m_value);
+            return BooleanCellFactory.create(m_value == FalseTrue.TRUE);
         }
 
         @Override
         public String toString() {
-            return String.valueOf(m_value);
+            return String.valueOf(m_value == FalseTrue.TRUE);
         }
 
     }
