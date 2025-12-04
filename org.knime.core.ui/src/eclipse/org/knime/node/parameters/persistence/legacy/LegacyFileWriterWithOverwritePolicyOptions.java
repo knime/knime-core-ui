@@ -48,14 +48,21 @@
  */
 package org.knime.node.parameters.persistence.legacy;
 
+import java.util.List;
+import java.util.Map;
+
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.util.InstantiationUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetModifier;
 import org.knime.filehandling.core.defaultnodesettings.filechooser.writer.SettingsModelWriterFileChooser;
+import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.persistence.Persist;
+import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 
@@ -75,13 +82,23 @@ public class LegacyFileWriterWithOverwritePolicyOptions extends LegacyFileWriter
 
     private static final String CFG_IF_PATH_EXISTS = "if_path_exists";
 
-    @Widget(title = "If exists",
-        description = "Specify the behavior of the node in case the output file already exists." + "<ul>"
-            + "<li><b>Fail</b>: Will issue an error during the node's execution "
-            + "(to prevent unintentional overwrite).</li>" //
-            + "<li><b>Overwrite</b>: Will replace any existing file.</li>"
-            + "<li><b>Ignore</b>: Will ignore if a file already exists and continues the copying process.</li>"
-            + "</ul>")
+    private static final String DOC_HEADER =
+        "Specify the behavior of the node in case the output file already exists.<ul>";
+
+    private static final String DOC_FOOTER = "</ul>";
+
+    private static final String DOC_FAIL =
+        "<li><b>Fail</b>: Will issue an error during the node's execution (to prevent unintentional overwrite).</li>";
+
+    private static final String DOC_OVERWRITE = "<li><b>Overwrite</b>: Will replace any existing file.</li>";
+
+    private static final String DOC_IGNORE =
+        "<li><b>Ignore</b>: Will ignore if a file already exists and continues the copying process.</li>";
+
+    private static final Map<OverwritePolicy, String> DOC_MAP = Map.of(OverwritePolicy.fail, DOC_FAIL,
+        OverwritePolicy.overwrite, DOC_OVERWRITE, OverwritePolicy.ignore, DOC_IGNORE);
+
+    @Widget(title = "If exists", description = DOC_HEADER + DOC_FAIL + DOC_OVERWRITE + DOC_IGNORE + DOC_FOOTER)
     @ValueSwitchWidget
     @Persist(configKey = CFG_IF_PATH_EXISTS)
     @Modification.WidgetReference(OverwritePolicyRef.class)
@@ -122,6 +139,28 @@ public class LegacyFileWriterWithOverwritePolicyOptions extends LegacyFileWriter
     }
 
     /**
+     * Override this class to provide custom choices for the overwrite policy and pass it to
+     * {@link Modifier#restrictOverwritePolicyOptions(WidgetGroupModifier, Class)}
+     *
+     * @author Thomas Reifenberger
+     */
+    public abstract static class OverwritePolicyChoicesProvider implements EnumChoicesProvider<OverwritePolicy> {
+
+        /**
+         * Provides the choices for the overwrite policy.
+         *
+         * @return the choices
+         */
+        protected abstract List<OverwritePolicy> getChoices();
+
+        @Override
+        public List<OverwritePolicy> choices(final NodeParametersInput context) {
+            return getChoices();
+        }
+
+    }
+
+    /**
      * Modifiers for legacy {@link FileWriterWidget}.
      *
      * @author Thomas Reifenberger
@@ -135,6 +174,33 @@ public class LegacyFileWriterWithOverwritePolicyOptions extends LegacyFileWriter
          */
         default WidgetModifier findOverwritePolicy(final WidgetGroupModifier group) {
             return group.find(OverwritePolicyRef.class);
+        }
+
+        /**
+         * Convenience method to restrict the available overwrite policy options and update the description accordingly.
+         *
+         * @param group the widget group modifier
+         * @param choicesProvider the choices provider class to use. Needs to provide a `choices` method that accepts
+         *            `null` as context parameter in order to generate the documentation statically without context.
+         */
+        default void restrictOverwritePolicyOptions(final WidgetGroupModifier group,
+            final Class<? extends OverwritePolicyChoicesProvider> choicesProvider) {
+            final var overwritePolicy = findOverwritePolicy(group);
+            overwritePolicy //
+                .addAnnotation(ChoicesProvider.class)//
+                .withValue(choicesProvider) //
+                .modify();
+
+            StringBuilder descriptionBuilder = new StringBuilder(DOC_HEADER);
+            for (final OverwritePolicy policy : InstantiationUtil.createInstance(choicesProvider).getChoices()) {
+                descriptionBuilder.append(DOC_MAP.get(policy));
+            }
+
+            descriptionBuilder.append(DOC_FOOTER);
+            overwritePolicy //
+                .modifyAnnotation(Widget.class) //
+                .withProperty("description", descriptionBuilder.toString()) //
+                .modify();
         }
 
     }
