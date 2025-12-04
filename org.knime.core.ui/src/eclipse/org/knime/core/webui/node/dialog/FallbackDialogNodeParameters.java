@@ -60,8 +60,10 @@ import org.knime.core.node.workflow.NodeContext;
 import org.knime.core.node.workflow.NodeID;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicNodeParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters.DynamicParametersWithFallbackProvider;
+import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsDataUtil;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsSettings;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -89,6 +91,34 @@ public abstract class FallbackDialogNodeParameters implements DynamicNodeParamet
             m_nodeSettings = (NodeSettings)nodeSettings;
         }
 
+    }
+
+    /**
+     * Use this method to determine whether loaded fallback settings should be reused when computing dynamic parameters
+     * in the dialog.
+     *
+     * @param otherSettings the other settings to compare to
+     * @return true if the fallback dialog settings are the same
+     */
+    public boolean hasSameFallbackDialog(final NodeSettings otherSettings) {
+        final var thisJsonFormsSettings =
+            FallbackDialogUtils.toJsonFormsSettingsForModelSettings(m_nodeSettings).getSecond();
+        final var otherJsonFormsSettings =
+            FallbackDialogUtils.toJsonFormsSettingsForModelSettings(otherSettings).getSecond();
+
+        final var mapper = JsonFormsDataUtil.getMapper();
+        try {
+            final var thisSchema = mapper.writeValueAsString(thisJsonFormsSettings.getSchema());
+            final var otherSchema = mapper.writeValueAsString(otherJsonFormsSettings.getSchema());
+            if (!thisSchema.equals(otherSchema)) {
+                return false;
+            }
+            final var thisUiSchema = mapper.writeValueAsString(thisJsonFormsSettings.getUiSchema());
+            final var otherUiSchema = mapper.writeValueAsString(otherJsonFormsSettings.getUiSchema());
+            return thisUiSchema.equals(otherUiSchema);
+        } catch (JsonProcessingException ex) { // NOSONAR should not happen
+            return false;
+        }
     }
 
     private NodeSettings m_nodeSettings;
