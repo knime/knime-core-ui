@@ -10,6 +10,7 @@ import { type Stringifyable } from "../composables/components/JsonSettingsCompar
 import type { SettingsData } from "../types/SettingsData";
 import getFlattenedSettings from "../utils/getFlattenedSettings";
 import inject from "../utils/inject";
+import { set } from "lodash-es";
 
 type Id = string; // NOSONAR intended type alias
 interface State {
@@ -33,6 +34,10 @@ const getData = inject("getData") as (params: {
   method?: string;
   options?: unknown[];
 }) => Promise<Result>;
+
+const applyData = inject("applyData") as
+  | undefined
+  | ((dataTransformer: (data: any) => void) => Promise<void>);
 
 const props = defineProps<VueControlProps<any>>();
 
@@ -131,6 +136,11 @@ const onUpdate = (dependencySettings: SettingsData) => {
 };
 
 const onClick = async () => {
+  if (applyData && props.control.uischema.options?.incrementAndApplyOnClick) {
+    applyData((data) => set(data, props.control.path, props.control.data + 1));
+    return;
+  }
+
   const { id, nextState } = currentState.value;
   const lastSuccessfulState = currentState.value;
   const resetCallback = () => {

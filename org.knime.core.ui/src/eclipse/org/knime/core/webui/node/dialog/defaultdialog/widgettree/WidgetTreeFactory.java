@@ -58,6 +58,7 @@ import java.util.Optional;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.dbtablechooser.DBTableChooserDataService.DBTableAdapterProvider;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.ButtonWidget;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.button.IncrementAndApplyOnClick;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicParameters;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicSettingsWidget;
@@ -157,6 +158,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         FileSelectionWidget.class, //
         FlowVariableFilterWidget.class, //
         ArrayWidgetInternal.ElementCheckboxWidget.class, //
+        IncrementAndApplyOnClick.class, //
         IntervalWidget.class, //
         Layout.class, //
         Modification.WidgetReference.class, //

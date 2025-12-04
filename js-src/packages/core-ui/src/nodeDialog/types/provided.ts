@@ -30,6 +30,7 @@ export interface ProvidedByNodeDialog {
   }) => Promise<Result<IndexedIsActive[]>>;
   updateData: (path: string) => void;
   getData: getData;
+  applyData?: (dataTransformer: (data: any) => void) => Promise<void>;
   setSubPanelExpanded: (param: { isExpanded: boolean }) => void;
   createArrayAtPath: (path: string) => IdsRecord;
   getDialogPopoverTeleportDest: () => null | HTMLElement;
