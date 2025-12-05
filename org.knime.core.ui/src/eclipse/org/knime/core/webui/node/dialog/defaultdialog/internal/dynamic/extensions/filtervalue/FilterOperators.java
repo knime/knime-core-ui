@@ -56,6 +56,32 @@ import org.knime.core.data.DataType;
  * Provide this factory via the "org.knime.core.ui.filterOperators" extension point to provide filter operators for a
  * {@link DataType}.
  *
+ * <h3>ID namespacing for extension operators</h3>
+ * <p>
+ * <b>Important:</b> if the operators of this factory are contributed via the extension point and they are determined to
+ * be third-party contributions, the IDs of operators returned by this factory will be automatically transformed to
+ * prevent conflicts with built-in operators:
+ * </p>
+ * <ul>
+ * <li>The ID will be converted to uppercase</li>
+ * <li>The ID will be prefixed with {@code EXT_}</li>
+ * </ul>
+ * <p>
+ * For example, if your operator returns {@code "myOperator"} from {@link FilterOperator#getId()}, the effective
+ * registered ID will be {@code "EXT_MYOPERATOR"}.
+ * </p>
+ *
+ * <h4>Best Practices</h4>
+ * <ul>
+ * <li><b>Use unique prefixes:</b> Include a short unique prefix in your operator IDs to avoid conflicts with other
+ * extensions (e.g., {@code "myext_contains"} becomes {@code "EXT_MYEXT_CONTAINS"})</li>
+ * <li><b>Avoid versioning IDs:</b> Do not include version numbers in your operator IDs. Instead, use a new parameter
+ * class with appropriate {@link org.knime.node.parameters.persistence.Persistor} or
+ * {@link org.knime.node.parameters.migration.Migration} logic to handle backward compatibility.</li>
+ * <li><b>Keep IDs stable:</b> Maintain the same IDs across versions of your extension to ensure saved workflows
+ * continue to work.</li>
+ * </ul>
+ *
  * @author Paul Bärnreuther
  *
  * @noreference This class is not intended to be referenced by clients.

@@ -6,7 +6,28 @@
          <meta.schema plugin="org.knime.core.ui" id="filterOperators" name="filterOperators"/>
       </appinfo>
       <documentation>
-         [Enter description of this extension point.]
+         Extension point for contributing custom filter operators for data types. Filter operators define predicates that can be used to filter table rows based on column values.
+
+&lt;b&gt;Note:&lt;/b&gt; this extension point is still &lt;em&gt;experimental&lt;/em&gt;.
+
+&lt;h3&gt;ID namespacing&lt;/h3&gt;
+&lt;p&gt;
+The IDs of operators contributed via this extension point are automatically transformed to prevent conflicts:
+&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The ID is converted to uppercase&lt;/li&gt;
+&lt;li&gt;The ID is prefixed with &lt;code&gt;EXT_&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;
+For example, if your operator returns &lt;code&gt;&quot;myOperator&quot;&lt;/code&gt; from &lt;code&gt;getId()&lt;/code&gt;, the effective registered ID will be &lt;code&gt;&quot;EXT_MYOPERATOR&quot;&lt;/code&gt;.
+&lt;/p&gt;
+
+&lt;h4&gt;Best Practices&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;b&gt;Use unique prefixes:&lt;/b&gt; include a short unique prefix in your operator IDs to avoid conflicts with other extensions, e.g. &lt;code&gt;&quot;myext_contains&quot;&lt;/code&gt; becomes &lt;code&gt;&quot;EXT_MYEXT_CONTAINS&quot;&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;b&gt;Avoid versioning IDs:&lt;/b&gt; Do not include version numbers in your operator IDs. Instead, use a new parameter class with appropriate persistor or migration logic to handle backward compatibility&lt;/li&gt;
+&lt;li&gt;&lt;b&gt;Keep IDs stable:&lt;/b&gt; Maintain the same IDs across versions of your extension to ensure saved workflows continue to work&lt;/li&gt;
+&lt;/ul&gt;
       </documentation>
    </annotation>
 
@@ -23,14 +44,12 @@
          <attribute name="id" type="string">
             <annotation>
                <documentation>
-                  
                </documentation>
             </annotation>
          </attribute>
          <attribute name="name" type="string">
             <annotation>
                <documentation>
-                  
                </documentation>
                <appinfo>
                   <meta.attribute translatable="true"/>
@@ -41,11 +60,10 @@
    </element>
 
    <element name="FilterOperators">
-   <complexType>
+      <complexType>
          <attribute name="factoryClass" type="string" use="required">
             <annotation>
                <documentation>
-                  
                </documentation>
                <appinfo>
                   <meta.attribute kind="java" basedOn=":org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorsFactory"/>
@@ -60,7 +78,7 @@
          <meta.section type="since"/>
       </appinfo>
       <documentation>
-         KNIME AP 5.8
+         KNIME AP 5.10
       </documentation>
    </annotation>
 
@@ -69,7 +87,16 @@
          <meta.section type="examples"/>
       </appinfo>
       <documentation>
-         [Enter extension point usage example here.]
+         Example plugin.xml contribution:
+
+&lt;pre&gt;
+&amp;lt;extension point=&quot;org.knime.core.ui.filterOperators&quot;&amp;gt;
+   &amp;lt;FilterOperators factoryClass=&quot;com.example.MyFilterOperatorsFactory&quot;/&amp;gt;
+&amp;lt;/extension&amp;gt;
+&lt;/pre&gt;
+
+The factory class must implement &lt;code&gt;org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperators&lt;/code&gt; and return operators for your custom data type.
+
       </documentation>
    </annotation>
 
@@ -78,7 +105,13 @@
          <meta.section type="apiinfo"/>
       </appinfo>
       <documentation>
-         [Enter API information here.]
+         Extensions must provide a class implementing &lt;code&gt;org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperators&lt;/code&gt;.
+
+The operators returned by the factory must implement &lt;code&gt;org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperator&lt;/code&gt;.
+
+&lt;p&gt;
+&lt;b&gt;Note:&lt;/b&gt; This extension point is currently &lt;b&gt;experimental&lt;/b&gt; and the API may change in future versions.
+&lt;/p&gt;
       </documentation>
    </annotation>
 

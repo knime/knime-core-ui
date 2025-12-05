@@ -52,7 +52,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -64,7 +67,11 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.Platform;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.DataTypeRegistry;
+import org.knime.core.data.DataValue;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.EqualsOperator;
@@ -76,6 +83,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.LessThanOrEqualOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.NotEqualsNorMissingOperator;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.NotEqualsOperator;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.RegexOperator;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.WildcardOperator;
 
 /**
  * <p>
@@ -177,12 +186,41 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  *
  * <p>
  * Extensions can define custom operators for their own data types via the "org.knime.core.ui.filterOperators" extension
- * point. Custom operators need to implement the {@link FilterOperator} interface, define a stable ID, and specify a
+ * point (<em>experimental</em>).
+ * Custom operators need to implement the {@link FilterOperator} interface, define a stable ID, and specify a
  * class implementing the {@link FilterValueParameters} interface. The parameters class defines the user input to the
  * operator and governs which widgets are shown in the dialog.
  * </p>
  *
- * <h2>Duplicate IDs and Deprecation</h2>
+ * <h3>ID namespacing for extension operators</h3>
+ *
+ * <p>
+ * To prevent ID conflicts of third-party and build-in operators, the IDs of operators contributed via the extension
+ * point are automatically modified:
+ * </p>
+ * <ul>
+ * <li>The ID is converted to uppercase</li>
+ * <li>The ID is prefixed with {@code EXT_} to distinguish it from built-in operators</li>
+ * </ul>
+ *
+ * <p>
+ * For example, if an extension defines an operator with ID {@code "myOperator"}, the effective ID registered will be
+ * {@code "EXT_MYOPERATOR"}.
+ * </p>
+ *
+ * <p>
+ * <b>Best Practices:</b>
+ * </p>
+ * <ul>
+ * <li><b>Use a short unique prefix</b> in your operator IDs to avoid conflicts with other extensions (e.g.,
+ * {@code "myext_contains"} becomes {@code "EXT_MYEXT_CONTAINS"})</li>
+ * <li><b>Do not version your operator IDs.</b> Instead, use a new parameter class with appropriate
+ * {@link org.knime.node.parameters.persistence.Persistor} or {@link org.knime.node.parameters.migration.Migration}
+ * logic to handle backward compatibility</li>
+ * <li><b>Keep IDs stable</b> across versions of your extension to ensure saved workflows continue to work</li>
+ * </ul>
+ *
+ * <h2>Duplicate IDs and deprecation</h2>
  *
  * <p>
  * The built-in operators reserve certain IDs (see table above) for all data types. Custom operators must not use these
@@ -211,18 +249,22 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  * @author Paul Bärnreuther, KNIME GmbH
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  *
- * @apiNote The extension point is currently still <b>experimental</b> and might change in future versions!
+ * @apiNote The extension point is currently still <b>experimental</b> and might change in future versions.
  * @noreference This class is not intended to be referenced by clients.
  */
-// TODO put extension's IDs below their namespace? -> no clash with future built-in operators
 public final class FilterOperatorsRegistry {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(FilterOperatorsRegistry.class);
 
     private static final String EXT_POINT_ID = "org.knime.core.ui.filterOperators";
 
+    static final String PROP_FEATURE_FLAG_ENABLE_EXTERNAL =
+        "org.knime.core.ui.filterOperators.enableExperimentalExtensionPoint";
+
     /**
      * Reserved IDs for overridable built-in operators that extensions can use.
+     *
+     * Note: All new built-in operators that can be overridden must be added here.
      */
     static final Map<String, Class<? extends FilterOperatorBase>> OVERRIDE_FILTER_OPERATOR_BASES = Map.ofEntries( //
         Map.entry(EqualsOperator.ID, EqualsOperator.class), //
@@ -231,22 +273,58 @@ public final class FilterOperatorsRegistry {
         Map.entry(LessThanOperator.ID, LessThanOperator.class), //
         Map.entry(GreaterThanOperator.ID, GreaterThanOperator.class), //
         Map.entry(LessThanOrEqualOperator.ID, LessThanOrEqualOperator.class), //
-        Map.entry(GreaterThanOrEqualOperator.ID, GreaterThanOrEqualOperator.class) //
+        Map.entry(GreaterThanOrEqualOperator.ID, GreaterThanOrEqualOperator.class), //
+        Map.entry(WildcardOperator.ID, WildcardOperator.class), //
+        Map.entry(RegexOperator.ID, RegexOperator.class) //
     );
 
     /**
      * Reserved IDs for non-overwritable built-in operators that extensions cannot use.
+     *
+     * Note: All new built-in operators that can be overridden must be added here.
      */
     static final List<String> RESERVED_NON_OVERRIDABLE_IDS = List.of(IsMissingOperator.ID, IsNotMissingOperator.ID);
 
-    private static final Predicate<String> KNIME_INTERNAL_NAMESPACES =
-        ns -> ns != null && (ns.startsWith("org.knime.") || ns.startsWith("com.knime."));
+    /**
+     * Prefix applied to IDs of operators contributed via the extension point.
+     */
+    private static final String EXTENSION_ID_PREFIX = "EXT_";
+
+    private final Predicate<String> m_internalNamespaces;
+
+    private final Function<DataType, Optional<String>> m_dataTypeNamespaceLookup;
 
     private static final FilterOperatorsRegistry INSTANCE = new FilterOperatorsRegistry();
 
     private final Map<DataType, FilterOperatorContribution> m_filterOperators;
 
+    /**
+     * Feature flag to enable loading of third-party extensions.
+     */
+    private final boolean m_enableExternalExtensions;
+
+    // default registry behavior
     private FilterOperatorsRegistry() {
+        m_internalNamespaces = ns -> ns != null && (ns.startsWith("org.knime.") || ns.startsWith("com.knime."));
+        m_dataTypeNamespaceLookup = dt -> DataTypeRegistry.getInstance().getDataTypeNamespace(dt);
+
+        m_enableExternalExtensions = Boolean.getBoolean(PROP_FEATURE_FLAG_ENABLE_EXTERNAL);
+        if (!m_enableExternalExtensions) {
+            LOGGER.info("""
+                    Experimental Row Filter extension point "%s" is disabled for 3rd party extensions: \
+                    To enable it, set the system property "%s" to "true".""".formatted(EXT_POINT_ID,
+                PROP_FEATURE_FLAG_ENABLE_EXTERNAL));
+        }
+
+        m_filterOperators = loadOperatorsFromExtensions();
+    }
+
+    // constructor for testing
+    FilterOperatorsRegistry(final boolean enableExternalExtensions, final Predicate<String> internalNamespacesTester,
+        final Function<DataType, Optional<String>> dataTypeNamespaceLookup) {
+        m_enableExternalExtensions = enableExternalExtensions;
+        m_internalNamespaces = internalNamespacesTester;
+        m_dataTypeNamespaceLookup = dataTypeNamespaceLookup;
         m_filterOperators = loadOperatorsFromExtensions();
     }
 
@@ -292,16 +370,19 @@ public final class FilterOperatorsRegistry {
         }
     }
 
-    private static Map<DataType, FilterOperatorContribution> loadOperatorsFromExtensions() {
+    private boolean isExternal(final String id) {
+        return !m_internalNamespaces.test(id);
+    }
+
+    private Map<DataType, FilterOperatorContribution> loadOperatorsFromExtensions() {
         final var registry = Platform.getExtensionRegistry();
         final var point = registry.getExtensionPoint(EXT_POINT_ID);
         final var extensions = point.getExtensions();
 
         // Separate KNIME and third-party extensions
-        final var knimeExts =
-            Stream.of(extensions).filter(ext -> KNIME_INTERNAL_NAMESPACES.test(ext.getNamespaceIdentifier())).toList();
+        final var knimeExts = Stream.of(extensions).filter(ext -> !isExternal(ext.getNamespaceIdentifier())).toList();
         final var thirdPartyExts =
-            Stream.of(extensions).filter(ext -> !KNIME_INTERNAL_NAMESPACES.test(ext.getNamespaceIdentifier())).toList();
+            Stream.of(extensions).filter(ext -> isExternal(ext.getNamespaceIdentifier())).toList();
 
         Map<DataType, FilterOperatorContribution> operatorsByDataType = new HashMap<>();
 
@@ -313,24 +394,33 @@ public final class FilterOperatorsRegistry {
         }
 
         // Load third-party extensions second
-        LOGGER.debugWithFormat("Loading %d third-party filter operator extensions registered at point %s",
-            thirdPartyExts.size(), EXT_POINT_ID);
-        for (final var ext : thirdPartyExts) {
-            loadExtension(ext, operatorsByDataType);
+        if (m_enableExternalExtensions) {
+            LOGGER.debugWithFormat("Loading %d third-party filter operator extensions registered at point %s",
+                thirdPartyExts.size(), EXT_POINT_ID);
+            for (final var ext : thirdPartyExts) {
+                loadExtension(ext, operatorsByDataType);
+            }
+        } else {
+            LOGGER.debug( //
+                () -> "Loading of third-party filter operator extensions is not enabled, %d extensions are ignored: %s"
+                    .formatted( //
+                        thirdPartyExts.size(), //
+                        thirdPartyExts.stream() //
+                            .map(IExtension::getNamespaceIdentifier).collect(Collectors.joining(", ")))); //
         }
 
         return operatorsByDataType;
     }
 
-    private static void loadExtension(final IExtension ext,
+    private void loadExtension(final IExtension ext,
         final Map<DataType, FilterOperatorContribution> operatorsByDataType) {
         loadExtension(ext, //
             /* read contribution, apply intra-contrib check */
-            FilterOperatorsRegistry::readFilterOperatorsFactory,
+            this::readFilterOperatorsFactory,
             /* for same data type, allow only from same namespace */
             c -> hasDifferentNamespace(c, operatorsByDataType::get),
             /* merge operators for same extension */
-            c -> operatorsByDataType.merge(c.dataType(), c, FilterOperatorsRegistry::mergeContributions));
+            c -> operatorsByDataType.merge(c.dataType(), c, this::mergeContributions));
     }
 
     /**
@@ -340,7 +430,7 @@ public final class FilterOperatorsRegistry {
      * @return the contribution, or {@code null} if there was a {@link CoreException} or it was not allowed for the data
      *         type
      */
-    private static FilterOperatorContribution readFilterOperatorsFactory(final IConfigurationElement cfe) {
+    private FilterOperatorContribution readFilterOperatorsFactory(final IConfigurationElement cfe) {
         final var contributor = cfe.getContributor().getName();
         final FilterOperators operatorsFactory;
         try {
@@ -352,15 +442,18 @@ public final class FilterOperatorsRegistry {
         }
 
         final var dataType = operatorsFactory.getDataType();
-        // Check namespace registration rule
         final var namespace = cfe.getNamespaceIdentifier();
         checkNamespaceRule(namespace, dataType, contributor, operatorsFactory.getClass().getSimpleName());
 
         final var operators = operatorsFactory.getOperators();
+        final var isExternal = !m_internalNamespaces.test(namespace);
         final var validOperators = new ArrayList<FilterOperator<FilterValueParameters>>();
         final var knownOperatorsByID = new HashMap<String, List<FilterOperator<FilterValueParameters>>>();
         for (final var op : operators) {
-            validateOperator(op, contributor, knownOperatorsByID::get, valid -> {
+            // external operators that don't override built-in operators need to be wrapped
+            final var needsWrapping = isExternal && getImplementedBuiltinOperatorInterfaces(op).isEmpty();
+            final var wrappedOp = needsWrapping ? wrapWithNamespacedId(op) : op;
+            validateOperator(wrappedOp, contributor, knownOperatorsByID::get, valid -> {
                 validOperators.add(valid);
                 knownOperatorsByID.computeIfAbsent(valid.getId(), k -> new ArrayList<>()).add(valid);
             });
@@ -380,16 +473,16 @@ public final class FilterOperatorsRegistry {
      * @return {@code true} if the contribution's namespace is different from the already registered one and this
      *         represents a forbidden duplicate, {@code false} otherwise
      */
-    private static boolean hasDifferentNamespace(final FilterOperatorContribution contrib,
+    private boolean hasDifferentNamespace(final FilterOperatorContribution contrib,
         final Function<DataType, FilterOperatorContribution> contribByDataType) {
         final var dataType = contrib.dataType;
         final var existingContrib = contribByDataType.apply(dataType);
         if (existingContrib != null && !hasSameNamespace(existingContrib, contrib)) {
             // Check if both contributions are from KNIME extensions and the data type is a KNIME data type
-            final var isNewContribKNIME = KNIME_INTERNAL_NAMESPACES.test(contrib.namespace);
-            final var isExistingContribKNIME = KNIME_INTERNAL_NAMESPACES.test(existingContrib.namespace);
+            final var isNewContribKNIME = m_internalNamespaces.test(contrib.namespace);
+            final var isExistingContribKNIME = m_internalNamespaces.test(existingContrib.namespace);
             final var dataTypeLCAPackage = getLeastCommonAncestorPackage(dataType);
-            final var isDataTypeKNIME = KNIME_INTERNAL_NAMESPACES.test(dataTypeLCAPackage);
+            final var isDataTypeKNIME = m_internalNamespaces.test(dataTypeLCAPackage);
 
             // Allow KNIME extensions to register operators for KNIME data types even if another KNIME extension
             // has already registered operators for that data type
@@ -418,7 +511,7 @@ public final class FilterOperatorsRegistry {
      * @param newContrib the new contribution to merge
      * @return the merged contribution
      */
-    private static FilterOperatorContribution mergeContributions(final FilterOperatorContribution existingContrib,
+    private FilterOperatorContribution mergeContributions(final FilterOperatorContribution existingContrib,
         final FilterOperatorContribution newContrib) {
         if (existingContrib == null) {
             return newContrib;
@@ -426,10 +519,10 @@ public final class FilterOperatorsRegistry {
 
         // KNIME code is allowed to merge contribs from different namespaces
         final var sameNamespace = hasSameNamespace(existingContrib, newContrib);
-        final var bothKNIME = KNIME_INTERNAL_NAMESPACES.test(existingContrib.namespace)
-            && KNIME_INTERNAL_NAMESPACES.test(newContrib.namespace);
+        final var bothKNIME =
+            m_internalNamespaces.test(existingContrib.namespace) && m_internalNamespaces.test(newContrib.namespace);
         final var dataTypeLCAPackage = getLeastCommonAncestorPackage(newContrib.dataType);
-        final var isDataTypeKNIME = KNIME_INTERNAL_NAMESPACES.test(dataTypeLCAPackage);
+        final var isDataTypeKNIME = m_internalNamespaces.test(dataTypeLCAPackage);
 
         if (!sameNamespace && !(bothKNIME && isDataTypeKNIME)) {
             throw new IllegalStateException(
@@ -467,7 +560,6 @@ public final class FilterOperatorsRegistry {
         final var configElms = ext.getConfigurationElements();
 
         for (final IConfigurationElement cfe : configElms) {
-            LOGGER.debugWithFormat("\t - found configuration element \"%s\"", cfe.getName());
             // 1. this call already does intra-factory duplicate check
             final var contrib = readContribution.apply(cfe);
             // 2. inter-extension duplicate check
@@ -493,12 +585,12 @@ public final class FilterOperatorsRegistry {
         }
     }
 
-    private static boolean checkNamespaceRule(final String namespace, final DataType dataType, final String contributor,
+    private boolean checkNamespaceRule(final String namespace, final DataType dataType, final String contributor,
         final String operatorName) {
         if (!isAllowed(namespace, dataType)) {
             LOGGER.error(String.format("""
                     Extension "%s" is not allowed to register filter operators for data type "%s" \
-                    outside its namespace "%s".
+                    outside the extension's namespace "%s".
                     """, contributor, dataType.getIdentifier(), namespace));
             return false;
         }
@@ -517,8 +609,7 @@ public final class FilterOperatorsRegistry {
      *         {@code false} otherwise
      */
     private static boolean validateOverride(final FilterOperator<FilterValueParameters> op, final String contributor) {
-        final var implementedInterfaces = OVERRIDE_FILTER_OPERATOR_BASES.entrySet().stream() //
-            .filter(e -> e.getValue().isInstance(op)).toList();
+        final var implementedInterfaces = getImplementedBuiltinOperatorInterfaces(op);
         if (implementedInterfaces.isEmpty()) {
             // not an override operator
             return true;
@@ -544,6 +635,12 @@ public final class FilterOperatorsRegistry {
             return false;
         }
         return true;
+    }
+
+    private static List<Entry<String, Class<? extends FilterOperatorBase>>>
+        getImplementedBuiltinOperatorInterfaces(final FilterOperator<FilterValueParameters> op) {
+        return OVERRIDE_FILTER_OPERATOR_BASES.entrySet().stream() //
+            .filter(e -> e.getValue().isInstance(op)).toList();
     }
 
     private static boolean validateReservedID(final FilterOperator<FilterValueParameters> op,
@@ -596,7 +693,7 @@ public final class FilterOperatorsRegistry {
             if (!isValid) {
                 LOGGER.errorWithFormat(
                     "Operator \"%s\" from \"%s\" duplicates ID \"%s\" of already registered operator \"%s\", "
-                    + "but reuses the same parameters class \"%s\".",
+                        + "but reuses the same parameters class \"%s\".",
                     op.getLabel(), contributor, id, f.getLabel(), paramClass.getSimpleName());
             }
             return isValid;
@@ -608,7 +705,8 @@ public final class FilterOperatorsRegistry {
             if (!isValid) {
                 LOGGER.errorWithFormat(
                         "Operator \"%s\" from \"%s\" duplicates ID \"%s\" of already registered operator \"%s\", but"
-                        + " one of them is not marked as deprecated.", op.getLabel(), contributor, id, f.getLabel());
+                            + " one of them is not marked as deprecated.",
+                        op.getLabel(), contributor, id, f.getLabel());
             }
             return isValid;
         });
@@ -624,14 +722,91 @@ public final class FilterOperatorsRegistry {
         return StringUtils.getCommonPrefix(packages);
     }
 
-    private static boolean isAllowed(final String extensionNamespace, final DataType operatorDataType) {
+    private boolean isAllowed(final String extensionNamespace, final DataType operatorDataType) {
         final var dataTypeLCAPackage = getLeastCommonAncestorPackage(operatorDataType);
-        final var isExtensionKNIME = KNIME_INTERNAL_NAMESPACES.test(extensionNamespace);
-        final var isDataTypeKNIME = KNIME_INTERNAL_NAMESPACES.test(dataTypeLCAPackage);
+        final var isExtensionKNIME = m_internalNamespaces.test(extensionNamespace);
+        final var isDataTypeKNIME = m_internalNamespaces.test(dataTypeLCAPackage);
         if (isExtensionKNIME && isDataTypeKNIME) {
             return true;
         }
-        // otherwise, we only allow to define registrations for their own data types
-        return dataTypeLCAPackage.startsWith(extensionNamespace);
+        // ...otherwise, we only allow to define registrations for their own data types
+
+        // The LCA package check is too restrictive: extensions can only register operators for data types whose package
+        // has the extension's namespace as prefix. For example, this would exclude "org.xy.plugin" from registering
+        // operators that reside in a Java package "org.xy.types".
+        return m_dataTypeNamespaceLookup.apply(operatorDataType)
+            .map(dtns ->
+                dtns.startsWith(extensionNamespace)).orElseGet(() -> {
+                LOGGER.debugWithFormat(
+                    "Could not determine defining namespace for data type '%s' "
+                    + "(not registered at DataType extension point?); "
+                        + "rejecting registration from extension namespace '%s'",
+                    operatorDataType.getIdentifier(), extensionNamespace);
+                return false;
+            });
+    }
+
+    /**
+     * Wraps a filter operator to apply ID namespacing for extension-contributed operators. The ID is transformed by
+     * converting it to uppercase and prefixing it with "EXT_".
+     *
+     * @param operator the operator to wrap
+     * @param contributor the name of the contributing extension
+     * @return a wrapped operator with a namespaced ID
+     */
+    private static FilterOperator<FilterValueParameters>
+        wrapWithNamespacedId(final FilterOperator<FilterValueParameters> operator) {
+        final var originalId = operator.getId();
+        final var namespacedId = EXTENSION_ID_PREFIX + originalId.toUpperCase(Locale.US);
+        return new WrappedFilterOperator(operator, namespacedId);
+    }
+
+    /**
+     * Wrapper that delegates all calls to the wrapped operator except for {@link #getId()}, which returns the
+     * namespaced ID.
+     * Do not wrap operators that override built-in operators with this class.
+     */
+    private static final class WrappedFilterOperator implements FilterOperator<FilterValueParameters> {
+
+        private final FilterOperator<FilterValueParameters> m_delegate;
+
+        private final String m_namespacedId;
+
+        WrappedFilterOperator(final FilterOperator<FilterValueParameters> delegate, final String namespacedId) {
+            m_delegate = delegate;
+            m_namespacedId = namespacedId;
+        }
+
+        @Override
+        public String getId() {
+            return m_namespacedId;
+        }
+
+        @Override
+        public String getLabel() {
+            return m_delegate.getLabel();
+        }
+
+        @Override
+        public Class<FilterValueParameters> getNodeParametersClass() {
+            return m_delegate.getNodeParametersClass();
+        }
+
+        @Override
+        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
+            final DataType configureColumnType, final FilterValueParameters filterParameters)
+            throws InvalidSettingsException {
+            return m_delegate.createPredicate(runtimeColumnSpec, configureColumnType, filterParameters);
+        }
+
+        @Override
+        public boolean mapMissingTo() {
+            return m_delegate.mapMissingTo();
+        }
+
+        @Override
+        public boolean isDeprecated() {
+            return m_delegate.isDeprecated();
+        }
     }
 }

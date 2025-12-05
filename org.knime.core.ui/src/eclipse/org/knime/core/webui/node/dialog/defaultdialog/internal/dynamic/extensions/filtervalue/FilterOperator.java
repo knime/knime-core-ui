@@ -63,11 +63,20 @@ import org.knime.node.parameters.persistence.Persistor;
  * Filter operator that defines a predicate based on {@link DataValue}s of multiple concrete types configured by
  * {@link FilterValueParameters parameters}.
  *
+ * <p>
+ * <b>Note for extension developers:</b> If your operator is contributed via the
+ * {@code org.knime.core.ui.filterOperators} extension point (and you are not a KNIME internal extension developer),
+ * the ID returned by {@link #getId()} will be automatically transformed to prevent conflicts: it will be converted to
+ * uppercase and prefixed with {@code "EXT_"}. For example, {@code "myOperator"} becomes {@code "EXT_MYOPERATOR"}.
+ * See {@link FilterOperators} for more details and best practices.
+ * </p>
+ *
  * @param <P> the type of parameters to create the predicate with
  *
  * @author Paul Bärnreuther, KNIME GmbH
  * @author Manuel Hotz, KNIME GmbH, Konstanz, Germany
  *
+ * @apiNote This API is still experimental and might change in future versions.
  * @noreference This class is not intended to be referenced by clients.
  */
 public interface FilterOperator<P extends FilterValueParameters> extends FilterOperatorDefinition<P> {
