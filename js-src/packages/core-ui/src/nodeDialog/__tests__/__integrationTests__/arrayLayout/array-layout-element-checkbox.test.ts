@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { VueWrapper, mount } from "@vue/test-utils";
 import { cloneDeep } from "lodash-es";
 
-import { Checkbox } from "@knime/components";
+import { KdsCheckbox } from "@knime/kds-components";
 import { JsonDataService } from "@knime/ui-extension-service";
 
 import NodeDialog from "../../../NodeDialog.vue";
@@ -91,7 +91,7 @@ describe("array layouts element checkbox", () => {
   const getNthElementCheckbox = (wrapper: Wrapper, n: number) =>
     wrapper
       .find(".array")
-      .findAllComponents(Checkbox as any)
+      .findAllComponents(KdsCheckbox as any)
       .at(n);
 
   it("shows checkboxes within the array layout elements", async () => {

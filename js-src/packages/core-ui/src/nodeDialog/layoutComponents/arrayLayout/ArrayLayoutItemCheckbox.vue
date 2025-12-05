@@ -1,23 +1,27 @@
 <script setup lang="ts">
-import { Checkbox } from "@knime/components";
 import type { VueControlProps } from "@knime/jsonforms";
+import { KdsCheckbox, type KdsCheckboxProps } from "@knime/kds-components";
+
+type CheckboxValue = KdsCheckboxProps["modelValue"];
 
 defineProps<VueControlProps<boolean>>();
 </script>
 
 <template>
-  <Checkbox
+  <KdsCheckbox
     :model-value="control.data"
     :title="control.label"
     class="checkbox"
-    @update:model-value="changeValue"
+    @update:model-value="
+      (value: CheckboxValue) => changeValue(value as boolean)
+    "
   />
 </template>
 
 <style lang="postcss" scoped>
 .checkbox {
   /** These styles ensure that the checkbox fits into the array layout items header */
-  transform: translate(0, 5px);
-  margin-right: -15px;
+  transform: translate(0, -1px);
+  margin-right: var(--kds-spacing-container-0-5x);
 }
 </style>

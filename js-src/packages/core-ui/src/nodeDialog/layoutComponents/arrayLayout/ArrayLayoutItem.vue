@@ -69,7 +69,7 @@ defineExpose({
     <div class="item-header">
       <div
         class="left"
-        :style="{ alignItems: subTitleProvider ? 'normal' : 'baseline' }"
+        :style="{ alignItems: subTitleProvider ? 'normal' : 'center' }"
       >
         <slot
           v-if="elementCheckboxScope"

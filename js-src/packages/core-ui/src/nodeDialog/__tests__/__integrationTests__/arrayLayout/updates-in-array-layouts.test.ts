@@ -13,7 +13,7 @@ import { VueWrapper, mount } from "@vue/test-utils";
 import flushPromises from "flush-promises";
 import { cloneDeep } from "lodash-es";
 
-import { Button, Checkbox, Dropdown } from "@knime/components";
+import { Button, Dropdown } from "@knime/components";
 import {
   JsonFormsDialog,
   SimpleButtonControl,
@@ -245,12 +245,7 @@ describe("updates in array layouts", () => {
 
     return {
       toggleNthCheckbox: async (wrapper: Wrapper, n: number) => {
-        wrapper
-          .find(".array")
-          .findAllComponents(Checkbox)
-          .at(n)
-          .find("input")
-          .trigger("change");
+        wrapper.findAll(".array .checkbox").at(n)?.trigger("click");
         await flushPromises();
       },
     };
