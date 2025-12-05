@@ -59,7 +59,8 @@ describe("FileChooserControl.vue - Relative Path Features", () => {
     const component = mountJsonFormsControlLabelContent(FileChooserControl, {
       props,
       provide: {
-        // @ts-expect-error - getPersistSchema is not in ProvidedMethods type
+        // @ts-expect-error
+        setSubPanelExpanded: vi.fn(),
         getPersistSchema: () => ({}),
         [flowVariablesMapInjectionKey as symbol]: flowVariablesMap,
         getData,
