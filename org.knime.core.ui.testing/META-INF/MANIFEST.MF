@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Test-Node extension for knime-core-ui
 Bundle-SymbolicName: org.knime.core.ui.testing;singleton:=true
-Bundle-Version: 5.9.0.qualifier
+Bundle-Version: 5.10.0.qualifier
 Bundle-ClassPath: .,
  lib/hamcrest-core-1.3.jar,
  lib/jakarta.activation-api-1.2.2.jar,
@@ -17,9 +17,9 @@ Export-Package: org.knime.testing.node,
  org.knime.testing.node.view,
  org.xmlunit.builder,
  org.xmlunit.diff
-Require-Bundle: org.knime.core;bundle-version="[5.9.0,6.0.0)",
- org.knime.core.ui;bundle-version="[5.9.0,6.0.0)",
- org.knime.testing;bundle-version="[5.9.0,6.0.0)",
+Require-Bundle: org.knime.core;bundle-version="[5.10.0,6.0.0)",
+ org.knime.core.ui;bundle-version="[5.10.0,6.0.0)",
+ org.knime.testing;bundle-version="[5.10.0,6.0.0)",
  assertj-core;bundle-version="[3.27.3,4.0.0)",
  com.fasterxml.jackson.core.jackson-databind;bundle-version="[2.13.2,3.0.0)",
  com.fasterxml.jackson.core.jackson-core;bundle-version="[2.13.2,3.0.0)",
