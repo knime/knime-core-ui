@@ -199,7 +199,7 @@ describe("CredentialsControl.vue", () => {
     await flushPromises();
     flowVariablesMap.credentials.controllingFlowVariableName = null;
     await flushPromises();
-    wrapper.vm.control = { ...wrapper.vm.control };
+    await wrapper.setProps({ control: { ...props.control } });
     expect(changeValue).toHaveBeenCalledWith({
       password: "",
       username: "",
@@ -340,10 +340,10 @@ describe("CredentialsControl.vue", () => {
 
   it("sets magic second factor", async () => {
     props.control.uischema.options!.showSecondFactor = true;
+    props.control.data.isHiddenSecondFactor = true;
     const { wrapper } = mountCredentialsControl({
       props,
     });
-    wrapper.vm.control.data.isHiddenSecondFactor = true;
     await wrapper.vm.$nextTick();
     expect(wrapper.findAllComponents(InputField)[2].vm.modelValue).toBe(
       "*****************",
