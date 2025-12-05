@@ -64,7 +64,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.Platform;
+import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataType;
+import org.knime.core.data.DataValue;
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.util.CheckUtils;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin.EqualsOperator;
@@ -182,6 +185,34 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  * operator and governs which widgets are shown in the dialog.
  * </p>
  *
+ * <h3>ID Namespacing for Extension Operators</h3>
+ *
+ * <p>
+ * To prevent ID conflicts between extension-contributed operators, the IDs of operators contributed via the extension
+ * point are automatically modified:
+ * </p>
+ * <ul>
+ * <li>The ID is converted to uppercase</li>
+ * <li>The ID is prefixed with {@code EXT_} to distinguish it from built-in operators</li>
+ * </ul>
+ *
+ * <p>
+ * For example, if an extension defines an operator with ID {@code "myOperator"}, the effective ID registered will be
+ * {@code "EXT_MYOPERATOR"}.
+ * </p>
+ *
+ * <p>
+ * <b>Best Practices:</b>
+ * </p>
+ * <ul>
+ * <li>Use a short unique prefix in your operator IDs to avoid conflicts with other extensions
+ * (e.g., {@code "myext_contains"} becomes {@code "EXT_MYEXT_CONTAINS"})</li>
+ * <li>Do not version your operator IDs. Instead, use a new parameter class with appropriate
+ * {@link org.knime.node.parameters.persistence.Persistor} or {@link org.knime.node.parameters.migration.Migration}
+ * logic to handle backward compatibility</li>
+ * <li>Keep IDs stable across versions of your extension to ensure saved workflows continue to work</li>
+ * </ul>
+ *
  * <h2>Duplicate IDs and Deprecation</h2>
  *
  * <p>
@@ -214,7 +245,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extension
  * @apiNote The extension point is currently still <b>experimental</b> and might change in future versions!
  * @noreference This class is not intended to be referenced by clients.
  */
-// TODO put extension's IDs below their namespace? -> no clash with future built-in operators
 public final class FilterOperatorsRegistry {
 
     private static final NodeLogger LOGGER = NodeLogger.getLogger(FilterOperatorsRegistry.class);
@@ -238,6 +268,11 @@ public final class FilterOperatorsRegistry {
      * Reserved IDs for non-overwritable built-in operators that extensions cannot use.
      */
     static final List<String> RESERVED_NON_OVERRIDABLE_IDS = List.of(IsMissingOperator.ID, IsNotMissingOperator.ID);
+
+    /**
+     * Prefix applied to IDs of operators contributed via the extension point.
+     */
+    private static final String EXTENSION_ID_PREFIX = "EXT_";
 
     private static final Predicate<String> KNIME_INTERNAL_NAMESPACES =
         ns -> ns != null && (ns.startsWith("org.knime.") || ns.startsWith("com.knime."));
@@ -357,10 +392,13 @@ public final class FilterOperatorsRegistry {
         checkNamespaceRule(namespace, dataType, contributor, operatorsFactory.getClass().getSimpleName());
 
         final var operators = operatorsFactory.getOperators();
+        final var isKNIMEExtension = KNIME_INTERNAL_NAMESPACES.test(namespace);
         final var validOperators = new ArrayList<FilterOperator<FilterValueParameters>>();
         final var knownOperatorsByID = new HashMap<String, List<FilterOperator<FilterValueParameters>>>();
         for (final var op : operators) {
-            validateOperator(op, contributor, knownOperatorsByID::get, valid -> {
+            // Wrap non-KNIME operators to apply ID namespacing
+            final var wrappedOp = isKNIMEExtension ? op : wrapWithNamespacedId(op, contributor);
+            validateOperator(wrappedOp, contributor, knownOperatorsByID::get, valid -> {
                 validOperators.add(valid);
                 knownOperatorsByID.computeIfAbsent(valid.getId(), k -> new ArrayList<>()).add(valid);
             });
@@ -633,5 +671,75 @@ public final class FilterOperatorsRegistry {
         }
         // otherwise, we only allow to define registrations for their own data types
         return dataTypeLCAPackage.startsWith(extensionNamespace);
+    }
+
+    /**
+     * Wraps a filter operator to apply ID namespacing for extension-contributed operators.
+     * The ID is transformed by converting it to uppercase and prefixing it with "EXT_".
+     *
+     * @param operator the operator to wrap
+     * @param contributor the name of the contributing extension
+     * @return a wrapped operator with a namespaced ID
+     */
+    private static FilterOperator<FilterValueParameters> wrapWithNamespacedId(
+        final FilterOperator<FilterValueParameters> operator, final String contributor) {
+        final var originalId = operator.getId();
+        final var namespacedId = EXTENSION_ID_PREFIX + originalId.toUpperCase();
+
+        // Log a helpful message about ID transformation and best practices
+        LOGGER.debugWithFormat(
+            "Extension \"%s\" operator \"%s\": original ID \"%s\" transformed to \"%s\". "
+            + "Tip: Use a unique prefix in your IDs to avoid conflicts (e.g., \"myext_contains\").",
+            contributor, operator.getLabel(), originalId, namespacedId);
+
+        return new NamespacedIdFilterOperator(operator, namespacedId);
+    }
+
+    /**
+     * Wrapper that delegates all calls to the wrapped operator except for {@link #getId()},
+     * which returns the namespaced ID.
+     */
+    private static final class NamespacedIdFilterOperator implements FilterOperator<FilterValueParameters> {
+
+        private final FilterOperator<FilterValueParameters> m_delegate;
+
+        private final String m_namespacedId;
+
+        NamespacedIdFilterOperator(final FilterOperator<FilterValueParameters> delegate, final String namespacedId) {
+            m_delegate = delegate;
+            m_namespacedId = namespacedId;
+        }
+
+        @Override
+        public String getId() {
+            return m_namespacedId;
+        }
+
+        @Override
+        public String getLabel() {
+            return m_delegate.getLabel();
+        }
+
+        @Override
+        public Class<FilterValueParameters> getNodeParametersClass() {
+            return m_delegate.getNodeParametersClass();
+        }
+
+        @Override
+        public Predicate<DataValue> createPredicate(final DataColumnSpec runtimeColumnSpec,
+            final DataType configureColumnType, final FilterValueParameters filterParameters)
+            throws InvalidSettingsException {
+            return m_delegate.createPredicate(runtimeColumnSpec, configureColumnType, filterParameters);
+        }
+
+        @Override
+        public boolean mapMissingTo() {
+            return m_delegate.mapMissingTo();
+        }
+
+        @Override
+        public boolean isDeprecated() {
+            return m_delegate.isDeprecated();
+        }
     }
 }
