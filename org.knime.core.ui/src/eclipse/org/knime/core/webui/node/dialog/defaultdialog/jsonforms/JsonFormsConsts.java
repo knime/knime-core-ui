@@ -318,8 +318,6 @@ public final class JsonFormsConsts {
 
             public static final String LEGACY_CREDENTIALS = "legacyCredentials";
 
-            public static final String DYNAMIC_VALUE = "dynamicValue";
-
             public static final String TEXT_MESSAGE = "textMessage";
 
             public static final String TEXT_AREA = "textArea";

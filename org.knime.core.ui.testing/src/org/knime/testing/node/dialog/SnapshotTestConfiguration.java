@@ -59,6 +59,7 @@ import org.knime.core.data.DataType;
 import org.knime.core.node.NodeSettings;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.util.Pair;
 import org.knime.core.util.workflow.def.FallibleSupplier;
 import org.knime.core.webui.node.dialog.SettingsType;
 import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
@@ -119,6 +120,9 @@ public final class SnapshotTestConfiguration {
 
         /** Optionally add a number of snapshot tests (json forms or node settings structure). Can build. */
         interface OptionalTests extends BuildStage {
+
+            OptionalTests testJsonForms(String label, Map<SettingsType, Class<? extends NodeParameters>> clazzes);
+
             /**
              * Add a test for the JSON Forms representation of the given classes, specifying which {@link SettingsType}
              * the class represents.
@@ -126,14 +130,45 @@ public final class SnapshotTestConfiguration {
              * @param type of settings to test (view/model)
              * @param clazz of settings to test
              */
-            OptionalTests testJsonForms(SettingsType type, Class<? extends NodeParameters> clazz);
+            default OptionalTests testJsonForms(final SettingsType type, final Class<? extends NodeParameters> clazz) {
+                return testJsonForms(Map.of(type, clazz));
+            }
 
             /**
              * Add a test for the JSON Forms representation of the given classes.
              *
              * @param map settings types and classes to test
              */
-            OptionalTests testJsonForms(Map<SettingsType, Class<? extends NodeParameters>> clazzes);
+            default OptionalTests testJsonForms(final Map<SettingsType, Class<? extends NodeParameters>> clazzes) {
+                final var label = clazzes.size() == 1 ? "JSONForms for %s".formatted(clazzes.keySet().iterator().next())
+                    : "JSONForms with: %s".formatted(
+                        clazzes.values().stream().map(Class::getSimpleName).collect(Collectors.joining(", ")));
+                return testJsonForms(label, clazzes);
+            }
+
+            /**
+             * Add a test for the JSON Forms representation of the given instances, specifying which
+             * {@link SettingsType} the class represents.
+             *
+             * @param label for the test
+             * @param type of settings to test (view/model)
+             * @param instances map of providers of an instance to test
+             */
+            OptionalTests testJsonFormsWithInstances(String label,
+                Map<SettingsType, FallibleSupplier<NodeParameters>> instances);
+
+            /**
+             * Add a test for the JSON Forms representation of the given instance, specifying which {@link SettingsType}
+             * the class represents.
+             *
+             * @param label for the test
+             * @param type of settings to test (view/model)
+             * @param instance a provider of an instance to test
+             */
+            default OptionalTests testJsonFormsWithInstance(final String label, final SettingsType type,
+                final FallibleSupplier<NodeParameters> instance) {
+                return testJsonFormsWithInstances(label, Map.of(type, instance));
+            }
 
             /**
              * Add a test for the JSON Forms representation of the given instance, specifying which {@link SettingsType}
@@ -142,23 +177,45 @@ public final class SnapshotTestConfiguration {
              * @param type of settings to test (view/model)
              * @param instance a provider of an instance to test
              */
-            OptionalTests testJsonFormsWithInstance(SettingsType type, FallibleSupplier<NodeParameters> instance);
+            default OptionalTests testJsonFormsWithInstance(final SettingsType type,
+                final FallibleSupplier<NodeParameters> instance) {
+                return testJsonFormsWithInstances(Map.of(type, instance));
+            }
 
             /**
              * Add a test for the JSON Forms representation of the given instances.
              *
              * @param map settings types and instances to test
              */
-            OptionalTests
-                testJsonFormsWithInstances(Map<SettingsType, FallibleSupplier<NodeParameters>> instances);
+            default OptionalTests
+                testJsonFormsWithInstances(final Map<SettingsType, FallibleSupplier<NodeParameters>> instances) {
+                final var label =
+                    instances.size() == 1 ? "JSONForms for %s".formatted(instances.keySet().iterator().next())
+                        : "JSONForms with: %s".formatted(instances.values().stream()
+                            .map(v -> v.getClass().getSimpleName()).collect(Collectors.joining(", ")));
+                return testJsonFormsWithInstances(label, instances);
+            }
 
-            default OptionalTests testJsonFormsWithInstance(final SettingsType type,
+            default OptionalTests testJsonFormsWithInstance(final String label, final SettingsType type,
                 final NodeParameters instance) {
+                return testJsonFormsWithInstance(label, type, () -> instance);
+            }
+
+            default OptionalTests testJsonFormsWithInstance(final SettingsType type, final NodeParameters instance) {
                 return testJsonFormsWithInstance(type, () -> instance);
+            }
+
+            default OptionalTests testJsonFormsForModel(final String label,
+                final Class<? extends NodeParameters> clazz) {
+                return testJsonForms(label, Map.of(SettingsType.MODEL, clazz));
             }
 
             default OptionalTests testJsonFormsForModel(final Class<? extends NodeParameters> clazz) {
                 return testJsonForms(Map.of(SettingsType.MODEL, clazz));
+            }
+
+            default OptionalTests testJsonFormsForModel(final String label, final NodeParameters instance) {
+                return testJsonFormsWithInstance(label, SettingsType.MODEL, instance);
             }
 
             default OptionalTests testJsonFormsForModel(final NodeParameters instance) {
@@ -176,18 +233,40 @@ public final class SnapshotTestConfiguration {
             /**
              * Makes sure that the representation of a settings object loaded from legacy settings does not change.
              *
+             * @param label for the test
              * @param legacy internal settings structure
              * @param clazz to instantiante the settings object
              */
-            OptionalTests testNodeSettingsStructure(NodeSettingsRO legacy,
+            OptionalTests testNodeSettingsStructure(String label, NodeSettingsRO legacy,
                 final Class<? extends NodeParameters> clazz);
+
+            /**
+             * Makes sure that the representation of a settings object loaded from legacy settings does not change.
+             *
+             * @param legacy internal settings structure
+             * @param clazz to instantiante the settings object
+             */
+            default OptionalTests testNodeSettingsStructure(final NodeSettingsRO legacy,
+                final Class<? extends NodeParameters> clazz) {
+                return testNodeSettingsStructure("Node settings", legacy, clazz);
+            }
+
+            /**
+             * Makes sure that the representation of a settings object does not change.
+             *
+             * @param label for the test
+             * @param instance to persist and check for changes
+             */
+            OptionalTests testNodeSettingsStructure(String label, FallibleSupplier<NodeParameters> instance);
 
             /**
              * Makes sure that the representation of a settings object does not change.
              *
              * @param instance to persist and check for changes
              */
-            OptionalTests testNodeSettingsStructure(FallibleSupplier<NodeParameters> instance);
+            default OptionalTests testNodeSettingsStructure(final FallibleSupplier<NodeParameters> instance) {
+                return testNodeSettingsStructure("Node settings", instance);
+            }
 
             /**
              * Makes sure that the representation of a settings object does not change.
@@ -217,11 +296,14 @@ public final class SnapshotTestConfiguration {
         BuilderStage.ConfigureColumnNames, //
         BuilderStage.ConfigureDataTypes {
 
-        private final List<FallibleSupplier<NodeParameters>> m_settingsAsserts = new ArrayList<>();
+        // pair of test label and instance provider
+        private final List<Pair<String, FallibleSupplier<NodeParameters>>> m_settingsAsserts = new ArrayList<>();
 
         private List<PortObjectSpec> m_portObjectSpecs = new ArrayList<>();
 
-        private List<Map<SettingsType, FallibleSupplier<NodeParameters>>> m_jsonFormsTests = new ArrayList<>();
+        // pair of test label and map of settings type to instance provider
+        private List<Pair<String, Map<SettingsType, FallibleSupplier<NodeParameters>>>> m_jsonFormsTests =
+            new ArrayList<>();
 
         private BuilderImplementation() {
         }
@@ -256,64 +338,55 @@ public final class SnapshotTestConfiguration {
         }
 
         @Override
-        public BuilderStage.OptionalTests
-            testJsonForms(final Map<SettingsType, Class<? extends NodeParameters>> clazzes) {
-            m_jsonFormsTests.add(clazzes.entrySet().stream()
-                .map(e -> Map.entry(e.getKey(), (FallibleSupplier<NodeParameters>)() -> {
+        public BuilderStage.OptionalTests testJsonForms(final String label,
+            final Map<SettingsType, Class<? extends NodeParameters>> clazzes) {
+            m_jsonFormsTests.add(Pair.create(label,
+                clazzes.entrySet().stream().map(e -> Map.entry(e.getKey(), (FallibleSupplier<NodeParameters>)() -> {
                     var nodeSettings = new NodeSettings("ignore");
                     // At this point, the port object specs are already configured.
                     var settingsObj = NodeParametersUtil.createSettings(e.getValue(),
                         m_portObjectSpecs.toArray(PortObjectSpec[]::new));
                     NodeParametersUtil.saveSettings(e.getValue(), settingsObj, nodeSettings);
                     return settingsObj;
-                })).collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
+                })).collect(Collectors.toMap(Entry::getKey, Entry::getValue))));
             return this;
         }
 
         @Override
-        public BuilderStage.OptionalTests testJsonFormsWithInstance(final SettingsType type,
+        public BuilderStage.OptionalTests testJsonFormsWithInstances(final String label,
+            final Map<SettingsType, FallibleSupplier<NodeParameters>> instances) {
+            m_jsonFormsTests.add(Pair.create(label, instances));
+            return this;
+        }
+
+        @Override
+        public BuilderStage.OptionalTests testNodeSettingsStructure(final String label,
             final FallibleSupplier<NodeParameters> instance) {
-            return testJsonFormsWithInstances(Map.of(type, instance));
-        }
-
-        @Override
-        public BuilderStage.OptionalTests
-            testJsonFormsWithInstances(final Map<SettingsType, FallibleSupplier<NodeParameters>> instances) {
-            m_jsonFormsTests.add(instances);
+            m_settingsAsserts.add(Pair.create(label, instance));
             return this;
         }
 
         @Override
-        public BuilderStage.OptionalTests testJsonForms(final SettingsType type,
+        public BuilderStage.OptionalTests testNodeSettingsStructure(final String label, final NodeSettingsRO legacy,
             final Class<? extends NodeParameters> clazz) {
-            return testJsonForms(Map.of(type, clazz));
-        }
-
-        @Override
-        public BuilderStage.OptionalTests
-            testNodeSettingsStructure(final FallibleSupplier<NodeParameters> instance) {
-            m_settingsAsserts.add(instance);
-            return this;
-        }
-
-        @Override
-        public BuilderStage.OptionalTests testNodeSettingsStructure(final NodeSettingsRO legacy,
-            final Class<? extends NodeParameters> clazz) {
-            m_settingsAsserts.add(() -> NodeParametersUtil.loadSettings(legacy, clazz));
-            return this;
+            return testNodeSettingsStructure(label, () -> NodeParametersUtil.loadSettings(legacy, clazz));
         }
 
         @Override
         public SnapshotTestConfiguration build() {
-            List<Snapshot> snapshotTests = new ArrayList<>();
+            final List<Snapshot> snapshotTests = new ArrayList<>();
 
             for (var i = 0; i < m_jsonFormsTests.size(); i++) {
-                snapshotTests.add(new JsonFormsSnapshot(i, m_jsonFormsTests.get(i),
+                final var formAssertion = m_jsonFormsTests.get(i);
+                final var label = String.format("JSONForms: %s (#%d)", formAssertion.getFirst(), i);
+                snapshotTests.add(new JsonFormsSnapshot(label, i, formAssertion.getSecond(),
                     m_portObjectSpecs.toArray(PortObjectSpec[]::new)));
             }
 
             for (var i = 0; i < m_settingsAsserts.size(); i++) {
-                snapshotTests.add(new NodeSettingsSnapshot(i, m_settingsAsserts.get(i)));
+                final var assertion = m_settingsAsserts.get(i);
+                final var label = String.format("Asserts: %s (#%d)", assertion.getFirst(), i);
+                snapshotTests.add(new NodeSettingsSnapshot(label, i, assertion.getSecond()));
             }
 
             return new SnapshotTestConfiguration(snapshotTests);

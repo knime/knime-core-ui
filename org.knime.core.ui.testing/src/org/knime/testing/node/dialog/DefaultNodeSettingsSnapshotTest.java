@@ -54,13 +54,20 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Named;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionMonitor;
 import org.knime.core.node.InvalidSettingsException;
@@ -81,9 +88,9 @@ import org.osgi.framework.FrameworkUtil;
 
 /**
  * <p>
- * Implemented by a junit test class in order run a snapshot-test on a {@link NodeParameters}-implementation. A
- * snapshot test computes a representation of a {@link NodeParameters} instance and makes sure that representation
- * does not change. For instance,
+ * Implemented by a junit test class in order run a snapshot-test on a {@link NodeParameters}-implementation. A snapshot
+ * test computes a representation of a {@link NodeParameters} instance and makes sure that representation does not
+ * change. For instance,
  * <ul>
  * <li>the node dialog (json forms)</li>
  * <li>the internal structure (node settings/xml)</li>
@@ -118,6 +125,7 @@ import org.osgi.framework.FrameworkUtil;
  * @author Carl Witt, KNIME AG, Zurich, Switzerland
  */
 @SuppressWarnings("restriction")
+@TestInstance(Lifecycle.PER_CLASS)
 public class DefaultNodeSettingsSnapshotTest {
 
     private static final String SNAPSHOT_FILE_LOCATION = "/files/test_snapshots";
@@ -128,8 +136,8 @@ public class DefaultNodeSettingsSnapshotTest {
      * @param settingsClasses the default node settings classes to be tested
      * @param specs used to create an instance of the default node settings class
      */
-    protected DefaultNodeSettingsSnapshotTest(
-        final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses, final PortObjectSpec... specs) {
+    protected DefaultNodeSettingsSnapshotTest(final Map<SettingsType, Class<? extends NodeParameters>> settingsClasses,
+        final PortObjectSpec... specs) {
         this(SnapshotTestConfiguration.builder() //
             .withInputPortObjectSpecs(specs) //
             .testJsonForms(settingsClasses).build());
@@ -139,7 +147,7 @@ public class DefaultNodeSettingsSnapshotTest {
      * @param configuration defines the snapshot tests to run
      */
     protected DefaultNodeSettingsSnapshotTest(final SnapshotTestConfiguration configuration) {
-        m_snapshotTests = configuration.m_snapshotTests;
+        m_snapshotTests = Collections.unmodifiableList(configuration.m_snapshotTests);
         m_snapshotTests.forEach(st -> st.setBaseName(getClass().getName()));
     }
 
@@ -232,21 +240,25 @@ public class DefaultNodeSettingsSnapshotTest {
         NodeContext.removeLastContext();
     }
 
+    Stream<Arguments> getSnapshots() {
+        return m_snapshotTests.stream().map(s -> Arguments.of(Named.of(s.getTestLabel(), s)));
+    }
+
     /**
      * If a snapshot file exists, compares against its contents. If not, creates the file.
      *
+     * @param snapshot the snapshot test to run
      * @throws IOException
      */
-    @Test
-    protected void testSnapshot() throws IOException {
-        for (var snapshot : m_snapshotTests) {
-            // write the snapshot or compare with an existing snapshot
-            var snapshotFile = getSnapshotPath(this.getClass()).resolve(snapshot.getFilename());
-            if (Files.exists(snapshotFile)) {
-                snapshot.compareWithSnapshotAndWriteDebugFile(snapshotFile);
-            } else {
-                snapshot.writeGroundTruth(snapshotFile);
-            }
+    @ParameterizedTest
+    @MethodSource("getSnapshots")
+    final void testSnapshot(final Snapshot snapshot) throws IOException {
+        // write the snapshot or compare with an existing snapshot
+        var snapshotFile = getSnapshotPath(this.getClass()).resolve(snapshot.getFilename());
+        if (Files.exists(snapshotFile)) {
+            snapshot.compareWithSnapshotAndWriteDebugFile(snapshotFile);
+        } else {
+            snapshot.writeGroundTruth(snapshotFile);
         }
     }
 

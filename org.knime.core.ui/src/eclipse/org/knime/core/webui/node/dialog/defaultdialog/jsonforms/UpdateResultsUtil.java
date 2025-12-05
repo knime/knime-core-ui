@@ -279,9 +279,10 @@ public final class UpdateResultsUtil {
                     final var id = context.registerTriggerInvocationHandler(supplier.get());
                     dataAndDialog.setTriggerInvocationHandlerSupplierId(id);
                 }
-                return value;
+            } else if (value.value() != null) {
+                throw new IllegalStateException("Expected DataAndDialog, but got " + value.value());
             }
-            throw new IllegalStateException("Expected DataAndDialog, but got " + value.value());
+            return value;
         }).toList();
     }
 

@@ -54,7 +54,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.button.SimpleButtonWidget;
-import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.DynamicValuesInput;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
@@ -87,9 +86,6 @@ class DefaultNodeSettingsWithAllWidgets implements NodeParameters {
 
     @Widget(title = "Credentials", description = "")
     Credentials m_credentials = new Credentials();
-
-    @Widget(title = "Dynamic Values Input", description = "")
-    DynamicValuesInput m_dynamicValuesInput = DynamicValuesInput.emptySingle();
 
     static final class MyColumnChoicesProvider implements ColumnChoicesProvider {
         @Override

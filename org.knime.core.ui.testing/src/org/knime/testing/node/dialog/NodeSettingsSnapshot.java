@@ -69,6 +69,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 @SuppressWarnings("restriction")
 final class NodeSettingsSnapshot extends Snapshot {
 
+    private final String m_label;
+
     private final int m_instance;
 
     private final FallibleSupplier<? extends NodeParameters> m_assertion;
@@ -77,7 +79,9 @@ final class NodeSettingsSnapshot extends Snapshot {
      * @param assertion in case the node has model and view settings
      * @throws JsonProcessingException
      */
-    NodeSettingsSnapshot(final int instance, final FallibleSupplier<? extends NodeParameters> assertion) {
+    NodeSettingsSnapshot(final String label, final int instance,
+            final FallibleSupplier<? extends NodeParameters> assertion) {
+        m_label = label;
         m_instance = instance;
         m_assertion = assertion;
     }
@@ -85,6 +89,11 @@ final class NodeSettingsSnapshot extends Snapshot {
     @Override
     public String getFilename() {
         return m_testClassName + m_instance + ".settings.xml.snap";
+    }
+
+    @Override
+    public String getTestLabel() {
+        return m_label != null ? m_label : super.getTestLabel();
     }
 
     @Override
@@ -96,7 +105,9 @@ final class NodeSettingsSnapshot extends Snapshot {
             try (final var os = Files.newOutputStream(snapshotFile, StandardOpenOption.CREATE)) {
                 toPersist.saveToXML(os);
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
+            throw e;
+        }  catch (Exception e) {
             throw new IllegalStateException(
                 String.format("Exception while trying to write snapshot: %s", e.getMessage()), e);
         }
@@ -120,12 +131,14 @@ final class NodeSettingsSnapshot extends Snapshot {
                 // write debug file if snapshot doesn't match
                 Files.writeString(debugFile, controlXmlString, StandardCharsets.UTF_8);
                 throw diff.toException(
-                    "Generated node settings do not match snapshot file contents at %s%nDebug file written to %s"
+                    "Generated node settings do not match snapshot file contents at %s%nDebug file written to %s%n"
                         .formatted(snapshotFile, debugFile));
             } else if (Files.exists(debugFile)) {
                 // if snapshot matches, delete debug file
                 Files.delete(debugFile);
             }
+        } catch (IOException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

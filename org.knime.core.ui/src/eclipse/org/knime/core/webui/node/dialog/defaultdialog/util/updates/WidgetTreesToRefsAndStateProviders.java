@@ -498,9 +498,12 @@ final class WidgetTreesToRefsAndStateProviders {
             @Override
             public void serialize(final Object value, final JsonGenerator gen, final SerializerProvider serializers)
                 throws IOException {
-                @SuppressWarnings("unchecked") // The dynamic parameters provider returns a DataAndDialog<JsonNode>
-                final var json = (JsonNode)((DataAndDialog<Object>)value).getData();
-                gen.writeTree(json);
+                // e.g. the GroupBy has operators without dynamic parameters -> null
+                if (value != null) {
+                    @SuppressWarnings("unchecked") // The dynamic parameters provider returns a DataAndDialog<JsonNode>
+                    final var json = (JsonNode)((DataAndDialog<Object>)value).getData();
+                    gen.writeTree(json);
+                }
             }
         };
 

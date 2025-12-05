@@ -44,59 +44,33 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   24 Jan 2024 (carlwitt): created
+ *   Sep 24, 2025 (Paul Bärnreuther): created
  */
-package org.knime.testing.node.dialog;
+package org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.builtin;
 
-import java.io.IOException;
-import java.nio.file.Path;
+import org.knime.core.webui.node.dialog.defaultdialog.internal.dynamic.extensions.filtervalue.FilterOperatorBase;
 
 /**
- * Snapshots supply a value that can be compared to a previous state
+ * Interface for greater than filter operators that provides the standard ID and label.
  *
- * @author Carl Witt, KNIME AG, Zurich, Switzerland
+ * @author Paul Bärnreuther
+ *
+ * @noreference This interface is not intended to be referenced by clients.
  */
-abstract class Snapshot {
-
-    /** The name of the class that defines the test. Used as basis for the snapshot file name. */
-    protected String m_testClassName;
-
-    /** @return of the file that holds the expected state */
-    abstract String getFilename();
-
+public interface GreaterThanOperator extends FilterOperatorBase {
     /**
-     * @param snapshotFile to compare the current state to
-     * @throws IOException
+     * Don't use this id in any other operator, don't change it, don't overwrite it for implementations of this
+     * interface.
      */
-    abstract void compareWithSnapshotAndWriteDebugFile(final Path snapshotFile) throws IOException;
+    String ID = "GT";
 
-    /**
-     * @param snapshotFile to write the current value to
-     * @throws IOException
-     */
-    abstract void writeGroundTruth(final Path snapshotFile) throws IOException;
-
-    /** @return name of the file that holds the current state, if it is different from the expected state */
-    String getDebugFilename() {
-        return getFilename() + ".debug";
+    @Override
+    default String getId() {
+        return ID;
     }
 
-    /**
-     * @param name used as base for the file name, typically the test class name, e.g.,
-     *            org.knime.base.node.preproc.regexsplit.RegexSplitNodeSettingsTest$RegexSplitNodeSettingsSnapshotTest
-     *            or org.knime.base.node.snapshot.NodeSettingsSnapshotTests$AppendedRowsSettingsTest
-     */
-    void setBaseName(final String name) {
-        m_testClassName = name;
-    }
-
-    /**
-     * Label for the snapshot test, used in test reports. The default contains the test class name set via
-     * {@link #setBaseName(String)} or {@link #getFilename()} if the base name has not been set.
-     *
-     * @return label for the snapshot test
-     */
-    String getTestLabel() {
-        return String.format("Snapshot [%s]", m_testClassName != null ? m_testClassName : getFilename());
+    @Override
+    default String getLabel() {
+        return "Greater than";
     }
 }

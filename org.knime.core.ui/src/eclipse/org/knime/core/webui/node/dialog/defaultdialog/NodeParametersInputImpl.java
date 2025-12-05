@@ -211,6 +211,11 @@ public final class NodeParametersInputImpl implements NodeParametersInput {
      */
     @Override
     public Optional<PortObject> getInPortObject(final int portIndex) {
+        if (m_inputPortObjects == null || m_inputPortObjects.length == 0) {
+            // e.g. when used in tests, no table might be available
+            // (null set via NodeParametersUtil#createDefaultNodeSettingsContext)
+            return Optional.empty();
+        }
         return Optional.ofNullable(m_inputPortObjects[portIndex]);
     }
 

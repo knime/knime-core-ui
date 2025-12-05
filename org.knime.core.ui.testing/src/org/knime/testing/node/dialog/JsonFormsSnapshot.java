@@ -59,6 +59,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.util.workflow.def.FallibleSupplier;
 import org.knime.core.webui.node.dialog.SettingsType;
@@ -85,6 +86,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 @SuppressWarnings("restriction")
 final class JsonFormsSnapshot extends Snapshot {
 
+    private static final NodeLogger LOGGER = NodeLogger.getLogger(JsonFormsSnapshot.class);
+
+    private final String m_label;
+
     private final int m_instance;
 
     private final Map<SettingsType, FallibleSupplier<NodeParameters>> m_settings;
@@ -100,8 +105,9 @@ final class JsonFormsSnapshot extends Snapshot {
      * @param specs to configure the settings
      * @throws JsonProcessingException
      */
-    JsonFormsSnapshot(final int instance, final Map<SettingsType, FallibleSupplier<NodeParameters>> settings,
-        final PortObjectSpec[] specs) {
+    JsonFormsSnapshot(final String label, final int instance,
+            final Map<SettingsType, FallibleSupplier<NodeParameters>> settings, final PortObjectSpec[] specs) {
+        m_label = label;
         m_instance = instance;
         m_settings = settings;
         m_specs = specs;
@@ -110,6 +116,11 @@ final class JsonFormsSnapshot extends Snapshot {
     @Override
     public String getFilename() {
         return m_testClassName + (m_instance == 0 ? "" : m_instance) + ".snap";
+    }
+
+    @Override
+    String getTestLabel() {
+        return m_label != null ? m_label : super.getTestLabel();
     }
 
     private static JsonNode jsonForms(final Map<SettingsType, FallibleSupplier<NodeParameters>> settings,
@@ -121,7 +132,7 @@ final class JsonFormsSnapshot extends Snapshot {
                     return e.getValue().get();
                 } catch (Exception ex) {
                     throw new IllegalStateException(
-                        String.format("Exception while trying to write snapshot: %s", ex.getMessage()), ex);
+                        String.format("Exception while trying to read snapshot: %s", ex.getMessage()), ex);
                 }
             }));
         for (var entry : instances.entrySet()) {
@@ -177,6 +188,7 @@ final class JsonFormsSnapshot extends Snapshot {
             Files.writeString(debugFile,
                 JsonFormsDataUtil.getMapper().writerWithDefaultPrettyPrinter().writeValueAsString(m_jsonForms),
                 StandardCharsets.UTF_8);
+            LOGGER.codingWithFormat("Debug snapshot file written to: %s", debugFile.toAbsolutePath());
             throw e;
         }
         if (Files.exists(debugFile)) {
