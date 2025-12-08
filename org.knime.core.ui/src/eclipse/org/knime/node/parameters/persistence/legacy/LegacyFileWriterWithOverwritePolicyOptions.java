@@ -95,8 +95,12 @@ public class LegacyFileWriterWithOverwritePolicyOptions extends LegacyFileWriter
     private static final String DOC_IGNORE =
         "<li><b>Ignore</b>: Will ignore if a file already exists and continues the copying process.</li>";
 
+    private static final String DOC_APPEND =
+        "<li><b>Append</b>: Will append the input data to an existing file.</li>";
+
     private static final Map<OverwritePolicy, String> DOC_MAP = Map.of(OverwritePolicy.fail, DOC_FAIL,
-        OverwritePolicy.overwrite, DOC_OVERWRITE, OverwritePolicy.ignore, DOC_IGNORE);
+        OverwritePolicy.overwrite, DOC_OVERWRITE, OverwritePolicy.ignore, DOC_IGNORE, OverwritePolicy.append,
+        DOC_APPEND);
 
     @Widget(title = "If exists", description = DOC_HEADER + DOC_FAIL + DOC_OVERWRITE + DOC_IGNORE + DOC_FOOTER)
     @ValueSwitchWidget
@@ -120,6 +124,8 @@ public class LegacyFileWriterWithOverwritePolicyOptions extends LegacyFileWriter
             overwrite, // NOSONAR
             @Label(value = "Ignore")
             ignore, // NOSONAR
+            @Label(value = "Append")
+            append, // NOSONAR
     }
 
     /**
