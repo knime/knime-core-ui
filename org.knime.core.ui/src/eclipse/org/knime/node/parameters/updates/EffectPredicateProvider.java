@@ -60,6 +60,8 @@ import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates.
 import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.NodeParametersInput;
 import org.knime.node.parameters.WidgetGroup;
+import org.knime.node.parameters.persistence.legacy.LegacyFileWriterWithOverwritePolicyOptions;
+import org.knime.node.parameters.updates.legacy.LegacyPredicateInitializer;
 
 /**
  * Use the initializer to create a predicate depending on other fields in the current {@link NodeParameters} or the
@@ -267,6 +269,17 @@ public interface EffectPredicateProvider {
         interface LegacyMultiFileSelectionReference {
 
             EnumReference<MultiFileSelectionMode> getSelectionMode();
+
+        }
+
+        /**
+         * Returned by {@link LegacyPredicateInitializer#getLegacyFileWriter}
+         *
+         * @author Thomas Reifenberger
+         */
+        interface LegacyFileWriterReference {
+
+            EnumReference<LegacyFileWriterWithOverwritePolicyOptions.OverwritePolicy> getOverwritePolicy();
 
         }
 

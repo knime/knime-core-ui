@@ -44,34 +44,33 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   8 Dec 2025 (Thomas Reifenberger): created
+ *   Dec 8, 2025 (Thomas Reifenberger): created
+ *
  */
-package org.knime.node.parameters.updates.legacy;
+package org.knime.core.webui.node.dialog.defaultdialog.widget.updates.predicates;
 
-import org.knime.node.parameters.persistence.legacy.LegacyFileWriter;
-import org.knime.node.parameters.persistence.legacy.LegacyMultiFileSelection;
-import org.knime.node.parameters.updates.EffectPredicateProvider;
-import org.knime.node.parameters.updates.ParameterReference;
-import org.knime.node.parameters.updates.ValueReference;
+import org.knime.node.parameters.persistence.legacy.LegacyFileWriterWithOverwritePolicyOptions;
 
 /**
+ * Condition for overwrite policy mode enum values.
  *
  * @author Thomas Reifenberger
  */
-public interface LegacyPredicateInitializer extends EffectPredicateProvider.PredicateInitializer {
+public interface LegacyFileWriterOverwritePolicyCondition extends Condition {
 
     /**
-     * @param reference bound to exactly one {@link LegacyMultiFileSelection} field via {@link ValueReference}
-     * @return an object that can be further transformed to a predicate using one of its methods
+     * See the field name within {@link LegacyFileWriterWithOverwritePolicyOptions}.
      */
-    LegacyMultiFileSelectionReference
-        getLegacyMultiFileSelection(Class<? extends ParameterReference<LegacyMultiFileSelection>> reference);
+    String OVERWRITE_POLICY_PROPERTY_NAME = "overwritePolicy";
+
+    @Override
+    default <T> T accept(final ConditionVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 
     /**
-     * @param reference bound to exactly one {@link LegacyFileWriter} field (or one of its subclasses) via
-     *            {@link ValueReference}
-     * @return an object that can be further transformed to a predicate using one of its methods
+     * @return condition on the overwrite policy
      */
-    <T extends LegacyFileWriter> LegacyFileWriterReference
-        getLegacyFileWriter(Class<? extends ParameterReference<T>> reference);
+    Condition condition();
+
 }
