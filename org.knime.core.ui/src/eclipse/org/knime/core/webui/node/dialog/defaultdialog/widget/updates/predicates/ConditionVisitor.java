@@ -77,4 +77,6 @@ public interface ConditionVisitor<T> {
     T visit(ArrayContainsCondition arrayContainsCondition);
 
     T visit(MultiFileSelectionModeCondition multiFileSelectionModeCondition);
+
+    T visit(LegacyFileWriterOverwritePolicyCondition legacyFileWriterOverwritePolicyCondition);
 }
