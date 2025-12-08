@@ -200,8 +200,9 @@ final class StringFileChooserRenderer extends WidgetTreeControlRendererSpec impl
         Map<String, Class<? extends StateProvider>> stateProviders = new HashMap<>();
         m_customFileSystemAnnotation
             .ifPresent(ann -> stateProviders.put(UpdateResultsUtil.FILE_SYSTEM_ID, ann.connectionProvider()));
-        m_withFileSystemAnnotation.filter(Predicate.not(ConnectedFSOptionsProvider.class::equals))
-            .ifPresent(ann -> stateProviders.put(UiSchema.TAG_CONNECTED_FS_OPTIONS, ann.connectionProvider()));
+        m_withFileSystemAnnotation.map(WithFileSystem::connectionProvider)
+            .filter(Predicate.not(ConnectedFSOptionsProvider.class::equals))
+            .ifPresent(provider -> stateProviders.put(UiSchema.TAG_CONNECTED_FS_OPTIONS, provider));
         return stateProviders;
 
     }

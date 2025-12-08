@@ -186,8 +186,9 @@ final class MultiFileChooserRenderer extends WidgetTreeControlRendererSpec imple
     @Override
     public Map<String, Class<? extends StateProvider>> getStateProviderClasses() {
         Map<String, Class<? extends StateProvider>> stateProviders = new HashMap<>();
-        m_withFileSystemAnnotation.filter(Predicate.not(ConnectedFSOptionsProvider.class::equals))
-            .ifPresent(ann -> stateProviders.put(UiSchema.TAG_CONNECTED_FS_OPTIONS, ann.connectionProvider()));
+        m_withFileSystemAnnotation.map(WithFileSystem::connectionProvider)
+            .filter(Predicate.not(ConnectedFSOptionsProvider.class::equals))
+            .ifPresent(provider -> stateProviders.put(UiSchema.TAG_CONNECTED_FS_OPTIONS, provider));
         return stateProviders;
     }
 }
