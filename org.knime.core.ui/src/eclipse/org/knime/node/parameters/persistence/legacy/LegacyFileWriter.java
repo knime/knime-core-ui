@@ -112,6 +112,17 @@ public class LegacyFileWriter implements NodeParameters {
     @Widget(title = "File Selection", description = "The file selection.") // To be overwritten using the modifier
     FileSelection m_file = new FileSelection();
 
+    /**
+     * Default constructor
+     */
+    public LegacyFileWriter() {
+    }
+
+    @SuppressWarnings("javadoc")
+    public LegacyFileWriter(final FileSelection file) {
+        m_file = file;
+    }
+
     static final class FileSelectionWriterPersistor implements NodeParametersPersistor<FileSelection> {
 
         @Override

@@ -49,6 +49,7 @@
  */
 package org.knime.node.parameters.persistence.legacy;
 
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
@@ -59,11 +60,11 @@ import org.knime.node.parameters.persistence.Persist;
 
 /**
  * Parameters that are backwards-compatible to a {@link SettingsModelWriterFileChooser}.
- * 
+ *
  * This class provides an additional option to create missing folders.
- * 
+ *
  * Use the {@link Modifier} interface to adapt the widgets accordingly.
- * 
+ *
  * <br>
  * See {@link LegacyFileWriter} for an overview of available LegacyFileWriter... implementations.
  *
@@ -79,6 +80,18 @@ public class LegacyFileWriterWithCreateMissingFolders extends LegacyFileWriter {
         description = "If enabled, missing folders in the specified path will be created automatically.")
     @Modification.WidgetReference(CreateMissingFoldersRef.class)
     boolean m_createMissingFolders;
+
+    /**
+     * Default constructor
+     */
+    public LegacyFileWriterWithCreateMissingFolders() {
+    }
+
+    @SuppressWarnings("javadoc")
+    public LegacyFileWriterWithCreateMissingFolders(final FileSelection fileSelection, final boolean createMissingFolders) {
+        super(fileSelection);
+        m_createMissingFolders = createMissingFolders;
+    }
 
     interface CreateMissingFoldersRef extends Modification.Reference {
     }

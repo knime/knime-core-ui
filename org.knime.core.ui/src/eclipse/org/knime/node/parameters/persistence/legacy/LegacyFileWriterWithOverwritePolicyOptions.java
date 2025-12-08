@@ -48,6 +48,7 @@
  */
 package org.knime.node.parameters.persistence.legacy;
 
+import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileSelection;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FileWriterWidget;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.Modification.WidgetGroupModifier;
@@ -102,6 +103,19 @@ public class LegacyFileWriterWithOverwritePolicyOptions extends LegacyFileWriter
             overwrite, // NOSONAR
             @Label(value = "Ignore")
             ignore, // NOSONAR
+    }
+
+    /**
+     * Default constructor
+     */
+    public LegacyFileWriterWithOverwritePolicyOptions() {
+    }
+
+    @SuppressWarnings("javadoc")
+    public LegacyFileWriterWithOverwritePolicyOptions(final FileSelection fileSelection,
+        final boolean createMissingFolders, final OverwritePolicy overwritePolicy) {
+        super(fileSelection, createMissingFolders);
+        m_overwritePolicy = overwritePolicy;
     }
 
     interface OverwritePolicyRef extends Modification.Reference {

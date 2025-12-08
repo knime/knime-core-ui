@@ -135,6 +135,19 @@ public class DialogUpdateSimulator implements UpdateSimulator {
                 return triggerResult.locationUiStateUpdates().get(new Location(paths, settingsType))
                     .get(providedOptionName);
             }
+
+            @Override
+            public boolean hasNoValueUpdateInArrayAt(final SettingsType settingsType, final List<List<String>> path) {
+                return !triggerResult.valueUpdates().containsKey(new Location(path, settingsType));
+            }
+
+            @Override
+            public boolean hasNoUiStateUpdateInArrayAt(final SettingsType settingsType, final List<List<String>> path,
+                final String updatedOptionName) {
+                return !triggerResult.locationUiStateUpdates().containsKey(new Location(path, settingsType))
+                    || !triggerResult.locationUiStateUpdates().get(new Location(path, settingsType))
+                        .containsKey(updatedOptionName);
+            }
         };
     }
 

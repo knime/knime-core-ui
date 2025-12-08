@@ -191,6 +191,93 @@ public interface UpdateSimulator {
             return getMultiUiStateUpdateAt(paths, updatedOptionName).get(0).value();
         }
 
+        /**
+         * Returns true if no value update is present at the given path.
+         *
+         * @param settingsType
+         * @param path
+         * @return true if no value update is present
+         */
+        default boolean hasNoValueUpdateAt(final String... path) {
+            return hasNoValueUpdateAt(List.of(path));
+        }
+
+        /**
+         * Returns true if no value update is present at the given path.
+         *
+         * @param settingsType
+         * @param path
+         * @return true if no value update is present
+         */
+        default boolean hasNoValueUpdateAt(final List<String> path) {
+            return hasNoValueUpdateInArrayAt(SettingsType.MODEL, List.of(path));
+        }
+
+        /**
+         * Returns true if no value update is present at the given path.
+         *
+         * @param settingsType
+         * @param path
+         * @return true if no value update is present
+         */
+        default boolean hasNoValueUpdateAt(final SettingsType settingsType, final String... path) {
+            return hasNoValueUpdateAt(settingsType, List.of(path));
+        }
+
+        /**
+         * Returns true if no value update is present at the given path.
+         *
+         * @param settingsType
+         * @param path
+         * @return true if no value update is present
+         */
+        default boolean hasNoValueUpdateAt(final SettingsType settingsType, final List<String> path) {
+            return hasNoValueUpdateInArrayAt(settingsType, List.of(path));
+        }
+
+        /**
+         * Returns true if no value update is present at the given path.
+         *
+         * @param settingsType
+         * @param path
+         * @return true if no value update is present
+         */
+        boolean hasNoValueUpdateInArrayAt(final SettingsType settingsType, final List<List<String>> path);
+
+        /**
+         * Returns true if no ui state update is present at the given path for the given updated option name.
+         *
+         * @param path
+         * @param updatedOptionName
+         * @return true if no ui state update is present
+         */
+        default boolean hasNoUiStateUpdateAt(final List<String> path, final String updatedOptionName) {
+            return hasNoUiStateUpdateInArrayAt(SettingsType.MODEL, List.of(path), updatedOptionName);
+        }
+
+        /**
+         * Returns true if no ui state update is present at the given path for the given updated option name.
+         *
+         * @param settingsType
+         * @param path
+         * @param updatedOptionName
+         * @return true if no ui state update is present
+         */
+        default boolean hasNoUiStateUpdateAt(final SettingsType settingsType, final List<String> path,
+            final String updatedOptionName) {
+            return hasNoUiStateUpdateInArrayAt(settingsType, List.of(path), updatedOptionName);
+        }
+
+        /**
+         * Returns true if no ui state update is present at the given path for the given updated option name.
+         *
+         * @param settingsType
+         * @param path
+         * @param updatedOptionName
+         * @return true if no ui state update is present
+         */
+        boolean hasNoUiStateUpdateInArrayAt(final SettingsType settingsType, final List<List<String>> path,
+            final String updatedOptionName);
     }
 
     /**
