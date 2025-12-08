@@ -74,6 +74,9 @@ const fsLocationToText = async (fsLocation: FileChooserValue) => {
     return fsLocation.path;
   }
   if (!isConnected.value && fsLocation.fsCategory === "LOCAL") {
+    if (fsLocation.path === "") {
+      return "";
+    }
     const { path, errorMessage } = await getFilePath(
       null,
       fsLocation.path,
@@ -90,7 +93,7 @@ const fsLocationToText = async (fsLocation: FileChooserValue) => {
   return fsLocation.context?.fsToString ?? "";
 };
 
-const inputField = ref<null | { $refs: { input: HTMLElement } }>(null);
+const inputField = ref<null | InstanceType<typeof InputField>>(null);
 
 const currentValue = ref("");
 onMounted(() => {
@@ -151,6 +154,10 @@ const onTextInput = (text: string) => {
   currentValue.value = text;
   emit("update:modelValue", textToFsLocation(text));
 };
+
+defineExpose({
+  focusInput: () => inputField.value?.focus(),
+});
 </script>
 
 <template>

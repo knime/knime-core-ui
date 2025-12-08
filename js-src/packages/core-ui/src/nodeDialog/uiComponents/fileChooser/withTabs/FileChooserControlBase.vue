@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T">
-import { computed, onMounted, watch } from "vue";
+import { computed, ref, watch } from "vue";
 
 import {
   type VueControlPropsForLabelContent,
@@ -16,6 +16,7 @@ import { type FileChooserValue } from "../types/FileChooserProps";
 
 import FSLocationTextControl from "./FSLocationTextControl.vue";
 import SideDrawerContent from "./SideDrawerContent.vue";
+import useFsNotSupported from "./useFsNotSupported";
 
 const props = defineProps<
   VueControlPropsForLabelContent<T> & {
@@ -33,15 +34,12 @@ const options = computed(() => ({
   connectedFSOptions:
     connectedFSOptions.value ?? uischema.value.options?.connectedFSOptions,
 }));
-const { validCategories, isConnectedButNoFileConnectionIsAvailable } =
-  useFileSystems(options);
+const {
+  validCategories,
+  isConnectedButNoFileConnectionIsAvailable,
+  isConnected,
+} = useFileSystems(options);
 
-const isDisabled = computed(
-  () =>
-    props.disabled ||
-    isConnectedButNoFileConnectionIsAvailable.value ||
-    validCategories.value.length === 0,
-);
 const getDefaultData = () => {
   return {
     path: "",
@@ -87,31 +85,41 @@ const { onFsCategoryUpdate } = useFileChooserStateChange(
   uischema,
 );
 
-/**
- * This currently can happen in case a node implementation sets the default value to one that is not supported in this frontend.
- * Or when there was a file system connected/removed since the last time the settings were saved.
- * In this case, we switch to a default.
- */
-onMounted(() => {
-  if (
-    !isOverwritten.value &&
-    !validCategories.value.includes(data.value.fsCategory) &&
-    validCategories.value.length > 0
-  ) {
-    onFsCategoryUpdate(validCategories.value[0]);
-  }
+const textControl = ref<InstanceType<typeof FSLocationTextControl> | null>(
+  null,
+);
+
+const { fsNotSupportedComponent, fsNotSupported } = useFsNotSupported({
+  data,
+  validCategories,
+  isOverwritten,
+  isConnected,
+  onFsCategoryUpdate,
+  clearPath: () => {
+    props.changePath(getDefaultData());
+    setTimeout(() => textControl.value?.focusInput?.(), 0);
+  },
 });
 
 const { onApply, sideDrawerValue } = useSideDrawerContent<FileChooserValue>({
   onChange: props.changePath,
   initialValue: data,
 });
+
+const isDisabled = computed(
+  () =>
+    props.disabled ||
+    isConnectedButNoFileConnectionIsAvailable.value ||
+    validCategories.value.length === 0 ||
+    fsNotSupported.value,
+);
 </script>
 
 <template>
   <div class="flex-row">
     <FSLocationTextControl
       :id="labelForId"
+      ref="textControl"
       class="flex-grow"
       :model-value="data"
       :disabled="isDisabled"
@@ -133,6 +141,7 @@ const { onApply, sideDrawerValue } = useSideDrawerContent<FileChooserValue>({
       />
     </FileBrowserButton>
   </div>
+  <component :is="fsNotSupportedComponent" />
 </template>
 
 <style lang="postcss" scoped>

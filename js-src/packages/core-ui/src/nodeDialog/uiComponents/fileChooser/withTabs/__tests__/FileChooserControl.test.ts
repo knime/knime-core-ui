@@ -11,13 +11,14 @@ import { reactive } from "vue";
 import { VueWrapper } from "@vue/test-utils";
 import flushPromises from "flush-promises";
 
-import { FunctionButton, SideDrawer } from "@knime/components";
+import { FunctionButton, InlineMessage, SideDrawer } from "@knime/components";
 import {
   type ProvidedMethods,
   type VueControlTestProps,
   getControlBase,
   mountJsonFormsControlLabelContent,
 } from "@knime/jsonforms/testing";
+import { KdsButton } from "@knime/kds-components";
 import FolderLenseIcon from "@knime/styles/img/icons/folder-lense.svg";
 
 import { createPersistSchema } from "@@/test-setup/utils/createPersistSchema";
@@ -226,43 +227,77 @@ describe("FileChooserControl.vue", () => {
       expect(handleChange).not.toHaveBeenCalled();
     });
 
-    it("switches to current hub space if non-supported fsCategory is given", () => {
-      props.control.data.path.fsCategory = "LOCAL";
-      props.control.uischema.options!.isLocal = false;
-      const { handleChange } = mountFileChooserControl({
-        props,
-        stubs: {
-          FSLocationTextControl: true,
-        },
-      });
-      expect(handleChange).toHaveBeenCalledWith(
-        "test.path",
-        expect.objectContaining({
-          ...props.control.data.path,
-          fsCategory: "relative-to-current-hubspace",
-        }),
-      );
-    });
-
-    it("switches to LOCAL if non-supported fsCategory is given and isLocal is true", () => {
+    it("shows warning and button in case path is CONNECTED but is not connected", () => {
       props.control.data.path.fsCategory = "CONNECTED";
       props.control.uischema.options!.isLocal = true;
-      const { handleChange } = mountFileChooserControl({
+      const { handleChange, wrapper } = mountFileChooserControl({
         props,
         stubs: {
           FSLocationTextControl: true,
         },
       });
+      expect(handleChange).not.toHaveBeenCalled();
+      expect(wrapper.findComponent(InlineMessage).exists()).toBe(true);
+      expect(wrapper.findComponent(InlineMessage).text()).toContain(
+        "port that is no longer available",
+      );
+      expect(wrapper.findComponent(KdsButton).exists()).toBe(true);
+      wrapper.findComponent(KdsButton).vm.$emit("click");
       expect(handleChange).toHaveBeenCalledWith(
         "test.path",
         expect.objectContaining({
-          ...props.control.data.path,
+          path: "",
           fsCategory: "LOCAL",
         }),
       );
     });
 
-    it("switches to CONNECTED if any other fsCategory is given and isLocal is false", () => {
+    it.each([
+      ["HUB_SPACE", "HUB_SPACE", "(HUB_SPACE,,)", "Space Connector"],
+      [
+        "relative to current mountpoint",
+        "RELATIVE",
+        "(RELATIVE, knime.mountpoint,)",
+        "Mountpoint Connector",
+      ],
+      [
+        "MOUNTPOINT",
+        "MOUNTPOINT",
+        "(MOUNTPOINT, LOCAL,)",
+        "Mountpoint Connector",
+      ],
+    ])(
+      'shows warning and button in case path is from "%s"',
+      (_desc, fsCategory, fsToString, connectorName) => {
+        props.control.data.path.fsCategory = fsCategory as never;
+        props.control.data.path.context = {
+          fsToString,
+        };
+        const { handleChange, wrapper } = mountFileChooserControl({
+          props,
+          stubs: {
+            FSLocationTextControl: true,
+          },
+        });
+
+        expect(handleChange).not.toHaveBeenCalled();
+        expect(wrapper.findComponent(InlineMessage).exists()).toBe(true);
+        expect(wrapper.findComponent(InlineMessage).text()).toContain(
+          `Consider connecting a "${connectorName}" node to this node instead.`,
+        );
+        expect(wrapper.findComponent(KdsButton).exists()).toBe(true);
+        wrapper.findComponent(KdsButton).vm.$emit("click");
+        expect(handleChange).toHaveBeenCalledWith(
+          "test.path",
+          expect.objectContaining({
+            path: "",
+            fsCategory: "relative-to-current-hubspace",
+          }),
+        );
+      },
+    );
+
+    it("switches to CONNECTED if any other fsCategory is given", () => {
       props.control.data.path.fsCategory = "relative-to-current-hubspace";
       props.control.uischema.options!.connectedFSOptions = {
         portIndex: 1,
