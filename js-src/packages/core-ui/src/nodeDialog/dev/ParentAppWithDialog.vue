@@ -23,8 +23,9 @@ const props = defineProps<{
 const { jsonDataService, alertingService, dialogService } = useServices(
   props.baseService,
 );
-const callRpcMethod: NodeDialogCoreRpcMethods =
-  jsonDataService.data.bind(jsonDataService);
+const callRpcMethod: NodeDialogCoreRpcMethods = jsonDataService.data.bind(
+  jsonDataService,
+) as NodeDialogCoreRpcMethods;
 const handleAlert = alertingService.sendAlert.bind(alertingService);
 const registerSettings = dialogService.registerSettings.bind(dialogService);
 

@@ -125,7 +125,9 @@ describe("edit/reset button in array layouts", () => {
     ) => UpdateResult[],
   ) =>
     vi.spyOn(JsonDataService.prototype, "data").mockImplementation((param) => {
-      const result = getResult(param!.options![2]);
+      const result = getResult(
+        param!.options![2] as Record<string, IndexIdsValuePairs>,
+      );
       return Promise.resolve({
         state: "SUCCESS",
         result,

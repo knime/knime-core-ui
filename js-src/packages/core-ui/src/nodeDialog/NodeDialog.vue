@@ -36,8 +36,8 @@ const handleAlert: typeof alertingService.sendAlert = (...args) =>
 const registerSettings: typeof dialogService.registerSettings = (...args) =>
   dialogService.registerSettings(...args);
 
-const callRpcMethod: NodeDialogCoreRpcMethods = (...args) =>
-  jsonDataService.data(...args);
+const callRpcMethod = ((...args) =>
+  jsonDataService.data(...args)) as NodeDialogCoreRpcMethods;
 
 const handleSetControlsVisibility = (visible: boolean) => {
   dialogService?.setControlsVisibility({

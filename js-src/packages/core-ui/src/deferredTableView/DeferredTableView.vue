@@ -80,10 +80,10 @@ export default {
   },
   methods: {
     async fetchTableData() {
-      const tableViewInitialDataString = await this.jsonDataService!.data({
+      const tableViewInitialDataString = (await this.jsonDataService!.data({
         method: "getTableViewInitialData",
         options: [this.numRows],
-      });
+      })) as string;
       if (!tableViewInitialDataString) {
         this.tableViewInitialData = null;
         return;

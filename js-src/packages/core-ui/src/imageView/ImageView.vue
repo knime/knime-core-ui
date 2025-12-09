@@ -53,7 +53,9 @@ onMounted(async () => {
   const knimeService = inject<() => UIExtensionService>("getKnimeService")!();
   const jsonDataService = new JsonDataService(knimeService);
   const sharedDataService = new SharedDataService(knimeService);
-  sharedDataService.addSharedDataListener(onViewSettingsChange);
+  sharedDataService.addSharedDataListener((payload) =>
+    onViewSettingsChange(payload as { data: { view: ImageViewSettings } }),
+  );
   const initialData = await jsonDataService.initialData();
   setData(initialData.settings);
   const imageUrl = await new ResourceService(knimeService).getResourceUrl(
