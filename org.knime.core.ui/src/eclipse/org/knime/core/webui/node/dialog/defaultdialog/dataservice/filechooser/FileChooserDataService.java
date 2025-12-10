@@ -98,7 +98,8 @@ public final class FileChooserDataService {
         static FolderAndError asRootFolder(final List<Item> items, final String errorMessage, final String inputPath,
             final Path relativeToPath, final FileChooserBackend fileChooserBackend) {
             return new FolderAndError(
-                new Folder(items, null, getParentFolders(null, relativeToPath, fileChooserBackend)),
+                new Folder(items, fileChooserBackend.isAbsoluteFileSystem() ? null : ".",
+                    getParentFolders(null, relativeToPath, fileChooserBackend)),
                 Optional.ofNullable(errorMessage), inputPath);
         }
 
@@ -256,7 +257,8 @@ public final class FileChooserDataService {
             subPaths.push(defaultPath);
         }
         if (nextPath != null) {
-            final var pathFragments = StreamSupport.stream(nextPath.spliterator(), false).collect(Collectors.toList());
+            final var pathFragments =
+                StreamSupport.stream(nextPath.normalize().spliterator(), false).collect(Collectors.toList());
             for (Path pathFragent : pathFragments) {
                 var lastPath = subPaths.peek();
                 subPaths.push(lastPath == null ? pathFragent : lastPath.resolve(pathFragent));
@@ -315,6 +317,10 @@ public final class FileChooserDataService {
         Path relativeToPath = null;
         try {
             nextPath = path == null ? fileSystem.getPath(fileName) : fileSystem.getPath(path, fileName);
+            nextPath = nextPath.normalize();
+            if (nextPath.toString().isEmpty()) {
+                nextPath = fileSystem.getPath(".");
+            }
             if (relativeToRoot != null) {
                 relativeToPath = fileSystem.getPath(relativeToRoot);
             }
