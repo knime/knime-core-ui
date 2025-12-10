@@ -134,6 +134,7 @@ const isDisabled = computed(
     >
       <SideDrawerContent
         :id="labelForId ?? null"
+        :key="`${data.fsCategory}-${data.path}`"
         v-model="sideDrawerValue"
         :disabled="isDisabled"
         :uischema

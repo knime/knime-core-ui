@@ -22,6 +22,7 @@ import type {
 import ConnectionPreventsTab from "./ConnectionPreventsTab.vue";
 import KnimeIcon from "./knime.svg";
 import UrlTab from "./url/UrlTab.vue";
+import { useTrackingOfPathsPerTab } from "./useTrackingOfPathsPerTab";
 
 const props = defineProps<FileChooserProps>();
 const emit = defineEmits(["update:modelValue", "applyAndClose"]);
@@ -156,6 +157,12 @@ const backendType = computed<BackendType>(() =>
   getBackendType(props.modelValue.fsCategory, portIndex.value),
 );
 
+const { initialFilePathForCurrentTab, handleNavigate } =
+  useTrackingOfPathsPerTab({
+    backendType,
+    modelValue: toRef(props, "modelValue"),
+  });
+
 const breadcrumbRoot = computed(() => {
   if (props.modelValue.fsCategory === "relative-to-current-hubspace") {
     return spacePath.value;
@@ -197,11 +204,12 @@ const browseAction: Record<Exclude<TabType, "CONNECTED">, string> = {
         :appended-extension="appendedExtension"
         :is-writer="isWriter"
         :backend-type="backendType"
-        :initial-file-path="modelValue.path"
+        :initial-file-path="initialFilePathForCurrentTab"
         :breadcrumb-root="breadcrumbRoot"
         :selection-mode="selectionMode"
         :relative-to-options="relativeToOptions"
         @choose-item="onPathUpdate"
+        @navigate="handleNavigate"
         @update:is-relative-to="updateIsRelativeTo"
         @apply-and-close="emit('applyAndClose')"
       />
