@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
+import editor from "@s/editor";
+import { activeEditorStore, usePromptResponseStore } from "@s/store/ai-bar";
 
 import { Button } from "@knime/components";
 import ExportIcon from "@knime/styles/img/icons/export.svg";
-
-import editor from "@/editor";
-import { activeEditorStore, usePromptResponseStore } from "@/store/ai-bar";
 
 const emit =
   defineEmits<(e: "accept-suggestion", acceptedCode: string) => void>();

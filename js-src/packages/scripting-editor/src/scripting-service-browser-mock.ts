@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-magic-numbers */
-import { sleep } from "@knime/utils";
+import { log } from "@s/log";
 
-import { log } from "@/log";
+import { sleep } from "@knime/utils";
 
 import type { ScriptingServiceType } from "./scripting-service";
 

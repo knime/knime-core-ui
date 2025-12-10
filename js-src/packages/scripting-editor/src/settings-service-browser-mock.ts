@@ -1,6 +1,6 @@
-import type { SettingState } from "@knime/ui-extension-service";
+import { log } from "@s/log";
 
-import { log } from "@/log";
+import type { SettingState } from "@knime/ui-extension-service";
 
 import type {
   GenericNodeSettings,

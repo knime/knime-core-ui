@@ -8,12 +8,11 @@ export default {};
 <script setup lang="ts">
 import { type Ref, computed, defineProps, onMounted, ref } from "vue";
 import { type MaybeElement, onClickOutside } from "@vueuse/core";
+import type { PaneSizes } from "@s/components/utils/paneSizes";
+import { getInitialData } from "@s/init";
 
 import { Button } from "@knime/components";
 import AiCodeIcon from "@knime/styles/img/icons/ai-general.svg";
-
-import type { PaneSizes } from "@/components/utils/paneSizes";
-import { getInitialData } from "@/init";
 
 import AiPopupContent from "./AiPopupContent.vue";
 

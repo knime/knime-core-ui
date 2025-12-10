@@ -1,4 +1,4 @@
-import type { ConsoleHandler } from "@/components/OutputConsole.vue";
+import type { ConsoleHandler } from "@s/components/OutputConsole.vue";
 
 export let consoleHandler = {
   writeln: (text) => consola.error("Console not yet initialized", text),

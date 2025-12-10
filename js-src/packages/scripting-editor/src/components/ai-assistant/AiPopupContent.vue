@@ -9,19 +9,13 @@ export default {};
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useTextareaAutosize } from "@vueuse/core";
-
-import { Button, FunctionButton, InlineMessage } from "@knime/components";
-import AbortIcon from "@knime/styles/img/icons/cancel-execution.svg";
-import WarningIcon from "@knime/styles/img/icons/circle-warning.svg";
-import SendIcon from "@knime/styles/img/icons/paper-flier.svg";
-
-import InfinityLoadingBar from "@/components/InfinityLoadingBar.vue";
+import InfinityLoadingBar from "@s/components/InfinityLoadingBar.vue";
 import {
   getInitialData,
   getScriptingService,
   getSettingsService,
-} from "@/init";
-import { type UsageData } from "@/scripting-service";
+} from "@s/init";
+import { type UsageData } from "@s/scripting-service";
 import {
   type Message,
   type PromptResponseStore,
@@ -31,7 +25,12 @@ import {
   showDisclaimer,
   usageData,
   usePromptResponseStore,
-} from "@/store/ai-bar";
+} from "@s/store/ai-bar";
+
+import { Button, FunctionButton, InlineMessage } from "@knime/components";
+import AbortIcon from "@knime/styles/img/icons/cancel-execution.svg";
+import WarningIcon from "@knime/styles/img/icons/circle-warning.svg";
+import SendIcon from "@knime/styles/img/icons/paper-flier.svg";
 
 import AiDisclaimer from "./AiDisclaimer.vue";
 import AiSuggestion from "./AiSuggestion.vue";

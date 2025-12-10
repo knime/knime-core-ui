@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { getScriptingService } from "@s/init";
 
 import {
   type ExtensionConfig,
@@ -11,8 +12,6 @@ import {
   JsonDataService,
   type UIExtensionService,
 } from "@knime/ui-extension-service";
-
-import { getScriptingService } from "@/init";
 
 type Props = {
   /** Text to show when no data is available yet */

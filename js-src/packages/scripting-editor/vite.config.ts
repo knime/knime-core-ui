@@ -29,7 +29,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "@s": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
   build: {

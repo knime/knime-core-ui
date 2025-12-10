@@ -7,10 +7,10 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { getScriptingService } from "@s/init";
 
 import { Button } from "@knime/components";
 
-import { getScriptingService } from "@/init";
 import InfinityLoadingBar from "../InfinityLoadingBar.vue";
 
 const disclaimerText = ref<string>();

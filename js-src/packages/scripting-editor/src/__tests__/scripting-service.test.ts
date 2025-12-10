@@ -1,13 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
+import { ScriptingService } from "@s/scripting-service";
 
 import type {
   AlertParams,
   AlertingService,
   JsonDataService,
 } from "@knime/ui-extension-service";
-
-import { ScriptingService } from "@/scripting-service";
 
 type MockBackend = {
   [key: string]: (options: any[]) => Promise<any> | undefined;

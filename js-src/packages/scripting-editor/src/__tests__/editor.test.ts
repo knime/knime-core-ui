@@ -1,8 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { type Ref, defineComponent, toRaw } from "vue";
 import { mount } from "@vue/test-utils";
-import * as monaco from "monaco-editor";
-
 import {
   type UseCodeEditorParams,
   type UseDiffEditorParams,
@@ -10,7 +8,8 @@ import {
   useDiffEditor,
   useMainCodeEditor,
   useMainCodeEditorStore,
-} from "@/editor";
+} from "@s/editor";
+import * as monaco from "monaco-editor";
 
 describe("editor", () => {
   const testComponent = <T>(

@@ -2,10 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick, ref } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import { useElementBounding } from "@vueuse/core";
+import { getScriptingService } from "@s/init";
 
 import { SplitPanel } from "@knime/components";
 
-import { getScriptingService } from "@/init";
 import CodeEditorControlBar from "../CodeEditorControlBar.vue";
 import HeaderBar from "../HeaderBar.vue";
 import InputOutputPane from "../InputOutputPane.vue";
@@ -54,7 +54,7 @@ vi.mock("@vueuse/core", async (importOriginal) => {
   };
 });
 
-vi.mock("@/editor");
+vi.mock("@s/editor");
 
 describe("ScriptingEditor", () => {
   beforeEach(() => {

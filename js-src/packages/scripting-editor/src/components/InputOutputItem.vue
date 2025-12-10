@@ -6,15 +6,14 @@ export const COLUMN_INSERTION_EVENT = "columnInsertion";
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import type { Component } from "vue";
+import { insertionEventHelper } from "@s/components/utils/insertionEventHelper";
+import { useInputOutputSelectionStore } from "@s/store/io-selection";
+import { useReadonlyStore } from "@s/store/readOnly";
 import Handlebars, { type HelperOptions } from "handlebars";
 
 import { Collapser, PortIcon, useMultiSelection } from "@knime/components";
 import { KdsDataType } from "@knime/kds-components";
 import EyeIcon from "@knime/styles/img/icons/eye.svg";
-
-import { insertionEventHelper } from "@/components/utils/insertionEventHelper";
-import { useInputOutputSelectionStore } from "@/store/io-selection";
-import { useReadonlyStore } from "@/store/readOnly";
 
 import { createDragGhost, removeDragGhost } from "./utils/dragGhost";
 

@@ -1,11 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
+import { type GenericNodeSettings, SettingsService } from "@s/settings-service";
 
 import type {
   DialogService,
   JsonDataService,
 } from "@knime/ui-extension-service";
-
-import { type GenericNodeSettings, SettingsService } from "@/settings-service";
 
 describe("settings-service", () => {
   it("should create SettingsService instance", () => {

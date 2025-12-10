@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { useVModel } from "@vueuse/core";
+import useShouldFocusBePainted from "@s/components/utils/shouldFocusBePainted";
 
 import { TabBar } from "@knime/components";
-
-import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
 
 const props = defineProps({
   disabled: {

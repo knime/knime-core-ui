@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { KnimeMessageReader, KnimeMessageWriter } from "../knime-io";
 
-vi.mock("@/scripting-service");
+vi.mock("@s/scripting-service");
 
 describe("knime-io", () => {
   afterEach(() => {

@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { type Directive, ref, toRef, watch } from "vue";
+import { useMainCodeEditorStore } from "@s/editor";
+import { currentInputOutputItems } from "@s/store/ai-bar";
+import { useInputOutputSelectionStore } from "@s/store/io-selection";
 import * as monaco from "monaco-editor";
-
-import { useMainCodeEditorStore } from "@/editor";
-import { currentInputOutputItems } from "@/store/ai-bar";
-import { useInputOutputSelectionStore } from "@/store/io-selection";
 
 import InputOutputItem, {
   INPUT_OUTPUT_DRAG_EVENT_ID,
