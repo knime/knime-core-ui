@@ -132,11 +132,6 @@ final class StringFileChooserRenderer extends WidgetTreeControlRendererSpec impl
             }
         }
 
-        final var selectionMode =
-            m_fileSelectionAnnotation.map(FileSelectionWidget::value).orElse(SingleFileSelectionMode.FILE);
-        if (selectionMode == SingleFileSelectionMode.WORKFLOW) {
-            throw new UiSchemaGenerationException("Workflow selection is not supported yet.");
-        }
     }
 
     @Override

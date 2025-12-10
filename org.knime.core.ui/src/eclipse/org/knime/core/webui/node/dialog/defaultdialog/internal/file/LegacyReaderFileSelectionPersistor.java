@@ -80,6 +80,18 @@ public abstract class LegacyReaderFileSelectionPersistor implements NodeParamete
     public static FileSelection load(final NodeSettingsRO nodeSettings, final String configKey)
         throws InvalidSettingsException {
         var fileChooserSettings = nodeSettings.getNodeSettings(configKey);
+        return loadLegacyReaderFileSelection(fileChooserSettings);
+    }
+
+    /**
+     * Public for cases where the legacy reader saved additional fields next to the path.
+     *
+     * @param fileChooserSettings the settings to load from
+     * @return the loaded FileSelection
+     * @throws InvalidSettingsException
+     */
+    public static FileSelection loadLegacyReaderFileSelection(final NodeSettingsRO fileChooserSettings)
+        throws InvalidSettingsException {
         var fileChooser = new FileSelection();
         fileChooser.m_path = FSLocationSerializationUtils.loadFSLocation(fileChooserSettings.getConfig("path"));
         return fileChooser;
@@ -87,11 +99,23 @@ public abstract class LegacyReaderFileSelectionPersistor implements NodeParamete
 
     @SuppressWarnings("javadoc")
     public static void save(FileSelection fileChooser, final NodeSettingsWO settings, final String configKey) {
+        var fileChooserSettings = settings.addNodeSettings(configKey);
         if (fileChooser == null) {
             LOGGER.coding(createFilterNullError(configKey));
             fileChooser = new FileSelection();
         }
-        var fileChooserSettings = settings.addNodeSettings(configKey);
+        saveLegacyReaderFileSelection(fileChooser, fileChooserSettings);
+    }
+
+    /**
+     * Public for cases where the legacy reader saved additional fields next to the path.
+     *
+     * @param fileChooser the FileSelection to save
+     * @param fileChooserSettings the settings to save into
+     */
+    public static void saveLegacyReaderFileSelection(final FileSelection fileChooser,
+        final NodeSettingsWO fileChooserSettings) {
+
         FSLocationSerializationUtils.saveFSLocation(fileChooser.getFSLocation(),
             fileChooserSettings.addNodeSettings("path"));
 

@@ -376,16 +376,6 @@ class UiSchemaOptionsFileSelectionTest {
                 .containsExactly("csv");
         }
 
-        @Test
-        void testThrowsForNowForWorkflowMode() {
-            class Settings implements NodeParameters {
-                @Widget(title = "", description = "")
-                @FileSelectionWidget(SingleFileSelectionMode.WORKFLOW)
-                FileSelection m_singleFileWorkflowMode = new FileSelection();
-            }
-            assertThrows(UiSchemaGenerationException.class, () -> buildUiSchema(Settings.class));
-        }
-
     }
 
     @Nested
@@ -452,16 +442,6 @@ class UiSchemaOptionsFileSelectionTest {
             assertThrows(UiSchemaGenerationException.class, () -> buildUiSchema(Settings.class));
         }
 
-        @Test
-        void testThrowsForNowForWorkflowMode() {
-            class Settings implements NodeParameters {
-                @Widget(title = "", description = "")
-                @MultiFileSelectionWidget({MultiFileSelectionMode.WORKFLOW, MultiFileSelectionMode.FILES_IN_FOLDERS})
-                MultiFileSelection<DummyFileChooserFilters> m_multiFileWorkflowMode =
-                    new MultiFileSelection<>(MultiFileSelectionMode.WORKFLOW, new DummyFileChooserFilters());
-            }
-            assertThrows(UiSchemaGenerationException.class, () -> buildUiSchema(Settings.class));
-        }
     }
 
     @Nested

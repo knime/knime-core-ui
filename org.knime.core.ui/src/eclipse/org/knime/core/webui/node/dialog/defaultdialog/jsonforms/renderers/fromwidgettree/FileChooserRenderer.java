@@ -63,7 +63,6 @@ import org.knime.core.webui.node.dialog.defaultdialog.internal.file.WithFileSyst
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.JsonFormsConsts.UiSchema;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.FileChooserRendererSpec;
 import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.renderers.options.FileChooserRendererOptions;
-import org.knime.core.webui.node.dialog.defaultdialog.jsonforms.uischema.UiSchemaGenerationException;
 import org.knime.core.webui.node.dialog.defaultdialog.tree.TreeNode;
 import org.knime.core.webui.node.dialog.defaultdialog.widget.updates.NoopStringProvider;
 import org.knime.node.parameters.NodeParametersInput;
@@ -99,15 +98,6 @@ final class FileChooserRenderer extends WidgetTreeControlRendererSpec implements
             m_withFileSystemAnnotation.map(WithFileSystem::connectionProvider).orElse(null) //
         );
 
-        validateAnnotations();
-    }
-
-    void validateAnnotations() {
-        final var selectionMode =
-            m_fileSelectionAnnotation.map(FileSelectionWidget::value).orElse(SingleFileSelectionMode.FILE);
-        if (selectionMode == SingleFileSelectionMode.WORKFLOW) {
-            throw new UiSchemaGenerationException("Workflow selection is not supported yet.");
-        }
     }
 
     @Override

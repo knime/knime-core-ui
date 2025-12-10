@@ -23,6 +23,7 @@ import HouseIcon from "@knime/styles/img/icons/house.svg";
 import type { FileSelectionMode } from "@/nodeDialog/types/FileChooserUiSchema";
 
 import useFileChooserBackend from "./composables/useFileChooserBackend";
+import useFileChooserIcons from "./composables/useFileChooserIcons";
 import type {
   BackendType,
   Folder,
@@ -53,6 +54,12 @@ export interface DialogFileExplorerProps {
     relativeRootIcon: Component;
   } | null;
 }
+
+/**
+ * Selection mode WORKFLOW is mapped to selection type FILE in the file explorer since it only
+ * influences the icons and the filtering in the backend.
+ */
+type FileSelectionModeFileExplorer = "FILE" | "FOLDER" | "FILE_OR_FOLDER";
 
 const props = withDefaults(defineProps<DialogFileExplorerProps>(), {
   initialFilePath: "",
@@ -108,7 +115,7 @@ const currentParents = ref<ParentFolder[]>([]);
 
 export type SelectedItem = {
   name: string;
-  selectionType: FileSelectionMode;
+  selectionType: FileSelectionModeFileExplorer;
 } | null;
 
 const selectedItem = ref<SelectedItem>(null);
@@ -117,11 +124,12 @@ const allItemsInCurrentFolder = ref<FileExplorerItem[]>([]);
 
 const selectionModeToSelectableItems: Record<
   FileSelectionMode,
-  FileSelectionMode[]
+  FileSelectionModeFileExplorer[]
 > = {
   FILE: ["FILE"],
   FOLDER: ["FOLDER"],
   FILE_OR_FOLDER: ["FILE", "FOLDER", "FILE_OR_FOLDER"],
+  WORKFLOW: ["FILE"],
 };
 
 const selectableItems = computed(
@@ -207,12 +215,17 @@ const handleListItemsResult = (folderAndError: FolderAndError | undefined) => {
 const { filteredExtensions, appendedExtension, isWriter, backendType } =
   toRefs(props);
 
+const isWorkflowFilterMode = computed(() => props.selectionMode === "WORKFLOW");
+
 const { listItems, getFilePath, resolveRelativePath } = useFileChooserBackend({
   filteredExtensions,
   appendedExtension,
   isWriter,
+  isWorkflowFilterMode,
   backendType,
 });
+
+const { getItemIcon } = useFileChooserIcons(isWorkflowFilterMode);
 
 const loadNewFolder = (
   path: string | null,
@@ -280,7 +293,8 @@ const inputFieldModelValue = computed({
   set: (value) => {
     selectedItem.value = {
       name: value,
-      selectionType: props.selectionMode,
+      selectionType:
+        props.selectionMode === "WORKFLOW" ? "FILE" : props.selectionMode,
     };
   },
 });
@@ -378,7 +392,11 @@ watch(
       @change-directory="changeDirectory"
       @open-file="openFile"
       @update:selected-item-ids="onChangeSelectedItemIds"
-    />
+    >
+      <template #itemIcon="{ item }">
+        <Component :is="getItemIcon(item)" />
+      </template>
+    </FileExplorer>
     <Label
       v-if="relativeToOptions"
       ref="relative-to-label"

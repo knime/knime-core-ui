@@ -72,7 +72,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService.FolderAndError;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileChooserDataService.ListItemsConfig;
 import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector.FileChooserBackend;
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.SimpleFileChooserBackend.Item;
 import org.knime.core.webui.node.dialog.defaultdialog.internal.file.FSConnectionProvider;
 import org.knime.filehandling.core.connections.FSConnection;
 import org.knime.filehandling.core.connections.FSFileSystem;
@@ -277,7 +276,7 @@ class FileChooserDataServiceTest {
             assertThat(result.folder().items()).hasSize(1);
             assertThat(result.folder().path()).isNull();
             assertThat(result.errorMessage()).isEmpty();
-            final var rootItem = (Item)result.folder().items().get(0);
+            final var rootItem = result.folder().items().get(0);
             assertThat(rootItem.isDirectory()).isTrue();
         }
 
@@ -345,6 +344,37 @@ class FileChooserDataServiceTest {
              * the txt file
              */
             assertThat(result.folder().items()).hasSize(2);
+            assertThat(result.folder().items()).anyMatch(item -> item.isDirectory())
+                .anyMatch(item -> !item.isDirectory() && item.name().endsWith(".pdf"));
+        }
+
+        @Test
+        void testListItemsWithWorkflowFilterMode() throws IOException {
+            when(m_fileSystem.getPathMatcher(ArgumentMatchers.any())).thenReturn(new PathMatcher() {
+
+                @Override
+                public boolean matches(final Path path) {
+                    return path.toString().endsWith(".knwf");
+                }
+            });
+            final var directory = Files.createTempDirectory(m_subFolder, "aDirectory");
+            Files.createTempDirectory(directory, "aSubDirectory");
+            Files.createTempFile(directory, "aWorkflow", ".knwf");
+            Files.createTempFile(directory, "aFile", ".txt");
+            final var path = relativizeIfNecessary(m_subFolder).toString();
+            final var folderName = directory.getFileName().toString();
+            when(m_fileSystem.getPath(eq(path), eq(folderName))).thenReturn(relativizeIfNecessary(directory));
+
+            final var result = new PerformListItemsBuilder().withPath(path).withFolder(folderName)
+                .withIsWorkflowFilterMode().build().performListItems();
+            verify(m_fileSystem).getPathMatcher(eq("glob:**.knwf"));
+            /**
+             * Two items expected: One folder (which is not checked against file extensions) and the workflow file but
+             * not the txt file
+             */
+            assertThat(result.folder().items()).hasSize(2);
+            assertThat(result.folder().items()).anyMatch(item -> item.isDirectory())
+                .anyMatch(item -> !item.isDirectory() && item.name().endsWith(".knwf"));
         }
 
         @Test
@@ -361,7 +391,7 @@ class FileChooserDataServiceTest {
             assertThat(result.errorMessage()).isEmpty();
             final var items = result.folder().items();
             assertThat(items).hasSize(2);
-            assertThat(items.stream().map(item -> ((Item)item).isDirectory()).count()).isEqualTo(2);
+            assertThat(items.stream().map(item -> item.isDirectory()).count()).isEqualTo(2);
         }
 
         @Test
@@ -417,7 +447,7 @@ class FileChooserDataServiceTest {
             verify(fileChooserBackend).pathToObject(eq(file));
             final var items = rootItems.folder().items();
             assertThat(items).hasSize(2);
-            assertThat(items.stream().map(item -> ((Item)item).isDirectory()).count()).isEqualTo(2);
+            assertThat(items.stream().map(item -> item.isDirectory()).count()).isEqualTo(2);
         }
 
         @Test
@@ -622,6 +652,8 @@ class FileChooserDataServiceTest {
 
             private List<String> m_extensions;
 
+            private boolean m_isWorkflowFilterMode;
+
             private FileChooserDataService m_dataService;
 
             private String m_fileSystemId;
@@ -630,7 +662,7 @@ class FileChooserDataServiceTest {
                 if (m_dataService == null) {
                     m_dataService = new FileChooserDataService(new FileSystemConnector());
                 }
-                final var config = new ListItemsConfig(m_isWriter, m_extensions);
+                final var config = new ListItemsConfig(m_isWriter, m_extensions, m_isWorkflowFilterMode);
                 return new PerformListItems() {
 
                     @Override
@@ -645,6 +677,11 @@ class FileChooserDataServiceTest {
 
                 };
 
+            }
+
+            PerformListItemsBuilder withIsWorkflowFilterMode() {
+                m_isWorkflowFilterMode = true;
+                return this;
             }
 
             PerformListItemsBuilder() {

@@ -81,16 +81,19 @@ export type FileSystemOption =
   | "CUSTOM_URL"
   | "CONNECTED";
 
-// "WORKFLOW" omitted for now
-export type FileSelectionMode = "FILE" | "FOLDER" | "FILE_OR_FOLDER";
+export type FileSelectionMode =
+  | "FILE"
+  | "FOLDER"
+  | "FILE_OR_FOLDER"
+  | "WORKFLOW";
 
-// "WORKFLOW" omitted for now
 export type MultiFileFilterMode =
   | "FILE"
   | "FOLDER"
   | "FOLDERS"
   | "FILES_IN_FOLDERS"
-  | "FILES_AND_FOLDERS";
+  | "FILES_AND_FOLDERS"
+  | "WORKFLOW";
 
 type SingleSelectionOptionsBase = FileChooserOptionsBase &
   WriterOptions & {

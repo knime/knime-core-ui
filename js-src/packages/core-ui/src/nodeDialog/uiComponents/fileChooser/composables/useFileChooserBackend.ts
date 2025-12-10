@@ -14,6 +14,11 @@ interface ListItemsConfig {
    * Setting this will impact whether non-readable or non-writable files are not displayed
    */
   isWriter: boolean;
+  /**
+   * If this is set to true, workflow-aware file systems will only show workflow-like entities and others will
+   * show files ending with ".knwf". Note that the extensions are ignored in this mode.
+   */
+  isWorkflowFilterMode: boolean;
 }
 
 export type FileChooserListItems = (params: {
@@ -91,6 +96,7 @@ export default ({
   filteredExtensions,
   appendedExtension,
   isWriter,
+  isWorkflowFilterMode,
   backendType,
 }: {
   /**
@@ -103,6 +109,7 @@ export default ({
    */
   appendedExtension: Ref<string | null>;
   isWriter: Ref<boolean>;
+  isWorkflowFilterMode?: Ref<boolean>;
   backendType: Ref<BackendType>;
 }) => {
   const getData = inject("getData") as FileChooserGetFilePath &
@@ -123,6 +130,7 @@ export default ({
         {
           extensions: filteredExtensions.value,
           isWriter: isWriter.value,
+          isWorkflowFilterMode: isWorkflowFilterMode?.value ?? false,
         },
         relativeTo,
       ],

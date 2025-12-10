@@ -119,9 +119,6 @@ final class MultiFileChooserRenderer extends WidgetTreeControlRendererSpec imple
             throw new UiSchemaGenerationException(
                 "MultiFileSelectionWidget must not be configured with only single selection modes");
         }
-        if (values.contains(MultiFileSelectionMode.WORKFLOW)) {
-            throw new UiSchemaGenerationException("Workflow selection is not supported yet.");
-        }
     }
 
     @Override

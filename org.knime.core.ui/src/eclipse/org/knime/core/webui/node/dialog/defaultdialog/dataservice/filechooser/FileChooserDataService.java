@@ -93,16 +93,16 @@ public final class FileChooserDataService {
     record ParentFolder(String path, String name) {
     }
 
-    record Folder(List<Object> items, String path, List<ParentFolder> parentFolders) {
+    record Folder(List<Item> items, String path, List<ParentFolder> parentFolders) {
 
-        static FolderAndError asRootFolder(final List<Object> items, final String errorMessage, final String inputPath,
+        static FolderAndError asRootFolder(final List<Item> items, final String errorMessage, final String inputPath,
             final Path relativeToPath, final FileChooserBackend fileChooserBackend) {
             return new FolderAndError(
                 new Folder(items, null, getParentFolders(null, relativeToPath, fileChooserBackend)),
                 Optional.ofNullable(errorMessage), inputPath);
         }
 
-        static FolderAndError asNonRootFolder(final Path path, final List<Object> items, final String errorMessage,
+        static FolderAndError asNonRootFolder(final Path path, final List<Item> items, final String errorMessage,
             final Path inputPath, final Path relativeToPath, final FileChooserBackend fileChooserBackend) {
             final var folder =
                 new Folder(items, path.toString(), getParentFolders(path, relativeToPath, fileChooserBackend));
@@ -184,7 +184,12 @@ public final class FileChooserDataService {
         /**
          * the extensions with respect to which the files are filtered. If empty or null, no filters will be applied.
          */
-        List<String> extensions) {
+        List<String> extensions,
+        /**
+         * If this is set to true, workflow-aware file systems will only show workflow-like entities and others will
+         * show files ending with ".knwf". Note that the extensions are ignored in this mode.
+         */
+        boolean isWorkflowFilterMode) {
     }
 
     /**
@@ -363,8 +368,8 @@ public final class FileChooserDataService {
 
     }
 
-    private static List<Object> getRootItems(final FileChooserBackend fileChooserBackend) {
-        final List<Object> out = new ArrayList<>();
+    private static List<Item> getRootItems(final FileChooserBackend fileChooserBackend) {
+        final List<Item> out = new ArrayList<>();
         fileChooserBackend.getFileSystem().getRootDirectories()
             .forEach(p -> out.add(fileChooserBackend.directoryPathToObject(p)));
         return out;
@@ -419,7 +424,7 @@ public final class FileChooserDataService {
             relativeToPath, fileChooserBackend);
     }
 
-    private static FolderAndError createFolder(final Path path, final List<Object> folderContent,
+    private static FolderAndError createFolder(final Path path, final List<Item> folderContent,
         final String errorMessage, final FileChooserBackend fileChooserBackend, final Path inputPath,
         final Path relativeToPath) {
         if (fileChooserBackend.isAbsoluteFileSystem()) {
@@ -441,8 +446,8 @@ public final class FileChooserDataService {
     private static List<Path> listFilteredAndSortedItems(final Path folder, final FileSystem fileSystem,
         final ListItemsConfig listItemConfig) throws IOException {
 
-        final Predicate<Path> filterPredicate =
-            FileBackendUtils.getFilterPredicate(fileSystem, listItemConfig.extensions, listItemConfig.isWriter);
+        final Predicate<Path> filterPredicate = FileBackendUtils.getFilterPredicate(fileSystem,
+            listItemConfig.extensions, listItemConfig.isWriter, listItemConfig.isWorkflowFilterMode);
 
         return Files.list(folder) //
             .filter(t -> {

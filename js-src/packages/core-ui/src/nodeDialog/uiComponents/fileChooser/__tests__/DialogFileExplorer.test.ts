@@ -122,7 +122,13 @@ describe("DialogFileExplorer.vue", () => {
     const wrapper = shallowMountFileChooser();
     expect(dataServiceSpy).toHaveBeenCalledWith({
       method: "fileChooser.listItems",
-      options: ["local", null, "", { extensions: [], isWriter: false }, null],
+      options: [
+        "local",
+        null,
+        "",
+        { extensions: [], isWriter: false, isWorkflowFilterMode: false },
+        null,
+      ],
     });
     expect(wrapper.findComponent(Breadcrumb).exists()).toBeFalsy();
     expect(wrapper.findComponent(FileExplorer).exists()).toBeFalsy();
@@ -208,7 +214,7 @@ describe("DialogFileExplorer.vue", () => {
             "local",
             null,
             initialFilePath,
-            { extensions: [], isWriter: false },
+            { extensions: [], isWriter: false, isWorkflowFilterMode: false },
             null,
           ],
         });
@@ -268,7 +274,7 @@ describe("DialogFileExplorer.vue", () => {
         newBackendType,
         null,
         "",
-        { extensions: [], isWriter: false },
+        { extensions: [], isWriter: false, isWorkflowFilterMode: false },
         null,
       ],
     });
@@ -346,7 +352,7 @@ describe("DialogFileExplorer.vue", () => {
           "local",
           folderFromBackend.path,
           directoryName,
-          { extensions: [], isWriter: false },
+          { extensions: [], isWriter: false, isWorkflowFilterMode: false },
           null,
         ],
       });
@@ -363,7 +369,11 @@ describe("DialogFileExplorer.vue", () => {
           "local",
           null,
           "",
-          { extensions: props.filteredExtensions, isWriter: false },
+          {
+            extensions: props.filteredExtensions,
+            isWriter: false,
+            isWorkflowFilterMode: false,
+          },
           null,
         ],
       });
@@ -396,7 +406,13 @@ describe("DialogFileExplorer.vue", () => {
       await flushPromises();
       expect(dataServiceSpy).toHaveBeenCalledWith({
         method: "fileChooser.listItems",
-        options: ["local", null, "", { isWriter: true, extensions: [] }, null],
+        options: [
+          "local",
+          null,
+          "",
+          { isWriter: true, extensions: [], isWorkflowFilterMode: false },
+          null,
+        ],
       });
       const inputField = wrapper.findComponent(InputField);
       expect(inputField.exists()).toBeTruthy();

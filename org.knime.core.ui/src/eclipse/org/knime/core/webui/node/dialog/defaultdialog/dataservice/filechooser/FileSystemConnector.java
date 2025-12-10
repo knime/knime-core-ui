@@ -82,7 +82,7 @@ public final class FileSystemConnector {
     interface FileChooserBackend {
         FileSystem getFileSystem();
 
-        Object pathToObject(Path path);
+        Item pathToObject(Path path);
 
         /**
          * For root directories we know that a path should be displayed as directory but the file system lists them as
@@ -93,7 +93,7 @@ public final class FileSystemConnector {
          * @return a representation given to the front-end
          *
          */
-        default Object directoryPathToObject(final Path path) {
+        default Item directoryPathToObject(final Path path) {
             return pathToObject(path);
         }
 
@@ -103,6 +103,7 @@ public final class FileSystemConnector {
 
         void close() throws IOException;
     }
+
 
     FileChooserBackend getFileChooserBackend(final String fileSystemId) {
         return m_fileChooserBackends.computeIfAbsent(fileSystemId, FileSystemConnector::createFileChooserBackend);

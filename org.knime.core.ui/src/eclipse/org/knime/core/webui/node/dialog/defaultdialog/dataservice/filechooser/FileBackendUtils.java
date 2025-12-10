@@ -48,11 +48,16 @@
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser;
 
+import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Predicate;
+
+import org.knime.filehandling.core.connections.FSPath;
+import org.knime.filehandling.core.connections.workflowaware.WorkflowAwareUtil;
+import org.knime.filehandling.core.filechooser.AbstractFileChooserBrowser;
 
 /**
  * Utilities for {@link FileChooserDataService} and {@link FileFilterPreviewDataService}.
@@ -66,10 +71,35 @@ final class FileBackendUtils {
     }
 
     static Predicate<Path> getFilterPredicate(final FileSystem fileSystem, final List<String> extensions,
-        final boolean isWriter) {
-        final var extensionsPredicate = getExtensionPredicate(fileSystem, extensions);
+        final boolean isWriter, final boolean isWorkflowFilterMode) {
         final var readerOrWriterPredicate = getReaderOrWriterPredicate(isWriter);
+        if (isWorkflowFilterMode) {
+            final var isWorkflowPredicate = getWorkflowPredicate(fileSystem);
+            return isWorkflowPredicate.and(readerOrWriterPredicate);
+        }
+        final var extensionsPredicate = getExtensionPredicate(fileSystem, extensions);
         return extensionsPredicate.and(readerOrWriterPredicate);
+    }
+
+    /**
+     * See {@link AbstractFileChooserBrowser#createWorkflowFilter()}.
+     *
+     * @return
+     */
+    @SuppressWarnings("resource")
+    static Predicate<Path> getWorkflowPredicate(final FileSystem fileSystem) {
+        final var endingsMatcher = fileSystem.getPathMatcher("glob:**.knwf");
+        return path -> (path instanceof FSPath fsPath && fsPath.getFileSystem().getWorkflowAware().isPresent()) //
+            ? isWorkflowAwareEntity(fsPath) //
+            : endingsMatcher.matches(path);
+    }
+
+    private static boolean isWorkflowAwareEntity(final FSPath fsPath) {
+        try {
+            return WorkflowAwareUtil.isWorkflowLikeEntity(fsPath);
+        } catch (IOException ex) { // NOSONAR
+            return false;
+        }
     }
 
     static Predicate<Path> getReaderOrWriterPredicate(final boolean isWriter) {

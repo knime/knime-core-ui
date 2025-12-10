@@ -44,60 +44,12 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   Oct 30, 2023 (Paul Bärnreuther): created
+ *   Dec 10, 2025 (paulbaernreuther): created
  */
 package org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser;
 
-import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector.FileChooserBackend;
-import org.knime.filehandling.core.connections.FSConnection;
-
 /**
- * An implementation of a file chooser backend for simple file systems.
- *
- * @author Paul Bärnreuther
+ * This record contains the information about a single item in the file explorer to be displayed in the front-end.
  */
-abstract class SimpleFileChooserBackend implements FileChooserBackend {
-    private FSConnection m_fsConnection;
-
-    private FSConnection getFSConnection() {
-        if (m_fsConnection == null) {
-            m_fsConnection = createFSConnection();
-        }
-        return m_fsConnection;
-    }
-
-    abstract FSConnection createFSConnection();
-
-    @SuppressWarnings("resource")
-    @Override
-    public FileSystem getFileSystem() {
-        return getFSConnection().getFileSystem();
-    }
-
-    @Override
-    public Item pathToObject(final Path path) {
-        return new Item(Files.isDirectory(path), pathToString(path), false);
-    }
-
-    @Override
-    public Item directoryPathToObject(final Path path) {
-        return new Item(true, pathToString(path), !Files.isDirectory(path));
-    }
-
-    private static String pathToString(final Path path) {
-        return path.getFileName() == null ? path.toString() : path.getFileName().toString();
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (m_fsConnection != null) {
-            m_fsConnection.close();
-        }
-    }
-
+record Item(boolean isDirectory, String name, boolean isDisabledDirectory) {
 }

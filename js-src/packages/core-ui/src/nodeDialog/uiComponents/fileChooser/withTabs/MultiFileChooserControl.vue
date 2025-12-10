@@ -25,7 +25,13 @@ const connectedFSOptions = useProvidedState(uiSchema, "connectedFSOptions");
 
 const selectionMode = computed(() => {
   const filterMode = props.control.data?.filterMode;
-  return filterMode === "FILE" ? "FILE" : "FOLDER";
+  if (filterMode === "WORKFLOW") {
+    return "WORKFLOW";
+  }
+  if (filterMode === "FILE") {
+    return "FILE";
+  }
+  return "FOLDER";
 });
 
 const showFilters = computed(() => {
@@ -43,6 +49,7 @@ const pathSelectionOptions = computed<FileChooserOptions>(() => ({
 
 const filterModeLabels: Record<MultiFileFilterMode, string> = {
   FILE: "File",
+  WORKFLOW: "Workflow",
   FOLDER: "Folder",
   FILES_AND_FOLDERS: "Files and folders",
   FILES_IN_FOLDERS: "Files in folders",
