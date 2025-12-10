@@ -2,12 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 
-import { useMainCodeEditorStore } from "@/editor";
-import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
+import { useMainCodeEditorStore } from "../../editor";
+import { DEFAULT_INITIAL_DATA } from "../../initial-data-service-browser-mock";
 import {
   type InputOutputSelectionStore,
   useInputOutputSelectionStore,
-} from "@/store/io-selection";
+} from "../../store/io-selection";
 import InputOutputItem, {
   INPUT_OUTPUT_DRAG_EVENT_ID,
   type InputOutputModel,
@@ -15,7 +15,7 @@ import InputOutputItem, {
 import InputOutputPane from "../InputOutputPane.vue";
 
 vi.mock("monaco-editor");
-vi.mock("@/editor");
+vi.mock("../../editor");
 
 describe("InputOutputPane", () => {
   afterEach(() => {

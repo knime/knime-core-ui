@@ -1,8 +1,8 @@
 import { type Ref, reactive, ref, shallowRef, watch } from "vue";
 
-import type { InputOutputModel } from "@/components/InputOutputItem.vue";
-import { type UseCodeEditorReturn, useMainCodeEditorStore } from "@/editor";
-import type { UsageData } from "@/scripting-service";
+import type { InputOutputModel } from "../components/InputOutputItem.vue";
+import { type UseCodeEditorReturn, useMainCodeEditorStore } from "../editor";
+import type { UsageData } from "../scripting-service";
 
 export interface Message {
   role: "reply" | "request";
