@@ -29,6 +29,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
+      "@": fileURLToPath(new URL("../core-ui/src", import.meta.url)),
     },
   },
   build: {
