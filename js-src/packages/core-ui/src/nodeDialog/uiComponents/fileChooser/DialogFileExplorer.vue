@@ -73,6 +73,7 @@ const emit = defineEmits<{
   "update:isRelativeTo": [isRelative: boolean];
   applyAndClose: [];
   cancel: [];
+  navigate: [currentPath: string | null];
 }>();
 
 const relativeToModelValue = computed({
@@ -202,6 +203,7 @@ const handleListItemsResult = (folderAndError: FolderAndError | undefined) => {
   setNextItems(folderAndError.folder);
   setErrorMessage(folderAndError.errorMessage);
   setRelativeFilePathFromBackend(folderAndError.filePathRelativeToFolder);
+  emit("navigate", folderAndError.folder.path);
 };
 
 const { filteredExtensions, appendedExtension, isWriter, backendType } =

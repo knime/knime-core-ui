@@ -178,6 +178,11 @@ class FileChooserDataServiceTest {
             assertThat(fileChooserBackendMock.constructed()).hasSize(2);
         }
 
+        @Override
+        void assertRootFolderPath(final String path) {
+            assertThat(path).isNull();
+        }
+
     }
 
     @Nested
@@ -221,13 +226,18 @@ class FileChooserDataServiceTest {
                 new PerformListItemsBuilder().asWriter().withFolder(absolutePath).build().performListItems();
 
             assertThat(result.errorMessage()).isEmpty();
-            assertThat(result.folder().path()).isNull();
+            assertRootFolderPath(result.folder().path());
             assertThat(result.filePathRelativeToFolder()).isEqualTo(relativizeFromRoot(m_subFolder).toString());
         }
 
         static Path relativizeFromRoot(final Path path) {
             final var root = path.getRoot();
             return root.relativize(path);
+        }
+
+        @Override
+        void assertRootFolderPath(final String path) {
+            assertThat(path).isEqualTo(".");
         }
 
     }
@@ -275,11 +285,13 @@ class FileChooserDataServiceTest {
             getItemsInInitialFolder()
                 .forEach(item -> verifyRootItemConstruction(item, fileChooserBackendMock.constructed().get(0)));
             assertThat(result.folder().items()).hasSize(1);
-            assertThat(result.folder().path()).isNull();
+            assertRootFolderPath(result.folder().path());
             assertThat(result.errorMessage()).isEmpty();
             final var rootItem = (Item)result.folder().items().get(0);
             assertThat(rootItem.isDirectory()).isTrue();
         }
+
+        abstract void assertRootFolderPath(String path);
 
         @Test
         void testListItemsRelativeToPath() throws IOException {
