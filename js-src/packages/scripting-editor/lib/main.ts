@@ -48,6 +48,10 @@ import { type GenericNodeSettings } from "@s/settings-service";
 import { setActiveEditorStoreForAi } from "@s/store/ai-bar";
 import { useReadonlyStore } from "@s/store/readOnly";
 
+import NodeDialogCore from "@knime/core-ui/src/nodeDialog/NodeDialogCore.vue";
+import type { NodeDialogCoreRpcMethods } from "@knime/core-ui/src/nodeDialog/api/types/RpcTypes";
+import useFlowVariableSystem from "@knime/core-ui/src/nodeDialog/composables/useFlowVariableSystem";
+
 export {
   COLUMN_INSERTION_EVENT,
   CompactTabBar,
@@ -62,11 +66,13 @@ export {
   initMocked,
   InputOutputPane,
   insertionEventHelper,
+  NodeDialogCore,
   OutputConsole,
   OutputTablePreview,
   ScriptingEditor,
   setActiveEditorStoreForAi,
   setConsoleHandler,
+  useFlowVariableSystem,
   useReadonlyStore,
   useShouldFocusBePainted,
 };
@@ -80,6 +86,7 @@ export type {
   InputOutputModel,
   InsertionEvent,
   KAIConfig,
+  NodeDialogCoreRpcMethods,
   PaneSizes,
   PortConfigs,
   ScriptingServiceType,
