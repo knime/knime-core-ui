@@ -5,13 +5,9 @@ import { useElementBounding } from "@vueuse/core";
 import { type MenuItem, SplitPanel } from "@knime/components";
 import "@knime/kds-styles/kds-variables.css";
 
-import {
-  MIN_WIDTH_FOR_SHOWING_BUTTON_TEXT,
-  type PaneSizes,
-} from "@/components/utils/paneSizes";
-import { displayMode } from "@/display-mode";
-import { getInitialData } from "@/init";
-import { type GenericNodeSettings } from "@/settings-service";
+import { displayMode } from "../display-mode";
+import { getInitialData } from "../init";
+import { type GenericNodeSettings } from "../settings-service";
 
 import CodeEditorControlBar from "./CodeEditorControlBar.vue";
 import HeaderBar from "./HeaderBar.vue";
@@ -24,6 +20,10 @@ import ScriptingEditorBottomPane, {
 } from "./ScriptingEditorBottomPane.vue";
 import type { SettingsMenuItem } from "./SettingsPage.vue";
 import SettingsPage from "./SettingsPage.vue";
+import {
+  MIN_WIDTH_FOR_SHOWING_BUTTON_TEXT,
+  type PaneSizes,
+} from "./utils/paneSizes";
 
 const commonMenuItems: MenuItem[] = [
   // TODO: add actual common menu items

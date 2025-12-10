@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 
-import InfinityLoadingBar from "@/components/InfinityLoadingBar.vue";
-import AiDisclaimer from "@/components/ai-assistant/AiDisclaimer.vue";
-import { getScriptingService } from "@/init";
+import { getScriptingService } from "../../../init";
+import InfinityLoadingBar from "../../InfinityLoadingBar.vue";
+import AiDisclaimer from "../AiDisclaimer.vue";
 
 const doMount = async () => {
   const wrapper = mount(AiDisclaimer);

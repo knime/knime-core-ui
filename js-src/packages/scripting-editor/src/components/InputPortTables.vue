@@ -3,8 +3,9 @@ import { computed, ref } from "vue";
 
 import { ValueSwitch } from "@knime/components";
 
-import InputPortTableView from "@/components/InputPortTableView.vue";
-import { type PortViewConfig } from "@/initial-data-service";
+import { type PortViewConfig } from "../initial-data-service";
+
+import InputPortTableView from "./InputPortTableView.vue";
 
 interface Props {
   inputNodeId: string;

@@ -2,9 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 import { Terminal } from "@xterm/xterm";
 
-import OutputConsole, {
-  type ConsoleHandler,
-} from "@/components/OutputConsole.vue";
+import OutputConsole, { type ConsoleHandler } from "../OutputConsole.vue";
 
 describe("OutputConsole", () => {
   const doMount = async () => {

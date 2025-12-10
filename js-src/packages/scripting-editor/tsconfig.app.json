@@ -14,7 +14,6 @@
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
     },
     "strict": true,
     "allowJs": true,

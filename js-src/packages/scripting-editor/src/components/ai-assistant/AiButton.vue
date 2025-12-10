@@ -12,8 +12,8 @@ import { type MaybeElement, onClickOutside } from "@vueuse/core";
 import { Button } from "@knime/components";
 import AiCodeIcon from "@knime/styles/img/icons/ai-general.svg";
 
-import type { PaneSizes } from "@/components/utils/paneSizes";
-import { getInitialData } from "@/init";
+import { getInitialData } from "../../init";
+import type { PaneSizes } from "../utils/paneSizes";
 
 import AiPopupContent from "./AiPopupContent.vue";
 
