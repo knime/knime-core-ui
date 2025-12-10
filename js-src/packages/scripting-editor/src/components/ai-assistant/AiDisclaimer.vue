@@ -10,7 +10,7 @@ import { onMounted, ref } from "vue";
 
 import { Button } from "@knime/components";
 
-import { getScriptingService } from "@/init";
+import { getScriptingService } from "../../init";
 import InfinityLoadingBar from "../InfinityLoadingBar.vue";
 
 const disclaimerText = ref<string>();

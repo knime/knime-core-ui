@@ -1,7 +1,6 @@
 import type { SettingState } from "@knime/ui-extension-service";
 
-import { log } from "@/log";
-
+import { log } from "./log";
 import type {
   GenericNodeSettings,
   SettingsServiceType,

@@ -12,11 +12,11 @@ import { Collapser, PortIcon, useMultiSelection } from "@knime/components";
 import { KdsDataType } from "@knime/kds-components";
 import EyeIcon from "@knime/styles/img/icons/eye.svg";
 
-import { insertionEventHelper } from "@/components/utils/insertionEventHelper";
-import { useInputOutputSelectionStore } from "@/store/io-selection";
-import { useReadonlyStore } from "@/store/readOnly";
+import { useInputOutputSelectionStore } from "../store/io-selection";
+import { useReadonlyStore } from "../store/readOnly";
 
 import { createDragGhost, removeDragGhost } from "./utils/dragGhost";
+import { insertionEventHelper } from "./utils/insertionEventHelper";
 
 export type SubItemType<DisplayName extends string = string> = {
   id?: string;

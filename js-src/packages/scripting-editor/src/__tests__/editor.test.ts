@@ -10,7 +10,7 @@ import {
   useDiffEditor,
   useMainCodeEditor,
   useMainCodeEditorStore,
-} from "@/editor";
+} from "../editor";
 
 describe("editor", () => {
   const testComponent = <T>(

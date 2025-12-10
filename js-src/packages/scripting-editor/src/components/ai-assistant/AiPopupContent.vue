@@ -15,13 +15,12 @@ import AbortIcon from "@knime/styles/img/icons/cancel-execution.svg";
 import WarningIcon from "@knime/styles/img/icons/circle-warning.svg";
 import SendIcon from "@knime/styles/img/icons/paper-flier.svg";
 
-import InfinityLoadingBar from "@/components/InfinityLoadingBar.vue";
 import {
   getInitialData,
   getScriptingService,
   getSettingsService,
-} from "@/init";
-import { type UsageData } from "@/scripting-service";
+} from "../../init";
+import { type UsageData } from "../../scripting-service";
 import {
   type Message,
   type PromptResponseStore,
@@ -31,7 +30,8 @@ import {
   showDisclaimer,
   usageData,
   usePromptResponseStore,
-} from "@/store/ai-bar";
+} from "../../store/ai-bar";
+import InfinityLoadingBar from "../InfinityLoadingBar.vue";
 
 import AiDisclaimer from "./AiDisclaimer.vue";
 import AiSuggestion from "./AiSuggestion.vue";

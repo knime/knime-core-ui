@@ -4,15 +4,15 @@ import { mount } from "@vue/test-utils";
 
 import { Button } from "@knime/components";
 
-import { diffEditorState } from "@/__mocks__/editor";
-import { useDiffEditor } from "@/editor";
+import { diffEditorState } from "../../../__mocks__/editor";
+import { useDiffEditor } from "../../../editor";
 import {
   setActiveEditorStoreForAi,
   usePromptResponseStore,
-} from "@/store/ai-bar";
+} from "../../../store/ai-bar";
 import AiSuggestion from "../AiSuggestion.vue";
 
-vi.mock("@/editor");
+vi.mock("../../../editor");
 
 describe("AiSuggestion", () => {
   beforeEach(() => {

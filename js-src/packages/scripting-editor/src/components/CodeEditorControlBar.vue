@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { type PropType } from "vue";
 
-import AiButton from "@/components/ai-assistant/AiButton.vue";
-import type { PaneSizes } from "@/components/utils/paneSizes";
+import AiButton from "./ai-assistant/AiButton.vue";
+import type { PaneSizes } from "./utils/paneSizes";
 
 const props = defineProps({
   currentPaneSizes: {

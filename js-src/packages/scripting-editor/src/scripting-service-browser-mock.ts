@@ -2,8 +2,7 @@
 /* eslint-disable no-magic-numbers */
 import { sleep } from "@knime/utils";
 
-import { log } from "@/log";
-
+import { log } from "./log";
 import type { ScriptingServiceType } from "./scripting-service";
 
 const SLEEP_TIME_ANY_CALL = 100;

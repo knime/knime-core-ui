@@ -1,33 +1,33 @@
-import CompactTabBar from "@/components/CompactTabBar.vue";
+import CompactTabBar from "../src/components/CompactTabBar.vue";
 import {
   COLUMN_INSERTION_EVENT,
   type InputOutputModel,
   type SubItem,
   type SubItemType,
-} from "@/components/InputOutputItem.vue";
-import InputOutputPane from "@/components/InputOutputPane.vue";
+} from "../src/components/InputOutputItem.vue";
+import InputOutputPane from "../src/components/InputOutputPane.vue";
 import OutputConsole, {
   type ConsoleHandler,
   type ConsoleText,
-} from "@/components/OutputConsole.vue";
-import OutputTablePreview from "@/components/OutputTablePreview.vue";
-import ScriptingEditor from "@/components/ScriptingEditor.vue";
-import { type SettingsMenuItem } from "@/components/SettingsPage.vue";
+} from "../src/components/OutputConsole.vue";
+import OutputTablePreview from "../src/components/OutputTablePreview.vue";
+import ScriptingEditor from "../src/components/ScriptingEditor.vue";
+import { type SettingsMenuItem } from "../src/components/SettingsPage.vue";
 import {
   type InsertionEvent,
   insertionEventHelper,
-} from "@/components/utils/insertionEventHelper";
-import { type PaneSizes } from "@/components/utils/paneSizes";
-import useShouldFocusBePainted from "@/components/utils/shouldFocusBePainted";
-import { consoleHandler, setConsoleHandler } from "@/consoleHandler";
-import { displayMode } from "@/display-mode";
+} from "../src/components/utils/insertionEventHelper";
+import { type PaneSizes } from "../src/components/utils/paneSizes";
+import useShouldFocusBePainted from "../src/components/utils/shouldFocusBePainted";
+import { consoleHandler, setConsoleHandler } from "../src/consoleHandler";
+import { displayMode } from "../src/display-mode";
 import type {
   UseCodeEditorParams,
   UseCodeEditorReturn,
   UseDiffEditorParams,
   UseDiffEditorReturn,
-} from "@/editor";
-import editor from "@/editor";
+} from "../src/editor";
+import editor from "../src/editor";
 import {
   type InitMockData,
   getInitialData,
@@ -36,17 +36,17 @@ import {
   init,
   initConsoleEventHandler,
   initMocked,
-} from "@/init";
+} from "../src/init";
 import {
   type GenericInitialData,
   type InputConnectionInfo,
   type KAIConfig,
   type PortConfigs,
-} from "@/initial-data-service";
-import { type ScriptingServiceType } from "@/scripting-service";
-import { type GenericNodeSettings } from "@/settings-service";
-import { setActiveEditorStoreForAi } from "@/store/ai-bar";
-import { useReadonlyStore } from "@/store/readOnly";
+} from "../src/initial-data-service";
+import { type ScriptingServiceType } from "../src/scripting-service";
+import { type GenericNodeSettings } from "../src/settings-service";
+import { setActiveEditorStoreForAi } from "../src/store/ai-bar";
+import { useReadonlyStore } from "../src/store/readOnly";
 
 export {
   COLUMN_INSERTION_EVENT,

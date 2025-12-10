@@ -2,21 +2,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 
-import InfinityLoadingBar from "@/components/InfinityLoadingBar.vue";
-import AiPopupContent from "@/components/ai-assistant/AiPopupContent.vue";
-import AiSuggestion from "@/components/ai-assistant/AiSuggestion.vue";
-import { getScriptingService, getSettingsService } from "@/init";
-import { DEFAULT_INITIAL_DATA } from "@/initial-data-service-browser-mock";
-import { DEFAULT_INITIAL_SETTINGS } from "@/settings-service-browser-mock";
+import { getScriptingService, getSettingsService } from "../../../init";
+import { DEFAULT_INITIAL_DATA } from "../../../initial-data-service-browser-mock";
+import { DEFAULT_INITIAL_SETTINGS } from "../../../settings-service-browser-mock";
 import {
   clearPromptResponseStore,
   currentInputOutputItems,
   setActiveEditorStoreForAi,
   usageData,
   usePromptResponseStore,
-} from "@/store/ai-bar";
+} from "../../../store/ai-bar";
+import InfinityLoadingBar from "../../InfinityLoadingBar.vue";
+import AiPopupContent from "../AiPopupContent.vue";
+import AiSuggestion from "../AiSuggestion.vue";
 
-vi.mock("@/editor");
+vi.mock("../../../editor");
 
 const doMount = async () => {
   const wrapper = mount(AiPopupContent);
