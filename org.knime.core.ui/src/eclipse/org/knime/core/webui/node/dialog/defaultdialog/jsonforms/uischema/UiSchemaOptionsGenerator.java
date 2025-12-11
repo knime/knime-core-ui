@@ -148,6 +148,7 @@ import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.FlowVariableChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.SuggestionsProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilterWidget;
@@ -384,19 +385,29 @@ final class UiSchemaOptionsGenerator {
             }
         }
 
-        final var hasChoices = annotatedWidgets.contains(ChoicesProvider.class);
+        final var hasChoicesProvider = annotatedWidgets.contains(ChoicesProvider.class);
 
         final var isFilter =
             m_fieldClass.equals(StringFilter.class) || TypedStringFilter.class.isAssignableFrom(m_fieldClass);
 
         final var isSingleSelection = m_fieldClass.equals(StringOrEnum.class);
-        if (hasChoices) {
+        if (hasChoicesProvider) {
             final var choicesProvider = m_node.getAnnotation(ChoicesProvider.class).orElseThrow();
             getOrCreateProvidedOptions(control).add(TAG_POSSIBLE_VALUES);
             assertCorrectChoicesProviderIfNecessary(choicesProvider);
             if (!isFilter && !isSingleSelection && !isValueSwitch && !isRadioButtons) {
                 options.put(TAG_FORMAT, getChoicesComponentFormat());
             }
+        }
+        final var hasSuggestionsProvider = annotatedWidgets.contains(SuggestionsProvider.class);
+        if (hasSuggestionsProvider) {
+            if (hasChoicesProvider) {
+                throw new UiSchemaGenerationException(
+                    "Only one of @ChoicesProvider and @SuggestionsProvider can be applied to a field.");
+            }
+            options.put(TAG_FORMAT, Format.DROP_DOWN);
+            options.put("allowNewValue", true);
+            getOrCreateProvidedOptions(control).add(TAG_POSSIBLE_VALUES);
         }
         if (annotatedWidgets.contains(ColumnFilterWidget.class)
             || annotatedWidgets.contains(FlowVariableFilterWidget.class)) {

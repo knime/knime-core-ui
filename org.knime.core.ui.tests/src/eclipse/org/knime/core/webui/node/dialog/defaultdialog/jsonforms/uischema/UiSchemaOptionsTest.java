@@ -128,6 +128,7 @@ import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.StringChoice;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
+import org.knime.node.parameters.widget.choices.SuggestionsProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilterWidget;
@@ -1701,6 +1702,37 @@ class UiSchemaOptionsTest {
             .containsExactly(new StringChoice("SPECIAL1", "Special 1"), new StringChoice("SPECIAL2", "Special 2"));
 
         assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().containsExactly("possibleValues");
+    }
+
+    @Test
+    void testSuggestionsProvider() {
+        class SuggestionsProviderSettings implements NodeParameters {
+
+            @Widget(title = "", description = "")
+            @SuggestionsProvider(RegularChoicesProvider.class)
+            String m_suggestionsField;
+        }
+
+        final var response = buildTestUiSchema(SuggestionsProviderSettings.class);
+
+        assertThatJson(response).inPath("$.elements[0].scope").isString().contains("suggestionsField");
+        assertThatJson(response).inPath("$.elements[0].options.format").isString().isEqualTo("dropDown");
+        assertThatJson(response).inPath("$.elements[0].options.allowNewValue").isBoolean().isTrue();
+        assertThatJson(response).inPath("$.elements[0].providedOptions").isArray().containsExactly("possibleValues");
+    }
+
+
+    @Test
+    void testConflictBetweenChoicesAndSuggestionsProvider() {
+        class ConflictSettings implements NodeParameters {
+
+            @Widget(title = "", description = "")
+            @ChoicesProvider(RegularChoicesProvider.class)
+            @SuggestionsProvider(RegularChoicesProvider.class)
+            String m_conflictField;
+        }
+
+        assertThrows(UiSchemaGenerationException.class, () -> buildTestUiSchema(ConflictSettings.class));
     }
 
     @Test
