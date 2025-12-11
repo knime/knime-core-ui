@@ -73,6 +73,10 @@ class HiddenFeaturesNodeSettings implements NodeParameters {
     interface InjectFallbackDialogSideDrawerSection {
     }
 
+    @Section(title = "String with Suggestions", sideDrawer = true)
+    interface StringWithSuggestionsSection {
+    }
+
     @Layout(FileSelectionHiddenFeaturesSideDrawerSection.class)
     HiddenFeatureNewFileSelectionParameters m_newFileSelection = new HiddenFeatureNewFileSelectionParameters();
 
@@ -84,4 +88,9 @@ class HiddenFeaturesNodeSettings implements NodeParameters {
 
     @Layout(InjectFallbackDialogSideDrawerSection.class)
     HiddenFeatureInjectFallbackDialog m_hiddenFeatureInjectFallbackDialog = new HiddenFeatureInjectFallbackDialog();
+
+    @Layout(StringWithSuggestionsSection.class)
+    HiddenFeatureStringWithSuggestionsParameters m_stringWithSuggestions =
+        new HiddenFeatureStringWithSuggestionsParameters();
+
 }

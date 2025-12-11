@@ -108,6 +108,7 @@ import org.knime.node.parameters.updates.ValueProvider;
 import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.OptionalWidget;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
+import org.knime.node.parameters.widget.choices.SuggestionsProvider;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilterWidget;
 import org.knime.node.parameters.widget.choices.filter.FlowVariableFilterWidget;
 import org.knime.node.parameters.widget.message.TextMessage;
@@ -306,6 +307,12 @@ final class WidgetTreesToRefsAndStateProviders {
                 UiSchema.TAG_POSSIBLE_VALUES, //
                 ChoicesProvider.class, //
                 ChoicesProvider::value, //
+                null //
+            ), //
+            new UiStateProviderAnnotationSpec<>( //
+                UiSchema.TAG_POSSIBLE_VALUES, //
+                SuggestionsProvider.class, //
+                SuggestionsProvider::value, //
                 null //
             ), //
             new UiStateProviderAnnotationSpec<>(//

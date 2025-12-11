@@ -82,6 +82,7 @@ import org.knime.node.parameters.NodeParameters;
 import org.knime.node.parameters.Widget;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.SuggestionsProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilter;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilterWidget;
@@ -170,6 +171,7 @@ public final class WidgetImplementationUtil {
         new WidgetAnnotation(List.of(Enum.class), RadioButtonsWidget.class), //
         new WidgetAnnotation(List.of(Enum.class), ValueSwitchWidget.class), //
         new WidgetAnnotation(ChoicesProvider.class), //
+        new WidgetAnnotation(SuggestionsProvider.class), //
         new WidgetAnnotation(List.of(ColumnFilter.class), ColumnFilterWidget.class), //
         new WidgetAnnotation(List.of(ColumnFilter.class, FlowVariableFilter.class),
             TypedStringFilterWidgetInternal.class), //
