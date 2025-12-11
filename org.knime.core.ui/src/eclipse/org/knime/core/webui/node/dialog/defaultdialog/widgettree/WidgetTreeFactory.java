@@ -96,6 +96,7 @@ import org.knime.node.parameters.updates.ValueReference;
 import org.knime.node.parameters.widget.OptionalWidget;
 import org.knime.node.parameters.widget.choices.ChoicesProvider;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
+import org.knime.node.parameters.widget.choices.SuggestionsProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilterWidget;
 import org.knime.node.parameters.widget.choices.filter.FlowVariableFilterWidget;
@@ -147,6 +148,7 @@ public class WidgetTreeFactory extends TreeFactory<WidgetGroup> {
         Advanced.class, //
         ButtonWidget.class, //
         ChoicesProvider.class, //
+        SuggestionsProvider.class, //
         ColumnFilterWidget.class, //
         CredentialsWidget.class, //
         CredentialsWidgetInternal.class, //

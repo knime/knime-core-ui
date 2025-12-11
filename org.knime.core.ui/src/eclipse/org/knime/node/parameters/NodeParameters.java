@@ -73,6 +73,7 @@ import org.knime.node.parameters.widget.choices.EnumChoicesProvider;
 import org.knime.node.parameters.widget.choices.Label;
 import org.knime.node.parameters.widget.choices.RadioButtonsWidget;
 import org.knime.node.parameters.widget.choices.StringChoicesProvider;
+import org.knime.node.parameters.widget.choices.SuggestionsProvider;
 import org.knime.node.parameters.widget.choices.ValueSwitchWidget;
 import org.knime.node.parameters.widget.choices.filter.ColumnFilterWidget;
 import org.knime.node.parameters.widget.choices.filter.FlowVariableFilter;
@@ -156,7 +157,10 @@ import org.knime.node.parameters.widget.text.TextInputWidget;
  * <td rowspan="2">✓</td>
  * </tr>
  * <tr>
- * <td>Text with {@link ChoicesProvider} → Drop Down</td>
+ * <td>Text with {@link ChoicesProvider} → Drop Down
+ * </br> Text with {@link SuggestionsProvider} → Drop Down where it is possible to input new values that are not listed in the
+ * choices.
+ * </td>
  * <td>Other choices widgets are only available for enums.</td>
  * </tr>
  * <td>{@link LocalDate}</td>

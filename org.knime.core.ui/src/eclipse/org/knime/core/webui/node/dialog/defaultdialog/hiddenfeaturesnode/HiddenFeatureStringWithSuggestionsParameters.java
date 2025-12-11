@@ -44,35 +44,34 @@
  * ---------------------------------------------------------------------
  *
  * History
- *   May 5, 2023 (Paul Bärnreuther): created
+ *   Dec 11, 2025 (paulbaernreuther): created
  */
-package org.knime.node.parameters.widget.choices;
+package org.knime.core.webui.node.dialog.defaultdialog.hiddenfeaturesnode;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.util.List;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import org.knime.node.parameters.updates.StateProvider;
+import org.knime.node.parameters.NodeParameters;
+import org.knime.node.parameters.NodeParametersInput;
+import org.knime.node.parameters.Widget;
+import org.knime.node.parameters.widget.choices.StringChoicesProvider;
+import org.knime.node.parameters.widget.choices.SuggestionsProvider;
 
 /**
- * Some widgets require choices for a selection (e.g. a dropdown). Use this interface to provide an array of possible
- * values.
- *
- * @author Paul Bärnreuther
+ * Parameters showcasing {@link SuggestionsProvider}
  */
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface ChoicesProvider {
+public class HiddenFeatureStringWithSuggestionsParameters implements NodeParameters {
 
-    /**
-     * The choices provider class that provides the list of possible values.
-     *
-     * @return the provider for the list of possible values. Make the choices provider asynchronous or depend on other
-     *         settings by overriding its {@link StateProvider#init} method appropriately.
-     */
-    @SuppressWarnings("rawtypes")
-    Class<? extends ChoicesStateProvider> value();
+    @Widget(title = "String with suggestions", description = "Type in a new value or select one of the suggestions.")
+    @SuggestionsProvider(MySuggestions.class)
+    String m_stringSetting = "default";
+
+    static final class MySuggestions implements StringChoicesProvider {
+
+        @Override
+        public List<String> choices(final NodeParametersInput context) {
+            return List.of("option1", "option2", "option3");
+        }
+
+    }
 
 }

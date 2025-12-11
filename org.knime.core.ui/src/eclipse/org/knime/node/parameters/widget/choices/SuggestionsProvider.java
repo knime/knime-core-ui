@@ -57,20 +57,24 @@ import java.lang.annotation.Target;
 import org.knime.node.parameters.updates.StateProvider;
 
 /**
- * Some widgets require choices for a selection (e.g. a dropdown). Use this interface to provide an array of possible
- * values.
+ * Attach this annotation to a string field to endow it with a list of suggested values. In contrast to the
+ * {@link ChoicesProvider} annotation, it is still possible to enter values other than the suggested ones.
  *
  * @author Paul Bärnreuther
  */
 @Retention(RUNTIME)
 @Target(FIELD)
-public @interface ChoicesProvider {
+public @interface SuggestionsProvider {
 
     /**
-     * The choices provider class that provides the list of possible values.
+     * The choices provider class that provides the list of suggestions.
      *
-     * @return the provider for the list of possible values. Make the choices provider asynchronous or depend on other
-     *         settings by overriding its {@link StateProvider#init} method appropriately.
+     * It is recommended that for each provided text-id-pair, the text is the same as the id, since otherwise when the
+     * user types in the id, it will result in the option being selected although it first looks like a new value to the
+     * user.
+     *
+     * @return the provider for the list of suggestions. Make the provider asynchronous or depend on other settings by
+     *         overriding its {@link StateProvider#init} method appropriately.
      */
     @SuppressWarnings("rawtypes")
     Class<? extends ChoicesStateProvider> value();
