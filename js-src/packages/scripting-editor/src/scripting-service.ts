@@ -95,6 +95,10 @@ export class ScriptingService {
     });
   }
 
+  callRpcMethod(param: { method: string; options?: any[] }) {
+    return this.jsonDataService.data(param);
+  }
+
   getOutputPreviewTableInitialData(): Promise<string | undefined> {
     return this.jsonDataService.data({
       method: "OutputPreviewTableInitialDataRpcSupplier.getInitialData",

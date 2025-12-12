@@ -43,21 +43,42 @@ insertionEventHelper
 
 onMounted(() => {
   const initialSettings = getSettingsService().getSettings();
+  const settingsInitialData = getSettingsService().getSettingsInitialData();
 
-  codeEditorState.setInitialText(initialSettings.script);
+  let script = "";
+  let readonly = false;
+  let overwrittenByFlowVariable = "";
+  if (settingsInitialData !== undefined) {
+    if (
+      typeof settingsInitialData.data.model !== "undefined" &&
+      "script" in settingsInitialData.data.model
+    ) {
+      script = settingsInitialData.data.model.script as string;
+    }
+    overwrittenByFlowVariable =
+      settingsInitialData.flowVariableSettings?.["model.script"]
+        ?.controllingFlowVariableName ?? "";
+    readonly = Boolean(overwrittenByFlowVariable);
+  }
+  if (initialSettings !== undefined) {
+    script = initialSettings.script;
+    overwrittenByFlowVariable = initialSettings.scriptUsedFlowVariable;
+    readonly = initialSettings.settingsAreOverriddenByFlowVariable ?? false;
+  }
 
-  useReadonlyStore().value =
-    initialSettings.settingsAreOverriddenByFlowVariable ?? false;
+  codeEditorState.setInitialText(script);
+  useReadonlyStore().value = readonly;
+
   codeEditorState.editor.value?.updateOptions({
     readOnly: useReadonlyStore().value,
     readOnlyMessage: {
-      value: `Read-Only-Mode: The script is set by the flow variable '${initialSettings.scriptUsedFlowVariable}'.`,
+      value: `Read-Only-Mode: The script is set by the flow variable '${overwrittenByFlowVariable}'.`,
     },
     renderValidationDecorations: "on",
   });
 
   const register = getSettingsService().registerSettings(props.modelOrView);
-  const onScriptChange = register(initialSettings.script);
+  const onScriptChange = register({ initialValue: script });
   watch(codeEditorState.text, () => {
     onScriptChange.setValue(codeEditorState.text.value ?? "");
   });

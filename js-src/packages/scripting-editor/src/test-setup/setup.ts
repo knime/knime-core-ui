@@ -31,6 +31,7 @@ vi.mock("@xterm/xterm", () => {
 initMocked({
   scriptingService: {
     sendToService: vi.fn(),
+    callRpcMethod: vi.fn(),
     getOutputPreviewTableInitialData: vi.fn(() => Promise.resolve(undefined)),
     registerEventHandler: vi.fn(),
     connectToLanguageServer: vi.fn(),
@@ -44,6 +45,7 @@ initMocked({
   initialData: DEFAULT_INITIAL_DATA,
   settingsService: {
     getSettings: vi.fn(() => DEFAULT_INITIAL_SETTINGS),
+    getSettingsInitialData: vi.fn(() => undefined),
     registerSettingsGetterForApply: vi.fn(
       (_settingsGetter: () => GenericNodeSettings) => {},
     ),

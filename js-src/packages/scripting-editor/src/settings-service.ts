@@ -1,3 +1,5 @@
+import type { FlowSettings } from "@knime/core-ui/src/nodeDialog/api/types";
+import type { NodeDialogCoreInitialData } from "@knime/core-ui/src/nodeDialog/types/InitialData";
 import type {
   DialogService,
   JsonDataService,
@@ -11,6 +13,10 @@ export type GenericNodeSettings = {
   settingsAreOverriddenByFlowVariable?: boolean;
 };
 
+export type SettingsInitialData = NodeDialogCoreInitialData & {
+  flowVariableSettings: Record<string, FlowSettings>;
+};
+
 export class SettingsService {
   /**
    * Internal constructor — do not call directly.
@@ -21,16 +27,35 @@ export class SettingsService {
    * designated initialization method.
    *
    * @internal
-   * @param jsonDataService The service used for JSON data operations.
+   * @param initialSettings Initial settings from `ScriptingNodeSettingsService`, or undefined if `settingsInitialData` is provided
+   * @param settingsInitialData Initial settings data from `ScriptingDefaultNodeSettingsService`, or undefined if `initialSettings` is provided
+   * @param dialogService The service for dialog operations
+   * @param jsonDataService The service for JSON data operations
    */
   constructor(
-    private readonly initialSettings: GenericNodeSettings,
+    private readonly initialSettings: GenericNodeSettings | undefined,
+    private readonly settingsInitialData: SettingsInitialData | undefined,
     private readonly dialogService: DialogService,
     private readonly jsonDataService: JsonDataService,
-  ) {}
+  ) {
+    if (initialSettings === undefined && settingsInitialData === undefined) {
+      throw new Error(
+        "Either initialSettings or settingsInitialData must be provided",
+      );
+    }
+    if (initialSettings !== undefined && settingsInitialData !== undefined) {
+      throw new Error(
+        "Cannot provide both initialSettings and settingsInitialData",
+      );
+    }
+  }
 
   getSettings() {
     return this.initialSettings;
+  }
+
+  getSettingsInitialData() {
+    return this.settingsInitialData;
   }
 
   registerSettingsGetterForApply(settingsGetter: () => GenericNodeSettings) {
