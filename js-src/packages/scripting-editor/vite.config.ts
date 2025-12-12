@@ -20,7 +20,7 @@ export default defineConfig({
     dts({
       insertTypesEntry: true,
       tsconfigPath: fileURLToPath(
-        new URL("tsconfig.app.json", import.meta.url),
+        new URL("tsconfig.lib.json", import.meta.url),
       ),
     }),
     cssInjectedByJsPlugin({
