@@ -49,6 +49,13 @@ package org.knime.testing.node.dialog.scripting;
 import java.io.File;
 import java.io.IOException;
 
+import org.knime.core.data.DataColumnSpecCreator;
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.def.BooleanCell;
+import org.knime.core.data.def.BooleanCell.BooleanCellFactory;
+import org.knime.core.data.def.DefaultRow;
+import org.knime.core.data.def.StringCell;
+import org.knime.core.data.def.StringCell.StringCellFactory;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.ExecutionMonitor;
@@ -58,44 +65,61 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.webui.node.dialog.defaultdialog.NodeParametersUtil;
 
 /**
  * The node model for Dummy Scripting Node.
  *
  * @author Benjamin Wilhelm, KNIME GmbH, Berlin, Germany
  */
+@SuppressWarnings("restriction")
 final class ScriptingDummyNodeModel extends NodeModel {
 
+    private ScriptingDummyNodeSettings m_settings;
+
     ScriptingDummyNodeModel() {
-        super(0, 0);
+        super(0, 1);
+    }
+
+    private static DataTableSpec createSpec() {
+        return new DataTableSpec( //
+            new DataColumnSpecCreator("expression", StringCell.TYPE).createSpec(), //
+            new DataColumnSpecCreator("supportMultipleStatements", BooleanCell.TYPE).createSpec(), //
+            new DataColumnSpecCreator("separator", StringCell.TYPE).createSpec() //
+        );
     }
 
     @Override
     protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
-        return new PortObjectSpec[0];
+        return new PortObjectSpec[]{createSpec()};
     }
 
     @Override
     protected PortObject[] execute(final PortObject[] inObjects, final ExecutionContext exec) throws Exception {
-        // TODO output current settings as a table
-        return new PortObject[0];
+        var container = exec.createDataContainer(createSpec());
+        container.addRowToTable(new DefaultRow("settings", //
+            StringCellFactory.create(m_settings.m_script), //
+            BooleanCellFactory.create(m_settings.m_supportMultipleStatements), //
+            StringCellFactory.create(m_settings.m_separator) //
+        ));
+
+        return new PortObject[]{container.getTable()};
     }
 
     @Override
     protected void saveSettingsTo(final NodeSettingsWO settings) {
-        // TODO Auto-generated method stub
-
+        var s = m_settings == null ? NodeParametersUtil.createSettings(ScriptingDummyNodeSettings.class) : m_settings;
+        NodeParametersUtil.saveSettings(ScriptingDummyNodeSettings.class, s, settings);
     }
 
     @Override
     protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // TODO Auto-generated method stub
-
+        // NOOP
     }
+
     @Override
     protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
-        // TODO Auto-generated method stub
-
+        m_settings = NodeParametersUtil.loadSettings(settings, ScriptingDummyNodeSettings.class);
     }
 
     @Override

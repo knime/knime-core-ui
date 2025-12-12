@@ -50,6 +50,7 @@ package org.knime.testing.node.dialog.scripting;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -58,9 +59,14 @@ import org.knime.core.webui.data.RpcDataService;
 import org.knime.core.webui.node.dialog.NodeDialog;
 import org.knime.core.webui.node.dialog.NodeSettingsService;
 import org.knime.core.webui.node.dialog.SettingsType;
+import org.knime.core.webui.node.dialog.defaultdialog.DefaultNodeDialog;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.DynamicParametersTriggerInvocationHandlerContext;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.NodeDialogServiceRegistry;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.filechooser.FileSystemConnector;
+import org.knime.core.webui.node.dialog.defaultdialog.dataservice.validation.CustomValidationContext;
 import org.knime.core.webui.node.dialog.scripting.GenericInitialDataBuilder;
 import org.knime.core.webui.node.dialog.scripting.InputOutputModel;
-import org.knime.core.webui.node.dialog.scripting.ScriptingNodeSettingsService;
+import org.knime.core.webui.node.dialog.scripting.ScriptingDefaultNodeSettingsService;
 import org.knime.core.webui.node.dialog.scripting.ScriptingService;
 import org.knime.core.webui.node.dialog.scripting.WorkflowControl;
 import org.knime.core.webui.page.Page;
@@ -73,7 +79,12 @@ import org.knime.core.webui.page.Page;
 @SuppressWarnings("restriction") // WebUI API is still restricted
 public class ScriptingDummyNodeDialog implements NodeDialog {
 
+    private final Class<ScriptingDummyNodeSettings> m_modelSettings = ScriptingDummyNodeSettings.class;
+
     private final ScriptingDummyNodeScriptingService m_scriptingService;
+
+    private final NodeDialogServiceRegistry m_serviceRegistry = new NodeDialogServiceRegistry(new FileSystemConnector(),
+        new CustomValidationContext(), new DynamicParametersTriggerInvocationHandlerContext());
 
     ScriptingDummyNodeDialog() {
         m_scriptingService = new ScriptingDummyNodeScriptingService();
@@ -116,14 +127,19 @@ public class ScriptingDummyNodeDialog implements NodeDialog {
             .addDataSupplier("fileName", () -> "script.java") //
         ;
 
-        return new ScriptingNodeSettingsService(ScriptingDummyNodeSettings::new, initialData);
+        return new ScriptingDefaultNodeSettingsService(initialData, m_modelSettings, m_serviceRegistry);
     }
 
     @Override
     public Optional<RpcDataService> createRpcDataService() {
-        return Optional.of(RpcDataService.builder() //
+        var serviceBuilder = RpcDataService.builder();
+        DefaultNodeDialog.addDefaultNodeDialogRpcServices(serviceBuilder, Map.of(SettingsType.MODEL, m_modelSettings),
+            m_serviceRegistry);
+
+        return Optional.of(serviceBuilder //
             .addService("ScriptingService", m_scriptingService.getJsonRpcService()) //
             .onDeactivate(m_scriptingService::onDeactivate) //
+            .onDeactivate(m_serviceRegistry::onDeactivateRpc) //
             .build());
     }
 
